@@ -1,0 +1,3 @@
+Contains mind-maps that deal with different aspects of the project, helping the authors to better understand the grand 'whole', and where they wish to go.
+
+At some point, (part of) these mindmaps might be use as means of real project documentation.
