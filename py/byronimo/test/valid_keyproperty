@@ -1,0 +1,5 @@
+[ header ]
+key = value
+
+[ +key ]
+flag1 = this
