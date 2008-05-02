@@ -26,6 +26,9 @@ class MethodTypeError( TypeError, ByronimoError ):
 	""" Indicates that a method either produced or returned a type that was not anticipated """
 	pass
 
+class InterfaceError( TypeError, ByronimoError ):
+	""" Indicates that an instances interface does not fully match the requrested interface """
+	pass 
 #}
 
 #{ Decorator Internal Exceptions 
@@ -33,14 +36,17 @@ class DecoratorError( ByronimoError ):
 	""" Thrown if decorators are used in an incorrect way
 	@note: this can only happen if decorators take arguments that do not resolve as 
 	requested
-	@todo: store actual function that caused the error
-	"""
+	@todo: store actual function that caused the error """
+	pass
+	
+class InterfaceSetupError( ByronimoError ):
+	""" Thrown if L{interface} attributes are used incorrectly 
+		- only and ignore are both given, although they are mutually exclusive """
 	pass
 
 class TypecheckDecoratorError( DecoratorError ):
 	""" Thrown if a typecheck_param decorator encounters an incorrect argument 
-	specification for the given method
-	"""
+	specification for the given method """
 	pass
 	
 	

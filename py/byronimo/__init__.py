@@ -25,8 +25,7 @@ def init_decorators( ):
 	
 	Decorators will help maintaining the system - this method installs 
 	them in the __builtin__ namespace to make them available to all L{byronimo}
-	classes
-	"""
+	classes """
 	import byronimo.decorators
 	
 	pred = lambda x: isfunction( x ) and not x.func_name.startswith( "_" )
@@ -35,13 +34,15 @@ def init_decorators( ):
 	# put decoratrors into __builtin__ namespace
 	for func in decorator_functions:
 		__builtin__.__dict__[ func.func_name ] = func
+		
+	# add the interface class to the builtin namespace also 
+	__builtin__.__dict__[ 'interface' ] = byronimo.decorators.interface
 	
 	
 def init_configProvider( ):
 	""" Install the configuration provider system 
 	
-	This allows values and settings to be stored in a convenient way.
-	"""
+	This allows values and settings to be stored in a convenient way. """
 	pass
 	
 def init_internationalization( ):
@@ -50,8 +51,7 @@ def init_internationalization( ):
 	Using the default python gettext module, internationalization compatibility
 	can be garantueed.
 	
-	Will map the '_' function to translate enclosed strings
-	"""
+	Will map the '_' function to translate enclosed strings """
 	import gettext
 	gettext.install( "byronimo" )
 	
@@ -63,8 +63,7 @@ def init_logging( ):
 	and assure a flexible message handling.
 	
 	@note: in the current implementation, it is based on the default python logging 
-	package
-	"""
+	package """
 	pass 
 	
 	

@@ -20,11 +20,9 @@ __id__="$Id$"
 
 
 class classname( object ):
-	"""
-	B{single line description}
+	""" B{single line description}
 	
-	MultiLine description
-	"""
+	MultiLine description """
 	
 	x = 20
 	#@cvav x: my class variable
@@ -35,8 +33,7 @@ class classname( object ):
 		
 		Multi Line Description
 		@param self: this is just for demonstration purposes
-		@type self: L{classname} 
-		"""
+		@type self: L{classname}  """
 		pass
 	#}
 

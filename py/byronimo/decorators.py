@@ -23,22 +23,86 @@ __date__="$Date$"
 __revision__="$Revision$"
 __id__="$Id$"
 
-from byronimo.exceptions import TypecheckDecoratorError, MethodTypeError
+from byronimo.exceptions import ( 	TypecheckDecoratorError, 
+									MethodTypeError, 
+									InterfaceError,
+									InterfaceSetupError)
 
 
 
 
+class __classobjtype():
+	""" Required to find out whether something is a classobj 
+		
+		Some old classes are not derived from object, and are always type 'classobj' 
+		if typed. This object type though is supposed to be in __builtin__ namespace, but 
+		it acutally isnt. Thus I create my own dummy class to be able to compare 
+		against and check for this type.
+		
+		One can also check for __class__ members here which appears to be one of the 
+		markers for new style classes """
+	pass
 
-
-def __checktype( arg, argpos, definetype, *exc_addargs ):
+	
+def _getactualtype( definetype ):
+	"""@param definetype: an instance of type L{interface}, a classobj or a type
+	@return: a type that can be handled properly by L{_checktype} """
+	if type( __classobjtype ) != type( definetype ) and not isinstance( definetype, type ):
+		return type( definetype )
+	return definetype
+	
+		
+def _checktype( arg, argpos, definetype, *exc_addargs ):
 	""" check whether the type of arg is correct """
-	actualtype = isinstance( definetype, type ) and definetype or type( definetype )
-	if not isinstance( arg, actualtype ):
-			m = "arg at pos %s defined as %s, but was %s" % ( str(argpos), str( actualtype ), str( type( arg ) ) )
+	# definetype could be an instace of list, tuple or dict - get the proper type
+	# special interface ?
+	if isinstance( definetype, interface ):
+		definetype.compare( arg )
+	else:
+		definetype = _getactualtype( definetype )	
+		if not isinstance( arg, definetype ):
+			m = "arg at pos %s defined as %s, but was %s" % ( str(argpos), str( definetype ), str( type( arg ) ) )
 			raise MethodTypeError( m, *exc_addargs )
+
+		
+class interface( ):
+	""" Simple command class allowing to compare interface with each other """
+	def __init__( self, ref_interface, ignore=[], only=[], add=[] ):
+		""" Keep the reference interface for later comparison 
+		@param ref_interface: the reference interface the later instance has to match with
+		@param ignore: functions in reference interface that do not need a match
+		@param only: only check these functions of ref_interface, ignore the others
+		@param add: add the given method names to the ones being required
+		@raise InterfaceSetupError:  """
+		if len( only ) and ( len( ignore ) or len( add ) ):
+			raise InterfaceSetupError( '( ignore or add ) and only keys are mutually exclusive' )
+			
+		self.ref_interface = ref_interface
+		if len( only ):
+			self.match_names = only
+		else:
+			self.match_names = [ attr for attr in ref_interface.__dict__.iterkeys() if not attr.startswith( '_' ) ]
+		self.ignore_names = ignore
+		
+	def compare( self, instance ):
+		""" Compare the interface of instance with the stored reference interface 
+		
+		Currently, this will try to find all functions in the reference interface in
+		the instance's interface
+		
+		@raise InterfaceError: if at least one function cannot be found """
+		missing = []
+		instattrs = dir( instance )
+		for funcname in self.match_names:
+			if not funcname in instattrs and not funcname in self.ignore_names:
+				missing.append( funcname )
+				
+		if len( missing ):
+			m = "instance %s does not support %s interface because of missing functions" % ( str( _getactualtype( instance ) ), self.ref_interface )
+			raise InterfaceError( m, missing )
 		
 
-
+		
 def __methodtypecheck( type_signature, rval_inst, index=0 ):
 	""" compare the concrete rval type with the target_type
 	@param type_signature: an iterator of types or simple type
@@ -46,13 +110,12 @@ def __methodtypecheck( type_signature, rval_inst, index=0 ):
 	or iterable
 	@param index: if this method gets called, you can leave information about the index
 	of the type signature that is the basis for the call ( used in neseted structures )
-	@note: raises if the types do not match
-	"""
+	@note: raises if the types do not match """
 	# check for iterators
 	try:
 		# is dict ?
 		if isinstance( type_signature, dict ):
-			__checktype( rval_inst, index, dict )
+			_checktype( rval_inst, index, dict )
 			try: 
 				for k in type_signature:
 					__methodtypecheck( type_signature[k], rval_inst[k] )
@@ -74,7 +137,7 @@ def __methodtypecheck( type_signature, rval_inst, index=0 ):
 				__methodtypecheck( type_signature[i], rval_iter.next(), index=i )
 		# is scalar value
 		else:
-			__checktype( rval_inst, index, type_signature, rval_inst )
+			_checktype( rval_inst, index, type_signature, rval_inst )
 	except LookupError,TypeError:
 		raise MethodTypeError( "The signature type had an unsupported format - use ony simple types, lists and dicts" )
 
@@ -88,8 +151,7 @@ class TypeBase( ):
 		This equals regular expressions for types.
 		
 		TypeClasses can be freely combined
-		@todo: implementation - this will be kind of slow - perhaps this is why it will never be done ...
-	"""
+		@todo: implementation - this will be kind of slow - perhaps this is why it will never be done ... """
 	pass 
 
 
@@ -121,8 +183,7 @@ def typecheck_param( *args, **kvargs ):
 	@raise TypecheckDecoratorError: inidcates incorrect decorator usage
 	@note: Will only work in debug mode - otherwise the method will be returned
 	unaltered
-	@see: L{byronimo.test.decorators.TestTypecheckDecorators}
-	"""
+	@see: L{byronimo.test.decorators.TestTypecheckDecorators} """
 	def _dotypecheck( func ):
 		# if not debug mode return func
 		argtypelist = args
@@ -132,13 +193,16 @@ def typecheck_param( *args, **kvargs ):
 		ndefaultargs = func.func_defaults and len( func.func_defaults ) or 0
 		numargs = func.func_code.co_argcount - ndefaultargs
 		if len( args ) != numargs:
-			m = "%i of %i args of %s decorated with type" % ( len( args ), numargs, func.func_name )
+			m = "%i of %i args of method '%s' decorated with type" % ( len( args ), numargs, func.func_name )
 			raise TypecheckDecoratorError( m )
 		
 		
 		def _inner_dotypecheck( *args, **kvargs ):
 			""" Does actual runtime type check """			
 			
+			if len( args ) != len( argtypelist ):
+				raise TypecheckDecoratorError( "Mismatching argument count( %i of %i )" % ( len(args), len( argtypelist ) ) )
+				
 			# check args - its garantued that we have at least as many types as arglists
 			for i in xrange( 0, len( argtypelist ) ):
 				__methodtypecheck( argtypelist[i], args[i], index=i ) 
@@ -194,8 +258,7 @@ def typecheck_rval( rval_type ):
 	as they are harder to use and more error prone.
 	
 	@raise MethodReturnTypeError: 
-	@note: will not apply if NOT in DEBUG mode
-	"""
+	@note: will not apply if NOT in DEBUG mode """
 	# decorator check: assure that all rvals are actually types, and not values
 	def __deco_typecheck( type_signature ):
 		""" @note: could possible get into loop if there are cyclic references """		
