@@ -3,19 +3,19 @@
 Initialize Byronimo system assisting development, debugging and maintenance 
 
 	- install general L{decorators} into __builtin__ namespace
-
+	
 @newfield revision: Revision
 @newfield id: SVN Id
 """
 
 __author__='$Author$'
-__contact__='you@somedomain.tld'
+__contact__='byron@byronimo.de'
 __version__=1
-__license__='GPL'
+__license__='MIT License'
 __date__="$Date$"
 __revision__="$Revision$"
 __id__="$Id$"
-
+__copyright__='(c) 2008 Sebastian Thiel'
 
 import __builtin__
 from inspect import isfunction

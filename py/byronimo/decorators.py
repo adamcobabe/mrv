@@ -11,17 +11,20 @@ Decorators are used to
 @warn: all methods without a leading underscore will be made available as decorators
 @NOTE: All decorators will return unaltered methods if the DEBUG mode is not enabled
 @see: L{byronimo.test.decorators}
+
 @newfield revision: Revision
 @newfield id: SVN Id
 """
 
 __author__='$Author$'
-__contact__='you@somedomain.tld'
+__contact__='byron@byronimo.de'
 __version__=1
-__license__='GPL'
+__license__='MIT License'
 __date__="$Date$"
 __revision__="$Revision$"
 __id__="$Id$"
+__copyright__='(c) 2008 Sebastian Thiel'
+
 
 from byronimo.exceptions import ( 	TypecheckDecoratorError, 
 									MethodTypeError, 

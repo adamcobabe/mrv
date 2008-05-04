@@ -6,12 +6,13 @@ Test all aspects of the configuration management system
 """
 
 __author__='$Author$'
-__contact__='you@somedomain.tld'
+__contact__='byron@byronimo.de'
 __version__=1
-__license__='GPL'
+__license__='MIT License'
 __date__="$Date$"
 __revision__="$Revision$"
 __id__="$Id$"
+__copyright__='(c) 2008 Sebastian Thiel'
 
 
 import unittest
@@ -116,8 +117,8 @@ class TestConfigAccessor( unittest.TestCase ):
 		cca = ConfigAccessor( )
 		cca.readfp( memfile )
 		
-		print cca
 		# diff the configurations
+		
 		
 	#}
 	
