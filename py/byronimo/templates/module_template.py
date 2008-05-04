@@ -16,7 +16,7 @@ __license__='MIT License'
 __date__="$Date$"
 __revision__="$Revision$"
 __id__="$Id$"
-__copyright__='(c) 2008 $Author$'
+__copyright__='(c) 2008 <Your Name>'
 
 
 

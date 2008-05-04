@@ -37,6 +37,7 @@ from ConfigParser import (	RawConfigParser,
 							NoOptionError, 
 							ParsingError)
 from byronimo.exceptions import ByronimoError
+import copy
 import re
 import sys
 
@@ -144,7 +145,7 @@ class ConfigAccessor( object ):
 		fca.write( close_fp = False )
 		return stream.getvalue()
 		
-	#{ RawConfigParser Interface
+	#{ IO Interface
 	def readfp( self, filefporlist, close_fp = True ):
 		""" Read the INI file from the file like object(s) 
 		@param filefporlist: single file like object or list of such
@@ -193,6 +194,10 @@ class ConfigAccessor( object ):
 				
 		return writtenFiles
 		
+	#} END GROUP
+	
+	
+	#{Transformations
 	# type checking does not work for ourselves as we are not yet defined - need baseclass !
 	# But I cannot introduce it just for that purpose ... 
 	# @typecheck_rval( object, ExtendedFileInterface )
@@ -231,6 +236,44 @@ class ConfigAccessor( object ):
 		
 	#} END GROUP
 	
+	#{ Section Access 
+	def __iter__( self ):
+		""" @return: iterator for all our sections """
+		import itertools
+		return itertools.chain( *[ iter( node._sections ) for node in self._configChain ] )
+	
+	@typecheck_param( object, basestring )
+	def getSection( self, section ):
+		""" @return: section with name, or raise 
+		@raise NoSectionError: """
+		for node in self._configChain:
+			if section in node._sections:
+				return node.getSection( section )
+				
+		raise NoSectionError( section )
+		
+	@typecheck_param( object, basestring )
+	def getSectionDefault( self, section ):
+		"""@return: section with given name,
+		@raise IOError: If the configuration cannot be written to 
+		@note: the section will be created if it does not yet exist
+		"""
+		try: 
+			return self.getSection( section )
+		except:
+			pass
+			
+		# find the first writable node and create the section there 
+		for node in self._configChain:
+			if node.writable:
+				return node.getSectionDefault( section )
+		
+		# we did not find any writable node - fail
+		raise IOError( "Could not find a single writable configuration file" )
+		
+		
+	#} END GROUP
+	
 #}END GROUP
 
 
@@ -263,11 +306,17 @@ class ExtendedFileInterface( ):
 	
 class ConfigFile( file, ExtendedFileInterface ): 
 	""" file object implementation of the ExtendedFileInterface """
+	__slots__ = [ '_writable' ]
 	
+	def __init__( self, *args, **kvargs ):
+		""" Initialize our caching values """
+		file.__init__( self, *args, **kvargs )
+		self._writable = self._isWritable( )
+		
 	def _modeSaysWritable( self ):
 		return ( self.mode.find( 'w' ) != -1 ) or ( self.mode.find( 'a' ) != -1 )
 	
-	def isWritable( self ):
+	def _isWritable( self ):
 		""" Check whether the file is effectively writable by opening it for writing 
 		@todo: evaluate the usage of stat instead - would be faster, but I do not know whether it works on NT with user rights etc."""
 		if self._modeSaysWritable( ): 
@@ -297,6 +346,11 @@ class ConfigFile( file, ExtendedFileInterface ):
 			self.seek( pos )
 			
 		return rval
+	
+	def isWritable( self ):
+		"""@return: True if the file is truly writable"""
+		# return our cached value 
+		return self._writable
 		
 	def isClosed( self ):
 		return self.closed
@@ -307,7 +361,9 @@ class ConfigFile( file, ExtendedFileInterface ):
 	def openForWriting( self ):
 		if self.closed or not self._modeSaysWritable():
 			file.__init__( self, self.name, 'w' )
-			
+		
+		# update writable value cache 
+		self._writable = self._isWritable(  )
 			
 class DictConfigINIFile( ExtendedFileInterface, DictToINIFile ):
 	""" dict file object implementation of ExtendedFileInterface """
@@ -617,7 +673,7 @@ class Section( object ):
 		"""
 		k = self.getKeyDefault( name, value )[0]
 		k.values = value
-	#}
+	#}                                               
 	
 	
 	
@@ -633,14 +689,13 @@ class ConfigNode( object ):
 	def __init__( self, fp ):
 		""" Initialize Class Instance"""
 		self._sections	= BasicSet()			# associate sections with key holders
-		self._writable 	= fp.isWritable			# determines whether our instance can be altered
 		self._fp		= fp					# file-like object that we can read from and possibly write to 
 	#}
 	
 	
 	def _isWritable( self ):
 		""" @return: True if the instance can be altered """
-		return self._writable
+		return self.fp.isWritable()
 		
 	#{Properties
 	writable = property( _isWritable )		# read-only attribute
@@ -708,6 +763,13 @@ class ConfigNode( object ):
 			
 		return self._fp.getName()
 		
+	@typecheck_rval( list )
+	def listSections( self ):
+		""" @return: [] with string names of available sections 
+		@todo: return an iterator instead"""
+		out = []
+		for section in self._sections: out.append( str( section ) )
+		return out
 		
 	#{Section Access
 	@typecheck_rval( Section )
@@ -733,9 +795,73 @@ class ConfigNode( object ):
 #} END GROUP
 
 
-	
+		
 #{ Configuration Diffing Classes
-class ConfigDiffer( object ):
+
+
+class DiffData( object ): 
+	""" Struct keeping data about added, removed and/or changed data """
+	__slots__ = [ 'added', 'removed', 'changed', 'unchanged' ]
+	
+	"""#@ivar added: Copies of all the sections that are only in B ( as they have been added to B )"""
+	"""#@ivar removed: Copies of all the sections that are only in A ( as they have been removed from B )"""
+	"""@ivar changed: Copies of all the sections that are in A and B, but with changed keys and/or properties"""
+		
+	def __init__( self , A, B ):
+		""" Initialize this instance with the differences of B compared to A """
+		self._populate( A, B )
+	
+	def _populate( self, A, B ):
+		""" Must be implemented by subclass """
+		raise NotImplementedError
+		
+	def hasDifferences( self ):
+		"""@return: true if we have stored differences ( A  is not equal to B )"""
+		return len( self.unchanged ) == 0 and \
+				( len( self.added ) or len( self.removed ) or len ( self.changed ) )
+	
+
+class DiffKey( DiffData ): 
+	""" Implements DiffData on Key level """
+	
+	def _populate( self, A, B ):
+		""" Find added and removed key values 
+		@note: currently the implementation is not index based, but set- and thus value based
+		@note: changed has no meaning in this case and will always be empty """
+		
+		# compare based on string list, as this matches the actual representation in the file
+		avals = frozenset( [ str( val ) for val in A._values ] )
+		bvals = frozenset( [ str( val ) for val in B._values ] )
+		
+		self.added = bvals - avals
+		self.removed = avals - bvals
+		self.unchanged = avals & bvals
+		self.changed = set()			# always empty -
+		
+		
+class DiffSection( DiffData ):
+	""" Implements DiffData on section level """
+		
+	def _populate( self, A, B  ):
+		""" Find the difference between the respective """
+		self.added = copy.deepcopy( B.keys - A.keys )
+		self.removed = copy.deepcopy( A.keys - B.keys )
+		self.changed = set()
+		self.unchanged = set()
+		
+		# find and set changed keys
+		common = A.keys & B.keys
+		for key in common:
+			akey = A.getKey( str( key ) )
+			bkey = B.getKey( str( key ) )
+			dkey = DiffKey( akey, bkey )
+			
+			if dkey.hasDifferences( ): self.changed.add( dkey )
+			else: self.unchanged.add( key )
+		
+	
+
+class ConfigDiffer( DiffData ):
 	"""Compares two configuration objects and allows retrieval of differences 
 	
 	Use this class to find added/removed sections or keys or differences in values
@@ -749,9 +875,37 @@ class ConfigDiffer( object ):
 		  the user has actually changed something, applying actions only if required
 			- alternatively, programs can simply be more efficient by acting only on 
 		  	  items that actually changed """
-	__slots__ = [ 'sections_added', 'sections_removed', 'keys_added', 'keys_removed' ]
-	def __init__( self ):
-		pass
+					
+	
+	@typecheck_param( object, ConfigAccessor, ConfigAccessor )
+	def _populate( self, A, B ):
+		""" Perform the acutal diffing operation to fill our data structures 
+		@note: this method directly accesses ConfigAccessors internal datastructures """
+		
+		# diff sections  - therefore we actually have to treat the chains 
+		#  in a flattened manner 
+		# built section sets !
+		asections = frozenset( iter( A ) ) 
+		bsections = frozenset( iter( B ) )
+		
+		# assure we do not work on references !
+		self.added = copy.deepcopy( bsections - asections )
+		self.removed = copy.deepcopy( asections - bsections )
+		self.changed = set()
+		self.unchanged = set()
+		
+		common = asections & bsections		# will be copied later later on key level
+		
+		# get a deeper analysis of the common sections - added,removed,changed keys
+		for section in common:
+			# find out whether the section has changed !
+			asection = A.getSection( str( section ) )
+			bsection = B.getSection( str( section ) )
+			dsection = DiffSection( asection, bsection )
+			
+			if dsection.hasDifferences( ): self.changed.add( dsection )
+			else: self.unchanged.add( dsection )
+			
 
 #}
 

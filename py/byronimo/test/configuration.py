@@ -118,6 +118,8 @@ class TestConfigAccessor( unittest.TestCase ):
 		cca.readfp( memfile )
 		
 		# diff the configurations
+		diff = ConfigDiffer( cca, fca )
+		self.failIf( diff.hasDifferences( ) )
 		
 		
 	#}
