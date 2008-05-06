@@ -44,12 +44,8 @@ class TestTypecheckDecorators( unittest.TestCase ):
 			self.failUnlessRaises( MethodTypeError, getattr( c, callmethod ), *args, **kvargs )
 
 	
-	def testtypecheck_param_args( self ):
-		"""
-		Assure that the typecheck param is able to send type error exceptions
-		if an unexpected parameter type was given to the testclass
-		@note: tests args only !
-		"""
+	def test_typecheck_param_args( self ):
+		"""Decorators: Assure that the typecheck param is able to send type error exceptions """
 		# these should work
 		c = _TypecheckClass()
 		c.wantsDummyDerived( DummyDerived() )
@@ -62,11 +58,8 @@ class TestTypecheckDecorators( unittest.TestCase ):
 		self._check_decorator_exceptions( c, iskv=False )
 		self._check_decorator_exceptions( c, iskv=True )
 
-	def testtypecheck_param_misspelledkvarg( self ):
-		"""
-		Assure that people do not set kv type checks that do not match any 
-		actual method variable
-		"""
+	def test_typecheck_param_misspelledkvarg( self ):
+		"""Decorators: Assure that people do not set kv type checks that do not match any actual method variable """
 		try:
 			_TypecheckClass().wantsDummyDerivedMisspelledkv( dum=DummyDerived() )
 		except TypecheckDecoratorError:
@@ -78,11 +71,8 @@ class TestTypecheckDecorators( unittest.TestCase ):
 			self.fail()
 		
 			
-	def testtypecheck_rval( self ):
-		""" 
-		Assure that the rval test decoratoris actually able to catch these kinds of 
-		type errors 
-		"""
+	def test_typecheck_rval( self ):
+		"""Decorators: Assure that the rval test decorator is able to catch these kinds of  type errors  """
 		method_names = [ 'return_int', 'return_complex' ]
 		
 		# these should work 
@@ -107,10 +97,8 @@ class TestTypecheckDecorators( unittest.TestCase ):
 				
 	
 		
-	def testtypecheck_combined( self ):
-		""" Tests whether methods using both, rval and parameter type checking
-			works as expected
-		"""
+	def test_typecheck_combined( self ):
+		"""Decorators: Tests whether methods using both, rval and parameter type checking works as expected """
 		c = _TypecheckClass() 
 		# this one should work
 		c.return_and_param( 2 )

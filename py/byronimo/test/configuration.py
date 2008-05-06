@@ -20,7 +20,7 @@ import os
 import sys
 from ConfigParser import *
 from byronimo.configuration import *
-
+from itertools import *
 
 class _ConverterLibrary( ):
 	""" For use with Converter Test Cases - contains different dictionaries for INI conversion """
@@ -41,7 +41,7 @@ class TestDictConverter( unittest.TestCase ):
 	
 	
 	def test_allValidDicts( self ):
-		""" Tests whether default dicts can actually be handled by the converter """
+		"""DictToINIFile:Tests whether default dicts can actually be handled by the converter """
 		head = 'DEFAULT'
 		for dictionary in _ConverterLibrary.gooddictslist:
 			dictconverted = DictToINIFile( dictionary, section=head )
@@ -54,9 +54,8 @@ class TestDictConverter( unittest.TestCase ):
 				self.failUnless( cp.get( head, k ) == str(dictionary[k]).strip() )
 		
 	def test_valuecheck( self ):
-		""" Tests whether malformed strings trigger exceptions if malformed
-			This is part of the classes sanity checks
-		"""
+		""" DictToINIFile:Tests whether malformed strings trigger exceptions if malformed
+			This is part of the classes sanity checks """
 		sdarg = [ _ConverterLibrary.simple_dict ]
 		args = [ 
 				( sdarg, { 'description' : "DESC\nnewline" } ),
@@ -70,27 +69,10 @@ class TestDictConverter( unittest.TestCase ):
 class TestConfigAccessor( unittest.TestCase ):
 	""" Test the ConfigAccessor Class and all its featuers"""
 	#{ Helper Methods
-	@staticmethod
-	def _getPrefixedINIFileNames( prefix ):
-		""" Return full paths to INI files of files with the given prefix
-			
-			They must be in the same path as this test file, and end with .ini
-		"""
-		from glob import glob
-		import os.path as path
-		return glob( os.path.join( path.dirname( __file__ ), prefix+"*.ini" ) )
 	
-	@staticmethod
-	def _tofp( filenamelist, mode='r' ):
-		return [ ConfigFile( filename, mode ) for filename in filenamelist ]
-		
-	@staticmethod
-	def _getprefixedinifps( prefix, mode='r' ):
-		return TestConfigAccessor._tofp( TestConfigAccessor._getPrefixedINIFileNames( prefix ), mode=mode )
-		
 	@typecheck_param( object, ConfigAccessor, list )
 	def _verifiedRead( self, ca, fileobjectlist, close_fp = True ):
-		""" Assure that the given list of file objects can be read properly by ca
+		"""ConfigAccessor: Assure that the given list of file objects can be read properly
 		without loosing information.
 		@param fileobjectlist: list of fileobjects
 			- A simple differ is used to accomplish this
@@ -125,22 +107,123 @@ class TestConfigAccessor( unittest.TestCase ):
 	#}
 	
 	def test_readValidINI( self ):
-		"""Tests whether non-malformed INI files can be read """
+		"""ConfigAccessor: Tests whether non-malformed INI files can be read ( single and multi )"""
 		ca = ConfigAccessor()
-		inifps = TestConfigAccessor._getprefixedinifps( 'valid' )
+		inifps = _getprefixedinifps( 'valid' )
 		inifps.append( DictConfigINIFile( os.environ ) )
 		for ini in inifps:
 			self._verifiedRead( ca, [ ini ] )  
 		
 		# try to read all files in a row 
-		self._verifiedRead( ca, TestConfigAccessor._getprefixedinifps( 'valid' ) )	
+		self._verifiedRead( ca, _getprefixedinifps( 'valid' ) )	
 		
-		
-	def test_readmultiValidINI( self ):
-		""" Test whether configuration chains can be read """
-		pass 
 		
 	def test_readInvalidINI( self ):
-		""" Tests whether malformed INI files raise """
-		pass
+		"""ConfigAccessor: Tests whether malformed INI files raise """
+		inifps = inifps = _getprefixedinifps( 'invalid' )
+		ca = ConfigAccessor( )
+		for ini in inifps: 
+			self.failUnlessRaises( ConfigParsingError, ca.readfp, ini ) 
 	
+
+		
+class TestConfigDiffer( unittest.TestCase ):
+	""" Test the ConfigDiffer Class and all its featuers"""
+	
+
+	def _getDiff( self, testid ):
+		"""@param testid: the name of the test, it looks for 'valid_${id}_a|b" respectively
+		@return: ConfigDiffer initialized to the A and B files of test with id """
+		pre = "valid_"
+		filenames = []
+		for char in 'ab':
+			filenames.extend( _getPrefixedINIFileNames( pre + testid + "_" + char ) )
+		
+		self.assertEquals( len( filenames ) , 2 )
+		filefps = _tofp( filenames )
+		accs = ( ConfigAccessor(), ConfigAccessor() )
+		for ca,fp in izip( accs, filefps ):
+			ca.readfp( fp )
+			
+		return ConfigDiffer( accs[0], accs[1] )
+	
+	def _checkLengths( self, diff, assertadded, assertremoved, assertchanged, assertunchanged ):
+		""" Helper checking de length of the given diff delta lists 
+		Fail test if the given numbers do not match the actual numbers """
+		# print str(diff)
+		self.failUnless( len( diff.added ) == assertadded and len( diff.removed ) == assertremoved and 
+						 len( diff.changed ) == assertchanged and len( diff.unchanged )== assertunchanged )
+		
+		
+	def test_sectionAdded( self ):
+		"""ConfigDiffer: Assure diffing will detect removed sections """
+		self._checkLengths( self._getDiff( "sectionremoved" ), 0, 1, 0, 1 ) 
+	
+	def test_sectionAddedRemoved( self ):                              
+		"""ConfigDiffer: Assure diffing will detect removed and added sections """
+		self._checkLengths( self._getDiff( "sectionaddedremoved" ), 0, 1, 0, 1 )
+		
+	def test_sectionAddedRemoved( self ):
+		"""ConfigDiffer: Assure diffing will detect removed and added sections """
+		self._checkLengths( self._getDiff( "sectionaddedremoved" ), 1, 1, 0, 1 ) 
+	
+	def test_sectionMultiChange( self ):
+		"""ConfigDiffer: Assure diffing will detect removed and added sections, no unchanged sections """
+		self._checkLengths( self._getDiff( "sectionmultichange" ), 2, 1, 0, 0 )
+		
+	def test_keyadded( self ):
+		"""ConfigDiffer: Assure added keys are detected"""
+		diff = self._getDiff( "keyadded" )
+		self._checkLengths( diff, 0, 0, 1, 0 )
+		# get changed section and assure there is exactly one key
+		self.failUnless( len( iter( diff.changed ).next().added ) )
+		
+	def test_keyremoved( self ):
+		"""ConfigDiffer: Assure removed keys are detected"""
+		diff = self._getDiff( "keyremoved" )
+		self._checkLengths( diff, 0, 0, 1, 0 )
+		# get changed section and assure there is exactly one key
+		self.failUnless( len( diff.changed[0].removed ) )
+		
+	def test_keyvalueremoved( self ):
+		"""ConfigDiffer: Assure removed key-values are detected"""
+		diff = self._getDiff( "valueremoved" )
+		self._checkLengths( diff, 0, 0, 1, 0 )
+		# get changed section and assure there is exactly one key
+		self.failUnless( len( diff.changed[0].changed[0].removed ) )
+	
+	
+	def test_keyvalueadded( self ):
+		"""ConfigDiffer: Assure added key-values are detected"""
+		diff = self._getDiff( "valueadded" )
+		self._checkLengths( diff, 0, 0, 1, 0 )
+		# get changed section and assure there is exactly one key
+		self.failUnless( len( diff.changed[0].changed[0].added ) )
+	
+		
+	def test_keyvaluechanged( self ):
+		"""ConfigDiffer: Assure changed key-values are detected as a removed and added value"""
+		diff = self._getDiff( "valueaddedremoved" )
+		self._checkLengths( diff, 0, 0, 1, 0 )
+		# get changed section and assure there is exactly one key
+		key = diff.changed[0].changed[0]
+		self.failUnless( len( key.added ) and len( key.removed ) )
+		
+def _getPrefixedINIFileNames( prefix ):
+	""" Return full paths to INI files of files with the given prefix
+		
+		They must be in the same path as this test file, and end with .ini
+	"""
+	from glob import glob
+	import os.path as path
+	return glob( os.path.join( path.dirname( __file__ ), prefix+"*.ini" ) )
+
+def _tofp( filenamelist, mode='r' ):
+	return [ ConfigFile( filename, mode ) for filename in filenamelist ]
+	
+def _getprefixedinifps( prefix, mode='r' ):
+	return _tofp( _getPrefixedINIFileNames( prefix ), mode=mode )
+
+
+
+#} END GROUP

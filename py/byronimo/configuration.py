@@ -811,18 +811,40 @@ class DiffData( object ):
 		""" Initialize this instance with the differences of B compared to A """
 		self._populate( A, B )
 	
+	def toStr( self, typename ):
+		""" Convert own data representation to a string """
+		out = ''
+		attrs = [ 'added','removed','changed','unchanged' ]
+		for attr in attrs:
+			attrobj = getattr( self, attr )
+			try: 
+				if len( attrobj ) == 0: 
+					# out += "No " + attr + " " + typename + "(s) found\n"
+					pass 
+				else:
+					out += str( len( attrobj ) ) + " " + attr + " " + typename + "(s) found\n" 
+					for item in attrobj:
+						out += str( item ) + "\n"
+			except:
+				raise
+				# out += attr + " " + typename + " is not set\n"
+				
+		return out
+		
 	def _populate( self, A, B ):
 		""" Must be implemented by subclass """
 		raise NotImplementedError
 		
 	def hasDifferences( self ):
 		"""@return: true if we have stored differences ( A  is not equal to B )"""
-		return len( self.unchanged ) == 0 and \
-				( len( self.added ) or len( self.removed ) or len ( self.changed ) )
+		return ( len( self.added ) or len( self.removed ) or len ( self.changed ) )
 	
 
 class DiffKey( DiffData ): 
 	""" Implements DiffData on Key level """
+	
+	def __str__( self ):
+		return self.toStr( "Key-Value" )
 	
 	def _populate( self, A, B ):
 		""" Find added and removed key values 
@@ -830,24 +852,27 @@ class DiffKey( DiffData ):
 		@note: changed has no meaning in this case and will always be empty """
 		
 		# compare based on string list, as this matches the actual representation in the file
-		avals = frozenset( [ str( val ) for val in A._values ] )
-		bvals = frozenset( [ str( val ) for val in B._values ] )
+		avals = frozenset( str( val ) for val in A._values  )
+		bvals = frozenset( str( val ) for val in B._values  )
 		
-		self.added = bvals - avals
-		self.removed = avals - bvals
-		self.unchanged = avals & bvals
-		self.changed = set()			# always empty -
+		self.added = list( bvals - avals )
+		self.removed = list( avals - bvals )
+		self.unchanged = list( avals & bvals )
+		self.changed = list()			# always empty -
 		
 		
 class DiffSection( DiffData ):
 	""" Implements DiffData on section level """
-		
+	
+	def __str__( self ):
+		return self.toStr( "Key" )
+	
 	def _populate( self, A, B  ):
 		""" Find the difference between the respective """
-		self.added = copy.deepcopy( B.keys - A.keys )
-		self.removed = copy.deepcopy( A.keys - B.keys )
-		self.changed = set()
-		self.unchanged = set()
+		self.added = list( copy.deepcopy( B.keys - A.keys ) )
+		self.removed = list( copy.deepcopy( A.keys - B.keys ) )
+		self.changed = list()
+		self.unchanged = list()
 		
 		# find and set changed keys
 		common = A.keys & B.keys
@@ -856,8 +881,8 @@ class DiffSection( DiffData ):
 			bkey = B.getKey( str( key ) )
 			dkey = DiffKey( akey, bkey )
 			
-			if dkey.hasDifferences( ): self.changed.add( dkey )
-			else: self.unchanged.add( key )
+			if dkey.hasDifferences( ): self.changed.append( dkey )
+			else: self.unchanged.append( key )
 		
 	
 
@@ -876,7 +901,10 @@ class ConfigDiffer( DiffData ):
 			- alternatively, programs can simply be more efficient by acting only on 
 		  	  items that actually changed """
 					
-	
+	def __str__( self ):
+		""" Print its own delta information - useful for debugging purposes """
+		return self.toStr( 'section' )
+		
 	@typecheck_param( object, ConfigAccessor, ConfigAccessor )
 	def _populate( self, A, B ):
 		""" Perform the acutal diffing operation to fill our data structures 
@@ -889,10 +917,10 @@ class ConfigDiffer( DiffData ):
 		bsections = frozenset( iter( B ) )
 		
 		# assure we do not work on references !
-		self.added = copy.deepcopy( bsections - asections )
-		self.removed = copy.deepcopy( asections - bsections )
-		self.changed = set()
-		self.unchanged = set()
+		self.added = list( copy.deepcopy( bsections - asections ) )
+		self.removed = list( copy.deepcopy( asections - bsections ) )
+		self.changed = list()
+		self.unchanged = list()
 		
 		common = asections & bsections		# will be copied later later on key level
 		
@@ -903,8 +931,8 @@ class ConfigDiffer( DiffData ):
 			bsection = B.getSection( str( section ) )
 			dsection = DiffSection( asection, bsection )
 			
-			if dsection.hasDifferences( ): self.changed.add( dsection )
-			else: self.unchanged.add( dsection )
+			if dsection.hasDifferences( ): self.changed.append( dsection )
+			else: self.unchanged.append( dsection )
 			
 
 #}
