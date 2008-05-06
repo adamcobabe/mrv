@@ -125,6 +125,13 @@ class TestConfigAccessor( unittest.TestCase ):
 		for ini in inifps: 
 			self.failUnlessRaises( ConfigParsingError, ca.readfp, ini ) 
 	
+	def test_iterators( self ):
+		"""ConfigAccessor: assure that the provided iterators for sections and keys work """
+		inifps = inifps = _getprefixedinifps( 'valid_4keys' )
+		ca = ConfigAccessor( )
+		ca.readfp( inifps )
+		self.failUnless( len( list( ca.getSectionIterator( ) ) ) == 2 )
+		self.failUnless( len( list( ca.getKeyIterator( ) ) ) == 4 )
 
 		
 class TestConfigDiffer( unittest.TestCase ):

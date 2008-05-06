@@ -40,7 +40,7 @@ from byronimo.exceptions import ByronimoError
 import copy
 import re
 import sys
-
+import StringIO
 
 #{ Exceptions
 ################################################################################
@@ -48,15 +48,16 @@ class ConfigParsingError( ByronimoError ):
 	""" Indicates that the parsing failed """
 	pass
 
-
-
+	
+class ConfigParsingPropertyError( ConfigParsingError ):
+	""" Indicates that the property(ies) parsing encountered a problem """
+	pass 
 #} End Exceptions
 
 
 #{ INI File Converters
 ################################################################################
 # Wrap arbitary sources and implicitly convert them to INI files when read
-import StringIO
 class DictToINIFile( StringIO.StringIO ):
 	""" Wraps a dictionary into an objects returning an INI file when read
 
@@ -144,6 +145,93 @@ class ConfigAccessor( object ):
 		fca = self.flatten( stream )
 		fca.write( close_fp = False )
 		return stream.getvalue()
+	
+	@staticmethod
+	def _isProperty( propname ):
+		""" @return: true if propname appears to be an attribute """
+		return propname.startswith( '+' )
+		
+	@staticmethod 
+	def _getNameTuple( propname ):
+		"""@return: [sectionname,keyname], sectionname can be None"""
+		tokens = propname[1:].split( ':' )	# cut initial + sign
+		
+		if len( tokens ) == 1:		# no fully qualified name
+			tokens.insert( 0, None )
+		return tokens
+		
+	def _parseProperties( self ):
+		"""Analyse the freshly parsed configuration chain and add the found properties
+		to the respective sections and keys
+		
+		@note: we are userfriendly regarding the error handling - if there is an invlid 
+		property, we warn and simply ignore it - for the system it will stay just a key and will 
+		thus be written back to the file as required
+		@raise ConfigParsingPropertyError: """
+		sectioniter = self._configChain.getSectionIterator()
+		exc = ConfigParsingPropertyError( ) 
+		for section in sectioniter:
+			if not ConfigAccessor._isProperty( section.name ):
+				continue
+				
+			# handle attributes
+			propname = section.name
+			propkeyname = propname[1:]
+			fqkn = ConfigAccessor._getNameTuple( propname ) # fully qualified key name
+			
+			# find all keys matching the keyname !
+			keymatchtuples = self.getKeysByName( fqkn[1] )
+			
+			# SEARCH FOR KEYS primarily !
+			propertytarget = None		# will later be key or section
+			lenmatch = len( keymatchtuples )
+			excmessage = ""				# keeps exc messages until we know whether to keep them or not
+			
+			if lenmatch == 0:
+				excmessage += "Key '" + propkeyname + "' referenced by property was not found\n"
+				# continue searching in sections
+			else:
+				# here it must be a key - failure leads to continuation
+				if fqkn[0] != None:
+					# search the key matches for the right section
+					for fkey,fsection in keymatchtuples:
+						if not fsection.name == fqkn[0]: continue
+						else: propertytarget = fkey
+						
+					if propertytarget is None:
+						exc.message += ( "Section '" + fqkn[0] + "' of key '" + fqkn[1] + 
+										"' could not be found in " + str(lenmatch) + " candiate sections\n" )
+						continue
+				else:
+					# section is not qualified - could be section or keyname
+					# prefer keynames
+					if lenmatch == 1:
+						propertytarget = keymatchtuples[0][0]	# [ (key,section) ] 
+					else: 
+						excmessage += "Property for key named '" + propkeyname + "' was found in " + str(lenmatch) + " sections and needs to be qualified as in: 'sectionname:"+propkeyname+"'\n"
+						# continue searching - perhaps we find a section that fits perfectly
+						
+					
+			# could be a section property 
+			if propertytarget is None:
+				try:
+					propertytarget = self.getSection( fqkn[1] )
+				except NoSectionError:
+					# nothing found - skip it 
+					excmessage += "Property '" + propkeyname + "' references unknown section or key\n"
+					
+			# safety check 
+			if propertytarget is None:
+				exc.message += excmessage
+				continue
+				
+			# set the properties to the propertytarget
+			# Assure that the property knows its section so that it can apply changes to itself !
+			
+		# finally raise our report-exception if required
+		if len( exc.message ):
+			raise exc
+			
 		
 	#{ IO Interface
 	def readfp( self, filefporlist, close_fp = True ):
@@ -168,10 +256,15 @@ class ConfigAccessor( object ):
 			finally:
 				if close_fp:
 					fp.close()
-			
-		# keep the chain - no error so far	
+		
+		# keep the chain - no error so far
 		self._configChain = tmpchain
 		
+		try:
+			self._parseProperties( )
+		except ConfigParsingPropertyError:
+			self._configChain = ConfigChain()	# undo changes and reraise
+			raise		
 		
 	@typecheck_rval( list )
 	def write( self, close_fp=True ):
@@ -236,12 +329,19 @@ class ConfigAccessor( object ):
 		
 	#} END GROUP
 	
-	#{ Section Access 
-	def __iter__( self ):
-		""" @return: iterator for all our sections """
-		import itertools
-		return itertools.chain( *[ iter( node._sections ) for node in self._configChain ] )
+	#{ Iterators
+	def getSectionIterator( self ):
+		"""@return: iterator returning all sections"""
+		return self._configChain.getSectionIterator()
+		
+	def getKeyIterator( self ):
+		"""@return: iterator returning tuples of (key,section) pairs"""
+		return self._configChain.getKeyIterator()
+		
+	#} END GROUP
 	
+	
+	#{ General Access
 	@typecheck_param( object, basestring )
 	def getSection( self, section ):
 		""" @return: section with name, or raise 
@@ -270,7 +370,15 @@ class ConfigAccessor( object ):
 		
 		# we did not find any writable node - fail
 		raise IOError( "Could not find a single writable configuration file" )
+				
 		
+	@typecheck_rval( list )
+	@typecheck_param( object, basestring )
+	def getKeysByName( self, name ):
+		"""@param name: the name of the key you wish to find
+		@return: List of  (L{Key},L{Section}) tuples of key matching name found in section, or empty list"""
+		# note: we do not use iterators as we want to use sets for faster search !
+		return list( self._configChain.iterateKeysByName( name ) )
 		
 	#} END GROUP
 	
@@ -439,6 +547,22 @@ class ConfigChain( list ):
 		raise NotImplementedError
 	#}
 	
+	#{ Iterators 
+	def getSectionIterator( self ):
+		"""@return: section iterator for whole configuration chain """
+		return ( section for node in self for section in node._sections )
+	
+	def getKeyIterator( self ):
+		"""@return: iterator returning tuples of (key,section) pairs"""
+		return ( (key,section) for section in self.getSectionIterator() for key in section )
+	
+	def iterateKeysByName( self, name ):
+		"""@param name: the name of the key you wish to find
+		@return: Iterator yielding (L{Key},L{Section}) of key matching name found in section"""
+		# note: we do not use iterators as we want to use sets for faster search !
+		return ( (section.keys[name],section) for section in self.getSectionIterator() if name in section.keys )
+	#} END ITERATORS
+	
 
 
 def _checkString( string, re ):
@@ -506,7 +630,6 @@ class Key( object ):
 	__slots__ = [ '_name','_values','properties','order' ]
 	validchars = r'\w'
 	_re_checkName = re.compile( validchars+r'+' )			# only word characters are allowed in key names
-	# _re_checkValue = re.compile( '('+validchars+'+)|(\w{3,}:[/\w]+)' )			# currently we are as restrictive as it gets
 	_re_checkValue = re.compile( '\S+' )			# currently we are as restrictive as it gets
 	
 	@typecheck_param( object, str, object, int )
@@ -604,6 +727,10 @@ class Section( object ):
 	@note: name will be stored stripped and must not contain certain chars """
 	__slots__ = [ '_name', 'keys', 'properties','order' ]
 	_re_checkName = re.compile( r'\+?\w+(:' + Key.validchars+ r'+)?' )
+	
+	def __iter__( self ):
+		"""@return: key iterator"""
+		return iter( self.keys )
 	
 	@typecheck_param( object, str, int )
 	def __init__( self, name, order ):
@@ -718,6 +845,7 @@ class ConfigNode( object ):
 			
 		self._sections.update( set( validsections ) )
 		
+		
 	@typecheck_param( object )
 	def parse( self ):
 		""" parse default INI information into the extended structure
@@ -801,7 +929,7 @@ class ConfigNode( object ):
 
 class DiffData( object ): 
 	""" Struct keeping data about added, removed and/or changed data """
-	__slots__ = [ 'added', 'removed', 'changed', 'unchanged' ]
+	__slots__ = [ 'added', 'removed', 'changed', 'unchanged','name' ]
 	
 	"""#@ivar added: Copies of all the sections that are only in B ( as they have been added to B )"""
 	"""#@ivar removed: Copies of all the sections that are only in A ( as they have been removed from B )"""
@@ -822,7 +950,10 @@ class DiffData( object ):
 					# out += "No " + attr + " " + typename + "(s) found\n"
 					pass 
 				else:
-					out += str( len( attrobj ) ) + " " + attr + " " + typename + "(s) found\n" 
+					out += str( len( attrobj ) ) + " " + attr + " " + typename + "(s) found "
+					if len( self.name ):
+						out += self.name
+					out += "\n"
 					for item in attrobj:
 						out += str( item ) + "\n"
 			except:
@@ -859,6 +990,7 @@ class DiffKey( DiffData ):
 		self.removed = list( avals - bvals )
 		self.unchanged = list( avals & bvals )
 		self.changed = list()			# always empty -
+		self.name = A.name
 		
 		
 class DiffSection( DiffData ):
@@ -873,7 +1005,7 @@ class DiffSection( DiffData ):
 		self.removed = list( copy.deepcopy( A.keys - B.keys ) )
 		self.changed = list()
 		self.unchanged = list()
-		
+		self.name = A.name
 		# find and set changed keys
 		common = A.keys & B.keys
 		for key in common:
@@ -899,7 +1031,18 @@ class ConfigDiffer( DiffData ):
 		- Programs interacting with the User by a GUI can easily determine whether
 		  the user has actually changed something, applying actions only if required
 			- alternatively, programs can simply be more efficient by acting only on 
-		  	  items that actually changed """
+		  	  items that actually changed 
+			  
+	Data Structure
+	==============
+	- every object in the diffing structure has a 'name' attribute
+	- ConfigDiffer.added|removed|unchanged: L{Section} objects that have been added, removed 
+	  or kept unchanged respectively
+	- ConfigDiffer.changed: L{DiffSection} objects that indicate the changes in respective section
+	  - DiffSection.added|removed|unchanged: L{Key} objects that have been added, removed or kept unchanged respectively
+	  - DiffSection.changed: L{DiffKey} objects that indicate the changes in the repsective key
+	    - DiffKey.added|removed: the key's values that have been added and/or removed respectively
+	"""
 					
 	def __str__( self ):
 		""" Print its own delta information - useful for debugging purposes """
@@ -913,14 +1056,15 @@ class ConfigDiffer( DiffData ):
 		# diff sections  - therefore we actually have to treat the chains 
 		#  in a flattened manner 
 		# built section sets !
-		asections = frozenset( iter( A ) ) 
-		bsections = frozenset( iter( B ) )
+		asections = frozenset( A.getSectionIterator() )
+		bsections = frozenset( B.getSectionIterator() )
 		
 		# assure we do not work on references !
 		self.added = list( copy.deepcopy( bsections - asections ) )
 		self.removed = list( copy.deepcopy( asections - bsections ) )
 		self.changed = list()
 		self.unchanged = list()
+		self.name = ''
 		
 		common = asections & bsections		# will be copied later later on key level
 		
