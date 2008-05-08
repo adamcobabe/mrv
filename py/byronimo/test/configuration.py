@@ -70,6 +70,7 @@ class TestConfigAccessor( unittest.TestCase ):
 	""" Test the ConfigAccessor Class and all its featuers"""
 	#{ Helper Methods
 	
+	
 	@typecheck_param( object, ConfigAccessor, list )
 	def _verifiedRead( self, ca, fileobjectlist, close_fp = True ):
 		"""ConfigAccessor: Assure that the given list of file objects can be read properly
@@ -91,6 +92,7 @@ class TestConfigAccessor( unittest.TestCase ):
 		# flatten the file ( into memory )
 		memfile = ConfigStringIO()
 		fca = ca.flatten( memfile )
+		
 		fca.write( close_fp = False )
 		
 		memfile.seek( 0 )
@@ -99,6 +101,8 @@ class TestConfigAccessor( unittest.TestCase ):
 		cca = ConfigAccessor( )
 		cca.readfp( memfile )
 		
+		#print testlist
+		#print cca
 		# diff the configurations
 		diff = ConfigDiffer( cca, fca )
 		self.failIf( diff.hasDifferences( ) )
@@ -120,19 +124,40 @@ class TestConfigAccessor( unittest.TestCase ):
 		
 	def test_readInvalidINI( self ):
 		"""ConfigAccessor: Tests whether malformed INI files raise """
-		inifps = inifps = _getprefixedinifps( 'invalid' )
 		ca = ConfigAccessor( )
+		inifps = _getprefixedinifps( 'invalid' )
+		
 		for ini in inifps: 
 			self.failUnlessRaises( ConfigParsingError, ca.readfp, ini ) 
 	
 	def test_iterators( self ):
 		"""ConfigAccessor: assure that the provided iterators for sections and keys work """
-		inifps = inifps = _getprefixedinifps( 'valid_4keys' )
-		ca = ConfigAccessor( )
-		ca.readfp( inifps )
+		ca = _getca( 'valid_4keys' )
 		self.failUnless( len( list( ca.getSectionIterator( ) ) ) == 2 )
 		self.failUnless( len( list( ca.getKeyIterator( ) ) ) == 4 )
-
+		
+	def test_keypropertyparsing( self ):
+		"""ConfigAccessor.Properties: Assure that key properties can be parsed"""
+		ca = _getca( 'valid_keyproperty' )
+		self.failUnless( ca.getKeysByName( "key" )[0][0].properties.getKey( 'property' ).value =='value' )
+		
+	def test_sectionprortyparsing( self ):
+		"""ConfigAccessor.Properties: Assure that section properties can be parsed"""
+		ca = _getca( 'valid_sectionproperty' )
+		self.failUnless( ca.getSection( "section" ).properties.getKey( 'property' ).value =='value' )
+			
+	def test_sectionkeyprortyparsing( self ):
+		"""ConfigAccessor.Properties: Assure that section and key properties can be parsed"""
+		ca = _getca( 'valid_sectionandkeyproperty' )
+		self.failUnless( ca.getSection( "section" ).properties.getKey( 'property' ).value =='value' )
+		self.failUnless( ca.getKeysByName( "key" )[0][0].properties.getKey( 'property' ).value =='value' )
+		
+	def test_propertyundefiniedpropertyattribute( self ):
+		"""ConfigAccessor.Properties: Property attribute of property must not be set"""
+		ca = _getca( 'valid_sectionandkeyproperty' )
+		self.failUnless( ca.getSection( "section" ).properties.properties == None )
+		self.failUnless( ca.getKeysByName( "key" )[0][0].properties.getKey( 'property' ).properties == None )
+			
 		
 class TestConfigDiffer( unittest.TestCase ):
 	""" Test the ConfigDiffer Class and all its featuers"""
@@ -231,6 +256,12 @@ def _tofp( filenamelist, mode='r' ):
 def _getprefixedinifps( prefix, mode='r' ):
 	return _tofp( _getPrefixedINIFileNames( prefix ), mode=mode )
 
+
+def _getca( prefix ):
+	"""@return: config accessor initialized with all files matching the given prefix"""
+	ca = ConfigAccessor( ) 
+	ca.readfp( _getprefixedinifps( prefix ) )
+	return ca
 
 
 #} END GROUP

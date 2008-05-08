@@ -226,7 +226,7 @@ class ConfigAccessor( object ):
 				continue
 				
 			# set the properties to the propertytarget
-			# Assure that the property knows its section so that it can apply changes to itself !
+			propertytarget.properties = section
 			
 		# finally raise our report-exception if required
 		if len( exc.message ):
@@ -290,6 +290,32 @@ class ConfigAccessor( object ):
 	#} END GROUP
 	
 	
+	@staticmethod
+	def _mergeKey( fromkey, tokey ):
+		"""Merge fromkey into tokey, respecting the properties"""
+		# merge properties 
+		if fromkey.properties != None: # should actually always be defined
+			ConfigAccessor._mergeSection( fromkey.properties, tokey.properties )
+		
+		#@todo: merge properly, default is setting the values
+		tokey._values = fromkey._values[:]
+		
+	@staticmethod
+	def _mergeSection( fromsection, tosection ):
+		"""Merge fromsection to tosection - properties will be handled like a section is"""
+		
+		# merge properties
+		if fromsection.properties != None:
+			ConfigAccessor._mergeSection( fromsection.properties, tosection.properties )
+		
+		for fkey in fromsection.keys: 
+			key,created = tosection.getKeyDefault( fkey.name, 1 )
+			if created:
+				key._values = []	# reset the value if key has been newly created
+			
+			# merge the keys 
+			ConfigAccessor._mergeKey( fkey, key )
+		
 	#{Transformations
 	# type checking does not work for ourselves as we are not yet defined - need baseclass !
 	# But I cannot introduce it just for that purpose ... 
@@ -311,19 +337,13 @@ class ConfigAccessor( object ):
 		
 		# transfer copies of sections and keys - requires knowledge of internal 
 		# data strudctures
+		count = 0
 		for mycn in self._configChain:
 			for mysection in mycn._sections:
 				section = cn.getSectionDefault( mysection.name )[0]
-				
-				# handle section properties
-				for mykey in mysection.keys: 
-					key,created = section.getKeyDefault( mykey.name, 1 )
-					if created:
-						key._values = []	# reset the value if key has been newly created
-					
-					# merge the keys 
-					#@todo: merge properly, default is setting the values
-					key._values.extend( mykey._values )
+				section.order = count
+				count += 1
+				ConfigAccessor._mergeSection( mysection, section )
 					
 		return ca
 		
@@ -371,6 +391,16 @@ class ConfigAccessor( object ):
 		# we did not find any writable node - fail
 		raise IOError( "Could not find a single writable configuration file" )
 				
+	
+	def getKeyDefault( self, sectionname,keyname, value ):
+		"""Convenience Function: get keyname in sectionname with the key's value or your 'value' if it did not exist 
+		@param sectionname: thekeyname of the sectionname the key is supposed to be in - it will be created if needed
+		@paramkeyname: thekeyname of the key you wish to find
+		@param value: the value you wish to receive as as default if the key has to be created
+		@return: L{Key}"""
+		return self.getSectionDefault( sectionname ).getKeyDefault(keyname, value )
+			
+
 		
 	@typecheck_rval( list )
 	@typecheck_param( object, basestring )
@@ -379,6 +409,9 @@ class ConfigAccessor( object ):
 		@return: List of  (L{Key},L{Section}) tuples of key matching name found in section, or empty list"""
 		# note: we do not use iterators as we want to use sets for faster search !
 		return list( self._configChain.iterateKeysByName( name ) )
+	
+			
+			
 		
 	#} END GROUP
 	
@@ -609,25 +642,30 @@ class BasicSet( set ):
 		raise AssertionError( "Should never have come here" )
 		
 
-class Properties( object ):
-	""" Define a set of properties 
-		Properties currently are nothing more than flags that can either be 
-		set or not """
-	__slots__ = [ 'flags' ]
+class PropertyHolder( object ):
+	"""Simple Base defining how to deal with properties
+	@note: to use this interface, the subclass must have a 'name' field"""
+	__slots__ = [ 'properties' ]
 	
-	def __init__( self, flagset=BasicSet() ):
-		""" Basic Field Initialization """
-		self.flags = flagset
-		
+	def __init__( self ):
+		# assure we do not get recursive here
+		self.properties = None
+		try:
+			if not isinstance( self, PropertySection ):
+				self.properties = PropertySection( "+" + self.name, self.order+1 ) # default is to write our properties after ourselves		# will be created on demand to avoid recursion on creation
+		except:
+			pass
+			
 
-class Key( object ):
+		
+class Key( PropertyHolder ):
 	""" Key with an associated values and an optional set of propterties 
 	
 	@note: a key's value will be always be stripped if its a string
 	@note: a key's name will be stored stripped only, must not contain certain chars
-	@todo: add support for escpaing comas within quotes - currently it split a 
-	at the coma, no matter what"""
-	__slots__ = [ '_name','_values','properties','order' ]
+	@todo: add support for escpaing comas within quotes - currently it split at 
+	comas, no matter what"""
+	__slots__ = [ '_name','_values','order' ]
 	validchars = r'\w'
 	_re_checkName = re.compile( validchars+r'+' )			# only word characters are allowed in key names
 	_re_checkValue = re.compile( '\S+' )			# currently we are as restrictive as it gets
@@ -637,11 +675,11 @@ class Key( object ):
 		""" Basic Field Initialization 
 		@param order: -1 = will be written to end of list, or to given position otherwise """
 		self._name			= ''				
-		self.name 			= name
+		self.name 			= name				# this assures the type check is being run
 		self._values 		= []				# value will always be stored as a list
-		self.properties 	= Properties()
-		self.order 			= order
+		self.order 			= order				# defines the order of the key in the file
 		self.values 		= value				# store the value
+		PropertyHolder.__init__( self )
 	
 	def __hash__( self ):
 		return self._name.__hash__()
@@ -708,6 +746,8 @@ class Key( object ):
 		
 	def _getValue( self ): return self._values
 	
+	def _getValueSingle( self ): return self._values[0]
+	
 	def getValueString( self ):
 		""" Convert our value to a string suitable for the INI format """
 		strtmp = [ str( v ) for v in self._values ]
@@ -715,17 +755,23 @@ class Key( object ):
 	
 	#{Properties
 	name = property( _getName, _setName )
+	""" Access the name of the key"""
 	values = property( _getValue, _setValue )
+	""" read: values of the key as list 
+	write: write single values or llist of values """
+	value = property( _getValueSingle, _setValue )
+	"""read: first value if the key's values
+	write: same effect as write of 'values' """
 	#}
 	
 
 	
-class Section( object ):
+class Section( PropertyHolder ):
 	""" Class defininig an indivual section of a configuration file including 
 	all its keys and section properties 
 	
 	@note: name will be stored stripped and must not contain certain chars """
-	__slots__ = [ '_name', 'keys', 'properties','order' ]
+	__slots__ = [ '_name', 'keys','order' ]
 	_re_checkName = re.compile( r'\+?\w+(:' + Key.validchars+ r'+)?' )
 	
 	def __iter__( self ):
@@ -739,9 +785,9 @@ class Section( object ):
 		self._name 			= ''
 		self.name 			= name
 		self.keys 			= BasicSet()
-		self.properties 	= Properties()
 		self.order 			= order					# define where we are - for later writing
-	
+		PropertyHolder.__init__( self )
+		
 	def __hash__( self ):
 		return self._name.__hash__()
 	
@@ -752,6 +798,15 @@ class Section( object ):
 		""" @return: section name """
 		return self._name
 	
+	#def __getattr__( self, keyname ):
+		"""@return: the key with the given name if it exists
+		@raise NoOptionError: """
+	#	return self.getKey( keyname )
+	
+	#def __setattr__( self, keyname, value ):
+		"""Assign the given value to the given key  - it will be created if required"""
+	#	self.getKeyDefault( keyname, value ).values = value
+		
 	def _excPrependNameAndRaise( self ):
 		_excmsgprefix( "Section = " + self._name + ": " )
 		raise
@@ -802,7 +857,11 @@ class Section( object ):
 		k.values = value
 	#}                                               
 	
-	
+
+
+class PropertySection( Section ):
+	"""Define a section containing keys that make up properties of somethingI"""
+	__slots__ = []
 	
 	
 class ConfigNode( object ):
@@ -833,12 +892,11 @@ class ConfigNode( object ):
 		# first get all data 
 		snames = configparser.sections()
 		validsections = []
-		
 		for i in xrange( 0, len( snames ) ):
 			sname = snames[i]
 			items = configparser.items( sname )
 			section = self.getSectionDefault( sname )[0]
-			section.order = i
+			section.order = i*2		# allows us to have ordering room to move items in - like properties
 			for k,v in items:
 				section.setKey( k, v.split(',') )	
 			validsections.append( section )
@@ -867,6 +925,12 @@ class ConfigNode( object ):
 			
 		# cache whether we can possibly write to that destination x
 		
+	@staticmethod
+	def _check_and_append( sectionsforwriting, section ):
+		"""Assure we ignore empty sections"""
+		if section != None and len( section.keys ):
+			sectionsforwriting.append( section )
+		
 	@typecheck_param( object, RawConfigParser )
 	def write( self, rcp, close_fp=True ):
 		""" Write our contents to our file-like object
@@ -876,14 +940,31 @@ class ConfigNode( object ):
 		if not self._fp.isWritable( ):
 			raise IOError( self._fp.getName() + " is not writable" )
 			
-		
+		sectionsforwriting = []		# keep sections - will be ordered later for actual writing operation
 		for section in iter( self._sections ):
-			# TODO: write section properties 
+			# skip 'old' property sections - they have been parsed to the 
+			# respective object
+			if ConfigAccessor._isProperty( section.name ):
+				continue
+				
+			# append section and possibly property sectionss
+			ConfigNode._check_and_append( sectionsforwriting, section )
+			ConfigNode._check_and_append( sectionsforwriting, section.properties )
+			
+			# append key sections
+			for key in section.keys:
+				ConfigNode._check_and_append( sectionsforwriting, key.properties )
+				
+				
+		# sort list and add sorted list 
+		sectionsforwriting = sorted( sectionsforwriting, key=lambda x: -x.order )	# inverse order
+		
+		for section in sectionsforwriting:
 			rcp.add_section( section.name )
 			for key in section.keys:
 				rcp.set( section.name, key.name, key.getValueString( ) )
-				# TODO: write section properties
 				
+			
 		self._fp.openForWriting( )
 		rcp.write( self._fp )
 		if close_fp:
@@ -913,9 +994,13 @@ class ConfigNode( object ):
 	def getSectionDefault( self, name ):
 		"""@return: tuple: 0 = L{Section} with name, create it if required, 1 = True if newly created"""
 		try: 
-			return ( self.getSection( name ), False )
+			return ( self.getSection( name.strip() ), False )
 		except NoSectionError:
-			section = Section( name, -1 )
+			sectionclass = Section
+			if ConfigAccessor._isProperty( name ):
+				sectionclass = PropertySection
+			
+			section = sectionclass( name, -1 )
 			self._sections.add( section )
 			return ( section, True )
 	#}
@@ -928,8 +1013,10 @@ class ConfigNode( object ):
 
 
 class DiffData( object ): 
-	""" Struct keeping data about added, removed and/or changed data """
-	__slots__ = [ 'added', 'removed', 'changed', 'unchanged','name' ]
+	""" Struct keeping data about added, removed and/or changed data 
+	Subclasses should override some private methods to automatically utilize some 
+	basic functionality"""
+	__slots__ = [ 'added', 'removed', 'changed', 'unchanged','properties','name' ]
 	
 	"""#@ivar added: Copies of all the sections that are only in B ( as they have been added to B )"""
 	"""#@ivar removed: Copies of all the sections that are only in A ( as they have been removed from B )"""
@@ -937,6 +1024,12 @@ class DiffData( object ):
 		
 	def __init__( self , A, B ):
 		""" Initialize this instance with the differences of B compared to A """
+		self.properties = None
+		self.added = list()
+		self.removed = list()
+		self.changed = list()
+		self.unchanged = list()
+		self.name = ''
 		self._populate( A, B )
 	
 	def toStr( self, typename ):
@@ -960,23 +1053,29 @@ class DiffData( object ):
 				raise
 				# out += attr + " " + typename + " is not set\n"
 				
+		# append properties
+		if self.properties != None:
+			out += "-- Properties --" 
+			out += str( self.properties )
+			
 		return out
 		
 	def _populate( self, A, B ):
-		""" Must be implemented by subclass """
-		raise NotImplementedError
+		""" Should be implemented by subclass """
+		pass
 		
 	def hasDifferences( self ):
 		"""@return: true if we have stored differences ( A  is not equal to B )"""
-		return ( len( self.added ) or len( self.removed ) or len ( self.changed ) )
-	
-
+		return  ( len( self.added ) or len( self.removed ) or len ( self.changed ) or \
+				( self.properties != None and self.properties.hasDifferences() ) )
+				
 class DiffKey( DiffData ): 
 	""" Implements DiffData on Key level """
 	
 	def __str__( self ):
 		return self.toStr( "Key-Value" )
 	
+	@typecheck_param( object, Key, Key )
 	def _populate( self, A, B ):
 		""" Find added and removed key values 
 		@note: currently the implementation is not index based, but set- and thus value based
@@ -992,15 +1091,30 @@ class DiffKey( DiffData ):
 		self.changed = list()			# always empty -
 		self.name = A.name
 		
+		# diff the properties
+		if A.properties != None:
+			propdiff = PropertyDiffSection( A.properties, B.properties )	
+			self.properties = propdiff			# attach propdiff no matter what
+		
 		
 class DiffSection( DiffData ):
 	""" Implements DiffData on section level """
 	
 	def __str__( self ):
 		return self.toStr( "Key" )
-	
+		
 	def _populate( self, A, B  ):
 		""" Find the difference between the respective """
+		# get property diff if possible
+		keydiffclass = DiffKey
+		if A.properties != None:
+			propdiff = PropertyDiffSection( A.properties, B.properties )	
+			self.properties = propdiff			# attach propdiff no matter what
+		else:
+			self.properties = DiffData( None, None )	# create empty data
+			keydiffclass = PropertyDiffKey
+			
+		
 		self.added = list( copy.deepcopy( B.keys - A.keys ) )
 		self.removed = list( copy.deepcopy( A.keys - B.keys ) )
 		self.changed = list()
@@ -1008,16 +1122,24 @@ class DiffSection( DiffData ):
 		self.name = A.name
 		# find and set changed keys
 		common = A.keys & B.keys
-		for key in common:
+		for key in common:	
 			akey = A.getKey( str( key ) )
 			bkey = B.getKey( str( key ) )
-			dkey = DiffKey( akey, bkey )
+			dkey = keydiffclass( akey, bkey )
 			
 			if dkey.hasDifferences( ): self.changed.append( dkey )
 			else: self.unchanged.append( key )
 		
+class PropertyDiffSection( DiffSection ):
+	"""class type is used to prevent recursion
+	@todo: remove clas"""
+	pass 
+			
+class PropertyDiffKey( DiffKey ):
+	"""class type used to prevent recursion
+	@todo: remove class"""
+	pass
 	
-
 class ConfigDiffer( DiffData ):
 	"""Compares two configuration objects and allows retrieval of differences 
 	
@@ -1076,7 +1198,7 @@ class ConfigDiffer( DiffData ):
 			dsection = DiffSection( asection, bsection )
 			
 			if dsection.hasDifferences( ): self.changed.append( dsection )
-			else: self.unchanged.append( dsection )
+			else: self.unchanged.append( asection )
 			
 
 #}
