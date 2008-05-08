@@ -92,21 +92,21 @@ class TestConfigAccessor( unittest.TestCase ):
 		# flatten the file ( into memory )
 		memfile = ConfigStringIO()
 		fca = ca.flatten( memfile )
-		
 		fca.write( close_fp = False )
 		
-		memfile.seek( 0 )
+		# diff flattened list with original one
+		diff = ConfigDiffer( ca, fca )
+		self.failIf( diff.hasDifferences() )
+		
 		
 		# reread the configuration
 		cca = ConfigAccessor( )
+		memfile.seek( 0 )
 		cca.readfp( memfile )
 		
-		#print testlist
-		#print cca
 		# diff the configurations
 		diff = ConfigDiffer( cca, fca )
 		self.failIf( diff.hasDifferences( ) )
-		
 		
 	#}
 	
@@ -139,7 +139,7 @@ class TestConfigAccessor( unittest.TestCase ):
 	def test_keypropertyparsing( self ):
 		"""ConfigAccessor.Properties: Assure that key properties can be parsed"""
 		ca = _getca( 'valid_keyproperty' )
-		self.failUnless( ca.getKeysByName( "key" )[0][0].properties.getKey( 'property' ).value =='value' )
+		self.failUnless( ca.getKeysByName( "my_key_with_property" )[0][0].properties.getKey( 'property' ).value =='value' )
 		
 	def test_sectionprortyparsing( self ):
 		"""ConfigAccessor.Properties: Assure that section properties can be parsed"""
@@ -150,14 +150,30 @@ class TestConfigAccessor( unittest.TestCase ):
 		"""ConfigAccessor.Properties: Assure that section and key properties can be parsed"""
 		ca = _getca( 'valid_sectionandkeyproperty' )
 		self.failUnless( ca.getSection( "section" ).properties.getKey( 'property' ).value =='value' )
-		self.failUnless( ca.getKeysByName( "key" )[0][0].properties.getKey( 'property' ).value =='value' )
+		self.failUnless( ca.getKeysByName( "key_with_property" )[0][0].properties.getKey( 'property' ).value =='value' )
 		
 	def test_propertyundefiniedpropertyattribute( self ):
 		"""ConfigAccessor.Properties: Property attribute of property must not be set"""
 		ca = _getca( 'valid_sectionandkeyproperty' )
 		self.failUnless( ca.getSection( "section" ).properties.properties == None )
-		self.failUnless( ca.getKeysByName( "key" )[0][0].properties.getKey( 'property' ).properties == None )
+		self.failUnless( ca.getKeysByName( "key_with_property" )[0][0].properties.getKey( 'property' ).properties == None )
 			
+	def test_property_auto_qualification_on_write( self ):
+		"""ConfigAccessor.Properties: if properties are set at runtime, the propertysections might need long names for qualification when written"""
+		raise NotImplementedError
+		
+	def test_multi_flatten( self ):
+		"""ConfigAccessor:If a configuration gets flattened several times, the result must always match with the original"""
+		last_ca = _getca( 'valid_allfeatures' )
+		numruns = 5
+		for i in range( numruns ):
+			memfile = ConfigStringIO()
+			ca_flattened = last_ca.flatten( memfile )
+			diff = ConfigDiffer( last_ca, ca_flattened )
+			self.failIf( diff.hasDifferences( ) )
+			
+			last_ca = ca_flattened
+		
 		
 class TestConfigDiffer( unittest.TestCase ):
 	""" Test the ConfigDiffer Class and all its featuers"""

@@ -134,7 +134,7 @@ class ConfigAccessor( object ):
 		  inheritance
 		- once all the INI configurations have been read and processed, one can access
 		  the configuration as if it was just in one file.
-		- L{SectionAccessor}s are used to gain direct access to the given section """
+		- Direct access is obtained though L{Key} and L{Section} objects """
 	
 	def __init__( self ):
 		""" Initialize instance variables """
@@ -176,11 +176,10 @@ class ConfigAccessor( object ):
 				
 			# handle attributes
 			propname = section.name
-			propkeyname = propname[1:]
-			fqkn = ConfigAccessor._getNameTuple( propname ) # fully qualified key name
+			targetkeytokens = ConfigAccessor._getNameTuple( propname ) # fully qualified property name
 			
 			# find all keys matching the keyname !
-			keymatchtuples = self.getKeysByName( fqkn[1] )
+			keymatchtuples = self.getKeysByName( targetkeytokens[1] )
 			
 			# SEARCH FOR KEYS primarily !
 			propertytarget = None		# will later be key or section
@@ -188,18 +187,18 @@ class ConfigAccessor( object ):
 			excmessage = ""				# keeps exc messages until we know whether to keep them or not
 			
 			if lenmatch == 0:
-				excmessage += "Key '" + propkeyname + "' referenced by property was not found\n"
+				excmessage += "Key '" + propname + "' referenced by property was not found\n"
 				# continue searching in sections
 			else:
 				# here it must be a key - failure leads to continuation
-				if fqkn[0] != None:
+				if targetkeytokens[0] != None:
 					# search the key matches for the right section
 					for fkey,fsection in keymatchtuples:
-						if not fsection.name == fqkn[0]: continue
+						if not fsection.name == targetkeytokens[0]: continue
 						else: propertytarget = fkey
 						
 					if propertytarget is None:
-						exc.message += ( "Section '" + fqkn[0] + "' of key '" + fqkn[1] + 
+						exc.message += ( "Section '" + targetkeytokens[0] + "' of key '" + targetkeytokens[1] + 
 										"' could not be found in " + str(lenmatch) + " candiate sections\n" )
 						continue
 				else:
@@ -208,25 +207,24 @@ class ConfigAccessor( object ):
 					if lenmatch == 1:
 						propertytarget = keymatchtuples[0][0]	# [ (key,section) ] 
 					else: 
-						excmessage += "Property for key named '" + propkeyname + "' was found in " + str(lenmatch) + " sections and needs to be qualified as in: 'sectionname:"+propkeyname+"'\n"
+						excmessage += "Key for property section named '" + propname + "' was found in " + str(lenmatch) + " sections and needs to be qualified as in: 'sectionname:"+propname+"'\n"
 						# continue searching - perhaps we find a section that fits perfectly
 						
-					
+					                                                                           
 			# could be a section property 
 			if propertytarget is None:
 				try:
-					propertytarget = self.getSection( fqkn[1] )
+					propertytarget = self.getSection( targetkeytokens[1] )
 				except NoSectionError:
 					# nothing found - skip it 
-					excmessage += "Property '" + propkeyname + "' references unknown section or key\n"
+					excmessage += "Property '" + propname + "' references unknown section or key\n"
 					
 			# safety check 
 			if propertytarget is None:
 				exc.message += excmessage
 				continue
-				
-			# set the properties to the propertytarget
-			propertytarget.properties = section
+			
+			propertytarget.properties.mergeWith( section )
 			
 		# finally raise our report-exception if required
 		if len( exc.message ):
@@ -290,32 +288,6 @@ class ConfigAccessor( object ):
 	#} END GROUP
 	
 	
-	@staticmethod
-	def _mergeKey( fromkey, tokey ):
-		"""Merge fromkey into tokey, respecting the properties"""
-		# merge properties 
-		if fromkey.properties != None: # should actually always be defined
-			ConfigAccessor._mergeSection( fromkey.properties, tokey.properties )
-		
-		#@todo: merge properly, default is setting the values
-		tokey._values = fromkey._values[:]
-		
-	@staticmethod
-	def _mergeSection( fromsection, tosection ):
-		"""Merge fromsection to tosection - properties will be handled like a section is"""
-		
-		# merge properties
-		if fromsection.properties != None:
-			ConfigAccessor._mergeSection( fromsection.properties, tosection.properties )
-		
-		for fkey in fromsection.keys: 
-			key,created = tosection.getKeyDefault( fkey.name, 1 )
-			if created:
-				key._values = []	# reset the value if key has been newly created
-			
-			# merge the keys 
-			ConfigAccessor._mergeKey( fkey, key )
-		
 	#{Transformations
 	# type checking does not work for ourselves as we are not yet defined - need baseclass !
 	# But I cannot introduce it just for that purpose ... 
@@ -343,8 +315,7 @@ class ConfigAccessor( object ):
 				section = cn.getSectionDefault( mysection.name )[0]
 				section.order = count
 				count += 1
-				ConfigAccessor._mergeSection( mysection, section )
-					
+				section.mergeWith( mysection )
 		return ca
 		
 	#} END GROUP
@@ -395,7 +366,7 @@ class ConfigAccessor( object ):
 	def getKeyDefault( self, sectionname,keyname, value ):
 		"""Convenience Function: get keyname in sectionname with the key's value or your 'value' if it did not exist 
 		@param sectionname: thekeyname of the sectionname the key is supposed to be in - it will be created if needed
-		@paramkeyname: thekeyname of the key you wish to find
+		@param keyname: thekeyname of the key you wish to find
 		@param value: the value you wish to receive as as default if the key has to be created
 		@return: L{Key}"""
 		return self.getSectionDefault( sectionname ).getKeyDefault(keyname, value )
@@ -748,10 +719,23 @@ class Key( PropertyHolder ):
 	
 	def _getValueSingle( self ): return self._values[0]
 	
+	#{Utilities
 	def getValueString( self ):
 		""" Convert our value to a string suitable for the INI format """
 		strtmp = [ str( v ) for v in self._values ]
 		return ','.join( strtmp )
+	
+	def mergeWith( self, otherkey ):
+		"""Merge self with otherkey according to our properties
+		@note: self will be altered"""
+		# merge properties 
+		if self.properties != None: 
+			self.properties.mergeWith( otherkey.properties )
+		
+		#@todo: merge properly, default is setting the values
+		self._values = otherkey._values[:]
+		
+	#}
 	
 	#{Properties
 	name = property( _getName, _setName )
@@ -822,6 +806,25 @@ class Section( PropertyHolder ):
 		"""@return: the key's name"""		
 		return self._name
 	
+	def mergeWith( self, othersection ):
+		"""Merge our section with othersection
+		@note:self will be altered"""
+		# adjust name - the default name is most not going to work - property section 
+		# possibly have non-qualified property names
+		self.name = othersection.name
+		
+		# merge properties
+		if othersection.properties != None:
+			self.properties.mergeWith( othersection.properties )
+		
+		for fkey in othersection.keys: 
+			key,created = self.getKeyDefault( fkey.name, 1 )
+			if created:
+				key._values = []	# reset the value if key has been newly created
+			
+			# merge the keys 
+			key.mergeWith( fkey )
+	
 	#{ Properties
 	name = property( _getName, _setName )
 	#}
@@ -845,6 +848,9 @@ class Section( PropertyHolder ):
 			return ( self.getKey( name ), False )
 		except NoOptionError:
 			key = Key( name, value, -1 )
+			# set properties None if we are a propertysection ourselves
+			if isinstance( self, PropertySection ):
+				key.properties = None
 			self.keys.add( key )
 			return ( key, True )
 			
@@ -958,7 +964,7 @@ class ConfigNode( object ):
 				
 		# sort list and add sorted list 
 		sectionsforwriting = sorted( sectionsforwriting, key=lambda x: -x.order )	# inverse order
-		
+
 		for section in sectionsforwriting:
 			rcp.add_section( section.name )
 			for key in section.keys:
@@ -993,8 +999,9 @@ class ConfigNode( object ):
 	@typecheck_rval( ( Section, bool ) )	
 	def getSectionDefault( self, name ):
 		"""@return: tuple: 0 = L{Section} with name, create it if required, 1 = True if newly created"""
+		name = name.strip()
 		try: 
-			return ( self.getSection( name.strip() ), False )
+			return ( self.getSection( name ), False )
 		except NoSectionError:
 			sectionclass = Section
 			if ConfigAccessor._isProperty( name ):
@@ -1043,23 +1050,22 @@ class DiffData( object ):
 					# out += "No " + attr + " " + typename + "(s) found\n"
 					pass 
 				else:
-					out += str( len( attrobj ) ) + " " + attr + " " + typename + "(s) found "
+					out += str( len( attrobj ) ) + " " + attr + " " + typename + "(s) found\n"
 					if len( self.name ):
-						out += self.name
-					out += "\n"
+						out += "In '" + self.name + "':\n"
 					for item in attrobj:
-						out += str( item ) + "\n"
+						out += "'" + str( item ) + "'\n"
 			except:
 				raise
 				# out += attr + " " + typename + " is not set\n"
 				
 		# append properties
 		if self.properties != None:
-			out += "-- Properties --" 
+			out += "-- Properties --\n" 
 			out += str( self.properties )
 			
 		return out
-		
+	
 	def _populate( self, A, B ):
 		""" Should be implemented by subclass """
 		pass
@@ -1093,7 +1099,7 @@ class DiffKey( DiffData ):
 		
 		# diff the properties
 		if A.properties != None:
-			propdiff = PropertyDiffSection( A.properties, B.properties )	
+			propdiff = DiffSection( A.properties, B.properties )	
 			self.properties = propdiff			# attach propdiff no matter what
 		
 		
@@ -1106,14 +1112,11 @@ class DiffSection( DiffData ):
 	def _populate( self, A, B  ):
 		""" Find the difference between the respective """
 		# get property diff if possible
-		keydiffclass = DiffKey
 		if A.properties != None:
-			propdiff = PropertyDiffSection( A.properties, B.properties )	
+			propdiff = DiffSection( A.properties, B.properties )	
 			self.properties = propdiff			# attach propdiff no matter what
 		else:
-			self.properties = DiffData( None, None )	# create empty data
-			keydiffclass = PropertyDiffKey
-			
+			self.properties = None	# leave it Nonw - one should simply not try to get propertydiffs of property diffs
 		
 		self.added = list( copy.deepcopy( B.keys - A.keys ) )
 		self.removed = list( copy.deepcopy( A.keys - B.keys ) )
@@ -1125,20 +1128,11 @@ class DiffSection( DiffData ):
 		for key in common:	
 			akey = A.getKey( str( key ) )
 			bkey = B.getKey( str( key ) )
-			dkey = keydiffclass( akey, bkey )
+			dkey = DiffKey( akey, bkey )
 			
 			if dkey.hasDifferences( ): self.changed.append( dkey )
 			else: self.unchanged.append( key )
 		
-class PropertyDiffSection( DiffSection ):
-	"""class type is used to prevent recursion
-	@todo: remove clas"""
-	pass 
-			
-class PropertyDiffKey( DiffKey ):
-	"""class type used to prevent recursion
-	@todo: remove class"""
-	pass
 	
 class ConfigDiffer( DiffData ):
 	"""Compares two configuration objects and allows retrieval of differences 
@@ -1164,12 +1158,41 @@ class ConfigDiffer( DiffData ):
 	  - DiffSection.added|removed|unchanged: L{Key} objects that have been added, removed or kept unchanged respectively
 	  - DiffSection.changed: L{DiffKey} objects that indicate the changes in the repsective key
 	    - DiffKey.added|removed: the key's values that have been added and/or removed respectively
+		- DiffKey.properties: see DiffSection.properties
+	  - DiffSection.properties:None if this is a section diff, otherwise it contains a DiffSection with the respective differences
 	"""
 					
 	def __str__( self ):
 		""" Print its own delta information - useful for debugging purposes """
 		return self.toStr( 'section' )
+	
+	@staticmethod 
+	def _getMergedSections( configaccessor ):
+		""" NOTE: within config nodes, sections must be unique, between nodes, 
+		this is not the case - sets would simply drop keys with the same name
+		leading to invalid results - thus we have to merge equally named sections
+		@return: iterable with merged sections
+		@todo: make this algo work on sets instead of individual sections for performance"""
+		sectionlist = list( configaccessor.getSectionIterator() )
+		if len( sectionlist ) < 2:
+			return sectionlist
 		
+		out = BasicSet( )				# need a basic set for indexing
+		for section in sectionlist:
+			section_to_add = section
+			if section in out: 
+				# get a copy of A and merge it with B
+				# assure the merge works left-to-right - previous to current
+				# NOTE: only the first copy makes sense - all the others that might follow are not required ... 
+				merge_section = copy.deepcopy( out[ section ] )	# copy section and all keys - they will be altered
+				merge_section.mergeWith( section )
+				
+				#remove old and add copy
+				out.remove( section )
+				section_to_add = merge_section
+			out.add( section_to_add )
+		return out
+			
 	@typecheck_param( object, ConfigAccessor, ConfigAccessor )
 	def _populate( self, A, B ):
 		""" Perform the acutal diffing operation to fill our data structures 
@@ -1178,8 +1201,8 @@ class ConfigDiffer( DiffData ):
 		# diff sections  - therefore we actually have to treat the chains 
 		#  in a flattened manner 
 		# built section sets !
-		asections = frozenset( A.getSectionIterator() )
-		bsections = frozenset( B.getSectionIterator() )
+		asections = BasicSet( ConfigDiffer._getMergedSections( A ) )
+		bsections = BasicSet( ConfigDiffer._getMergedSections( B ) )
 		
 		# assure we do not work on references !
 		self.added = list( copy.deepcopy( bsections - asections ) )
@@ -1192,9 +1215,9 @@ class ConfigDiffer( DiffData ):
 		
 		# get a deeper analysis of the common sections - added,removed,changed keys
 		for section in common:
-			# find out whether the section has changed !
-			asection = A.getSection( str( section ) )
-			bsection = B.getSection( str( section ) )
+			# find out whether the section has changed 
+			asection = asections[ section ]
+			bsection = bsections[ section ]
 			dsection = DiffSection( asection, bsection )
 			
 			if dsection.hasDifferences( ): self.changed.append( dsection )
