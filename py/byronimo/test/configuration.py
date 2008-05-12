@@ -160,7 +160,20 @@ class TestConfigAccessor( unittest.TestCase ):
 			
 	def test_property_auto_qualification_on_write( self ):
 		"""ConfigAccessor.Properties: if properties are set at runtime, the propertysections might need long names for qualification when written"""
-		raise NotImplementedError
+		ca = _getca( 'valid_4keys' )
+		key = ca.getKeyDefault( "section", "key", "doesntmatter" )[0]
+		key_prop = key.properties.getKeyDefault( "new_property", "value" )			# this creates a new physical attribute key
+		
+		# write to memfile
+		memfile = ConfigStringIO()
+		fca = ca.flatten( memfile )
+		fca.write( close_fp = False )
+		
+		# create a new configaccessor and assure we have a fully qualified property name
+		nca = ConfigAccessor()
+		memfile.seek( 0 )
+		nca.readfp( memfile )
+		self.failUnless( nca.getKeyDefault( "section", "key", "" )[0].properties.name == "+section:key" )
 		
 	def test_multi_flatten( self ):
 		"""ConfigAccessor:If a configuration gets flattened several times, the result must always match with the original"""
@@ -173,7 +186,7 @@ class TestConfigAccessor( unittest.TestCase ):
 			self.failIf( diff.hasDifferences( ) )
 			
 			last_ca = ca_flattened
-		
+			
 		
 class TestConfigDiffer( unittest.TestCase ):
 	""" Test the ConfigDiffer Class and all its featuers"""
@@ -240,7 +253,6 @@ class TestConfigDiffer( unittest.TestCase ):
 		# get changed section and assure there is exactly one key
 		self.failUnless( len( diff.changed[0].changed[0].removed ) )
 	
-	
 	def test_keyvalueadded( self ):
 		"""ConfigDiffer: Assure added key-values are detected"""
 		diff = self._getDiff( "valueadded" )
@@ -248,7 +260,6 @@ class TestConfigDiffer( unittest.TestCase ):
 		# get changed section and assure there is exactly one key
 		self.failUnless( len( diff.changed[0].changed[0].added ) )
 	
-		
 	def test_keyvaluechanged( self ):
 		"""ConfigDiffer: Assure changed key-values are detected as a removed and added value"""
 		diff = self._getDiff( "valueaddedremoved" )
@@ -256,6 +267,20 @@ class TestConfigDiffer( unittest.TestCase ):
 		# get changed section and assure there is exactly one key
 		key = diff.changed[0].changed[0]
 		self.failUnless( len( key.added ) and len( key.removed ) )
+		
+	def test_propertydiffing( self ):
+		"""ConfigDiffer: Assure that changes in properties are being detected"""
+		diff = self._getDiff( "property_changes" )
+		self._checkLengths( diff, 0, 0, 1, 0 )
+		
+		self.failUnless( len( diff.changed[0].changed[1].properties.added ) )	 # added key-property value
+		self.failUnless( len( diff.changed[0].changed[0].properties.removed ) )	 # removed key-property value
+		self.failUnless( len( diff.changed[0].properties.changed[0].removed ) )	 # section property value changed ( removed )
+		self.failUnless( len( diff.changed[0].properties.changed[0].added ) )	 # section property value changed ( added ) 
+		
+		
+		
+	
 		
 def _getPrefixedINIFileNames( prefix ):
 	""" Return full paths to INI files of files with the given prefix
