@@ -188,6 +188,23 @@ class TestConfigAccessor( unittest.TestCase ):
 			last_ca = ca_flattened
 			
 		
+class TestConfigManagerr( unittest.TestCase ):
+	""" Test the ConfigAccessor Class and all its featuers"""
+	
+	def setUp( self ):
+		""" Copy valid files into seprate working directory as we want to alter them"""
+		raise NotImplementedError( "copy files for that can be written too" )
+	
+	def test_access_read_write( ):
+		"""ConfigManager: Simple read and alter values in the Configuration Manager, and write them back """
+		raise NotImplementedError()
+		
+	def tearDown( self ):
+		""" Remove the temporary working files """ 
+		raise NotImplementedError( )
+		
+		
+
 class TestConfigDiffer( unittest.TestCase ):
 	""" Test the ConfigDiffer Class and all its featuers"""
 	

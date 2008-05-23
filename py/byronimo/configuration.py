@@ -388,12 +388,95 @@ class ConfigAccessor( object ):
 		
 	#} END GROUP
 	
+
+class ConfigManager( object ):
+	""" Cache Configurations for fast access and provide a convenient interface
+	
+	As the normal implementation of the ConfigAccessor has limited speed due
+	to the hierarchical nature of configuration chains.
+	
+	The config manager flattens the chain providing fast access. Once it is being
+	deleted or asked, it will find the differences between the fast cached 
+	configuration and the original one, and apply the changes back to the original chain, 
+	which will then write the changes back ( if possible ).
+	
+	This class should be preferred over the direct congiguration accessor, but this 
+	class allows direct access to the cached configuraion accessor if required. 
+	
+	This class mimics the ConfigAccessor inteface as far as possible to improve ease of use
+	
+	Use self.config to directly access the configuration through the L{ConfigAccessor} interface"""
+	
+	def __init__( self, filePointers, write_back_on_desctruction=True, close_fp = True ):
+		"""Initialize the class with a list of Extended File Classes 
+		@param filePointers: Point to the actual configuration to use
+		@type filePointers: L{ExtendedFileInterface}
+		
+		@param close_fp: if true, the files will be closed and can thus be changed.
+		This should be the default as files might be located on the network as shared resource
+		
+		@param write_back_on_desctruction: if True, the config chain and possible 
+		changes will be written once this instance is being deleted. If false, 
+		the changes must explicitly be written back using the write method"""
+		self.__config = ConfigAccessor( )
+		self.config = None					# will be set later 
+		self._writeBackOnDestruction = write_back_on_desctruction
+		self._closeFp = close_fp
+		
+		self.readfp( filePointers, close_fp=close_fp )
+			
+			
+	def __del__( self ):
+		""" If we are supposed to write back the configuration, after merging 
+		the differences back into the original configuration chain"""
+		if self._writeBackOnDestruction:
+			# might trow - assure this does not prevent our deletion !
+			try: 
+				self.write( )
+			except:
+				pass 
+			
+		pass		
+	
+	#{ IO Methods 
+	def write( self ):
+		""" Write the possibly changed configuration back to its sources
+		@raise IOError: if at least one node could not be properly written
+		@note: It could be the case that all nodes are marked read-only and 
+		thus cannot be written - this will also raise as the request to write 
+		the changes could not be accomodated."""
+	
+		diff = ConfigDiffer( self.__config, self.config )
+		
+		# apply the changes done to self.config to the original configuration
+		try:
+			diff.apply( self.__config )
+			self.__config.write( self._closeFp ) 
+		except: 
+			raise 
+			# for now we reraise
+			# TODO: raise a proper error here as mentioned in the docs
+			# raise IOError()			 
+		
+	def readfp( self, filefporlist, close_fp=True ):
+		""" Read the configuration from the file pointers
+		@raise ConfigParsingError: 
+		@return: the configuration that is meant to be used for accessing the configuration"""
+		self.__config.readfp( filefporlist, close_fp = close_fp )
+		
+		# flatten the list, and attach it to 
+		self.config = self.__config.flatten( ConfigStringIO() )
+		return self.config
+		
+	#}
+	
 #}END GROUP
 
 
 
 
 #{Extended File Classes
+
 class ExtendedFileInterface( ):
 	""" Define additional methods required by the Configuration System 
 	@warning: Additionally, readline and write must be supported - its not mentioned
@@ -510,10 +593,12 @@ class ConfigStringIO( ExtendedFileInterface, StringIO.StringIO ):
 		if self.closed:
 			raise IOError( "cStringIO instances cannot be written once closed" )
 
+
 #} 
 
 
 #{Utility Classes
+
 class ConfigChain( list ):
 	""" A chain of config nodes 
 	
@@ -1023,12 +1108,12 @@ class ConfigNode( object ):
 			return ( section, True )
 	#}
 	
+
 #} END GROUP
 
 
 		
 #{ Configuration Diffing Classes
-
 
 class DiffData( object ): 
 	""" Struct keeping data about added, removed and/or changed data 
@@ -1240,11 +1325,8 @@ class ConfigDiffer( DiffData ):
 			else: self.unchanged.append( asection )
 			
 
-#}
 
-#{Complex Data Handling
-################################################################################
-# Classes handling URLs and their protocols
+#}
 
 
 #} END GROUP
