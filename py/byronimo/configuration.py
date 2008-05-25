@@ -55,6 +55,8 @@ class ConfigParsingPropertyError( ConfigParsingError ):
 #} End Exceptions
 
 
+
+
 #{ INI File Converters
 ################################################################################
 # Wrap arbitary sources and implicitly convert them to INI files when read
@@ -116,7 +118,18 @@ class ConfigAccessor( object ):
 	It contains functions to create original ConfigParser able to fully write and alter
 	the contained data in an unchecked manner.
 	
-	Additional Exceptions have been defined to cover extended functionality
+	Additional Exceptions have been defined to cover extended functionality.
+	
+	Sources and Nodes
+	=================
+	Each input providing configuration data is stored in a node. This node 
+	knows about its writable state. Nodes that are not writable can be altered in memory, 
+	but the changes cannot be written back to the source. 
+	This does not impose a problem though as changes will be applied as long as there is 
+	one writable node in the chain - due to the inheritance scheme applied by the configmanager, 
+	the final configuration result will match the changes applied at runtime.
+	
+	@note: The configaccessor should only be used in conjunction with the L{ConfigManager}
 	
 	Commonalities to ConfigParser
 	=============================
@@ -281,7 +294,7 @@ class ConfigAccessor( object ):
 		# file object after assuring it is opened
 		for cn in self._configChain:
 			try:
-				writtenFiles.append( cn.write( RawConfigParser(), close_fp=close_fp ) )
+				writtenFiles.append( cn.write( FixedConfigParser(), close_fp=close_fp ) )
 			except IOError:
 				pass
 				
@@ -314,7 +327,7 @@ class ConfigAccessor( object ):
 		count = 0
 		for mycn in self._configChain:
 			for mysection in mycn._sections:
-				section = cn.getSectionDefault( mysection.name )[0]
+				section = cn.getSectionDefault( mysection.name )
 				section.order = count
 				count += 1
 				section.mergeWith( mysection )
@@ -334,7 +347,17 @@ class ConfigAccessor( object ):
 	#} END GROUP
 	
 	
-	#{ General Access
+	#{ General Access ( disregarding writable state )
+	
+	def hasSection( self, name ):
+		"""@return: True if the given section exists"""
+		try:
+			self.getSection( name )
+		except NoSectionError:
+			return False
+		
+		return True
+		
 	@typecheck_param( object, basestring )
 	def getSection( self, section ):
 		""" @return: section with name, or raise 
@@ -345,6 +368,25 @@ class ConfigAccessor( object ):
 				
 		raise NoSectionError( section )
 		
+	def getKeyDefault( self, sectionname,keyname, value ):
+		"""Convenience Function: get keyname in sectionname with the key's value or your 'value' if it did not exist 
+		@param sectionname: thekeyname of the sectionname the key is supposed to be in - it will be created if needed
+		@param keyname: thekeyname of the key you wish to find
+		@param value: the value you wish to receive as as default if the key has to be created
+		@return: L{Key}"""
+		return self.getSectionDefault( sectionname ).getKeyDefault(keyname, value )[0]
+			
+	@typecheck_rval( list )
+	@typecheck_param( object, basestring )
+	def getKeysByName( self, name ):
+		"""@param name: the name of the key you wish to find
+		@return: List of  (L{Key},L{Section}) tuples of key matching name found in section, or empty list"""
+		# note: we do not use iterators as we want to use sets for faster search !
+		return list( self._configChain.iterateKeysByName( name ) )
+	
+	#} END GROUP
+	
+	#{ Structure Adjustments Respecting Writable State
 	@typecheck_param( object, basestring )
 	def getSectionDefault( self, section ):
 		"""@return: section with given name,
@@ -363,29 +405,38 @@ class ConfigAccessor( object ):
 		
 		# we did not find any writable node - fail
 		raise IOError( "Could not find a single writable configuration file" )
+	
+	def removeSection( 	self, name ):
+		"""Completely remove the given section name from our list
+		@return: the number of nodes that did NOT allow the section to be removed as they are read-only, thus 
+		0 will be returned if everything was alright"""
+		numReadonly = 0
+		for node in self._configChain:
+			if not node.hasSection( name ):
+				continue
 				
-	
-	def getKeyDefault( self, sectionname,keyname, value ):
-		"""Convenience Function: get keyname in sectionname with the key's value or your 'value' if it did not exist 
-		@param sectionname: thekeyname of the sectionname the key is supposed to be in - it will be created if needed
-		@param keyname: thekeyname of the key you wish to find
-		@param value: the value you wish to receive as as default if the key has to be created
-		@return: L{Key}"""
-		return self.getSectionDefault( sectionname ).getKeyDefault(keyname, value )
-			
-
+			# can we write it ?
+			if not node._isWritable( ):
+				numReadonly += 1
+				continue
+				
+			node._sections.remove( name )
+				
+		return numReadonly
 		
-	@typecheck_rval( list )
-	@typecheck_param( object, basestring )
-	def getKeysByName( self, name ):
-		"""@param name: the name of the key you wish to find
-		@return: List of  (L{Key},L{Section}) tuples of key matching name found in section, or empty list"""
-		# note: we do not use iterators as we want to use sets for faster search !
-		return list( self._configChain.iterateKeysByName( name ) )
-	
-			
-			
 		
+	def mergeSection( self, section ):
+		"""Merge and/or add the given section into our chain of nodes. The first writable node will be used
+		@raise IOError: if no writable node was found
+		@return: name of the file source that has received the section"""
+		for node in self._configChain:
+			if node._isWritable():
+				node.getSectionDefault( str( section ) ).mergeWith( section )
+				return node._fp.getName( )
+				
+		raise IOError( "No writable section found for merge operation" )
+	
+	
 	#} END GROUP
 	
 
@@ -430,11 +481,8 @@ class ConfigManager( object ):
 		""" If we are supposed to write back the configuration, after merging 
 		the differences back into the original configuration chain"""
 		if self._writeBackOnDestruction:
-			# might trow - assure this does not prevent our deletion !
-			try: 
-				self.write( )
-			except:
-				pass 
+			# might trow - python will automatically ignore these issues
+			self.write( )
 			
 		pass		
 	
@@ -444,14 +492,16 @@ class ConfigManager( object ):
 		@raise IOError: if at least one node could not be properly written
 		@note: It could be the case that all nodes are marked read-only and 
 		thus cannot be written - this will also raise as the request to write 
-		the changes could not be accomodated."""
+		the changes could not be accomodated.
+		@return: the names of the files that have been written as string list"""
 	
 		diff = ConfigDiffer( self.__config, self.config )
 		
 		# apply the changes done to self.config to the original configuration
 		try:
-			diff.apply( self.__config )
-			self.__config.write( self._closeFp ) 
+			report = diff.applyTo( self.__config )
+			outwrittenfiles = self.__config.write( close_fp = self._closeFp )
+			return outwrittenfiles
 		except: 
 			raise 
 			# for now we reraise
@@ -464,7 +514,7 @@ class ConfigManager( object ):
 		@return: the configuration that is meant to be used for accessing the configuration"""
 		self.__config.readfp( filefporlist, close_fp = close_fp )
 		
-		# flatten the list, and attach it to 
+		# flatten the list and attach it
 		self.config = self.__config.flatten( ConfigStringIO() )
 		return self.config
 		
@@ -598,7 +648,12 @@ class ConfigStringIO( ExtendedFileInterface, StringIO.StringIO ):
 
 
 #{Utility Classes
-
+class FixedConfigParser( RawConfigParser ):
+	"""The RawConfigParser stores options lowercase - but we do not want that 
+	and keep the case - for this we just need to override a method"""
+	def optionxform( self, option ):
+		return option
+		
 class ConfigChain( list ):
 	""" A chain of config nodes 
 	
@@ -761,7 +816,7 @@ class Key( PropertyHolder ):
 			try:
 				val = numtype( valuestr )
 				return val
-			except ValueError:
+			except (ValueError,TypeError):
 				continue
 		
 		if not isinstance( valuestr, basestring ):
@@ -775,7 +830,7 @@ class Key( PropertyHolder ):
 		raise
 		
 	def _setName( self, name ):
-		""" Set the name
+		""" Set the name             
 		@raise ValueError: incorrect name"""
 		try:
 			self._name = _checkString( name, Key._re_checkName )
@@ -800,13 +855,48 @@ class Key( PropertyHolder ):
 			except (ValueError,TypeError):
 				 self._excPrependNameAndRaise()
 				
+		# assure we have always a value - if we write zero values to file, we
+		# throw a parse error - thus we may not tolerate empty values
+		if len( validvalues ) == 0:
+			raise ValueError( "Key: " + self.name + " must have a value - remove the key if no value is required" )
+			
 		self._values = validvalues
 		
 	def _getValue( self ): return self._values
 	
 	def _getValueSingle( self ): return self._values[0]
 	
+	def _addRemoveValue( self, value, mode ):
+		"""Append or remove value to/from our value according to mode
+		@param mode: 0 = remove, 1 = add"""
+		tmpvalues = value
+		if not isinstance( value, (list,tuple) ):
+			tmpvalues = ( value, )
+		
+		finalvalues = self._values[:]
+		if mode:
+			finalvalues.extend( tmpvalues )
+		else:
+			for val in tmpvalues:
+				if val in finalvalues:
+					finalvalues.remove( val )
+					
+		self.values = finalvalues
+		
+		
 	#{Utilities
+	def appendValue( self, value ):
+		"""Append the given value or list of values to the list of current values
+		@param value: list, tuple or scalar value
+		@todo: this implementation could be faster ( costing more code )"""
+		self._addRemoveValue( value, True )
+	
+	def removeValue( self, value ):
+		"""remove the given value or list of values from the list of current values
+		@param value: list, tuple or scalar value
+		@todo: this implementation could be faster ( costing more code )"""
+		self._addRemoveValue( value, False )
+		
 	def getValueString( self ):
 		""" Convert our value to a string suitable for the INI format """
 		strtmp = [ str( v ) for v in self._values ]
@@ -896,7 +986,7 @@ class Section( PropertyHolder ):
 	def mergeWith( self, othersection ):
 		"""Merge our section with othersection
 		@note:self will be altered"""
-		# adjust name - the default name is most not going to work - property section 
+		# adjust name - the default name is mostly not going to work - property sections
 		# possibly have non-qualified property names
 		self.name = othersection.name
 		
@@ -974,7 +1064,7 @@ class ConfigNode( object ):
 	
 	def _isWritable( self ):
 		""" @return: True if the instance can be altered """
-		return self.fp.isWritable()
+		return self._fp.isWritable()
 		
 	#{Properties
 	writable = property( _isWritable )		# read-only attribute
@@ -988,7 +1078,7 @@ class ConfigNode( object ):
 		for i in xrange( 0, len( snames ) ):
 			sname = snames[i]
 			items = configparser.items( sname )
-			section = self.getSectionDefault( sname )[0]
+			section = self.getSectionDefault( sname )
 			section.order = i*2		# allows us to have ordering room to move items in - like properties
 			for k,v in items:
 				section.setKey( k, v.split(',') )	
@@ -1001,10 +1091,10 @@ class ConfigNode( object ):
 	def parse( self ):
 		""" parse default INI information into the extended structure
 		
-		Parse the given INI file using a RawConfigParser, convert all information in it
+		Parse the given INI file using a FixedConfigParser, convert all information in it
 		into an internal format 
 		@raise ConfigParsingError: """
-		rcp = RawConfigParser( )
+		rcp = FixedConfigParser( )
 		try: 
 			rcp.readfp( self._fp )
 			self._update( rcp )
@@ -1073,7 +1163,9 @@ class ConfigNode( object ):
 			self._fp.close()
 			
 		return self._fp.getName()
-		
+
+	#{Section Access
+			
 	@typecheck_rval( list )
 	def listSections( self ):
 		""" @return: [] with string names of available sections 
@@ -1082,7 +1174,7 @@ class ConfigNode( object ):
 		for section in self._sections: out.append( str( section ) )
 		return out
 		
-	#{Section Access
+	
 	@typecheck_rval( Section )
 	def getSection( self, name ):
 		"""@return: L{Section} with name
@@ -1091,13 +1183,17 @@ class ConfigNode( object ):
 			return self._sections[ name ]
 		except KeyError:
 			raise NoSectionError( name )
+			
+	def hasSection( self, name ):
+		"""@return: True if the given section exists"""
+		return name in self._sections
 	
-	@typecheck_rval( ( Section, bool ) )	
+	@typecheck_rval( Section )	
 	def getSectionDefault( self, name ):
-		"""@return: tuple: 0 = L{Section} with name, create it if required, 1 = True if newly created"""
+		"""@return: L{Section} with name, create it if required"""
 		name = name.strip()
 		try: 
-			return ( self.getSection( name ), False )
+			return self.getSection( name )
 		except NoSectionError:
 			sectionclass = Section
 			if ConfigAccessor._isProperty( name ):
@@ -1105,7 +1201,9 @@ class ConfigNode( object ):
 			
 			section = sectionclass( name, -1 )
 			self._sections.add( section )
-			return ( section, True )
+			return section
+			
+		
 	#}
 	
 
@@ -1177,6 +1275,24 @@ class DiffKey( DiffData ):
 	def __str__( self ):
 		return self.toStr( "Key-Value" )
 	
+	@staticmethod
+	def _subtractLists( a, b ):
+		"""Subtract the values of b from a, return the list with the differences"""
+		acopy = a[:]
+		for val in b:
+			try:
+				acopy.remove( val )
+			except ValueError:
+				pass
+				
+		return acopy
+		
+	@staticmethod
+	def _matchLists( a, b ):
+		"""@return: list of values that are common to both lists"""
+		badded = DiffKey._subtractLists( b, a )
+		return DiffKey._subtractLists( b, badded )
+		
 	@typecheck_param( object, Key, Key )
 	def _populate( self, A, B ):
 		""" Find added and removed key values 
@@ -1187,9 +1303,10 @@ class DiffKey( DiffData ):
 		avals = frozenset( str( val ) for val in A._values  )
 		bvals = frozenset( str( val ) for val in B._values  )
 		
-		self.added = list( bvals - avals )
-		self.removed = list( avals - bvals )
-		self.unchanged = list( avals & bvals )
+		# we store real 
+		self.added = DiffKey._subtractLists( B._values, A._values )
+		self.removed = DiffKey._subtractLists( A._values, B._values )
+		self.unchanged = DiffKey._subtractLists( B._values, self.added )	# this gets the commonalities
 		self.changed = list()			# always empty -
 		self.name = A.name
 		
@@ -1197,8 +1314,27 @@ class DiffKey( DiffData ):
 		if A.properties != None:
 			propdiff = DiffSection( A.properties, B.properties )	
 			self.properties = propdiff			# attach propdiff no matter what
+
+			
+	def applyTo( self, key ):
+		"""Apply our changes to the given Key"""
 		
+		# simply remove removed values
+		for removedval in self.removed:
+			try:
+				key._values.remove( removedval )
+			except ValueError:
+				pass 
 		
+		# simply add added values
+		key._values.extend( self.added )
+		
+		# there are never changed values as this cannot be tracked
+		# finally apply the properties if we have some
+		if self.properties != None:
+			self.properties.applyTo( key.properties )
+			
+			
 class DiffSection( DiffData ):
 	""" Implements DiffData on section level """
 	
@@ -1221,7 +1357,7 @@ class DiffSection( DiffData ):
 		self.name = A.name
 		# find and set changed keys
 		common = A.keys & B.keys
-		for key in common:	
+		for key in common:
 			akey = A.getKey( str( key ) )
 			bkey = B.getKey( str( key ) )
 			dkey = DiffKey( akey, bkey )
@@ -1229,6 +1365,38 @@ class DiffSection( DiffData ):
 			if dkey.hasDifferences( ): self.changed.append( dkey )
 			else: self.unchanged.append( key )
 		
+	@staticmethod
+	def _getNewKey( section, keyname ):
+		"""@return: key from section - either existing or properly initialized without default value"""
+		key,created = section.getKeyDefault( keyname, "dummy" )
+		if created: key._values = []			# reset value if created to assure we have no dummy values in there
+		return key 
+		
+	def applyTo( self, targetSection ):
+		"""Apply our changes to targetSection"""
+		# properties may be None
+		if targetSection is None:
+			return
+		
+		# add added keys - they could exist already, which is why they are being merged
+		for addedkey in self.added:
+			key = DiffSection._getNewKey( targetSection, addedkey.name )
+			key.mergeWith( addedkey )
+			
+		# remove moved keys - simply delete them from the list
+		for removedkey in self.removed:
+			if removedkey in targetSection.keys:
+				targetSection.keys.remove( removedkey )
+				
+		# handle changed keys - we will create a new key if this is required
+		for changedKeyDiff in self.changed:
+			key = DiffSection._getNewKey( targetSection, changedKeyDiff.name )
+			changedKeyDiff.applyTo( key ) 
+			
+		# apply section property diff
+		if self.properties != None:
+			self.properties.applyTo( targetSection.properties )
+	
 	
 class ConfigDiffer( DiffData ):
 	"""Compares two configuration objects and allows retrieval of differences 
@@ -1308,8 +1476,8 @@ class ConfigDiffer( DiffData ):
 		# assure we do not work on references !
 		self.added = list( copy.deepcopy( bsections - asections ) )
 		self.removed = list( copy.deepcopy( asections - bsections ) )
-		self.changed = list()
-		self.unchanged = list()
+		self.changed = list( )
+		self.unchanged = list( )
 		self.name = ''
 		
 		common = asections & bsections		# will be copied later later on key level
@@ -1326,6 +1494,57 @@ class ConfigDiffer( DiffData ):
 			
 
 
+		
+		
+	@typecheck_param( object, ConfigAccessor )
+	def applyTo( self, ca ):
+		"""Apply the stored differences in this ConfigDiffer instance to the given ConfigAccessor
+		
+		If our diff contains the changes of A to B, then applying 
+		ourselves to A would make A equal B.
+		
+		@note: individual nodes reqpresenting an input source ( like a file )
+		can be marked read-only. This means they cannot be altered - thus it can 
+		be that section or key removal fails for them. Addition of elements normally
+		works as long as there is one writable node.
+		
+		@param ca: The configacceesor to apply our differences to
+		@return: tuple of lists containing the sections that could not be added, removed or get 
+		their changes applied
+		 - [0] = list of L{Section}s failed to be added
+		 - [1] = list of L{ection}s failed to be removed
+		 - [2] = list of L{DiffSection}s failed to apply their changes """
+		
+		# merge the added sections - only to the first we find 
+		rval = ([],[],[])
+		for addedsection in self.added:
+			try: 
+				ca.mergeSection( addedsection )
+			except IOError:
+				rval[0].append( addedsection )
+			
+		# remove removed sections - everywhere possible
+		# This is because diffs will only be done on merged lists
+		for removedsection in self.removed:
+			numfailedremoved = ca.removeSection( removedsection.name )
+			if numfailedremoved:
+				rval[1].append( removedsection )
+			
+		# handle the changed sections - here only keys or properties have changed
+		# respectively
+		for sectiondiff in self.changed:
+			# note: changes may only be applied once ! The diff works only on 
+			# merged configuration chains - this means one secion only exists once
+			# here we have an unmerged config chain, and to get consistent results, 
+			# the changes may only be applied to one section - we use the first we get
+			try: 
+				targetSection = ca.getSectionDefault( sectiondiff.name )
+				sectiondiff.applyTo( targetSection )
+			except IOError:
+				rval[2].append( sectiondiff )
+				
+		return rval
+				
 #}
 
 

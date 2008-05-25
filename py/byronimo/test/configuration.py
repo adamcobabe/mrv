@@ -21,6 +21,9 @@ import sys
 from ConfigParser import *
 from byronimo.configuration import *
 from itertools import *
+import shutil
+import tempfile
+from glob import glob
 
 class _ConverterLibrary( ):
 	""" For use with Converter Test Cases - contains different dictionaries for INI conversion """
@@ -161,7 +164,7 @@ class TestConfigAccessor( unittest.TestCase ):
 	def test_property_auto_qualification_on_write( self ):
 		"""ConfigAccessor.Properties: if properties are set at runtime, the propertysections might need long names for qualification when written"""
 		ca = _getca( 'valid_4keys' )
-		key = ca.getKeyDefault( "section", "key", "doesntmatter" )[0]
+		key = ca.getKeyDefault( "section", "key", "doesntmatter" )
 		key_prop = key.properties.getKeyDefault( "new_property", "value" )			# this creates a new physical attribute key
 		
 		# write to memfile
@@ -173,7 +176,7 @@ class TestConfigAccessor( unittest.TestCase ):
 		nca = ConfigAccessor()
 		memfile.seek( 0 )
 		nca.readfp( memfile )
-		self.failUnless( nca.getKeyDefault( "section", "key", "" )[0].properties.name == "+section:key" )
+		self.failUnless( nca.getKeyDefault( "section", "key", "" ).properties.name == "+section:key" )
 		
 	def test_multi_flatten( self ):
 		"""ConfigAccessor:If a configuration gets flattened several times, the result must always match with the original"""
@@ -191,17 +194,91 @@ class TestConfigAccessor( unittest.TestCase ):
 class TestConfigManagerr( unittest.TestCase ):
 	""" Test the ConfigAccessor Class and all its featuers"""
 	
+	def __init__( self, testcasenames ):
+		unittest.TestCase.__init__( self , testcasenames )
+		self.testpath = os.path.join( tempfile.gettempdir(), "tmp_configman" )
+		
 	def setUp( self ):
 		""" Copy valid files into seprate working directory as we want to alter them"""
-		raise NotImplementedError( "copy files for that can be written too" )
-	
-	def test_access_read_write( ):
+		
+		dirWithTests = os.path.join( os.path.dirname( __file__ ), "configman_inis" )
+		try:
+			shutil.rmtree( self.testpath, ignore_errors=False )
+		except:
+			pass
+		shutil.copytree( dirWithTests, self.testpath )
+		
+	def test_access_read_write( self ):
 		"""ConfigManager: Simple read and alter values in the Configuration Manager, and write them back """
-		raise NotImplementedError()
+		inifps = _getprefixedinifps( 'valid', dirname=self.testpath )
+		
+		cm = ConfigManager( inifps, write_back_on_desctruction=False )
+		
+		# create new secttion
+		cm.config.getSectionDefault("myNewSection").getKeyDefault( "myNewKey", "thisDefault" )[0].value = "this"
+		
+		# remove a section completely - all are writable, they must be no failed node
+		self.failIf( cm.config.removeSection( "section_to_be_removed" ) != 0 )
+		
+		# add keys to existing section 
+		key,created = cm.config.getSection( "section" ).getKeyDefault( "anotherNewKey", "thisDefaultValue" )
+		
+		# remove keys - this one is garantueed to exist
+		cm.config.getSection( "section_removekey_2" ).keys.remove( "key_2" )
+		cm.config.getSection( "section_nonunique" ).keys.remove( "key_nonunique" )
+		
+		# add values to existing key
+		cm.config.getSection( "section_addkeyvals" ).getKey( "key3" ).appendValue( "appendedValue" )
+		cm.config.getSection( "section_addkeyvals" ).getKey( "key4" ).appendValue( [ "appendedValue2", "anotherappendedValue" ] )
+
+		# remove a value 
+		cm.config.getSection( "section_removeval" ).getKey( "key_rmval" ).removeValue( "val2" )
+		
+		# manaully force the writeback - if it happens in the destructor, errors will be cought automatically 
+		cm.write( )
+		
+		
+		
+		
+		
+		# read all the files back and assure the changes have really been applied
+		############################################################################
+		inifps = _getprefixedinifps( 'valid', dirname=self.testpath )
+		cm = ConfigManager( inifps, write_back_on_desctruction=False )
+		
+		#cm.config.write( close_fp=False )
+		#print cm.config._configChain[0]._fp.getvalue()
+	
+		# check created section
+		cm.config.getSection( "myNewSection" ).getKey( "myNewKey" )
+		
+		# assure removed section is not there
+		self.failUnlessRaises( NoSectionError, cm.config.getSection, *["section_to_be_removed"] )
+		
+		# check added key
+		self.failUnless( cm.config.getSection( "section" ).getKey( "anotherNewKey" ).value == "thisDefaultValue" )
+		
+		# assure removed keys are gone
+		self.failUnlessRaises( NoOptionError, cm.config.getSection( "section_removekey_2" ).getKey, *[ "key_2" ] )
+		# this key may be there as it is used in two writable section in different nodes
+		# we only apply changed sections to the first section we find
+		cm.config.getSection( "section_nonunique" ).getKey( "key_nonunique" )
+		
+		
+		# check appended values
+		self.failUnless( "appendedValue" in cm.config.getSection( "section_addkeyvals" ).getKey( "key3" ).values )
+		for val in ( "appendedValue2", "anotherappendedValue" ):
+			self.failUnless( val in cm.config.getSection( "section_addkeyvals" ).getKey( "key4" ).values )
+		
+			
+		# check removed value
+		self.failUnless( "val2" not in cm.config.getSection( "section_removeval" ).getKey( "key_rmval" ).values )
+		
 		
 	def tearDown( self ):
 		""" Remove the temporary working files """ 
-		raise NotImplementedError( )
+		#shutil.rmtree( self.testpath, ignore_errors=False )
+		
 		
 		
 
@@ -299,20 +376,18 @@ class TestConfigDiffer( unittest.TestCase ):
 		
 	
 		
-def _getPrefixedINIFileNames( prefix ):
+def _getPrefixedINIFileNames( prefix, dirname = os.path.dirname( __file__ ) ):
 	""" Return full paths to INI files of files with the given prefix
 		
 		They must be in the same path as this test file, and end with .ini
 	"""
-	from glob import glob
-	import os.path as path
-	return glob( os.path.join( path.dirname( __file__ ), prefix+"*.ini" ) )
+	return glob( os.path.join( dirname, prefix+"*.ini" ) )
 
 def _tofp( filenamelist, mode='r' ):
 	return [ ConfigFile( filename, mode ) for filename in filenamelist ]
 	
-def _getprefixedinifps( prefix, mode='r' ):
-	return _tofp( _getPrefixedINIFileNames( prefix ), mode=mode )
+def _getprefixedinifps( prefix, mode='r', dirname = os.path.dirname( __file__ ) ):
+	return _tofp( _getPrefixedINIFileNames( prefix, dirname=dirname ), mode=mode )
 
 
 def _getca( prefix ):
