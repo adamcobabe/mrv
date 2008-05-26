@@ -857,9 +857,8 @@ class Key( PropertyHolder ):
 				
 		# assure we have always a value - if we write zero values to file, we
 		# throw a parse error - thus we may not tolerate empty values
-		if len( validvalues ) == 0:
-			raise ValueError( "Key: " + self.name + " must have a value - remove the key if no value is required" )
-			
+		# NO: Allow that at runtime, simply drop these keys during file write
+		# to be consistent with section handling
 		self._values = validvalues
 		
 	def _getValue( self ): return self._values
@@ -1154,6 +1153,8 @@ class ConfigNode( object ):
 		for section in sectionsforwriting:
 			rcp.add_section( section.name )
 			for key in section.keys:
+				if len( key.values ) == 0:
+					continue
 				rcp.set( section.name, key.name, key.getValueString( ) )
 				
 			
