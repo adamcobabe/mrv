@@ -239,16 +239,11 @@ class TestConfigManagerr( unittest.TestCase ):
 		
 		
 		
-		
-		
 		# read all the files back and assure the changes have really been applied
 		############################################################################
 		inifps = _getprefixedinifps( 'valid', dirname=self.testpath )
 		cm = ConfigManager( inifps, write_back_on_desctruction=False )
 		
-		#cm.config.write( close_fp=False )
-		#print cm.config._configChain[0]._fp.getvalue()
-	
 		# check created section
 		cm.config.getSection( "myNewSection" ).getKey( "myNewKey" )
 		

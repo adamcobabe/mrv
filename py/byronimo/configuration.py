@@ -3,14 +3,13 @@
 Contains implementation of the configuration system allowing to flexibly control
 the programs behaviour.
 
-	- read and write section=[key=value]* pairs from INI style file-like objects !
+	- read and write sections with key=value pairs from and to INI style file-like objects !
 		- Wrappers for these file-like objects allow virtually any source for the operation
 	- configuration inheritance
 		- allow precise control over the inheritance behaviour and inheritance
 		  defaults
-		- final results of the inheritance operation will be cached into the respective
-		  class
-		- Environment Variables can serve as final instance to override values
+		- final results of the inheritance operation will be cached into the L{ConfigurationManager}
+		- Environment Variables can serve as final instance to override values using the L{DictConfigINIFile} 
 	- Creation and Maintenance of individual configuration files as controlled by
 	  submodules of the application
 			- These configuration go to a default location, or to the given file-like object
@@ -50,7 +49,7 @@ class ConfigParsingError( ByronimoError ):
 
 	
 class ConfigParsingPropertyError( ConfigParsingError ):
-	""" Indicates that the property(ies) parsing encountered a problem """
+	""" Indicates that the property-parsing encountered a problem """
 	pass 
 #} End Exceptions
 
@@ -87,8 +86,7 @@ class DictToINIFile( StringIO.StringIO ):
 		@param description: will be used as comment directly below the section, it
 		must be a single line only
 
-		@raise ValueError: if the description - newlines are generally not allowed
-		though and will cause a parsing error later on """
+		@raise ValueError: newlines are are generally not allowed and will cause a parsing error later on """
 		StringIO.StringIO.__init__( self )
 		
 		self.write( '[' + str(section) + ']\n' )
@@ -109,47 +107,49 @@ class DictToINIFile( StringIO.StringIO ):
 # Classes that allow direct access to the respective configuration
 
 class ConfigAccessor( object ):
-	""" Provides full access to the Configuration
+	""" 
+	Provides full access to the Configuration
 	
 	Differences to ConfigParser
 	===========================
-	As the functionality and featureset is very different from the original 
-	ConfigParser implementation, this class does not support the interface directly.
-	It contains functions to create original ConfigParser able to fully write and alter
-	the contained data in an unchecked manner.
-	
-	Additional Exceptions have been defined to cover extended functionality.
+		As the functionality and featureset is very different from the original 
+		ConfigParser implementation, this class does not support the interface directly.
+		It contains functions to create original ConfigParser able to fully write and alter
+		the contained data in an unchecked manner.
+		
+		Additional Exceptions have been defined to cover extended functionality.
 	
 	Sources and Nodes
 	=================
-	Each input providing configuration data is stored in a node. This node 
-	knows about its writable state. Nodes that are not writable can be altered in memory, 
-	but the changes cannot be written back to the source. 
-	This does not impose a problem though as changes will be applied as long as there is 
-	one writable node in the chain - due to the inheritance scheme applied by the configmanager, 
-	the final configuration result will match the changes applied at runtime.
-	
-	@note: The configaccessor should only be used in conjunction with the L{ConfigManager}
+		Each input providing configuration data is stored in a node. This node 
+		knows about its writable state. Nodes that are not writable can be altered in memory, 
+		but the changes cannot be written back to the source. 
+		This does not impose a problem though as changes will be applied as long as there is 
+		one writable node in the chain - due to the inheritance scheme applied by the configmanager, 
+		the final configuration result will match the changes applied at runtime.
 	
 	Commonalities to ConfigParser
 	=============================
-	Terms used to describe INI files and most exception. 
+		Terms used to describe INI files and most exception. 
 	
 	Additional Information
 	======================
-	The term configuration is rather complex though:
-		- configuration is based on an extended INI file format
-			- its not fully compatible, but slightly more narrow regarding allowed input
-			  to support extended functionality
-		- this configuration is read from file-like objects
-		- a list of file-like objects creates a configuration chain
-		- keys have properties attached to them defining how they behave during 
-		  inheritance
-		- once all the INI configurations have been read and processed, one can access
-		  the configuration as if it was just in one file.
-		- Direct access is obtained though L{Key} and L{Section} objects 
-		- Keys and Sections have property attributes of type L{Section}
-		  - Their keys and values are used to further define key merging behaviour for example """
+		The term configuration is rather complex though:
+			- configuration is based on an extended INI file format
+				- its not fully compatible, but slightly more narrow regarding allowed input
+				  to support extended functionality
+			- this configuration is read from file-like objects
+			- a list of file-like objects creates a configuration chain
+			- keys have properties attached to them defining how they behave during 
+			  inheritance
+			- once all the INI configurations have been read and processed, one can access
+			  the configuration as if it was just in one file.
+			- Direct access is obtained though L{Key} and L{Section} objects 
+			- Keys and Sections have property attributes of type L{Section}
+				- Their keys and values are used to further define key merging behaviour for example
+				
+	@note: The configaccessor should only be used in conjunction with the L{ConfigManager}
+	"""
 	
 	def __init__( self ):
 		""" Initialize instance variables """
@@ -248,7 +248,7 @@ class ConfigAccessor( object ):
 		
 	#{ IO Interface
 	def readfp( self, filefporlist, close_fp = True ):
-		""" Read the INI file from the file like object(s) 
+		""" Read the configuration from the file like object(s) representing INI files. 
 		@param filefporlist: single file like object or list of such
 		@param close_fp: if True, the file-like object will be closed before the method returns, 
 		but only for file-like objects that have actually been processed 
@@ -281,12 +281,14 @@ class ConfigAccessor( object ):
 		
 	@typecheck_rval( list )
 	def write( self, close_fp=True ):
-		""" Write current state back to files 
-		During initialization in readfp, ExtendedFileInterface objects have been passed in - these
-		will now be used to write back the current state of the configuration.
+		""" Write current state back to files. 
+		During initialization in L{readfp}, L{ExtendedFileInterface} objects have been passed in - these
+		will now be used to write back the current state of the configuration - the files will be 
+		opened for writing if possible.
 		
 		@param close_fp: close the file-object after writing to it
-		@return: list of names of files that have actually been written
+		@return: list of names of files that have actually been written - as files can be read-only 
+		this list might be smaller than the amount of nodes in the accessor.
 		""" 
 		writtenFiles = []
 		
@@ -308,13 +310,15 @@ class ConfigAccessor( object ):
 	# But I cannot introduce it just for that purpose ... 
 	# @typecheck_rval( object, ExtendedFileInterface )
 	def flatten( self, fp ):
-		"""Copy all our members into a new ConfigAccessor which only has one node, instead of x
+		"""Copy all our members into a new ConfigAccessor which only has one node, instead of N nodes
 		
-		By default, a configuration can be made up of several different sources that create a chain
+		By default, a configuration can be made up of several different sources that create a chain.
 		Each source can redefine and alter values previously defined by other sources.
 		
-		A flattened chain though does only conist of one node containing concrete values that 
-		can quickly be accessed
+		A flattened chain though does only conist of one of such node containing concrete values that 
+		can quickly be accessed.
+		
+		Flattened configurations are provided by the L{ConfigManager}.
 		@param fp: file-like object that will be used as storage once the configuration is written
 		@return: Flattened copy of self"""
 		# create config node 
@@ -341,7 +345,7 @@ class ConfigAccessor( object ):
 		return self._configChain.getSectionIterator()
 		
 	def getKeyIterator( self ):
-		"""@return: iterator returning tuples of (key,section) pairs"""
+		"""@return: iterator returning tuples of (L{Key},L{Section}) pairs"""
 		return self._configChain.getKeyIterator()
 		
 	#} END GROUP
@@ -360,8 +364,11 @@ class ConfigAccessor( object ):
 		
 	@typecheck_param( object, basestring )
 	def getSection( self, section ):
-		""" @return: section with name, or raise 
-		@raise NoSectionError: """
+		""" @return: first section with name
+		@note: as there might be several nodes defining the section for inheritance, 
+		you might not get the desired results unless this config accessor acts on a 
+		L{flatten}ed list.
+		@raise NoSectionError: if the requested section name does not exist """
 		for node in self._configChain:
 			if section in node._sections:
 				return node.getSection( section )
@@ -369,10 +376,11 @@ class ConfigAccessor( object ):
 		raise NoSectionError( section )
 		
 	def getKeyDefault( self, sectionname,keyname, value ):
-		"""Convenience Function: get keyname in sectionname with the key's value or your 'value' if it did not exist 
-		@param sectionname: thekeyname of the sectionname the key is supposed to be in - it will be created if needed
-		@param keyname: thekeyname of the key you wish to find
-		@param value: the value you wish to receive as as default if the key has to be created
+		"""Convenience Function: get key with keyname in first section with sectionname with the key's value being initialized to value if it did not exist.  
+		@param sectionname: the name of the sectionname the key is supposed to be in - it will be created if needed
+		@param keyname: the name of the key you wish to find
+		@param value: the value you wish to receive as as default if the key has to be created.
+		It can be a list of values as well, basically anything that L{Key} allows as value
 		@return: L{Key}"""
 		return self.getSectionDefault( sectionname ).getKeyDefault(keyname, value )[0]
 			
@@ -380,8 +388,7 @@ class ConfigAccessor( object ):
 	@typecheck_param( object, basestring )
 	def getKeysByName( self, name ):
 		"""@param name: the name of the key you wish to find
-		@return: List of  (L{Key},L{Section}) tuples of key matching name found in section, or empty list"""
-		# note: we do not use iterators as we want to use sets for faster search !
+		@return: List of  (L{Key},L{Section}) tuples of key(s) matching name found in section, or empty list"""
 		return list( self._configChain.iterateKeysByName( name ) )
 	
 	#} END GROUP
@@ -389,8 +396,8 @@ class ConfigAccessor( object ):
 	#{ Structure Adjustments Respecting Writable State
 	@typecheck_param( object, basestring )
 	def getSectionDefault( self, section ):
-		"""@return: section with given name,
-		@raise IOError: If the configuration cannot be written to 
+		"""@return: section with given name.
+		@raise IOError: If section does not exist and it cannot be created as the configuration is readonly 
 		@note: the section will be created if it does not yet exist
 		"""
 		try: 
@@ -407,8 +414,8 @@ class ConfigAccessor( object ):
 		raise IOError( "Could not find a single writable configuration file" )
 	
 	def removeSection( 	self, name ):
-		"""Completely remove the given section name from our list
-		@return: the number of nodes that did NOT allow the section to be removed as they are read-only, thus 
+		"""Completely remove the given section name from all nodes in our configuration
+		@return: the number of nodes that did *not* allow the section to be removed as they are read-only, thus 
 		0 will be returned if everything was alright"""
 		numReadonly = 0
 		for node in self._configChain:
@@ -1513,7 +1520,7 @@ class ConfigDiffer( DiffData ):
 		@return: tuple of lists containing the sections that could not be added, removed or get 
 		their changes applied
 		 - [0] = list of L{Section}s failed to be added
-		 - [1] = list of L{ection}s failed to be removed
+		 - [1] = list of L{Section}s failed to be removed
 		 - [2] = list of L{DiffSection}s failed to apply their changes """
 		
 		# merge the added sections - only to the first we find 
