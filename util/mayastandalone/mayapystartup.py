@@ -1,7 +1,9 @@
 import maya.standalone
 maya.standalone.initialize()
 
-# init readline for nice tabcompletion !
-import rlcompleter
-import readline
-readline.parse_and_bind("tab: complete")
+# init ipython - needs to be available in your local python installation
+try: 
+	import IPython
+	IPython.Shell.start().mainloop()
+except:
+	print "Warning: Failed to load ipython - please install it for more convenient maya python interaction"
