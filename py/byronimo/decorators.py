@@ -31,19 +31,16 @@ from byronimo.exceptions import ( 	TypecheckDecoratorError,
 									InterfaceError,
 									InterfaceSetupError)
 
-
-
-
-class __classobjtype():
+class __classobjtype( object ):
 	""" Required to find out whether something is a classobj 
-		
-		Some old classes are not derived from object, and are always type 'classobj' 
-		if typed. This object type though is supposed to be in __builtin__ namespace, but 
-		it acutally isnt. Thus I create my own dummy class to be able to compare 
-		against and check for this type.
-		
-		One can also check for __class__ members here which appears to be one of the 
-		markers for new style classes """
+	
+	Some old classes are not derived from object, and are always type 'classobj' 
+	if typed. This object type though is supposed to be in __builtin__ namespace, but 
+	it acutally isnt. Thus I create my own dummy class to be able to compare 
+	against and check for this type.
+	
+	One can also check for __class__ members here which appears to be one of the 
+	markers for new style classes """
 	pass
 
 	
@@ -68,7 +65,7 @@ def _checktype( arg, argpos, definetype, *exc_addargs ):
 			raise MethodTypeError( m, *exc_addargs )
 
 		
-class interface( ):
+class interface( object ):
 	""" Simple command class allowing to compare interface with each other """
 	def __init__( self, ref_interface, ignore=[], only=[], add=[] ):
 		""" Keep the reference interface for later comparison 
@@ -146,7 +143,7 @@ def __methodtypecheck( type_signature, rval_inst, index=0 ):
 
 
 #{ Typecheck Helper Classes
-class TypeBase( ):
+class TypeBase( object ):
 	""" Class defining base interface ( command pattern ) for all types allowing
 		simple type comparison
 		
