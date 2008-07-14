@@ -1,10 +1,10 @@
-<map version="0.9.0_Beta_8">
+<map version="0.9.0">
 <!-- To view this file, download free mind mapping software FreeMind from http://freemind.sourceforge.net -->
 <attribute_registry SHOW_ATTRIBUTES="hide"/>
-<node COLOR="#000000" CREATED="1208681350261" ID="ID_823383288" MODIFIED="1208686877317" TEXT="MayaRVIndex">
+<node COLOR="#000000" CREATED="1208681350261" ID="ID_823383288" MODIFIED="1216038536694" TEXT="MayaRVIndex">
 <font NAME="SansSerif" SIZE="20"/>
 <hook NAME="accessories/plugins/AutomaticLayout.properties"/>
-<node COLOR="#0033ff" CREATED="1208686847712" HGAP="84" ID="ID_1582204477" MODIFIED="1208702319183" POSITION="right" TEXT="Packaging" VSHIFT="-90">
+<node COLOR="#0033ff" CREATED="1208686847712" FOLDED="true" HGAP="84" ID="ID_1582204477" MODIFIED="1216038547035" POSITION="right" TEXT="Packaging" VSHIFT="-90">
 <edge STYLE="sharp_bezier" WIDTH="8"/>
 <font NAME="SansSerif" SIZE="18"/>
 <node COLOR="#00b439" CREATED="1208686978207" ID="ID_986166965" MODIFIED="1208701189331" TEXT="Structure ( internal )">
@@ -245,6 +245,123 @@
 </node>
 </node>
 </node>
+<node COLOR="#0033ff" CREATED="1216038557716" ID="ID_198373734" MODIFIED="1216038559427" POSITION="right" TEXT="Features">
+<edge STYLE="sharp_bezier" WIDTH="8"/>
+<font NAME="SansSerif" SIZE="18"/>
+<node COLOR="#00b439" CREATED="1216049436997" ID="ID_819914480" MODIFIED="1216049444405" TEXT="Files and References">
+<edge STYLE="bezier" WIDTH="thin"/>
+<font BOLD="true" NAME="SansSerif" SIZE="16"/>
+<node COLOR="#990000" CREATED="1216049445885" ID="ID_1282689902" MODIFIED="1216049485157" TEXT="Module for handling references">
+<font NAME="SansSerif" SIZE="14"/>
+</node>
+<node COLOR="#990000" CREATED="1216049485926" ID="ID_1800780407" MODIFIED="1216049493678" TEXT="Class to represent references">
+<font NAME="SansSerif" SIZE="14"/>
+</node>
+<node COLOR="#990000" CREATED="1216050203399" ID="ID_726104062" MODIFIED="1216050214575" TEXT="Path Class - use one from pymel">
+<font NAME="SansSerif" SIZE="14"/>
+</node>
+</node>
+<node COLOR="#00b439" CREATED="1216038560936" ID="ID_876956912" MODIFIED="1216042153881" TEXT="API Object hierarchy">
+<edge STYLE="bezier" WIDTH="thin"/>
+<font BOLD="true" NAME="SansSerif" SIZE="16"/>
+<node COLOR="#990000" CREATED="1216038571796" ID="ID_276629478" MODIFIED="1216042222381" TEXT="Only uses api objects following the maya api hierarchy">
+<font BOLD="true" NAME="SansSerif" SIZE="14"/>
+</node>
+<node COLOR="#990000" CREATED="1216038607737" ID="ID_1571486105" MODIFIED="1216038624407" TEXT="If an object is not officially known, one gets the closest supported type">
+<font NAME="SansSerif" SIZE="14"/>
+</node>
+<node COLOR="#990000" CREATED="1216040519096" ID="ID_1867106049" MODIFIED="1216040529428" TEXT="methods follow that hierarchy accordingly">
+<font NAME="SansSerif" SIZE="14"/>
+</node>
+<node COLOR="#990000" CREATED="1216041724778" ID="ID_635865019" MODIFIED="1216041840018">
+<richcontent TYPE="NODE"><html>
+  <head>
+    
+  </head>
+  <body>
+    <p>
+      <b>class handlers</b> - implement specific behaviour and can be added at runtime and easily !
+    </p>
+  </body>
+</html>
+</richcontent>
+<font NAME="SansSerif" SIZE="14"/>
+</node>
+<node COLOR="#990000" CREATED="1216042428217" ID="ID_1254805997" MODIFIED="1216042436056" TEXT="Handle Instances Correctly !">
+<font BOLD="true" NAME="SansSerif" SIZE="14"/>
+</node>
+<node COLOR="#990000" CREATED="1216042543242" ID="ID_38414633" MODIFIED="1216042582298">
+<richcontent TYPE="NODE"><html>
+  <head>
+    
+  </head>
+  <body>
+    <p>
+      <b>DAG Query Build </b>In through parent,parents and children functions
+    </p>
+  </body>
+</html>
+</richcontent>
+<font NAME="SansSerif" SIZE="14"/>
+</node>
+</node>
+<node COLOR="#00b439" CREATED="1216041667975" ID="ID_210398728" MODIFIED="1216042154800" TEXT="Attributes">
+<edge STYLE="bezier" WIDTH="thin"/>
+<font BOLD="true" NAME="SansSerif" SIZE="16"/>
+<node COLOR="#990000" CREATED="1216041673657" ID="ID_1163118921" MODIFIED="1216041680488" TEXT="Object Oriented Attribute access">
+<font NAME="SansSerif" SIZE="14"/>
+</node>
+<node COLOR="#990000" CREATED="1216041681757" ID="ID_618708684" MODIFIED="1216041683388" TEXT="get and set">
+<font NAME="SansSerif" SIZE="14"/>
+</node>
+<node COLOR="#990000" CREATED="1216041683717" ID="ID_161342562" MODIFIED="1216041847631">
+<richcontent TYPE="NODE"><html>
+  <head>
+    
+  </head>
+  <body>
+    <p>
+      <b>attribute handlers</b> - implement all specifics about attributes, and allow to be added easily
+    </p>
+  </body>
+</html>
+</richcontent>
+<font NAME="SansSerif" SIZE="14"/>
+</node>
+<node COLOR="#990000" CREATED="1216041885978" ID="ID_1683531140" MODIFIED="1216041890688" TEXT="Connection Operators">
+<font BOLD="true" NAME="SansSerif" SIZE="14"/>
+</node>
+<node COLOR="#990000" CREATED="1216042006493" ID="ID_854386693" MODIFIED="1216042016426" TEXT="dynamically created to save memory">
+<font NAME="SansSerif" SIZE="14"/>
+</node>
+<node COLOR="#990000" CREATED="1216042113384" ID="ID_1404922020" MODIFIED="1216042150153" TEXT="Combines interface of MfnAttribute and MFnPlug - possibly">
+<font NAME="SansSerif" SIZE="14"/>
+</node>
+<node COLOR="#990000" CREATED="1216050439935" ID="ID_325879272" MODIFIED="1216050446007" TEXT="handleDynAttributes">
+<font NAME="SansSerif" SIZE="14"/>
+</node>
+</node>
+<node COLOR="#00b439" CREATED="1216042232101" ID="ID_1750326046" MODIFIED="1216043040187" TEXT="DAG and DG operations">
+<edge STYLE="bezier" WIDTH="thin"/>
+<font BOLD="true" NAME="SansSerif" SIZE="16"/>
+<node COLOR="#990000" CREATED="1216042240402" ID="ID_881646673" MODIFIED="1216042284677" TEXT="Atomic Changes through DagModifier">
+<font NAME="SansSerif" SIZE="14"/>
+</node>
+<node COLOR="#990000" CREATED="1216042520432" ID="ID_1422206898" MODIFIED="1216042534332" TEXT="Convenient DAG&amp;DG Walking and queries">
+<font NAME="SansSerif" SIZE="14"/>
+</node>
+<node COLOR="#990000" CREATED="1216043042769" ID="ID_361632721" MODIFIED="1216043767057" TEXT="Eficient Iterators on Nodes,Hierarchies and Connections">
+<font NAME="SansSerif" SIZE="14"/>
+</node>
+</node>
+<node COLOR="#00b439" CREATED="1216042155181" ID="ID_1012944962" MODIFIED="1216042216580" TEXT="User Interfaces">
+<edge STYLE="bezier" WIDTH="thin"/>
+<font BOLD="true" NAME="SansSerif" SIZE="16"/>
+<node COLOR="#990000" CREATED="1216042165542" ID="ID_961083839" MODIFIED="1216042213952" TEXT="Most common Interface types reprogrammed to allow basic UIs and behaviour">
+<font NAME="SansSerif" SIZE="14"/>
+</node>
+</node>
+</node>
 <node COLOR="#0033ff" CREATED="1208870853042" ID="ID_1565932175" LINK="MayaRV_Development.mm" MODIFIED="1208870853043" POSITION="left" TEXT="Development">
 <edge STYLE="sharp_bezier" WIDTH="8"/>
 <font NAME="SansSerif" SIZE="18"/>
@@ -261,7 +378,7 @@
 <font NAME="SansSerif" SIZE="16"/>
 </node>
 </node>
-<node COLOR="#0033ff" CREATED="1208729970934" HGAP="106" ID="ID_548235644" MODIFIED="1208731532687" POSITION="left" TEXT="Useful Python Packages" VSHIFT="42">
+<node COLOR="#0033ff" CREATED="1208729970934" FOLDED="true" HGAP="106" ID="ID_548235644" MODIFIED="1216038535795" POSITION="left" TEXT="Useful Python Packages" VSHIFT="42">
 <edge STYLE="sharp_bezier" WIDTH="8"/>
 <font NAME="SansSerif" SIZE="18"/>
 <node COLOR="#00b439" CREATED="1208729981038" ID="ID_775477198" MODIFIED="1208729984852" TEXT="ConfigParser">
