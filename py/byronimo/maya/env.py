@@ -4,6 +4,8 @@ Allows to query the maya environment, like variables, version numbers and system
 paths.
 
 @todo: more documentation
+@todo: logger !
+
 
 @newfield revision: Revision
 @newfield id: SVN Id
@@ -18,3 +20,26 @@ __revision__="$Revision: 16 $"
 __id__="$Id: configuration.py 16 2008-05-29 00:30:46Z byron $"
 __copyright__='(c) 2008 Sebastian Thiel'
 
+
+from maya import cmds
+
+
+def getAppVersion( ):
+	"""
+	@return: tuple( float( version ), int( bits ), string( versionString ) ), the 
+	version will be truncated to *not* include sub-versions
+	@note: can be run without maya modules too as long as MAYA_LOCATION is set
+	@note: maya.cmds.about() will crash if called with an external interpreter
+	"""
+	bits = 32
+	if cmds.about( is64=1 ):
+		bits = 64
+		
+	versionString = cmds.about( v=1 )
+	version = versionString.split( ' ' )
+	if version.find( '.' ) != -1:
+		version = version[0:3]
+		
+	# truncate to float 
+	version = float( version )
+	return ( version, bits, versionString )

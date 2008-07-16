@@ -245,7 +245,7 @@
 </node>
 </node>
 </node>
-<node COLOR="#0033ff" CREATED="1216038557716" ID="ID_198373734" MODIFIED="1216038559427" POSITION="right" TEXT="Features">
+<node COLOR="#0033ff" CREATED="1216038557716" ID="ID_198373734" MODIFIED="1216106488601" POSITION="right" TEXT="Features">
 <edge STYLE="sharp_bezier" WIDTH="8"/>
 <font NAME="SansSerif" SIZE="18"/>
 <node COLOR="#00b439" CREATED="1216049436997" ID="ID_819914480" MODIFIED="1216049444405" TEXT="Files and References">
@@ -283,8 +283,7 @@
       <b>class handlers</b> - implement specific behaviour and can be added at runtime and easily !
     </p>
   </body>
-</html>
-</richcontent>
+</html></richcontent>
 <font NAME="SansSerif" SIZE="14"/>
 </node>
 <node COLOR="#990000" CREATED="1216042428217" ID="ID_1254805997" MODIFIED="1216042436056" TEXT="Handle Instances Correctly !">
@@ -300,8 +299,7 @@
       <b>DAG Query Build </b>In through parent,parents and children functions
     </p>
   </body>
-</html>
-</richcontent>
+</html></richcontent>
 <font NAME="SansSerif" SIZE="14"/>
 </node>
 </node>
@@ -324,8 +322,7 @@
       <b>attribute handlers</b> - implement all specifics about attributes, and allow to be added easily
     </p>
   </body>
-</html>
-</richcontent>
+</html></richcontent>
 <font NAME="SansSerif" SIZE="14"/>
 </node>
 <node COLOR="#990000" CREATED="1216041885978" ID="ID_1683531140" MODIFIED="1216041890688" TEXT="Connection Operators">

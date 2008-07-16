@@ -9,7 +9,7 @@ try:
 	execfile( filepath )
 except:
 	print "Set PYMAYASTD_CONFIG to point to python script doing additional setup"
-
+	raise
 
 # init ipython - needs to be available in your local python installation
 try: 

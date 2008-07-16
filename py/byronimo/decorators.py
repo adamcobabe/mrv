@@ -26,6 +26,8 @@ __id__="$Id$"
 __copyright__='(c) 2008 Sebastian Thiel'
 
 
+import sys
+
 from byronimo.exceptions import ( 	TypecheckDecoratorError, 
 									MethodTypeError, 
 									InterfaceError,
@@ -47,8 +49,10 @@ class __classobjtype( object ):
 def _getactualtype( definetype ):
 	"""@param definetype: an instance of type L{interface}, a classobj or a type
 	@return: a type that can be handled properly by L{_checktype} """
-	if type( __classobjtype ) != type( definetype ) and not isinstance( definetype, type ):
-		return type( definetype )
+	# THIS APPEARS TO ONLY WORK FOR PYTHON version 2.5 or higher
+	if sys.version_info[1] > 4:
+		if type( __classobjtype ) != type( definetype ) and not isinstance( definetype, type ):
+			return type( definetype )
 	return definetype
 	
 		

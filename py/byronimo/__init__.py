@@ -20,7 +20,11 @@ __copyright__='(c) 2008 Sebastian Thiel'
 import __builtin__
 from inspect import isfunction
 
-def init_decorators( ):
+# EXPORT
+__all__ = []
+
+
+def _init_decorators( ):
 	"""Installs general decorators
 	
 	Decorators will help maintaining the system - this method installs 
@@ -39,13 +43,13 @@ def init_decorators( ):
 	__builtin__.__dict__[ 'interface' ] = byronimo.decorators.interface
 	
 	
-def init_configProvider( ):
+def _init_configProvider( ):
 	""" Install the configuration provider system 
 	
 	This allows values and settings to be stored in a convenient way. """
 	pass
 	
-def init_internationalization( ):
+def _init_internationalization( ):
 	"""Install internationalization module
 	
 	Using the default python gettext module, internationalization compatibility
@@ -56,7 +60,7 @@ def init_internationalization( ):
 	gettext.install( "byronimo" )
 	
 
-def init_logging( ):
+def _init_logging( ):
 	""" Initialize the default byronimo logging interface
 	
 	The logging interface unifies the way messages for the end user are handled
@@ -67,9 +71,27 @@ def init_logging( ):
 	pass 
 	
 	
+def _init_python( ):
+	""" 
+	Assure that certain python classes have the least possible amount of compatablity
+	so that we can work with them
+	"""
+	# must have proper exceptions
+	e = Exception()
+	if not hasattr( e, 'message' ):
+		# put in a special __init__ function
+		Exception.__init__old = Exception.__init__
+		def myinit( self, *args, **kvargs ):
+			self.message = ''
+			Exception.__init__old( self, *args, **kvargs )
+			
+		Exception.__init__ = myinit
+	
+	
 # INITIALIZE
 #############
-init_decorators( )
-init_configProvider( )
-init_internationalization( )
-init_logging( )
+_init_decorators( )
+_init_configProvider( )
+_init_internationalization( )
+_init_logging( )
+_init_python( )

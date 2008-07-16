@@ -40,6 +40,7 @@ import copy
 import re
 import sys
 import StringIO
+import os
 
 #{ Exceptions
 ################################################################################
@@ -352,7 +353,6 @@ class ConfigAccessor( object ):
 	
 	
 	#{ General Access ( disregarding writable state )
-	
 	def hasSection( self, name ):
 		"""@return: True if the given section exists"""
 		try:
@@ -391,7 +391,27 @@ class ConfigAccessor( object ):
 		@return: List of  (L{Key},L{Section}) tuples of key(s) matching name found in section, or empty list"""
 		return list( self._configChain.iterateKeysByName( name ) )
 	
+	
 	#} END GROUP
+	
+	#{ Operators 
+	def __getitem__( self, keyname ):
+		""" @return: value of first key with keyname
+			@raise KeyError: if keyname does not exist """
+		for key,section in self._configChain.iterateKeysByName( keyname ):
+			return key.value
+		raise KeyError( "Key '"+keyname+"' not found" )
+		
+	def __setitem__( self, keyname, value ):
+		""" Assigns value to key with keyname
+			@raise KeyError: if keyname does not exist """
+		for key,section in self._configChain.iterateKeysByName( keyname ):
+			key.value = value
+			return 
+		raise KeyError( "Key '"+keyname+"' not found" )
+		
+	#} END GROUP
+	
 	
 	#{ Structure Adjustments Respecting Writable State
 	@typecheck_param( object, basestring )
@@ -465,9 +485,10 @@ class ConfigManager( object ):
 	
 	Use self.config to directly access the configuration through the L{ConfigAccessor} interface"""
 	
-	def __init__( self, filePointers, write_back_on_desctruction=True, close_fp = True ):
+	def __init__( self, filePointers=list(), write_back_on_desctruction=True, close_fp = True ):
 		"""Initialize the class with a list of Extended File Classes 
 		@param filePointers: Point to the actual configuration to use
+		If not given, you have to call the L{readfp} function with filePointers respectively
 		@type filePointers: L{ExtendedFileInterface}
 		
 		@param close_fp: if true, the files will be closed and can thus be changed.
@@ -525,7 +546,65 @@ class ConfigManager( object ):
 		self.config = self.__config.flatten( ConfigStringIO() )
 		return self.config
 		
-	#}
+	#} End IO Methods
+	
+		
+	#{ Utilities
+	@staticmethod
+	def getTaggedFileDescriptors( directories, taglist, pattern=None ):
+		"""
+		Will list all files in directories, directory after directory, applies the prefix and postfix 
+		regex to the file for initial filtering.
+		
+		The files retrieved can be files like "file.ext" or can contain tags. Tags are '.'
+		separated files tags that are to be matched with the tags in taglist in order.
+		
+		All tags must match to retrieve a filepointer to it.
+		
+		Example Usage: you could give two paths, one is a global one in a read-only location, 
+		another is a local one in the user's home ( where you might have precreated a file already ).
+		
+		The list of filepointers returned would be all matching files from the global path and 
+		all matching files from the local one, sorted such that the file with the smallest amount
+		of tags come first, files with more tags ( more specialized ones ) will come after that.
+		
+		If fed into the L{readfp} method, the individual file contents can override each other.
+		Once changes have been applied to the configuration, they can be written back to the writable 
+		file pointers respectively.
+		
+		@param directories: [ string( path ) ... ] of directories to look in for files
+		@param taglist: [ string( tag ) ... ] of tags, like a tag for the operating system, or the user name
+		@param pattern: simple fnmatch pattern as used for globs
+		"""
+		# GET ALL FILES IN THE GIVEN DIRECTORIES
+		########################################
+		from byronimo.path import path
+		matchedFiles = []
+		for folder in directories:
+			matchedFiles.extend( path( folder ).files( pattern ) )
+			
+		
+		
+		# APPLY THE PATTERN SEARCH
+		############################
+		outDescriptors = []
+		for taggedFile in sorted( matchedFiles ):
+			filetags = os.path.split( taggedFile )[1].split( '.' )[1:-1]
+			
+			# match the tags - take the file if all can be found
+			numMatched = 0
+			for tag in taglist:
+				if tag in filetags:
+					numMatched += 1
+			
+			if numMatched == len( filetags ):
+				outDescriptors.append( ConfigFile( taggedFile ) )	# just open for reading
+				
+		# END for each tagged file
+		return outDescriptors
+	
+	#} end Utilities
+
 	
 #}END GROUP
 
@@ -534,7 +613,7 @@ class ConfigManager( object ):
 
 #{Extended File Classes
 
-class ExtendedFileInterface( ):
+class ExtendedFileInterface( object ):
 	""" Define additional methods required by the Configuration System 
 	@warning: Additionally, readline and write must be supported - its not mentioned
 	here for reasons of speed
@@ -563,7 +642,7 @@ class ConfigFile( file, ExtendedFileInterface ):
 	__slots__ = [ '_writable' ]
 	
 	def __init__( self, *args, **kvargs ):
-		""" Initialize our caching values """
+		""" Initialize our caching values - additional values will be passed to 'file' constructor"""
 		file.__init__( self, *args, **kvargs )
 		self._writable = self._isWritable( )
 		
@@ -619,7 +698,7 @@ class ConfigFile( file, ExtendedFileInterface ):
 		# update writable value cache 
 		self._writable = self._isWritable(  )
 			
-class DictConfigINIFile( ExtendedFileInterface, DictToINIFile ):
+class DictConfigINIFile( DictToINIFile, ExtendedFileInterface ):
 	""" dict file object implementation of ExtendedFileInterface """
 	def isClosed( self ):
 		return self.closed
@@ -632,8 +711,10 @@ class DictConfigINIFile( ExtendedFileInterface, DictToINIFile ):
 		""" We cannot be opened for writing, and are always read-only """
 		raise IOError( "DictINIFiles do not support writing" )
 
-class ConfigStringIO( ExtendedFileInterface, StringIO.StringIO ):
+class ConfigStringIO( StringIO.StringIO, ExtendedFileInterface ):
 	""" cStringIO object implementation of ExtendedFileInterface """
+	
+	
 	def isWritable( self ):
 		""" Once we are closed, we are not writable anymore """
 		return not self.closed

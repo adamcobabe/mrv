@@ -25,7 +25,10 @@ import shutil
 import tempfile
 from glob import glob
 
-class _ConverterLibrary( ):
+def getIniFileDir( base_dir = 'ini' ):
+	return os.path.join( os.path.dirname( __file__ ), base_dir )
+
+class _ConverterLibrary( object ):
 	""" For use with Converter Test Cases - contains different dictionaries for INI conversion """
 	simple_dict = { "key" : "value", 
 					"integer" : 20,
@@ -189,9 +192,19 @@ class TestConfigAccessor( unittest.TestCase ):
 			self.failIf( diff.hasDifferences( ) )
 			
 			last_ca = ca_flattened
-			
 		
-class TestConfigManagerr( unittest.TestCase ):
+	def test_operators( self ):
+		"""ConfigAccessor: see if ca['keyname'] works"""
+		ca = _getca( 'valid_sectionandkeyproperty' )
+		val = ca['key_with_property']						# rhs
+		ca['key_with_property'] = val+"change"				# lhs assignment
+		ca['key_with_property'] = [ 1,2,3, "foo", "bar" ]	# complex list assignment
+		
+		# invalid key 
+		self.failUnlessRaises( KeyError, ConfigAccessor.__getitem__, ca,'doesntexist' ) 
+		
+		
+class TestConfigManager( unittest.TestCase ):
 	""" Test the ConfigAccessor Class and all its featuers"""
 	
 	def __init__( self, testcasenames ):
@@ -268,6 +281,27 @@ class TestConfigManagerr( unittest.TestCase ):
 			
 		# check removed value
 		self.failUnless( "val2" not in cm.config.getSection( "section_removeval" ).getKey( "key_rmval" ).values )
+		
+		
+	def test_getTaggedFileDescriptors( self ):
+		"""ConfigManager: check if filedescriptor parsing is generally working"""
+		
+		# initialization
+		taggedIniFileDir = getIniFileDir( base_dir = 'taggedINI' )
+		userFileDir = os.path.join( taggedIniFileDir, "user" )
+		
+		directories = [ taggedIniFileDir, userFileDir ]
+		tags = [ sys.platform, os.uname()[-1][-2:], 'myproject' ]
+		
+		descriptors = ConfigManager.getTaggedFileDescriptors( directories, tags )
+		
+		self.failUnless( len( descriptors ) == 5 )
+		
+		# parse ini files 
+		cm = ConfigManager( write_back_on_desctruction = False )
+		cm.readfp( descriptors )
+		
+		# if the reading succeeded
 		
 		
 	def tearDown( self ):
@@ -371,7 +405,9 @@ class TestConfigDiffer( unittest.TestCase ):
 		
 	
 		
-def _getPrefixedINIFileNames( prefix, dirname = os.path.dirname( __file__ ) ):
+
+
+def _getPrefixedINIFileNames( prefix, dirname = getIniFileDir() ):
 	""" Return full paths to INI files of files with the given prefix
 		
 		They must be in the same path as this test file, and end with .ini
@@ -381,7 +417,7 @@ def _getPrefixedINIFileNames( prefix, dirname = os.path.dirname( __file__ ) ):
 def _tofp( filenamelist, mode='r' ):
 	return [ ConfigFile( filename, mode ) for filename in filenamelist ]
 	
-def _getprefixedinifps( prefix, mode='r', dirname = os.path.dirname( __file__ ) ):
+def _getprefixedinifps( prefix, mode='r', dirname = getIniFileDir() ):
 	return _tofp( _getPrefixedINIFileNames( prefix, dirname=dirname ), mode=mode )
 
 

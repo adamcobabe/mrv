@@ -1,6 +1,6 @@
 #!/bin/bash
 
-# Call with : $mayaversion $pyversion ( 8.5[-x64] 2.4 | 2008[-x64] 2.5 )
+# Call with : $mayaversion $pyversion ( 8.5[-x64] 2.4 | 2008[-x64] 2.5 ) [ custom script options3 ]
 mayapath=/usr/autodesk/maya$1
 MAYA_LOCATION=$mayapath
 # set ldd path to maya directory
@@ -17,7 +17,9 @@ scriptdir=`dirname $0`
 
 # ALLOW CUSTOM CALLBACK
 script=$scriptdir/mayapy_custom.sh
-[ -e $script ] && . $script
+
+  
+[ -e $script ] && . $script $3
 
 # start python and initialize it using the mayastartup script
 python$2 -i $scriptdir/mayapystartup.py
