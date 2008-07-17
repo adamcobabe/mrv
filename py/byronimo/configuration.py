@@ -587,7 +587,7 @@ class ConfigManager( object ):
 		
 		# APPLY THE PATTERN SEARCH
 		############################
-		outDescriptors = []
+		tagMatchList = []
 		for taggedFile in sorted( matchedFiles ):
 			filetags = os.path.split( taggedFile )[1].split( '.' )[1:-1]
 			
@@ -598,9 +598,13 @@ class ConfigManager( object ):
 					numMatched += 1
 			
 			if numMatched == len( filetags ):
-				outDescriptors.append( ConfigFile( taggedFile ) )	# just open for reading
+				tagMatchList.append( ( numMatched, taggedFile ) )
 				
 		# END for each tagged file
+		
+		outDescriptors = []
+		for numtags,taggedFile in sorted( tagMatchList ):
+			outDescriptors.append( ConfigFile( taggedFile ) )	# just open for reading
 		return outDescriptors
 	
 	#} end Utilities
@@ -805,8 +809,10 @@ def _checkString( string, re ):
 	@return: the passed in and stripped string
 	@raise ValueError: """
 	string = string.strip()
+	# ALLOW EMPTY STRINGS AS VALUES
 	if not len( string ):
-		raise ValueError( "string must not be empty" )
+		return string
+	#	raise ValueError( "string must not be empty" )		
 	
 	match = re.match( string )
 	if match is None or match.end() != len( string ):
@@ -903,6 +909,11 @@ class Key( PropertyHolder ):
 		for numtype in types:
 			try:
 				val = numtype( valuestr )
+				
+				# truncated value ?
+				if val != float( valuestr ):
+					continue
+					
 				return val
 			except (ValueError,TypeError):
 				continue
@@ -920,6 +931,8 @@ class Key( PropertyHolder ):
 	def _setName( self, name ):
 		""" Set the name             
 		@raise ValueError: incorrect name"""
+		if not len( name ):
+			raise ValueError( "Key names must not be empty" )
 		try:
 			self._name = _checkString( name, Key._re_checkName )
 		except (TypeError,ValueError):
@@ -1061,6 +1074,8 @@ class Section( PropertyHolder ):
 		
 	def _setName( self, name ):
 		"""@raise ValueError: if name contains invalid chars"""
+		if not len( name ):
+			raise ValueError( "Section names must not be empty" )
 		try:
 			self._name = _checkString( name, Section._re_checkName )
 		except (ValueError,TypeError):
@@ -1184,7 +1199,7 @@ class ConfigNode( object ):
 		rcp = FixedConfigParser( )
 		try: 
 			rcp.readfp( self._fp )
-			self._update( rcp )
+			self._update( rcp )	
 		except (ValueError,TypeError,ParsingError):
 			name = self._fp.getName()
 			exc = sys.exc_info()[1]
