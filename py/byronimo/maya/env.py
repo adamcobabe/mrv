@@ -1,4 +1,4 @@
-"""B{byronimo.env}
+"""B{byronimo.maya.env}
 
 Allows to query the maya environment, like variables, version numbers and system 
 paths.

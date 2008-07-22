@@ -1,4 +1,4 @@
-"""B{byronimo.nodes}
+"""B{byronimo.maya.nodes}
 
 All classes required to wrap maya nodes in an object oriented manner into python objects
 and allow easy handling of them.
@@ -31,4 +31,6 @@ __date__="$Date: 2008-05-29 02:30:46 +0200 (Thu, 29 May 2008) $"
 __revision__="$Revision: 16 $"
 __id__="$Id: configuration.py 16 2008-05-29 00:30:46Z byron $"
 __copyright__='(c) 2008 Sebastian Thiel'
+
+
 
