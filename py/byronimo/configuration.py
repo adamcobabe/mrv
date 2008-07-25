@@ -518,19 +518,23 @@ class ConfigManager( object ):
 	def write( self ):
 		""" Write the possibly changed configuration back to its sources
 		@raise IOError: if at least one node could not be properly written
+		@raise ValueError: if instance is not properly initialized
 		@note: It could be the case that all nodes are marked read-only and 
 		thus cannot be written - this will also raise as the request to write 
 		the changes could not be accomodated.
 		@return: the names of the files that have been written as string list"""
-	
-		diff = ConfigDiffer( self.__config, self.config )
+		
+		if self.config == None:
+			raise ValueError( "Internal configuration does not exist" )
+		
 		
 		# apply the changes done to self.config to the original configuration
 		try:
+			diff = ConfigDiffer( self.__config, self.config )
 			report = diff.applyTo( self.__config )
 			outwrittenfiles = self.__config.write( close_fp = self._closeFp )
 			return outwrittenfiles
-		except: 
+		except:
 			raise 
 			# for now we reraise
 			# TODO: raise a proper error here as mentioned in the docs
