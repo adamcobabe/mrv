@@ -873,9 +873,9 @@ class Key( PropertyHolder ):
 	@todo: add support for escpaing comas within quotes - currently it split at 
 	comas, no matter what"""
 	__slots__ = [ '_name','_values','order' ]
-	validchars = r'\w'
-	_re_checkName = re.compile( validchars+r'+' )			# only word characters are allowed in key names
-	_re_checkValue = re.compile( '\S+' )			# currently we are as restrictive as it gets
+	validchars = r'[\w\(\)]'
+	_re_checkName = re.compile( validchars+r'+' )			# only word characters are allowed in key names, and paranthesis
+	_re_checkValue = re.compile( '.+' )					# be as open as possible
 	
 	@typecheck_param( object, str, object, int )
 	def __init__( self, name, value, order ):
