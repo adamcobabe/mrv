@@ -578,16 +578,25 @@ class ConfigManager( object ):
 		
 		@param directories: [ string( path ) ... ] of directories to look in for files
 		@param taglist: [ string( tag ) ... ] of tags, like a tag for the operating system, or the user name
-		@param pattern: simple fnmatch pattern as used for globs
+		@param pattern: simple fnmatch pattern as used for globs or a list of them ( allowing to match several 
+		different patterns at once"
 		"""
+		
+		# get patterns
+		workpatterns = []
+		if isinstance( pattern, ( list , set ) ):
+			workpatterns.extend( pattern )
+		else:
+			workpatterns.append( pattern )
+		
+		
 		# GET ALL FILES IN THE GIVEN DIRECTORIES
 		########################################
 		from byronimo.path import path
 		matchedFiles = []
 		for folder in directories:
-			matchedFiles.extend( path( folder ).files( pattern ) )
-			
-		
+			for pattern in workpatterns:
+				matchedFiles.extend( path( folder ).files( pattern ) )
 		
 		# APPLY THE PATTERN SEARCH
 		############################
