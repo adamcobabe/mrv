@@ -36,7 +36,7 @@ def getAppVersion( ):
 		bits = 64
 		
 	versionString = cmds.about( v=1 )
-	version = versionString.split( ' ' )
+	version = versionString.split( ' ' )[0]
 	if version.find( '.' ) != -1:
 		version = version[0:3]
 		

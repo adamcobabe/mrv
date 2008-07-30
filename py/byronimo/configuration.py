@@ -829,7 +829,7 @@ def _checkString( string, re ):
 	
 	match = re.match( string )
 	if match is None or match.end() != len( string ):
-		raise ValueError( _("'%s' Syntax Error") % string )
+		raise ValueError( _("'%s' Invalid Value Error") % string )
 	
 	return string
 		
@@ -888,7 +888,7 @@ class Key( PropertyHolder ):
 	__slots__ = [ '_name','_values','order' ]
 	validchars = r'[\w\(\)]'
 	_re_checkName = re.compile( validchars+r'+' )			# only word characters are allowed in key names, and paranthesis
-	_re_checkValue = re.compile( '.+' )					# be as open as possible
+	_re_checkValue = re.compile( r'[^\n\t\r]+' )					# be as open as possible
 	
 	@typecheck_param( object, str, object, int )
 	def __init__( self, name, value, order ):
