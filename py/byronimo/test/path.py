@@ -26,6 +26,6 @@ class TestTypecheckDecorators( unittest.TestCase ):
 	
 	def test_instantiate( self ):
 		"""path: test intatiation"""
-		p = byronimo.path.path( os.path.expanduser( "~" ) ) 
+		p = byronimo.path.Path( os.path.expanduser( "~" ) ) 
 		
 	

@@ -592,11 +592,11 @@ class ConfigManager( object ):
 		
 		# GET ALL FILES IN THE GIVEN DIRECTORIES
 		########################################
-		from byronimo.path import path
+		from byronimo.path import Path
 		matchedFiles = []
 		for folder in directories:
 			for pattern in workpatterns:
-				matchedFiles.extend( path( folder ).files( pattern ) )
+				matchedFiles.extend( Path( folder ).files( pattern ) )
 		
 		# APPLY THE PATTERN SEARCH
 		############################

@@ -45,7 +45,7 @@ from __future__ import generators
 import sys, warnings, os, fnmatch, glob, shutil, codecs
 
 __version__ = '2.1'
-__all__ = ['path']
+__all__ = ['Path']
 
 # Platform-specific support for path.owner
 if os.name == 'nt':
@@ -90,7 +90,7 @@ if hasattr(file, 'newlines'):
 class TreeWalkWarning(Warning):
     pass
 
-class path(_base):
+class Path(_base):
     """ Represents a filesystem path.
 
     For documentation on individual methods, consult their
@@ -100,7 +100,7 @@ class path(_base):
     #{ Special Python methods
 
     def __repr__(self):
-        return 'path(%s)' % _base.__repr__(self)
+        return 'Path(%s)' % _base.__repr__(self)
 
     # Adding a path and a string yields a path.
     def __add__(self, more):
