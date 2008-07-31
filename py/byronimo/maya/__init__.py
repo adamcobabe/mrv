@@ -170,19 +170,28 @@ def init_system( ):
 # END INIT SYSTEM
 
 
+def init_singletons( ):
+	""" Initialize singleton classes and attach them direclty to our module """
+	global Scene
+	global Mel
+	
+	module = __import__( "byronimo.maya.scene" , globals(), locals(), [ "scene" ] )
+	Scene = module.Scene()
+	
+	module = __import__( "byronimo.maya.util" , globals(), locals(), [ "util" ] )
+	Mel = module.Mel()
+	
+
 
 if 'init_done' not in locals():
 	init_done = False
-	
-	#{ Singleton Classes 
-	Scene = None
-	Mel = None
-	#} 
 	
 
 
 if not init_done:
 	# assure we do not run several times
 	init_system( )
+	init_singletons( )
+	
 
 init_done = True

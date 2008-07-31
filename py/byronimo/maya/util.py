@@ -15,7 +15,6 @@ __id__="$Id: configuration.py 22 2008-07-16 20:41:16Z byron $"
 __copyright__='(c) 2008 Sebastian Thiel'
 
 
-import byronimo.maya
 import maya.mel as mm
 import maya.OpenMaya as om
 import maya.cmds as cmds
@@ -103,12 +102,6 @@ class Mel(Singleton):
 	error = lambda *args: Mel._melprint( "error", *args )
 				 
 
-## ATTACH SINGLETON CLASS 
-####################
-# store the Mel instance, allowing the __getattr__ syntax
-byronimo.maya.Mel = Mel()
-
-
 
 class CallbackBase( object ):
 	""" Base type taking over the management part when wrapping maya messages into an 
@@ -156,6 +149,7 @@ class CallbackBase( object ):
 				callback( *args, **kvargs )
 			except:
 				print( "ERROR: Callback failed" )
+				raise
 				
 		# END callback loop
 		
@@ -179,10 +173,10 @@ class CallbackBase( object ):
 		
 		# assure we get a callback
 		if len( cbdict ) == 0:
-			self._middict[ cbgroup ] = self._addMasterCallback( cbgroup, callbackID, *args, **kvargs )
-			mid = self._middict[ cbgroup ]
-			if mid is None or mid < 1:
-				raise ValueError( "Message ID is supposed to be set to an approproriate value" )
+			try:
+				self._middict[ cbgroup ] = self._addMasterCallback( cbgroup, callbackID, *args, **kvargs )
+			except RuntimeError:
+				raise ValueError( "Maya Message ID is supposed to be set to an approproriate value, got " + str( self._middict[ cbgroup ] ) )
 				
 		# store the callable for later use
 		cbdict[ listenerID ] = callback

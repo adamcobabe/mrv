@@ -26,8 +26,8 @@ __all__ = [ 'currentScene', 'Scene' ]
 
 import maya.cmds as cmds
 from byronimo.path import Path
-import byronimo.maya.util as util
-import byronimo.maya
+#import byronimo.maya.util as util
+util = __import__( "byronimo.maya.util", globals(), locals(), [ "util" ] )
 import maya.OpenMaya as om
 import maya.cmds as cmds
 
@@ -94,8 +94,9 @@ class Scene( util.Singleton ):
 		@param force - if True, the new scene will be loaded although currently 
 		loaded contains unsaved changes 
 		@return: a path object to the loaded scene"""
-		filepath = cmds.file( filePath, loadReferenceDepth=loadReferenceDepth, force=force, **kvargs )
-		return Path( filepath )
+		sourcePath = Path( filePath )
+		loadedFile = cmds.file( sourcePath.abspath(), open=1, loadReferenceDepth=loadReferenceDepth, force=force, **kvargs )
+		return Path( loadedFile )
 		
 	@staticmethod
 	def new( force = False, **kvargs ):
@@ -126,12 +127,4 @@ class Scene( util.Singleton ):
 	
 
 # END SCENE
-
-
-
-
-## ATTACH SINGLETON SCENE
-####################
-# store the current scene as instance, allowing to use properties
-byronimo.maya.Scene = Scene()
 
