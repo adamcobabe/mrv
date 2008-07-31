@@ -28,11 +28,13 @@ class Singleton(object) :
 			cls._the_instance = super(Singleton, cls).__new__(cls)
 		return cls._the_instance
 
+def isIterable( obj ):
+    return hasattr(obj,'__iter__') and not isinstance(obj,basestring)
 
 def pythonToMel(arg):
 	if isinstance(arg,basestring):
 		return u'"%s"' % cmds.encodeString(arg)
-	elif util.isIterable(arg):
+	elif isIterable(arg):
 		return u'{%s}' % ','.join( map( pythonToMel, arg) ) 
 	return unicode(arg)
 	
