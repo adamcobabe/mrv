@@ -88,12 +88,16 @@ class Scene( util.Singleton ):
 	def open( filePath, loadReferenceDepth="all", force=False, **kvargs ):
 		""" Open a scene 
 		@param filePath: The path to the file to be opened
+		If None or "", the currently loaded file will reopened
 		@param loadReferenceDepth: 'all' - load all references
 		'topOnly' - only top level references, no subreferences
 		'none' - load no references
 		@param force - if True, the new scene will be loaded although currently 
 		loaded contains unsaved changes 
 		@return: a path object to the loaded scene"""
+		if filePath is None or filePath == "":
+			filePath = Scene.getName()
+			
 		sourcePath = Path( filePath )
 		loadedFile = cmds.file( sourcePath.abspath(), open=1, loadReferenceDepth=loadReferenceDepth, force=force, **kvargs )
 		return Path( loadedFile )
@@ -109,18 +113,19 @@ class Scene( util.Singleton ):
 	
 	
 	#{ Query Methods
-	def getName( self ):
+	@staticmethod
+	def getName(  ):
 		return Path( cmds.file( q=1, exn=1 ) )
 		
-	
-	def isModified( self ):
+	@staticmethod
+	def isModified(  ):
 		return cmds.file( q=1, amf=True )
 	#} END query methods
 	
 	
 	#{ Properties 
-	p_name = property( getName )
-	p_anyModified = property( isModified )
+	p_name = property( lambda self: self.__class__.getName( ) )
+	p_anyModified = property( lambda self: self.__class__.isModified( ) )
 	#} END Properties 
 
  

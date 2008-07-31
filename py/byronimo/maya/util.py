@@ -99,7 +99,9 @@ class Mel(Singleton):
 	def _melprint( cmd, msg ):
 		mm.eval( """%s %s""" % ( cmd, pythonToMel( msg ) ) )	
 	
-	error = lambda *args: Mel._melprint( "error", *args )
+	error = staticmethod( lambda *args: Mel._melprint( "error", *args ) )
+	trace = staticmethod( lambda *args: Mel._melprint( "trace", *args ) )
+	info = staticmethod( lambda *args: Mel._melprint( "print", *args ) )
 				 
 
 
