@@ -49,45 +49,48 @@ class TestSceneRunner( unittest.TestCase ):
 		return path.join( path.split( __file__ )[0], "ma/"+filename )
 	#}
 	
-	def test_cbgroup_zero( self ):
-		"""ws.maya.scene: use group 0 check callbacks """
-		if env.getAppVersion( )[0] == 8.5:
-			return 
+	def _runMessageTest( self, listenerID, sceneMessageID, function, callbackTriggerFunc ):
+		""" Run a message test for the given sceneMessageID
+		@param callbackTriggerFunc: called to trigger the callback we are testing"""
+		sid = sceneMessageID
+		ncb = len( Scene.Callbacks._callbacks.get( sid , [] ) )
 		
-		Scene.Callbacks.addListener( "test_zero", lambda *args: TestSceneRunner.cbgroup_zero( self,*args ), om.MSceneMessage.kBeforeNewCheck )
-		self.failUnless( len( Scene.Callbacks._callbacks[0] ) != 0 )
-		
-		
-		Scene.Callbacks.removeListener( "test_zero", om.MSceneMessage.kBeforeNewCheck )
-		self.failUnless( len( Scene.Callbacks._callbacks[0] ) == 0 )
-		
-	
-	def test_cbgroup_one( self ):
-		"""ws.maya.scene: check file callback """
-		if env.getAppVersion( )[0] == 8.5:
-			return 
-			
-		Scene.Callbacks.addListener( "test_one", lambda *args: TestSceneRunner.cbgroup_one( self,*args ), om.MSceneMessage.kBeforeOpenCheck )
-		self.failUnless( len( Scene.Callbacks._callbacks[1] ) != 0 )
-		
-		scenepath = TestSceneRunner.getScenePath( "sphere.ma" ) 
-		Scene.open( scenepath )
-		self.failUnless( self.called )
-		
-		Scene.Callbacks.removeListener( "test_one", om.MSceneMessage.kBeforeNew )
-		self.failUnless( len( Scene.Callbacks._callbacks[1] ) == 0 )
-	
-	def test_cbgroup_twp( self ):
-		"""ws.maya.scene: Test ordinary scene callbacks """
-		Scene.Callbacks.addListener( "test_two", lambda *args: TestSceneRunner.cbgroup_two( self,*args ), om.MSceneMessage.kBeforeNew )
-		self.failUnless( len( Scene.Callbacks._callbacks[2] ) != 0 )
+		Scene.Callbacks.addListener( listenerID, function, sid )
+		self.failUnless( len( Scene.Callbacks._callbacks[ sid ] ) == ncb + 1 )
 		
 		# make a new scene - we should be called
-		Scene.new()
+		callbackTriggerFunc()
 		self.failUnless( self.called )
 		
-		Scene.Callbacks.removeListener( "test_two", om.MSceneMessage.kBeforeNew )
-		self.failUnless( len( Scene.Callbacks._callbacks[2] ) == 0 )
+		Scene.Callbacks.removeListener( listenerID, sid )
+		self.failUnless( len( Scene.Callbacks._callbacks[ sid ] ) == ncb )
+	
+	def test_cbgroup_zero( self ):
+		"""byronimo.maya.scene: use group 0 check callbacks """
+		if env.getAppVersion( )[0] == 8.5:
+			return 
+		
+		self._runMessageTest( "test_two", om.MSceneMessage.kBeforeNewCheck, 
+							 	lambda *args: TestSceneRunner.cbgroup_zero( self,*args ), 
+								Scene.new )
+		
+	def test_cbgroup_one( self ):
+		"""byronimo.maya.scene: check file callback """
+		if env.getAppVersion( )[0] == 8.5:
+			return 
+		
+		scenepath = TestSceneRunner.getScenePath( "sphere.ma" ) 
+		triggerFunc = lambda : Scene.open( scenepath )
+		self._runMessageTest( "test_one", om.MSceneMessage.kBeforeOpenCheck, 
+							 	lambda *args: TestSceneRunner.cbgroup_one( self,*args ), 
+								triggerFunc )
+		
+	def test_cbgroup_twp( self ):
+		"""byronimo.maya.scene: Test ordinary scene callbacks """
+		self._runMessageTest( "test_two", om.MSceneMessage.kBeforeNew, 
+							 	lambda *args: TestSceneRunner.cbgroup_two( self,*args ), 
+								Scene.new )
+		
 		
 	def tearDown( self ):
 		""" Cleanup """

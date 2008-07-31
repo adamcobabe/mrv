@@ -57,7 +57,7 @@ class _SceneCallback( util.CallbackBase ):
 		@note: this message enforces the required signature"""
 		util.CallbackBase.addListener( self, listenerID, callback, callbackID = sceneMessageId )
 
-	def _getCallbackGroup( self, sceneMessageId ):
+	def _getCallbackGroupID( self, sceneMessageId ):
 		if sceneMessageId in self._checkCBSet:
 			return 0
 		elif sceneMessageId in self._checkFileCBSet:
@@ -68,7 +68,8 @@ class _SceneCallback( util.CallbackBase ):
 	def _addMasterCallback( self, callbackGroup, sceneMessageId ):
 		""" Setup or delete a scene callback 
 		@return : the possibly created callback id """
-		messageCreator = self._cbgroupToMethod[ callbackGroup ]
+		groupId = self._getCallbackGroupID( sceneMessageId )
+		messageCreator = self._cbgroupToMethod[ groupId ]
 		return messageCreator( sceneMessageId, self._call, callbackGroup )
 		
 		
@@ -77,8 +78,12 @@ class Scene( util.Singleton ):
 	"""Singleton Class allowing access to the maya scene"""
 	
 	
+	#{ Public Members
 	Callbacks = _SceneCallback()
+	#}
 	
+	
+	#{ Edit Methods 
 	@staticmethod
 	def open( filePath, loadReferenceDepth="all", force=False, **kvargs ):
 		""" Open a scene 
@@ -99,6 +104,9 @@ class Scene( util.Singleton ):
 		are unsaved modifications"""
 		cmds.file( new = True, force = force, **kvargs )
 		
+	#} END edit methods
+	
+	
 	#{ Query Methods
 	def getName( self ):
 		return Path( cmds.file( q=1, exn=1 ) )

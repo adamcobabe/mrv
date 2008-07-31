@@ -103,10 +103,10 @@ class Mel(Singleton):
 	error = lambda *args: Mel._melprint( "error", *args )
 				 
 
-## ATTACH SINGLETON SCENE
+## ATTACH SINGLETON CLASS 
 ####################
-# store a mel instance in the maya module for easy access
-byronimo.maya.Mel = Mel( )
+# store the Mel instance, allowing the __getattr__ syntax
+byronimo.maya.Mel = Mel()
 
 
 
@@ -135,10 +135,10 @@ class CallbackBase( object ):
 		
 	def _getCallbackGroup( self, callbackID ):
 		""" Returns a group where this callbackID passed to the addListener method belongs to.
-		If all callbackIDs are the same, this default implementation will take care of it
+		By default, one callbackID describes one callback group
 		@note: override if you have different callback groups, thus different kinds of callbacks
 		that you have to register with different methods"""
-		return 0
+		return callbackID
 		
 	def _call( self, *args, **kvargs ):
 		""" Iterate over listeners and call them. The method expects the last 
@@ -152,7 +152,11 @@ class CallbackBase( object ):
 		
 		cbdict = self._callbacks[ cbgroup ]
 		for callback in cbdict.itervalues():
-			callback( *args, **kvargs )
+			try:
+				callback( *args, **kvargs )
+			except:
+				print( "ERROR: Callback failed" )
+				
 		# END callback loop
 		
 	def addListener( self, listenerID, callback, callbackID = None, *args, **kvargs ):
@@ -203,4 +207,5 @@ class CallbackBase( object ):
 			mid = self._middict[ cbgroup ]
 			om.MSceneMessage.removeCallback( mid )
 			
+
 

@@ -170,14 +170,16 @@ def init_system( ):
 # END INIT SYSTEM
 
 
-#{ Singleton Classes 
-Scene = None
-Mel = None
-#} 
-
 
 if 'init_done' not in locals():
 	init_done = False
+	
+	#{ Singleton Classes 
+	Scene = None
+	Mel = None
+	#} 
+	
+
 
 if not init_done:
 	# assure we do not run several times
