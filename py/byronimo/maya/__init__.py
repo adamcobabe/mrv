@@ -57,6 +57,25 @@ def parse_maya_env( envFilePath ):
 	os.environ = environ_bak
 	return out
 
+def moveVarsToEnviron( ):
+	"""Move the maya vars as set in the shell into the os.environ to make them available to python"""
+	import maya.cmds as cmds
+	from popen2 import popen2
+	envcmd = "env"
+	
+	if cmds.about( nt=1 ):
+		envcmd = "set"
+	
+	stdout,stdin = popen2( envcmd )
+	
+	for line in stdout:
+		try: 
+			var,value = line.split("=")
+		except:
+			continue
+		else:
+			os.environ[ var ] = value.strip()
+
 
 
 def init_system( ):
@@ -132,6 +151,12 @@ def init_system( ):
 		print "ERROR: Failed initialize maya"
 		raise 
 	
+		
+	# COPY ENV VARS 
+	###############
+	# NOTE: this might have to be redone in your own package dependent on when 
+	# we are called - might be too early here 
+	moveVarsToEnviron( )
 		
 	# RUN USER SETUP
 	###################

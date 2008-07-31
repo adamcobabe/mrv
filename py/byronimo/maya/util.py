@@ -43,9 +43,11 @@ class Mel(Singleton):
 	which is executed via maya.mel.eval().	An instance of this class is already created for you 
 	when importing pymel and is called mel.	 
 	
-	@note: originated from pymel, added epydoc strings where needed  """
+	@note: originated from pymel, added customizations  """
 			
 	def __getattr__(self, command):
+		"""Only for instances of this class - call methods directly as if they where 
+		attributes """
 		if command.startswith('__') and command.endswith('__'):
 			return self.__dict__[command]
 		def _call(*args):
@@ -64,7 +66,8 @@ class Mel(Singleton):
 			
 		return _call
 	
-	def call(self, command, *args ):
+	@staticmethod
+	def call( command, *args ):
 		""" Call a mel script , very simpilar to Mel.myscript( args )
 		@todo: more docs """
 		strArgs = map( pythonToMel, args)
@@ -74,31 +77,29 @@ class Mel(Singleton):
 		try:
 			return mm.eval(cmd)
 		except RuntimeError, msg:
-			info = self.whatIs( command )
+			info = Mel.call( "whatIs", command )
 			if info.startswith( 'Presumed Mel procedure'):
-				raise NameError, 'Unknown Mel procedure'
+				raise NameError, ( 'Unknown Mel procedure: ' + cmd )
 			raise RuntimeError, msg
 	
-	
-	def mprint(self, *args):
+	@staticmethod
+	def mprint(*args):
 		"""mel print command in case the python print command doesn't cut it. i have noticed that python print does not appear
 		in certain output, such as the rush render-queue manager."""
 		#print r"""print (%s\\n);""" % pythonToMel( ' '.join( map( str, args))) 
 		mm.eval( r"""print (%s);""" % pythonToMel( ' '.join( map( str, args))) + '\n' )
 				
-	def eval( self, command ):
+	@staticmethod
+	def eval( command ):
 		""" same as maya.mel eval """
 		return mm.eval( command )	 
 	
-
-	def _melprint( self, cmd, msg ):
+	@staticmethod
+	def _melprint( cmd, msg ):
 		mm.eval( """%s %s""" % ( cmd, pythonToMel( msg ) ) )	
 	
-	error = lambda *args: _melprint( "error", *args )
-				  
-	def tokenize(self, *args ):
-		raise NotImplementedError, "Calling the mel command 'tokenize' from python will crash Maya. Use the string split method instead."
-		
+	error = lambda *args: Mel._melprint( "error", *args )
+				 
 
 ## ATTACH SINGLETON SCENE
 ####################
