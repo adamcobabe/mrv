@@ -123,7 +123,7 @@ class Scene( util.Singleton ):
 			
 		scenepath = Path( scenepath )
 		try :
-			filetype = Scene._fileTypeMap[ scenepath.ext ]
+			filetype = Scene._fileTypeMap[ scenepath.p_ext ]
 		except KeyError:
 			raise RuntimeError( "Unsupported filetype of: " + scenepath  )
 			

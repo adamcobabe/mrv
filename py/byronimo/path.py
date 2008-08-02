@@ -164,7 +164,7 @@ class Path(_base):
 		return self.expandvars().expanduser().normpath()
 
 	def _get_namebase(self):
-		base, ext = os.path.splitext(self.name)
+		base, ext = os.path.splitext(self.p_name)
 		return base
 
 	def _get_ext(self):
@@ -175,21 +175,21 @@ class Path(_base):
 		drive, r = os.path.splitdrive(self)
 		return self.__class__(drive)
 
-	parent = property(
+	p_parent = property(
 		dirname, None, None,
 		""" This path's parent directory, as a new path object.
 
 		For example, path('/usr/local/lib/libpython.so').parent == path('/usr/local/lib')
 		""")
 
-	name = property(
+	p_name = property(
 		basename, None, None,
 		""" The name of this file or directory without the full path.
 
 		For example, path('/usr/local/lib/libpython.so').name == 'libpython.so'
 		""")
 
-	namebase = property(
+	p_namebase = property(
 		_get_namebase, None, None,
 		""" The same as path.name, but with one file extension stripped off.
 
@@ -197,11 +197,11 @@ class Path(_base):
 		but			 path('/home/guido/python.tar.gz').namebase == 'python.tar'
 		""")
 
-	ext = property(
+	p_ext = property(
 		_get_ext, None, None,
 		""" The file extension, for example '.py'. """)
 
-	drive = property(
+	p_drive = property(
 		_get_drive, None, None,
 		""" The drive specifier, for example 'C:'.
 		This is always empty on systems that don't use drive specifiers.
@@ -252,7 +252,7 @@ class Path(_base):
 			unc, r = os.path.splitunc(self)
 			return self.__class__(unc)
 
-		uncshare = property(
+		p_uncshare = property(
 			_get_uncshare, None, None,
 			""" The UNC mount point for this path.
 			This is empty for paths on local drives. """)
@@ -511,7 +511,7 @@ class Path(_base):
 					yield f
 
 	def fnmatch(self, pattern):
-		""" Return True if self.name matches the given pattern.
+		""" Return True if self.p_name matches the given pattern.
 
 		pattern - A filename pattern with wildcards,
 			for example '*.py'.
@@ -539,7 +539,7 @@ class Path(_base):
 
 	def open(self, mode='r'):
 		""" Open this file.	 Return a file object. """
-		return file(self._expandvars, mode)
+		return file(self._expandvars(), mode)
 
 	def bytes(self):
 		""" Open this file, read all bytes, return them as a string. """
@@ -821,23 +821,23 @@ class Path(_base):
 		samefile = lambda self: os.path.samefile( self._expandvars() )
 
 	getatime = lambda self: os.path.getatime( self._expandvars() )
-	atime = property(
+	p_atime = property(
 		getatime, None, None,
 		""" Last access time of the file. """)
 
 	getmtime = lambda self: os.path.getmtime( self._expandvars() )
-	mtime = property(
+	p_mtime = property(
 		getmtime, None, None,
 		""" Last-modified time of the file. """)
 
 	if hasattr(os.path, 'getctime'):
 		getctime = lambda self: os.path.getctime( self._expandvars() )
-		ctime = property(
+		p_ctime = property(
 			getctime, None, None,
 			""" Creation time of the file. """)
 
 	getsize = lambda self: os.path.getsize( self._expandvars() )
-	size = property(
+	p_size = property(
 		getsize, None, None,
 		""" Size of the file, in bytes. """)
 
@@ -879,7 +879,7 @@ class Path(_base):
 			st = self.stat()
 			return pwd.getpwuid(st.st_uid).pw_name
 
-	owner = property(
+	p_owner = property(
 		get_owner, None, None,
 		""" Name of the owner of this file or directory. """)
 
@@ -894,7 +894,7 @@ class Path(_base):
 
 	def isWritable( self ):
 		"""@return: true if the file can be written to"""
-		if not self.exists:
+		if not self.exists():
 			return False		# assure we do not create anything not already there
 			
 		try:
@@ -997,7 +997,7 @@ class Path(_base):
 			if p.isabs():
 				return p
 			else:
-				return (self.parent / p).abspath()
+				return (self.p_parent / p).abspath()
 
 
 	
