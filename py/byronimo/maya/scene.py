@@ -27,14 +27,15 @@ __all__ = [ 'currentScene', 'Scene' ]
 import maya.cmds as cmds
 from byronimo.path import Path
 #import byronimo.maya.util as util
-util = __import__( "byronimo.maya.util", globals(), locals(), [ "util" ] )
+mayautil = __import__( "byronimo.maya.util", globals(), locals(), [ "util" ] )
+util = __import__( "byronimo.util", globals(), locals(), [ "util" ] )
 import maya.OpenMaya as om
 import maya.cmds as cmds
 
 
 
 	
-class _SceneCallback( util.CallbackBase ):
+class _SceneCallback( mayautil.CallbackBase ):
 	""" Implements Scene Callbacks """
 	
 	_checkCBSet = set( ( 	om.MSceneMessage.kBeforeNewCheck,
@@ -55,7 +56,7 @@ class _SceneCallback( util.CallbackBase ):
 		correspond to the baseclass method: L{CallbackBase.addListener}
 		@param sceneMessageId: MSceneMessage message id enumeration member 
 		@note: this message enforces the required signature"""
-		util.CallbackBase.addListener( self, listenerID, callback, callbackID = sceneMessageId )
+		mayautil.CallbackBase.addListener( self, listenerID, callback, callbackID = sceneMessageId )
 
 	def _getCallbackGroupID( self, sceneMessageId ):
 		if sceneMessageId in self._checkCBSet:

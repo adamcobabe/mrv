@@ -18,14 +18,7 @@ __copyright__='(c) 2008 Sebastian Thiel'
 import maya.mel as mm
 import maya.OpenMaya as om
 import maya.cmds as cmds
-
-class Singleton(object) :
-	""" Singleton classes can be derived from this class,
-		you can derive from other classes as long as Singleton comes first (and class doesn't override __new__ ) """
-	def __new__(cls, *p, **k):
-		if not '_the_instance' in cls.__dict__:
-			cls._the_instance = super(Singleton, cls).__new__(cls)
-		return cls._the_instance
+import byronimo.util as util
 
 def isIterable( obj ):
     return hasattr(obj,'__iter__') and not isinstance(obj,basestring)
@@ -38,7 +31,7 @@ def pythonToMel(arg):
 	return unicode(arg)
 	
 	
-class Mel(Singleton):
+class Mel(util.Singleton):
 	"""This class is a necessity for calling mel scripts from python. It allows scripts to be called
 	in a cleaner fashion, by automatically formatting python arguments into a string 
 	which is executed via maya.mel.eval().	An instance of this class is already created for you 

@@ -145,13 +145,13 @@ class Path(_base):
 	#{ Operations on path strings.
 
 	isabs = os.path.isabs
-	def abspath(self):		 return self.__class__(os.path.abspath(self))
-	def normcase(self):		 return self.__class__(os.path.normcase(self))
-	def normpath(self):		 return self.__class__(os.path.normpath(self))
-	def realpath(self):		 return self.__class__(os.path.realpath(self))
-	def expanduser(self):	 return self.__class__(os.path.expanduser(self))
-	def expandvars(self):	 return self.__class__(os.path.expandvars(self))
-	def dirname(self):		 return self.__class__(os.path.dirname(self))
+	def abspath(self):		 return self.__class__(os.path.abspath(self._expandvars()))
+	def normcase(self):		 return self.__class__(os.path.normcase(self._expandvars()))
+	def normpath(self):		 return self.__class__(os.path.normpath(self._expandvars()))
+	def realpath(self):		 return self.__class__(os.path.realpath(self._expandvars()))
+	def expanduser(self):	 return self.__class__(os.path.expanduser(self._expandvars()))
+	def expandvars(self):	 return self.__class__(os.path.expandvars(self._expandvars()))
+	def dirname(self):		 return self.__class__(os.path.dirname(self._expandvars()))
 	basename = os.path.basename
 	
 	def expand(self):
