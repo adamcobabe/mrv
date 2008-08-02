@@ -78,6 +78,9 @@ class Scene( util.Singleton ):
 	"""Singleton Class allowing access to the maya scene"""
 	
 	
+	_fileTypeMap = { 	".ma" : "mayaAscii",
+						".mb" : "mayaBinary" }
+	
 	#{ Public Members
 	Callbacks = _SceneCallback()
 	#}
@@ -106,8 +109,35 @@ class Scene( util.Singleton ):
 	def new( force = False, **kvargs ):
 		""" Create a new scene 
 		@param force: if True, the new scene will be created even though there 
-		are unsaved modifications"""
-		cmds.file( new = True, force = force, **kvargs )
+		are unsaved modifications
+		@return: Path object with name of current file"""
+		return Path( cmds.file( new = True, force = force, **kvargs ) )
+		
+	@staticmethod
+	def save( scenepath, **kvargs ):
+		"""The save the currently opened scene under scenepath in the respective format
+		@param scenepath: if None or "", the currently opened scene will be used
+		@param **kvargs: passed to cmds.file """
+		if scenepath is None or scenepath == "":
+			scenepath = Scene.getName( )
+			
+		scenepath = Path( scenepath )
+		try :
+			filetype = Scene._fileTypeMap[ scenepath.ext ]
+		except KeyError:
+			raise RuntimeError( "Unsupported filetype of: " + scenepath  )
+			
+		# is it a safe as ?
+		if Scene.getName() != scenepath:
+			cmds.file( rename=scenepath )
+			
+		# assure path exists
+		parentdir = scenepath.dirname()
+		if not parentdir.exists( ):
+			parentdir.makedirs( )
+			
+		# safe the file
+		return Path( cmds.file( save=True, type=filetype, **kvargs ) ) 
 		
 	#} END edit methods
 	

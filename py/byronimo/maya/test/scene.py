@@ -21,6 +21,9 @@ from byronimo.maya.scene import Scene
 import maya.OpenMaya as om
 import os.path as path
 import byronimo.maya.env as env
+from byronimo.path import Path
+import tempfile 
+import shutil
 	
 class TestSceneRunner( unittest.TestCase ):
 	""" Test the database """
@@ -91,6 +94,23 @@ class TestSceneRunner( unittest.TestCase ):
 							 	lambda *args: TestSceneRunner.cbgroup_two( self,*args ), 
 								Scene.new )
 		
+	def test_open( self ):
+		"""byronimo.maya.scene: open file"""
+		self.failUnless( isinstance( Scene.open( self.getScenePath( "empty.ma" ), force=True ), Path ) )
+		
+	def test_new( self ):
+		"""byronimo.maya.scene: force a new scene """
+		self.failUnless( isinstance( Scene.new( force=1 ), Path ) )
+		
+	def test_saveAs( self ):
+		"""byronimo.maya.scene: safe a file under new names and with different formats"""
+		tmppath = Path( tempfile.gettempdir() ) / "maya_save_test"
+		files = [ "mafile.ma" , "mb.mb", "ma.ma" ]
+		for filename in files:
+			mayafile = tmppath / filename
+			Scene.save( mayafile , force=1 )
+			self.failUnless( mayafile.exists() )
+		shutil.rmtree( tmppath )	# cleanup	
 		
 	def tearDown( self ):
 		""" Cleanup """

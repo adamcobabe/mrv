@@ -848,7 +848,7 @@ class Path(_base):
 			mode - One of the constants os.F_OK, os.R_OK, os.W_OK, os.X_OK
 			"""
 			return os.access(self._expandvars(), mode)
-
+			
 	def stat(self):
 		""" Perform a stat() system call on this path. """
 		return os.stat(self._expandvars())
@@ -892,6 +892,19 @@ class Path(_base):
 		def pathconf(self, name):
 			return os.pathconf(self._expandvars(), name)
 
+	def isWritable( self ):
+		"""@return: true if the file can be written to"""
+		if not self.exists:
+			return False		# assure we do not create anything not already there
+			
+		try:
+			fileobj = self.open( 'a' )
+		except:
+			return False
+		else:
+			fileobj.close()
+			return True
+			
 
 	#} END Methods for querying the filesystem
 
