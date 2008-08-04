@@ -17,7 +17,7 @@ __copyright__='(c) 2008 Sebastian Thiel'
 
 from byronimo.util import capitalize, uncapitalize
 from byronimo.path import Path
-import byronimo.trees as trees
+from networkx.trees import DirectedTree
 
 class NamedUI(unicode):
     def __new__( cls, name=None, create=False, *args, **kwargs ):
@@ -67,23 +67,16 @@ def init_uiclasshierarchy( ):
 	""" Read a simple hiearchy file and create an Indexed tree from it
 	@todo: cache the pickled tree and try to load it instead  """
 	mfile = Path( __file__ ).p_parent.p_parent / "cache/UICommandsHierachy"
-	ischildfunc = lambda c,p: c.count( '\t' ) - 1 == p.count( '\t' ) 
+	lines = mfile.lines( retain=False )
 	
 	#lastParent = None
 	#lastLevel = 0
-	#tree = trees.Tree( )
+	#tree = DirectedTree( )
 	#for no,line in enumerate( mfile.lines( retain=False ) ):
 	#	level = line.count( '\t' )
 	#	name = line.lstrip( '\t' )
 	#	tree.add( name, parent=lastParent )
-		
-		
-			
 	
-	lines = mfile.lines( retain=False )
-	# TODO: should be indexed tree, but it has a bug ! Need fast lookup though !
-	treeObj = trees.treeFromChildLink( ischildfunc, *lines )
-	print treeObj
 	
 
 
