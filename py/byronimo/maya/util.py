@@ -98,6 +98,21 @@ class Mel(util.Singleton):
 				 
 
 
+class StandinClass( object ):
+	""" Simple Function Object allowing to embed the name of the type as well as
+	the metaclass object supposed to create the actual class. It mus be able to completely 
+	create the given class.
+	@note: Use it at placeholder for classes that are to be created on first call, without 
+	vasting large amounts of memory if one wants to precreate them."""
+	def __init__( self, classname, classcreator=type ):
+		self.clsname = classname
+		self.classcreator = classcreator
+		
+	def __call__( self, *args, **kvargs ):
+		return self.classcreator( self.clsname, tuple(), {} )
+
+
+
 class CallbackBase( object ):
 	""" Base type taking over the management part when wrapping maya messages into an 
 	appropriate python class. 

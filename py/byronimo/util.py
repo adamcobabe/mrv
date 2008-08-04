@@ -14,6 +14,8 @@ __revision__="$Revision: 22 $"
 __id__="$Id: configuration.py 22 2008-07-16 20:41:16Z byron $"
 __copyright__='(c) 2008 Sebastian Thiel'
 
+import networkx.tree as nxtree
+
 class Singleton(object) :
 	""" Singleton classes can be derived from this class,
 		you can derive from other classes as long as Singleton comes first (and class doesn't override __new__ ) """
@@ -36,3 +38,35 @@ def uncapitalize(s, preserveAcronymns=False):
     except IndexError: pass
     
     return s[0].lower() + s[1:]
+	
+	
+	
+class DAGTree( nxtree.DirectedTree ):
+	"""Adds utility functions to DirectedTree allowing to handle a directed tree like a dag
+	@note: currently this tree does not support instancing
+	@todo: add instancing support"""
+	
+	def children( self, n ):
+		""" @return: list of children of given node n """
+		return list( self.children_iter( n ) ) 
+	
+	def children_iter( self, n ):
+		""" @return: iterator with children of given node n"""
+		return ( e[1] for e in self.out_edges_iter( n ) )
+		
+	def parent( self, n ):
+		"""@return: parent of node n
+		@note: currently there is only one parent, as instancing is not supported yet"""
+		for parent in  self.predecessors_iter( n ):
+			return parent
+		return None
+		
+	def parent_iter( self, n ):
+		"""@return: iterator returning all parents of node n"""
+		while True:
+			p = self.parent( n )
+			if p is None:
+				raise StopIteration( )
+			yield p
+			n = p
+		

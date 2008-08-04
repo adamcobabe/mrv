@@ -59,9 +59,14 @@ def run( **runner_args ):
 	"""
 	import byronimo.test as self
 	return run_generic( self, **runner_args )
+		
 	
-	
+def main( args ):
+	""" Run the tests if called with the start script """
+	run( verbosity = 2 )
+
+
 if __name__ == '__main__':
 	""" run all tests if run directly """
-	run( verbosity = 2 )
-	
+	main( [] )
+

@@ -15,11 +15,47 @@ __revision__="$Revision: 29 $"
 __id__="$Id: configuration.py 29 2008-07-30 14:59:35Z byron $"
 __copyright__='(c) 2008 Sebastian Thiel'
 
-from byronimo.util import capitalize, uncapitalize
+from byronimo.util import capitalize, uncapitalize, DAGTree
 from byronimo.path import Path
-from networkx.trees import DirectedTree
+from byronimo.exceptions import ByronimoError
+from byronimo.maya.util import StandinClass
+_thismodule = __import__( "byronimo.maya.ui", globals(), locals(), ['ui'] )
 
-class NamedUI(unicode):
+#####################
+#### META 		####
+##################
+
+class MetaUIClassCreator( type ):
+	""" Builds the base hierarchy for the given classname based on our
+	typetree """
+	
+	def __new__( metacls, name, bases, clsdict ):
+		""" Called to create the class with name """
+		# test
+		bases += ( object, )
+		
+		print "Creating " + name
+		
+		# create the class 
+		newcls = type.__new__( metacls, name, bases, clsdict )
+		
+		# replace the dummy class in the module 
+		global _thismodule
+		print "setting %s to %s" % (name, str( newcls ) )
+		_thismodule.__dict__[ name ] = newcls
+		return newcls
+
+
+#####################
+#### CLASSES	####
+##################
+
+
+class BaseUI(unicode):
+    def __new__( cls, name=None, create=False, *args, **kwargs ):
+        """ Simple base class common to all User interfaces """
+
+class NamedUI( BaseUI ):
     def __new__( cls, name=None, create=False, *args, **kwargs ):
         """ Provides the ability to create the UI Element when creating a class
 		@note: based on pymel """
@@ -54,7 +90,10 @@ class NamedUI(unicode):
 
 
 
-
+############################
+#### TYPE CACHE	 	   ####
+#########################
+_typetree = None 
 
 
 
@@ -69,25 +108,74 @@ def init_uiclasshierarchy( ):
 	mfile = Path( __file__ ).p_parent.p_parent / "cache/UICommandsHierachy"
 	lines = mfile.lines( retain=False )
 	
-	#lastParent = None
-	#lastLevel = 0
-	#tree = DirectedTree( )
-	#for no,line in enumerate( mfile.lines( retain=False ) ):
-	#	level = line.count( '\t' )
-	#	name = line.lstrip( '\t' )
-	#	tree.add( name, parent=lastParent )
+	tree = None
+	lastparent = None
+	lastchild = None
+	lastlevel = 0
+	
+	# PARSE THE FILE INTO A TREE 
+	# currently we expect all the nodes to have one root class 
+	for no,line in enumerate( mfile.lines( retain=False ) ):
+		level = line.count( '\t' )
+		name = line.lstrip( '\t' )
+		
+		if level == 0:
+			if tree != None:
+				raise ByronimoError( "Ui tree must currently be rooted - thus there must only be one root node, found another: " + name )
+			else:
+				tree = DAGTree(  )		# create root
+				tree.add_node( name )
+				lastparent = name
+				lastchild = name
+				continue
+		
+		direction = level - lastlevel 
+		if abs( direction ) > 1:
+			raise ByronimoError( "Can only change by one level, changed by %i" % direction )
+			
+		lastlevel = level
+		if direction == 0:
+			pass 
+		elif direction == 1 :
+			lastparent = lastchild
+		elif direction == -1:
+			lastparent = tree.parent( lastparent )
+			
+		tree.add_edge( ( lastparent, name ) )
+		lastchild = name
+	# END for each line in hiearchy map
+	
+	# STORE THE TYPE TREE
+	global _typetree
+	_typetree = tree
 	
 	
 
 
 def init_uiwrappers( ):
 	""" Create dummy classes that will create the actual class once creation is
-	requested. 
-	"""
-	
+	requested.
+	NOTE: must be called once all custom written UI classes are available in this module """
 	init_uiclasshierarchy()
 	
-	pass 
+	# create dummy class that will generate the class once it is first being instatiated
+	global _typetree
+	global _thismodule
+	
+	class Holder:
+		def __init__( self, name ):
+			self.name = name
+	
+	for uitype in _typetree.nodes_iter( ):
+		clsname = capitalize( uitype )
+		
+		# do not overwrite hand-made classes
+		if clsname in _thismodule.__dict__:
+			continue
+
+		_thismodule.__dict__[ clsname ] = StandinClass( clsname, MetaUIClassCreator )
+	# END for each uitype
+
 
 if 'init_done' not in locals():
 	init_done = False
