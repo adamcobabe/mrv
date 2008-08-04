@@ -24,6 +24,22 @@ from inspect import isfunction
 __all__ = []
 
 
+import os, sys
+
+def _init_syspath( ):
+	""" Initialize the path such that additional modules can be found"""
+	# get external base
+	extbase = os.path.join( os.path.split( __file__ )[0], "../../ext" )
+	
+	# networkx
+	networkxpath = os.path.join( extbase, "networkx" )
+	
+	# add all to the path
+	sys.path.append( networkxpath )
+
+# end __init_syspath
+
+
 def _init_decorators( ):
 	"""Installs general decorators
 	
@@ -90,6 +106,7 @@ def _init_python( ):
 	
 # INITIALIZE
 #############
+_init_syspath( )
 _init_decorators( )
 _init_configProvider( )
 _init_internationalization( )

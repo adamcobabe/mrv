@@ -22,3 +22,17 @@ class Singleton(object) :
 			cls._the_instance = super(Singleton, cls).__new__(cls)
 		return cls._the_instance
 
+
+def capitalize(s):
+    return s[0].upper() + s[1:]
+
+def uncapitalize(s, preserveAcronymns=False):
+    """preserveAcronymns enabled ensures that 'NTSC' does not become 'nTSC'
+	@note: from pymel
+	"""
+    try:
+        if preserveAcronymns and s[0:2].isupper():
+            return s
+    except IndexError: pass
+    
+    return s[0].lower() + s[1:]

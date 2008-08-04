@@ -53,7 +53,7 @@ class _Layout( object ):
 		""" @return: parent of this instance or None """
 		raise NotImplementedError()
 
-	@typecheck_param( _Layout )
+	
 	def add( layout ):
 		""" Add layout class as child to this layout """
 		self._children.append( layout )

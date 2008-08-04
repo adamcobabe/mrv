@@ -1,6 +1,6 @@
-"""B{byronimo.maya.test}
+"""B{byronimo.maya.ui.test}
 
-Intialize the byronimo maya testing suite
+Intialize the byronimo maya UI testing suite
 
 @newfield revision: Revision
 @newfield id: SVN Id
@@ -18,14 +18,21 @@ __copyright__='(c) 2008 Sebastian Thiel'
 import unittest
 import byronimo.test as common
 
+import byronimo.maya.ui as ui
 	
 def get_suite( ):
 	""" @return: testsuite with all tests of this package"""
-	import byronimo.maya.test as self	
+	import byronimo.maya.ui.test as self	
+	import maya.cmds as cmds
+	
+	# in batch mode we have no UI and cannot test anything
+	#if cmds.about( batch=1 ):
+	#	return unittest.TestSuite( )
+		
 	return common.get_package_suite( self )
 	
 def run( **runner_args ):
-	"""Run all the tests  """
+	"""Run all the tests"""
 	testrunner = unittest.TextTestRunner( **runner_args )
 	return testrunner.run( get_suite() )
 	

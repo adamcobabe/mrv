@@ -1,8 +1,9 @@
-"""B{byronimo.test.path}
-Test path methods
+"""B{byronimo.test.trees}
+Test tree methods
 
 @todo: actual implementation of path tests - currently it is just a placeholder assuring 
 that the module can at least be imported
+
 @newfield revision: Revision
 @newfield id: SVN Id
 """
@@ -19,13 +20,16 @@ __copyright__='(c) 2008 Sebastian Thiel'
 
 import os
 import unittest
-import byronimo.path
+import byronimo.trees as trees
 
 class TestPath( unittest.TestCase ):
 	
 	
 	def test_instantiate( self ):
 		"""path: test intatiation"""
-		p = byronimo.path.Path( os.path.expanduser( "~" ) ) 
+		ft = trees.FrozenTree( )
+		t = trees.Tree( )
+		ift = trees.IndexedFrozenTree( )
+		it = trees.IndexedTree( )
 		
 	
