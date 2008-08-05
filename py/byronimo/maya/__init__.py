@@ -166,7 +166,6 @@ def init_system( ):
 	# FINISHED
 	return 
 	
-	
 # END INIT SYSTEM
 
 
