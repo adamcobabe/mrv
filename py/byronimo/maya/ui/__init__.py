@@ -31,18 +31,26 @@ class MetaUIClassCreator( type ):
 	
 	def __new__( metacls, name, bases, clsdict ):
 		""" Called to create the class with name """
-		# test
-		bases += ( object, )
 		
-		print "Creating " + name
+		# recreate the hierarchy of classes leading to the current type
+		global _typetree
+		nameNoCap = uncapitalize( name )
+		parentclsname = capitalize( _typetree.parent( nameNoCap ) )
+		
+		parentcls = _thismodule.__dict__[ parentclsname ]
+		if isinstance( parentcls, StandinClass ):
+			parentcls = parentcls.createCls( )
+		
+		bases += ( parentcls, )
 		
 		# create the class 
-		newcls = type.__new__( metacls, name, bases, clsdict )
+		# newcls = type.__new__( metacls, name, bases, clsdict )
+		newcls = super( MetaUIClassCreator, metacls ).__new__( metacls, name, bases, clsdict )
 		
 		# replace the dummy class in the module 
 		global _thismodule
-		print "setting %s to %s" % (name, str( newcls ) )
 		_thismodule.__dict__[ name ] = newcls
+		
 		return newcls
 
 
@@ -51,22 +59,12 @@ class MetaUIClassCreator( type ):
 ##################
 
 
-class BaseUI(unicode):
-    def __new__( cls, name=None, create=False, *args, **kwargs ):
-        """ Simple base class common to all User interfaces """
+class BaseUI(object):
+	def __init__( self, *args, **kvargs ):
+		return object.__init__(self, *args, **kvargs )
+		
 
 class NamedUI( BaseUI ):
-    def __new__( cls, name=None, create=False, *args, **kwargs ):
-        """ Provides the ability to create the UI Element when creating a class
-		@note: based on pymel """
-		
-		# if a parent is requested, the element needs to be created !
-        parent = kwargs.get( 'parent', kwargs.get('p', None))
-        if name is None or create or parent:
-            name = cls.__melcmd__()(name, *args, **kwargs)
-			
-        return unicode.__new__(cls,name)
-    
     def __repr__(self):
         return u"%s('%s')" % (self.__class__.__name__, self)
 		

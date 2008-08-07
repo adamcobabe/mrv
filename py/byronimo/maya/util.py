@@ -107,9 +107,19 @@ class StandinClass( object ):
 	def __init__( self, classname, classcreator=type ):
 		self.clsname = classname
 		self.classcreator = classcreator
+		self._createdClass = None
+		
+	def createCls( self ):
+		""" Create the class of type self.clsname using our classcreator - can only be called once !
+		@return : the newly created class"""
+		if self._createdClass is None:
+			self._createdClass = self.classcreator( self.clsname, tuple(), {} )
+			
+		return self._createdClass
 		
 	def __call__( self, *args, **kvargs ):
-		return self.classcreator( self.clsname, tuple(), {} )
+		newcls = self.createCls( )
+		return newcls( *args, **kvargs )
 
 
 

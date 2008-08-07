@@ -26,14 +26,14 @@ __copyright__='(c) 2008 Sebastian Thiel'
 #} End Exceptions
 
 
+ui = __import__( "byronimo.maya.ui",globals(), locals(), ['ui'] )
 
 
 
-
-class _Layout( object ):
+class _Layout( ui.NamedUI ):
 	""" Structural base  for all Layouts allowing general queries and name handling """
 	
-	def __init__( self, name=None ):
+	def __init__( self, name=None, *args, **kvargs ):
 		""" 
 		Initialize the layout
 		@param name: name of layout, several class instances can exist with the

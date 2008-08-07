@@ -18,6 +18,7 @@ __copyright__='(c) 2008 Sebastian Thiel'
 
 import unittest
 import byronimo.maya.ui as ui
+from byronimo.util import capitalize
 	
 class TestGeneralUI( unittest.TestCase ):
 	""" Test general user interace functionality """
@@ -28,17 +29,21 @@ class TestGeneralUI( unittest.TestCase ):
 	
 	def test_dummyTest( self ):
 		"""byronimo.maya.ui: Instantiate our pseudoclasses """
-		# for uitype in ui._typetree.nodes_iter():
-		print type( ui.Button )
-		print type( ui.MenuItem )
+		for uitype in ui._typetree.nodes_iter():
+			capuitype = capitalize( uitype )
+			print "Type before: " + str( ui.__dict__[ capuitype ] )
+			
+			inst = ui.__dict__[ capuitype ]( "testarg", myarg="keyval" )
+			anotherinst = ui.__dict__[ capuitype ]( "testarg", myarg="keyval" )
+			
+			self.failUnless( isinstance( inst, ui.BaseUI ) )
+			if not isinstance( inst, ui.BaseUI ):
+				self.failUnless( isinstance( inst, ui.NamedUI ) )
+			
+			print "Type Inst: " + str( type( inst ) )
+			print "Type AnotherInst: " + str( type( anotherinst ) )
+			print "Type Class: " + str( type( ui.__dict__[ capuitype ] ) )
 		
-		inst = ui.Button( "othertype", myrarg="type" )
-		ui.MenuItem(  )
-		
-		print type( ui.Button )
-		print type( ui.MenuItem )
-		print type( ui.BaseUI )
-	
 	
 	def tearDown( self ):
 		""" Cleanup """

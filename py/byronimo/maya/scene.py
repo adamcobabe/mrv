@@ -102,9 +102,10 @@ class Scene( util.Singleton ):
 		if filePath is None or filePath == "":
 			filePath = Scene.getName()
 			
+		# NOTE: it will return the last loaded reference instead of the loaded file - lets fix this !
 		sourcePath = Path( filePath )
-		loadedFile = cmds.file( sourcePath.abspath(), open=1, loadReferenceDepth=loadReferenceDepth, force=force, **kvargs )
-		return Path( loadedFile )
+		lastReference = cmds.file( sourcePath.abspath(), open=1, loadReferenceDepth=loadReferenceDepth, force=force, **kvargs )
+		return Path( sourcePath )
 		
 	@staticmethod
 	def new( force = False, **kvargs ):
@@ -137,7 +138,7 @@ class Scene( util.Singleton ):
 		if not parentdir.exists( ):
 			parentdir.makedirs( )
 			
-		# safe the file
+		# safe the file	
 		return Path( cmds.file( save=True, type=filetype, **kvargs ) ) 
 		
 	#} END edit methods
