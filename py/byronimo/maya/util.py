@@ -222,4 +222,56 @@ class CallbackBase( object ):
 			om.MSceneMessage.removeCallback( mid )
 			
 
-
+class MetaClassCreator( type ):
+	""" Builds the base hierarchy for the given classname based on our
+	typetree """
+	
+	def __new__( 	dagtree, module, metacls, name, bases, clsdict, 
+					nameToTreeFunc=lambda x:x, treeToNameFunc=lambda x:x ):
+		"""Create a new class from hierarchy information found in dagtree and 
+		put it into the module if it not yet exists
+		@param dagtree: L{byronimo.util.DAGTree} instance with hierarchy information
+		@param module: the module instance to which to add the new classes to
+		@param nameToTreeFunc: convert the class name to a name suitable for dagTree look-up
+		@param treeToNameFunc: convert a value from the dag tree into a valid class name ( used for parent lookup )"""
+		
+		# recreate the hierarchy of classes leading to the current type
+		nameForTree = nameToTreeFunc( name )
+		parentname = dagtree.parent( nameForTree )
+		parentcls = object
+		
+		if parentname != None:
+			parentclsname = treeToNameFunc( parentname )
+			parentcls = module.__dict__[ parentclsname ]
+			if isinstance( parentcls, StandinClass ):
+				parentcls = parentcls.createCls( )
+		# END if parent cls name defined
+		
+		# could be a user-defined class coming with some parents already - thus assure 
+		# that the auto-parent is not already in there 
+		if parentcls not in bases:
+			#bases += ( parentcls, ) + tuple( parentcls.__bases__ )
+			bases += ( parentcls, )
+			
+		#print name
+		#print bases
+		#print parentcls.mro()
+		#print bases
+		
+		# create the class 
+		# newcls = type.__new__( metacls, name, bases, clsdict )
+		newcls = super( MetaClassCreator, metacls ).__new__( metacls, name, bases, clsdict )
+		
+		# change the module - otherwise it will get our module 
+		newcls.__module__ = module.__name__
+		
+		# replace the dummy class in the module 
+		module.__dict__[ name ] = newcls
+		
+		#print str( newcls.__bases__ )
+		#print newcls.mro()
+		#print str( newcls.__base__ )
+		#print str( newcls.__base__.__base__ )
+		 
+			
+		return newcls

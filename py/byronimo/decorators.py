@@ -31,7 +31,8 @@ import sys
 from byronimo.exceptions import ( 	TypecheckDecoratorError, 
 									MethodTypeError, 
 									InterfaceError,
-									InterfaceSetupError)
+									InterfaceSetupError,
+									ProtectedMethodError)
 
 class __classobjtype( object ):
 	""" Required to find out whether something is a classobj 
@@ -305,3 +306,21 @@ def typecheck_rval( rval_type ):
 	
 	
 #} END GROUP
+
+
+def protected( exactClass ):
+	"""Raise an exception if self is an instance of exacATtClass, and not a subclass of it
+	@raise ProectedMethodError: 
+	@note: method must take self as first argument, thus must be a class method """
+	def _protectedCheck( func ):
+		
+		def _inner_protectedCheck( self, *args, **kvargs ):
+			if self.__class__ == exactClass:
+				raise ui.ProtectedMethodError( "Cannot instantiate" + self.__class__.__name__ + " directly - it can only be a base class" )
+		
+			return func( self, *args, **kvargs )
+			
+		# return method actually doing the work
+		return _inner_protectedCheck
+		
+	return _protectedCheck

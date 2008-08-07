@@ -15,83 +15,62 @@ __revision__="$Revision: 29 $"
 __id__="$Id: configuration.py 29 2008-07-30 14:59:35Z byron $"
 __copyright__='(c) 2008 Sebastian Thiel'
 
-from byronimo.util import capitalize, uncapitalize, DAGTree
-from byronimo.path import Path
 from byronimo.exceptions import ByronimoError
+from byronimo.util import capitalize, uncapitalize, DAGTree
+from byronimo.maya.util import MetaClassCreator
+from byronimo.path import Path
 from byronimo.maya.util import StandinClass
 _thismodule = __import__( "byronimo.maya.ui", globals(), locals(), ['ui'] )
+import maya.cmds as mcmds
+
+
+############################
+#### Exceptions		 	####
+#########################
+class  UIError( ByronimoError ):
+	""" Base Class for all User Interface errors"""
+	pass 
+
+
 
 #####################
 #### META 		####
 ##################
 
-class MetaUIClassCreator( type ):
+class MetaClassCreatorUI( MetaClassCreator ):
 	""" Builds the base hierarchy for the given classname based on our
 	typetree """
 	
+	melcmd_attrname = '__melcmd__'
+	
 	def __new__( metacls, name, bases, clsdict ):
 		""" Called to create the class with name """
-		
-		# recreate the hierarchy of classes leading to the current type
 		global _typetree
-		nameNoCap = uncapitalize( name )
-		parentclsname = capitalize( _typetree.parent( nameNoCap ) )
-		
-		parentcls = _thismodule.__dict__[ parentclsname ]
-		if isinstance( parentcls, StandinClass ):
-			parentcls = parentcls.createCls( )
-		
-		bases += ( parentcls, )
-		
-		# create the class 
-		# newcls = type.__new__( metacls, name, bases, clsdict )
-		newcls = super( MetaUIClassCreator, metacls ).__new__( metacls, name, bases, clsdict )
-		
-		# replace the dummy class in the module 
 		global _thismodule
-		_thismodule.__dict__[ name ] = newcls
-		
+
+		cmdname = uncapitalize( name )
+		if hasattr( mcmds, cmdname ):
+			clsdict['__melcmd__'] = getattr( mcmds, cmdname ) 
+		else:
+			pass # don't bother, can be one of our own classes that will 
+			#raise UIError( "Did not find command for " + cmdname ) 	
+				
+		newcls = super( MetaClassCreatorUI, metacls ).__new__( _typetree, _thismodule, 
+																metacls, name, bases, clsdict, 
+																nameToTreeFunc=uncapitalize,
+																treeToNameFunc=capitalize )
+				
+		# print newcls.mro()
 		return newcls
-
-
-#####################
-#### CLASSES	####
-##################
-
-
-class BaseUI(object):
-	def __init__( self, *args, **kvargs ):
-		return object.__init__(self, *args, **kvargs )
-		
-
-class NamedUI( BaseUI ):
-    def __repr__(self):
-        return u"%s('%s')" % (self.__class__.__name__, self)
-		
-    def getChildren(self, **kwargs):
-        kwargs['long'] = True
-        return filter( lambda x: x.startswith(self) and not x == self, lsUI(**kwargs))
-		
-    def getParent(self):
-        return UI( '|'.join( self.split('|')[:-1] ) )
-		
-    def type(self):
-        return objectTypeUI(self)
-		
-    def shortName(self):
-        return self.split('|')[-1]
-    #delete = _factories.functionFactory( 'deleteUI', _thisModule, rename='delete' )
-    #rename = _factories.functionFactory( 'renameUI', _thisModule, rename='rename' )
-    #type = _factories.functionFactory( 'objectTypeUI', _thisModule, rename='type' )
-     
-
 
 
 
 ############################
-#### TYPE CACHE	 	   ####
+#### CACHES		 	   ####
 #########################
-_typetree = None 
+_typetree = None
+_uiinstances = {}			# keeps all instances we created so far 
+
 
 
 
@@ -147,14 +126,11 @@ def init_uiclasshierarchy( ):
 	global _typetree
 	_typetree = tree
 	
-	
-
 
 def init_uiwrappers( ):
 	""" Create dummy classes that will create the actual class once creation is
 	requested.
-	NOTE: must be called once all custom written UI classes are available in this module """
-	init_uiclasshierarchy()
+	NOTE: must be called once all custom written UI classes are available in this module """	 
 	
 	# create dummy class that will generate the class once it is first being instatiated
 	global _typetree
@@ -171,7 +147,7 @@ def init_uiwrappers( ):
 		if clsname in _thismodule.__dict__:
 			continue
 
-		_thismodule.__dict__[ clsname ] = StandinClass( clsname, MetaUIClassCreator )
+		_thismodule.__dict__[ clsname ] = StandinClass( clsname, MetaClassCreatorUI )
 	# END for each uitype
 
 
@@ -180,11 +156,14 @@ if 'init_done' not in locals():
 	
 
 if not init_done:
+	init_uiclasshierarchy()				# populate hierarchy DAG from cache
+	init_uiwrappers( )					# create wrappers for all classes
+	
 	# assure we do not run several times
-	# import modules 
+	# import modules - this way we overwrite actual wrappers lateron
+	from base import *
 	from dialogs import *
 	from layouts import *
 	
-	init_uiwrappers( )
 	
 init_done = True

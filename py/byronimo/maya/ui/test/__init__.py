@@ -25,10 +25,7 @@ def get_suite( ):
 	import byronimo.maya.ui.test as self	
 	import maya.cmds as cmds
 	
-	# in batch mode we have no UI and cannot test anything
-	#if cmds.about( batch=1 ):
-	#	return unittest.TestSuite( )
-		
+	# each test has to check whether he can run in batch mode or not
 	return common.get_package_suite( self )
 	
 def run( **runner_args ):

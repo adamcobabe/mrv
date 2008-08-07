@@ -1,6 +1,7 @@
 """B{byronimo.ui.layouts}
 
 Contains the most important mel-layouts wrapped into easy to use python classes
+These are specialized and thus more powerful than the default wraps 
 
 @todo: more documentation
 
@@ -25,31 +26,29 @@ __copyright__='(c) 2008 Sebastian Thiel'
 
 #} End Exceptions
 
-
 ui = __import__( "byronimo.maya.ui",globals(), locals(), ['ui'] )
 
 
 
-class _Layout( ui.NamedUI ):
+class Layout( ui.NamedUI ):
 	""" Structural base  for all Layouts allowing general queries and name handling """
+	__metaclass__ = ui.MetaClassCreatorUI
 	
-	def __init__( self, name=None, *args, **kvargs ):
+	def __init__( self, *args, **kvargs ):
 		""" 
 		Initialize the layout
 		@param name: name of layout, several class instances can exist with the
 		same name - it will be adjusted for maya as it requires unique names for each 
-		layout.
-		"""
-		self._children = []
-		pass 
+		layout. """
+		ui.NamedUI.__init__( self, *args, **kvargs )
 	
-	def _get_children( self ):
+	def getChildren( self ):
 		""" @return: children of this layout """
 		# return a copy - assure no one tries to alter this array
 		return self._children[:]
 		
 
-	def _get_parent( self ):
+	def getParent( self ):
 		""" @return: parent of this instance or None """
 		raise NotImplementedError()
 
@@ -60,13 +59,14 @@ class _Layout( ui.NamedUI ):
 	
 	
 	#{ Properties
-	children = property( _get_children )
+	children = property( getChildren )
 	#} End Properties
 	
 	
 	
-class FormLayout( _Layout ):
+class FormLayout( Layout ):
 	""" Wrapper class for maya form layout """
+	__metaclass__ = ui.MetaClassCreatorUI
 	
 	class FormConstraint( object ): 
 		""" defines the way a child is constrained, possibly to other children """ 

@@ -1,9 +1,20 @@
-BaseUI
-	confirmDialog
-	fontDialog
-	layoutDialog
-	promptDialog
-	NamedUI
+baseUI
+	dialog
+		confirmDialog
+		fontDialog
+		layoutDialog
+		promptDialog
+	namedUI
+		layout
+			columnLayout
+			frameLayout
+			paneLayout
+			formLayout
+			scrollLayout
+			tabLayout
+			rowColumnLayout
+			rowLayout
+			gridLayout
 		attrColorSliderGrp
 		attrControlGrp
 		attrEnumOptionMenu
@@ -15,7 +26,6 @@ BaseUI
 		colorIndexSliderGrp
 		colorSliderButtonGrp
 		colorSliderGrp
-		columnLayout
 		colorEditor
 		floatField
 		floatFieldGrp
@@ -24,7 +34,6 @@ BaseUI
 		floatSlider2
 		floatSliderButtonGrp
 		floatSliderGrp
-		frameLayout
 		iconTextButton
 		iconTextCheckBox
 		iconTextRadioButton
@@ -36,7 +45,6 @@ BaseUI
 		intScrollBar
 		intSlider
 		intSliderGrp
-		paneLayout
 		panel
 		radioButton
 		radioButtonGrp
@@ -58,20 +66,17 @@ BaseUI
 		button
 		checkBox
 		checkBoxGrp
-		formLayout
 		menu
 		menuBarLayout
 		menuEditor
 		menuItem
 		menuSet
 		scrollField
-		scrollLayout
 		scriptedPanel
 		scriptedPanelType
 		shelfButton
 		shelfLayout
 		shelfTabLayout
-		tabLayout
 		outlinerEditor
 		optionMenu
 		outlinerPanel
@@ -85,8 +90,6 @@ BaseUI
 		hyperGraph
 		hyperPanel
 		hyperShade
-		rowColumnLayout
-		rowLayout
 		renderLayerButton
 		renderWindowEditor
 		glRenderEditor
@@ -97,7 +100,6 @@ BaseUI
 		channelBox
 		gradientControl
 		gradientControlNoAttr
-		gridLayout
 		messageLine
 		popupMenu
 		modelEditor

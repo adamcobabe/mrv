@@ -19,6 +19,7 @@ __copyright__='(c) 2008 Sebastian Thiel'
 import unittest
 import byronimo.maya.ui as ui
 from byronimo.util import capitalize
+import maya.cmds as cmds
 	
 class TestGeneralUI( unittest.TestCase ):
 	""" Test general user interace functionality """
@@ -27,23 +28,41 @@ class TestGeneralUI( unittest.TestCase ):
 		""" """
 		pass
 	
-	def test_dummyTest( self ):
+	def test_createClasses( self ):
 		"""byronimo.maya.ui: Instantiate our pseudoclasses """
+		#if cmds.about( batch=1 ):
+		#	return 
+			
 		for uitype in ui._typetree.nodes_iter():
 			capuitype = capitalize( uitype )
-			print "Type before: " + str( ui.__dict__[ capuitype ] )
+			if capuitype in [ "BaseUI", "NamedUI" ]:
+				continue
+				
+			print capuitype + ": Type before: " + str( ui.__dict__[ capuitype ] )
 			
-			inst = ui.__dict__[ capuitype ]( "testarg", myarg="keyval" )
-			anotherinst = ui.__dict__[ capuitype ]( "testarg", myarg="keyval" )
+			inst = ui.__dict__[ capuitype ](  )
 			
 			self.failUnless( isinstance( inst, ui.BaseUI ) )
 			if not isinstance( inst, ui.BaseUI ):
 				self.failUnless( isinstance( inst, ui.NamedUI ) )
 			
-			print "Type Inst: " + str( type( inst ) )
-			print "Type AnotherInst: " + str( type( anotherinst ) )
-			print "Type Class: " + str( type( ui.__dict__[ capuitype ] ) )
+			self.failUnless( hasattr( inst, '__melcmd__' ) )
+			#print "Type Inst: " + str( type( inst ) )
+			#print "Type AnotherInst: " + str( type( anotherinst ) )
+			#print "Type Class: " + str( type( ui.__dict__[ capuitype ] ) )
 		
+	def test_createWindows( self ):
+		"""byronimo.maya.ui: create some windows"""
+		if cmds.about( batch=1 ):
+			return
+			
+		win = ui.Window( title="Test Window" )
+		
+		col = ui.ColumnLayout( adj=1 )
+		ui.Button( l="first" )
+		ui.Button( l="second" )
+		ui.Button( l="third" )
+		self.failUnless( isinstance( col, ui.Layout ) )
 	
 	def tearDown( self ):
 		""" Cleanup """

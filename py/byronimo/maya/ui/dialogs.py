@@ -18,6 +18,8 @@ __id__="$Id: configuration.py 16 2008-05-29 00:30:46Z byron $"
 __copyright__='(c) 2008 Sebastian Thiel'
 
 
+ui = __import__( "byronimo.maya.ui",globals(), locals(), ['ui'] )
+
 
 #{ Exceptions
 ################################################################################
@@ -26,3 +28,11 @@ __copyright__='(c) 2008 Sebastian Thiel'
 #} End Exceptions
 
 
+class Dialog( ui.BaseUI ):
+	""" Base for all dialog classes """
+	
+	#{ Overridden Methods
+	def _callMelCmd( self, *args, **kvargs ):
+		"""Dialogs will not be created on dialog class creation"""
+		pass 
+	#}

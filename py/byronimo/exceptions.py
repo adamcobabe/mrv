@@ -51,5 +51,8 @@ class TypecheckDecoratorError( DecoratorError ):
 	specification for the given method """
 	pass
 	
+class ProtectedMethodError( DecoratorError ):
+	""" Thrown if a 'protected' decorator detects a non-subclass calling a protected method"""
+	pass
 	
 #}
