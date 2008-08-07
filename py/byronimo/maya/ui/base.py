@@ -22,6 +22,41 @@ __copyright__='(c) 2008 Sebastian Thiel'
 
 ui = __import__( "byronimo.maya.ui",globals(), locals(), ['ui'] )
 import maya.cmds as cmds
+from byronimo.util import capitalize
+
+
+############################
+#### Methods		  	####
+##########################
+def wrapUI( uinameOrList ):
+	""" @return: a new instance ( or list of instances ) of a suitable python UI wrapper class for the 
+	UI with the given uiname(s)
+	@param uinameOrList: if single name, a single instance will be returned, if a list of names is given, 
+	a list of respective instances
+	@raise RuntimeError: if uiname does not exist or is not wrapped in python """
+	uinames = uinameOrList
+	islisttype = isinstance( uinameOrList, ( tuple, list ) ) 
+	if not islisttype:
+		uinames = [ uinameOrList ]
+		
+	out = []
+	for uiname in uinames:
+		uitype = cmds.objectTypeUI( uiname )
+		clsname = capitalize( uitype )
+		
+		try:
+			out.append( getattr( ui, clsname )( name=uiname ) )
+		except:
+			RuntimeError( ui.__name__ + " has no class named " + clsname )
+	# END for each uiname
+	
+	if islisttype:
+		return out
+	
+	return out[0]
+	
+	
+	
 
 
 ############################
@@ -36,30 +71,29 @@ class BaseUI( object ):
 		if self.__class__ == BaseUI:
 			raise ui.UIError( "Cannot instantiate" + self.__class__.__name__ + " directly - it can only be a base class" )
 		
-		# Call the mel command attached to this base UI 
-		self._callMelCmd( *args, **kvargs )
 		return object.__init__(self, *args, **kvargs )
 		
-	def _callMelCmd( self, *args, **kvargs ):
-		"""Call the command associated with this UI instance to create it  
-		@note: should be overridden by subclasses that need more specialized handling"""
-		raise NotImplementedError()
-		
 
-class NamedUI( BaseUI ):
+class NamedUI( unicode, BaseUI ):
 	""" Implements a simple UI element having a name  and most common methods one 
 	can apply to it. Derived classes should override these if they can deliver a
-	faster implementation """
+	faster implementation 
+	If the 'name' keyword is supplied, an existing UI element will be wrapped"""
 	__metaclass__ = ui.MetaClassCreatorUI
 	
+	def __new__( cls, name=None, *args, **kvargs ):
+		"""If name is given, the newly created UI will wrap the UI with the given name.
+		Otherwise the UIelement will be created"""
+		if name is None:
+			name = cls.__melcmd__( *args, **kvargs )
+	
+		return unicode.__new__( cls, name )
+		
 	def __repr__( self ):
 		return u"%s('%s')" % ( self.__class__.__name__, self )
 	
-	def __str__( self ):
-		return self.name
 		
 	def __init__( self , *args, **kvargs ):
-		self.name = None
 		
 		# assure that new instances are being created initially
 		forbiddenKeys = [ 'edit', 'e' , 'query', 'q' ]
@@ -68,15 +102,9 @@ class NamedUI( BaseUI ):
 				raise ui.UIError( "Edit or query flags are not permitted during initialization as interfaces must be created onclass instantiation" )
 			# END if key found in kvargs
 		# END for each forbidden key
+		
 		return BaseUI.__init__( self, *args, **kvargs )
-		
-	def _callMelCmd( self, *args, **kvargs ):
-		""" Create the user interface using our specific mel command """
-		if self.name != None:
-			raise ui.UIError( "UI elements can only be created once" )
-		
-		self.name = self.__melcmd__( *args, **kvargs )
-		
+			
 	def getChildren( self, **kwargs ):
 		kwargs['long'] = True
 		return filter( lambda x: x.startswith(self) and not x == self, lsUI(**kwargs))
@@ -100,7 +128,7 @@ class Window( NamedUI ):
 	__metaclass__ = ui.MetaClassCreatorUI
 	
 	def show( self ):
-		cmds.showWindow( self.name )
+		cmds.showWindow( self )
 		
 	def delete(self):
-		cmds.deleteUI( self.name , window=True)
+		cmds.deleteUI( self , window=True )

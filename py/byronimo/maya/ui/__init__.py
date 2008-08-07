@@ -50,7 +50,7 @@ class MetaClassCreatorUI( MetaClassCreator ):
 
 		cmdname = uncapitalize( name )
 		if hasattr( mcmds, cmdname ):
-			clsdict['__melcmd__'] = getattr( mcmds, cmdname ) 
+			clsdict['__melcmd__'] = staticmethod( getattr( mcmds, cmdname ) ) 
 		else:
 			pass # don't bother, can be one of our own classes that will 
 			#raise UIError( "Did not find command for " + cmdname ) 	

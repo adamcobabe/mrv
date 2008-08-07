@@ -27,16 +27,15 @@ __copyright__='(c) 2008 Sebastian Thiel'
 #} End Exceptions
 
 ui = __import__( "byronimo.maya.ui",globals(), locals(), ['ui'] )
-
-
+uibase = __import__( "byronimo.maya.ui.base",globals(), locals(), ['base'] )
+import maya.cmds as cmds 
 
 class Layout( ui.NamedUI ):
 	""" Structural base  for all Layouts allowing general queries and name handling """
 	__metaclass__ = ui.MetaClassCreatorUI
 	
 	def __init__( self, *args, **kvargs ):
-		""" 
-		Initialize the layout
+		"""  Initialize the layout
 		@param name: name of layout, several class instances can exist with the
 		same name - it will be adjusted for maya as it requires unique names for each 
 		layout. """
@@ -44,8 +43,12 @@ class Layout( ui.NamedUI ):
 	
 	def getChildren( self ):
 		""" @return: children of this layout """
-		# return a copy - assure no one tries to alter this array
-		return self._children[:]
+		childnames = cmds.layout( self, q=1, ca=1 )
+		if childnames == None:
+			childnames = []
+		
+		return uibase.wrapUI( childnames )
+		
 		
 
 	def getParent( self ):
