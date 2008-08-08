@@ -99,6 +99,27 @@ def lsUI( **kvargs ):
 #### Classes		  	####
 ##########################
 
+class Callback(object):
+    """ Enables deferred function evaulation with 'baked' arguments.
+    Useful where lambdas won't work as they bind to the free variables instead of 
+	to their values.
+    Example: 
+        def addRigger(rigger):
+            ...
+            
+        for rigger in riggers:
+            pm.menuItem(
+                label = "Add " + str(rigger),
+                c = Callback(addRigger,rigger,p=1))   # will run: addRigger(rigger,p=1)
+	@note: from pymel """
+    def __init__(self,func,*args,**kwargs):
+        self.func = func
+        self.args = args
+        self.kwargs = kwargs
+    def __call__(self,*args):
+        return self.func(*self.args,**self.kwargs)
+		
+
 class BaseUI( object ):
 	
 	__melcmd__	= None					# every class deriving directly from it must define this !
@@ -236,10 +257,8 @@ class NamedUI( unicode, BaseUI ):
 	p_visible = property( isVisible, setVisible )
 	p_managed = property( isManaged, setManaged )
 	p_enabled = property( isEnabled, setEnabled )
-	
 	p_annotation = property( getAnnotation, setAnnotation )
 	p_dimension = property( getDimension, setDimension )
-	
 	p_parent = property( getParent )
 	p_children = property( getChildren )
 	#} END properties

@@ -131,10 +131,10 @@ class Scene( util.Singleton ):
 			
 		# is it a safe as ?
 		if Scene.getName() != scenepath:
-			cmds.file( rename=scenepath )
+			cmds.file( rename=scenepath.expandvars() )
 			
 		# assure path exists
-		parentdir = scenepath.dirname()
+		parentdir = scenepath.dirname( )
 		if not parentdir.exists( ):
 			parentdir.makedirs( )
 			

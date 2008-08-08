@@ -130,6 +130,13 @@ class Path(_base):
 	# Make the / operator work even when true division is enabled.
 	__truediv__ = __div__
 	
+	def __eq__( self, other ):
+		"""Comparison method with expanded variables, just to assure 
+		the comparison yields the results we would expect"""
+		if isinstance( other, Path ):
+			other = other._expandvars( )
+		return unicode.__cmp__( unicode( self._expandvars() ), unicode( other ) ) == 0
+	
 	#} END Special Python methods
 	
 	def _expandvars( self ):
@@ -139,7 +146,7 @@ class Path(_base):
 	def getcwd(cls):
 		""" Return the current working directory as a path object. """
 		return cls(_getcwd())
-	getcwd = classmethod(getcwd)
+	getcwd = classmethod( getcwd )
 
 
 	#{ Operations on path strings.

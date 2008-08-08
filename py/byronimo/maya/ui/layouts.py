@@ -20,12 +20,6 @@ __copyright__='(c) 2008 Sebastian Thiel'
 
 
 
-#{ Exceptions
-################################################################################
-
-
-#} End Exceptions
-
 ui = __import__( "byronimo.maya.ui",globals(), locals(), ['ui'] )
 uibase = __import__( "byronimo.maya.ui.base",globals(), locals(), ['base'] )
 import maya.cmds as cmds

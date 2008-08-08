@@ -19,7 +19,9 @@ __copyright__='(c) 2008 Sebastian Thiel'
 
 
 ui = __import__( "byronimo.maya.ui",globals(), locals(), ['ui'] )
-
+import maya.cmds as cmds
+import byronimo.util as util
+import byronimo.maya.util as mutil
 
 #{ Exceptions
 ################################################################################
@@ -32,7 +34,21 @@ class Dialog( ui.BaseUI ):
 	""" Base for all dialog classes """
 	
 	#{ Overridden Methods
-	def _callMelCmd( self, *args, **kvargs ):
-		"""Dialogs will not be created on dialog class creation"""
-		pass 
+	
 	#}
+	
+	
+class PromptDialog( Dialog ):
+	""" Wrapper class for maya form layout """
+	__metaclass__ = ui.MetaClassCreatorUI
+	
+	def __init__( self, title, message, okText, cancelText, **kvargs ):
+		""" Create a prompt dialog and allow to query the result """
+		ret = cmds.promptDialog( t = title, m = message, b = [okText,cancelText], db = okText, cb = cancelText,**kvargs )
+		self._text = None
+		if ret == okText:
+			self._text = cmds.promptDialog( q=1, text = 1 )
+
+	def getText( self ):
+		"""@return: the entered text or None if the box has been aborted"""
+		return self._text

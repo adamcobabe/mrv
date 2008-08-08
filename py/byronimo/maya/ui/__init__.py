@@ -162,6 +162,7 @@ if not init_done:
 	# assure we do not run several times
 	# import modules - this way we overwrite actual wrappers lateron
 	from base import *
+	from controls import *
 	from dialogs import *
 	from layouts import *
 	

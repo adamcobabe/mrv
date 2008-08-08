@@ -119,7 +119,7 @@ class TestGeneralUI( unittest.TestCase ):
 		win.p_topleftcorner = ( tlc[1], tlc[0] )
 		
 		win.getMenuArray()
-		win.delete()
+		# win.delete()
 
 	
 	def test_layouts( self ):
@@ -147,7 +147,22 @@ class TestGeneralUI( unittest.TestCase ):
 		col.setParentActive()
 		
 		win.show()
-		win.delete()
+		# win.delete()	# does not really work as windows stays as zombie
 		
 		pass 
-	
+		
+	def test_callbacks( self ):
+		"""byronimo.maya.ui: test callbacks and handling - needs user interaction"""
+		if cmds.about( batch=1 ):
+			return
+		win = ui.Window( title="Test Window" )
+		col = ui.ColumnLayout( adj=1 )
+		
+		if col:
+			b = ui.Button( l="b with cb" )
+			print b
+			import sys
+			b.setCommand( ui.Callback( sys.stdout.write, "hello" ) )
+		col.setParentActive()
+		
+		win.show() 
