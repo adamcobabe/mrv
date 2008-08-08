@@ -69,7 +69,7 @@ class MetaClassCreatorUI( MetaClassCreator ):
 #### CACHES		 	   ####
 #########################
 _typetree = None
-_uiinstances = {}			# keeps all instances we created so far 
+_typemap = { "floatingWindow" : "window" } 
 
 
 

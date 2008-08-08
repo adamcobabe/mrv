@@ -30,6 +30,7 @@ ui = __import__( "byronimo.maya.ui",globals(), locals(), ['ui'] )
 uibase = __import__( "byronimo.maya.ui.base",globals(), locals(), ['base'] )
 import maya.cmds as cmds
 import byronimo.util as util
+import byronimo.maya.util as mutil
 
 class Layout( ui.NamedUI ):
 	""" Structural base  for all Layouts allowing general queries and name handling """
@@ -42,27 +43,30 @@ class Layout( ui.NamedUI ):
 		layout. """
 		ui.NamedUI.__init__( self, *args, **kvargs )
 	
+	#{ Layout Hierarchy  
 	def getChildren( self ):
 		""" @return: children of this layout """
-		childnames = util.noneToList( cmds.layout( self, q=1, ca=1 ) )
+		childnames = mutil.noneToList( cmds.layout( self, q=1, ca=1 ) )
 		return uibase.wrapUI( childnames )
 		
-	def getParent( self ):
-		""" @return: parent of this instance or None """
-		raise NotImplementedError()
-
-	
-	def add( layout ):
-		""" Add layout class as child to this layout """
-		self._children.append( layout )
+	def setParentActive( self ):
+		"""Set the parent ( layout ) of this layout active - newly created items 
+		will be children of the parent layout
+		@note: can safely be called several times """
+		cmds.setParent( self.getParent( ) )
+		
+	def setActive( self ):
+		"""Set this layout active, such that newly created items will be children 
+		of this layout"""
+		cmds.setParent( self )
+	#} END Layout Hierarchy
 	
 	
 	#{ Properties
-	children = property( getChildren )
+	p_children = property( getChildren )			# overwrite super class property
 	#} End Properties
-	
-	
-	
+
+
 class FormLayout( Layout ):
 	""" Wrapper class for maya form layout """
 	__metaclass__ = ui.MetaClassCreatorUI

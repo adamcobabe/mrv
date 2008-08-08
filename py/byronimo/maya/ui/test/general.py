@@ -28,28 +28,41 @@ class TestGeneralUI( unittest.TestCase ):
 		""" """
 		pass
 	
-	def test_createClasses( self ):
-		"""byronimo.maya.ui: Instantiate our pseudoclasses """
-		#if cmds.about( batch=1 ):
-		#	return 
+	def disabled_test_createClasses( self ):
+		"""byronimo.maya.ui: Instantiate our pseudoclasses 
+		@note: this test is not required anymore"""
+		if cmds.about( batch=1 ):
+			return
 			
+		win = ui.Window( title="Collector" )
+		col = ui.ColumnLayout( adj=1 )
+		
 		for uitype in ui._typetree.nodes_iter():
 			capuitype = capitalize( uitype )
 			if capuitype in [ "BaseUI", "NamedUI" ]:
 				continue
 				
-			print capuitype + ": Type before: " + str( ui.__dict__[ capuitype ] )
-			
-			inst = ui.__dict__[ capuitype ](  )
+			try: 
+				inst = ui.__dict__[ capuitype ](  )
+			except RuntimeError:
+				continue
 			
 			self.failUnless( isinstance( inst, ui.BaseUI ) )
 			if not isinstance( inst, ui.BaseUI ):
 				self.failUnless( isinstance( inst, ui.NamedUI ) )
 			
 			self.failUnless( hasattr( inst, '__melcmd__' ) )
-			#print "Type Inst: " + str( type( inst ) )
-			#print "Type AnotherInst: " + str( type( anotherinst ) )
-			#print "Type Class: " + str( type( ui.__dict__[ capuitype ] ) )
+			
+			# layouts should not stay open
+			if isinstance( inst, ui.Layout ):
+				inst.setParentActive()
+				
+		# END for each uitype
+		
+		col.setParentActive()
+		self.failUnless( len( win.getChildren() ) )
+		win.delete()
+		
 		
 	def test_createWindows( self ):
 		"""byronimo.maya.ui: create some windows"""
@@ -57,14 +70,84 @@ class TestGeneralUI( unittest.TestCase ):
 			return
 			
 		win = ui.Window( title="Test Window" )
+		win.p_title = "Another Title"
+		self.failUnless( win.p_title == "Another Title" )
 		
 		col = ui.ColumnLayout( adj=1 )
 		ui.Button( l="first" )
 		ui.Button( l="second" )
 		ui.Button( l="third" )
 		self.failUnless( isinstance( col, ui.Layout ) )
+		
+		win.show()
+		win.p_iconify = True
+		win.p_iconify = False
+		self.failUnless( win.p_iconify == False )
+		
+		win.p_sizeable = True
+		win.p_sizeable = False
+		
+		# on linux ( gnome at least ), they are always sizeable
+		if not cmds.about( linux = 1 ): 
+			self.failUnless( win.p_sizeable == False )
+		
+		win.p_iconname = "testicon"
+		self.failUnless( win.p_iconname == "testicon" )
+		
+		win.p_minimizebutton = False
+		win.p_minimizebutton = True
+		self.failUnless( win.p_minimizebutton == True )
+		
+		win.p_maximizebutton = False
+		win.p_maximizebutton = True
+		self.failUnless( win.p_maximizebutton == True )
+		
+		win.p_toolbox = False
+		win.p_toolbox = True
+		self.failUnless( win.p_toolbox == True )
+		
+		win.p_titlebarmenu = True
+		win.p_titlebarmenu = False
+		if not cmds.about( linux = 1 ):
+			self.failUnless( win.p_titlebarmenu == False )
+		
+		win.p_menubarvisible = True
+		win.p_menubarvisible = False
+		self.failUnless( win.p_menubarvisible == False )
+		
+		tlc = win.p_topleftcorner
+		win.p_topleftcorner = ( tlc[1], tlc[0] )
+		
+		win.getMenuArray()
+		win.delete()
+
 	
-	def tearDown( self ):
-		""" Cleanup """
+	def test_layouts( self ):
+		"""byronimo.maya.ui: test basic layout functions"""
+		if cmds.about( batch=1 ):
+			return
+		win = ui.Window( title="Test Window" )
+		col = ui.ColumnLayout( adj=1 )
+		
+		if col:
+			ui.Button( l="one" )
+			ui.Button( l="two" )
+			
+			grid = ui.GridLayout( )
+			if grid:
+				ui.Button( l="gone" )
+				ui.Button( l="gtwo" )
+			grid.setParentActive( )
+			
+			ui.Button( l="two" )
+			
+			self.failUnless( len( col.getChildren( ) ) == 4 )
+			self.failUnless( len( col.getChildrenDeep( ) ) == 6 )
+			self.failUnless( grid.getParent( ) == col )
+		col.setParentActive()
+		
+		win.show()
+		win.delete()
+		
 		pass 
 	

@@ -27,19 +27,19 @@ class Singleton(object) :
 
 def capitalize(s):
 	"""@return: s with first letter capitalized"""
-    return s[0].upper() + s[1:]
+	return s[0].upper() + s[1:]
 
 def uncapitalize(s, preserveAcronymns=False):
-    """@return: s with first letter lower case
+	"""@return: s with first letter lower case
 	@param preserveAcronymns: enabled ensures that 'NTSC' does not become 'nTSC'
 	@note: from pymel
 	"""
-    try:
-        if preserveAcronymns and s[0:2].isupper():
-            return s
-    except IndexError: pass
-    
-    return s[0].lower() + s[1:]
+	try:
+		if preserveAcronymns and s[0:2].isupper():
+			return s
+	except IndexError: pass
+	
+	return s[0].lower() + s[1:]
 	
 
 

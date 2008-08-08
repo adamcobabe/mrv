@@ -20,14 +20,69 @@ import maya.OpenMaya as om
 import maya.cmds as cmds
 import byronimo.util as util
 
+#{ Return Value Conversion
 def noneToList( res ):
 	"""@return: list instead of None"""
-    if res is None:
-        return []
-    return res
+	if res is None:
+		return []
+	return res
+#}
+	
+	
+	
+	
+#{ MEL Function Wrappers
+ 
+def makeEditOrQueryMethod( inCmd, flag, isEdit=False, methodName=None ):
+	"""Create a function calling inFunc with an edit or query flag set. 
+	@param inCmd: maya command to call 
+	@param flag: name of the query or edit flag
+	@param isEdit: If not False, the method returned will be an edit function
+	@param methoName: the name of the method returned, defaults to inCmd name  """
+	
+	func = None
+	if isEdit:
+		def editFunc(self, val, **kwargs): 
+			kwargs[ 'edit' ] = True
+			kwargs[ flag ] = val
+			return inCmd( self, **kwargs )
+			
+		func = editFunc
+	# END if edit 
+	else:
+		def queryFunc(self, **kwargs): 
+			kwargs[ 'query' ] = True
+			kwargs[ flag ] = True
+			return inCmd( self, **kwargs )
+			
+		func = queryFunc
+	# END if query 
+	
+	if not methodName:
+		methodName = flag 
+	func.__name__ = methodName
+			 
+	return func
+
+
+def queryMethod( inCmd, flag, methodName = None ):
+	""" Shorthand query version of makeEditOrQueryMethod """
+	return makeEditOrQueryMethod( inCmd, flag, isEdit=False, methodName=methodName )
+
+def editMethod( inCmd, flag, methodName = None ):
+	""" Shorthand edit version of makeEditOrQueryMethod """
+	return makeEditOrQueryMethod( inCmd, flag, isEdit=True, methodName=methodName )
+
+def propertyQE( inCmd, flag, methodName = None ):
+	""" Shorthand for simple query and edit properties """
+	editFunc = editMethod( inCmd, flag, methodName = methodName )
+	queryFunc = queryMethod( inCmd, flag, methodName = methodName )
+	return property( queryFunc, editFunc )
+	
+#} 
 	
 def isIterable( obj ):
-    return hasattr(obj,'__iter__') and not isinstance(obj,basestring)
+	return hasattr(obj,'__iter__') and not isinstance(obj,basestring)
 
 def pythonToMel(arg):
 	if isinstance(arg,basestring):
@@ -35,7 +90,6 @@ def pythonToMel(arg):
 	elif isIterable(arg):
 		return u'{%s}' % ','.join( map( pythonToMel, arg) ) 
 	return unicode(arg)
-	
 	
 	
 class Mel(util.Singleton):

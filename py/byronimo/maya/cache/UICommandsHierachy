@@ -15,6 +15,7 @@ baseUI
 			rowColumnLayout
 			rowLayout
 			gridLayout
+			menuBarLayout
 		attrColorSliderGrp
 		attrControlGrp
 		attrEnumOptionMenu
@@ -67,7 +68,6 @@ baseUI
 		checkBox
 		checkBoxGrp
 		menu
-		menuBarLayout
 		menuEditor
 		menuItem
 		menuSet
