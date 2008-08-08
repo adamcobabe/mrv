@@ -56,7 +56,23 @@ def wrapUI( uinameOrList ):
 	return out[0]
 	
 	
-	
+def lsUI( **kvargs ):
+	""" List UI elements as python wrapped types 
+	@param **kvargs: flags from the respective maya command are valid
+	If no special type keyword is specified, all item types will be returned
+	@return: [] of NamedUI instances of respective UI elements
+	"""
+	long = kwargs.pop( 'long', kwargs.pop( 'l', False ) )
+    head = kwargs.pop( 'head', kwargs.pop( 'hd', None ) )
+    tail = kwargs.pop( 'tail', kwargs.pop( 'tl', None) )
+    
+    if not kwargs:
+        kwargs = { 
+            'windows': 1, 'panels' : 1, 'editors' : 1, 'controls' : 1, 'controlLayouts' : 1,
+            'collection' : 1, 'radioMenuItemCollections' : 1, 'menus' : 1, 'menuItems' : 1, 'contexts' : 1, 'cmdTemplates' : 1 }
+    kwargs['long'] = long
+    if head is not None: kwargs['head'] = head
+    if tail is not None: kwargs['tail'] = tail
 
 
 ############################

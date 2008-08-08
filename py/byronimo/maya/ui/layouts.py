@@ -28,7 +28,8 @@ __copyright__='(c) 2008 Sebastian Thiel'
 
 ui = __import__( "byronimo.maya.ui",globals(), locals(), ['ui'] )
 uibase = __import__( "byronimo.maya.ui.base",globals(), locals(), ['base'] )
-import maya.cmds as cmds 
+import maya.cmds as cmds
+import byronimo.util as util
 
 class Layout( ui.NamedUI ):
 	""" Structural base  for all Layouts allowing general queries and name handling """
@@ -43,14 +44,9 @@ class Layout( ui.NamedUI ):
 	
 	def getChildren( self ):
 		""" @return: children of this layout """
-		childnames = cmds.layout( self, q=1, ca=1 )
-		if childnames == None:
-			childnames = []
-		
+		childnames = util.noneToList( cmds.layout( self, q=1, ca=1 ) )
 		return uibase.wrapUI( childnames )
 		
-		
-
 	def getParent( self ):
 		""" @return: parent of this instance or None """
 		raise NotImplementedError()

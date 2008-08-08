@@ -20,6 +20,12 @@ import maya.OpenMaya as om
 import maya.cmds as cmds
 import byronimo.util as util
 
+def noneToList( res ):
+	"""@return: list instead of None"""
+    if res is None:
+        return []
+    return res
+	
 def isIterable( obj ):
     return hasattr(obj,'__iter__') and not isinstance(obj,basestring)
 
@@ -29,6 +35,7 @@ def pythonToMel(arg):
 	elif isIterable(arg):
 		return u'{%s}' % ','.join( map( pythonToMel, arg) ) 
 	return unicode(arg)
+	
 	
 	
 class Mel(util.Singleton):
