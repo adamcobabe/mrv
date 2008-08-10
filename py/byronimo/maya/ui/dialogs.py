@@ -39,12 +39,17 @@ class Dialog( ui.BaseUI ):
 	
 	
 class PromptDialog( Dialog ):
-	""" Wrapper class for maya form layout """
+	""" Wrapper class for maya prompt dialog"""
 	__metaclass__ = ui.MetaClassCreatorUI
 	
 	def __init__( self, title, message, okText, cancelText, **kvargs ):
-		""" Create a prompt dialog and allow to query the result """
-		ret = cmds.promptDialog( t = title, m = message, b = [okText,cancelText], db = okText, cb = cancelText,**kvargs )
+		""" Create a prompt dialog and allow to query the result 
+		@note: return default text in batch mode, given with 'text' key"""
+		if cmds.about( batch=1 ):
+			return kvargs.get( 'text', kvargs.get( 't', '' ) )
+			
+		ret = cmds.promptDialog( t = title, m = message, b = [okText,cancelText], 
+									db = okText, cb = cancelText,**kvargs )
 		self._text = None
 		if ret == okText:
 			self._text = cmds.promptDialog( q=1, text = 1 )
@@ -52,3 +57,37 @@ class PromptDialog( Dialog ):
 	def getText( self ):
 		"""@return: the entered text or None if the box has been aborted"""
 		return self._text
+		
+		
+class ConfirmDialog( Dialog ):
+	""" Wrapper class for maya confirm dialog"""
+	def __init__( self, title, message, confirmButton="Confirm", middleButton=None, 
+				 	cancelButton="Cancel", defaultToConfirm = True, align = "center" ):
+		""" Prompt for confirmation. Call isConfirmed or isCancelled afterwards. Call getReturnValue
+		to get the exact return value ( could be middleButton string )
+		@note: if a button is None, it will not appear, current button maximum is 3
+		@note: in batch mode, it will always confirm"""
+		if cmds.about( batch=1 ):
+			self._ret = confirmButton
+			self._isConfirmed = True
+			return
+			
+		buttons = [confirmButton]
+		for b in middleButton, cancelButton:
+			if b:
+				buttons.append( b )
+				
+		cancelValue = cancelButton or middleButton or confirmButton
+		self._ret = cmds.confirmDialog( t = title,	m = message, b = buttons, 
+										db = ( defaultToConfirm and confirmButton or cancelButton or confirmButton or middleButton ), 
+										ma = align, cb = cancelValue, ds = cancelValue )
+		self._isConfirmed = self._ret == confirmButton
+	
+	def isConfirmed( self ):
+		return self._isConfirmed
+		
+	def isCancelled( self ):
+		return not self._isConfirmed
+		
+	def getReturnValue( self ):
+		return self._ret
