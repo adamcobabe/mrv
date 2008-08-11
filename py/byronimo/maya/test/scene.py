@@ -24,6 +24,7 @@ import byronimo.maya.env as env
 from byronimo.path import Path
 import tempfile 
 import shutil
+import byronimo.maya.test as common
 	
 class TestSceneRunner( unittest.TestCase ):
 	""" Test the database """
@@ -42,14 +43,6 @@ class TestSceneRunner( unittest.TestCase ):
 	
 	def cbgroup_two( self, clientData ):
 		self.called = True
-	#}
-	
-	
-	#{ Utilities 
-	@staticmethod 
-	def getScenePath( filename ):
-		""" @return: path to maya test file of the given name """
-		return path.join( path.split( __file__ )[0], "ma/"+filename )
 	#}
 	
 	def _runMessageTest( self, listenerID, sceneMessageID, function, callbackTriggerFunc ):
@@ -82,7 +75,7 @@ class TestSceneRunner( unittest.TestCase ):
 		if env.getAppVersion( )[0] == 8.5:
 			return 
 		
-		scenepath = TestSceneRunner.getScenePath( "sphere.ma" ) 
+		scenepath = TestSceneRunner.common.get_maya_file( "sphere.ma" ) 
 		triggerFunc = lambda : Scene.open( scenepath )
 		self._runMessageTest( "test_one", om.MSceneMessage.kBeforeOpenCheck, 
 							 	lambda *args: TestSceneRunner.cbgroup_one( self,*args ), 
@@ -96,7 +89,7 @@ class TestSceneRunner( unittest.TestCase ):
 		
 	def test_open( self ):
 		"""byronimo.maya.scene: open file"""
-		self.failUnless( isinstance( Scene.open( self.getScenePath( "empty.ma" ), force=True ), Path ) )
+		self.failUnless( isinstance( Scene.open( common.get_maya_file( "empty.ma" ), force=True ), Path ) )
 		
 	def test_new( self ):
 		"""byronimo.maya.scene: force a new scene """

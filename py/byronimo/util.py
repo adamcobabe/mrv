@@ -15,6 +15,7 @@ __id__="$Id: configuration.py 22 2008-07-16 20:41:16Z byron $"
 __copyright__='(c) 2008 Sebastian Thiel'
 
 import networkx.tree as nxtree
+from collections import deque as Deque
 
 class Singleton(object) :
 	""" Singleton classes can be derived from this class,
@@ -41,6 +42,104 @@ def uncapitalize(s, preserveAcronymns=False):
 	
 	return s[0].lower() + s[1:]
 	
+
+class iDagItem( object ):
+	""" Describes interface for a DAG item.
+	Its used to unify interfaces allowing to access objects in a dag like graph
+	@note: all methods of this class are abstract and need to be overwritten """
+	
+	kOrder_DepthFirst, kOrder_BreadthFirst = range(2)
+	
+	#{ Overridden Methods
+	def __init__( self, separator = None ):
+		"""Intiialize the instance with the path separator - this helps
+		the default implementation to natively work with most path types.
+		If this is not the case, you have to override the methods using it 
+		with your specialized version"""
+		self._sep = separator
+	#} 
+	
+	#{ Query Methods 
+	
+	def isRoot( self ):
+		"""@return: True if this path is the root of the DAG """
+		return self ==  self.getRoot()
+		
+	def getRoot( self ):
+		"""@return: the root of the DAG - it has no further parents"""
+		parents = self.getParentDeep( )
+		if not parents:
+			return self
+		return parents[-1]
+	
+	def getBasename( self ):
+		"""@return: basename of this path, '/hello/world' -> 'world'"""
+		return self._fullpath.split( self._sep )[-1]
+		
+	def getParent( self ):
+		"""@return: parent of this path, '/hello/world' -> '/hello' or None if this path 
+		is the dag's root"""
+		tokens =  self._fullpath.split( self._sep )
+		if len( tokens ) <= 2:		# its already root 
+			return None
+			
+		return Namespace( self._sep.join( tokens[0:-1] ) )
+		
+	def getParentDeep( self ):
+		"""@return: all parents of this path, '/hello/my/world' -> [ '/hello/my','/hello' ]"""
+		out = []
+		curpath = self
+		while True:
+			parent = curpath.getParent( )
+			if not parent:
+				break
+			
+			out.append( parent )
+			curpath = parent
+		# END while true
+		
+		return out 
+		
+	def getChildren( self , predicate = lambda x: True):
+		"""@return: list of intermediate children of path, [ child1 , child2 ]
+		@param predicate: return True to include x in result
+		@note: the child objects returned are supposed to be valid paths, not just relative paths"""
+		raise NotImplementedError( )
+		
+	def getChildrenDeep( self , order = kOrder_BreadthFirst, predicate=lambda x: True ):
+		"""@return: list of all children of path, [ child1 , child2 ]
+		@param order: order enumeration 
+		@param predicate: returns true if x may be returned
+		@note: the child objects returned are supposed to be valid paths, not just relative paths"""
+		out = []
+		
+		if order == self.kOrder_DepthFirst:
+			def depthSearch( child ):
+				if not predicate( c ):
+					return 
+				children = child.getChildren( predicate = predicate )
+				for c in children:
+					depthSearch( c )
+				out.append( child )
+			# END recursive search method
+			
+			depthSearch( self )
+		# END if depth first 
+		elif order == self.kOrder_BreadthFirst:
+			childstack = Deque( [ self ] )		
+			while childstack:
+				item = childstack.pop( )
+				if not predicate( item ):
+					continue 
+				children = item.getChildren( predicate = predicate )
+				
+				childstack.extendleft( children )
+				out.extend( children )
+			# END while childstack
+		# END if breadth first 
+		return out
+		
+	#} END Query Methods
 
 
 class DAGTree( nxtree.DirectedTree ):

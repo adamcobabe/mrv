@@ -5,7 +5,7 @@ most of the functionality of the 'file' command, but has been renamed to scene
 as disambiguation to a filesystem file.
 
 @todo: more documentation
-@todo: create real class properties - currently its only working with instances
+@todo: create real class properties - currently its only working with instances. 
 
 @newfield revision: Revision
 @newfield id: SVN Id
@@ -31,7 +31,8 @@ mayautil = __import__( "byronimo.maya.util", globals(), locals(), [ "util" ] )
 util = __import__( "byronimo.util", globals(), locals(), [ "util" ] )
 import maya.OpenMaya as om
 import maya.cmds as cmds
-
+from byronimo.maya.reference import FileReference
+from byronimo.util import iDagItem
 
 
 	
@@ -152,6 +153,31 @@ class Scene( util.Singleton ):
 	@staticmethod
 	def isModified(  ):
 		return cmds.file( q=1, amf=True )
+		
+	@staticmethod
+	def lsReferences( referenceFile = "", predicate = lambda x: True ):
+		""" list all references in the scene or in referenceFile
+		@param referenceFile: if not empty, the references below the given reference file will be returned
+		@param predicate: method returning true for each valid file reference object
+		@return: list of L{FileReference}s objects"""
+		out = []
+		for reffile in cmds.file( str( referenceFile ), q=1, r=1, un=1 ):
+			refobj = FileReference( filepath = reffile )
+			if predicate( refobj ):
+				out.append( refobj )
+		# END for each reference file
+		return out
+	
+	@staticmethod
+	def lsReferencesDeep( predicate = lambda x: True, **kvargs ):
+		""" Return all references recursively 
+		@param **kvargs: support for arguments as in lsReferences"""
+		refs = Scene.lsReferences( **kvargs )
+		out = refs
+		for ref in refs:
+			out.extend( ref.getChildrenDeep( order = iDagItem.kOrder_BreadthFirst, predicate=predicate ) )
+		return out
+		
 	#} END query methods
 	
 	

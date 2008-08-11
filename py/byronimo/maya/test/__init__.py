@@ -16,11 +16,21 @@ __id__="$Id: __init__.py 22 2008-07-16 20:41:16Z byron $"
 __copyright__='(c) 2008 Sebastian Thiel'
 
 import unittest
+import byronimo.maya as bmaya
 import byronimo.test as common
+import os
 
+def get_maya_file( filename ):
+	"""@return: path to specified maya ( test ) file """
+	return os.path.join( os.path.dirname( __file__ ), "ma/"+filename )
+	
 	
 def get_suite( ):
-	""" @return: testsuite with all tests of this package"""
+	""" @return: testsuite with all tests of this package
+	@note: does some custom setup required for all tests to work"""
+	# custom setup
+	bmaya.Mel.putenv( "MAYAFILEBASE", os.path.dirname( __file__ ) )
+	
 	import byronimo.maya.test as self	
 	return common.get_package_suite( self )
 	
