@@ -163,7 +163,7 @@ class TypeBase( object ):
 #} END GROUP
 		
 #{ Typecheck Decorators 		
-def typecheck_param( *args, **kvargs ):
+def typecheck_param( *args, **kwargs ):
 	"""Assure parameters have expected type before using them 
 	
 	Python does not offer compile time type checking but moves it into the runtime.
@@ -176,13 +176,13 @@ def typecheck_param( *args, **kvargs ):
 	[ object, int, string ]
 	@note: each arg, even self, requires a type class - type definitions can be deeply nested
 	
-	@param kvargs: dict of named parameters with their associated types, like
+	@param kwargs: dict of named parameters with their associated types, like
 	{ x : int, z : myclass }
 	@note: you can supply the types for the keyword args of your choice - make sure
 	that the dict's key names actually match the variable names
 	
 	@return: A function that takes a function object and applies the typechecking
-	as implied by our *args and **kvargs parameters.
+	as implied by our *args and **kwargs parameters.
 	
 	@raise MethodTypeError: 
 	@raise TypecheckDecoratorError: inidcates incorrect decorator usage
@@ -192,7 +192,7 @@ def typecheck_param( *args, **kvargs ):
 	def _dotypecheck( func ):
 		# if not debug mode return func
 		argtypelist = args
-		argtypedict = kvargs
+		argtypedict = kwargs
 		
 		# assure that the args are correct for our function !
 		ndefaultargs = func.func_defaults and len( func.func_defaults ) or 0
@@ -202,7 +202,7 @@ def typecheck_param( *args, **kvargs ):
 			raise TypecheckDecoratorError( m )
 		
 		
-		def _inner_dotypecheck( *args, **kvargs ):
+		def _inner_dotypecheck( *args, **kwargs ):
 			""" Does actual runtime type check """			
 			
 			if len( args ) != len( argtypelist ):
@@ -212,13 +212,13 @@ def typecheck_param( *args, **kvargs ):
 			for i in xrange( 0, len( argtypelist ) ):
 				__methodtypecheck( argtypelist[i], args[i], index=i ) 
 					
-			# check kvargs
+			# check kwargs
 			numkeysunmatched = 0
 			for k in argtypedict.iterkeys():
-				if not k in kvargs:
+				if not k in kwargs:
 					numkeysunmatched += 1
 				else:
-					__methodtypecheck( argtypedict[k], kvargs[k], index=k )
+					__methodtypecheck( argtypedict[k], kwargs[k], index=k )
 					
 			# assure the dict is (still) correct
 			if numkeysunmatched:
@@ -226,7 +226,7 @@ def typecheck_param( *args, **kvargs ):
 				raise TypecheckDecoratorError( m )
 			
 			# finally call actual function
-			return func( *args, **kvargs )
+			return func( *args, **kwargs )
 			
 			
 		# make sure names match
@@ -288,9 +288,9 @@ def typecheck_rval( rval_type ):
 		requ_type = rval_type
 		
 		# does the actual work
-		def _inner_dorvaltypecheck( *args, **kvargs ):
+		def _inner_dorvaltypecheck( *args, **kwargs ):
 			""" Called instead of the actual function that it wrappes """
-			rval = func( *args, **kvargs )
+			rval = func( *args, **kwargs )
 			
 			# do the check
 			__methodtypecheck( requ_type, rval )
@@ -314,11 +314,11 @@ def protected( exactClass ):
 	@note: method must take self as first argument, thus must be a class method """
 	def _protectedCheck( func ):
 		
-		def _inner_protectedCheck( self, *args, **kvargs ):
+		def _inner_protectedCheck( self, *args, **kwargs ):
 			if self.__class__ == exactClass:
 				raise ui.ProtectedMethodError( "Cannot instantiate" + self.__class__.__name__ + " directly - it can only be a base class" )
 		
-			return func( self, *args, **kvargs )
+			return func( self, *args, **kwargs )
 			
 		# return method actually doing the work
 		return _inner_protectedCheck

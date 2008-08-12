@@ -42,14 +42,14 @@ class PromptDialog( Dialog ):
 	""" Wrapper class for maya prompt dialog"""
 	__metaclass__ = ui.MetaClassCreatorUI
 	
-	def __init__( self, title, message, okText, cancelText, **kvargs ):
+	def __init__( self, title, message, okText, cancelText, **kwargs ):
 		""" Create a prompt dialog and allow to query the result 
 		@note: return default text in batch mode, given with 'text' key"""
 		if cmds.about( batch=1 ):
-			return kvargs.get( 'text', kvargs.get( 't', '' ) )
+			return kwargs.get( 'text', kwargs.get( 't', '' ) )
 			
 		ret = cmds.promptDialog( t = title, m = message, b = [okText,cancelText], 
-									db = okText, cb = cancelText,**kvargs )
+									db = okText, cb = cancelText,**kwargs )
 		self._text = None
 		if ret == okText:
 			self._text = cmds.promptDialog( q=1, text = 1 )

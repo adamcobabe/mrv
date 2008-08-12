@@ -699,7 +699,7 @@
   </head>
   <body>
     <p>
-      Simple implementation of *args and **kvargs methods that aid in writing safe code, like
+      Simple implementation of *args and **kwargs methods that aid in writing safe code, like
     </p>
     <ul>
       <li>

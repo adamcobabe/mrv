@@ -97,9 +97,9 @@ def _init_python( ):
 	if not hasattr( e, 'message' ):
 		# put in a special __init__ function
 		Exception.__init__old = Exception.__init__
-		def myinit( self, *args, **kvargs ):
+		def myinit( self, *args, **kwargs ):
 			self.message = ''
-			Exception.__init__old( self, *args, **kvargs )
+			Exception.__init__old( self, *args, **kwargs )
 			
 		Exception.__init__ = myinit
 	

@@ -30,12 +30,12 @@ class Layout( ui.NamedUI ):
 	""" Structural base  for all Layouts allowing general queries and name handling """
 	__metaclass__ = ui.MetaClassCreatorUI
 	
-	def __init__( self, *args, **kvargs ):
+	def __init__( self, *args, **kwargs ):
 		"""  Initialize the layout
 		@param name: name of layout, several class instances can exist with the
 		same name - it will be adjusted for maya as it requires unique names for each 
 		layout. """
-		ui.NamedUI.__init__( self, *args, **kvargs )
+		ui.NamedUI.__init__( self, *args, **kwargs )
 	
 	#{ Layout Hierarchy  
 	def getChildren( self ):
@@ -69,7 +69,7 @@ class FormLayout( Layout ):
 		""" defines the way a child is constrained, possibly to other children """ 
 		
 	
-	def add( layout, **kvargs ):
-		""" Add layout as child, kvargs specify the binding of the layout"""
+	def add( layout, **kwargs ):
+		""" Add layout as child, kwargs specify the binding of the layout"""
 		pass 
 

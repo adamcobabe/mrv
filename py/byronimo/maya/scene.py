@@ -90,7 +90,7 @@ class Scene( util.Singleton ):
 	
 	#{ Edit Methods 
 	@staticmethod
-	def open( filePath, loadReferenceDepth="all", force=False, **kvargs ):
+	def open( filePath, loadReferenceDepth="all", force=False, **kwargs ):
 		""" Open a scene 
 		@param filePath: The path to the file to be opened
 		If None or "", the currently loaded file will reopened
@@ -105,22 +105,22 @@ class Scene( util.Singleton ):
 			
 		# NOTE: it will return the last loaded reference instead of the loaded file - lets fix this !
 		sourcePath = Path( filePath )
-		lastReference = cmds.file( sourcePath.abspath(), open=1, loadReferenceDepth=loadReferenceDepth, force=force, **kvargs )
+		lastReference = cmds.file( sourcePath.abspath(), open=1, loadReferenceDepth=loadReferenceDepth, force=force, **kwargs )
 		return Path( sourcePath )
 		
 	@staticmethod
-	def new( force = False, **kvargs ):
+	def new( force = False, **kwargs ):
 		""" Create a new scene 
 		@param force: if True, the new scene will be created even though there 
 		are unsaved modifications
 		@return: Path object with name of current file"""
-		return Path( cmds.file( new = True, force = force, **kvargs ) )
+		return Path( cmds.file( new = True, force = force, **kwargs ) )
 		
 	@staticmethod
-	def save( scenepath, **kvargs ):
+	def save( scenepath, **kwargs ):
 		"""The save the currently opened scene under scenepath in the respective format
 		@param scenepath: if None or "", the currently opened scene will be used
-		@param **kvargs: passed to cmds.file """
+		@param **kwargs: passed to cmds.file """
 		if scenepath is None or scenepath == "":
 			scenepath = Scene.getName( )
 			
@@ -140,7 +140,7 @@ class Scene( util.Singleton ):
 			parentdir.makedirs( )
 			
 		# safe the file	
-		return Path( cmds.file( save=True, type=filetype, **kvargs ) ) 
+		return Path( cmds.file( save=True, type=filetype, **kwargs ) ) 
 		
 	#} END edit methods
 	
@@ -169,10 +169,10 @@ class Scene( util.Singleton ):
 		return out
 	
 	@staticmethod
-	def lsReferencesDeep( predicate = lambda x: True, **kvargs ):
+	def lsReferencesDeep( predicate = lambda x: True, **kwargs ):
 		""" Return all references recursively 
-		@param **kvargs: support for arguments as in lsReferences"""
-		refs = Scene.lsReferences( **kvargs )
+		@param **kwargs: support for arguments as in lsReferences"""
+		refs = Scene.lsReferences( **kwargs )
 		out = refs
 		for ref in refs:
 			out.extend( ref.getChildrenDeep( order = iDagItem.kOrder_BreadthFirst, predicate=predicate ) )

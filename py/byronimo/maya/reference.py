@@ -55,7 +55,7 @@ class FileReference( Path, iDagItem ):
 	
 	editTypes = [	'setAttr','addAttr','deleteAttr','connectAttr','disconnectAttr','parent' ]
 	
-	def __new__( cls, filepath = None, refnode = None, **kvargs ):
+	def __new__( cls, filepath = None, refnode = None, **kwargs ):
 		def handleCreation(  refnode ):
 			""" Initialize the instance by a reference node - lets not trust paths """
 			path = cmds.referenceQuery( refnode, filename=1 )
@@ -75,7 +75,7 @@ class FileReference( Path, iDagItem ):
 			return handleCreation( cmds.referenceQuery( filepath, rfn=1 ) )
 		raise ValueError( "Specify either filepath or refnode" )
 	
-	def __init__( self, *args, **kvargs ):
+	def __init__( self, *args, **kwargs ):
 		""" Initialize our iDagItem base """
 		return iDagItem.__init__( self, separator = '/' )
 	

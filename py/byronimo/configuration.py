@@ -658,9 +658,9 @@ class ConfigFile( file, ExtendedFileInterface ):
 	""" file object implementation of the ExtendedFileInterface """
 	__slots__ = [ '_writable' ]
 	
-	def __init__( self, *args, **kvargs ):
+	def __init__( self, *args, **kwargs ):
 		""" Initialize our caching values - additional values will be passed to 'file' constructor"""
-		file.__init__( self, *args, **kvargs )
+		file.__init__( self, *args, **kwargs )
 		self._writable = self._isWritable( )
 		
 	def _modeSaysWritable( self ):
@@ -789,11 +789,11 @@ class ConfigChain( list ):
 		ConfigChain._checktype( node )
 		list.insert( self, node, index )
 		
-	def extend( self, *args, **kvargs ):
+	def extend( self, *args, **kwargs ):
 		""" @raise NotImplementedError: """
 		raise NotImplementedError
 		
-	def sort( self, *args, **kvargs ):
+	def sort( self, *args, **kwargs ):
 		""" @raise NotImplementedError: """
 		raise NotImplementedError
 	#}

@@ -70,29 +70,29 @@ def wrapUI( uinameOrList ):
 	return out[0]
 	
 	
-def lsUI( **kvargs ):
+def lsUI( **kwargs ):
 	""" List UI elements as python wrapped types 
-	@param **kvargs: flags from the respective maya command are valid
+	@param **kwargs: flags from the respective maya command are valid
 	If no special type keyword is specified, all item types will be returned
 	@return: [] of NamedUI instances of respective UI elements """
-	long = kvargs.pop( 'long', kvargs.pop( 'l', True ) )
-	head = kvargs.pop( 'head', kvargs.pop( 'hd', None ) )
-	tail = kvargs.pop( 'tail', kvargs.pop( 'tl', None) )
+	long = kwargs.pop( 'long', kwargs.pop( 'l', True ) )
+	head = kwargs.pop( 'head', kwargs.pop( 'hd', None ) )
+	tail = kwargs.pop( 'tail', kwargs.pop( 'tl', None) )
 	
-	if not kvargs:
-		kvargs = { 
+	if not kwargs:
+		kwargs = { 
 			'windows': 1, 'panels' : 1, 'editors' : 1, 'controls' : 1, 
 			'controlLayouts' : 1,'collection' : 1, 'radioMenuItemCollections' : 1, 
 			'menus' : 1, 'menuItems' : 1, 'contexts' : 1, 'cmdTemplates' : 1 }
-	# END kvargs handling
+	# END kwargs handling
 	
-	kvargs['long'] = long
-	if head is not None: kvargs['head'] = head
-	if tail is not None: kvargs['tail'] = tail
+	kwargs['long'] = long
+	if head is not None: kwargs['head'] = head
+	if tail is not None: kwargs['tail'] = tail
 	
 	# NOTE: controls and controlLayout will remove duplcate entries - we have to 
 	# prune them ! Unfortunately, you need both flags to get all items, even layouts 
-	return wrapUI( set( cmds.lsUI( **kvargs ) ) )
+	return wrapUI( set( cmds.lsUI( **kwargs ) ) )
 
 
 ############################
@@ -124,11 +124,11 @@ class BaseUI( object ):
 	
 	__melcmd__	= None					# every class deriving directly from it must define this !
 	
-	def __init__( self, *args, **kvargs ):
+	def __init__( self, *args, **kwargs ):
 		if self.__class__ == BaseUI:
 			raise ui.UIError( "Cannot instantiate" + self.__class__.__name__ + " directly - it can only be a base class" )
 		
-		return object.__init__(self, *args, **kvargs )
+		return object.__init__(self, *args, **kwargs )
 		
 
 class NamedUI( unicode, BaseUI ):
@@ -142,11 +142,11 @@ class NamedUI( unicode, BaseUI ):
 	
 	
 	#{ Overridden Methods 
-	def __new__( cls, name=None, *args, **kvargs ):
+	def __new__( cls, name=None, *args, **kwargs ):
 		"""If name is given, the newly created UI will wrap the UI with the given name.
 		Otherwise the UIelement will be created"""
 		if name is None:
-			name = cls.__melcmd__( *args, **kvargs )
+			name = cls.__melcmd__( *args, **kwargs )
 	
 		return unicode.__new__( cls, name )
 		
@@ -154,32 +154,32 @@ class NamedUI( unicode, BaseUI ):
 		return u"%s('%s')" % ( self.__class__.__name__, self )
 	
 		
-	def __init__( self , *args, **kvargs ):
+	def __init__( self , *args, **kwargs ):
 		""" Initialize instance and check arguments """
 		# assure that new instances are being created initially
 		forbiddenKeys = [ 'edit', 'e' , 'query', 'q' ]
 		for fkey in forbiddenKeys:
-			if fkey in kvargs:
+			if fkey in kwargs:
 				raise ui.UIError( "Edit or query flags are not permitted during initialization as interfaces must be created onclass instantiation" )
-			# END if key found in kvargs
+			# END if key found in kwargs
 		# END for each forbidden key
 		
-		return BaseUI.__init__( self, *args, **kvargs )
+		return BaseUI.__init__( self, *args, **kwargs )
 	#} END overridden methods
 			
 	#{ Hierachy Handling
-	def getChildren( self, **kvargs ):
+	def getChildren( self, **kwargs ):
 		"""@return: all intermediate child instances
 		@note: the order of children is lexically ordered at this time 
 		@note: this implementation is slow and should be overridden by more specialized subclasses"""
 		return filter( lambda x: len( x.replace( self , '' ).split('|') ) - 1 ==len( self.split( '|' ) ), self.getChildrenDeep() )
 		
-	def getChildrenDeep( self, **kvargs ):
+	def getChildrenDeep( self, **kwargs ):
 		"""@return: all child instances recursively
 		@note: the order of children is lexically ordered at this time 
 		@note: this implementation is slow and should be overridden by more specialized subclasses"""
-		kvargs['long'] = True
-		return filter( lambda x: x.startswith(self) and not x == self, lsUI(**kvargs))
+		kwargs['long'] = True
+		return filter( lambda x: x.startswith(self) and not x == self, lsUI(**kwargs))
 		
 	def getParent( self ):
 		"""@return: parent instance of this ui element"""

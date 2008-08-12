@@ -1017,10 +1017,10 @@ class Path(_base):
 	copystat = lambda self, dest: shutil.copystat( self._expandvars(), dest )
 	copy = lambda self, dest: shutil.copy( self._expandvars(), dest )
 	copy2 = lambda self, dest: shutil.copy2( self._expandvars(), dest )
-	copytree = lambda self, dest, **kvargs: shutil.copytree( self._expandvars(), dest, **kvargs )
+	copytree = lambda self, dest, **kwargs: shutil.copytree( self._expandvars(), dest, **kwargs )
 	if hasattr(shutil, 'move'):
 		move = lambda self, dest: shutil.move( self._expandvars(), dest )
-	rmtree = lambda self, dest, **kvargs: shutil.rmtree( self._expandvars(), dest, **kvargs )
+	rmtree = lambda self, dest, **kwargs: shutil.rmtree( self._expandvars(), dest, **kwargs )
 
 	#} END High-Level
 	

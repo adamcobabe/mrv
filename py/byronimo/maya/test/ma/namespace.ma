@@ -1,6 +1,6 @@
 //Maya ASCII 8.5 scene
 //Name: namespace.ma
-//Last modified: Mon, Aug 11, 2008 04:56:52 PM
+//Last modified: Tue, Aug 12, 2008 10:34:53 AM
 //Codeset: UTF-8
 requires maya "8.5";
 currentUnit -l centimeter -a degree -t pal;
@@ -11,12 +11,12 @@ fileInfo "cutIdentifier" "200706070006-700509";
 fileInfo "osv" "Linux 2.6.24-19-generic #1 SMP Fri Jul 11 21:01:46 UTC 2008 x86_64";
 createNode transform -s -n "persp";
 	setAttr ".v" no;
-	setAttr ".t" -type "double3" 28 21 28 ;
-	setAttr ".r" -type "double3" -27.938352729602379 44.999999999999972 -5.172681101354183e-14 ;
+	setAttr ".t" -type "double3" 48.324803512196034 27.712323300077468 -4.2278724744330285 ;
+	setAttr ".r" -type "double3" -29.73835272959948 94.999999999999091 -5.0888874903416268e-14 ;
 createNode camera -s -n "perspShape" -p "persp";
 	setAttr -k off ".v" no;
 	setAttr ".fl" 34.999999999999993;
-	setAttr ".coi" 44.82186966202994;
+	setAttr ".coi" 55.867113786560012;
 	setAttr ".imn" -type "string" "persp";
 	setAttr ".den" -type "string" "persp_depth";
 	setAttr ".man" -type "string" "persp_mask";
@@ -73,6 +73,15 @@ createNode renderLayer -n "defaultRenderLayer";
 createNode script -n "sceneConfigurationScriptNode";
 	setAttr ".b" -type "string" "playbackOptions -min 1.041667 -max 25 -ast 1.041667 -aet 50 ";
 	setAttr ".st" 6;
+createNode groupId -n "FOO:groupId1";
+createNode groupId -n "BAR:groupId1";
+createNode groupId -n "FRED:groupId1";
+createNode groupId -n "FRED:fredChild:groupId1";
+createNode groupId -n "FOO:fooChild:groupId1";
+createNode groupId -n "FRED:fredChild:groupId2";
+createNode groupId -n "FRED:fredChild:fredSubChild:groupId1";
+createNode groupId -n "FOO:fooChild:fooSubChild:groupId1";
+createNode groupId -n "BAR:barChild:barSubChild:groupId1";
 select -ne :time1;
 	setAttr ".o" 1.0416666666666667;
 select -ne :renderPartition;

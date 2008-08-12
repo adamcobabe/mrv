@@ -75,7 +75,7 @@ class TestSceneRunner( unittest.TestCase ):
 		if env.getAppVersion( )[0] == 8.5:
 			return 
 		
-		scenepath = TestSceneRunner.common.get_maya_file( "sphere.ma" ) 
+		scenepath = common.get_maya_file( "sphere.ma" ) 
 		triggerFunc = lambda : Scene.open( scenepath )
 		self._runMessageTest( "test_one", om.MSceneMessage.kBeforeOpenCheck, 
 							 	lambda *args: TestSceneRunner.cbgroup_one( self,*args ), 
@@ -85,7 +85,7 @@ class TestSceneRunner( unittest.TestCase ):
 		"""byronimo.maya.scene: Test ordinary scene callbacks """
 		self._runMessageTest( "test_two", om.MSceneMessage.kBeforeNew, 
 							 	lambda *args: TestSceneRunner.cbgroup_two( self,*args ), 
-								Scene.new )
+								lambda: Scene.new( force = True ) )
 		
 	def test_open( self ):
 		"""byronimo.maya.scene: open file"""

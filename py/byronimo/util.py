@@ -43,6 +43,17 @@ def uncapitalize(s, preserveAcronymns=False):
 	return s[0].lower() + s[1:]
 	
 
+class CallOnDeletion( object ):
+	"""Call the given callable object once this object is being deleted
+	Its usefull if you want to assure certain code to run once the parent scope 
+	of this object looses focus"""
+	def __init__( self, callableobj ):
+		self.callableobj = callableobj
+		
+	def __del__( self ):
+		self.callableobj( )
+		
+
 class iDagItem( object ):
 	""" Describes interface for a DAG item.
 	Its used to unify interfaces allowing to access objects in a dag like graph
@@ -74,16 +85,16 @@ class iDagItem( object ):
 	
 	def getBasename( self ):
 		"""@return: basename of this path, '/hello/world' -> 'world'"""
-		return self._fullpath.split( self._sep )[-1]
+		return self.split( self._sep )[-1]
 		
 	def getParent( self ):
 		"""@return: parent of this path, '/hello/world' -> '/hello' or None if this path 
 		is the dag's root"""
-		tokens =  self._fullpath.split( self._sep )
+		tokens =  self.split( self._sep )
 		if len( tokens ) <= 2:		# its already root 
 			return None
 			
-		return Namespace( self._sep.join( tokens[0:-1] ) )
+		return self.__class__( self._sep.join( tokens[0:-1] ) )
 		
 	def getParentDeep( self ):
 		"""@return: all parents of this path, '/hello/my/world' -> [ '/hello/my','/hello' ]"""

@@ -32,16 +32,16 @@ class TestTypecheckDecorators( unittest.TestCase ):
 		args = [ ( "wantsDummyDerived", Dummy() ), ( "wantsDummy", "string" ) ]
 		for method, arg in args:
 			args = [ arg ]
-			kvargs = {}
+			kwargs = {}
 			callmethod = method
 			
 			if iskv:
 				callmethod = method+'kv'
-				kvargs['dum'] = arg
+				kwargs['dum'] = arg
 				args = []
 				
 			# finally make call
-			self.failUnlessRaises( MethodTypeError, getattr( c, callmethod ), *args, **kvargs )
+			self.failUnlessRaises( MethodTypeError, getattr( c, callmethod ), *args, **kwargs )
 
 	
 	def test_typecheck_param_args( self ):

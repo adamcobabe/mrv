@@ -21,6 +21,7 @@ import byronimo.maya.test as common
 from byronimo.maya.scene import Scene
 from byronimo.maya.namespace import *
 import byronimo.maya as bmaya
+import maya.cmds as cmds 
 import os
 
 class TestReferenceRunner( unittest.TestCase ):
@@ -29,4 +30,46 @@ class TestReferenceRunner( unittest.TestCase ):
 	def test_checkNamespaces( self ):
 		"""byronimo.maya.namespace: test all namespace functionality """
 		bmaya.Scene.open( common.get_maya_file( "namespace.ma" ), force=True )
+		
+		rootns = Namespace( Namespace.rootNamespace )
+		childns = rootns.getChildren( )
+		self.failUnless( rootns.isRoot() )
+		self.failUnless( len( childns ) == 3 ) 
+		
+		for ns in childns:
+			self.failUnless( ns.getParent( ) == rootns )
+			self.failUnless( ns.isAbsolute() )
+			allChildren = ns.getChildrenDeep( )
+			self.failUnless( len( allChildren ) == 2 )
+			
+			for child in allChildren:
+				self.failUnless( len( child.getParentDeep() ) ) 
+				
+		# end for each childns
+		
+		self.failUnlessRaises( ValueError, rootns.delete )
+		
+		# create a few namespaces 
+		for ns in [ "newns", "newns:child", "longer:namespace",":hello:world:here", ":" ]:
+			curns = Namespace.getCurrent()
+			newns = Namespace.create( ns )
+			self.failUnless( newns.exists() )
+			self.failUnless( Namespace.getCurrent() == curns )
+		
+		# rename all children
+		for ns in childns:
+			newname = str( ns ) + "_renamed"
+			renamedns = ns.rename( newname )
+			self.failUnless( renamedns == renamedns )
+			self.failUnless( renamedns.exists() )
+		
+		# delete all child namepaces
+		childns = rootns.getChildren()                           
+		for ns in childns:
+			allchildren = ns.getChildrenDeep()
+			ns.delete( move_to_namespace = rootns )
+			for child in allChildren:
+				self.failUnless( not child.exists() )
+		
+		
 		

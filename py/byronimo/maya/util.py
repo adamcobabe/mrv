@@ -178,9 +178,9 @@ class StandinClass( object ):
 			
 		return self._createdClass
 		
-	def __call__( self, *args, **kvargs ):
+	def __call__( self, *args, **kwargs ):
 		newcls = self.createCls( )
-		return newcls( *args, **kvargs )
+		return newcls( *args, **kwargs )
 
 
 
@@ -196,11 +196,11 @@ class CallbackBase( object ):
 		self._middict = {}						# callbackGroup -> maya callback id
 		self._callbacks = {}				# callbackGroup -> ( callbackStringID -> Callacble )
 	
-	def _addMasterCallback( self, callbackID, *args, **kvargs ):
+	def _addMasterCallback( self, callbackID, *args, **kwargs ):
 		"""Called once the base has to add actual maya callback.
 		It will be added once the first client adds himself, or removed otherwise once the last
 		client removed himself.
-		Make sure your method registers this _call method with *args and **kvargs to allow
+		Make sure your method registers this _call method with *args and **kwargs to allow
 		it to acftually deliver the call to all registered clients
 		@param existingID: if -1, the callback is to be added - in that case you have to 
 		return the created unique message id
@@ -214,7 +214,7 @@ class CallbackBase( object ):
 		that you have to register with different methods"""
 		return callbackID
 		
-	def _call( self, *args, **kvargs ):
+	def _call( self, *args, **kwargs ):
 		""" Iterate over listeners and call them. The method expects the last 
 		argument to be the callback group that _addMasterCallback method supplied to the 
 		callback creation method
@@ -227,14 +227,14 @@ class CallbackBase( object ):
 		cbdict = self._callbacks[ cbgroup ]
 		for callback in cbdict.itervalues():
 			try:
-				callback( *args, **kvargs )
+				callback( *args, **kwargs )
 			except:
 				print( "ERROR: Callback failed" )
 				raise
 				
 		# END callback loop
 		
-	def addListener( self, listenerID, callback, callbackID = None, *args, **kvargs ):
+	def addListener( self, listenerID, callback, callbackID = None, *args, **kwargs ):
 		""" Call to register to receive events triggered by this class
 		@param listenerID: hashable item identifying you 
 		@param callback: callable method, being called with the arguments of the respective
@@ -255,7 +255,7 @@ class CallbackBase( object ):
 		# assure we get a callback
 		if len( cbdict ) == 0:
 			try:
-				self._middict[ cbgroup ] = self._addMasterCallback( cbgroup, callbackID, *args, **kvargs )
+				self._middict[ cbgroup ] = self._addMasterCallback( cbgroup, callbackID, *args, **kwargs )
 			except RuntimeError:
 				raise ValueError( "Maya Message ID is supposed to be set to an approproriate value, got " + str( self._middict[ cbgroup ] ) )
 				
