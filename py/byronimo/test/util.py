@@ -18,11 +18,12 @@ __copyright__='(c) 2008 Sebastian Thiel'
 
 import unittest
 from byronimo.util import *
+import re 
 
 class TestDAGTree( unittest.TestCase ):
 	
-	def setUp( self ):
-		""" """
+	def test_dagMethods( self ):
+		"""byronimo.util.DAGTree: Test general methods"""
 		self.tree = DAGTree( )
 		self.tree.add_edge( (0,1) )
 		self.tree.add_edge( (0,2) )
@@ -30,13 +31,25 @@ class TestDAGTree( unittest.TestCase ):
 		self.tree.add_edge( (1,4) )
 		self.tree.add_edge( (4,5) )
 	
-	def test_dagMethods( self ):
-		"""byronimo.util.DAGTree: Test general methods"""
 		self.failUnless( self.tree.parent( 1 ) == 0 )
 		self.failUnless( self.tree.parent( 5 ) == 4 )
 		self.failUnless( len( list( self.tree.parent_iter( 5 ) ) ) == 3 )
+		
+	def test_filters( self ):
+		"""byronimo.util: test generalized filters"""
+		# AND 
+		sequence = [ 1,1,1,1,0,1,1 ]
+		self.failUnless( len( filter( And( bool, bool, bool ), sequence ) ) == len( sequence ) - 1 ) 
 	
-	def tearDown( self ):
-		"""  """
-		pass 
-	
+		sequence = [ 0, 0, 0, 0, 0, 0 ]
+		self.failUnless( len( filter( And( bool ), sequence ) ) == 0 )
+		self.failUnless( len( filter( And( lambda x: not bool(x) ), sequence ) ) == len( sequence ) )
+		
+		# OR
+		sequence = [ 0, 0, 1 ]
+		self.failUnless( len( filter( Or( bool, lambda x: not bool(x) ), sequence ) ) == 3 )
+		
+		# regex
+		regex = re.compile( "\w" )
+		seq = [ "%", "s" ]
+		self.failUnless( len( filter( RegexHasMatch( regex ), seq ) ) == 1 )

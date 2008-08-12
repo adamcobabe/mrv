@@ -182,3 +182,56 @@ class DAGTree( nxtree.DirectedTree ):
 			yield p
 			n = p
 		
+		
+###################
+## PREDICATES ###
+################
+#{ Predicates
+
+class RegexHasMatch( object ):
+	"""For use with python's filter method, returns True if regex matches
+	Use: filter( And( f1,f2,fn ), sequence ) """
+	def __init__( self, compiledRegex ):
+		"""@param compiledRegex: matches incoming objects """
+		self.regex = compiledRegex
+		
+	def __call__( self, x ):
+		return self.regex.match( x ) != None
+
+# general boolean 
+class And( object ):
+	"""For use with python's filter method, simulates logical AND
+	Use: filter( And( f1,f2,fn ), sequence ) """
+	def __init__( self, *args ):
+		"""args must contain the filter methods to be AND'ed"""
+		self.functions = args
+		
+	def __call__( self, *args, **kwargs ):
+		"""Called during filter function, return true if all functions return true"""
+		val = True
+		for func in self.functions:
+			val = val and func( *args, **kwargs )
+			if not val:
+				return val
+		# END for each function
+		return val
+
+
+class Or( object ):
+	"""For use with python's filter method, simulates logical OR
+	Use: filter( Or( f1,f2,fn ), sequence ) """
+	def __init__( self, *args ):
+		"""args must contain the filter methods to be AND'ed"""
+		self.functions = args
+		
+	def __call__( self, *args, **kwargs ):
+		"""Called during filter function, return true if all functions return true"""
+		val = False
+		for func in self.functions:
+			val = val or func( *args, **kwargs )
+			if val:
+				return val
+		# END for each function
+		return val
+		
+#} END predicates 

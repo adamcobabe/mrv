@@ -64,10 +64,16 @@ class TestReferenceRunner( unittest.TestCase ):
 			self.failUnless( renamedns.exists() )
 		
 		# delete all child namepaces
-		childns = rootns.getChildren()                           
+		childns = rootns.getChildren()
+		
+		# check relative namespace
+		for ns in childns:
+			self.failUnless( not ns.getRelativeTo( rootns ).isAbsolute() )
+		
 		for ns in childns:
 			allchildren = ns.getChildrenDeep()
 			ns.delete( move_to_namespace = rootns )
+			self.failUnless( not ns.exists() )
 			for child in allChildren:
 				self.failUnless( not child.exists() )
 		

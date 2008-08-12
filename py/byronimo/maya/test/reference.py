@@ -24,6 +24,8 @@ import maya.cmds as cmds
 from byronimo.maya.reference import *
 from byronimo.maya.namespace import *
 import byronimo.maya as bmaya
+from byronimo.util import RegexHasMatch
+import re
 import os
 
 	
@@ -60,6 +62,8 @@ class TestReferenceRunner( unittest.TestCase ):
 					childTest( subref )
 			# END childTest
 			
+			childTest( ref )
+			
 			# load-unload test
 			self.failUnless( ref.isLoaded( ) )
 			ref.p_loaded = False
@@ -77,9 +81,66 @@ class TestReferenceRunner( unittest.TestCase ):
 			ref.cleanup( )
 			ref.cleanup( unresolvedEdits=False )
 			
-			childTest( ref )
+		# END for each reference
+		
+	def test_referenceCreation( self ):
+		"""byronimo.maya.reference: create , delete and replace references"""
+		# create some new references
+		filenames = [ "sphere.ma", "cube.ma", "empty.ma", "cylinder.ma", "subrefbase.ma" ]
+		newrefs = []
+		for load in range( 2 ):
+			for filename in filenames:
+				newreffile = common.get_maya_file( filename )
+				ref = FileReference.create( newreffile , load = load )
+				self.failUnless( ref.p_loaded == load )
+				self.failUnless( ref == newreffile )
+				
+				# try to create a reference with the same namespace
+				self.failUnlessRaises( ValueError, ref.create, ref, load = load, namespace = ref.p_namespace )
+				newrefs.append( ref )
+			# END for each filename
+		# END for load state 
+		
+		# delete all unloaded files
+		loadedrefs = filter( lambda x: x.isLoaded(), newrefs )
+		unloadedrefs = set( newrefs ) - set( loadedrefs )
+		for ref in unloadedrefs:
+			ref.remove( )
+			self.failUnlessRaises( RuntimeError, ref.getNamespace )
 			
+		# cross-replace references
+		for i in range( 0, 4, 2 ):
+			ref = loadedrefs[ i ]
+			oref = loadedrefs[ i + 1 ]
+			refpath = str( ref )
 			
-		# END for each reference 
+			refreplace = ref.replace( oref )
+			self.failUnless( refreplace == oref )
+			
+			orefreplace = oref.replace( refpath )
+			self.failUnless( orefreplace == refpath )
+		# END for each 2nd loaded ref
+		
+		
+		# import references
+		subrefbases = Scene.lsReferences( predicate = RegexHasMatch( re.compile( ".*subrefbase.ma" ) ) )
+		self.failUnless( len( subrefbases ) == 3 )			# check predicate works 
+		
+		# slowly import step by step 
+		firstsubref = subrefbases[0]
+		childrefs = firstsubref.importRef( depth = 1 )
+		self.failUnless( not cmds.objExists( firstsubref._refnode ) )
+		self.failUnless( len( childrefs ) == 4 )
+		
+		# import alltogehter
+		sndsubref = subrefbases[1]
+		childrefs = sndsubref.importRef( depth = 0 )
+		self.failUnless( len( childrefs ) == 0 )
+		
+		# final test
+		finalsubref = subrefbases[2]
+		self.failUnless( len( finalsubref.importRef( depth = 2 ) ) != 0 )
+		
+		
 
 	

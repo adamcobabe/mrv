@@ -189,6 +189,25 @@ class Namespace( unicode, iDagItem ):
 	#}
 	
 	#{Query Methods
+		
+	@staticmethod
+	def getUnique( basename, incrementFunc = lambda b,i: "%s%02i" % ( b,i ) ):
+		"""Create a unique namespace
+		@param basename: the base name of the namespace, like ":mynamespace"
+		@param incrementFunc: func( basename, index ), returns a unique name generated
+		from the basename and the index representing the current iteration
+		@return: unique namespace that is garantueed not to exist below the current 
+		namespace"""
+		i = 0
+		while True:
+			testns = Namespace( incrementFunc( basename, i ) )
+			i += 1
+			
+			if not testns.exists():
+				return testns
+		# END while loop
+		raise ValueError( "Should never come here" )
+		
 	def exists( self ):
 		"""@return: True if this namespace exists"""
 		return cmds.namespace( ex=self )
@@ -223,11 +242,11 @@ class Namespace( unicode, iDagItem ):
 		
 		return out
 
-	def getRelativeNamespace( self, basenamespace ):
+	def getRelativeTo( self, basenamespace ):
 		"""@return: this namespace relative to the given basenamespace 
 		@param basenamespace: the namespace to which the returned one should be 
 		relative too
-		@raise ValueError: If this or basenamespace is not absolule or if no relative 
+		@raise ValueError: If this or basenamespace is not absolute or if no relative 
 		namespace exists
 		@return: relative namespace"""
 		if not self.isAbsolute() or not basenamespace.isAbsolute( ):
@@ -236,11 +255,15 @@ class Namespace( unicode, iDagItem ):
 		suffix = self._sep
 		if basenamespace.endswith( self._sep ):
 			suffix = ''
-		relnamespace = Namespace( self.replace( str( basenamespace ) + suffix, '' ) )
+		relnamespace = self.replace( str( basenamespace ) + suffix, '' )
+		if relnamespace == self:
+			raise ValueError( str( basenamespace ) + " is no base of " + str( self ) )
+			
+		return Namespace( relnamespace, absolute = False )
 	
 	def getObjectsIter( self ):
 		"""@return: generator returning all objects in this namespace"""
 		raise NotImplementedError()
-		
-		
+
+	
 	#} END query methods 

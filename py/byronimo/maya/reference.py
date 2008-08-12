@@ -55,17 +55,24 @@ class FileReference( Path, iDagItem ):
 	
 	editTypes = [	'setAttr','addAttr','deleteAttr','connectAttr','disconnectAttr','parent' ]
 	
+	@staticmethod
+	def _splitCopyNumber( path ):
+		"""@return: ( path, copynumber ), copynumber is at least 0 """
+		buf = path.split( '{' )
+		cpn = 0
+		if len( buf ) > 1:
+			cpn = int( buf[1][:-1] )
+			path = buf[0]
+		return path,cpn
+				
 	def __new__( cls, filepath = None, refnode = None, **kwargs ):
 		def handleCreation(  refnode ):
 			""" Initialize the instance by a reference node - lets not trust paths """
 			path = cmds.referenceQuery( refnode, filename=1 )
-			buf = path.split( '{' )
-			
-			self = Path.__new__( cls, buf[0] )
-			self._copynumber = 0
+			path,cpn = cls._splitCopyNumber( path )
+			self = Path.__new__( cls, path )
+			self._copynumber = cpn
 			self._refnode = refnode					# keep it for now 
-			if len( buf ) > 1:
-				self._copynumber = int( buf[1][:-1] )
 			return self
 		# END creation handler 
 		
@@ -81,27 +88,79 @@ class FileReference( Path, iDagItem ):
 	
 	#{ Static Methods 
 	@staticmethod
-	def create( filename, namespace, deferred = False ):
-		raise NotImplementedError( )
-	
-	@staticmethod
-	def remove( fileReference ):
-		raise NotImplementedError( )
-	
-	@staticmethod
-	def replace( fileReference, filepath ):
-		raise NotImplementedError( )
+	def create( filepath, namespace=None, load = True ):
+		"""Create a reference with the given namespace
+		@param filename: path describing the reference file location 
+		@param namespace: if None, a unique namespace will be generated for you
+		else the given namespace will hold all referenced objects. 
+		@param load: 
+		@raise ValueError: if the namespace does already exist 
+		@raise RuntimeError: if the reference could not be created"""
+		filepath = Path( FileReference._splitCopyNumber( filepath )[0] )
 		
-	@staticmethod
-	def importRef( fileReference, depth=1 ):
-		"""Import the given fileReference until the given depth is reached
-		@param fileReference: the reference to import
+		ns = namespace 	
+		if not ns:										# assure unique namespace 
+			nsbasename = filepath.stripext().basename()
+			ns = Namespace.getUnique( nsbasename )
+		
+		ns = ns.getRelativeTo( Namespace( Namespace.rootNamespace ) )
+		if ns.exists():
+			raise ValueError( "Namespace %s for %s does already exist" % (ns,filepath) )
+			
+		# assure we keep the current namespace
+		prevns = Namespace.getCurrent()
+		createdRefpath = cmds.file( filepath, ns=str(ns),r=1,dr=not load ) 
+		prevns.setCurrent( )
+		
+		return FileReference( createdRefpath )
+		
+	
+	def remove( self, **kwargs ):
+		""" Remove the given reference 
+		@note: assures that no namespaces of that reference are left, remaining objects
+		will be moved into the root namespace. This way the namespaces will not be wasted.
+		@note: **kwargs passed to namespace.delete """
+		ns = self.getNamespace( )
+		cmds.file( self.getFullPath( ), rr=1 )
+		ns.delete( **kwargs )
+	
+	
+	def replace( self, filepath ):
+		"""Replace this reference with filepath
+		@param filepath: the path to the file to replace this reference with
+		@return: FileReference with the updated reference
+		@note: you should not use the original ref instance anymore as its unicode 
+		path still uses the old path"""
+		filepath = Path( FileReference._splitCopyNumber( filepath )[0] )
+		cmds.file( filepath, lr=self._refnode )
+		return FileReference( refnode = self._refnode )		# return update object
+		
+	def importRef( self, depth=1 ):
+		"""Import the reference until the given depth is reached
 		@param depth: 
 		   - x<1: import all references and subreferences
-		   - x: import until level x is reached, 1 imports just fileReference such that
-		   all its children are on the same level as fileReference was before import
-		@return: list of fileReference objects that are now in the root namespace """ 
-		raise NotImplementedError( )
+		   - x: import until level x is reached, 1 imports just self such that
+		   all its children are on the same level as self was before import
+		@return: list of FileReference objects that are now in the root namespace - this list could 
+		be empty if all subreferences are fully imported"""
+		def importRecursive( reference, curdepth, maxdepth ):
+			# load ref
+			reference.setLoaded( True )
+			children = reference.getChildren()
+			cmds.file( reference.getFullPath(), importReference=1 )
+			
+			if curdepth == maxdepth - 1:
+				return children
+				
+			outsubrefs = []
+			for childref in children:
+				outsubrefs.extend( importRecursive( childref, curdepth+1, maxdepth ) )
+				
+			return outsubrefs
+		# END importRecursive
+		
+		return importRecursive( self, 0, depth )
+		
 	#}
 	
 	#{Edit Methods	
@@ -187,7 +246,7 @@ class FileReference( Path, iDagItem ):
 		
 	def getChildren( self , predicate = lambda x: True ):
 		""" @return: all intermediate child references of this instance """
-		return scene.Scene.lsReferences( referenceFile = self, predicate = predicate )
+		return scene.Scene.lsReferences( referenceFile = self.getFullPath(), predicate = predicate )
 		
 		
 	def getCopyNumber( self ):
