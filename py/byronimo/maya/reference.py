@@ -68,7 +68,7 @@ class FileReference( Path, iDagItem ):
 	def __new__( cls, filepath = None, refnode = None, **kwargs ):
 		def handleCreation(  refnode ):
 			""" Initialize the instance by a reference node - lets not trust paths """
-			path = cmds.referenceQuery( refnode, filename=1 )
+			path = cmds.referenceQuery( refnode, filename=1, un=1 )
 			path,cpn = cls._splitCopyNumber( path )
 			self = Path.__new__( cls, path )
 			self._copynumber = cpn
@@ -98,10 +98,14 @@ class FileReference( Path, iDagItem ):
 		@raise RuntimeError: if the reference could not be created"""
 		filepath = Path( FileReference._splitCopyNumber( filepath )[0] )
 		
+		def nsfunc( base, i ):
+			if not i: return base
+			return "%s%i" % ( base,i )
+		
 		ns = namespace 	
 		if not ns:										# assure unique namespace 
 			nsbasename = filepath.stripext().basename()
-			ns = Namespace.getUnique( nsbasename )
+			ns = Namespace.getUnique( nsbasename, incrementFunc = nsfunc )
 		
 		ns = ns.getRelativeTo( Namespace( Namespace.rootNamespace ) )
 		if ns.exists():
@@ -113,7 +117,6 @@ class FileReference( Path, iDagItem ):
 		prevns.setCurrent( )
 		
 		return FileReference( createdRefpath )
-		
 	
 	def remove( self, **kwargs ):
 		""" Remove the given reference 

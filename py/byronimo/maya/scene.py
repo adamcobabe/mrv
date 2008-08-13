@@ -140,7 +140,27 @@ class Scene( util.Singleton ):
 			parentdir.makedirs( )
 			
 		# safe the file	
-		return Path( cmds.file( save=True, type=filetype, **kwargs ) ) 
+		return Path( cmds.file( save=True, type=filetype, **kwargs ) )
+		
+	@staticmethod
+	def createReference( filepath, **kwargs ):
+		"""Create a reference
+		@param filepath: filepath of the reference you wish to create
+		@param **kwargs: all arguments supported by L{FileReference.create} 
+		@return: newly created FileReference"""
+		return FileReference.create( filepath, **kwargs )
+	
+	@staticmethod
+	def importReference( filepath, **kwargs ):
+		"""Import a reference ( straight away )
+		@note: this method will only work with files that can also be referenced - use the default
+		file -import command for other file types 
+		@param filepath: path to file to import 
+		@param **kwargs: arguments supported by L{FileReference.create}
+		@raise RuntimeError: On failure"""
+		reference = Scene.createReference( filepath, **kwargs )
+		reference.importRef( depth = 0 )
+		
 		
 	#} END edit methods
 	

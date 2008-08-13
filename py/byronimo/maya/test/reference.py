@@ -42,6 +42,7 @@ class TestReferenceRunner( unittest.TestCase ):
 		for ref in allRefs:
 			ref.getChildrenDeep( )		# try function
 			
+			
 			self.failUnless( isinstance( ref.p_copynumber, int ) )
 			self.failUnless( isinstance( ref.p_namespace, Namespace ) )
 			
