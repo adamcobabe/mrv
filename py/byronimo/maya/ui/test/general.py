@@ -1,4 +1,4 @@
-"""B{byronimo.ui.general}
+"""B{byronimo.maya.ui.test.general}
 
 Test some default ui capababilities 
 

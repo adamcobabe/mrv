@@ -21,6 +21,74 @@ __copyright__='(c) 2008 Sebastian Thiel'
 
 
 import os, sys
+from byronimo.util import capitalize, DAGTree
+from byronimo.exceptions import ByronimoError
+
+
+############################
+#### COMMON   			####
+##########################
+def _dagTreeFromTupleList( tuplelist ):
+	"""@return: DagTree from list of tuples [ (level,name),...], where level specifies
+	the level of items in the dag.
+	@note: there needs to be only one root node which should be first in the list
+	@return: L{DagTree} item allowing to easily query the hierarchy """
+	tree = None
+	lastparent = None
+	lastchild = None
+	lastlevel = 0
+	
+	for no,item in enumerate( tuplelist ):
+		level, name = item
+		
+		if level == 0:
+			if tree != None:
+				raise ByronimoError( "Ui tree must currently be rooted - thus there must only be one root node, found another: " + name )
+			else:
+				tree = DAGTree(  )		# create root
+				tree.add_node( name )
+				lastparent = name
+				lastchild = name
+				continue
+		
+		direction = level - lastlevel 
+		if direction > 1:
+			raise ByronimoError( "Can only change by one down the dag, changed by %i" % direction )
+			
+		lastlevel = level
+		if direction == 0:
+			pass 
+		elif direction == 1 :
+			lastparent = lastchild
+		elif direction == -1:
+			lastparent = tree.parent( lastparent )
+		elif direction < -1:		# we go many parents back, find the parent at level
+			lastparent = list( tree.parent_iter( lastparent ) )[ -(level+1) ]
+			
+		tree.add_edge( ( lastparent, name ) )
+		lastchild = name
+	# END for each line in hiearchy map
+	
+	return tree
+
+def _initWrappers( module, types, metacreatorcls ):
+	""" Create standin classes that will create the actual class once creation is
+	requested.
+	@param module: module object from which the latter classes will be imported from 
+	@param types: iterable containing the names of classnames ( they will be capitalized 
+	as classes must begin with a capital letter )"""	 
+	from byronimo.maya.util import StandinClass
+	
+	# create dummy class that will generate the class once it is first being instatiated
+	for uitype in types:
+		clsname = capitalize( uitype )
+		
+		# do not overwrite hand-made classes
+		if clsname in module.__dict__:
+			continue
+
+		module.__dict__[ clsname ] = StandinClass( clsname, metacreatorcls )
+	# END for each uitype
 
 
 def parse_maya_env( envFilePath ):
@@ -77,6 +145,9 @@ def moveVarsToEnviron( ):
 			os.environ[ var ] = value.strip()
 
 
+############################
+#### INITIALIZATION   ####
+#########################
 
 def init_system( ):
 	""" 

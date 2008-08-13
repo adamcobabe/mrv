@@ -15,21 +15,18 @@ __revision__="$Revision: 29 $"
 __id__="$Id: configuration.py 29 2008-07-30 14:59:35Z byron $"
 __copyright__='(c) 2008 Sebastian Thiel'
 
-from byronimo.exceptions import ByronimoError
-from byronimo.util import capitalize, uncapitalize, DAGTree
+import byronimo.maya as bmaya
+from byronimo.util import capitalize, uncapitalize
 from byronimo.maya.util import MetaClassCreator
 from byronimo.path import Path
-from byronimo.maya.util import StandinClass
 _thismodule = __import__( "byronimo.maya.ui", globals(), locals(), ['ui'] )
 import maya.cmds as mcmds
+
 
 
 ############################
 #### Exceptions		 	####
 #########################
-class  UIError( ByronimoError ):
-	""" Base Class for all User Interface errors"""
-	pass 
 
 
 
@@ -56,9 +53,7 @@ class MetaClassCreatorUI( MetaClassCreator ):
 			#raise UIError( "Did not find command for " + cmdname ) 	
 				
 		newcls = super( MetaClassCreatorUI, metacls ).__new__( _typetree, _thismodule, 
-																metacls, name, bases, clsdict, 
-																nameToTreeFunc=uncapitalize,
-																treeToNameFunc=capitalize )
+																metacls, name, bases, clsdict )
 				
 		# print newcls.mro()
 		return newcls
@@ -79,76 +74,29 @@ _typemap = { "floatingWindow" : "window" }
 #########################
 
 
-def init_uiclasshierarchy( ):
+def init_classhierarchy( ):
 	""" Read a simple hiearchy file and create an Indexed tree from it
 	@todo: cache the pickled tree and try to load it instead  """
 	mfile = Path( __file__ ).p_parent.p_parent / "cache/UICommandsHierachy"
-	lines = mfile.lines( retain=False )
-	
-	tree = None
-	lastparent = None
-	lastchild = None
-	lastlevel = 0
-	
-	# PARSE THE FILE INTO A TREE 
-	# currently we expect all the nodes to have one root class 
+	lines = mfile.lines( retain = False )
+
+	hierarchytuples = []
+	# PARSE THE FILE INTO A TUPLE LIST 
 	for no,line in enumerate( mfile.lines( retain=False ) ):
-		level = line.count( '\t' )
-		name = line.lstrip( '\t' )
+		item = ( line.count( '\t' ), line.lstrip( '\t' ) )
+		hierarchytuples.append( item )
 		
-		if level == 0:
-			if tree != None:
-				raise ByronimoError( "Ui tree must currently be rooted - thus there must only be one root node, found another: " + name )
-			else:
-				tree = DAGTree(  )		# create root
-				tree.add_node( name )
-				lastparent = name
-				lastchild = name
-				continue
-		
-		direction = level - lastlevel 
-		if abs( direction ) > 1:
-			raise ByronimoError( "Can only change by one level, changed by %i" % direction )
-			
-		lastlevel = level
-		if direction == 0:
-			pass 
-		elif direction == 1 :
-			lastparent = lastchild
-		elif direction == -1:
-			lastparent = tree.parent( lastparent )
-			
-		tree.add_edge( ( lastparent, name ) )
-		lastchild = name
-	# END for each line in hiearchy map
-	
 	# STORE THE TYPE TREE
 	global _typetree
-	_typetree = tree
+	_typetree = bmaya._dagTreeFromTupleList( hierarchytuples )
 	
 
-def init_uiwrappers( ):
-	""" Create dummy classes that will create the actual class once creation is
-	requested.
-	NOTE: must be called once all custom written UI classes are available in this module """	 
-	
-	# create dummy class that will generate the class once it is first being instatiated
+def init_wrappers( ):
+	""" Create Standin Classes that will delay the creation of the actual class till 
+	the first instance is requested"""	 
 	global _typetree
 	global _thismodule
-	
-	class Holder:
-		def __init__( self, name ):
-			self.name = name
-	
-	for uitype in _typetree.nodes_iter( ):
-		clsname = capitalize( uitype )
-		
-		# do not overwrite hand-made classes
-		if clsname in _thismodule.__dict__:
-			continue
-
-		_thismodule.__dict__[ clsname ] = StandinClass( clsname, MetaClassCreatorUI )
-	# END for each uitype
+	bmaya._initWrappers( _thismodule, _typetree.nodes_iter(), MetaClassCreatorUI )
 
 
 if 'init_done' not in locals():
@@ -156,8 +104,8 @@ if 'init_done' not in locals():
 	
 
 if not init_done:
-	init_uiclasshierarchy()				# populate hierarchy DAG from cache
-	init_uiwrappers( )					# create wrappers for all classes
+	init_classhierarchy()				# populate hierarchy DAG from cache
+	init_wrappers( )					# create wrappers for all classes
 	
 	# assure we do not run several times
 	# import modules - this way we overwrite actual wrappers lateron

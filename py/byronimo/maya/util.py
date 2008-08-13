@@ -19,6 +19,8 @@ import maya.mel as mm
 import maya.OpenMaya as om
 import maya.cmds as cmds
 import byronimo.util as util
+from byronimo.util import capitalize,uncapitalize
+
 
 #{ Return Value Conversion
 def noneToList( res ):
@@ -288,7 +290,7 @@ class MetaClassCreator( type ):
 	typetree """
 	
 	def __new__( 	dagtree, module, metacls, name, bases, clsdict, 
-					nameToTreeFunc=lambda x:x, treeToNameFunc=lambda x:x ):
+					nameToTreeFunc=uncapitalize, treeToNameFunc=capitalize ):
 		"""Create a new class from hierarchy information found in dagtree and 
 		put it into the module if it not yet exists
 		@param dagtree: L{byronimo.util.DAGTree} instance with hierarchy information

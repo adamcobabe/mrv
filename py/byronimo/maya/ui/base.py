@@ -1,9 +1,7 @@
 """B{byronimo.ui.base}
 
 Contains some basic  classes that are required to run the UI system
-@note: user defined classes must not name the default base classes explicitly as 
-they will receive the bases as defined in the UICache Tree. If there is some additional 
-base though, it should be given as super class of course.
+
 @todo: more documentation
 
 @newfield revision: Revision
@@ -24,6 +22,7 @@ ui = __import__( "byronimo.maya.ui",globals(), locals(), ['ui'] )
 import maya.cmds as cmds
 from byronimo.util import capitalize
 import byronimo.maya.util as mutil
+from byronimo.exceptions import ByronimoError
 
 
 ############################
@@ -126,7 +125,7 @@ class BaseUI( object ):
 	
 	def __init__( self, *args, **kwargs ):
 		if self.__class__ == BaseUI:
-			raise ui.UIError( "Cannot instantiate" + self.__class__.__name__ + " directly - it can only be a base class" )
+			raise ByronimoError( "Cannot instantiate" + self.__class__.__name__ + " directly - it can only be a base class" )
 		
 		return object.__init__(self, *args, **kwargs )
 		
