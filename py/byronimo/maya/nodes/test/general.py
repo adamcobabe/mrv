@@ -27,7 +27,6 @@ class TestGeneral( unittest.TestCase ):
 	
 	def test_testWrappers( self ):
 		"""byronimo.maya: test wrapper class creation"""
-		import time
 		tree = nodes._typetree
 		for name in tree.nodes_iter():
 			getattr( nodes, capitalize( name ) )( )
