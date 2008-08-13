@@ -31,93 +31,23 @@ __revision__="$Revision: 16 $"
 __id__="$Id: configuration.py 16 2008-05-29 00:30:46Z byron $"
 __copyright__='(c) 2008 Sebastian Thiel'
 
-env = __import__( "byronimo.maya.env", globals(), locals(), ['env'] )
 
-from byronimo.maya.util import MetaClassCreator
-import byronimo.maya as bmaya
-from byronimo.path import Path
-from byronimo.util import uncapitalize
-import re
-
-#####################
-#### META 		####
-##################
-
-class MetaClassCreatorNodes( MetaClassCreator ):
-	"""Builds the base hierarchy for the given classname based on our typetree"""
-	
-	nameToTreeMap = set( [ 'FurAttractors', 'FurCurveAttractors', 'FurGlobals', 'FurDescription','FurFeedback' ] ) 
-	
-	def __new__( metacls, name, bases, clsdict ):
-		""" Called to create the class with name """
-		global _typetree
-		global _thismodule
-		
-		def func_nameToTree( name ):
-			if name in metacls.nameToTreeMap:
-				return name
-			return uncapitalize( name )
-
-		newcls = super( MetaClassCreatorNodes, metacls ).__new__( _typetree, _thismodule, 
-																metacls, name, bases, clsdict, 
-																nameToTreeFunc = func_nameToTree )
-				
-		# print newcls.mro()
-		return newcls
-
-
-####################
-### CACHES ########
-##################
 _thismodule = __import__( "byronimo.maya.nodes", globals(), locals(), ['nodes'] )
-_typetree = None
 
 
-############################
-#### INITIALIZATION   ####
-#########################
-
-
-def init_classhierarchy( ):
-	""" Parse the nodes hiearchy from the maya doc and create an Indexed tree from it
-	@todo: cache the pickled tree and try to load it instead  """
-	mfile = Path( __file__ ).p_parent.p_parent
-	mfile = mfile / ( "cache/nodeHierarchy_%s.html" % env.getAppVersion()[0] )
-	lines = mfile.lines( retain=False )			# just read them in one burst
-	
-	hierarchylist = []
-	regex = re.compile( "<tt>([ >]*)</tt><.*?>(\w+)" )	# matches level and name
-	rootOffset = 1
-	
-	hierarchylist.append( (0,"mayaNode" ) )
-	
-	for line in lines:
-		m = regex.match( line )
-		if not m: continue
-		
-		levelstr, name = m.groups()
-		level = levelstr.count( '>' ) + rootOffset
-		
-		hierarchylist.append( ( level, name ) )
-	# END for each line 
-	global _typetree
-	_typetree = bmaya._dagTreeFromTupleList( hierarchylist )
-	
-def init_wrappers( ):
-	""" Create Standin Classes that will delay the creation of the actual class till 
-	the first instance is requested"""	 
-	global _typetree
-	global _thismodule
-	bmaya._initWrappers( _thismodule, _typetree.nodes_iter(), MetaClassCreatorNodes )
 
 if 'init_done' not in locals():
 	init_done = False
 	
 if not init_done:
-	# assure we do not run several times
-	init_classhierarchy( )
-	init_wrappers( )
-	
+	from types import *
+	MetaClassCreatorNodes.targetModule = _thismodule			# init metaclass with our module 
+	init_nodehierarchy( )
+	init_wrappers( _thismodule )
+
+	# overwrite dummy node bases with hand-implemented ones
 	from base import *
+	
+	
 	
 init_done = True

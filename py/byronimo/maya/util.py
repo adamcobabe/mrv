@@ -92,7 +92,11 @@ def pythonToMel(arg):
 	elif isIterable(arg):
 		return u'{%s}' % ','.join( map( pythonToMel, arg) ) 
 	return unicode(arg)
-	
+
+
+############################
+#### Classes		  	####
+##########################
 	
 class Mel(util.Singleton):
 	"""This class is a necessity for calling mel scripts from python. It allows scripts to be called
