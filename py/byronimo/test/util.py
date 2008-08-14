@@ -53,3 +53,9 @@ class TestDAGTree( unittest.TestCase ):
 		regex = re.compile( "\w" )
 		seq = [ "%", "s" ]
 		self.failUnless( len( filter( RegexHasMatch( regex ), seq ) ) == 1 )
+		
+		
+	def test_intGenerator( self ):
+		"""byronimo.util: test IntKeygenerator"""
+		for i in IntKeyGenerator( [ 1,2,3 ] ):
+			self.failUnless( isinstance( i, int ) )

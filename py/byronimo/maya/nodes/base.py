@@ -21,7 +21,7 @@ __id__="$Id: configuration.py 16 2008-05-29 00:30:46Z byron $"
 __copyright__='(c) 2008 Sebastian Thiel'
 
 
-from byronimo.util import capitalize
+from byronimo.util import capitalize, IntKeyGenerator
 from byronimo.maya.util import StandinClass
 nodes = __import__( "byronimo.maya.nodes", globals(), locals(), ['nodes'] )
 import maya.OpenMaya as api
@@ -195,9 +195,45 @@ class DependNode( MayaNode ):
 	Depdency Nodes are manipulated using an MObjectHandle which is safest to go with, 
 	but consumes more memory too !"""
 	__metaclass__ = nodes.MetaClassCreatorNodes
+	_mfncls = api.MFnDependencyNode
+	
+	#{ Overridden Methods 
+	def __getattr__( self, attr ):
+		"""Interpret attributes not in our dict as attributes on the wrapped node, 
+		create a plug for it and add it to our class dict, effectively caching the attribute"""
+		depfn = DependNode._mfncls( self._apiobj )
+		try:
+			plug = Plug( depfn.findPlug( str(attr) ) )
+		except RuntimeError:		# perhaps a base class can handle it
+			try: 
+				return super( DependNode , self ).__getattr__( self, attr )
+			except AttributeError:
+				raise AttributeError( "Attribute '%s' does not exist on '%s', neither as function not as attribute" % ( attr, self.getName() ) )
+		
+		self.__dict__[ attr ] = plug
+		return plug
+	#}
+	
+	#{ Connections and Attributes 
+	def getConnections( self ):
+		"""@return: list of L{Plug}s that are connected"""
+		cons = api.MPlugArray()
+		mfn = DependNode._mfncls( self._apiobj ).getConnections( cons )
+		return PlugArray( cons )
+		
+	def getName( self ):
+		return DependNode._mfncls( self._apiobj ).name()
 	
 	
 	
+		
+	#} 
+	
+	
+	#{ Edit Methods 
+	
+	
+	#}
 	
 class Entity( DependNode ):
 	"""Common base for dagnodes and paritions"""
@@ -209,5 +245,35 @@ class DagNode( Entity ):
 	__metaclass__ = nodes.MetaClassCreatorNodes
 	
 	
-
+class Plug( api.MPlug ):
+	""" Wrap a maya plug to assure we always get MayaNodes ( instead of MObjects )
+	By overridding many object methods, the access to plugs becomes very pythonic"""
+	# __slots__ = []  	 apparently it will always have a dict 
 	
+	def fancy( self ):
+		return 1
+	
+	
+class PlugArray( api.MPlugArray ):
+	""" Wrap MPlugArray to make it compatible to pythonic contructs
+	Also it will always contain Plug objects isntead of MPlugs
+	
+	This wrapper will handle like python classes and always return Plug objects."""
+	
+	__len__ = api.MPlugArray.length
+	
+	def __setitem__ ( self, index, plug ):
+		return self.set( plug, index )
+	
+	def __getitem__ ( self, index ):
+		return Plug( api.MPlugArray.__getitem__( self,  index ) )
+		
+	def __iter__( self ):
+		"""@return: iterator object"""
+		return IntKeyGenerator( self )
+		
+		
+#############################
+#### TYPE Conversions 	####
+##########################
+

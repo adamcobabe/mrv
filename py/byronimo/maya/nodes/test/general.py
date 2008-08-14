@@ -59,19 +59,70 @@ class TestGeneral( unittest.TestCase ):
 		
 		# try to just use a suberclass directly 
 		for transname in cmds.ls( type="transform" ):
-			node = nodes.Transform( transname )
+			node = nodes.DagNode( transname )
+			self.failUnless( hasattr( node, "__dict__" ) )
 			
 			
 class TestBase( unittest.TestCase ):
 	""" Test base functionality  """
+	
+	def test_plug( self ):
+		"""byronimo.maya.nodes: Test plug ( node.attribute ) """
+		p = nodes.Plug()
+		node = nodes.MayaNode( "defaultRenderGlobals" )
+		# for attr in [ "resolution" ]:
+	
 	def test_wrapDepNode( self ):
 		"""byronimo.maya.nodes: create and access dependency nodes ( not being dag nodes )"""
 		node = nodes.MayaNode( "defaultRenderGlobals" )
 		
+		# get simple attributes
+		for attr in [ "preMel", "postMel" ]:
+			plug = getattr( node, attr )
+			self.failUnless( not plug.isNull() )
+			
+		# check connection methods 
+		plug = getattr( node, attr )
+		cons = node.getConnections()
+		self.failUnless( len( cons ) )
+		
+		
+		# get mfn lazy wrapped attributes 
+		node.setName( "this" )
+		self.failUnless( node.__dict__.has_key( 'setName' ) )	# should create instance level method, once !
+		self.failUnless( hasattr( node.__class__, 'setName' ) )	# should create class level method, once !
+		
+		node = nodes.MayaNode( "this" )		# new instance should natively have the methods
+		node.setName( "this_renameds" )
 		
 
 	def test_wrapDagNode( self ):
 		"""byronimo.maya.nodes: create and access dag nodes"""
+		
+		
+	def test_plugArray( self ):
+		"""byronimo.maya.nodes: test the plugarray wrapper
+		NOTE: plugarray can be wrapped, but the types stored will always be"""
+		pa = nodes.PlugArray( )
+		
+		myplug = nodes.Plug()
+		myplug.fancy()				# special Plug method not available in the pure api object
+		pa.append( myplug )
+		pa[0].fancy()
+		
+		self.failUnless( len( pa ) == 1 )
+		
+		l = 5
+		pa.setLength( l )
+		for i in range( l ):
+			pa[i] = nodes.Plug( )
+			
+		for plug in pa:			# test iterator
+			plug.fancy()
+			self.failUnless( isinstance( plug, nodes.Plug ) )
+			
+		self.failIf( len( pa ) != 5 )
+		
 		
 		
 		

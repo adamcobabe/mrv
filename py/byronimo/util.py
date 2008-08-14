@@ -42,6 +42,27 @@ def uncapitalize(s, preserveAcronymns=False):
 	
 	return s[0].lower() + s[1:]
 	
+class IntKeyGenerator( object ):
+	"""Provides iterators for directly access list like objects supporting 
+	__getitem__ method 
+	@note: the list must not change size during iteration !"""
+	def __init__( self, listobj ):
+		"""Initialize the generator with the list to iterate"""
+		self.listobj = listobj
+		self.index = 0
+		self.length = len( self.listobj )
+	
+	def __iter__( self ):
+		return self
+
+	def next( self ):
+		if self.index < self.length:
+			rval = self.listobj[ self.index ]
+			self.index += 1
+			return rval
+		else:
+			raise StopIteration
+			
 
 class CallOnDeletion( object ):
 	"""Call the given callable object once this object is being deleted
