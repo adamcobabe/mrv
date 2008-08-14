@@ -18,13 +18,16 @@ __id__="$Id: configuration.py 16 2008-05-29 00:30:46Z byron $"
 __copyright__='(c) 2008 Sebastian Thiel'
 
 env = __import__( "byronimo.maya.env", globals(), locals(), ['env'] )
+nodes = __import__( "byronimo.maya.nodes", globals(), locals(), ['nodes'] )
 from byronimo.maya.util import MetaClassCreator
 import byronimo.maya as bmaya
 from byronimo.path import Path
 from byronimo.util import uncapitalize
-import re
 import maya.OpenMaya as api
-
+import re
+import inspect
+import new
+import UserDict
 
 ####################
 ### CACHES ########
@@ -47,7 +50,7 @@ class MetaClassCreatorNodes( MetaClassCreator ):
 	
 	
 	@staticmethod
-	def _wrapMfnFunc( mfncls, funcname, instancePtr = None, funcMutatorDB = dict() ):
+	def _wrapMfnFunc( mfncls, funcname, funcMutatorDB = dict() ):
 		""" Create a function that makes a MayaNode natively use its associated Maya 
 		function set on calls.
 		
@@ -57,8 +60,6 @@ class MetaClassCreatorNodes( MetaClassCreator ):
 		The method mutation database allows to adjust the way a method is being wrapped
 		@param mfncls: Maya function set class from which to take the functions
 		@param funcname: name of the function set function to be wrapped
-		@param instancePtr: if not None, the wrapped method will be bound to the instance, 
-		otherwise it will assume self to be passed in automatically
 		@param funcMutatorDB: datastructure:
 		{ "mfnfuncname": ( rvalMutatorFunction, newname ) [ , ... ] }
 			- mfnfuncname: name of the function in the mfn class
@@ -74,17 +75,12 @@ class MetaClassCreatorNodes( MetaClassCreator ):
 		
 		# get mfndb data and create appropriate function
 		newfunc = None
-		if instancePtr:
-			def wrapMfnFunc( *args, **kwargs ):
-				mfninst = mfncls( instancePtr._apiobj )					# use the given mfn only - we do not assume proper mfn inheritance yet
-				return getattr( mfninst, funcname )( *args, **kwargs )
-			newfunc = wrapMfnFunc
-		else:
-			# bound to class, self will be attached on class instantiation
-			def wrapMfnFunc( self, *args, **kwargs ):
-				mfninst = mfncls( self._apiobj )
-				return getattr( mfninst, funcname )( *args, **kwargs )
-			newfunc = wrapMfnFunc
+		
+		# bound to class, self will be attached on class instantiation
+		def wrapMfnFunc( self, *args, **kwargs ):
+			mfninst = mfncls( self._apiobj )
+			return getattr( mfninst, funcname )( *args, **kwargs )
+		newfunc = wrapMfnFunc
 			
 		newfunc.__name__ = funcname			# rename the method 
 		return newfunc
@@ -113,17 +109,8 @@ class MetaClassCreatorNodes( MetaClassCreator ):
 			
 			mfncls = getattr( newcls, '_mfncls' )
 			try:
-				# Here it comes: We need two functions:
-				# 1: function for the current instance - has the method is created
-				#	 lazily, the self pointer could not be attached to the class (yet)
-				# 	and thus needs to be given as free variable
-				# 2: function for class - this will allow new instances of this class
-				# 	to be 'born' with properly working, self-bound methods right from the start
-				# 	thus this intitial overhead is just one once !
-				kwargs = { 'funcMutatorDB' : newcls._mfndb, 'instancePtr' : self }
-				newinstfunc = thiscls._wrapMfnFunc( mfncls, attr, **kwargs  )
-				kwargs.pop( 'instancePtr' )
-				newclsfunc = thiscls._wrapMfnFunc( mfncls, attr, **kwargs )
+				newclsfunc = thiscls._wrapMfnFunc( mfncls, attr, funcMutatorDB=newcls._mfndb )
+				newinstfunc = new.instancemethod( newclsfunc, self, newcls )	# create the respective instance method !
 			except KeyError:
 				# does not exist, pass on the call to whatever we had - thus we take precedence
 				# passing the call allows subclasses to use function set methods of superclasses
@@ -219,6 +206,110 @@ def init_wrappers( targetmodule ):
 	
 
 	
+################################
+#### Cache Initialization ####
+############################
 
+class MfnMemberMap( UserDict.UserDict ):
+	"""Simple accessor for MFnDatabase access
+	Direct access like db[funcname] returns an entry object with all values"""
+	kDelete = 'x'	
+	version = 1
+	
+	class Entry:
+		"""Simple entry struct keeping the actual values """				
+		def __init__( self, flag='', rvalfunc = None, newname="" ):
+			self.flag = flag
+			self.rvalfunc = self.toRvalFunc( rvalfunc )
+			self.newname = newname
+			
+		@staticmethod
+		def toRvalFunc( funcname ):
+			if not isinstance( funcname, basestring ):
+				return funcname
+			if funcname == 'None': return None
+			if not hasattr( MfnMemberMap, funcname ):
+				raise ValueError("'%s' is unknown to MfnMemberMap - it must be implemented here" % funcname )
+			
+			return getattr( MfnMemberMap, funcname )
+
+		def rvalFuncToStr( self ):
+			if self.rvalfunc is None: return 'None'
+			return self.rvalfunc.__name__
+	
+	
+	def initFromFile( self, filepath ):
+		""" Initialize the database with values from the given file
+		@note: the file must have been written using the L{writeToFile} method"""
+		self.clear()
+		fobj = open( filepath, 'r' )
+		
+		fileversion = int( fobj.readline( ).strip( ) )		# get version 
+		if fileversion != self.version:
+			raise ValueError( "File version %i does not match class version %i" % (fileversion,self.version ) )
+			
+		# get the entries
+		for line in fobj:
+			tokens = [ item.strip() for item in line.split( '|' ) ]
+			key = tokens[ 1 ]
+			self[ key ] = self.Entry( flag=tokens[0], rvalfunc=tokens[2], newname=tokens[3] ) 
+	
+	def writeToFile( self, filepath ):
+		"""Write our database contents to the given file"""
+		klist = self.keys()
+		klist.sort()
+		
+		fobj = open( filepath, 'w' )
+		fobj.write( "%i\n" % self.version )		# write version
+		
+		for key in klist:							# write entries
+			e = self[ key ]
+			fobj.write( "%-4s|%-40s|%-20s|%-40s\n" % ( e.flag, key,e.rvalFuncToStr(), e.newname ) )
+		# end for each key
+		
+		fobj.close()
+	
+	def createEntry( self, funcname ):
+		""" Create an entry for the given function, or return the existing one 
+		@return: Entry object for funcname"""
+		return self.setdefault( funcname, self.Entry() )
+
+
+def writeMfnDBCacheFiles( ):
+	"""Create a simple Memberlist of available mfn classes and their members 
+	to allow a simple human-editable way of adjusting which methods will be added
+	to the MayaNodes"""
+	mfnclsnames = [ clsname for clsname in dir( api ) if clsname.startswith( "MFn" ) ]
+	for mfnname in mfnclsnames:
+		mfnfile = nodes.getMfnDBPath( mfnname )
+		mfncls = getattr( api, mfnname )
+		
+		try:
+			mfnfuncs =  [ f  for f  in mfncls.__dict__.itervalues() 
+							if callable( f  ) and not f .__name__.startswith( '_' ) 
+							and not f .__name__.startswith( '<' ) and not inspect.isclass( f  ) ]
+		except AttributeError:
+			continue		# it was a function, not a class 
+		
+		if not len( mfnfuncs ):
+			continue
+		
+		db = MfnMemberMap( )
+		if mfnfile.exists():
+			db.initFromFile( mfnfile )
+			
+		# assure folder exists
+		folder = mfnfile.dirname() 
+		if not folder.isdir(): folder.makedirs()
+		
+		
+		# write data - simple set the keys, use default flags
+		for func in mfnfuncs:
+			db.createEntry( func.__name__)
+		
+
+		# finally write the change db
+		db.writeToFile( mfnfile ) 
+		
 
 

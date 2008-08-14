@@ -20,6 +20,7 @@ import unittest
 import byronimo.maya as bmaya
 import byronimo.maya.env as env
 import byronimo.maya.nodes as nodes
+import byronimo.maya.nodes.types as types
 from byronimo.maya.test import get_maya_file
 from byronimo.util import capitalize
 import maya.cmds as cmds
@@ -95,7 +96,7 @@ class TestBase( unittest.TestCase ):
 		node = nodes.MayaNode( "this" )		# new instance should natively have the methods
 		node.setName( "this_renameds" )
 		
-
+		
 	def test_wrapDagNode( self ):
 		"""byronimo.maya.nodes: create and access dag nodes"""
 		
@@ -124,5 +125,8 @@ class TestBase( unittest.TestCase ):
 		self.failIf( len( pa ) != 5 )
 		
 		
+	def test_mfncachebuilder( self ):
+		"""byroniom.maya.nodes.base: write a generated cache using the builder function"""
+		# types.writeMfnDBCacheFiles( )
 		
 		

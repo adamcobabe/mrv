@@ -273,7 +273,4 @@ class PlugArray( api.MPlugArray ):
 		return IntKeyGenerator( self )
 		
 		
-#############################
-#### TYPE Conversions 	####
-##########################
 

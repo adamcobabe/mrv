@@ -33,7 +33,15 @@ __copyright__='(c) 2008 Sebastian Thiel'
 
 
 _thismodule = __import__( "byronimo.maya.nodes", globals(), locals(), ['nodes'] )
+from byronimo.path import Path
+env =  __import__( "byronimo.maya.env", globals(), locals(), ['env'] ) 
 
+################################
+#### Path Generators	   ####
+############################
+def getMfnDBPath( mfnclsname ):
+	appversion = str( env.getAppVersion( )[0] )
+	return Path( __file__ ).p_parent.p_parent / ( "cache/mfndb/"+appversion+"/"+mfnclsname )
 
 
 if 'init_done' not in locals():
