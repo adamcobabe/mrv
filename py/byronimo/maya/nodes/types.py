@@ -48,9 +48,21 @@ class MetaClassCreatorNodes( MetaClassCreator ):
 	nameToTreeMap = set( [ 'FurAttractors', 'FurCurveAttractors', 'FurGlobals', 'FurDescription','FurFeedback' ] ) # special name handling 
 	targetModule = None				# must be set in intialization to tell this class where to put newly created classes
 	
-	
 	@staticmethod
-	def _wrapMfnFunc( mfncls, funcname, funcMutatorDB = dict() ):
+	def _readMfnDB( mfnclsname ):
+		"""@return: mfn database describing how to handle the functions in the 
+		function set described by mfnclsname
+		If no explicit information exists, the db will be empty"""
+		db = MfnMemberMap( )
+		try:
+			db.initFromFile( nodes.getMfnDBPath( mfnclsname ) )
+		except IOError:
+			pass 
+		return db
+		
+
+	@staticmethod
+	def _wrapMfnFunc( mfncls, funcname, funcMutatorDB = None ):
 		""" Create a function that makes a MayaNode natively use its associated Maya 
 		function set on calls.
 		
@@ -67,62 +79,93 @@ class MetaClassCreatorNodes( MetaClassCreator ):
 			function and should return an altered and possibly wrapped value
 			- newname: if not None, a new name for the function mfnfuncname
 		
-		@raise KeyError: if the given function does not exist in mfncls"""
+		@raise KeyError: if the given function does not exist in mfncls
+		@return:  wrapped function"""
 		# check the dict for method name - we do not want to see methods of 
-		# base classes - will raise accordingly 
-		mfnfunc = mfncls.__dict__[ funcname ]			# will just raise on error 
+		# base classes - will raise accordingly
 		mfndb = funcMutatorDB
+		mfnfuncname = funcname		# method could be remapped - if so we need to lookup the real name
 		
-		# get mfndb data and create appropriate function
+			
+		rvalfunc = None
+		# adjust function according to DB
+		if funcMutatorDB: 
+			entry = funcMutatorDB.get( funcname, None )
+			if entry:
+				# delete function ?
+				if entry.flag == MfnMemberMap.kDelete:
+					return None
+					
+				rvalfunc = entry.rvalfunc
+				if entry.newname and entry.newname != '':		# item has been renamed, get original mfn function
+					mfnfuncname = mfndb.getMfnFunc( funcname )
+				# END name remap handling 
+			# END if entry available 
+		# END if db available 
+				
+		mfnfunc = mfncls.__dict__[ mfnfuncname ]			# will just raise on error 
 		newfunc = None
 		
 		# bound to class, self will be attached on class instantiation
-		def wrapMfnFunc( self, *args, **kwargs ):
-			mfninst = mfncls( self._apiobj )
-			return getattr( mfninst, funcname )( *args, **kwargs )
-		newfunc = wrapMfnFunc
+		if rvalfunc:	# wrap rval function around
+			def wrapMfnFunc( self, *args, **kwargs ):
+				mfninst = mfncls( self._apiobj )
+				return rvalfunc( getattr( mfninst, mfnfuncname )( *args, **kwargs ) )
+			newfunc = wrapMfnFunc
+		else:
+			def wrapMfnFunc( self, *args, **kwargs ):
+				mfninst = mfncls( self._apiobj )
+				return getattr( mfninst, mfnfuncname )( *args, **kwargs )
+			newfunc = wrapMfnFunc
 			
 		newfunc.__name__ = funcname			# rename the method 
 		return newfunc
 
 	
-	@staticmethod
-	def _readMfnDB( mfnclsname ):
-		"""@return: mfn database describing how to handle the functions in the 
-		function set described by mfnclsname
-		If no explicit information exists, an empty dictionary will be returned as 
-		NullDatabase"""
-		return dict()
-		
 	@classmethod
 	def _wrapLazyGetAttr( thiscls, newcls ):
 		""" Attach the lazy getattr wrapper to newcls """
+		# keep the original getattr 
 		getattrorig = None
 		if hasattr( newcls, '__getattr__' ):
-			getattrorig =  getattr( newcls, '__getattr__' )
-			
+			getattrorig =  newcls.__dict__.get( '__getattr__', None )
+		getattrorig.__name__ = "__getattr_orig" 
+		
 		# CREATE GET ATTR CUSTOM FUNC
 		# called if the given attribute is not available in class 
 		def meta_getattr_lazy( self, attr ):
-			if not hasattr( newcls, '_mfndb' ):
-				setattr( newcls, '_mfndb', thiscls._readMfnDB( newcls.__name__ ) )
+			mfncls = getattr( newcls, '_mfncls' )			# garantueed to be available
+			mfndb = None
+			if mfncls :
+				if not hasattr( newcls, '_mfndb' ):
+					mfndb = thiscls._readMfnDB( mfncls.__name__ )
+					setattr( newcls, '_mfndb', mfndb )
+				else:
+					mfndb = getattr( newcls,'_mfndb' )
+			# END if mfncls available
 			
-			mfncls = getattr( newcls, '_mfncls' )
 			try:
+				# get function as well as its possibly changed name 
 				newclsfunc = thiscls._wrapMfnFunc( mfncls, attr, funcMutatorDB=newcls._mfndb )
+				if not newclsfunc:
+					raise KeyError( "Function %s has been deleted" + attr )
+					
 				newinstfunc = new.instancemethod( newclsfunc, self, newcls )	# create the respective instance method !
-			except KeyError:
+			except KeyError, ke:
+				if not getattrorig:
+					raise AttributeError
 				# does not exist, pass on the call to whatever we had - thus we take precedence
 				# passing the call allows subclasses to use function set methods of superclasses
 				# accordingly
 				return getattrorig( self, attr )
-			else:
+			else: 
 				# store the new function on instance level !
 				setattr( self, attr, newinstfunc )
 				
 				# ... and on class level
 				setattr( newcls, attr, newclsfunc )
 				return newinstfunc
+				
 		# END getattr_lazy func definition 		
 		
 		meta_getattr_lazy.__name__ = "__getattr__"
@@ -252,7 +295,9 @@ class MfnMemberMap( UserDict.UserDict ):
 		for line in fobj:
 			tokens = [ item.strip() for item in line.split( '|' ) ]
 			key = tokens[ 1 ]
-			self[ key ] = self.Entry( flag=tokens[0], rvalfunc=tokens[2], newname=tokens[3] ) 
+			self[ key ] = self.Entry( flag=tokens[0], rvalfunc=tokens[2], newname=tokens[3] )
+			
+		
 	
 	def writeToFile( self, filepath ):
 		"""Write our database contents to the given file"""
@@ -262,18 +307,48 @@ class MfnMemberMap( UserDict.UserDict ):
 		fobj = open( filepath, 'w' )
 		fobj.write( "%i\n" % self.version )		# write version
 		
+		methodswritten = set()
 		for key in klist:							# write entries
 			e = self[ key ]
 			fobj.write( "%-4s|%-40s|%-20s|%-40s\n" % ( e.flag, key,e.rvalFuncToStr(), e.newname ) )
+			methodswritten
 		# end for each key
 		
 		fobj.close()
+	
+	def __getitem__( self, key ):
+		"""Try to find the method in our original method name dict, and if not 
+		available search all entries for a renamed method with name == key """
+		try:
+			return UserDict.UserDict.__getitem__(  self, key  )
+		except KeyError:
+			for entry in self.itervalues():
+				if entry.newname == key:
+					return entry
+			# END for each entry
+			raise KeyError( "Function named '%s' did not exist in db" % key )
+	
+	def get( self, key, *args ):
+		""" Overridden to assure the advanced key search is used"""
+		try:
+			return self[ key ]
+		except KeyError:
+			if args: return args[0]
 	
 	def createEntry( self, funcname ):
 		""" Create an entry for the given function, or return the existing one 
 		@return: Entry object for funcname"""
 		return self.setdefault( funcname, self.Entry() )
-
+		
+	def getMfnFunc( self, funcname ):
+		"""@return: functionname corresponding to the ( possibly renamed ) funcname """
+		if self.has_key( funcname ): return self[ funcname ]
+		for mfnfuncname,entry in self.iteritems():
+			if entry.newname == funcname:
+				return mfnfuncname
+		# END for each key, value
+		raise KeyError( "Function named '%s' did not exist in db" % key )
+	
 
 def writeMfnDBCacheFiles( ):
 	"""Create a simple Memberlist of available mfn classes and their members 

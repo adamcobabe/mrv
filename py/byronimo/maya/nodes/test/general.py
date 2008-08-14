@@ -77,6 +77,15 @@ class TestBase( unittest.TestCase ):
 		"""byronimo.maya.nodes: create and access dependency nodes ( not being dag nodes )"""
 		node = nodes.MayaNode( "defaultRenderGlobals" )
 		
+		# must not have methods that require undo
+		try: 
+			node.create( "this" )
+			node.setName( "this" )
+		except AttributeError:
+			pass
+		except:
+			self.fail( )
+		
 		# get simple attributes
 		for attr in [ "preMel", "postMel" ]:
 			plug = getattr( node, attr )
@@ -89,12 +98,10 @@ class TestBase( unittest.TestCase ):
 		
 		
 		# get mfn lazy wrapped attributes 
-		node.setName( "this" )
-		self.failUnless( node.__dict__.has_key( 'setName' ) )	# should create instance level method, once !
-		self.failUnless( hasattr( node.__class__, 'setName' ) )	# should create class level method, once !
-		
-		node = nodes.MayaNode( "this" )		# new instance should natively have the methods
-		node.setName( "this_renameds" )
+		t = node.getType()
+		for state in [1,0]:			
+			node.setLocked( state )
+			self.failUnless( node.isLocked() == state )
 		
 		
 	def test_wrapDagNode( self ):
@@ -127,6 +134,6 @@ class TestBase( unittest.TestCase ):
 		
 	def test_mfncachebuilder( self ):
 		"""byroniom.maya.nodes.base: write a generated cache using the builder function"""
-		# types.writeMfnDBCacheFiles( )
+		types.writeMfnDBCacheFiles( )
 		
 		

@@ -4,7 +4,7 @@
     |attributeClass                          |None                |                                        
     |attributeCount                          |None                |                                        
     |canBeWritten                            |None                |                                        
-    |create                                  |None                |                                        
+x   |create                                  |None                |                                        
     |findAlias                               |None                |                                        
     |findPlug                                |None                |                                        
     |getAffectedAttributes                   |None                |                                        
@@ -21,16 +21,16 @@
     |isNewAttribute                          |None                |                                        
     |isShared                                |None                |                                        
     |name                                    |None                |                                        
-    |parentNamespace                         |None                |                                        
-    |plugsAlias                              |None                |                                        
+    |parentNamespace                         |None                |getName                                 
+    |plugsAlias                              |None                |getPlugAlias                            
     |removeAttribute                         |None                |                                        
     |reorderedAttribute                      |None                |                                        
     |setAlias                                |None                |                                        
     |setDoNotWrite                           |None                |                                        
     |setFlag                                 |None                |                                        
     |setLocked                               |None                |                                        
-    |setName                                 |None                |                                        
-    |type                                    |None                |                                        
-    |typeId                                  |None                |                                        
-    |typeName                                |None                |                                        
-    |userNode                                |None                |                                        
+x   |setName                                 |None                |                                        
+    |type                                    |None                |getType                                 
+    |typeId                                  |None                |getTyppId                               
+    |typeName                                |None                |getTypeName                             
+    |userNode                                |None                |getUserNode                             

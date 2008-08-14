@@ -1,13 +1,13 @@
 1
-    |addChild                                |None                |                                        
-    |boundingBox                             |None                |                                        
-    |child                                   |None                |                                        
-    |childCount                              |None                |                                        
-    |create                                  |None                |                                        
-    |dagPath                                 |None                |                                        
-    |dagRoot                                 |None                |                                        
+x   |addChild                                |None                |                                        
+    |boundingBox                             |None                |getBoundingBox                          
+    |child                                   |None                |getChild                                
+    |childCount                              |None                |getChildCount                           
+x   |create                                  |None                |                                        
+    |dagPath                                 |None                |getDagPath                              
+    |dagRoot                                 |None                |getDagRoot                              
     |duplicate                               |None                |                                        
-    |fullPathName                            |None                |                                        
+    |fullPathName                            |None                |getFullPathName                         
     |getAllPaths                             |None                |                                        
     |getPath                                 |None                |                                        
     |hasChild                                |None                |                                        
@@ -21,19 +21,19 @@
     |isInstancedAttribute                    |None                |                                        
     |isIntermediateObject                    |None                |                                        
     |isParentOf                              |None                |                                        
-    |model                                   |None                |                                        
-    |objectColor                             |None                |                                        
-    |objectGroupComponent                    |None                |                                        
-    |parent                                  |None                |                                        
-    |parentCount                             |None                |                                        
-    |partialPathName                         |None                |                                        
-    |removeChild                             |None                |                                        
-    |removeChildAt                           |None                |                                        
+x   |model                                   |None                |                                        
+    |objectColor                             |None                |getObjectColor                          
+    |objectGroupComponent                    |None                |getObjectGroupComponent                 
+    |parent                                  |None                |getParent                               
+    |parentCount                             |None                |getParentCount                          
+    |partialPathName                         |None                |getPartialName                          
+x   |removeChild                             |None                |                                        
+x   |removeChildAt                           |None                |                                        
     |setInstanceable                         |None                |                                        
     |setIntermediateObject                   |None                |                                        
     |setObject                               |None                |                                        
     |setObjectColor                          |None                |                                        
     |setUseObjectColor                       |None                |                                        
-    |transformationMatrix                    |None                |                                        
+    |transformationMatrix                    |None                |getTransformationMatrix                 
     |type                                    |None                |                                        
-    |usingObjectColor                        |None                |                                        
+    |usingObjectColor                        |None                |isUsingObjectColor                      

@@ -206,9 +206,9 @@ class DependNode( MayaNode ):
 			plug = Plug( depfn.findPlug( str(attr) ) )
 		except RuntimeError:		# perhaps a base class can handle it
 			try: 
-				return super( DependNode , self ).__getattr__( self, attr )
+				return super( DependNode, self ).__getattr__( self, attr )
 			except AttributeError:
-				raise AttributeError( "Attribute '%s' does not exist on '%s', neither as function not as attribute" % ( attr, self.getName() ) )
+				raise AttributeError( "Attribute '%s' does not exist on '%s', neither as function not as attribute" % ( attr, self.name() ) )
 		
 		self.__dict__[ attr ] = plug
 		return plug
@@ -220,12 +220,6 @@ class DependNode( MayaNode ):
 		cons = api.MPlugArray()
 		mfn = DependNode._mfncls( self._apiobj ).getConnections( cons )
 		return PlugArray( cons )
-		
-	def getName( self ):
-		return DependNode._mfncls( self._apiobj ).name()
-	
-	
-	
 		
 	#} 
 	
