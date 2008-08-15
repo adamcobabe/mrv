@@ -26,7 +26,6 @@ sphereData			| 	MFnSphereData
 pointArrayData		|	MFnPointArrayData
 pluginData			| 	MFnPluginData
 numericData			| 	MFnNumericData
-nObjectData			|	MFnNObjectData
 matrixData			| 	MFnMatrixData
 intArrayData		|	MFnIntArrayData
 geometryData		|	MFnGeometryData
@@ -35,7 +34,6 @@ nurbsSurfaceData	|	MFnNurbsSurfaceData
 nurbsCurveData		|	MFnNurbsCurveData
 meshData			|	MFnMeshData
 latticeData			| 	MFnLatticeData
-dynSweptGeometryData		| MFnDynSweptGeometryData
 doubleArrayData		|	MFnDoubleArrayData
 componentListData	|	MFnComponentListData
 arrayAttrsData		|	MFnArrayAttrsData

@@ -17,14 +17,10 @@ __copyright__='(c) 2008 Sebastian Thiel'
 import networkx.tree as nxtree
 from collections import deque as Deque
 
-class Singleton(object) :
-	""" Singleton classes can be derived from this class,
-		you can derive from other classes as long as Singleton comes first (and class doesn't override __new__ ) """
-	def __new__(cls, *p, **k):
-		if not '_the_instance' in cls.__dict__:
-			cls._the_instance = super(Singleton, cls).__new__(cls)
-		return cls._the_instance
 
+############################
+#### Methods 		  	####
+##########################
 
 def capitalize(s):
 	"""@return: s with first letter capitalized"""
@@ -41,7 +37,26 @@ def uncapitalize(s, preserveAcronymns=False):
 	except IndexError: pass
 	
 	return s[0].lower() + s[1:]
-	
+
+def getPythonIndex( index, length ):
+	"""Compute the actual index based on the given index and array length, thus
+	-1 will result in the last array element's index"""
+	if index > -1: return index
+	return length + index			# yes, length be better 1 or more ;)
+
+
+############################
+#### Classes 		  	####
+##########################
+
+class Singleton(object) :
+	""" Singleton classes can be derived from this class,
+		you can derive from other classes as long as Singleton comes first (and class doesn't override __new__ ) """
+	def __new__(cls, *p, **k):
+		if not '_the_instance' in cls.__dict__:
+			cls._the_instance = super(Singleton, cls).__new__(cls)
+		return cls._the_instance
+
 class IntKeyGenerator( object ):
 	"""Provides iterators for directly access list like objects supporting 
 	__getitem__ method 

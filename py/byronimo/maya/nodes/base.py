@@ -21,7 +21,7 @@ __id__="$Id: configuration.py 16 2008-05-29 00:30:46Z byron $"
 __copyright__='(c) 2008 Sebastian Thiel'
 
 
-from byronimo.util import capitalize, IntKeyGenerator
+from byronimo.util import capitalize, IntKeyGenerator, getPythonIndex
 from byronimo.maya.util import StandinClass
 nodes = __import__( "byronimo.maya.nodes", globals(), locals(), ['nodes'] )
 from byronimo.maya.nodes.types import nodeTypeToMfnClsMap
@@ -32,7 +32,7 @@ import maya.OpenMaya as api
 #### Methods 		  	####
 ##########################
 
-def apiTypeToNodeTypeCls( apiobj ):
+def nodeTypeToNodeTypeCls( apiobj ):
 	""" Convert the given api object ( MObject ) or type name to the respective python node type class
 	@param apiobj: MObject or nodetype name """
 	nodeTypeName = apiobj			# assume string
@@ -120,35 +120,66 @@ def toApiObject( nodeName, dagPlugs=True ):
 	return None
 	
 
-############################
-#### Classes		  	####
-##########################
-
-def _checkedClsCreation( apiobj, clsToBeCreated, baseClsObj ):
+def _checkedClsCreation( apiobj, clsToBeCreated, basecls ):
 	"""Utiliy method creating a new class instance according to additional type information
 	Its used by __new__ constructors to finalize class creation
 	@param apiobj: the MObject or the type name the caller figured out so far
 	@param clsToBeCreated: the cls object as passed in to __new__
-	@param baseClsObj: the class of the caller containing the __new__ method
+	@param basecls: the class of the caller containing the __new__ method
 	@return: create clsinstance if the proper type ( according to nodeTypeTree"""
 	# get the node type class for the api type object
-	nodeTypeCls = apiTypeToNodeTypeCls( apiobj )
+	nodeTypeCls = nodeTypeToNodeTypeCls( apiobj )
 	
 	# NON-MAYA NODE Type 
 	# if an explicit type was requested, assure we are at least compatible with 
 	# the given cls type - our node type is supposed to be the most specialized one
 	# cls is either of the same type as ours, or is a superclass 
-	if clsToBeCreated is not baseClsObj and clsToBeCreated is not nodeTypeCls:
+	if clsToBeCreated is not basecls and clsToBeCreated is not nodeTypeCls:
 		if not issubclass( nodeTypeCls, clsToBeCreated ):
 			raise TypeError( "Explicit class %r must be %r or a superclass of it" % ( clsToBeCreated, nodeTypeCls ) )
 		else:
 			nodeTypeCls = clsToBeCreated						# respect the wish of the client
 	# END if explicit class given 
 	
-	# FININSH INSTANCE 
-	clsinstance = super( baseClsObj, clsToBeCreated ).__new__( nodeTypeCls )
+	# FININSH INSTANCE
+	clsinstance = super( basecls, clsToBeCreated ).__new__( nodeTypeCls )
 	clsinstance._apiobj = apiobj			# set the api object - if this is a string, the called has to take care about it
 	return clsinstance
+
+
+def _createInstByPredicate( apiobj, cls, basecls, predicate ):
+	"""Allows to wrap objects around MObjects where the actual compatabilty 
+	cannot be determined by some nodetypename, but by the function set itself.
+	Thus it uses the nodeTypeToMfnClsMap to get mfn cls for testing
+	@param cls: the class to be created
+	@param basecls: the class where __new__ has actually been called
+	@param predicate: returns true if the given nodetypename is valid, and its mfn 
+	should be taken for tests
+	@return: new class instance, or None if no mfn matched the apiobject"""
+	# try which node type fits
+	# All attribute instances end with attribute
+	# NOTE: the capital case 'A' assure we do not get this base class as option - this would
+	# be bad as it is compatible with all classes
+	global nodeTypeToMfnClsMap
+	attrtypekeys = [ a for a in nodeTypeToMfnClsMap.keys() if predicate( a ) ]
+	
+	for attrtype in attrtypekeys:
+		attrmfncls = nodeTypeToMfnClsMap[ attrtype ]
+		try: 
+			mfn = attrmfncls( apiobj )
+		except RuntimeError: 
+			continue
+		else:
+			newinst = _checkedClsCreation( attrtype, cls, basecls )		# lookup in node tree 
+			newinst._apiobj = apiobj				# make it our actual object 
+			return newinst
+	# END for each known attr type
+	return None
+	
+
+############################
+#### Classes		  	####
+##########################
 
 class MayaNode( object ):
 	"""Common base for all maya nodes, providing access to the maya internal object 
@@ -204,7 +235,7 @@ class DependNode( MayaNode ):
 	Depdency Nodes are manipulated using an MObjectHandle which is safest to go with, 
 	but consumes more memory too !"""
 	__metaclass__ = nodes.MetaClassCreatorNodes
-	_mfncls = api.MFnDependencyNode
+	
 	
 	#{ Overridden Methods 
 	def __getattr__( self, attr ):
@@ -221,14 +252,24 @@ class DependNode( MayaNode ):
 		
 		self.__dict__[ attr ] = plug
 		return plug
+		
+	def __str__( self ):
+		"""@return: name of this object"""
+		mfn = DependNode._mfncls( self._apiobj )
+		return mfn.name()		
+		
+	def __repr__( self ):
+		"""@return: class call syntax"""
+		import traceback
+		return '%s("%s")' % ( self.__class__.__name__, DependNode.__str__( self ) )
 	#}
 	
 	#{ Connections and Attributes 
 	def getConnections( self ):
-		"""@return: list of L{Plug}s that are connected"""
+		"""@return: MPlugArray of connected plugs"""
 		cons = api.MPlugArray()
 		mfn = DependNode._mfncls( self._apiobj ).getConnections( cons )
-		return PlugArray( cons )
+		return cons
 		
 	#} 
 	
@@ -248,15 +289,6 @@ class DagNode( Entity ):
 	__metaclass__ = nodes.MetaClassCreatorNodes
 	
 	
-class Plug( api.MPlug ):
-	""" Wrap a maya plug to assure we always get MayaNodes ( instead of MObjects )
-	By overridding many object methods, the access to plugs becomes very pythonic"""
-	# __slots__ = []  	 apparently it will always have a dict 
-	
-	def fancy( self ):
-		return 1
-	
-	
 class Attribute( api.MObject ):
 	"""Represents an attribute in general - this is the base class
 	Use this general class to create attribute wraps - it will return 
@@ -272,50 +304,46 @@ class Attribute( api.MObject ):
 		if not args:
 			raise ValueError( "First argument must specify the node to be wrapped" )
 			
-		attr = args[0]
+		attributeobj = args[0]
 		
 		
-		# try which node type fits
-		global nodeTypeToMfnClsMap
-		attrtypekeys = [ "unitAttribute","typedAttribute","numericAttribute","messageAttribute",
-						"matrixAttribute","lightDataAttribute","genericAttribute","enumAttribute",
-						"compoundAttribute" ]
-						
-		for attrtype in attrtypekeys:
-			attrmfncls = nodeTypeToMfnClsMap[ attrtype ]
-			try: 
-				mfn = attrmfncls( attr )
-			except RuntimeError: 
-				continue
-			else:
-				newinst = _checkedClsCreation( attrtype, cls, Attribute )
-				newinst._apiobj = attr				# make it our actual object 
-				return newinst
+		newinst = _createInstByPredicate( attributeobj, cls, Attribute, lambda x: x.endswith( "Attribute" ) )
+		
+		if not newinst:
+			mfnattr = api.MFnAttribute( attributeobj )
+			raise ValueError( "Attribute %s typed %s was could not be wrapped into any function set" % ( mfnattr.name(), attributeobj.apiTypeStr() ) )
+			
+		return newinst
 		# END for each known attr type
 		
-		mfnattr = api.MFnAttribute( attr )
-		raise ValueError( "Attribute %s was could not be wrapped into any function set" % mfnattr.name() )
-						
+
+class Data( api.MObject ):
+	"""Represents an data in general - this is the base class
+	Use this general class to create data wrap objects - it will return a class of the respective type """
+	
+	__metaclass__ = nodes.MetaClassCreatorNodes
+	
+	def __new__ ( cls, *args, **kwargs ):
+		"""return an data class of the respective type for given MObject
+		@param args: arg[0] is data's MObject to be wrapped
+		@note: this area must be optimized for speed"""
 		
-	
-	
-class PlugArray( api.MPlugArray ):
-	""" Wrap MPlugArray to make it compatible to pythonic contructs
-	Also it will always contain Plug objects isntead of MPlugs
-	
-	This wrapper will handle like python classes and always return Plug objects."""
-	
-	__len__ = api.MPlugArray.length
-	
-	def __setitem__ ( self, index, plug ):
-		return self.set( plug, index )
-	
-	def __getitem__ ( self, index ):
-		return Plug( api.MPlugArray.__getitem__( self,  index ) )
+		if not args:
+			raise ValueError( "First argument must specify the node to be wrapped" )
+			
+		attributeobj = args[0]
 		
-	def __iter__( self ):
-		"""@return: iterator object"""
-		return IntKeyGenerator( self )
 		
+		newinst = _createInstByPredicate( attributeobj, cls, Data, lambda x: x.endswith( "Data" ) )
+		
+		if not newinst:
+			raise ValueError( "Data api object typed '%s' could not be wrapped into any function set" % attributeobj.apiTypeStr() )
+			
+		return newinst
+		# END for each known attr type
+		 
+
+
 		
 
+	

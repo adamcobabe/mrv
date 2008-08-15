@@ -6,7 +6,7 @@
     | canBeWritten                            | None                |                                         
 x   | create                                  | None                |                                         
     | findAlias                               | None                |                                         
-    | findPlug                                | Plug                |                                         
+    | findPlug                                | None                | getPlug                                         
     | getAffectedAttributes                   | None                |                                         
     | getAffectedByAttributes                 | None                |                                         
     | getAliasAttr                            | None                |                                         
@@ -20,10 +20,10 @@ x   | create                                  | None                |
     | isLocked                                | None                |                                         
     | isNewAttribute                          | None                |                                         
     | isShared                                | None                |                                         
-    | name                                    | None                |                                         
-    | parentNamespace                         | None                | getName                                 
+    | name                                    | None                | getName                                        
+    | parentNamespace                         | None                |                                  
     | plugsAlias                              | None                | getPlugAlias                            
-    | removeAttribute                         | None                |                                         
+    | removeAttribute                         | Attribute           | getReorderedAttribute                                       
     | reorderedAttribute                      | None                |                                         
     | setAlias                                | None                |                                         
     | setDoNotWrite                           | None                |                                         

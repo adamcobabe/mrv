@@ -36,10 +36,9 @@ _thismodule = __import__( "byronimo.maya.nodes", globals(), locals(), ['nodes'] 
 from byronimo.path import Path
 env =  __import__( "byronimo.maya.env", globals(), locals(), ['env'] ) 
 
-################################
-#### Path Generators	   ####
-############################
+
 def getMfnDBPath( mfnclsname ):
+	"""Generate a path to a database file containing mfn wrapping information"""
 	appversion = str( env.getAppVersion( )[0] )
 	return Path( __file__ ).p_parent.p_parent / ( "cache/mfndb/"+appversion+"/"+mfnclsname )
 
@@ -49,9 +48,12 @@ if 'init_done' not in locals():
 	
 if not init_done:
 	from types import *
-	MetaClassCreatorNodes.targetModule = _thismodule			# init metaclass with our module 
+	MetaClassCreatorNodes.targetModule = _thismodule			# init metaclass with our module
+	import apipatch
+	
 	init_nodehierarchy( )
 	init_nodeTypeToMfnClsMap( )
+	apipatch.init_applyPatches( )
 	init_wrappers( _thismodule )
 
 	# overwrite dummy node bases with hand-implemented ones

@@ -104,7 +104,6 @@ class MetaClassCreatorNodes( MetaClassCreator ):
 				# END name remap handling 
 			# END if entry available 
 		# END if db available 
-				
 		mfnfunc = mfncls.__dict__[ mfnfuncname ]			# will just raise on error 
 		newfunc = None
 		
@@ -218,7 +217,8 @@ class MetaClassCreatorNodes( MetaClassCreator ):
 		if not clsdict.has_key( metacls.mfnclsattr ):
 			treeNodeTypeName = func_nameToTree( name )
 			if nodeTypeToMfnClsMap.has_key( treeNodeTypeName ):
-				clsdict[ metacls.mfnclsattr ] = mfncls = nodeTypeToMfnClsMap[ treeNodeTypeName ]
+				mfncls = nodeTypeToMfnClsMap[ treeNodeTypeName ]
+				clsdict[ metacls.mfnclsattr ] = mfncls
 		else:
 			mfncls = clsdict[ metacls.mfnclsattr ]
 			
@@ -401,7 +401,7 @@ class MfnMemberMap( UserDict.UserDict ):
 		
 	def getMfnFunc( self, funcname ):
 		"""@return: functionname corresponding to the ( possibly renamed ) funcname """
-		if self.has_key( funcname ): return self[ funcname ]
+		if self.has_key( funcname ): return funcname
 		for mfnfuncname,entry in self.iteritems():
 			if entry.newname == funcname:
 				return mfnfuncname

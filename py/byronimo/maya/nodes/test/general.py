@@ -24,6 +24,7 @@ import byronimo.maya.nodes.types as types
 from byronimo.maya.test import get_maya_file
 from byronimo.util import capitalize
 import maya.cmds as cmds
+import maya.OpenMaya as api
 
 import time
 
@@ -62,20 +63,94 @@ class TestGeneral( unittest.TestCase ):
 		for transname in cmds.ls( type="transform" ):
 			node = nodes.DagNode( transname )
 			self.failUnless( hasattr( node, "__dict__" ) )
-			
-			
-class TestBase( unittest.TestCase ):
-	""" Test base functionality  """
+
+
+class TestDataBase( unittest.TestCase ):
+	""" Test data classes  """
 	
-	def test_plug( self ):
+	def test_primitives( self ):
+		"""byronimo.maya.nodes: test primitive types"""
+		for apicls in [ api.MTime, api.MDistance, api.MAngle ]:
+			inst = apicls( )
+			str( inst )
+			int( inst )
+			float( inst )
+			repr( inst )
+			
+		for apicls in [ api.MVector, api.MFloatVector, api.MPoint, api.MFloatPoint, 
+		 				api.MColor, api.MQuaternion, api.MEulerRotation, api.MMatrix, 
+						api.MFloatMatrix, api.MTransformationMatrix ]:
+			inst = apicls() 
+			for item in inst:
+				pass 
+	
+	def test_MPlug( self ):
 		"""byronimo.maya.nodes: Test plug ( node.attribute ) """
-		p = nodes.Plug()
 		node = nodes.MayaNode( "defaultRenderGlobals" )
 		# for attr in [ "resolution" ]:
+	
+	def test_matrixData( self ):
+		"""byronimo.nodes: test matrix data"""
+		node = nodes.MayaNode( "persp" )
+		matplug = node.getPlug( "worldMatrix" )
+		self.failUnless( not matplug.isNull() )
+		self.failUnless( matplug.isArray() )
+		matplug.evaluateNumElements()			# to assure we have something !
+		
+		self.failUnless( matplug.getName() == "persp.worldMatrix" )
+		self.failUnless( len( matplug ) )
+		
+		matelm = matplug[0]
+		self.failUnless( not matelm.isNull() )
+		
+		matdata = matelm.asMObject( )
+		self.failUnless( isinstance( matdata, nodes.MatrixData ) )
+		mmatrix = matdata.matrix( )
+		self.failUnless( isinstance( mmatrix, api.MMatrix ) )
+		
+			
+	def test_MPlugArray( self ):
+		"""byronimo.maya.nodes: test the plugarray wrapper
+		NOTE: plugarray can be wrapped, but the types stored will always be"""
+		node = nodes.MayaNode( "defaultRenderGlobals" )
+		pa = node.getConnections( )
+		
+		myplug = pa[0]
+		myplug.getName()				# special Plug method not available in the pure api object
+		pa.append( myplug )
+		pa[-1].getName()
+		
+		self.failUnless( len( pa ) == 4 )
+		
+		l = 5
+		pa.setLength( l )
+		for i in range( l ):
+			try:
+				pa[i] = api.MPlug()
+			except TypeError:
+				pass # happens because of bug
+			else:
+				raise ValueError( "Wow, MPlugArray.set now works" )
+		
+		for plug in pa:			# test iterator
+			plug.getName( )
+			self.failUnless( isinstance( plug, api.MPlug ) )
+			
+		self.failIf( len( pa ) != 5 )
+		
+			
+class TesNodeBase( unittest.TestCase ):
+	""" Test node base functionality  """
 	
 	def test_wrapDepNode( self ):
 		"""byronimo.maya.nodes: create and access dependency nodes ( not being dag nodes )"""
 		node = nodes.MayaNode( "defaultRenderGlobals" )
+		
+		# string should be name		
+		self.failUnless( str( node ) == node.getName( ) )
+		repr( node )
+		
+		#node.object()
 		
 		# must not have methods that require undo
 		try: 
@@ -84,17 +159,15 @@ class TestBase( unittest.TestCase ):
 		except AttributeError:
 			pass
 		except:
-			raise 
-			self.fail( )
+			raise		# could fail, but raise is better 
 		
 		# get simple attributes
 		for attr in [ "preMel", "postMel" ]:
 			plug = getattr( node, attr )
 			self.failUnless( not plug.isNull() )
-			
+		
 		# check connection methods 
-		plug = getattr( node, attr )
-		cons = node.getConnections()
+		cons = node.getConnections( )
 		self.failUnless( len( cons ) )
 		
 		
@@ -106,40 +179,21 @@ class TestBase( unittest.TestCase ):
 			self.failUnless( node.isLocked() == state )
 		
 		# ATTRIBUTES
-		attr = node.getAttribute( 0 )		
+		attr = node.getAttribute( 0 )
 		attr.getName( )
 		self.failUnless( not attr.isNull() )
 		
+		for i in xrange( node.attributeCount() ):
+			attr = node.getAttribute( i )
+			self.failUnless( not attr.isNull() )
+			
+		
 	def test_wrapDagNode( self ):
 		"""byronimo.maya.nodes: create and access dag nodes"""
-		
-		
-	def test_plugArray( self ):
-		"""byronimo.maya.nodes: test the plugarray wrapper
-		NOTE: plugarray can be wrapped, but the types stored will always be"""
-		pa = nodes.PlugArray( )
-		
-		myplug = nodes.Plug()
-		myplug.fancy()				# special Plug method not available in the pure api object
-		pa.append( myplug )
-		pa[0].fancy()
-		
-		self.failUnless( len( pa ) == 1 )
-		
-		l = 5
-		pa.setLength( l )
-		for i in range( l ):
-			pa[i] = nodes.Plug( )
-			
-		for plug in pa:			# test iterator
-			plug.fancy()
-			self.failUnless( isinstance( plug, nodes.Plug ) )
-			
-		self.failIf( len( pa ) != 5 )
-		
-		
+
+
 	def test_mfncachebuilder( self ):
 		"""byroniom.maya.nodes.base: write a generated cache using the builder function"""
-		types.writeMfnDBCacheFiles( )
+		#types.writeMfnDBCacheFiles( )
 		
 		

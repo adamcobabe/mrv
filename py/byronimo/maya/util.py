@@ -317,6 +317,9 @@ class MetaClassCreator( type ):
 		
 		parentcls = None
 		
+		# ASSURE PARENTS
+		#####################
+		# Parent classes must be available in advance
 		if parentname != None:
 			parentclsname = treeToNameFunc( parentname )
 			parentcls = module.__dict__[ parentclsname ]
