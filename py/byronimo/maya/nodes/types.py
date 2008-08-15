@@ -33,7 +33,7 @@ import UserDict
 ### CACHES ########
 ##################
 nodeTypeTree = None
-
+nodeTypeToMfnTypeMap = {}			# allows to see the most specialized compatible mfn type for a given node type 
 
 
 
