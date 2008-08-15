@@ -329,7 +329,7 @@ class Data( api.MObject ):
 		@note: this area must be optimized for speed"""
 		
 		if not args:
-			raise ValueError( "First argument must specify the node to be wrapped" )
+			raise ValueError( "First argument must specify the maya node name or api object to be wrapped" )
 			
 		attributeobj = args[0]
 		

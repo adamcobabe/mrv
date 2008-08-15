@@ -23,6 +23,7 @@ import byronimo.maya.nodes as nodes
 import byronimo.maya.nodes.types as types
 from byronimo.maya.test import get_maya_file
 from byronimo.util import capitalize
+from byronimo.maya.util import StandinClass
 import maya.cmds as cmds
 import maya.OpenMaya as api
 
@@ -142,6 +143,15 @@ class TestDataBase( unittest.TestCase ):
 class TesNodeBase( unittest.TestCase ):
 	""" Test node base functionality  """
 	
+	def test_customTypes( self ):
+		"""byronimo.maya.nodes: add a custom type to the system"""
+		nodes.addCustomType( "MyNewCls",parentClsName = "dependNode" )
+		# standin class should be there 
+		cls = nodes.MyNewCls
+		self.failUnless( isinstance( cls, StandinClass ) )
+		self.failUnlessRaises( TypeError, cls, "persp" )	# class has incorrect type for persp 
+		# NOTE: needed actual plugin type for proper test
+	
 	def test_wrapDepNode( self ):
 		"""byronimo.maya.nodes: create and access dependency nodes ( not being dag nodes )"""
 		node = nodes.MayaNode( "defaultRenderGlobals" )
@@ -150,7 +160,6 @@ class TesNodeBase( unittest.TestCase ):
 		self.failUnless( str( node ) == node.getName( ) )
 		repr( node )
 		
-		#node.object()
 		
 		# must not have methods that require undo
 		try: 

@@ -35,26 +35,56 @@ __copyright__='(c) 2008 Sebastian Thiel'
 _thismodule = __import__( "byronimo.maya.nodes", globals(), locals(), ['nodes'] )
 from byronimo.path import Path
 env =  __import__( "byronimo.maya.env", globals(), locals(), ['env'] ) 
+from types import *
 
 
+#{ Common
 def getMfnDBPath( mfnclsname ):
 	"""Generate a path to a database file containing mfn wrapping information"""
 	appversion = str( env.getAppVersion( )[0] )
 	return Path( __file__ ).p_parent.p_parent / ( "cache/mfndb/"+appversion+"/"+mfnclsname )
 
 
+def addCustomType( newcls, metaClass=types.MetaClassCreatorNodes, parentClsName=None ):
+	""" Add a custom class to this module - it will be handled like a native type  
+	@param newcls: new class object if metaclass is None, otherwise string name of the 
+	type name to be created by your metaclass
+	@param metaClass: custom metaclass to create newcls type string
+	@param parentClsName: if metaclass is set, the parentclass name ( of a class existing 
+	in the nodeTypeTree ( see /maya/cache/nodeHierarchy_version.html )
+	Otherwise the parentclassname will be extracted from the newcls object
+	@raise KeyError: if the parentClsName does not exist""" 
+	newclsname = newcls
+	newclsobj = None
+	parentname = parentClsName
+	if not isinstance( newcls, basestring ):
+		newclsname = newcls.__name__
+		newclsobj = newcls
+		parentname = newcls.__bases__[0].__name__
+	
+	# add to hierarchy tree 
+	import types
+	types._addCustomType( _thismodule, parentname, newclsname, metaclass=metaClass )
+	
+	# add the class to our module if required
+	if newclsobj:
+		setattr( _thismodule, newclsname, newclsobj )
+	
+
+#}
+
+
 if 'init_done' not in locals():
 	init_done = False
 	
 if not init_done:
-	from types import *
-	MetaClassCreatorNodes.targetModule = _thismodule			# init metaclass with our module
+	types.MetaClassCreatorNodes.targetModule = _thismodule			# init metaclass with our module
 	import apipatch
 	
-	init_nodehierarchy( )
-	init_nodeTypeToMfnClsMap( )
+	types.init_nodehierarchy( )
+	types.init_nodeTypeToMfnClsMap( )
 	apipatch.init_applyPatches( )
-	init_wrappers( _thismodule )
+	types.init_wrappers( _thismodule )
 
 	# overwrite dummy node bases with hand-implemented ones
 	from base import *

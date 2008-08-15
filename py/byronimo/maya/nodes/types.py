@@ -305,8 +305,28 @@ def init_nodeTypeToMfnClsMap( ):
 		
 	fobj.close()
 		
+
+def _addCustomType( targetmodule, parentclsname, newclsname, metaclass=MetaClassCreatorNodes ):
+	""" Add a custom type to the system such that a node with the given type will 
+	automatically be wrapped with the corresponding class name
+	@param targetmodule: the module to which standin classes are supposed to be added 
+	@param parentclsname: the name of the parent node type - if your new class 
+	has several parents, you have to add the new types beginning at the first exsiting parent
+	as written in the maya/cache/nodeHierarchy_version.html file
+	@param newclsname: the new name of your class - it must exist targetmodule
+	@param metaclass: meta class object to be called to modify your type upon creation
+	It will not be called if the class already exist in targetModule. Its recommended to derive it 
+	from the metaclass given as default value.
+	@raise KeyError: if the parentclsname does not exist """
+	global nodeTypeTree	
 	
+	# add new type into the type hierarchy #
+	parentclsname = uncapitalize( parentclsname )
+	newclsname = uncapitalize( newclsname )
+	nodeTypeTree.add_edge( ( parentclsname, newclsname ) )
 	
+	# create wrapper ( in case newclsname does not yet exist in target module )
+	bmaya._initWrappers( targetmodule, [ newclsname ], metaclass )
 
 	
 ################################

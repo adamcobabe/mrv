@@ -28,6 +28,8 @@ from byronimo.exceptions import ByronimoError
 ############################
 #### COMMON   			####
 ##########################
+
+#{ Common
 def _dagTreeFromTupleList( tuplelist ):
 	"""@return: DagTree from list of tuples [ (level,name),...], where level specifies
 	the level of items in the dag.
@@ -144,11 +146,15 @@ def moveVarsToEnviron( ):
 		else:
 			os.environ[ var ] = value.strip()
 
+#} End Common 
+
+
 
 ############################
 #### INITIALIZATION   ####
 #########################
 
+#{ Initialization 
 def init_system( ):
 	""" 
 	Check if we are stuited to import the maya namespace and try to set it 
@@ -252,6 +258,7 @@ def init_singletons( ):
 	Mel = module.Mel()
 	
 
+#} Initialization
 
 if 'init_done' not in locals():
 	init_done = False
