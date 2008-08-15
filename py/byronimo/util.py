@@ -231,6 +231,9 @@ class PipeSeparatedFile( object ):
 		@return: tuple of stripped column strings
 		@raise ValueError: if the column count changes between the lines"""
 		for line in self._fileobj:
+			if not len( line.strip() ):
+				continue 
+				
 			tokens = [ item.strip() for item in line.split( '|' ) ]
 			if not self._columncount:
 				self._columncount = len( tokens )

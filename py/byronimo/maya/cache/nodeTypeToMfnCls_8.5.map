@@ -5,6 +5,7 @@ transform			| 	MFnTransform
 mesh				| 	MFnMesh
 camera				| 	MFnCamera
 objectSet			| 	MFnSet
+
 attribute			| 	MFnAttribute
 unitAttribute		|	MFnUnitAttribute
 typedAttribute		|	MFnTypedAttribute
@@ -15,3 +16,26 @@ lightDataAttribute	| 	MFnLightDataAttribute
 genericAttribute	| 	MFnGenericAttribute
 enumAttribute		| 	MFnEnumAttribute
 compoundAttribute	|	MFnCompoundAttribute
+
+data				|	MFnData
+vectorArrayData		| 	MFnVectorArrayData
+uInt64ArrayData		|	MFnUInt64ArrayData
+stringData			| 	MFnStringData
+stringArrayData		| 	MFnStringArrayData
+sphereData			| 	MFnSphereData
+pointArrayData		|	MFnPointArrayData
+pluginData			| 	MFnPluginData
+numericData			| 	MFnNumericData
+nObjectData			|	MFnNObjectData
+matrixData			| 	MFnMatrixData
+intArrayData		|	MFnIntArrayData
+geometryData		|	MFnGeometryData
+subdData			|	MFnSubdData
+nurbsSurfaceData	|	MFnNurbsSurfaceData
+nurbsCurveData		|	MFnNurbsCurveData
+meshData			|	MFnMeshData
+latticeData			| 	MFnLatticeData
+dynSweptGeometryData		| MFnDynSweptGeometryData
+doubleArrayData		|	MFnDoubleArrayData
+componentListData	|	MFnComponentListData
+arrayAttrsData		|	MFnArrayAttrsData
