@@ -38,10 +38,10 @@ def apiTypeToNodeTypeCls( apiobj ):
 	nodeTypeName = apiobj			# assume string
 	if not isinstance( apiobj, basestring ):
 		fnDepend = api.MFnDependencyNode( apiobj )      
-		nodeTypeName = capitalize( fnDepend.typeName( ) )
+		nodeTypeName = fnDepend.typeName( )
 		 
 	try: 
-		nodeTypeCls = getattr( nodes, nodeTypeName )
+		nodeTypeCls = getattr( nodes, capitalize( nodeTypeName ) )
 	except AttributeError:
 		raise TypeError( "NodeType %s unknown - it cannot be wrapped" % nodeTypeName )
 			
@@ -142,11 +142,11 @@ def _checkedClsCreation( apiobj, clsToBeCreated, baseClsObj ):
 		if not issubclass( nodeTypeCls, clsToBeCreated ):
 			raise TypeError( "Explicit class %r must be %r or a superclass of it" % ( clsToBeCreated, nodeTypeCls ) )
 		else:
-			nodeTypeCls = cls						# respect the wish of the client
+			nodeTypeCls = clsToBeCreated						# respect the wish of the client
 	# END if explicit class given 
 	
 	# FININSH INSTANCE 
-	clsinstance = super( baseClsObj, cls ).__new__( nodeTypeCls )
+	clsinstance = super( baseClsObj, clsToBeCreated ).__new__( nodeTypeCls )
 	clsinstance._apiobj = apiobj			# set the api object - if this is a string, the called has to take care about it
 	return clsinstance
 
@@ -261,6 +261,9 @@ class Attribute( api.MObject ):
 	"""Represents an attribute in general - this is the base class
 	Use this general class to create attribute wraps - it will return 
 	a class of the respective type """
+	
+	__metaclass__ = nodes.MetaClassCreatorNodes
+	
 	def __new__ ( cls, *args, **kwargs ):
 		"""return an attribute class of the respective type for given MObject
 		@param args: arg[0] is attribute's MObject to be wrapped
@@ -270,18 +273,28 @@ class Attribute( api.MObject ):
 			raise ValueError( "First argument must specify the node to be wrapped" )
 			
 		attr = args[0]
-		apiobj = None
+		
 		
 		# try which node type fits
 		global nodeTypeToMfnClsMap
-		attrtypekeys = [ "unitAttribute","typedAttribute","numericAttribute","messageAttribute"
+		attrtypekeys = [ "unitAttribute","typedAttribute","numericAttribute","messageAttribute",
 						"matrixAttribute","lightDataAttribute","genericAttribute","enumAttribute",
 						"compoundAttribute" ]
 						
 		for attrtype in attrtypekeys:
-			attrmfn = nodeTypeToMfnClsMap[ attrtype ]
-			
-						
+			attrmfncls = nodeTypeToMfnClsMap[ attrtype ]
+			try: 
+				mfn = attrmfncls( attr )
+			except RuntimeError: 
+				continue
+			else:
+				newinst = _checkedClsCreation( attrtype, cls, Attribute )
+				newinst._apiobj = attr				# make it our actual object 
+				return newinst
+		# END for each known attr type
+		
+		mfnattr = api.MFnAttribute( attr )
+		raise ValueError( "Attribute %s was could not be wrapped into any function set" % mfnattr.name() )
 						
 		
 	

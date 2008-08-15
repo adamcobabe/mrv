@@ -1,9 +1,9 @@
 1
-    | child                                   | None                |                                         
-    | create                                  | None                |                                         
-    | createAddr                              | None                |                                         
-    | createColor                             | None                |                                         
-    | createPoint                             | None                |                                         
+    | child                                   | Attribute           | getChild                                
+    | create                                  | Attribute           |                                         
+    | createAddr                              | Attribute           |                                         
+    | createColor                             | Attribute           |                                         
+    | createPoint                             | Attribute           |                                         
     | getDefault                              | None                |                                         
     | getMax                                  | None                |                                         
     | getMin                                  | None                |                                         
@@ -18,5 +18,5 @@
     | setMin                                  | None                |                                         
     | setSoftMax                              | None                |                                         
     | setSoftMin                              | None                |                                         
-    | type                                    | None                |                                         
-    | unitType                                | None                |                                         
+    | type                                    | None                | getType                                 
+    | unitType                                | None                | getUnitType                             

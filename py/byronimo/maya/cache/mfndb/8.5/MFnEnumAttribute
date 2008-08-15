@@ -1,11 +1,11 @@
 1
     | addField                                | None                |                                         
-    | create                                  | None                |                                         
+    | create                                  | Attribute           |                                         
     | defaultValue                            | None                |                                         
-    | fieldIndex                              | None                |                                         
-    | fieldName                               | None                |                                         
+    | fieldIndex                              | None                | getFieldIndex                           
+    | fieldName                               | None                | getFieldName                            
     | getDefault                              | None                |                                         
     | getMax                                  | None                |                                         
     | getMin                                  | None                |                                         
     | setDefault                              | None                |                                         
-    | type                                    | None                |                                         
+    | type                                    | None                | getType                                 

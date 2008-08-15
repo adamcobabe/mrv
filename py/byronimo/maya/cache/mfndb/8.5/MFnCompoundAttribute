@@ -1,8 +1,8 @@
 1
     | addChild                                | None                |                                         
-    | child                                   | None                |                                         
-    | create                                  | None                |                                         
+    | child                                   | Attribute           | getChild                                
+    | create                                  | Attribute           |                                         
     | getAddAttrCmds                          | None                |                                         
-    | numChildren                             | None                |                                         
+    | numChildren                             | None                | getNumChildren                          
     | removeChild                             | None                |                                         
-    | type                                    | None                |                                         
+    | type                                    | None                | getType                                 

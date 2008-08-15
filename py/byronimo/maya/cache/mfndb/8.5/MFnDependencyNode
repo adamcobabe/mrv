@@ -1,6 +1,6 @@
 1
     | addAttribute                            | None                |                                         
-    | attribute                               | None                |                                         
+    | attribute                               | Attribute           | getAttribute                            
     | attributeClass                          | None                |                                         
     | attributeCount                          | None                |                                         
     | canBeWritten                            | None                |                                         

@@ -1,6 +1,6 @@
 1
-    | child                                   | None                |                                         
-    | create                                  | None                |                                         
+    | child                                   | Attribute           | getChild                                
+    | create                                  | Attribute           |                                         
     | getDefault                              | None                |                                         
     | setDefault                              | None                |                                         
     | type                                    | None                |                                         

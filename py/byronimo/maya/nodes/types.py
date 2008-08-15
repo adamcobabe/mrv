@@ -137,40 +137,64 @@ class MetaClassCreatorNodes( MetaClassCreator ):
 		# CREATE GET ATTR CUSTOM FUNC
 		# called if the given attribute is not available in class 
 		def meta_getattr_lazy( self, attr ):
-			mfncls = getattr( newcls, thiscls.mfnclsattr )			# garantueed to be available
-			mfndb = None
-			if mfncls :
-				if not hasattr( newcls, thiscls.mfndbattr ):
-					mfndb = thiscls._readMfnDB( mfncls.__name__ )
-					setattr( newcls, thiscls.mfndbattr, mfndb )
-				else:
-					mfndb = getattr( newcls,thiscls.mfndbattr )
-			# END if mfncls available
-			
-			try:
-				# get function as well as its possibly changed name 
-				newclsfunc = thiscls._wrapMfnFunc( mfncls, attr, funcMutatorDB=mfndb )
-				if not newclsfunc:
-					raise KeyError( "Function %s has been deleted" + attr )
+			actualcls = None										# the class finally used to store located functions 
+						
+			# MFN ATTRTIBUTE HANDLING
+			############################
+			# check all bases for and their mfncls for a suitable function
+			newclsfunc = newinstfunc = None							# try to fill these
+			for basecls in newcls.mro():
+				if not hasattr( basecls, thiscls.mfnclsattr ):			# could be object too or user defined cls
+					continue
+				
+				mfncls = getattr( basecls, thiscls.mfnclsattr )
+				if not mfncls:
+					continue 
 					
-				newinstfunc = new.instancemethod( newclsfunc, self, newcls )	# create the respective instance method !
-			except KeyError, ke:
+				mfndb = None
+				
+				# GET MFNDB allowing automated method mutations
+				if not hasattr( basecls, thiscls.mfndbattr ):
+					if mfncls :
+						mfndb = thiscls._readMfnDB( mfncls.__name__ )
+					setattr( basecls, thiscls.mfndbattr, mfndb )
+				else:
+					mfndb = getattr( basecls,thiscls.mfndbattr )
+				# END mfndb handling 
+				
+				# get function as well as its possibly changed name 
+				try:
+					newclsfunc = thiscls._wrapMfnFunc( mfncls, attr, funcMutatorDB=mfndb )
+					if not newclsfunc: # Function %s has been deleted - ignore
+						continue 
+				except KeyError:  		# function not available in this mfn - ignore
+					continue 
+				newinstfunc = new.instancemethod( newclsfunc, self, basecls )	# create the respective instance method !
+				actualcls = basecls
+				break					# stop here - we found it 
+			# END for each basecls
+				
+			# ORIGINAL ATTRIBUTE HANDLING
+			###############################
+			# still no funcion ? Continue with non-mfn search routine )
+			if not newclsfunc:
 				if not getattrorig:
-					raise AttributeError
-				# does not exist, pass on the call to whatever we had - thus we take precedence
+					raise AttributeError( "Could not find mfn function for %s" % attr )
+				# mfn func does not exist, pass on the call to whatever we had - thus we take precedence
 				# passing the call allows subclasses to use function set methods of superclasses
 				# accordingly
 				return getattrorig( self, attr )
-			else: 
-				# store the new function on instance level !
-				setattr( self, attr, newinstfunc )
-				
-				# ... and on class level
-				setattr( newcls, attr, newclsfunc )
-				return newinstfunc
+			# EMD orig getattr handling 
+			
+			# store the new function on instance level !
+			# ... and on class level
+			setattr( self, attr, newinstfunc )
+			setattr( actualcls, attr, newclsfunc )
+			return newinstfunc
 				
 		# END getattr_lazy func definition 		
 		
+		# STORE LAZY GETATTR 
 		meta_getattr_lazy.__name__ = "__getattr__"
 		setattr( newcls, "__getattr__", meta_getattr_lazy )
 	
@@ -190,9 +214,15 @@ class MetaClassCreatorNodes( MetaClassCreator ):
 		#################
 		# ask our NodeType to MfnSet database and attach it to the cls dict
 		# ( if not yet there ). By convention, there is only one mfn per class
-		if not clsdict.has_key( metacls.mfnclsattr ) and nodeTypeToMfnClsMap.has_key( func_nameToTree( name ) ):
-			clsdict[ metacls.mfnclsattr ] = func_nameToTree( name )
+		mfncls = None
+		if not clsdict.has_key( metacls.mfnclsattr ):
+			treeNodeTypeName = func_nameToTree( name )
+			if nodeTypeToMfnClsMap.has_key( treeNodeTypeName ):
+				clsdict[ metacls.mfnclsattr ] = mfncls = nodeTypeToMfnClsMap[ treeNodeTypeName ]
+		else:
+			mfncls = clsdict[ metacls.mfnclsattr ]
 			
+		clsdict[ metacls.mfnclsattr ] = mfncls
 		
 		# SETUP slots - add common members
 		# NOTE: does not appear to have any effect :(
@@ -239,16 +269,14 @@ def init_nodehierarchy( ):
 	
 	hierarchylist = []
 	regex = re.compile( "<tt>([ >]*)</tt><.*?>(\w+)" )	# matches level and name
-	rootOffset = 1
 	
-	hierarchylist.append( (0,"mayaNode" ) )
 	
 	for line in lines:
 		m = regex.match( line )
 		if not m: continue
 		
 		levelstr, name = m.groups()
-		level = levelstr.count( '>' ) + rootOffset
+		level = levelstr.count( '>' ) 
 		
 		hierarchylist.append( ( level, name ) )
 	# END for each line 

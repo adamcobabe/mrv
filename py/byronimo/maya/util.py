@@ -302,21 +302,20 @@ class MetaClassCreator( type ):
 		@param nameToTreeFunc: convert the class name to a name suitable for dagTree look-up
 		@param treeToNameFunc: convert a value from the dag tree into a valid class name ( used for parent lookup )
 		@note: Special Class attributes to alter creation:
-		- _nodeTypeTreeMember : if true ( default True ), the class is required to be part fo the 
+		- _isNodeTypeTreeMember : if true ( default True ), the class is required to be part fo the 
 		node type tree hierarchy to be created successfully. This allows api-only classes to be handled by this 
 		class creator as well"""
-		
 		# recreate the hierarchy of classes leading to the current type
 		nameForTree = nameToTreeFunc( name )
 		try:
 			parentname = dagtree.parent( nameForTree )
 		except KeyError:
 			# should we allow key errors ?
-			if clsdict.get( 'nodeTypeTreeMember', 1 ):
+			if clsdict.get( 'isNodeTypeTreeMember', 1 ):
 				raise KeyError( "Class %s is required to be part of the nodetypetree to be created" % name )
 		# END parent name handling 
 		
-		parentcls = object
+		parentcls = None
 		
 		if parentname != None:
 			parentclsname = treeToNameFunc( parentname )
@@ -326,8 +325,9 @@ class MetaClassCreator( type ):
 		# END if parent cls name defined
 		
 		# could be a user-defined class coming with some parents already - thus assure 
-		# that the auto-parent is not already in there 
-		if parentcls not in bases:
+		# that the auto-parent is not already in there
+		# NOTE: bases is sometimes filled with types, sometimes with classes 
+		if parentcls and not ( parentcls in bases or isinstance( parentcls, bases ) ):
 			bases += ( parentcls, )
 			
 		# create the class 

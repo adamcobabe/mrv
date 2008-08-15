@@ -1,5 +1,5 @@
 1
-    | create                                  | None                |                                         
+    | create                                  | Attribute           |                                         
     | getDefault                              | None                |                                         
     | setDefault                              | None                |                                         
-    | type                                    | None                |                                         
+    | type                                    | None                | getType                                 

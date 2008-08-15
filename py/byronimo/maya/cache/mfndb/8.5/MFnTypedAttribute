@@ -1,6 +1,6 @@
 1
-    | attrType                                | None                |                                         
-    | create                                  | None                |                                         
+    | attrType                                | None                | getAttrType                             
+    | create                                  | Attribute           |                                         
     | getDefault                              | None                |                                         
     | setDefault                              | None                |                                         
-    | type                                    | None                |                                         
+    | type                                    | None                | getType                                 

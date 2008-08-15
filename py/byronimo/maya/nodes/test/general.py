@@ -84,6 +84,7 @@ class TestBase( unittest.TestCase ):
 		except AttributeError:
 			pass
 		except:
+			raise 
 			self.fail( )
 		
 		# get simple attributes
@@ -97,12 +98,17 @@ class TestBase( unittest.TestCase ):
 		self.failUnless( len( cons ) )
 		
 		
+		# CHECK LAZY WRAPPING 
 		# get mfn lazy wrapped attributes 
 		t = node.getType()
 		for state in [1,0]:			
 			node.setLocked( state )
 			self.failUnless( node.isLocked() == state )
 		
+		# ATTRIBUTES
+		attr = node.getAttribute( 0 )		
+		attr.getName( )
+		self.failUnless( not attr.isNull() )
 		
 	def test_wrapDagNode( self ):
 		"""byronimo.maya.nodes: create and access dag nodes"""
@@ -134,6 +140,6 @@ class TestBase( unittest.TestCase ):
 		
 	def test_mfncachebuilder( self ):
 		"""byroniom.maya.nodes.base: write a generated cache using the builder function"""
-		# types.writeMfnDBCacheFiles( )
+		types.writeMfnDBCacheFiles( )
 		
 		

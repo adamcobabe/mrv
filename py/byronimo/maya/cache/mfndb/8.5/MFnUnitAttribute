@@ -1,5 +1,5 @@
 1
-    | create                                  | None                |                                         
+    | create                                  | Attribute           |                                         
     | getDefault                              | None                |                                         
     | getMax                                  | None                |                                         
     | getMin                                  | None                |                                         
@@ -14,5 +14,5 @@
     | setMin                                  | None                |                                         
     | setSoftMax                              | None                |                                         
     | setSoftMin                              | None                |                                         
-    | type                                    | None                |                                         
-    | unitType                                | None                |                                         
+    | type                                    | None                | getType                                 
+    | unitType                                | None                | getUnitType                             
