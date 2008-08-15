@@ -24,6 +24,7 @@ __copyright__='(c) 2008 Sebastian Thiel'
 from byronimo.util import capitalize, IntKeyGenerator
 from byronimo.maya.util import StandinClass
 nodes = __import__( "byronimo.maya.nodes", globals(), locals(), ['nodes'] )
+from byronimo.maya.nodes.types import nodeTypeToMfnClsMap
 import maya.OpenMaya as api
 
 
@@ -32,14 +33,18 @@ import maya.OpenMaya as api
 ##########################
 
 def apiTypeToNodeTypeCls( apiobj ):
-	""" Convert the given api object ( MObject ) to the respective python node type class  """ 
-	fnDepend = api.MFnDependencyNode( apiobj )      
-	mayaType = capitalize( fnDepend.typeName( ) )
+	""" Convert the given api object ( MObject ) or type name to the respective python node type class
+	@param apiobj: MObject or nodetype name """
+	nodeTypeName = apiobj			# assume string
+	if not isinstance( apiobj, basestring ):
+		fnDepend = api.MFnDependencyNode( apiobj )      
+		nodeTypeName = capitalize( fnDepend.typeName( ) )
+		 
 	try: 
-		nodeTypeCls = getattr( nodes, mayaType )
+		nodeTypeCls = getattr( nodes, nodeTypeName )
 	except AttributeError:
-		raise TypeError( "NodeType %s unknown - it cannot be wrapped" % mayaType ) 
-	
+		raise TypeError( "NodeType %s unknown - it cannot be wrapped" % nodeTypeName )
+			
 	# CHECK FOR STANDIN CLASS 
 	###########################
 	# The class type could still be a standin - call it  
@@ -47,6 +52,7 @@ def apiTypeToNodeTypeCls( apiobj ):
 		nodeTypeCls = nodeTypeCls.createCls( )
 	
 	return nodeTypeCls
+	
 
 def toApiObject( nodeName, dagPlugs=True ):
 	""" Get the API MPlug, MObject or (MObject, MComponent) tuple given the name 
@@ -118,6 +124,32 @@ def toApiObject( nodeName, dagPlugs=True ):
 #### Classes		  	####
 ##########################
 
+def _checkedClsCreation( apiobj, clsToBeCreated, baseClsObj ):
+	"""Utiliy method creating a new class instance according to additional type information
+	Its used by __new__ constructors to finalize class creation
+	@param apiobj: the MObject or the type name the caller figured out so far
+	@param clsToBeCreated: the cls object as passed in to __new__
+	@param baseClsObj: the class of the caller containing the __new__ method
+	@return: create clsinstance if the proper type ( according to nodeTypeTree"""
+	# get the node type class for the api type object
+	nodeTypeCls = apiTypeToNodeTypeCls( apiobj )
+	
+	# NON-MAYA NODE Type 
+	# if an explicit type was requested, assure we are at least compatible with 
+	# the given cls type - our node type is supposed to be the most specialized one
+	# cls is either of the same type as ours, or is a superclass 
+	if clsToBeCreated is not baseClsObj and clsToBeCreated is not nodeTypeCls:
+		if not issubclass( nodeTypeCls, clsToBeCreated ):
+			raise TypeError( "Explicit class %r must be %r or a superclass of it" % ( clsToBeCreated, nodeTypeCls ) )
+		else:
+			nodeTypeCls = cls						# respect the wish of the client
+	# END if explicit class given 
+	
+	# FININSH INSTANCE 
+	clsinstance = super( baseClsObj, cls ).__new__( nodeTypeCls )
+	clsinstance._apiobj = apiobj			# set the api object - if this is a string, the called has to take care about it
+	return clsinstance
+
 class MayaNode( object ):
 	"""Common base for all maya nodes, providing access to the maya internal object 
 	representation
@@ -125,15 +157,15 @@ class MayaNode( object ):
 	__metaclass__ = nodes.MetaClassCreatorNodes
 	
 	def __new__ ( cls, *args, **kwargs ):
-		"""return a class of the respective type
+		"""return the proper class for the given object
 		@param args: arg[0] is the node to be wrapped
 			- string: wrap the API object with the respective name 
 			- MObject
 			- MObjectHandle
 			- MDagPath
-		@todo: support for instances of MayaNodes ( as kind of copy constructure ) """
+		@todo: assure support for instances of MayaNodes ( as kind of copy constructure ) 
+		@note: this area must be optimized for speed"""
 		
-
 		if not args:
 			raise ValueError( "First argument must specify the node to be wrapped" )
 			
@@ -171,7 +203,7 @@ class MayaNode( object ):
 		# if an explicit type was requested, assure we are at least compatible with 
 		# the given cls type - our node type is supposed to be the most specialized one
 		# cls is either of the same type as ours, or is a superclass 
-		if cls is not MayaNode and nodeTypeCls is not cls:
+		if cls is not MayaNode and cls is not nodeTypeCls:
 			if not issubclass( nodeTypeCls, cls ):
 				raise TypeError( "Explicit class %r must be %r or a superclass of it" % ( cls, nodeTypeCls ) )
 			else:
@@ -203,7 +235,7 @@ class DependNode( MayaNode ):
 		create a plug for it and add it to our class dict, effectively caching the attribute"""
 		depfn = DependNode._mfncls( self._apiobj )
 		try:
-			plug = Plug( depfn.findPlug( str(attr) ) )
+			plug = self.findPlug( str(attr) )
 		except RuntimeError:		# perhaps a base class can handle it
 			try: 
 				return super( DependNode, self ).__getattr__( self, attr )
@@ -246,6 +278,35 @@ class Plug( api.MPlug ):
 	
 	def fancy( self ):
 		return 1
+	
+	
+class Attribute( api.MObject ):
+	"""Represents an attribute in general - this is the base class
+	Use this general class to create attribute wraps - it will return 
+	a class of the respective type """
+	def __new__ ( cls, *args, **kwargs ):
+		"""return an attribute class of the respective type for given MObject
+		@param args: arg[0] is attribute's MObject to be wrapped
+		@note: this area must be optimized for speed"""
+		
+		if not args:
+			raise ValueError( "First argument must specify the node to be wrapped" )
+			
+		attr = args[0]
+		apiobj = None
+		
+		# try which node type fits
+		global nodeTypeToMfnClsMap
+		attrtypekeys = [ "unitAttribute","typedAttribute","numericAttribute","messageAttribute"
+						"matrixAttribute","lightDataAttribute","genericAttribute","enumAttribute",
+						"compoundAttribute" ]
+						
+		for attrtype in attrtypekeys:
+			attrmfn = nodeTypeToMfnClsMap[ attrtype ]
+			
+						
+						
+		
 	
 	
 class PlugArray( api.MPlugArray ):

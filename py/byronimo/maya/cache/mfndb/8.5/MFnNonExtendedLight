@@ -1,14 +1,14 @@
 1
-    |castSoftShadows                         |None                |                                        
-    |depthMapBias                            |None                |                                        
-    |depthMapFilterSize                      |None                |                                        
-    |depthMapResolution                      |None                |                                        
-    |setCastSoftShadows                      |None                |                                        
-    |setDepthMapBias                         |None                |                                        
-    |setDepthMapFilterSize                   |None                |                                        
-    |setDepthMapResolution                   |None                |                                        
-    |setShadowRadius                         |None                |                                        
-    |setUseDepthMapShadows                   |None                |                                        
-    |shadowRadius                            |None                |                                        
-    |type                                    |None                |                                        
-    |useDepthMapShadows                      |None                |                                        
+    | castSoftShadows                         | None                |                                         
+    | depthMapBias                            | None                |                                         
+    | depthMapFilterSize                      | None                |                                         
+    | depthMapResolution                      | None                |                                         
+    | setCastSoftShadows                      | None                |                                         
+    | setDepthMapBias                         | None                |                                         
+    | setDepthMapFilterSize                   | None                |                                         
+    | setDepthMapResolution                   | None                |                                         
+    | setShadowRadius                         | None                |                                         
+    | setUseDepthMapShadows                   | None                |                                         
+    | shadowRadius                            | None                |                                         
+    | type                                    | None                |                                         
+    | useDepthMapShadows                      | None                |                                         

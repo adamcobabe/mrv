@@ -1,11 +1,11 @@
 1
-    |addField                                |None                |                                        
-    |create                                  |None                |                                        
-    |defaultValue                            |None                |                                        
-    |fieldIndex                              |None                |                                        
-    |fieldName                               |None                |                                        
-    |getDefault                              |None                |                                        
-    |getMax                                  |None                |                                        
-    |getMin                                  |None                |                                        
-    |setDefault                              |None                |                                        
-    |type                                    |None                |                                        
+    | addField                                | None                |                                         
+    | create                                  | None                |                                         
+    | defaultValue                            | None                |                                         
+    | fieldIndex                              | None                |                                         
+    | fieldName                               | None                |                                         
+    | getDefault                              | None                |                                         
+    | getMax                                  | None                |                                         
+    | getMin                                  | None                |                                         
+    | setDefault                              | None                |                                         
+    | type                                    | None                |                                         

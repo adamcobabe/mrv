@@ -1,9 +1,9 @@
 1
-    |addAccept                               |None                |                                        
-    |addDataAccept                           |None                |                                        
-    |addNumericDataAccept                    |None                |                                        
-    |create                                  |None                |                                        
-    |removeAccept                            |None                |                                        
-    |removeDataAccept                        |None                |                                        
-    |removeNumericDataAccept                 |None                |                                        
-    |type                                    |None                |                                        
+    | addAccept                               | None                |                                         
+    | addDataAccept                           | None                |                                         
+    | addNumericDataAccept                    | None                |                                         
+    | create                                  | None                |                                         
+    | removeAccept                            | None                |                                         
+    | removeDataAccept                        | None                |                                         
+    | removeNumericDataAccept                 | None                |                                         
+    | type                                    | None                |                                         

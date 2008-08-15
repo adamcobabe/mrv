@@ -202,8 +202,61 @@ class DAGTree( nxtree.DirectedTree ):
 				raise StopIteration( )
 			yield p
 			n = p
+			
+
+class PipeSeparatedFile( object ):
+	"""Read and write simple pipe separated files containing a version number.
+	
+	The number of column must remain the same per line
+	Format: 
+	int( version )
+	val11 | val2 | valn
+	...	
+	"""
+	def __init__( self, fileobj ):
+		"""Initialize the instance
+		@param fileobj: fileobject where new lines will be written to or read from
+		It must already be opened for reading and/or writing respectively"""
+		self._fileobj = fileobj
+		self._columncount = None
 		
+	def beginReading( self ):
+		"""Start reading the file
+		@return: the file version read"""
+		fileversion = int( self._fileobj.readline( ).strip( ) )		# get version 
+		return fileversion
 		
+	def readColumnLine( self ):
+		"""Generator reading one line after another, returning the stripped columns
+		@return: tuple of stripped column strings
+		@raise ValueError: if the column count changes between the lines"""
+		for line in self._fileobj:
+			tokens = [ item.strip() for item in line.split( '|' ) ]
+			if not self._columncount:
+				self._columncount = len( tokens )
+				
+			if self._columncount != len( tokens ):
+				raise ValueError( "Columncount changed between successive lines" )
+				
+			yield tuple( tokens )
+		# END for each line 
+		
+	def beginWriting( self, version, columnSizes ):
+		"""intiialize the writing process
+		@param version: the file version you would like to set
+		@param columnSizes: list of ints defining the size in characters for each column you plan to feed
+		@note: When done writing, you have to close the file object yourself ( there is no endWriting method here )"""
+		self._fileobj.write( "%i\n" % version )		# write version
+		columnTokens = [ "%%-%is" % csize for csize in columnSizes ]
+		self._formatstr = ( "| ".join( columnTokens ) ) + "\n" 
+		
+	def writeTokens( self, tokens ):
+		"""Write the list of tokens to the file accordingly
+		@param tokens: one token per column that you want to write
+		@raise TypeError: If column count changed between successive calls""" 
+		self._fileobj.write( self._formatstr % tokens )
+			
+	
 ###################
 ## PREDICATES ###
 ################

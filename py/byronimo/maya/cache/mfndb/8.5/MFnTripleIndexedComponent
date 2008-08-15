@@ -1,9 +1,9 @@
 1
-    |addElement                              |None                |                                        
-    |addElements                             |None                |                                        
-    |create                                  |None                |                                        
-    |getCompleteData                         |None                |                                        
-    |getElement                              |None                |                                        
-    |getElements                             |None                |                                        
-    |setCompleteData                         |None                |                                        
-    |type                                    |None                |                                        
+    | addElement                              | None                |                                         
+    | addElements                             | None                |                                         
+    | create                                  | None                |                                         
+    | getCompleteData                         | None                |                                         
+    | getElement                              | None                |                                         
+    | getElements                             | None                |                                         
+    | setCompleteData                         | None                |                                         
+    | type                                    | None                |                                         

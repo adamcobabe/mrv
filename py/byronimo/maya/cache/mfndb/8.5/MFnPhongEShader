@@ -1,9 +1,9 @@
 1
-    |create                                  |None                |                                        
-    |highlightSize                           |None                |                                        
-    |roughness                               |None                |                                        
-    |setHighlightSize                        |None                |                                        
-    |setRoughness                            |None                |                                        
-    |setWhiteness                            |None                |                                        
-    |type                                    |None                |                                        
-    |whiteness                               |None                |                                        
+    | create                                  | None                |                                         
+    | highlightSize                           | None                |                                         
+    | roughness                               | None                |                                         
+    | setHighlightSize                        | None                |                                         
+    | setRoughness                            | None                |                                         
+    | setWhiteness                            | None                |                                         
+    | type                                    | None                |                                         
+    | whiteness                               | None                |                                         

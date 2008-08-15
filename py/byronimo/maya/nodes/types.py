@@ -22,7 +22,7 @@ nodes = __import__( "byronimo.maya.nodes", globals(), locals(), ['nodes'] )
 from byronimo.maya.util import MetaClassCreator
 import byronimo.maya as bmaya
 from byronimo.path import Path
-from byronimo.util import uncapitalize
+from byronimo.util import uncapitalize, PipeSeparatedFile
 import maya.OpenMaya as api
 import re
 import inspect
@@ -33,7 +33,7 @@ import UserDict
 ### CACHES ########
 ##################
 nodeTypeTree = None
-nodeTypeToMfnTypeMap = {}			# allows to see the most specialized compatible mfn type for a given node type 
+nodeTypeToMfnClsMap = {}			# allows to see the most specialized compatible mfn cls for a given node type 
 
 
 
@@ -47,6 +47,8 @@ class MetaClassCreatorNodes( MetaClassCreator ):
 	
 	nameToTreeMap = set( [ 'FurAttractors', 'FurCurveAttractors', 'FurGlobals', 'FurDescription','FurFeedback' ] ) # special name handling 
 	targetModule = None				# must be set in intialization to tell this class where to put newly created classes
+	mfnclsattr = '_mfncls'
+	mfndbattr = '_mfndb'
 	
 	@staticmethod
 	def _readMfnDB( mfnclsname ):
@@ -129,24 +131,25 @@ class MetaClassCreatorNodes( MetaClassCreator ):
 		getattrorig = None
 		if hasattr( newcls, '__getattr__' ):
 			getattrorig =  newcls.__dict__.get( '__getattr__', None )
-		getattrorig.__name__ = "__getattr_orig" 
+		if getattrorig:
+			getattrorig.__name__ = "__getattr_orig" 
 		
 		# CREATE GET ATTR CUSTOM FUNC
 		# called if the given attribute is not available in class 
 		def meta_getattr_lazy( self, attr ):
-			mfncls = getattr( newcls, '_mfncls' )			# garantueed to be available
+			mfncls = getattr( newcls, thiscls.mfnclsattr )			# garantueed to be available
 			mfndb = None
 			if mfncls :
-				if not hasattr( newcls, '_mfndb' ):
+				if not hasattr( newcls, thiscls.mfndbattr ):
 					mfndb = thiscls._readMfnDB( mfncls.__name__ )
-					setattr( newcls, '_mfndb', mfndb )
+					setattr( newcls, thiscls.mfndbattr, mfndb )
 				else:
-					mfndb = getattr( newcls,'_mfndb' )
+					mfndb = getattr( newcls,thiscls.mfndbattr )
 			# END if mfncls available
 			
 			try:
 				# get function as well as its possibly changed name 
-				newclsfunc = thiscls._wrapMfnFunc( mfncls, attr, funcMutatorDB=newcls._mfndb )
+				newclsfunc = thiscls._wrapMfnFunc( mfncls, attr, funcMutatorDB=mfndb )
 				if not newclsfunc:
 					raise KeyError( "Function %s has been deleted" + attr )
 					
@@ -175,6 +178,7 @@ class MetaClassCreatorNodes( MetaClassCreator ):
 	def __new__( metacls, name, bases, clsdict ):
 		""" Called to create the class with name """
 		global nodeTypeTree
+		global nodeTypeToMfnClsMap
 		
 		# will be used later 
 		def func_nameToTree( name ):
@@ -182,23 +186,30 @@ class MetaClassCreatorNodes( MetaClassCreator ):
 				return name
 			return uncapitalize( name )
 		
-		
-		# TODO: ask our NodeType to MfnSet database and attach it to the cls dict
+		# ATTACH MFNCLS
+		#################
+		# ask our NodeType to MfnSet database and attach it to the cls dict
 		# ( if not yet there ). By convention, there is only one mfn per class
+		if not clsdict.has_key( metacls.mfnclsattr ) and nodeTypeToMfnClsMap.has_key( func_nameToTree( name ) ):
+			clsdict[ metacls.mfnclsattr ] = func_nameToTree( name )
+			
 		
 		# SETUP slots - add common members
 		# NOTE: does not appear to have any effect :(
 		
+		# CREATE CLS
+		#################
 		newcls = super( MetaClassCreatorNodes, metacls ).__new__( nodeTypeTree, metacls.targetModule, 
 																metacls, name, bases, clsdict, 
 																nameToTreeFunc = func_nameToTree )
 				
 				
-		# lazy mfn wrapping 
+		# LAZY MFN WRAPPING
+		#####################
 		# Functions from mfn should be wrapped on demand to the respective classes as they 
 		# should be generated only when used
 		# Wrap the existing __getattr__ method in an own one linking mfn methods if possibly
-		mfncls = newcls.__dict__.get( "_mfncls", None )
+		mfncls = newcls.__dict__.get( metacls.mfnclsattr, None )
 		if mfncls:
 			metacls._wrapLazyGetAttr( newcls )
 		# END if mfncls defined 
@@ -214,11 +225,16 @@ class MetaClassCreatorNodes( MetaClassCreator ):
 #### Initialization Methods   ####
 #################################
 
+def getCacheFilePath( filename, ext ):
+	"""Return path to cache file from which you would initialize data structures"""
+	mfile = Path( __file__ ).p_parent.p_parent
+	return mfile / ( "cache/%s_%s.%s" % ( filename, env.getAppVersion()[0], ext ) )
+	
+
 def init_nodehierarchy( ):
 	""" Parse the nodes hiearchy from the maya doc and create an Indexed tree from it
 	@todo: cache the pickled tree and try to load it instead  """
-	mfile = Path( __file__ ).p_parent.p_parent
-	mfile = mfile / ( "cache/nodeHierarchy_%s.html" % env.getAppVersion()[0] )
+	mfile = getCacheFilePath( "nodeHierarchy", "html" )
 	lines = mfile.lines( retain=False )			# just read them in one burst
 	
 	hierarchylist = []
@@ -246,6 +262,22 @@ def init_wrappers( targetmodule ):
 	global nodeTypeTree
 	bmaya._initWrappers( targetmodule, nodeTypeTree.nodes_iter(), MetaClassCreatorNodes )
 	
+
+def init_nodeTypeToMfnClsMap( ):
+	"""Fill the cache map supplying additional information about the MFNClass to use
+	when creating the classes"""
+	cfile = getCacheFilePath( "nodeTypeToMfnCls", "map" )
+	fobj = open( cfile, 'r' )
+	pf = PipeSeparatedFile( fobj )
+	global nodeTypeToMfnClsMap
+	
+	version = pf.beginReading( )	 # don't care about version
+	for nodeTypeName, mfnTypeName in pf.readColumnLine( ):
+		nodeTypeToMfnClsMap[ nodeTypeName ] = getattr( api, mfnTypeName )
+		
+	fobj.close()
+		
+	
 	
 
 	
@@ -271,10 +303,10 @@ class MfnMemberMap( UserDict.UserDict ):
 			if not isinstance( funcname, basestring ):
 				return funcname
 			if funcname == 'None': return None
-			if not hasattr( MfnMemberMap, funcname ):
-				raise ValueError("'%s' is unknown to MfnMemberMap - it must be implemented here" % funcname )
+			if not hasattr( nodes, funcname ):
+				raise ValueError("'%s' is unknown to nodes module - it must be implemented there" % funcname )
 			
-			return getattr( MfnMemberMap, funcname )
+			return getattr( nodes, funcname )
 
 		def rvalFuncToStr( self ):
 			if self.rvalfunc is None: return 'None'
@@ -287,13 +319,13 @@ class MfnMemberMap( UserDict.UserDict ):
 		self.clear()
 		fobj = open( filepath, 'r' )
 		
-		fileversion = int( fobj.readline( ).strip( ) )		# get version 
+		pf = PipeSeparatedFile( fobj )
+		fileversion = pf.beginReading( )
 		if fileversion != self.version:
 			raise ValueError( "File version %i does not match class version %i" % (fileversion,self.version ) )
 			
 		# get the entries
-		for line in fobj:
-			tokens = [ item.strip() for item in line.split( '|' ) ]
+		for tokens in pf.readColumnLine( ):
 			key = tokens[ 1 ]
 			self[ key ] = self.Entry( flag=tokens[0], rvalfunc=tokens[2], newname=tokens[3] )
 			
@@ -305,13 +337,12 @@ class MfnMemberMap( UserDict.UserDict ):
 		klist.sort()
 		
 		fobj = open( filepath, 'w' )
-		fobj.write( "%i\n" % self.version )		# write version
+		pf = PipeSeparatedFile( fobj )
+		pf.beginWriting( self.version, [ 4,40,20,40 ] )
 		
-		methodswritten = set()
 		for key in klist:							# write entries
 			e = self[ key ]
-			fobj.write( "%-4s|%-40s|%-20s|%-40s\n" % ( e.flag, key,e.rvalFuncToStr(), e.newname ) )
-			methodswritten
+			pf.writeTokens( ( e.flag, key,e.rvalFuncToStr(), e.newname ) )
 		# end for each key
 		
 		fobj.close()

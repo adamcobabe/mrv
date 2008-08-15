@@ -1,39 +1,39 @@
 1
-x   |addChild                                |None                |                                        
-    |boundingBox                             |None                |getBoundingBox                          
-    |child                                   |None                |getChild                                
-    |childCount                              |None                |getChildCount                           
-x   |create                                  |None                |                                        
-    |dagPath                                 |None                |getDagPath                              
-    |dagRoot                                 |None                |getDagRoot                              
-    |duplicate                               |None                |                                        
-    |fullPathName                            |None                |getFullPathName                         
-    |getAllPaths                             |None                |                                        
-    |getPath                                 |None                |                                        
-    |hasChild                                |None                |                                        
-    |hasParent                               |None                |                                        
-    |inModel                                 |None                |                                        
-    |inUnderWorld                            |None                |                                        
-    |instanceCount                           |None                |                                        
-    |isChildOf                               |None                |                                        
-    |isInstanceable                          |None                |                                        
-    |isInstanced                             |None                |                                        
-    |isInstancedAttribute                    |None                |                                        
-    |isIntermediateObject                    |None                |                                        
-    |isParentOf                              |None                |                                        
-x   |model                                   |None                |                                        
-    |objectColor                             |None                |getObjectColor                          
-    |objectGroupComponent                    |None                |getObjectGroupComponent                 
-    |parent                                  |None                |getParent                               
-    |parentCount                             |None                |getParentCount                          
-    |partialPathName                         |None                |getPartialName                          
-x   |removeChild                             |None                |                                        
-x   |removeChildAt                           |None                |                                        
-    |setInstanceable                         |None                |                                        
-    |setIntermediateObject                   |None                |                                        
-    |setObject                               |None                |                                        
-    |setObjectColor                          |None                |                                        
-    |setUseObjectColor                       |None                |                                        
-    |transformationMatrix                    |None                |getTransformationMatrix                 
-    |type                                    |None                |                                        
-    |usingObjectColor                        |None                |isUsingObjectColor                      
+x   | addChild                                | None                |                                         
+    | boundingBox                             | None                | getBoundingBox                          
+    | child                                   | None                | getChild                                
+    | childCount                              | None                | getChildCount                           
+x   | create                                  | None                |                                         
+    | dagPath                                 | None                | getDagPath                              
+    | dagRoot                                 | None                | getDagRoot                              
+    | duplicate                               | None                |                                         
+    | fullPathName                            | None                | getFullPathName                         
+    | getAllPaths                             | None                |                                         
+    | getPath                                 | None                |                                         
+    | hasChild                                | None                |                                         
+    | hasParent                               | None                |                                         
+    | inModel                                 | None                |                                         
+    | inUnderWorld                            | None                |                                         
+    | instanceCount                           | None                |                                         
+    | isChildOf                               | None                |                                         
+    | isInstanceable                          | None                |                                         
+    | isInstanced                             | None                |                                         
+    | isInstancedAttribute                    | None                |                                         
+    | isIntermediateObject                    | None                |                                         
+    | isParentOf                              | None                |                                         
+x   | model                                   | None                |                                         
+    | objectColor                             | None                | getObjectColor                          
+    | objectGroupComponent                    | None                | getObjectGroupComponent                 
+    | parent                                  | None                | getParent                               
+    | parentCount                             | None                | getParentCount                          
+    | partialPathName                         | None                | getPartialName                          
+x   | removeChild                             | None                |                                         
+x   | removeChildAt                           | None                |                                         
+    | setInstanceable                         | None                |                                         
+    | setIntermediateObject                   | None                |                                         
+    | setObject                               | None                |                                         
+    | setObjectColor                          | None                |                                         
+    | setUseObjectColor                       | None                |                                         
+    | transformationMatrix                    | None                | getTransformationMatrix                 
+    | type                                    | None                |                                         
+    | usingObjectColor                        | None                | isUsingObjectColor                      

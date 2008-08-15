@@ -134,6 +134,6 @@ class TestBase( unittest.TestCase ):
 		
 	def test_mfncachebuilder( self ):
 		"""byroniom.maya.nodes.base: write a generated cache using the builder function"""
-		types.writeMfnDBCacheFiles( )
+		# types.writeMfnDBCacheFiles( )
 		
 		

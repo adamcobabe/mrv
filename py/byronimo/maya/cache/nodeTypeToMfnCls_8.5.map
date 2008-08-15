@@ -1,0 +1,17 @@
+1
+dependNode			|	MFnDependencyNode
+dagNode				| 	MFnDagNode
+transform			| 	MFnTransform
+mesh				| 	MFnMesh
+camera				| 	MFnCamera
+objectSet			| 	MFnSet
+attribute			| 	MFnAttribute
+unitAttribute		|	MFnUnitAttribute
+typedAttribute		|	MFnTypedAttribute
+numericAttribute	| 	MFnNumericAttribute
+messageAttribute	| 	MFnMessageAttribute
+matrixAttribute		| 	MFnMatrixAttribute
+lightDataAttribute	| 	MFnLightDataAttribute
+genericAttribute	| 	MFnGenericAttribute
+enumAttribute		| 	MFnEnumAttribute
+compoundAttribute	|	MFnCompoundAttribute

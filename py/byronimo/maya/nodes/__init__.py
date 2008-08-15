@@ -51,6 +51,7 @@ if not init_done:
 	from types import *
 	MetaClassCreatorNodes.targetModule = _thismodule			# init metaclass with our module 
 	init_nodehierarchy( )
+	init_nodeTypeToMfnClsMap( )
 	init_wrappers( _thismodule )
 
 	# overwrite dummy node bases with hand-implemented ones
