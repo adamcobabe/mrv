@@ -185,7 +185,6 @@ class MayaNode( object ):
 			# currently we only handle objects - subclasses will get the type they need
 			if isinstance( apiobj, api.MDagPath ):
 				apiobj = apiobj.node()
-			
 		else:
 			raise ValueError( "objects of type %s cannot be handled" % type( objorname ) )
 			
@@ -194,30 +193,8 @@ class MayaNode( object ):
 		if not apiobj or apiobj.isNull( ):
 			raise ValueError( "object could not be handled: %s" % objorname )
 		
-		
-		# get the node type class for the api type object
-		nodeTypeCls = apiTypeToNodeTypeCls( apiobj )
-		
-		
-		# NON-MAYA NODE Type 
-		# if an explicit type was requested, assure we are at least compatible with 
-		# the given cls type - our node type is supposed to be the most specialized one
-		# cls is either of the same type as ours, or is a superclass 
-		if cls is not MayaNode and cls is not nodeTypeCls:
-			if not issubclass( nodeTypeCls, cls ):
-				raise TypeError( "Explicit class %r must be %r or a superclass of it" % ( cls, nodeTypeCls ) )
-			else:
-				nodeTypeCls = cls						# respect the wish of the client
-		# END if explicit class given 
-		
-		
-		
-		
-		# FININSH INSTANCE 
-		self = super( MayaNode, cls ).__new__( nodeTypeCls )
-		self._apiobj = apiobj
-		
-		return self
+		# CREATE INSTANCE 
+		return _checkedClsCreation( apiobj, cls, MayaNode ) 
 	
 	
 
