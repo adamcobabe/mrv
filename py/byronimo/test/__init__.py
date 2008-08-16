@@ -52,6 +52,10 @@ def run_generic( packageObj, **runner_args ):
 	testrunner = unittest.TextTestRunner( **runner_args )
 	return testrunner.run( get_package_suite( packageObj ) )
 	
+def get_suite( ):
+	"""@return: package suite of this module"""
+	import byronimo.test as self
+	return get_package_suite( self )
 	
 def run( **runner_args ):
 	"""Run all the tests defined in L{byronimo.test} 

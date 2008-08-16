@@ -52,7 +52,7 @@ def addCustomType( newcls, metaClass=types.MetaClassCreatorNodes, parentClsName=
 	@param metaClass: custom metaclass to create newcls type string
 	@param parentClsName: if metaclass is set, the parentclass name ( of a class existing 
 	in the nodeTypeTree ( see /maya/cache/nodeHierarchy_version.html )
-	Otherwise the parentclassname will be extracted from the newcls object
+	Otherwise, if unset, the parentclassname will be extracted from the newcls object
 	@raise KeyError: if the parentClsName does not exist""" 
 	newclsname = newcls
 	newclsobj = None
@@ -60,7 +60,8 @@ def addCustomType( newcls, metaClass=types.MetaClassCreatorNodes, parentClsName=
 	if not isinstance( newcls, basestring ):
 		newclsname = newcls.__name__
 		newclsobj = newcls
-		parentname = newcls.__bases__[0].__name__
+		if not parentClsName:
+			parentname = newcls.__bases__[0].__name__
 	
 	# add to hierarchy tree 
 	import types
