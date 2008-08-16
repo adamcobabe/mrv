@@ -1,4 +1,4 @@
-"""B{byronimo.maya.nodes.test}
+"""B{byronimotest.byronimo.maya.nodes.general}
 
 Test general nodes features
 
@@ -21,7 +21,7 @@ import byronimo.maya as bmaya
 import byronimo.maya.env as env
 import byronimo.maya.nodes as nodes
 import byronimo.maya.nodes.types as types
-from byronimo.maya.test import get_maya_file
+from byronimotest.byronimo.maya import get_maya_file
 from byronimo.util import capitalize
 from byronimo.maya.util import StandinClass
 import maya.cmds as cmds

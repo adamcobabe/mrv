@@ -1,4 +1,4 @@
-"""B{byronimo.maya.nodes.test}
+"""B{byronimotest.byronimo.maya.nodes}
 
 Intialize the byronimo maya nodes testing suite
 
@@ -16,13 +16,13 @@ __id__="$Id: __init__.py 22 2008-07-16 20:41:16Z byron $"
 __copyright__='(c) 2008 Sebastian Thiel'
 
 import unittest
-import byronimo.test as common
+import byronimotest as common
 
 import byronimo.maya.nodes as nodes
 	
 def get_suite( ):
 	""" @return: testsuite with all tests of this package"""
-	import byronimo.maya.nodes.test as self	
+	import byronimotest.byronimo.maya.nodes as self	
 	
 	# each test has to check whether he can run in batch mode or not
 	return common.get_package_suite( self )

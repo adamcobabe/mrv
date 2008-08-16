@@ -17,7 +17,7 @@ __copyright__='(c) 2008 Sebastian Thiel'
 
 
 import unittest
-import byronimo.maya.test as common
+import byronimotest.byronimo.maya as common
 from byronimo.maya.scene import Scene
 from byronimo.maya.namespace import *
 import byronimo.maya as bmaya

@@ -1,4 +1,4 @@
-"""B{byronimo.test.configuration}
+"""B{byronimotest.byronimo.configuration}
 Test all aspects of the configuration management system
 
 @newfield revision: Revision

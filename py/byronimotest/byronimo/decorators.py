@@ -1,4 +1,4 @@
-"""B{byronimo.test.decorators}
+"""B{byronimotest.byronimo.decorators}
 Test all aspects of decorators
 
 	- use test classes and run test on their possibly decorated functions
@@ -9,7 +9,7 @@ deactivated in that case
 @newfield revision: Revision
 @newfield id: SVN Id
 """
-
+                                                            
 __author__='$Author$'
 __contact__='byron@byronimo.de'
 __version__=1

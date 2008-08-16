@@ -1,4 +1,4 @@
-"""B{byronimo.maya.test.scene}
+"""B{byronimotest.byronimo.maya.scene}
 
 Test the scene methods  
 
@@ -24,7 +24,7 @@ import byronimo.maya.env as env
 from byronimo.path import Path
 import tempfile 
 import shutil
-import byronimo.maya.test as common
+import byronimotest.byronimo.maya as common
 	
 class TestSceneRunner( unittest.TestCase ):
 	""" Test the database """

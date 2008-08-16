@@ -1,4 +1,4 @@
-"""B{byronimo.test.util}
+"""B{byronimotest.byronimo.util}
 Test misc utility classes
 
 

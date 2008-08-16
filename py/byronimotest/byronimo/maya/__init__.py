@@ -1,4 +1,4 @@
-"""B{byronimo.maya.test}
+"""B{byronimotest.byronimo.maya}
 
 Intialize the byronimo maya testing suite
 
@@ -17,7 +17,7 @@ __copyright__='(c) 2008 Sebastian Thiel'
 
 import unittest
 import byronimo.maya as bmaya
-import byronimo.test as common
+import byronimotest as common
 import os
 
 def get_maya_file( filename ):
@@ -31,7 +31,7 @@ def get_suite( ):
 	# custom setup
 	bmaya.Mel.putenv( "MAYAFILEBASE", os.path.dirname( __file__ ) )
 	
-	import byronimo.maya.test as self	
+	import byronimotest.byronimo.maya as self	
 	return common.get_package_suite( self )
 	
 def run( **runner_args ):

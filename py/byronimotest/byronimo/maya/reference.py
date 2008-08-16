@@ -1,4 +1,4 @@
-"""B{byronimo.maya.test.reference}
+"""B{byronimotest.byronimo.maya.reference}
 
 Test the reference methods  
 
@@ -17,7 +17,7 @@ __copyright__='(c) 2008 Sebastian Thiel'
 
 
 import unittest
-import byronimo.maya.test as common
+import byronimotest.byronimo.maya as common
 from byronimo.maya.scene import Scene
 import maya.OpenMaya as om
 import maya.cmds as cmds 
