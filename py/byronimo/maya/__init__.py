@@ -21,6 +21,7 @@ __copyright__='(c) 2008 Sebastian Thiel'
 
 
 import os, sys
+from byronimo import init_modules
 from byronimo.util import capitalize, DAGTree
 from byronimo.exceptions import ByronimoError
 
@@ -268,6 +269,7 @@ if 'init_done' not in locals():
 if not init_done:
 	# assure we do not run several times
 	init_system( )
+	init_modules( __file__, "byronimo.maya" )
 	init_singletons( )
 	
 

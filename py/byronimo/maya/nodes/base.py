@@ -32,6 +32,7 @@ import maya.OpenMaya as api
 #### Methods 		  	####
 ##########################
 
+#{ Node Mapping 
 def nodeTypeToNodeTypeCls( apiobj ):
 	""" Convert the given api object ( MObject ) or type name to the respective python node type class
 	@param apiobj: MObject or nodetype name """
@@ -119,6 +120,27 @@ def toApiObject( nodeName, dagPlugs=True ):
 	# END if no exception on selectionList.add  
 	return None
 	
+#} END node mapping 
+
+
+#{ Base 
+def createNode( nodename, nodetype, autocreateNamespace=True, autocreateParent=True ):
+	"""Create a new node of nodetype with given nodename
+	@param nodename: like "mynode" or "namespace:mynode" or "parent|mynode" or 
+	"ns1:parent|ns1:ns2:parent|ns3:mynode". The name may contain any amount of parents
+	and/or namespaces.
+	@param nodetype: a nodetype known to maya to be created accordingly
+	@param autocreateNamespace: if True, namespaces given in the nodename will be created
+	if required
+	@param autocreateParent: if True, transform nodes for dagtype parents will automatically 
+	be created if required.
+	@raise ValueError: If nodename contains namespaces or parents that may not be created
+	@return: the newly create MayaNode"""
+	pass 
+	
+
+
+#}
 
 def _checkedClsCreation( apiobj, clsToBeCreated, basecls ):
 	"""Utiliy method creating a new class instance according to additional type information
@@ -181,6 +203,7 @@ def _createInstByPredicate( apiobj, cls, basecls, predicate ):
 #### Classes		  	####
 ##########################
 
+#{ Base 
 class MayaNode( object ):
 	"""Common base for all maya nodes, providing access to the maya internal object 
 	representation
@@ -342,7 +365,7 @@ class Data( api.MObject ):
 		return newinst
 		# END for each known attr type
 		 
-
+#} END base ( classes )
 
 		
 

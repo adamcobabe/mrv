@@ -21,7 +21,7 @@ x   | create                                  | None                |
     | isNewAttribute                          | None                |                                         
     | isShared                                | None                |                                         
     | name                                    | None                | getName                                        
-    | parentNamespace                         | None                |                                  
+    | parentNamespace                         | Namespace           | getNamespace                                 
     | plugsAlias                              | None                | getPlugAlias                            
     | removeAttribute                         | Attribute           | getReorderedAttribute                                       
     | reorderedAttribute                      | None                |                                         

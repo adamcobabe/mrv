@@ -78,4 +78,6 @@ class TestReferenceRunner( unittest.TestCase ):
 				self.failUnless( not child.exists() )
 		
 		
-		
+		# empty namespace must come out as root 
+		ns = Namespace( "" )
+		self.failUnless( ns == Namespace.rootNamespace )

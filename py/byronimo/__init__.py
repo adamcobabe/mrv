@@ -25,7 +25,40 @@ __all__ = []
 
 
 import os, sys
+from path import Path 
 
+
+#{ Common 
+def init_modules( filepath, moduleprefix ):
+	""" Call '__initialize' functions in submodules of module at filepath if they exist
+	These functions should setup the module to be ready for work, its a callback informing 
+	the submodules that the super module is being requested
+	@param filepath: your module module.__file__ value
+	@param moduleprefix: prefix like "super.yourmodule." leading to the submodules from 
+	an available system include path
+	@note: in this moment, all submodules will be 'pulled' in"""
+	moduledir = Path( filepath  ).p_parent
+	modulefiles = moduledir.glob( "*.py" )
+	
+	# import each module
+	for modulefile in modulefiles:
+		modulename = modulefile.p_namebase
+		if modulename.startswith( "_" ) or modulename.startswith( "." ):
+			continue
+		
+		if not moduleprefix.endswith( "." ):
+			moduleprefix += "."
+			
+		module = __import__( moduleprefix + modulename , globals(), locals(), [ modulename ] )
+		
+		# call init 
+		if hasattr( module, "__initialize" ):
+			print "Initializing " + module.__name__ 
+			module.__initialize( )
+
+#} END common
+
+#{ Initialization 
 def _init_syspath( ):
 	""" Initialize the path such that additional modules can be found"""
 	# get external base
@@ -103,6 +136,7 @@ def _init_python( ):
 			
 		Exception.__init__ = myinit
 	
+#} END initialization 
 	
 # INITIALIZE
 #############

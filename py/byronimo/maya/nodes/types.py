@@ -17,7 +17,6 @@ __revision__="$Revision: 16 $"
 __id__="$Id: configuration.py 16 2008-05-29 00:30:46Z byron $"
 __copyright__='(c) 2008 Sebastian Thiel'
 
-env = __import__( "byronimo.maya.env", globals(), locals(), ['env'] )
 nodes = __import__( "byronimo.maya.nodes", globals(), locals(), ['nodes'] )
 from byronimo.maya.util import MetaClassCreator
 import byronimo.maya as bmaya
@@ -258,7 +257,7 @@ class MetaClassCreatorNodes( MetaClassCreator ):
 def getCacheFilePath( filename, ext ):
 	"""Return path to cache file from which you would initialize data structures"""
 	mfile = Path( __file__ ).p_parent.p_parent
-	return mfile / ( "cache/%s_%s.%s" % ( filename, env.getAppVersion()[0], ext ) )
+	return mfile / ( "cache/%s.%s" % ( filename, ext ) )
 	
 
 def init_nodehierarchy( ):
@@ -312,7 +311,7 @@ def _addCustomType( targetmodule, parentclsname, newclsname, metaclass=MetaClass
 	@param targetmodule: the module to which standin classes are supposed to be added 
 	@param parentclsname: the name of the parent node type - if your new class 
 	has several parents, you have to add the new types beginning at the first exsiting parent
-	as written in the maya/cache/nodeHierarchy_version.html file
+	as written in the maya/cache/nodeHierarchy.html file
 	@param newclsname: the new name of your class - it must exist targetmodule
 	@param metaclass: meta class object to be called to modify your type upon creation
 	It will not be called if the class already exist in targetModule. Its recommended to derive it 

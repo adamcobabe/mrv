@@ -31,6 +31,7 @@ class Namespace( unicode, iDagItem ):
 	
 	rootNamespace = ':'
 	_defaultns = [ 'UI','shared' ]			# default namespaces that we want to ignore in our listings  
+	defaultIncrFunc = lambda b,i: "%s%02i" % ( b,i ) 
 	
 	#{ Overridden Methods
 		
@@ -39,7 +40,7 @@ class Namespace( unicode, iDagItem ):
 		@param namespacepath: the namespace to wrap - it should be absolut to assure
 		relative namespaces will not be interpreted in an unforseen manner ( as they 
 		are relative to the currently set namespace
-		Set it ":" to describe the root namespace 
+		Set it ":" ( or "" ) to describe the root namespace 
 		@param force_absolute: if True, incoming namespace names will be made absolute if not yet the case 
 		@note: the namespace does not need to exist, but many methods will not work if so.
 		NamespaceObjects returned by methods of this class are garantueed to exist"""
@@ -49,7 +50,7 @@ class Namespace( unicode, iDagItem ):
 				if not namespacepath.startswith( ":" ):		# do not force absolute namespace !
 					namespacepath = ":" + namespacepath
 			# END if absolute 
-			if namespacepath.endswith( ":" ):
+			if len( namespacepath ) > 1 and namespacepath.endswith( ":" ):
 				namespacepath = namespacepath[:-1]
 		# END if its not the root namespace 
 		return unicode.__new__( cls, namespacepath )
@@ -191,7 +192,7 @@ class Namespace( unicode, iDagItem ):
 	#{Query Methods
 		
 	@staticmethod
-	def getUnique( basename, incrementFunc = lambda b,i: "%s%02i" % ( b,i ) ):
+	def getUnique( basename, incrementFunc = defaultIncrFunc ):
 		"""Create a unique namespace
 		@param basename: the base name of the namespace, like ":mynamespace"
 		@param incrementFunc: func( basename, index ), returns a unique name generated

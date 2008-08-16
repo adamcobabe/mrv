@@ -32,7 +32,7 @@ def run_generic( packageObj, **runner_args ):
 	@return: L{unittest.TestResult}
 	"""
 	testrunner = unittest.TextTestRunner( **runner_args )
-	return testrunner.run( get_package_suite( packageObj ) )
+	return testrunner.run( common.get_package_suite( packageObj ) )
 	
 	
 def run( **runner_args ):

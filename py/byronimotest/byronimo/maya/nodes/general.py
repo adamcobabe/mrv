@@ -196,6 +196,10 @@ class TesNodeBase( unittest.TestCase ):
 			attr = node.getAttribute( i )
 			self.failUnless( not attr.isNull() )
 			
+		# CHECK namespaces - should be root namespace 
+		ns = node.getNamespace( )
+		self.failUnless( ns == nodes.Namespace.rootNamespace )
+			
 		
 	def test_wrapDagNode( self ):
 		"""byronimo.maya.nodes: create and access dag nodes"""
