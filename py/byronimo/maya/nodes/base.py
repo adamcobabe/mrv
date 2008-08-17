@@ -297,6 +297,7 @@ class DependNode( MayaNode ):
 	#}
 	
 	#{ Connections and Attributes 
+	
 	def getConnections( self ):
 		"""@return: MPlugArray of connected plugs"""
 		cons = api.MPlugArray( )

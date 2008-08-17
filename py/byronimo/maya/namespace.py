@@ -72,14 +72,6 @@ class Namespace( unicode, iDagItem ):
 	#}END Overridden Methods
 
 	#{Edit Methods
-	@staticmethod
-	def getCurrent( ):
-		"""@return: the currently set absolute namespace """
-		# will return namespace relative to the root - thus is absolute in some sense
-		nsname = cmds.namespaceInfo( cur = 1 )
-		if not nsname.startswith( ':' ):		# assure we return an absoslute namespace
-			nsname = ":" + nsname
-		return Namespace( nsname )
 		
 	@staticmethod
 	def create( namespaceName ):
@@ -87,7 +79,8 @@ class Namespace( unicode, iDagItem ):
 		@param namespaceName: the name of the namespace, absolute or relative - 
 		it may contain subspaces too, i.e. :foo:bar.
 		fred:subfred is a relative namespace, created in the currently active namespace
-		@return: the create Namespace object"""
+		@return: the create Namespace object
+		@todo: Implement proper undo !"""
 		newns = Namespace( namespaceName )
 		
 		if newns.exists():		 # skip work
@@ -117,8 +110,8 @@ class Namespace( unicode, iDagItem ):
 		@note: if the namespace already exists, the existing one will be returned with 
 		all objects from this one added accordingly
 		@param newName: the absolute name of the new namespace
-		@return: Namespace with the new name"""
-		# TODO: actually the objects 
+		@return: Namespace with the new name
+		@todo: Implement proper undo !"""
 		newnamespace = Namespace( newName )
 		
 		
@@ -136,7 +129,8 @@ class Namespace( unicode, iDagItem ):
 		"""Move objects from this to the targetNamespace
 		@param force: if True, namespace clashes will be resolved by renaming, if false 
 		possible clashes would result in an error
-		@param autocreate: if True, targetNamespace will be created if it does not exist yet"""
+		@param autocreate: if True, targetNamespace will be created if it does not exist yet
+		@todo: Implement proper undo !"""
 		targetNamespace = Namespace( targetNamespace )
 		if autocreate and not targetNamespace.exists( ):
 			targetNamespace = Namespace.create( targetNamespace )
@@ -150,7 +144,8 @@ class Namespace( unicode, iDagItem ):
 		move_to_namespace must exist
 		@param autocreate: if True, move_to_namespace will be created if it does not exist yet
 		@note: can handle sub-namespace properly
-		@raise RuntimeError:"""
+		@raise RuntimeError:
+		@todo: Implement proper undo !"""
 		if self == self.rootNamespace:
 			raise ValueError( "Cannot delete root namespace" )
 		
@@ -184,12 +179,22 @@ class Namespace( unicode, iDagItem ):
 	
 	def setCurrent( self ):
 		"""Set this namespace to be the current one - new objects will be put in it 
-		by default"""
+		by default
+		@todo: Implement proper undo !"""
 		cmds.namespace( set = self )
 	
-	#}
+	#} END edit methods 
 	
 	#{Query Methods
+	
+	@staticmethod
+	def getCurrent( ):
+		"""@return: the currently set absolute namespace """
+		# will return namespace relative to the root - thus is absolute in some sense
+		nsname = cmds.namespaceInfo( cur = 1 )
+		if not nsname.startswith( ':' ):		# assure we return an absoslute namespace
+			nsname = ":" + nsname
+		return Namespace( nsname )
 		
 	@staticmethod
 	def getUnique( basename, incrementFunc = defaultIncrFunc ):

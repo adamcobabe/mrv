@@ -244,6 +244,55 @@ class Operation:
 	def undoId( self ):
 		"""Undo whatever you did"""
 		raise NotImplementedError
+		
+
+class MelOperation( Operation ):
+	"""Operation able to undo generic mel commands
+	@usage: in your api command, create a mel operation instance, add your mel commands 
+	that should be executed in a row. To apply them, call doIt once ( and only once ! ).
+	You can have only one command stored, or many if they should be executed in a row.
+	The vital part is that with each do command, you supply an undo command. 
+	This way your operations can be undone and redone once undo / redo is requested
+	@note: Undocommand will be applied in revered order automatically"""
+	
+	def __init__( self ):
+		"""intiialize our variables"""
+		Operation.__init__( self )
+		self._docmds = []				# ( cmd, *args, **kwargs ) 
+		self._undocmds = []				# will storae reversed list !
+
+	@staticmethod
+	def _callList( cmdlist ):
+		"""Simply apply the given cmd list without maya undo"""
+		prevstate = cmds.undoInfo( q=1, st=1 )
+		cmds.undoInfo( e=1, st=False )
+		
+		for cmd,args,kwargs in cmdlist:
+			cmd( *args, **kwargs )
+		
+		cmds.undoInfo( e=1, st=prevstate )
+
+	def doIt( self ):
+		"""Call all doIt commands stored in our instance after temporarily disabling the undo queue"""
+		MelOperation._callList( self._docmds )
+	
+	def undoIt( self ):
+		"""Call all undoIt commands stored in our instance after temporarily disabling the undo queue"""
+		# NOTE: the undo list is already reversed !
+		MelOperation._callList( self._undocmds )
+
+		
+	def addCmd( self, 	docmd, doArgs, doKwargs, 
+				undocmd, undoArgs, undoKwargs ):
+		"""Add a command to the queue for later application
+		@param *cmd: docmd does something that is being undone by the undocmd. The commands 
+		are actual comamnd objects
+		@param *args: arguments to be supplied to the respective command
+		@param *kwargs: keyword arguments to be supplied to the respective command
+		@note: if a more complex comamnd is required, use maya.Mel.eval as command 
+		and supply a string in args  to be evaluated"""
+		self._docmds.append( ( docmd, doArgs, doKwargs ) )		# push 
+		self._undocmds.insert( 0, ( undocmd, undoArgs, undoKwargs ) ) # push front
 
 #} END operations
 
