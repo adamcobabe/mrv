@@ -123,8 +123,9 @@ class UndoCmd( mpx.MPxCommand ):
 		if not self._operations:
 			return
 			
-		for op in self._operations:
-			op.undoIt( )
+		# run in reversed order !
+		for index in xrange( len( self._operations )-1, -1, -1 ):
+			self._operations[ index ].undoIt()
 		
 	def isUndoable( self ):
 		"""@return: True if we are undoable - it depends on the state of our 
