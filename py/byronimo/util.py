@@ -45,6 +45,32 @@ def getPythonIndex( index, length ):
 	return length + index			# yes, length be better 1 or more ;)
 
 
+def copyClsMembers( sourcecls, destcls, overwritePrefix = None, forbiddenMembers = [] ):
+	"""Copy the members or sourcecls to destcls while ignoring member names in forbiddenMembers
+	It will only copy mebers of this class, not its base classes
+	@param sourcecls: class whose members should be copied
+	@param destcls: class to receive members from sourcecls
+	@param overwritePrefix: if None, existing members on destcls will not be overwritten, if string, 
+	the original method will be stored in a name like prefix+originalname ( allowing you to access the 
+	original method lateron )
+	@note: this can be useful if you cannot inherit from a class directly because you would get 
+	method resolution order problems
+	@note: see also the L{MetaCopyClsMembers} meta class"""
+	for name,member in sourcecls.__dict__.iteritems():
+		if name in forbiddenMembers:
+			continue
+		try:
+			# store original - overwritten members must still be able to access it
+			if hasattr( destcls, name ):
+				if not overwritePrefix:
+					continue
+				morig = getattr( destcls, name )
+				type.__setattr__( destcls, overwritePrefix+name, morig )
+			type.__setattr__( destcls, name, member )
+		except TypeError:
+			pass 
+	# END for each memebr in sourcecls
+
 ############################
 #### Classes 		  	####
 ##########################
@@ -273,7 +299,37 @@ class PipeSeparatedFile( object ):
 		@param tokens: one token per column that you want to write
 		@raise TypeError: If column count changed between successive calls""" 
 		self._fileobj.write( self._formatstr % tokens )
-			
+		
+		
+class MetaCopyClsMembers( type ):
+	"""Meta class copying members from given classes onto the type to be created
+	it will read the following attributes from the class dict:
+	forbiddenMembers, overwritePrefix, __virtual_bases__
+	
+	The virtual bases are a tuple of base classes whose members you whish to receive
+	For information on these members, check the docs of L{copyClsMembers}"""
+	def __new__( metacls, name, bases, clsdict ):
+		forbiddenMembers = clsdict.get( 'forbiddenMembers', [] )
+		overwritePrefix = clsdict.get( 'overwritePrefix', None )
+		vbases = clsdict.get( '__virtual_bases__', [] )
+		
+		for sourcecls in vbases:
+			for name,member in sourcecls.__dict__.iteritems():
+				if name in forbiddenMembers:
+					continue
+					
+				# store original - overwritten members must still be able to access it
+				if name in clsdict:
+					if not overwritePrefix:
+						continue
+					morig = clsdict[ name ]
+					clsdict[ overwritePrefix+name ] = morig
+				clsdict[ name ] = member
+			# END for each sourcecls member
+		# END for each sourcecls in bases
+		
+		return super( MetaCopyClsMembers, metacls ).__new__( metacls, name, bases, clsdict )
+		
 	
 ###################
 ## PREDICATES ###

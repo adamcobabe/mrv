@@ -22,7 +22,7 @@ import byronimo.maya.env as env
 import byronimo.maya.nodes as nodes
 import byronimo.maya.nodes.types as types
 from byronimotest.byronimo.maya import get_maya_file
-from byronimo.util import capitalize
+from byronimo.util import capitalize,getPythonIndex
 from byronimo.maya.util import StandinClass
 import maya.cmds as cmds
 import maya.OpenMaya as api
@@ -86,12 +86,70 @@ class TestDataBase( unittest.TestCase ):
 				pass 
 	
 	def test_MPlug( self ):
-		"""byronimo.maya.nodes: Test plug ( node.attribute ) """
-		node = nodes.MayaNode( "defaultRenderGlobals" )
-		# for attr in [ "resolution" ]:
+		"""byronimo.maya.nodes: Test plug abilities( node.attribute ) """
+		persp = nodes.MayaNode( "persp" )
+		front	 = nodes.MayaNode( "front" )
+		matworld = persp.worldMatrix
+		
+		str( matworld )
+		repr( matworld )
+		
+		# CONNECTIONS 
+		#######################
+		# CHECK COMPOUND ACCESS
+		tx = persp.translate.tx	
+		
+		# DO CONNECTIONS ( test undo/redo )
+		persp.translate >> front.translate
+		
+		self.failUnless( persp.translate & front.translate )	# isConnectedTo
+		self.failUnless( persp.translate.p_input.isNull( ) )
+		cmds.undo( )
+		self.failUnless( not persp.translate.isConnectedTo( front.translate ) )
+		cmds.redo( )
+		self.failUnless( front.translate in persp.translate.p_outputs )
+		
+		# CHECK CONNECTION FORCING  - already connected 
+		persp.translate >  front.translate
+		self.failUnlessRaises( RuntimeError, persp.scale.__gt__, front.translate )# lhs > rhs 
+		
+		
+		
+		# QUERY
+		############################
+		# ELEMENT ITERATION
+		matworld.evaluateNumElements( )
+		for elm in matworld:
+			self.failUnless( elm.getParent( ) == matworld )
+			
+		translate = persp.translate
+		
+		self.failUnless( len( translate.getChildren() ) == translate.getNumChildren() )
+						
+		# CHILD ITERATION
+		for child in translate.getChildren( ):
+			self.failUnless( child.getParent( ) == translate )
+			
+			
+		# SUB PLUGS GENERAL METHOD
+		self.failUnless( len( matworld ) == len( matworld.getSubPlugs() ) )
+		self.failUnless( translate.numChildren() == len( translate.getSubPlugs() ) )
+
+
+		# CHECK ATTRIBUTES and NODES
+		for plug,attrtype in zip( [ matworld, translate ], [ nodes.TypedAttribute, nodes.NumericAttribute ] ):
+			attr = plug.getAttribute( )
+			self.failUnless( isinstance( attr, nodes.Attribute ) )
+			self.failUnless( isinstance( attr, attrtype ) )
+		                                                           
+			node = plug.getNode()
+			self.failUnless( isinstance( node, nodes.MayaNode ) )
+			self.failUnless( node == persp )
+			
+		
 	
 	def test_matrixData( self ):
-		"""byronimo.nodes: test matrix data"""
+		"""byronimo.maya.nodes: test matrix data"""
 		node = nodes.MayaNode( "persp" )
 		matplug = node.getPlug( "worldMatrix" )
 		self.failUnless( not matplug.isNull() )
@@ -123,17 +181,16 @@ class TestDataBase( unittest.TestCase ):
 		
 		self.failUnless( len( pa ) == 4 )
 		
+		# SETITEM 
 		l = 5
 		pa.setLength( l )
+		nullplug = pa[0]
 		for i in range( l ):
-			try:
-				pa[i] = api.MPlug()
-			except TypeError:
-				pass # happens because of bug
-			else:
-				raise ValueError( "Wow, MPlugArray.set now works" )
+			pa[i] = nullplug
+				
 		
-		for plug in pa:			# test iterator
+		# __ITER__
+		for plug in pa:			
 			plug.getName( )
 			self.failUnless( isinstance( plug, api.MPlug ) )
 			
@@ -199,6 +256,7 @@ class TesNodeBase( unittest.TestCase ):
 		# CHECK namespaces - should be root namespace 
 		ns = node.getNamespace( )
 		self.failUnless( ns == nodes.Namespace.rootNamespace )
+		
 			
 		
 	def test_wrapDagNode( self ):

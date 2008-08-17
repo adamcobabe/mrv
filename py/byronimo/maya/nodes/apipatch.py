@@ -8,6 +8,9 @@ api classes.
 
 As they are usually derived from the class they patch , they could also be used directly
 
+@note: NEVER IMPORT CLASSES DIRECTLY IN HERE, keep at least one module , thus:
+NOT: thisImportedClass BUT: module.thisImportedClass !
+
 @newfield revision: Revision
 @newfield id: SVN Id
 """
@@ -23,10 +26,13 @@ __copyright__='(c) 2008 Sebastian Thiel'
 
 
 nodes = __import__( "byronimo.maya.nodes", globals(), locals(), [ 'nodes' ] )
+modifiers = __import__( "byronimo.maya.nodes.modifiers", globals(), locals(), ['modifiers'] )
+
 import byronimo.util as util
 from byronimo.util import getPythonIndex 
 import maya.OpenMaya as api
 import inspect 
+
 
 
 def init_applyPatches( ):
@@ -47,38 +53,29 @@ def init_applyPatches( ):
 	
 	for cls in classes:
 		# use the main class as well as all following base
-		# the first base is always the main maya type that is patched
+		# the first base is always the main maya type that is patched - we skip it
 		templateclasses = [ cls ]
 		templateclasses.extend( cls.__bases__[ 1: ] )
 		
+		# assure that the actual class rules over methods from lower base classes
+		# by applying them last 
+		templateclasses.reverse()
 
 		# skip abstract classes ?
 		if cls is Abstract or cls.__bases__[0] is Abstract:
 			continue
 			
+		apicls = cls.__bases__[0]
+		
 		# SPECIAL CALL INTERFACE ?
 		# If so, call and let the class do the rest
 		if hasattr( cls, "_applyPatch" ):
 			if not cls._applyPatch(  ):
 				continue
 		
-		
-		apicls = cls.__bases__[0]
-		
 		for tplcls in templateclasses:
-			for name,member in tplcls.__dict__.iteritems():
-				if name in forbiddenMembers:
-					continue
-				try:
-					# store original - overwritten members must still be able to access it
-					if hasattr( apicls, name ):
-						morig = getattr( apicls, name )
-						type.__setattr__( apicls, "_api_"+name, morig )
-					type.__setattr__( apicls, name, member )
-				except TypeError:
-					pass 
-				# END set patch member
-			# END for each overwritten/patched member
+			util.copyClsMembers( tplcls, apicls, overwritePrefix="_api_",
+										forbiddenMembers = forbiddenMembers )
 		# END for each template class
 	# END for each cls of this module 
 	pass 
@@ -217,26 +214,233 @@ class MPlug( api.MPlug, util.iDagItem ):
 		"""@return: Plug at physical index """
 		if not self.isArray( ): return 0
 		return self.getNumElements( )
+		
+	def __iter__( self ):
+		"""@return: iterator object"""
+		return util.IntKeyGenerator( self )
+		
+	def __str__( self ):
+		"""@return: name of plug"""
+		#print repr( self )
+		#if self.isNull(): return ""
+		return api.MPlug.name( self ) 
+		
+	def __repr__( self ):
+		"""@return: our class representation"""
+		return "%s(%s_asAPIObj)" % ( self.__class__.__name__, self.getName() )
+
+	def __getattr__( self, attr ):
+		"""@return: a child plug with the given name or fail
+		@note: if a name is not known to this class, we check for children having 
+		attr as short or long name
+		@note: once an attribute has been found, it will be cached in dict for fast
+		repetitive query"""
+		if attr == 'thisown':			# special pointer type usually requested
+			return api.MPlug.__getattr__( self, attr ) 
+		
+		plug = None
+		for child in self.getChildren( ):
+			# short and long name test 
+			if child.partialName( ) == attr or child.partialName( 0, 0, 0, 0, 0, 1 ) == attr: 
+				plug = child
+				break
+		# END for each child
+		
+		# found something ?
+		#print plug
+		#print plug.isNull()
+		if plug is not None:
+			setattr( self, attr, plug )
+			return plug
+			
+		# let default handler do the job 
+		#return super( MPlug, self ).__getattr__( self, attr )
+		raise AttributeError( "'%s' child plug not found in %s" % ( attr, self ) )
+	
+	
 	#} Overridden Methods
+	
+	#{ Plug Hierarchy Query 
+	def getParent( self ):
+		"""@return: parent of this plug or None
+		@note: for array plugs, this is the array, for child plugs the actual parent """
+		p = None
+		if self.isChild( ):
+			p = api.MPlug.parent( self )
+		elif self.isElement( ):
+			p = self.getArray( )
+		
+		if p.isNull( ):	# sanity check - not all
+			return None
+		
+		return p
+	
+	def getChildren( self , predicate = lambda x: True):
+		"""@return: list of intermediate child plugs, [ plug1 , plug2 ]
+		@param predicate: return True to include x in result"""
+		outchildren = []
+		nc = self.getNumChildren( )
+		for c in xrange( nc ):
+			child = self.getChild( c )
+			if predicate( child ):
+				outchildren.append( child )
+		# END FOR EACH CHILD 
+		
+		return outchildren
+		
+	def getSubPlugs( self , predicate = lambda x: True):
+		"""@return: list of intermediate sub-plugs that are either child plugs or elemnt plugs
+		@param predicate: return True to include x in result
+		@note: use this function recursively for easy deep traversal of all 
+		combinations of array and compound plugs"""
+		if self.isCompound( ):
+			outchildren = []
+			nc = self.getNumChildren( )
+			for c in xrange( nc ):
+				child = self.getChild( c )
+				if predicate( child ):
+					outchildren.append( child )
+			# END FOR EACH CHILD 
+			return outchildren
+		elif self.isArray( ):
+			return [ elm for elm in self ]
+		
+		# we have no sub plugs 
+		return []
+	
+	#} END hierarcy query 
+	
+	
+	#{ Connections ( Edit and Query )
+	
+	@undoable
+	def connectTo( self, destplug, force=True ):
+		"""Connect this plug to the right hand side plug
+		@param destplug: the plug to which to connect this plug to
+		@param force: if True, the connection will be created even if another connection 
+		has to be broken to achieve that. 
+		If False, the connection will fail if destplug is already connected to another plug
+		@note: equals lhsplug >> rhsplug ( force = True ) or lhsplug > rhsplug ( force = False )
+		@raise RuntimeError: If destination is already connected and force = False """
+		# NOTE: we do not precreate dgmodifiers until the point that we know we will use 
+		# them ( undo queue special )
+		if force:
+			mod = modifiers.DGModifier( )
+			mod.connect( self, destplug )
+			mod.doIt( )
+		else:
+			# handle possibly connected plugs 
+			if self.isConnectedTo( destplug ):		# already connected ?
+				return 
+			
+			# is destination already input-connected ?
+			if not destplug.p_input.isNull():
+				raise RuntimeError( "%s > %s failed as destination is connected" % ( self, destplug ) ) 
+							
+			# otherwise we can do the connection 
+			mod = modifiers.DGModifier( )
+			mod.connect( self, destplug )
+			mod.doIt( )
+		# END force handling 	
+	
+	@undoable	
+	def disconnectInput( self ):
+		"""Disconnect the input connection if one exists"""
+		raise NotImplemented
+		
+	@undoable
+	def disconnectOutput( self ):
+		"""Disconnect all outgoing connections if they exist"""
+		raise NotImplemented
+		
+	@undoable
+	def disconnectFrom( self, other ):
+		"""Disconnect this plug from other plug if they are connected"""
+		raise NotImplemented
+		
+	@staticmethod
+	def haveConnection( lhsplug, rhsplug ):
+		"""@return: True if lhsplug and rhs plug are connected - the direction does not matter
+		@note: equals lhsplug & rhsplug"""
+		return lhsplug.isConnectedTo( rhsplug ) or rhsplug.isConnectedTo( lhsplug )
+		
+	def isConnectedTo( self, destplug ):
+		"""@return: True if this plug is connected to destination plug ( in that order )
+		@note: return true for self > destplug but false for destplug > self
+		@note: use the haveConnection method whether both plugs have a connection no matter which direction
+		@note: use L{isConnected} to find out whether this plug is connected at all"""
+		return destplug in self.getOutputs()
+		
+	def getOutputs( self ):
+		"""@return: MPlugArray with all plugs having this plug as source
+		@todo: should the method be smarter and deal nicer with complex array or compound plugs ?""" 
+		outputs = api.MPlugArray()
+		self.connectedTo( outputs, False, True )
+		return outputs
+		
+	def getInput( self ):
+		"""@return: plug being the source of a connection to this plug or a null plug 
+		if no such plug exists"""
+		inputs = api.MPlugArray()
+		self.connectedTo( inputs, True, False )
+		
+		noInputs = len( inputs )
+		if noInputs == 0:
+			# TODO: find a better way to get a MPlugPtr type that can properly be tested for isNull
+			pa = api.MPlugArray( )
+			pa.setLength( 1 )
+			return pa[0]
+		
+		if noInputs == 1:
+			return inputs[0]
+			
+		# must have more than one input - can this ever be ?
+		raise ValueError( "Plug %s has more than one input plug - check how that can be" % self )
+		
+	def getConnections( self ):
+		"""@return: tuple with input and outputs ( inputPlug, outputPlugs )"""
+		return ( self.getInput( ), self, getOutputs() )
+		
+		
+	
+	#} END connections 
 	
 	#{ Edit
 	
-	#}
+	#} END edit
 	
-	#{ Plug Hierarchy Query
+	#{ Query
 	
-	#}
+	def getAttribute( self ):
+		"""@return: Attribute instance of our underlying attribute"""
+		return nodes.Attribute( api.MPlug._api_attribute( self ) )
+		
+	def getNode( self ):
+		"""@return: MayaNode instance of our underlying node"""
+		return nodes.MayaNode( api.MPlug._api_node( self ) )
 	
-	#{ Data Query  
 	def asMObject( *args, **kwargs ):
 		"""@return: our Mobjects wrapped in L{Data}"""
 		return nodes.Data( api.MPlug._api_asMObject( *args, **kwargs ) )
 		
+	#} END query
+	
+	
+	#{ Properties
+	p_outputs = property( getOutputs )
+	p_input = property( getInput )
+	p_connections = property( getConnections )
+	
 	#}
 	
 	#{ Name Remapping 
+	__rshift__ = lambda self,other: self.connectTo( other, force=True )
+	__gt__ = lambda self,other: self.connectTo( other, force=False ) 
+	__and__ = lambda lhs,rhs: MPlug.haveConnection( lhs, rhs )
+	__floordiv__ = disconnectFrom
+	node = getNode
+	attribute = getAttribute
 	getChild = api.MPlug.child
-	getParent = api.MPlug.parent
 	getArray = api.MPlug.array
 	getByIndex = api.MPlug.elementByPhysicalIndex
 	getByLogicalIndex = api.MPlug.elementByLogicalIndex
@@ -244,7 +448,9 @@ class MPlug( api.MPlug, util.iDagItem ):
 	getNumElements = api.MPlug.numElements
 	getName = api.MPlug.name
 	getPartialName = api.MPlug.partialName
-	#]
+	getLogicalIndex = api.MPlug.logicalIndex
+	getNumChildren = api.MPlug.numChildren
+	#} END name remapping 
 	
 #}
 

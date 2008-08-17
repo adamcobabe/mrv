@@ -48,6 +48,7 @@ class MetaClassCreatorNodes( MetaClassCreator ):
 	targetModule = None				# must be set in intialization to tell this class where to put newly created classes
 	mfnclsattr = '_mfncls'
 	mfndbattr = '_mfndb'
+	getattrorigname = '__getattr_orig'
 	
 	@staticmethod
 	def _readMfnDB( mfnclsname ):
@@ -126,11 +127,11 @@ class MetaClassCreatorNodes( MetaClassCreator ):
 	def _wrapLazyGetAttr( thiscls, newcls ):
 		""" Attach the lazy getattr wrapper to newcls """
 		# keep the original getattr 
-		getattrorig = None
 		if hasattr( newcls, '__getattr__' ):
 			getattrorig =  newcls.__dict__.get( '__getattr__', None )
-		if getattrorig:
-			getattrorig.__name__ = "__getattr_orig" 
+			if getattrorig:
+				getattrorig.__name__ = thiscls.getattrorigname
+				setattr( newcls, thiscls.getattrorigname, getattrorig )
 		
 		# CREATE GET ATTR CUSTOM FUNC
 		# called if the given attribute is not available in class 
@@ -170,30 +171,55 @@ class MetaClassCreatorNodes( MetaClassCreator ):
 				newinstfunc = new.instancemethod( newclsfunc, self, basecls )	# create the respective instance method !
 				actualcls = basecls
 				break					# stop here - we found it 
-			# END for each basecls
-				
+			# END for each basecls ( searching for mfn func )
+			
+			# STORE MFN FUNC ( if available )
+			# store the new function on instance level !
+			# ... and on class level
+			if newclsfunc:
+				setattr( self, attr, newinstfunc )
+				setattr( actualcls, attr, newclsfunc )
+				return newinstfunc
+			
+			
 			# ORIGINAL ATTRIBUTE HANDLING
 			###############################
 			# still no funcion ? Continue with non-mfn search routine )
-			if not newclsfunc:
-				if not getattrorig:
-					raise AttributeError( "Could not find mfn function for %s" % attr )
-				# mfn func does not exist, pass on the call to whatever we had - thus we take precedence
-				# passing the call allows subclasses to use function set methods of superclasses
-				# accordingly
-				return getattrorig( self, attr )
+			# try to find orignal getattrs in our base classes - if we have overwritten 
+			# them we find them under a backup attribute, otherwise we check the name of the 
+			# original method for our lazy tag ( we never want to call our own counterpart on a 
+			# base class  
+			getattrorigfunc = None
+			for basecls in newcls.mro():
+				if hasattr( basecls, thiscls.getattrorigname ):
+					getattrorigfunc = getattr( basecls, thiscls.getattrorigname )
+					break
+				# END orig getattr method check
+					
+				# check if the getattr function itself is us or not 
+				if hasattr( basecls, '__getattr__' ):
+					getattrfunc = getattr( basecls, '__getattr__' )
+					if getattrfunc.func_name != "meta_getattr_lazy":
+						getattrorigfunc = getattrfunc
+						break
+				# END default getattr method check
+			# END for each base ( searching for getattr_orig or nonoverwritten getattr )
+			
+			if not getattrorigfunc:
+				raise AttributeError( "Could not find mfn function for attribute '%s'" % attr )
+				
+			# pass on the call - if this method produces an output, its responsible for caching 
+			# it in the isntance dict 
+			return getattrorigfunc( self, attr )
 			# EMD orig getattr handling 
 			
-			# store the new function on instance level !
-			# ... and on class level
-			setattr( self, attr, newinstfunc )
-			setattr( actualcls, attr, newclsfunc )
-			return newinstfunc
+			
 				
 		# END getattr_lazy func definition 		
 		
 		# STORE LAZY GETATTR 
-		meta_getattr_lazy.__name__ = "__getattr__"
+		#meta_getattr_lazy.__name__ = "__getattr__"	# lets keep the original method, we us it for 
+		# identification !
 		setattr( newcls, "__getattr__", meta_getattr_lazy )
 	
 	

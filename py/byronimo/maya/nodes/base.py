@@ -250,6 +250,14 @@ class MayaNode( object ):
 		# CREATE INSTANCE 
 		return _checkedClsCreation( apiobj, cls, MayaNode ) 
 	
+	#{ Overridden Methods 
+	def __eq__( self, other ):
+		"""Compare MObjects directly"""
+		if not isinstance( other, MayaNode ):
+			other = MayaNode( other )
+		return self._apiobj == other._apiobj
+	
+	#}
 	
 
 class DependNode( MayaNode ):

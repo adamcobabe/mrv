@@ -148,7 +148,6 @@ class UndoCmd( mpx.MPxCommand ):
 		syntax.addFlag( UndoCmd.fPop, "-popStack" )
 		
 		syntax.enableEdit( )
-		#syntax.enableQuery( )
 		
 		return syntax
 
@@ -171,12 +170,15 @@ def undoable( func ):
 	"""Decorator wrapping func so that it will start undo when it begins and end undo 
 	when it ends. It assures that only toplevel undoable functions will actually produce 
 	an undo event
-	@note: Using decorated functions appears to be only slightly slower ( if so ) than implementing it 
+	To mark a function undoable, decorate it:
+	@@undoable
+	def func( ):
+		pass 
+	@note: Using decorated functions appears to be only FASTER  than implementing it 
 	manually, thus using these is will greatly improve code readability"""
 	def wrapFunc( *args, **kwargs ):
 		"""This is the long version of the method as it is slightly faster than
 		simply using the StartUndo helper"""
-		#StartUndoInsurance = StartUndo()
 		mel.eval( "byronimoUndo -psh" )
 		try:
 			rval = func( *args, **kwargs )
@@ -194,7 +196,7 @@ def undoable( func ):
 
 class StartUndo:
 	"""Utility class that will push the undo stack on __init__ and pop it on __del__
-	@note: Prefer the undoable decorator over this one !
+	@note: Prefer the undoable decorator over this one as they are easier to use and FASTER !
 	@note: use this class to assure that you pop undo when your method exists"""
 	def __init__( self ):
 		mel.eval( "byronimoUndo -psh" )			# tuned for speed - stirng is baked
@@ -246,9 +248,3 @@ class Operation:
 #} END operations
 
 
-
-#{ Undo-Aware Modifiers 
-
-
-
-#} END modifiers
