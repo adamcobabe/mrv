@@ -26,6 +26,7 @@ from byronimo.maya.util import StandinClass
 nodes = __import__( "byronimo.maya.nodes", globals(), locals(), ['nodes'] )
 from byronimo.maya.nodes.types import nodeTypeToMfnClsMap
 import maya.OpenMaya as api
+import maya.cmds as cmds 
 
 
 ############################
@@ -298,10 +299,36 @@ class DependNode( MayaNode ):
 	#{ Connections and Attributes 
 	def getConnections( self ):
 		"""@return: MPlugArray of connected plugs"""
-		cons = api.MPlugArray()
+		cons = api.MPlugArray( )
 		mfn = DependNode._mfncls( self._apiobj ).getConnections( cons )
 		return cons
 		
+	def getDependencyInfo( self, attribute, by=True ):
+		"""@return: list of attributes that given attribute affects or that the given attribute 
+		is affected by 
+		if the attribute turns dirty.
+		@param attribute: attribute instance or attribute name  
+		@param by: if false, affected attributes will be returned, otherwise the attributes affecting this one
+		@note: see also L{MPlug.getAffectedByPlugs}
+		@note: USING MEL: as api command and mObject array always crashed on me ... don't know :("""
+		if isinstance( attribute, basestring ):
+			attribute = self.getAttribute( attribute )
+			
+		attrs = cmds.affects( attribute.getName() , self, by=by )
+		
+		outattrs = []
+		for attr in attrs:
+			outattrs.append( self.getAttribute( attr ) )
+		return outattrs
+		
+	def affects( self, attribute ):
+		"""@return: list of attributes affected by this one"""
+		return self.getDependencyInfo( attribute, by = False )
+		
+	def affected( self , attribute):
+		"""@return: list of attributes affecting this one"""
+		return self.getDependencyInfo( attribute, by = True )
+			
 	#} 
 	
 	

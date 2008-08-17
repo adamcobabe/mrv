@@ -89,6 +89,7 @@ class TestDataBase( unittest.TestCase ):
 		"""byronimo.maya.nodes: Test plug abilities( node.attribute ) """
 		persp = nodes.MayaNode( "persp" )
 		front	 = nodes.MayaNode( "front" )
+		side	 = nodes.MayaNode( "side" )
 		matworld = persp.worldMatrix
 		
 		str( matworld )
@@ -109,10 +110,48 @@ class TestDataBase( unittest.TestCase ):
 		cmds.redo( )
 		self.failUnless( front.translate in persp.translate.p_outputs )
 		
-		# CHECK CONNECTION FORCING  - already connected 
-		persp.translate >  front.translate
+		# CHECK CONNECTION FORCING  
+		persp.translate >  front.translate 			# already connected
 		self.failUnlessRaises( RuntimeError, persp.scale.__gt__, front.translate )# lhs > rhs 
 		
+		# overwrite connection 
+		side.translate >> front.translate
+		self.failUnless( side.translate >= front.translate )
+		
+		# undo - old connection should be back 
+		cmds.undo()
+		self.failUnless( persp.translate >= front.translate )
+		
+		# disconnect input
+		front.translate.disconnectInput()
+		self.failUnless( not persp.translate >= front.translate )
+		
+		cmds.undo()
+		
+		# disconnect output
+		persp.t.disconnectOutputs( )
+		self.failUnless( len( persp.translate.p_outputs ) == 0 )
+		
+		cmds.undo()
+		self.failUnless( persp.t.isConnectedTo( front.translate ) )
+		
+		# disconnect from 
+		persp.t | front.translate
+		self.failUnless( not persp.t & front.t )
+		
+		cmds.undo()
+		self.failUnless( persp.t >= front.t )
+		
+		# COMPARISONS
+		self.failUnless( persp.t != front.t )
+		self.failUnless( persp.t.tx != persp.t.ty )
+		
+		# affected plugs
+		affectedPlugs = persp.t.affects( )
+		self.failUnless( len( affectedPlugs ) > 1  )
+		
+		affectedPlugs = persp.t.affected( )
+		self.failUnless( len( affectedPlugs ) > 1  )
 		
 		
 		# QUERY
@@ -135,10 +174,16 @@ class TestDataBase( unittest.TestCase ):
 		self.failUnless( len( matworld ) == len( matworld.getSubPlugs() ) )
 		self.failUnless( translate.numChildren() == len( translate.getSubPlugs() ) )
 
+		
+		# assure the standin classes are there - otherwise my list there would 
+		# bind to the standins as the classes have not been created yet
+		plugs = [ matworld, translate ]
+		for plug in plugs: plug.getAttribute()
 
 		# CHECK ATTRIBUTES and NODES
-		for plug,attrtype in zip( [ matworld, translate ], [ nodes.TypedAttribute, nodes.NumericAttribute ] ):
+		for plug,attrtype in zip( plugs, [ nodes.TypedAttribute, nodes.NumericAttribute ] ):
 			attr = plug.getAttribute( )
+			
 			self.failUnless( isinstance( attr, nodes.Attribute ) )
 			self.failUnless( isinstance( attr, attrtype ) )
 		                                                           
@@ -197,7 +242,7 @@ class TestDataBase( unittest.TestCase ):
 		self.failIf( len( pa ) != 5 )
 		
 			
-class TesNodeBase( unittest.TestCase ):
+class TestNodeBase( unittest.TestCase ):
 	""" Test node base functionality  """
 	
 	def test_customTypes( self ):
@@ -235,6 +280,14 @@ class TesNodeBase( unittest.TestCase ):
 		# check connection methods 
 		cons = node.getConnections( )
 		self.failUnless( len( cons ) )
+		
+		
+		# DEPENDENCY INFO
+		persp = nodes.MayaNode( "persp" )
+		affected_attrs = persp.affects( "t" )
+		self.failUnless( len( affected_attrs ) > 1 )
+		affected_attrs = persp.affected( "t" )
+		self.failUnless( len( affected_attrs ) > 1 )
 		
 		
 		# CHECK LAZY WRAPPING 

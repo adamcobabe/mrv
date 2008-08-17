@@ -31,6 +31,7 @@ modifiers = __import__( "byronimo.maya.nodes.modifiers", globals(), locals(), ['
 import byronimo.util as util
 from byronimo.util import getPythonIndex 
 import maya.OpenMaya as api
+import maya.cmds as cmds 
 import inspect 
 
 
@@ -49,7 +50,7 @@ def init_applyPatches( ):
 	@note: currently this method works not recursively"""
 	module = __import__( "byronimo.maya.nodes.apipatch", globals(), locals(), ['apipatch'] )
 	classes = [ r[1] for r in inspect.getmembers( module, predicate = inspect.isclass ) ]
-	forbiddenMembers = [ '__module__','_applyPatch' ]
+	forbiddenMembers = [ '__module__','_applyPatch','__dict__','__weakref__','__doc__' ]
 	
 	for cls in classes:
 		# use the main class as well as all following base
@@ -235,7 +236,7 @@ class MPlug( api.MPlug, util.iDagItem ):
 		attr as short or long name
 		@note: once an attribute has been found, it will be cached in dict for fast
 		repetitive query"""
-		if attr == 'thisown':			# special pointer type usually requested
+		if attr == 'thisown' or attr == 'this':			# special pointer type usually requested
 			return api.MPlug.__getattr__( self, attr ) 
 		
 		plug = None
@@ -311,7 +312,7 @@ class MPlug( api.MPlug, util.iDagItem ):
 	#} END hierarcy query 
 	
 	
-	#{ Connections ( Edit and Query )
+	#{ Connections ( Edit )
 	
 	@undoable
 	def connectTo( self, destplug, force=True ):
@@ -320,6 +321,7 @@ class MPlug( api.MPlug, util.iDagItem ):
 		@param force: if True, the connection will be created even if another connection 
 		has to be broken to achieve that. 
 		If False, the connection will fail if destplug is already connected to another plug
+		@return: destplug allowing chained connections a >> b >> c
 		@note: equals lhsplug >> rhsplug ( force = True ) or lhsplug > rhsplug ( force = False )
 		@raise RuntimeError: If destination is already connected and force = False """
 		
@@ -336,8 +338,8 @@ class MPlug( api.MPlug, util.iDagItem ):
 				raise RuntimeError( "%s > %s failed as destination is connected to %s" % ( self, destplug, destinputplug ) )
 			else:
 				# disconnect
-				mod = Modifiers.DGModifier( )
-				mod.disconnect( destinput, destplug )
+				mod = modifiers.DGModifier( )
+				mod.disconnect( destinputplug, destplug )
 			# END disconnect existing 
 		# END destination is connected 
 						
@@ -347,23 +349,60 @@ class MPlug( api.MPlug, util.iDagItem ):
 			
 		mod.connect( self, destplug )	# finally do the connection
 		mod.doIt( )
-		# END force handling 	
+		return destplug 
+	
+	def disconnect( self ):
+		"""Completely disconnect all inputs and outputs of this plug
+		@return: self, allowing chained commands"""
+		self.disconnectInput
+		self.disconnectOutputs
+		return self 
 	
 	@undoable	
 	def disconnectInput( self ):
-		"""Disconnect the input connection if one exists"""
-		raise NotImplemented
+		"""Disconnect the input connection if one exists
+		@return: self, allowing chained commands"""
+		inputplug = self.p_input
+		if inputplug.isNull():
+			return self
+		
+		mod = modifiers.DGModifier( )
+		mod.disconnect( inputplug, self )
+		mod.doIt()
+		return self
 		
 	@undoable
-	def disconnectOutput( self ):
-		"""Disconnect all outgoing connections if they exist"""
-		raise NotImplemented
+	def disconnectOutputs( self ):
+		"""Disconnect all outgoing connections if they exist
+		@return: self, allowing chained commands"""
+		outputplugs = self.getOutputs()
+		if not len( outputplugs ):
+			return self
+			
+		mod = modifiers.DGModifier()
+		for destplug in outputplugs:
+			mod.disconnect( self, destplug )
+		mod.doIt()
+		return self
 		
 	@undoable
 	def disconnectFrom( self, other ):
-		"""Disconnect this plug from other plug if they are connected"""
-		raise NotImplemented
+		"""Disconnect this plug from other plug if they are connected
+		@note: equals a | b 
+		@return: other plug allowing to chain disconnections"""
+		if not self.isConnectedTo( other ):
+			return 
 		
+		mod = modifiers.DGModifier( )
+		mod.disconnect( self, other )
+		mod.doIt()
+		
+		return other
+		
+	#} END connections edit 
+		
+		
+	#{ Connections ( Query )
 	@staticmethod
 	def haveConnection( lhsplug, rhsplug ):
 		"""@return: True if lhsplug and rhs plug are connected - the direction does not matter
@@ -374,6 +413,7 @@ class MPlug( api.MPlug, util.iDagItem ):
 		"""@return: True if this plug is connected to destination plug ( in that order )
 		@note: return true for self > destplug but false for destplug > self
 		@note: use the haveConnection method whether both plugs have a connection no matter which direction
+		@note: equals self >= destplug
 		@note: use L{isConnected} to find out whether this plug is connected at all"""
 		return destplug in self.getOutputs()
 		
@@ -405,17 +445,39 @@ class MPlug( api.MPlug, util.iDagItem ):
 		
 	def getConnections( self ):
 		"""@return: tuple with input and outputs ( inputPlug, outputPlugs )"""
-		return ( self.getInput( ), self, getOutputs() )
+		return ( self.getInput( ), self, getOutputs( ) )
 		
 		
+	#} END connections query 
 	
-	#} END connections 
+	#{ Affects Query 
+	def getDependencyInfo( self, by=False ):
+		"""@return: list of plugs on this node that this plug affects or is being affected by
+		@param by: if false, affected attributplugs will be returned, otherwise the attributeplugs affecting this one
+		@note: you can also use the L{getDependencyInfo} method on the node itself if plugs are not 
+		required - this will also be faster
+		@note: have to use MEL :("""
+		ownnode = self.getNode()
+		attrs = cmds.affects( self.getAttribute().getName() , ownnode, by=by )
+		
+		outplugs = []
+		depfn = api.MFnDependencyNode( ownnode._apiobj )
+		
+		for attr in attrs:
+			outplugs.append( depfn.findPlug( attr ) )
+		return outplugs
+		
+	def affects( self ):
+		"""@return: list of plugs affected by this one"""
+		return self.getDependencyInfo( by = False )
+		
+	def affected( self ):
+		"""@return: list of plugs affecting this one"""
+		return self.getDependencyInfo( by = True )
+			
+	#}
 	
-	#{ Edit
-	
-	#} END edit
-	
-	#{ Query
+	#{ General Query
 	
 	def getAttribute( self ):
 		"""@return: Attribute instance of our underlying attribute"""
@@ -441,9 +503,10 @@ class MPlug( api.MPlug, util.iDagItem ):
 	
 	#{ Name Remapping 
 	__rshift__ = lambda self,other: self.connectTo( other, force=True )
-	__gt__ = lambda self,other: self.connectTo( other, force=False ) 
+	__gt__ = lambda self,other: self.connectTo( other, force=False )
+	__ge__ = isConnectedTo
 	__and__ = lambda lhs,rhs: MPlug.haveConnection( lhs, rhs )
-	__floordiv__ = disconnectFrom
+	__or__ = disconnectFrom
 	node = getNode
 	attribute = getAttribute
 	getChild = api.MPlug.child
@@ -466,24 +529,33 @@ class MPlug( api.MPlug, util.iDagItem ):
 ##########################
 
 #{ Arrays 
-class MPlugArray( api.MPlugArray ):
-	""" Wrap MPlugArray to make it compatible to pythonic contructs
-	Also it will always contain Plug objects isntead of MPlugs
+
+class ArrayBase( Abstract ):
+	""" Base class for all maya arrays to easily fix them
+	@note: set _apicls class variable to your api base class """
 	
-	This wrapper will handle like python classes and always return Plug objects."""
+	def __len__( self ):
+		return self._apicls.length( self )
 	
-	__len__ = api.MPlugArray.length
-	
-	def __setitem__ ( self, index, plug ):
+	def __setitem__ ( self, index, item ):
 		"""@note: does not work as it expects a pointer type - probably a bug"""
-		return self.set( plug, getPythonIndex( index, len( self ) ) )
+		return self.set( item, getPythonIndex( index, len( self ) ) )
 	
 	def __getitem__ ( self, index ):
-		return api.MPlugArray._api___getitem__( self,  getPythonIndex( index, len( self ) ) )
+		return self._apicls._api___getitem__( self,  getPythonIndex( index, len( self ) ) )
 		
 	def __iter__( self ):
 		"""@return: iterator object"""
-		return util.IntKeyGenerator( self )
+		return util.IntKeyGenerator( self ) 
+
+
+class MPlugArray( api.MPlugArray, ArrayBase ):
+	""" Wrap MPlugArray to make it compatible to pythonic contructs"""
+	_apicls = api.MPlugArray
+	
+class MObjectArray( api.MObjectArray, ArrayBase ):
+	""" Wrap MObject to make it compatible to pythonic contructs"""
+	_apicls = api.MObjectArray
 		
 #}
 	

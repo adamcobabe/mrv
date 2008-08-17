@@ -31,7 +31,8 @@ class TestModifiers( unittest.TestCase ):
 	"""Test all aspects of the api undo queue"""
 	
 	def test_dgmod( self ):
-		"""byronimo.maya.nodes.modifiers: test dg modifier capabilities"""
+		"""byronimo.maya.nodes.modifiers: test dg modifier capabilities
+		@note: DGmod is intensively used by MPlug """
 		persp = MayaNode( "persp" )
 		front = MayaNode( "front" )
 		side = MayaNode( "side" )
@@ -58,16 +59,17 @@ class TestModifiers( unittest.TestCase ):
 		# redo it and check connection 
 		self.failUnless( persp.message.isConnectedTo( front.isHistoricallyInteresting ) )
 		
-		cmds.undo()
 		# connect and break existing conenction
 		undo.startUndo( )
 		dgmod = DGModifier( )
+		dgmod.disconnect( persp.message, front.isHistoricallyInteresting )
 		dgmod.connect( side.message, front.isHistoricallyInteresting )
 		dgmod.doIt( )
 		undo.endUndo( )
 		
 		self.failUnless( side.message.isConnectedTo( front.isHistoricallyInteresting ) )
 		cmds.undo()
+		
 		# old connection should be back 
 		self.failUnless( persp.message.isConnectedTo( front.isHistoricallyInteresting ) )
 		

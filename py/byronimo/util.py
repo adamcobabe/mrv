@@ -66,6 +66,7 @@ def copyClsMembers( sourcecls, destcls, overwritePrefix = None, forbiddenMembers
 					continue
 				morig = getattr( destcls, name )
 				type.__setattr__( destcls, overwritePrefix+name, morig )
+			#print ( "%s - adjusted with %s.%s" % ( destcls.__name__,sourcecls.__name__, name ) )
 			type.__setattr__( destcls, name, member )
 		except TypeError:
 			pass 
