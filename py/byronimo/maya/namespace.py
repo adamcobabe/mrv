@@ -18,7 +18,7 @@ __copyright__='(c) 2008 Sebastian Thiel'
 
 from byronimo.maya import undo
 from byronimo.maya.util import noneToList
-from byronimo.util import iDagItem, CallOnDeletion
+from byronimo.util import iDagItem, CallOnDeletion, Call
 import maya.cmds as cmds
 
 
@@ -183,9 +183,11 @@ class Namespace( unicode, iDagItem ):
 	def setCurrent( self ):
 		"""Set this namespace to be the current one - new objects will be put in it 
 		by default"""
-		melop = undo.MelOperation( )
-		melop.addCmd( cmds.namespace,[], {"set" : self}, 
-					 cmds.namespace,[], {"set" : Namespace.getCurrent() } )
+		doit = Call( cmds.namespace,[], {"set" : self} )
+		undoit = Call( cmds.namespace,[], {"set" : Namespace.getCurrent() } )
+		
+		melop = undo.GenericOperation( )
+		melop.addCmd( doit, undoIt )
 		melop.doIt()
 	#} END edit methods 
 	

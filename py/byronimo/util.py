@@ -76,6 +76,21 @@ def copyClsMembers( sourcecls, destcls, overwritePrefix = None, forbiddenMembers
 #### Classes 		  	####
 ##########################
 
+class Call( object ):
+   """Call object encapsulating any code, thus providing a simple facade for it
+   @note: derive from it if a more complex call is required""" 
+	def __init__( self, func, *args,**kwargs ):
+		"""Initialize object with function to call once this object is called"""
+		self.func = func
+		self.args = args
+		self.kwargs = kwargs
+		
+	def __call__( self, *args, **kwargs ):
+		"""Execute the stored function on call
+		@note: having *args and **kwargs set makes it more versatile"""
+		return self.func( *self.args, **self.kwargs )
+		
+
 class Singleton(object) :
 	""" Singleton classes can be derived from this class,
 		you can derive from other classes as long as Singleton comes first (and class doesn't override __new__ ) """

@@ -220,6 +220,8 @@ def endUndo( ):
 
 #{ Operations
 
+from byronimo.util import Call
+
 class Operation:
 	"""Simple command class as base for all operations
 	All undoable/redoable operation must support it
@@ -246,10 +248,10 @@ class Operation:
 		raise NotImplementedError
 		
 
-class MelOperation( Operation ):
+class GenericOperation( Operation ):
 	"""Operation able to undo generic mel commands
-	@usage: in your api command, create a mel operation instance, add your mel commands 
-	that should be executed in a row. To apply them, call doIt once ( and only once ! ).
+	@usage: in your api command, create a GenericOperation operation instance, add your mel commands 
+	that should be executed in a row as Call. To apply them, call doIt once ( and only once ! ).
 	You can have only one command stored, or many if they should be executed in a row.
 	The vital part is that with each do command, you supply an undo command. 
 	This way your operations can be undone and redone once undo / redo is requested
@@ -258,8 +260,8 @@ class MelOperation( Operation ):
 	def __init__( self ):
 		"""intiialize our variables"""
 		Operation.__init__( self )
-		self._docmds = []				# ( cmd, *args, **kwargs ) 
-		self._undocmds = []				# will storae reversed list !
+		self._docmds = []				# list of Calls 
+		self._undocmds = []				# will store reversed list !
 
 	@staticmethod
 	def _callList( cmdlist ):
@@ -267,8 +269,8 @@ class MelOperation( Operation ):
 		prevstate = cmds.undoInfo( q=1, st=1 )
 		cmds.undoInfo( st=False )
 		
-		for cmd,args,kwargs in cmdlist:
-			cmd( *args, **kwargs )
+		for call in cmdlist:
+			call()
 		
 		cmds.undoInfo( st=prevstate )
 
@@ -282,17 +284,15 @@ class MelOperation( Operation ):
 		MelOperation._callList( self._undocmds )
 
 		
-	def addCmd( self, 	docmd, doArgs, doKwargs, 
-				undocmd, undoArgs, undoKwargs ):
+	def addCmd( self, doCall, undoCall ):
 		"""Add a command to the queue for later application
-		@param *cmd: docmd does something that is being undone by the undocmd. The commands 
-		are actual comamnd objects
-		@param *args: arguments to be supplied to the respective command
-		@param *kwargs: keyword arguments to be supplied to the respective command
-		@note: if a more complex comamnd is required, use maya.Mel.eval as command 
-		and supply a string in args  to be evaluated"""
-		self._docmds.append( ( docmd, doArgs, doKwargs ) )		# push 
-		self._undocmds.insert( 0, ( undocmd, undoArgs, undoKwargs ) ) # push front
+		@param doCall: instance of byronimo.util.Callback, called on doIt
+		@param undoCall: instance of byronimo.util.Callback, called on undoIt"""
+		if not isinstance( doCall, Callback ) or not isinstance( undoIt, Callback ):
+			raise TypeError( "(un)doIt callbacks must be of type 'Callback'" )
+			
+		self._docmds.append( doCall )		# push 
+		self._undocmds.insert( 0, undoCall ) # push front
 
 #} END operations
 
