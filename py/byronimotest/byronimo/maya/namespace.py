@@ -49,12 +49,22 @@ class TestReferenceRunner( unittest.TestCase ):
 		
 		self.failUnlessRaises( ValueError, rootns.delete )
 		
+		
 		# create a few namespaces 
 		for ns in [ "newns", "newns:child", "longer:namespace",":hello:world:here", ":" ]:
 			curns = Namespace.getCurrent()
 			newns = Namespace.create( ns )
 			self.failUnless( newns.exists() )
 			self.failUnless( Namespace.getCurrent() == curns )
+			
+			# test undo
+			newns.setCurrent()
+			self.failUnless( Namespace.getCurrent() == newns )
+			cmds.undo()
+			self.failUnless( Namespace.getCurrent() == curns )
+			
+		
+		
 		
 		# rename all children
 		for ns in childns:

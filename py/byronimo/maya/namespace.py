@@ -16,9 +16,11 @@ __revision__="$Revision: 16 $"
 __id__="$Id: configuration.py 16 2008-05-29 00:30:46Z byron $"
 __copyright__='(c) 2008 Sebastian Thiel'
 
+from byronimo.maya import undo
 from byronimo.maya.util import noneToList
 from byronimo.util import iDagItem, CallOnDeletion
 import maya.cmds as cmds
+
 
 
 class Namespace( unicode, iDagItem ):
@@ -176,13 +178,15 @@ class Namespace( unicode, iDagItem ):
 		# finally delete the namespace
 		cmds.namespace( rm=self )
 		
-	
+	# need to fully qualify it as undo is initialized after us ... 
+	@undo.undoable
 	def setCurrent( self ):
 		"""Set this namespace to be the current one - new objects will be put in it 
-		by default
-		@todo: Implement proper undo !"""
-		cmds.namespace( set = self )
-	
+		by default"""
+		melop = undo.MelOperation( )
+		melop.addCmd( cmds.namespace,[], {"set" : self}, 
+					 cmds.namespace,[], {"set" : Namespace.getCurrent() } )
+		melop.doIt()
 	#} END edit methods 
 	
 	#{Query Methods

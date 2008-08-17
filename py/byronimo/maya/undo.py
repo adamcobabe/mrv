@@ -265,12 +265,12 @@ class MelOperation( Operation ):
 	def _callList( cmdlist ):
 		"""Simply apply the given cmd list without maya undo"""
 		prevstate = cmds.undoInfo( q=1, st=1 )
-		cmds.undoInfo( e=1, st=False )
+		cmds.undoInfo( st=False )
 		
 		for cmd,args,kwargs in cmdlist:
 			cmd( *args, **kwargs )
 		
-		cmds.undoInfo( e=1, st=prevstate )
+		cmds.undoInfo( st=prevstate )
 
 	def doIt( self ):
 		"""Call all doIt commands stored in our instance after temporarily disabling the undo queue"""
