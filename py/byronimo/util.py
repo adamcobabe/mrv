@@ -77,8 +77,8 @@ def copyClsMembers( sourcecls, destcls, overwritePrefix = None, forbiddenMembers
 ##########################
 
 class Call( object ):
-   """Call object encapsulating any code, thus providing a simple facade for it
-   @note: derive from it if a more complex call is required""" 
+	"""Call object encapsulating any code, thus providing a simple facade for it
+	@note: derive from it if a more complex call is required""" 
 	def __init__( self, func, *args,**kwargs ):
 		"""Initialize object with function to call once this object is called"""
 		self.func = func

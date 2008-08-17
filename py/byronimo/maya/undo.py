@@ -276,20 +276,20 @@ class GenericOperation( Operation ):
 
 	def doIt( self ):
 		"""Call all doIt commands stored in our instance after temporarily disabling the undo queue"""
-		MelOperation._callList( self._docmds )
+		GenericOperation._callList( self._docmds )
 	
 	def undoIt( self ):
 		"""Call all undoIt commands stored in our instance after temporarily disabling the undo queue"""
 		# NOTE: the undo list is already reversed !
-		MelOperation._callList( self._undocmds )
+		GenericOperation._callList( self._undocmds )
 
 		
 	def addCmd( self, doCall, undoCall ):
 		"""Add a command to the queue for later application
-		@param doCall: instance of byronimo.util.Callback, called on doIt
-		@param undoCall: instance of byronimo.util.Callback, called on undoIt"""
-		if not isinstance( doCall, Callback ) or not isinstance( undoIt, Callback ):
-			raise TypeError( "(un)doIt callbacks must be of type 'Callback'" )
+		@param doCall: instance of byronimo.util.Call, called on doIt
+		@param undoCall: instance of byronimo.util.Call, called on undoIt"""
+		if not isinstance( doCall, Call ) or not isinstance( undoCall, Call ):
+			raise TypeError( "(un)doIt callbacks must be of type 'Call'" )
 			
 		self._docmds.append( doCall )		# push 
 		self._undocmds.insert( 0, undoCall ) # push front

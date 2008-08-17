@@ -183,11 +183,11 @@ class Namespace( unicode, iDagItem ):
 	def setCurrent( self ):
 		"""Set this namespace to be the current one - new objects will be put in it 
 		by default"""
-		doit = Call( cmds.namespace,[], {"set" : self} )
-		undoit = Call( cmds.namespace,[], {"set" : Namespace.getCurrent() } )
+		doit = Call( cmds.namespace, set = self )
+		undoit = Call( cmds.namespace, set = Namespace.getCurrent() )
 		
 		melop = undo.GenericOperation( )
-		melop.addCmd( doit, undoIt )
+		melop.addCmd( doit, undoit )
 		melop.doIt()
 	#} END edit methods 
 	
