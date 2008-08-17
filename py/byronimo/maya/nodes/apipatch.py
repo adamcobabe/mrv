@@ -322,25 +322,31 @@ class MPlug( api.MPlug, util.iDagItem ):
 		If False, the connection will fail if destplug is already connected to another plug
 		@note: equals lhsplug >> rhsplug ( force = True ) or lhsplug > rhsplug ( force = False )
 		@raise RuntimeError: If destination is already connected and force = False """
-		# NOTE: we do not precreate dgmodifiers until the point that we know we will use 
-		# them ( undo queue special )
-		if force:
+		
+		# handle possibly connected plugs 
+		if self.isConnectedTo( destplug ):		# already connected ?
+			return 
+		
+		mod = None		# create mod only once we really need it
+		
+		# is destination already input-connected ? - disconnect it if required 
+		destinputplug = destplug.p_input
+		if not destinputplug.isNull():
+			if not force:
+				raise RuntimeError( "%s > %s failed as destination is connected to %s" % ( self, destplug, destinputplug ) )
+			else:
+				# disconnect
+				mod = Modifiers.DGModifier( )
+				mod.disconnect( destinput, destplug )
+			# END disconnect existing 
+		# END destination is connected 
+						
+		# otherwise we can do the connection
+		if not mod:
 			mod = modifiers.DGModifier( )
-			mod.connect( self, destplug )
-			mod.doIt( )
-		else:
-			# handle possibly connected plugs 
-			if self.isConnectedTo( destplug ):		# already connected ?
-				return 
 			
-			# is destination already input-connected ?
-			if not destplug.p_input.isNull():
-				raise RuntimeError( "%s > %s failed as destination is connected" % ( self, destplug ) ) 
-							
-			# otherwise we can do the connection 
-			mod = modifiers.DGModifier( )
-			mod.connect( self, destplug )
-			mod.doIt( )
+		mod.connect( self, destplug )	# finally do the connection
+		mod.doIt( )
 		# END force handling 	
 	
 	@undoable	

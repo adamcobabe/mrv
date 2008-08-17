@@ -34,8 +34,8 @@ class TestModifiers( unittest.TestCase ):
 		"""byronimo.maya.nodes.modifiers: test dg modifier capabilities"""
 		persp = MayaNode( "persp" )
 		front = MayaNode( "front" )
+		side = MayaNode( "side" )
 		
-		dgmod = om.MDGModifier()
 		# SIMPLE CONNECTION
 		################
 		# start undo 
@@ -59,6 +59,21 @@ class TestModifiers( unittest.TestCase ):
 		self.failUnless( persp.message.isConnectedTo( front.isHistoricallyInteresting ) )
 		
 		cmds.undo()
+		# connect and break existing conenction
+		undo.startUndo( )
+		dgmod = DGModifier( )
+		dgmod.connect( side.message, front.isHistoricallyInteresting )
+		dgmod.doIt( )
+		undo.endUndo( )
+		
+		self.failUnless( side.message.isConnectedTo( front.isHistoricallyInteresting ) )
+		cmds.undo()
+		# old connection should be back 
+		self.failUnless( persp.message.isConnectedTo( front.isHistoricallyInteresting ) )
+		
+		
+		# undo first change
+		cmds.undo()	 
 		
 		# EMPTY DOIT
 		################
