@@ -1,0 +1,54 @@
+"""B{byronimotest.byronimo.maya.benchmark}
+
+Intialize and run all benchmark - the system is currently unittest based and 
+proper benchmarks should be implemented on per test basis. 
+
+It is possible though to supply command line arguments, see L{main} 
+
+@newfield revision: Revision
+@newfield id: SVN Id
+"""
+
+__author__='$Author: byron $'
+__contact__='byron@byronimo.de'
+__version__=1
+__license__='MIT License'
+__date__="$Date: 2008-07-16 22:41:16 +0200 (Wed, 16 Jul 2008) $"
+__revision__="$Revision: 22 $"
+__id__="$Id: __init__.py 22 2008-07-16 20:41:16Z byron $"
+__copyright__='(c) 2008 Sebastian Thiel'
+
+import unittest
+import byronimo.maya as bmaya
+import byronimotest as common
+import os
+
+def get_maya_file( filename ):
+	"""@return: path to specified maya ( test ) file """
+	return os.path.join( os.path.dirname( __file__ ), "ma/"+filename )
+	
+	
+def get_suite( ):
+	""" @return: testsuite with all tests of this package
+	@note: does some custom setup required for all tests to work"""
+	# custom setup
+	bmaya.Mel.putenv( "MAYAFILEBASE", os.path.dirname( __file__ ) )
+	
+	import byronimotest.byronimo.maya.benchmark as self	
+	return common.get_package_suite( self )
+	
+def run( **runner_args ):
+	"""Run all the tests  """
+	testrunner = unittest.TextTestRunner( **runner_args )
+	return testrunner.run( get_suite() )
+	
+	
+def main( *args ):
+	""" Run the tests if called with the start script """
+	run( verbosity = 2 )
+	
+
+if __name__ == '__main__':
+	""" run all tests if run directly """
+	main( [] )
+	

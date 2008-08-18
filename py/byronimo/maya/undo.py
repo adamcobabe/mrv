@@ -251,12 +251,13 @@ class Operation:
 
 class GenericOperation( Operation ):
 	"""Operation able to undo generic mel commands
-	@usage: in your api command, create a GenericOperation operation instance, add your mel commands 
+	@usage: in your api command, create a GenericOperation operation instance, add your (mel) commands 
 	that should be executed in a row as Call. To apply them, call doIt once ( and only once ! ).
 	You can have only one command stored, or many if they should be executed in a row.
 	The vital part is that with each do command, you supply an undo command. 
 	This way your operations can be undone and redone once undo / redo is requested
-	@note: Undocommand will be applied in revered order automatically"""
+	@note: your calls may use MEL commands safely as the undo-queue will be torn off during execution
+	@note: Undocommand will be applied in reversed order automatically"""
 	
 	def __init__( self ):
 		"""intiialize our variables"""

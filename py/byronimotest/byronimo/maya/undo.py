@@ -25,19 +25,7 @@ import sys
 class TestUndoQueue( unittest.TestCase ):
 	"""Test all aspects of the api undo queue"""
 	
-	class TestOperation( undo.Operation ):
-		def __init__( self ):
-			undo.Operation.__init__( self )
-			self.numDoit = 0
-			self.numUndoIt = 0
-			
-		def doIt( self ):
-			self.numDoit += 1 
-			
-		def undoIt( self ):
-			self.numUndoIt += 1
-	
-	
+
 	def test_undoBasics( self ):
 		"""byronimo.maya.undo: basic assertions"""
 		bmaya.Mel.eval( "byronimoUndo -psh" )
@@ -69,96 +57,5 @@ class TestUndoQueue( unittest.TestCase ):
 			
 		
 		bmaya.Mel.flushUndo()
-		
-	@staticmethod
-	@undoable
-	def _recurseUndoDeco( numOps, curDepth, maxDepth ):
-		"""Recurse and create operations according to args
-		@note: decorator used !"""
-		if curDepth == maxDepth:
-			return 0
-		numops = 0
-		for i in xrange( numOps ):
-			op = TestUndoQueue.TestOperation()
-			op.doIt( )			# apply operation
-			numops += TestUndoQueue._recurseUndo( numOps, curDepth+1, maxDepth )
-			numops += 1
-		# END for each op
-		return numops
-
-	@staticmethod
-	def _recurseUndo( numOps, curDepth, maxDepth ):
-		"""Recurse and create operations according to args
-		@note: decorator used !"""
-		if curDepth == maxDepth:
-			return 0
-		undo.startUndo()
-		
-		numops = 0
-		for i in xrange( numOps ):
-			op = TestUndoQueue.TestOperation()
-			op.doIt( )			# apply operation
-			numops += TestUndoQueue._recurseUndo( numOps, curDepth+1, maxDepth )
-			numops += 1
-		# END for each op
-		
-		undo.endUndo()
-		return numops
-	
-	def test_undoPerformance( self ):
-		"byronimo.maya.undo: recursive undo including decorator"
-		import time
-		iterations = 25
-		maxdepth = 3
-		totalops = 0 
-		
-		all_elapsed = [[],[]]
-		
-		for undoEnabled in range( 2 ):
-			
-			undo = ""
-			if not undoEnabled:
-				undo = "Undo disabled"
-				
-			cmds.undoInfo( st=undoEnabled )
-			
-			# decorated !
-			starttime = time.clock()
-			numops = TestUndoQueue._recurseUndoDeco( iterations, 0, maxdepth )
-			totalops += numops
-			elapsed = time.clock() - starttime
-			all_elapsed[undoEnabled].append( elapsed )
-			
-			print "DECORATED %s: %i ops in %f s ( %f / s )" % ( undo, numops, elapsed, numops / elapsed ) 
-			
-			
-			starttime = time.clock()
-			numops = TestUndoQueue._recurseUndo( iterations, 0, maxdepth )
-			totalops += numops
-			elapsed_deco = elapsed
-			elapsed = time.clock() - starttime
-			all_elapsed[undoEnabled].append( elapsed )
-			
-			print "MANUAL %s: %i ops in %f s ( %f / s )" % ( undo, numops, elapsed, numops / elapsed )
-			starttime = time.clock()
-			
-			print "DECORATED is %f %% faster than manually implemented functions !" % ( 100 - ( elapsed_deco / elapsed ) * 100 )
-			
-			if undoEnabled:
-				cmds.undo()
-				cmds.undo()
-				cmds.redo()
-				cmds.redo()
-				elapsed = time.clock() - starttime
-				
-				print "CALL TIME: %i operations in %f s ( %f / s )" % ( totalops, elapsed, totalops / elapsed )
-			#END if undo enabled
-		# END for each undo queue state 
-		
-		ratio = 100.0 - ( ( all_elapsed[0][0] / all_elapsed[1][0] ) * 100 )
-		difference = all_elapsed[1][1] - all_elapsed[0][1]
-		
-		# RATIOS between enabled undo system and without
-		print "RATIO UNDO QUEUE ON/OFF: %f s (on) vs %f s (off) = %f %% speedup on disabled queue ( difference [s] = %f )" % (all_elapsed[1][0], all_elapsed[0][0], ratio, difference ) 
 		
 		

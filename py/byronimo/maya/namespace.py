@@ -22,6 +22,26 @@ from byronimo.util import iDagItem, CallOnDeletion, Call
 import maya.cmds as cmds
 
 
+#{ Static Access
+def create( *args ):
+	"""see L{Namespace.create}"""
+	return Namespace.create( *args )
+	
+def getCurrent( ):
+	"""see L{Namespace.getCurrent}"""
+	return Namespace.getCurrent()
+
+def getUnique( *args, **kwargs ):
+	"""see L{Namespace.getUnique}"""
+	return Namespace.getUnique( *args, **kwargs )
+	
+def exists( namespace ):
+	"""@return : True if given namespace ( name ) exists"""
+	return Namespace( namespace ).exists()
+
+#} END Static Access
+
+
 
 class Namespace( unicode, iDagItem ):
 	""" Represents a Maya namespace
@@ -76,13 +96,13 @@ class Namespace( unicode, iDagItem ):
 	#{Edit Methods
 		
 	@staticmethod
+	@undo.undoable
 	def create( namespaceName ):
 		"""Create a new namespace
 		@param namespaceName: the name of the namespace, absolute or relative - 
 		it may contain subspaces too, i.e. :foo:bar.
 		fred:subfred is a relative namespace, created in the currently active namespace
-		@return: the create Namespace object
-		@todo: Implement proper undo !"""
+		@return: the create Namespace object"""
 		newns = Namespace( namespaceName )
 		
 		if newns.exists():		 # skip work
@@ -100,8 +120,15 @@ class Namespace( unicode, iDagItem ):
 			base = Namespace( ':'.join( tokens[:i+1] ) )
 			if base.exists( ):
 				continue
-			# otherwise add the baes to its parent ( that should exist 
-			cmds.namespace( p=base.getParent() , add=base.getBasename() )
+				
+			# otherwise add the baes to its parent ( that should exist
+			# put operation on the queue - as we create empty namespaces, we can delete 
+			# them at any time 
+			op = undo.GenericOperation( )
+			doit = Call( cmds.namespace, p=base.getParent() , add=base.getBasename() )
+			undoit = Call(cmds.namespace, rm=base )
+			op.addCmd( doit, undoit )
+			op.doIt( )
 		# END for each token
 		
 		return newns
@@ -113,7 +140,7 @@ class Namespace( unicode, iDagItem ):
 		all objects from this one added accordingly
 		@param newName: the absolute name of the new namespace
 		@return: Namespace with the new name
-		@todo: Implement proper undo !"""
+		@todo: Implement undo !"""
 		newnamespace = Namespace( newName )
 		
 		
@@ -132,7 +159,7 @@ class Namespace( unicode, iDagItem ):
 		@param force: if True, namespace clashes will be resolved by renaming, if false 
 		possible clashes would result in an error
 		@param autocreate: if True, targetNamespace will be created if it does not exist yet
-		@todo: Implement proper undo !"""
+		@todo: Implement undo !"""
 		targetNamespace = Namespace( targetNamespace )
 		if autocreate and not targetNamespace.exists( ):
 			targetNamespace = Namespace.create( targetNamespace )
@@ -147,7 +174,7 @@ class Namespace( unicode, iDagItem ):
 		@param autocreate: if True, move_to_namespace will be created if it does not exist yet
 		@note: can handle sub-namespace properly
 		@raise RuntimeError:
-		@todo: Implement proper undo !"""
+		@todo: Implement undo !"""
 		if self == self.rootNamespace:
 			raise ValueError( "Cannot delete root namespace" )
 		

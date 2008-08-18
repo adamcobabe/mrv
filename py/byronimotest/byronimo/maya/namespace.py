@@ -57,7 +57,13 @@ class TestReferenceRunner( unittest.TestCase ):
 			self.failUnless( newns.exists() )
 			self.failUnless( Namespace.getCurrent() == curns )
 			
-			# test undo
+			# test undo: creation
+			cmds.undo()
+			self.failUnless( not newns.exists() )
+			cmds.redo() 
+			self.failUnless( newns.exists() )
+			
+			# test undo: change current 
 			newns.setCurrent()
 			self.failUnless( Namespace.getCurrent() == newns )
 			cmds.undo()
