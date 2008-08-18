@@ -33,7 +33,7 @@ class TestGeneralPerformance( unittest.TestCase ):
 	
 	def test_createNodes( self ):
 		"""byronimo.maya.benchmark.general: test random node creation performance"""
-		runs = [ 100,1000,5000 ]
+		runs = [ 100,1000,2500 ]
 		deptypes =[ "facade", "groupId", "objectSet"  ]
 		dagtypes =[ "nurbsCurve", "nurbsSurface", "subdiv", "transform" ]
 		all_elapsed = []
@@ -56,7 +56,7 @@ class TestGeneralPerformance( unittest.TestCase ):
 					nodetype = random.choice( deptypes )
 				
 				try:	# it can happen that he creates dg and dag nodes with the same name 
-					nodes.createNode( nodename, nodetype )
+					nodes.createNode( nodename, nodetype, autoRename=True )
 				except NameError:
 					pass 
 			# END for each node

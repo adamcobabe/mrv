@@ -63,7 +63,6 @@ class TestUndoPerformance( unittest.TestCase ):
 	
 	def test_undoPerformance( self ):
 		"byronimo.maya.undo: recursive undo including decorator"
-		return 
 		print "\n"			# new line to create some space 
 		import time
 		iterations = 35

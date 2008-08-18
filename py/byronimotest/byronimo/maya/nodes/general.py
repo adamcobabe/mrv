@@ -68,7 +68,7 @@ class TestGeneral( unittest.TestCase ):
 	def test_createNodes( self ):
 		"""byronimo.maya.nodes: create nodes with long names and namespaces"""
 		names = ["hello","bla|world","this|world|here","that|this|world|here" ]
-		nsnames = ["a:hello","bla|b:world","c:this|b:world","d:that|c:this|b:world|a:b:c:d:here"]
+		nsnames = ["a:hello","blab|b:world","c:this|b:world","d:that|c:this|b:world|a:b:c:d:here"]
 		types = [ "facade", "nurbsCurve", "nurbsSurface", "subdiv" ]
 		
 		# SIMPLE CREATION: Paths + nested namespaces
@@ -93,8 +93,24 @@ class TestGeneral( unittest.TestCase ):
 			self.failUnless( not newnsnode.isValid() and newnsnode.isAlive() )
 			cmds.redo() 
 			self.failUnless( newnsnode.isValid() and newnsnode.isAlive() )
-			
 		# END for each created object 
+		
+		# CHECK DIFFERENT ROOT TYPES 
+		depnode = nodes.createNode( "blablub", "facade" )
+		self.failUnlessRaises( NameError, nodes.createNode, "|blablub|:this", "transform" )
+		
+		# DIFFERENT TYPES AT END OF PATH
+		nodes.createNode( "this|mesh", "mesh" )
+		self.failUnlessRaises( NameError, nodes.createNode, "this|mesh", "nurbsSurface" )
+		
+		# autorename  - it fails if the dep node exists first
+		nodes.createNode( "node", "facade" )
+		self.failUnlessRaises( NameError, nodes.createNode, "this|that|node", "mesh", autoRename = False )
+		
+		# but not if it comes after
+		nodes.createNode( "that|nodename", "mesh" )
+		nodes.createNode( "nodename", "facade", autoRename = False )
+		
 		
 		
 class TestNodeBase( unittest.TestCase ):

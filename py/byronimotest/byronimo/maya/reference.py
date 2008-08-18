@@ -87,6 +87,7 @@ class TestReferenceRunner( unittest.TestCase ):
 	def test_referenceCreation( self ):
 		"""byronimo.maya.reference: create , delete and replace references"""
 		# create some new references
+		bmaya.Scene.open( common.get_maya_file( "refbase.ma" ), force=True )
 		filenames = [ "sphere.ma", "cube.ma", "empty.ma", "cylinder.ma", "subrefbase.ma" ]
 		newrefs = []
 		for load in range( 2 ):

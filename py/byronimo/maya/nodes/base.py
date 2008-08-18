@@ -133,7 +133,7 @@ def objExists( objectname ):
 
 
 @undoable
-def createNode( nodename, nodetype, autocreateNamespace=True, autocreateParent=True ):
+def createNode( nodename, nodetype, autocreateNamespace=True, autoRename = True ):
 	"""Create a new node of nodetype with given nodename
 	@param nodename: like "mynode" or "namespace:mynode" or "|parent|mynode" or 
 	"|ns1:parent|ns1:ns2:parent|ns3:mynode". The name may contain any amount of parents
@@ -143,10 +143,11 @@ def createNode( nodename, nodetype, autocreateNamespace=True, autocreateParent=T
 	@param nodetype: a nodetype known to maya to be created accordingly
 	@param autocreateNamespace: if True, namespaces given in the nodename will be created
 	if required
-	@param autocreateParent: if True, transform nodes for dagtype parents will automatically 
-	be created if required.
+	@param autoRename: if True, nameclashes will automatcially be resolved by creating a unique 
+	name - this only happens if a dependency node has the same name as a dag node
 	@raise RuntimeError: If nodename contains namespaces or parents that may not be created
 	@raise NameError: If name of desired node clashes as existing node has different type
+	@note: As this method is checking a lot and tries to be smart, its relatively slow ( creates ~400 nodes / s )
 	@return: the newly create MayaNode"""
 	if nodename.startswith( '|' ):
 		nodename = nodename[1:]
@@ -173,7 +174,9 @@ def createNode( nodename, nodetype, autocreateNamespace=True, autocreateParent=T
 		# same name exists. If we check for "|nodename" it will not find a dep node with 
 		# "nodename" although you can create that dep node by giving "|nodename"
 		if i == start_index and lenSubpaths > 2 and objExists( nodepartialname[1:] ):
-			raise NameError( "dag node is requested, but root node name was taken by dependency node: %s" % nodepartialname[1:] ) 
+			# check whether the object is really not a dag node 
+			if not isinstance( MayaNode( nodepartialname[1:] ), DagNode ):
+				raise NameError( "dag node is requested, but root node name was taken by dependency node: %s" % nodepartialname[1:] ) 
 			
 		# DAG ITEM EXISTS ?
 		######################
@@ -197,7 +200,9 @@ def createNode( nodename, nodetype, autocreateNamespace=True, autocreateParent=T
 			
 		# it does not exist, check the namespace
 		dagtoken = '|'.join( subpaths[ i : i+1 ] )
-		ns = namespace.create( ":".join( dagtoken.split( ":" )[0:-1] ) )	# will resolve to root namespace at least
+		
+		if autocreateNamespace:
+			namespace.create( ":".join( dagtoken.split( ":" )[0:-1] ) )	# will resolve to root namespace at least
 		
 		# see whether we have to create a transform or the actual nodetype 
 		actualtype = "transform"
@@ -207,7 +212,7 @@ def createNode( nodename, nodetype, autocreateNamespace=True, autocreateParent=T
 		# create the node - either with or without parent
 		# NOTE: usually one could just use a dagModifier for everything, but I do not 
 		# trust wrapped inherited methods with default attributes
-		# print "DAGTOKEN = %s - PARTIAL NAME = %s - TYPE = %s" % ( dagtoken, nodepartialname, actualtype )
+		#print "DAGTOKEN = %s - PARTIAL NAME = %s - TYPE = %s" % ( dagtoken, nodepartialname, actualtype )
 		if parentnode or actualtype == "transform":
 			# create dag node
 			mod = modifiers.DagModifier( )
@@ -222,9 +227,15 @@ def createNode( nodename, nodetype, autocreateNamespace=True, autocreateParent=T
 			
 			# PROBLEM: if a dep node with name of dagtoken already exists, it will 
 			# rename the newly created (sub) node although it is not the same !
-			if api.MFnDependencyNode( newapiobj ).name() != dagtoken:
-				msg = "DependencyNode named %s did already exist - cannot create a dag node with same name due to maya limitation" % nodepartialname
-				raise NameError( msg )
+			actualname = api.MFnDependencyNode( newapiobj ).name()
+			if actualname != dagtoken:
+				if not autoRename:
+					msg = "DependencyNode named %s did already exist - cannot create a dag node with same name due to maya limitation" % nodepartialname
+					raise NameError( msg )
+				else:
+					# update the tokens and use the new path
+					subpaths[ i ] =  actualname
+					nodepartialname = '|'.join( subpaths[ 0 : i+1 ] )
 				
 			parentnode = createdNode = MayaNode( nodepartialname )					# update parent 
 		else:

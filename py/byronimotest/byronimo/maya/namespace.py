@@ -51,7 +51,7 @@ class TestReferenceRunner( unittest.TestCase ):
 		
 		
 		# create a few namespaces 
-		for ns in [ "newns", "newns:child", "longer:namespace",":hello:world:here", ":" ]:
+		for ns in [ "newns", "newns:child", "longer:namespace",":hello:world:here" ]:
 			curns = Namespace.getCurrent()
 			newns = Namespace.create( ns )
 			self.failUnless( newns.exists() )
