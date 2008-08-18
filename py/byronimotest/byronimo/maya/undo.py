@@ -25,6 +25,19 @@ import sys
 class TestUndoQueue( unittest.TestCase ):
 	"""Test all aspects of the api undo queue"""
 	
+	class TestOperation( undo.Operation ):
+		def __init__( self ):
+			undo.Operation.__init__( self )
+			self.numDoit = 0
+			self.numUndoIt = 0
+			
+		def doIt( self ):
+			self.numDoit += 1 
+			
+		def undoIt( self ):
+			self.numUndoIt += 1
+
+
 
 	def test_undoBasics( self ):
 		"""byronimo.maya.undo: basic assertions"""
