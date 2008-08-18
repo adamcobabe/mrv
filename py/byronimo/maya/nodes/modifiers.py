@@ -46,10 +46,10 @@ class DGModifier( om.MDGModifier, undo.Operation ):
 				# as we have not done anything 
 				del( sys._maya_stack[ ownindex ] )
 		# END if doit not called before deletion - need to get us off the queue
-		
+
 	
-class DagModifier( om.MDagModifier ):
-	"""undo-aware DAG modifier"""
+class DagModifier( om.MDagModifier, undo.Operation ):
+	"""undo-aware DAG modifier, copying all extra functions from DGModifier"""
 	__metaclass__ = MetaCopyClsMembers
 	
 	__virtual_bases__ = ( DGModifier, )
@@ -57,6 +57,8 @@ class DagModifier( om.MDagModifier ):
 	def __init__( self ):
 		"""Intiailize our base explicitly"""
 		om.MDagModifier.__init__( self )
+		undo.Operation.__init__( self )
+		
 		
 	
 # keep aliases

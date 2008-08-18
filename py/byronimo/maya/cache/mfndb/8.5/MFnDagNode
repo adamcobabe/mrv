@@ -1,15 +1,15 @@
 1
 x   | addChild                                | None                |                                         
     | boundingBox                             | None                | getBoundingBox                          
-    | child                                   | None                | getChild                                
+    | child                                   | MayaNode            | getChild                                
     | childCount                              | None                | getChildCount                           
 x   | create                                  | None                |                                         
     | dagPath                                 | None                | getDagPath                              
-    | dagRoot                                 | None                | getDagRoot                              
-    | duplicate                               | None                |                                         
+    | dagRoot                                 | MayaNode                | getDagRoot                              
+    | duplicate                               | MayaNode            |                                         
     | fullPathName                            | None                | getFullPathName                         
     | getAllPaths                             | None                |                                         
-    | getPath                                 | None                |                                         
+x   | getPath                                 | None                |                                         
     | hasChild                                | None                |                                         
     | hasParent                               | None                |                                         
     | inModel                                 | None                |                                         
@@ -24,16 +24,16 @@ x   | create                                  | None                |
 x   | model                                   | None                |                                         
     | objectColor                             | None                | getObjectColor                          
     | objectGroupComponent                    | None                | getObjectGroupComponent                 
-    | parent                                  | None                | getParent                               
+    | parent                                  | MayaNode            | getParent                               
     | parentCount                             | None                | getParentCount                          
     | partialPathName                         | None                | getPartialName                          
 x   | removeChild                             | None                |                                         
 x   | removeChildAt                           | None                |                                         
     | setInstanceable                         | None                |                                         
     | setIntermediateObject                   | None                |                                         
-    | setObject                               | None                |                                         
+x   | setObject                               | None                |                                         
     | setObjectColor                          | None                |                                         
     | setUseObjectColor                       | None                |                                         
     | transformationMatrix                    | None                | getTransformationMatrix                 
-    | type                                    | None                |                                         
+    | type                                    | None                | getType                                         
     | usingObjectColor                        | None                | isUsingObjectColor                      

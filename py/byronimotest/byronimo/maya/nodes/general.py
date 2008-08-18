@@ -26,8 +26,6 @@ from byronimo.util import capitalize
 from byronimo.maya.util import StandinClass
 import maya.cmds as cmds
 
-import time
-
 class TestGeneral( unittest.TestCase ):
 	""" Test general maya framework """
 	
@@ -44,6 +42,8 @@ class TestGeneral( unittest.TestCase ):
 				node = nodes.MayaNode( nodename )
 			except TypeError:
 				failedList.append( ( nodename, cmds.nodeType( nodename ) ) )
+			except:
+				raise 
 				
 			self.failUnless( not node._apiobj.isNull() )
 			
@@ -65,7 +65,40 @@ class TestGeneral( unittest.TestCase ):
 			self.failUnless( hasattr( node, "__dict__" ) )
 
 
+	def test_createNodes( self ):
+		"""byronimo.maya.nodes: create nodes with long names and namespaces"""
+		names = ["hello","bla|world","this|world|here","that|this|world|here" ]
+		nsnames = ["a:hello","bla|b:world","c:this|b:world","d:that|c:this|b:world|a:b:c:d:here"]
+		types = [ "facade", "nurbsCurve", "nurbsSurface", "subdiv" ]
+		
+		# SIMPLE CREATION: Paths + nested namespaces
+		for i in range( len( names ) ):
+			ntype = types[i]
+			newnode = nodes.createNode( names[i], ntype )
+			self.failUnless( isinstance( newnode, getattr( nodes, capitalize( ntype ) ) ) )
+			self.failUnless( newnode.isValid() and newnode.isAlive() )
 			
+			# test undo 
+			cmds.undo()
+			print newnode
+			self.failUnless( not cmds.objExists( newnode ) )
+			self.failUnless( not newnode.isValid() and newnode.isAlive() )
+			cmds.redo()
+			self.failUnless( newnode.isValid() and newnode.isAlive() )
+		
+			newnsnode = nodes.createNode( nsnames[i], ntype )
+			self.failUnless( isinstance( newnsnode, getattr( nodes, capitalize( ntype ) ) ) )
+			self.failUnless( newnsnode.isValid() and newnsnode.isAlive() )
+			
+			# test undo 
+			cmds.undo()
+			self.failUnless( not newnsnode.isValid() and newnsnode.isAlive() )
+			cmds.redo() 
+			self.failUnless( newnsnode.isValid() and newnsnode.isAlive() )
+			
+		# END for each created object 
+		
+		
 class TestNodeBase( unittest.TestCase ):
 	""" Test node base functionality  """
 	
@@ -138,6 +171,7 @@ class TestNodeBase( unittest.TestCase ):
 		
 	def test_wrapDagNode( self ):
 		"""byronimo.maya.nodes: create and access dag nodes"""
+		self.fail()
 
 
 	def test_mfncachebuilder( self ):

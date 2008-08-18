@@ -524,6 +524,85 @@ class MPlug( api.MPlug, util.iDagItem ):
 #}
 
 
+class MDagPath( api.MDagPath, util.iDagItem ):
+	"""Wraps a dag path adding some additional convenience functions
+	@note: patched types must be instantiated by maya - you cannot instantiate themselves 
+	anymore as maya usually requires ptr types that do not - for whatever reason - work 
+	with a patched class"""
+	
+	#{ Overridden Methods 
+	def __len__( self ):
+		"""@return: number of dag nodes in this path"""
+		return self.length( )
+		
+	def __str__( self ):
+		"""@return: full path name"""
+		return self.getFullPathName()
+		
+	#}
+	
+	#{ Query
+	def getNode( self ):
+		"""@return: MayaNode of the node we are attached to"""
+		return nodes.MayaNode( self._api_node( ) )
+		
+	def getTransform( self ):
+		"""@return: MayaNode of the lowest transform in the path
+		@note: if this is a shape, you would get its parent transform"""
+		return nodes.MayaNode( self._api_transform( ) )
+		 
+	def getNumShapes( self ):
+		"""@return: return the number of shapes below this dag path"""
+		sutil = api.MScriptUtil()
+		uintptr = sutil.asUintPtr()
+		sutil.setUint( uintptr , 0 )
+		
+		self._api_numberOfShapesDirectlyBelow( uintptr )
+		
+		return sutil.getUint( uintptr )
+	#}
+	
+	#{ Edit 
+	def pop( self, num ):
+		"""Pop the given number of items off the end of the path"""
+		sutil = api.MScriptUtil()
+		uint = sutil.asUint()
+		sutil.setUint( uint , num )
+		
+		return self._api_pop( uint )
+	
+	def extendToShape( self, num ):
+		"""Extend this path to the given shape number"""
+		sutil = api.MScriptUtil()
+		uint = sutil.asUint()
+		sutil.setUint( uint , num )
+		
+		return self._api_extendToShapeDirectlyBelow( uint )
+		
+	
+	#} END edit 
+	
+	
+	#{ Name Remapping 
+	getApiType = api.MDagPath.apiType
+	node = getNode 
+	transform = getTransform
+	getApiType = api.MDagPath.apiType
+	getLength = api.MDagPath.length
+	numberOfShapesDirectlyBelow = getNumShapes
+	getChildCount = api.MDagPath.childCount
+	getInstanceNumber = api.MDagPath.instanceNumber
+	getPathCount = api.MDagPath.pathCount
+	getFullName = api.MDagPath.fullPathName
+	getPartialName = api.MDagPath.partialPathName 
+	
+	getInclusiveMatrix = api.MDagPath.inclusiveMatrix
+	getInclusiveMatrixInverse = api.MDagPath.inclusiveMatrixInverse
+	getExclusiveMatrixInverse = api.MDagPath.exclusiveMatrixInverse
+	
+	#}
+
+
 #############################
 #### ARRAYS			    ####
 ##########################

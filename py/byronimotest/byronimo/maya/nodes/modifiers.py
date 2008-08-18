@@ -89,4 +89,22 @@ class TestModifiers( unittest.TestCase ):
 		
 	def test_dagmod( self ):
 		"""byronimo.maya.nodes.modifiers: test DAG modifier capabilities"""
+		undo.startUndo()
 		dagmod = DagModifier()
+		obj = dagmod.createNode( "transform" )
+		dagmod.renameNode( obj, "thisnewnode" )
+		dagmod.doIt()
+		
+		handle = om.MObjectHandle( obj )
+		self.failUnless( handle.isValid() and handle.isAlive() )
+		
+		undo.endUndo()
+		
+		cmds.undo()
+		self.failUnless( not handle.isValid() and handle.isAlive() )
+		
+		cmds.redo() 
+		self.failUnless( handle.isValid() and handle.isAlive() )
+		
+		
+		

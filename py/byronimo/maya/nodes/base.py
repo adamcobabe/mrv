@@ -26,7 +26,9 @@ from byronimo.maya.util import StandinClass
 nodes = __import__( "byronimo.maya.nodes", globals(), locals(), ['nodes'] )
 from byronimo.maya.nodes.types import nodeTypeToMfnClsMap
 import maya.OpenMaya as api
-import maya.cmds as cmds 
+import maya.cmds as cmds
+import byronimo.maya.namespace as namespace
+modifiers = __import__( "byronimo.maya.nodes.modifiers", globals(), locals(),[ 'modifiers' ] )
 
 
 ############################
@@ -105,26 +107,32 @@ def toApiObject( nodeName, dagPlugs=True ):
 				#if not isValidMDagPath(dag) :	 return
 				return (dag, comp)
 		else:
-			try:
-				# DagPaths
-				dag = api.MDagPath()
-				sel.getDagPath( 0, dag )
-				#if not isValidMDagPath(dag) : return
-				return dag
-		                                                                                    
-			except RuntimeError:
-				# Objects
-				obj = api.MObject()
-				sel.getDependNode( 0, obj )			 
-				#if not isValidMObject(obj) : return	 
-				return obj
+			# always get MObjects of the list !
+			obj = api.MObject()
+			sel.getDependNode( 0, obj )			 
+			#if not isValidMObject(obj) : return	 
+			return obj
 	# END if no exception on selectionList.add  
 	return None
 	
 #} END node mapping 
 
 
+
 #{ Base 
+
+def objExists( objectname ):
+	"""@return: True if given object exists, false otherwise
+	@note: perfer this method over mel as the API is used directly"""
+	try:
+		MayaNode( objectname )
+	except ValueError:
+		return False
+	else:
+		return True
+
+
+@undoable
 def createNode( nodename, nodetype, autocreateNamespace=True, autocreateParent=True ):
 	"""Create a new node of nodetype with given nodename
 	@param nodename: like "mynode" or "namespace:mynode" or "parent|mynode" or 
@@ -137,9 +145,60 @@ def createNode( nodename, nodetype, autocreateNamespace=True, autocreateParent=T
 	be created if required.
 	@raise ValueError: If nodename contains namespaces or parents that may not be created
 	@return: the newly create MayaNode"""
-	pass 
+	if nodename.startswith( '|' ):
+		nodename = nodename[1:]
+		
+	subpaths = nodename.split( '|' )
 	
-
+	parentnode = None
+	createdNode = None
+	lenSubpaths = len( subpaths )
+	for i in xrange( 0, lenSubpaths ):
+		nodepartialname = '|'.join( subpaths[ 0 : i+1 ] )
+		
+		if objExists( nodepartialname ):
+			parentnode = MayaNode( nodepartialname )
+			continue
+			
+		# it does not exist, check the namespace
+		dagtoken = '|'.join( subpaths[ i : i+1 ] )
+		ns = namespace.create( ":".join( dagtoken.split( ":" )[0:-1] ) )	# will resolve to root namespace at least
+		
+		# see whether we have to create a transform or the actual nodetype 
+		actualtype = "transform"
+		if i + 1 == lenSubpaths:
+			actualtype = nodetype
+			
+		# create the node - either with or without parent
+		# NOTE: usually one could just use a dagModifier for everything, but I do not 
+		# trust wrapped inherited methods with default attributes
+		#print "DAGTOKEN = %s; PARTIAL NAME = %s; TYPE = %s" % ( dagtoken, nodepartialname, actualtype )
+		if parentnode or actualtype == "transform":
+			# create dag node
+			mod = modifiers.DagModifier( )
+			newapiobj = None
+			if parentnode:		# use parent 
+				newapiobj = mod.createNode( actualtype, parentnode._apiobj )		# create with parent  
+			else:
+				newapiobj = mod.createNode( actualtype )							# create 
+				
+			mod.renameNode( newapiobj, dagtoken )									# rename 
+			mod.doIt()																# apply op
+			parentnode = createdNode = MayaNode( nodepartialname )					# update parent 
+		else:
+			# create dg node
+			mod = modifiers.DGModifier( )
+			newapiobj = mod.createNode( actualtype )								# create
+			mod.renameNode( newapiobj, dagtoken )									# rename 
+			mod.doIt()
+			createdNode = MayaNode( newapiobj ) 
+		# END (partial) node creation
+	# END for each partial path
+	
+	if createdNode is None:
+		raise ValueError( "Failed to create %s ( %s )" % ( nodename, nodetype ) )
+	
+	return createdNode
 
 #}
 
@@ -239,14 +298,14 @@ class MayaNode( object ):
 			
 			# currently we only handle objects - subclasses will get the type they need
 			if isinstance( apiobj, api.MDagPath ):
-				apiobj = apiobj.node()
+				apiobj = apiobj.node( )
 		else:
 			raise ValueError( "objects of type %s cannot be handled" % type( objorname ) )
 			
 			
 		
 		if not apiobj or apiobj.isNull( ):
-			raise ValueError( "object could not be handled: %s" % objorname )
+			raise ValueError( "object does not exist: %s" % objorname )
 		
 		# CREATE INSTANCE 
 		return _checkedClsCreation( apiobj, cls, MayaNode ) 
@@ -287,8 +346,9 @@ class DependNode( MayaNode ):
 		
 	def __str__( self ):
 		"""@return: name of this object"""
-		mfn = DependNode._mfncls( self._apiobj )
-		return mfn.name()		
+		#mfn = DependNode._mfncls( self._apiobj )
+		#return mfn.name()
+		return self.getName()		
 		
 	def __repr__( self ):
 		"""@return: class call syntax"""
@@ -332,6 +392,19 @@ class DependNode( MayaNode ):
 			
 	#} 
 	
+	#{ Status 
+	def isValid( self ):
+		"""@return: True if the object exists in the scene
+		@note: objects on the undo queue are NOT valid, but alive"""
+		return api.MObjectHandle( self._apiobj ).isValid()
+		
+	def isAlive( self ):
+		"""@return: True if the object exists in memory
+		@note: objects on the undo queue are alive, but NOT valid"""
+		return api.MObjectHandle( self._apiobj ).isAlive()
+	
+	
+	#} END status 
 	
 	#{ Edit Methods 
 	
@@ -346,6 +419,22 @@ class Entity( DependNode ):
 class DagNode( Entity ):
 	""" Implements access to DAG nodes """
 	__metaclass__ = nodes.MetaClassCreatorNodes
+	
+	#{ Overridden from DependNode
+	def getName( self ):
+		"""@return: fully qualified ( long ) name of this dag node"""
+		#return self.getDagPath().getFullPathName()
+		return self.getFullPathName()
+	
+	#{ Query 
+		
+		
+	#} END query 
+	
+	
+	#{ Name Remapping 
+	name = getName
+	#} END name remapping 
 	
 	
 class Attribute( api.MObject ):
