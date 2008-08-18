@@ -26,7 +26,7 @@ __copyright__='(c) 2008 Sebastian Thiel'
 
 
 nodes = __import__( "byronimo.maya.nodes", globals(), locals(), [ 'nodes' ] )
-modifiers = __import__( "byronimo.maya.nodes.modifiers", globals(), locals(), ['modifiers'] )
+undo = __import__( "byronimo.maya.undo", globals(), locals(), ['undo'] )
 
 import byronimo.util as util
 from byronimo.util import getPythonIndex 
@@ -338,14 +338,14 @@ class MPlug( api.MPlug, util.iDagItem ):
 				raise RuntimeError( "%s > %s failed as destination is connected to %s" % ( self, destplug, destinputplug ) )
 			else:
 				# disconnect
-				mod = modifiers.DGModifier( )
+				mod = undo.DGModifier( )
 				mod.disconnect( destinputplug, destplug )
 			# END disconnect existing 
 		# END destination is connected 
 						
 		# otherwise we can do the connection
 		if not mod:
-			mod = modifiers.DGModifier( )
+			mod = undo.DGModifier( )
 			
 		mod.connect( self, destplug )	# finally do the connection
 		mod.doIt( )
@@ -366,7 +366,7 @@ class MPlug( api.MPlug, util.iDagItem ):
 		if inputplug.isNull():
 			return self
 		
-		mod = modifiers.DGModifier( )
+		mod = undo.DGModifier( )
 		mod.disconnect( inputplug, self )
 		mod.doIt()
 		return self
@@ -379,7 +379,7 @@ class MPlug( api.MPlug, util.iDagItem ):
 		if not len( outputplugs ):
 			return self
 			
-		mod = modifiers.DGModifier()
+		mod = undo.DGModifier()
 		for destplug in outputplugs:
 			mod.disconnect( self, destplug )
 		mod.doIt()
@@ -393,7 +393,7 @@ class MPlug( api.MPlug, util.iDagItem ):
 		if not self.isConnectedTo( other ):
 			return 
 		
-		mod = modifiers.DGModifier( )
+		mod = undo.DGModifier( )
 		mod.disconnect( self, other )
 		mod.doIt()
 		

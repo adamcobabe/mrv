@@ -28,7 +28,7 @@ from byronimo.maya.nodes.types import nodeTypeToMfnClsMap, nodeTypeTree
 import maya.OpenMaya as api
 import maya.cmds as cmds
 import byronimo.maya.namespace as namespace
-modifiers = __import__( "byronimo.maya.nodes.modifiers", globals(), locals(),[ 'modifiers' ] )
+undo = __import__( "byronimo.maya.undo", globals(), locals(),[ 'undo' ] )
 
 
 ############################
@@ -215,7 +215,7 @@ def createNode( nodename, nodetype, autocreateNamespace=True, autoRename = True 
 		#print "DAGTOKEN = %s - PARTIAL NAME = %s - TYPE = %s" % ( dagtoken, nodepartialname, actualtype )
 		if parentnode or actualtype == "transform":
 			# create dag node
-			mod = modifiers.DagModifier( )
+			mod = undo.DagModifier( )
 			newapiobj = None
 			if parentnode:		# use parent 
 				newapiobj = mod.createNode( actualtype, parentnode._apiobj )		# create with parent  
@@ -240,7 +240,7 @@ def createNode( nodename, nodetype, autocreateNamespace=True, autoRename = True 
 			parentnode = createdNode = MayaNode( nodepartialname )					# update parent 
 		else:
 			# create dg node
-			mod = modifiers.DGModifier( )
+			mod = undo.DGModifier( )
 			newapiobj = mod.createNode( actualtype )								# create
 			mod.renameNode( newapiobj, dagtoken )									# rename 
 			mod.doIt()
@@ -252,6 +252,17 @@ def createNode( nodename, nodetype, autocreateNamespace=True, autoRename = True 
 		raise RuntimeError( "Failed to create %s ( %s )" % ( nodename, nodetype ) )
 	
 	return createdNode
+
+
+@undoable
+def moveNode( node, newpath, autocreateNamespace=True, autocreateParents=True ):
+	"""Move or rename the given node to match newpath
+	@param newpath: changes result depending on the name:
+	- relative path name ( i.e. 'newname' ) will rename the node in place, keeping the parent
+	- absolute path name ( i.e. '|newname' ) will rename to newname and change parents to fit the given path
+	- 
+	@note: this method handles namespaces properly  """
+	pass 
 
 #}
 

@@ -33,7 +33,7 @@ class TestGeneralPerformance( unittest.TestCase ):
 	
 	def test_createNodes( self ):
 		"""byronimo.maya.benchmark.general: test random node creation performance"""
-		runs = [ 100,1000,2500 ]
+		runs = [ 100,2500 ]
 		deptypes =[ "facade", "groupId", "objectSet"  ]
 		dagtypes =[ "nurbsCurve", "nurbsSurface", "subdiv", "transform" ]
 		all_elapsed = []
@@ -76,6 +76,20 @@ class TestGeneralPerformance( unittest.TestCase ):
 			  
 		# assure the scene is the same as we undo everything
 		self.failUnless( len( cmds.ls() ) == numObjs )
+		
+		
+		# TEST MAYA NODE CREATION RATE 
+		#################################
+		# redo last operation to get lots of nodes
+		cmds.redo( )
+		nodenames = cmds.ls(  )
+		starttime = time.clock()
+		
+		for name in nodenames:
+			n =nodes.MayaNode( name )
+		
+		elapsed = time.clock() - starttime
+		print "Created %i MayaNodes in %f s ( %f / s )" % ( len( nodenames ), elapsed, len( nodenames ) / elapsed )
 		
 		
 	

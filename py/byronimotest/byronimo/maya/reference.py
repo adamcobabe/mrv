@@ -35,7 +35,7 @@ class TestReferenceRunner( unittest.TestCase ):
 
 	def test_listAndQuery( self ):
 		"""byronimo.maya.reference: list some references and query their information """
-		bmaya.Scene.open( common.get_maya_file( "refbase.ma" ) )
+		bmaya.Scene.open( common.get_maya_file( "refbase.ma" ), force=True )
 		allRefs = Scene.lsReferences( )
 		self.failUnless( len( allRefs ) != 0 )
 		
