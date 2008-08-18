@@ -17,13 +17,14 @@ __copyright__='(c) 2008 Sebastian Thiel'
 
 
 import unittest
-import byronimo.maya as bmaya 
+import byronimo.maya as bmaya
+import byronimo.maya.nodes as nodes
+import sys
 import maya.cmds as cmds
 import byronimo.maya.undo as undo
-from byronimotest.byronimo.maya.undo import TestUndoQueue
-import sys
 import string 
 import random
+import time
 
 
 
@@ -32,9 +33,50 @@ class TestGeneralPerformance( unittest.TestCase ):
 	
 	def test_createNodes( self ):
 		"""byronimo.maya.benchmark.general: test random node creation performance"""
-		nslist = genNestedNamesList( 3, (0,3), genRandomNames(10,(3,8)),":" )
-		print nslist
-		print genNodeNames( 10, (0,5),(3,8),nslist )
+		runs = [ 100,1000,5000 ]
+		deptypes =[ "facade", "groupId", "objectSet"  ]
+		dagtypes =[ "nurbsCurve", "nurbsSurface", "subdiv", "transform" ]
+		all_elapsed = []
+		
+		numObjs = len( cmds.ls() )
+		
+		print "\n"
+		for numNodes in runs:
+			
+			nslist = genNestedNamesList( numNodes / 100, (0,3), genRandomNames(10,(3,8)),":" )
+			nodenames = genNodeNames( numNodes, (1,5),(3,8),nslist )
+			
+			starttime = time.clock( )
+			undoobj = undo.StartUndo()
+			for nodename in nodenames:
+				nodetype = None
+				if '|' in nodename:			# name decides whether dag or dep node is created
+					nodetype = random.choice( dagtypes )
+				else:
+					nodetype = random.choice( deptypes )
+				
+				try:	# it can happen that he creates dg and dag nodes with the same name 
+					nodes.createNode( nodename, nodetype )
+				except NameError:
+					pass 
+			# END for each node
+			del( undoobj )	# good if we raise runtime errors ( shouldnt happend )
+			
+			elapsed = time.clock() - starttime
+			all_elapsed.append( elapsed )
+			print "Created %i nodes in %f s ( %f / s )" % ( numNodes, elapsed, numNodes / elapsed )
+			
+			# UNDO OPERATION 
+			starttime = time.clock()
+			cmds.undo()
+			elapsed = time.clock() - starttime
+			print "Undone Operation in %f s" % elapsed 
+			
+		# END for each run
+			  
+		# assure the scene is the same as we undo everything
+		self.failUnless( len( cmds.ls() ) == numObjs )
+		
 		
 	
 

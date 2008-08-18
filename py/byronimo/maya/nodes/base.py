@@ -21,10 +21,10 @@ __id__="$Id: configuration.py 16 2008-05-29 00:30:46Z byron $"
 __copyright__='(c) 2008 Sebastian Thiel'
 
 
-from byronimo.util import capitalize, IntKeyGenerator, getPythonIndex
+from byronimo.util import uncapitalize, capitalize, IntKeyGenerator, getPythonIndex
 from byronimo.maya.util import StandinClass
 nodes = __import__( "byronimo.maya.nodes", globals(), locals(), ['nodes'] )
-from byronimo.maya.nodes.types import nodeTypeToMfnClsMap
+from byronimo.maya.nodes.types import nodeTypeToMfnClsMap, nodeTypeTree
 import maya.OpenMaya as api
 import maya.cmds as cmds
 import byronimo.maya.namespace as namespace
@@ -135,15 +135,18 @@ def objExists( objectname ):
 @undoable
 def createNode( nodename, nodetype, autocreateNamespace=True, autocreateParent=True ):
 	"""Create a new node of nodetype with given nodename
-	@param nodename: like "mynode" or "namespace:mynode" or "parent|mynode" or 
-	"ns1:parent|ns1:ns2:parent|ns3:mynode". The name may contain any amount of parents
+	@param nodename: like "mynode" or "namespace:mynode" or "|parent|mynode" or 
+	"|ns1:parent|ns1:ns2:parent|ns3:mynode". The name may contain any amount of parents
 	and/or namespaces.
+	@note: For reasons of safety, dag nodes must use absolute paths like "|parent|child" - 
+	otherwise names might be ambiguous ! This method will assume absolute paths !
 	@param nodetype: a nodetype known to maya to be created accordingly
 	@param autocreateNamespace: if True, namespaces given in the nodename will be created
 	if required
 	@param autocreateParent: if True, transform nodes for dagtype parents will automatically 
 	be created if required.
-	@raise ValueError: If nodename contains namespaces or parents that may not be created
+	@raise RuntimeError: If nodename contains namespaces or parents that may not be created
+	@raise NameError: If name of desired node clashes as existing node has different type
 	@return: the newly create MayaNode"""
 	if nodename.startswith( '|' ):
 		nodename = nodename[1:]
@@ -153,12 +156,44 @@ def createNode( nodename, nodetype, autocreateNamespace=True, autocreateParent=T
 	parentnode = None
 	createdNode = None
 	lenSubpaths = len( subpaths )
-	for i in xrange( 0, lenSubpaths ):
+	start_index = 1
+	
+	# SANITY CHECK ! Must use absolute dag paths 
+	if  nodename[0] != '|':
+		nodename = "|" + nodename				# update with pipe
+		subpaths.insert( 0, '' )
+		lenSubpaths += 1
+	
+	for i in xrange( start_index, lenSubpaths ):						# first token always pipe, need absolute paths
 		nodepartialname = '|'.join( subpaths[ 0 : i+1 ] )
 		
+		# DG NODE exists although DAG node is desired ?
+		################################
+		# in the first iteration, we also have to check whether a dep node with the 
+		# same name exists. If we check for "|nodename" it will not find a dep node with 
+		# "nodename" although you can create that dep node by giving "|nodename"
+		if i == start_index and lenSubpaths > 2 and objExists( nodepartialname[1:] ):
+			raise NameError( "dag node is requested, but root node name was taken by dependency node: %s" % nodepartialname[1:] ) 
+			
+		# DAG ITEM EXISTS ?
+		######################
 		if objExists( nodepartialname ):
-			parentnode = MayaNode( nodepartialname )
+			parentnode = createdNode = MayaNode( nodepartialname )	
+			
+			# could be that the node already existed, but with an incorrect type
+			if i == lenSubpaths - 1:				# in the last iteration
+				existing_node_type = uncapitalize( createdNode.__class__.__name__ )
+				if nodetype != existing_node_type:
+					# allow more specialized types, but not less specialized ones 
+					if nodetype not in nodeTypeTree.parent_iter( existing_node_type ):
+						msg = "node %s did already exist, its type %s is incompatible with the requested type %s" % ( nodepartialname, existing_node_type, nodetype )
+						raise NameError( msg )
+				# END nodetypes different
+			# END end of iteration handling 
+			
 			continue
+		# END node item exists 
+		
 			
 		# it does not exist, check the namespace
 		dagtoken = '|'.join( subpaths[ i : i+1 ] )
@@ -172,7 +207,7 @@ def createNode( nodename, nodetype, autocreateNamespace=True, autocreateParent=T
 		# create the node - either with or without parent
 		# NOTE: usually one could just use a dagModifier for everything, but I do not 
 		# trust wrapped inherited methods with default attributes
-		#print "DAGTOKEN = %s; PARTIAL NAME = %s; TYPE = %s" % ( dagtoken, nodepartialname, actualtype )
+		# print "DAGTOKEN = %s - PARTIAL NAME = %s - TYPE = %s" % ( dagtoken, nodepartialname, actualtype )
 		if parentnode or actualtype == "transform":
 			# create dag node
 			mod = modifiers.DagModifier( )
@@ -181,9 +216,16 @@ def createNode( nodename, nodetype, autocreateNamespace=True, autocreateParent=T
 				newapiobj = mod.createNode( actualtype, parentnode._apiobj )		# create with parent  
 			else:
 				newapiobj = mod.createNode( actualtype )							# create 
-				
-			mod.renameNode( newapiobj, dagtoken )									# rename 
+			
+			mod.renameNode( newapiobj, dagtoken )									# rename
 			mod.doIt()																# apply op
+			
+			# PROBLEM: if a dep node with name of dagtoken already exists, it will 
+			# rename the newly created (sub) node although it is not the same !
+			if api.MFnDependencyNode( newapiobj ).name() != dagtoken:
+				msg = "DependencyNode named %s did already exist - cannot create a dag node with same name due to maya limitation" % nodepartialname
+				raise NameError( msg )
+				
 			parentnode = createdNode = MayaNode( nodepartialname )					# update parent 
 		else:
 			# create dg node
@@ -196,7 +238,7 @@ def createNode( nodename, nodetype, autocreateNamespace=True, autocreateParent=T
 	# END for each partial path
 	
 	if createdNode is None:
-		raise ValueError( "Failed to create %s ( %s )" % ( nodename, nodetype ) )
+		raise RuntimeError( "Failed to create %s ( %s )" % ( nodename, nodetype ) )
 	
 	return createdNode
 
@@ -262,6 +304,8 @@ def _createInstByPredicate( apiobj, cls, basecls, predicate ):
 ############################
 #### Classes		  	####
 ##########################
+
+
 
 #{ Base 
 class MayaNode( object ):

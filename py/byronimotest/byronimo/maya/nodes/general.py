@@ -80,8 +80,6 @@ class TestGeneral( unittest.TestCase ):
 			
 			# test undo 
 			cmds.undo()
-			print newnode
-			self.failUnless( not cmds.objExists( newnode ) )
 			self.failUnless( not newnode.isValid() and newnode.isAlive() )
 			cmds.redo()
 			self.failUnless( newnode.isValid() and newnode.isAlive() )
