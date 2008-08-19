@@ -44,9 +44,9 @@ class TestDataBase( unittest.TestCase ):
 	
 	def test_MPlug( self ):
 		"""byronimo.maya.nodes: Test plug abilities( node.attribute ) """
-		persp = nodes.MayaNode( "persp" )
-		front	 = nodes.MayaNode( "front" )
-		side	 = nodes.MayaNode( "side" )
+		persp = nodes.Node( "persp" )
+		front	 = nodes.Node( "front" )
+		side	 = nodes.Node( "side" )
 		matworld = persp.worldMatrix
 		
 		str( matworld )
@@ -145,14 +145,14 @@ class TestDataBase( unittest.TestCase ):
 			self.failUnless( isinstance( attr, attrtype ) )
 		                                                           
 			node = plug.getNode()
-			self.failUnless( isinstance( node, nodes.MayaNode ) )
+			self.failUnless( isinstance( node, nodes.Node ) )
 			self.failUnless( node == persp )
 			
 		
 	
 	def test_matrixData( self ):
 		"""byronimo.maya.nodes: test matrix data"""
-		node = nodes.MayaNode( "persp" )
+		node = nodes.Node( "persp" )
 		matplug = node.getPlug( "worldMatrix" )
 		self.failUnless( not matplug.isNull() )
 		self.failUnless( matplug.isArray() )
@@ -173,7 +173,7 @@ class TestDataBase( unittest.TestCase ):
 	def test_MPlugArray( self ):
 		"""byronimo.maya.nodes: test the plugarray wrapper
 		NOTE: plugarray can be wrapped, but the types stored will always be"""
-		node = nodes.MayaNode( "defaultRenderGlobals" )
+		node = nodes.Node( "defaultRenderGlobals" )
 		pa = node.getConnections( )
 		
 		myplug = pa[0]

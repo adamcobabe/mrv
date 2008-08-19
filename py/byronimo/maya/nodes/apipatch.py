@@ -202,7 +202,7 @@ class MTransformationMatrix( api.MTransformationMatrix, PatchMatrix ):
 
 #{ Basic Types
 class MPlug( api.MPlug, util.iDagItem ):
-	""" Wrap a maya plug to assure we always get MayaNodes ( instead of MObjects )
+	""" Wrap a maya plug to assure we always get Nodes ( instead of MObjects )
 	By overridding many object methods, the access to plugs becomes very pythonic"""
 	# __slots__ = []  	 apparently it will always have a dict 
 	
@@ -484,8 +484,8 @@ class MPlug( api.MPlug, util.iDagItem ):
 		return nodes.Attribute( api.MPlug._api_attribute( self ) )
 		
 	def getNode( self ):
-		"""@return: MayaNode instance of our underlying node"""
-		return nodes.MayaNode( api.MPlug._api_node( self ) )
+		"""@return: Node instance of our underlying node"""
+		return nodes.Node( api.MPlug._api_node( self ) )
 	
 	def asMObject( *args, **kwargs ):
 		"""@return: our Mobjects wrapped in L{Data}"""

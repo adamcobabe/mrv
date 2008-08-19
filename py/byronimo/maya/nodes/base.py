@@ -114,7 +114,7 @@ def objExists( objectname ):
 	"""@return: True if given object exists, false otherwise
 	@note: perfer this method over mel as the API is used directly"""
 	try:
-		MayaNode( objectname )
+		Node( objectname )
 	except ValueError:
 		return False
 	else:
@@ -137,7 +137,7 @@ def createNode( nodename, nodetype, autocreateNamespace=True, autoRename = True 
 	@raise RuntimeError: If nodename contains namespaces or parents that may not be created
 	@raise NameError: If name of desired node clashes as existing node has different type
 	@note: As this method is checking a lot and tries to be smart, its relatively slow ( creates ~400 nodes / s )
-	@return: the newly create MayaNode"""
+	@return: the newly create Node"""
 	global _mfndep
 	if nodename.startswith( '|' ):
 		nodename = nodename[1:]
@@ -165,7 +165,7 @@ def createNode( nodename, nodetype, autocreateNamespace=True, autoRename = True 
 		# "nodename" although you can create that dep node by giving "|nodename"
 		if i == start_index and lenSubpaths > 2 and objExists( nodepartialname[1:] ):
 			# check whether the object is really not a dag node 
-			if not isinstance( MayaNode( nodepartialname[1:] ), DagNode ):
+			if not isinstance( Node( nodepartialname[1:] ), DagNode ):
 				raise NameError( "dag node is requested, but root node name was taken by dependency node: %s" % nodepartialname[1:] ) 
 			
 		# DAG ITEM EXISTS ?
@@ -175,7 +175,7 @@ def createNode( nodename, nodetype, autocreateNamespace=True, autoRename = True 
 			
 			# could be that the node already existed, but with an incorrect type
 			if i == lenSubpaths - 1:				# in the last iteration
-				tmp_node = MayaNode( createdNode )
+				tmp_node = Node( createdNode )
 				existing_node_type = uncapitalize( tmp_node.__class__.__name__ )
 				if nodetype != existing_node_type:
 					# allow more specialized types, but not less specialized ones 
@@ -243,7 +243,7 @@ def createNode( nodename, nodetype, autocreateNamespace=True, autoRename = True 
 	if createdNode is None:
 		raise RuntimeError( "Failed to create %s ( %s )" % ( nodename, nodetype ) )
 	
-	return MayaNode( createdNode )
+	return Node( createdNode )
 
 
 @undoable
@@ -357,7 +357,7 @@ def _createInstByPredicate( apiobj, cls, basecls, predicate ):
 
 
 #{ Base 
-class MayaNode( object ):
+class Node( object ):
 	"""Common base for all maya nodes, providing access to the maya internal object 
 	representation
 	Use this class to directly create a maya node of the required type"""
@@ -370,7 +370,7 @@ class MayaNode( object ):
 			- MObject
 			- MObjectHandle
 			- MDagPath
-		@todo: assure support for instances of MayaNodes ( as kind of copy constructure ) 
+		@todo: assure support for instances of Nodes ( as kind of copy constructure ) 
 		@note: this area must be optimized for speed"""
 		
 		if not args:
@@ -384,7 +384,7 @@ class MayaNode( object ):
 			apiobj_or_dagpath = objorname
 		elif isinstance( objorname, basestring ):
 			if objorname.find( '.' ) != -1:
-				raise ValueError( "%s cannot be handled - create a node, then access its attribute like MayaNode('name').attr" % objorname )
+				raise ValueError( "%s cannot be handled - create a node, then access its attribute like Node('name').attr" % objorname )
 			apiobj_or_dagpath = toApiobjOrDagPath( objorname )
 		elif isinstance( objorname, api.MObjectHandle ):
 			apiobj_or_dagpath = objorname.object()	
@@ -396,20 +396,20 @@ class MayaNode( object ):
 			raise ValueError( "object does not exist: %s" % objorname )
 		
 		# CREATE INSTANCE 
-		return _checkedInstanceCreationDagPathSupport( apiobj_or_dagpath, cls, MayaNode ) 
+		return _checkedInstanceCreationDagPathSupport( apiobj_or_dagpath, cls, Node ) 
 
 
 	#{ Overridden Methods 
 	def __eq__( self, other ):
 		"""Compare MObjects directly"""
-		if not isinstance( other, MayaNode ):
-			other = MayaNode( other )
+		if not isinstance( other, Node ):
+			other = Node( other )
 		return self._apiobj == other._apiobj
 	
 	#}
 	
 
-class DependNode( MayaNode ):
+class DependNode( Node ):
 	""" Implements access to dependency nodes 
 	
 	Depdency Nodes are manipulated using an MObjectHandle which is safest to go with, 
@@ -517,8 +517,8 @@ class DagNode( Entity ):
 	#{ Overridden from Object 
 	def __eq__( self, other ):
 		"""Compare MObjects directly"""
-		if not isinstance( other, MayaNode ):
-			other = MayaNode( other )
+		if not isinstance( other, Node ):
+			other = Node( other )
 		if isinstance( other, DagNode ):
 			return self._apidagpath == other._apidagpath
 		return self._apiobj == other._apiobj
@@ -618,13 +618,13 @@ class DagPath( api.MDagPath, iDagItem ):
 	
 	#{ Query
 	def getNode( self ):
-		"""@return: MayaNode of the node we are attached to"""
-		return nodes.MayaNode( self.node( ) )
+		"""@return: Node of the node we are attached to"""
+		return nodes.Node( self.node( ) )
 		
 	def getTransform( self ):
-		"""@return: MayaNode of the lowest transform in the path
+		"""@return: Node of the lowest transform in the path
 		@note: if this is a shape, you would get its parent transform"""
-		return nodes.MayaNode( self.transform( ) )
+		return nodes.Node( self.transform( ) )
 		 
 	def getNumShapes( self ):
 		"""@return: return the number of shapes below this dag path"""

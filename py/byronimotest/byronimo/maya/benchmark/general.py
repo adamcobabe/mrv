@@ -83,26 +83,26 @@ class TestGeneralPerformance( unittest.TestCase ):
 		# redo last operation to get lots of nodes
 		cmds.redo( )
 		nodenames = cmds.ls( )
-		mayanodes = []
+		Nodes = []
 		
 		starttime = time.clock( )
 		for name in nodenames:
-			mayanodes.append( nodes.MayaNode( name ) )
+			Nodes.append( nodes.Node( name ) )
 		
 		elapsed = time.clock() - starttime
-		print "Created %i MayaNodes ( from STRING ) in %f s ( %f / s )" % ( len( nodenames ), elapsed, len( nodenames ) / elapsed )
+		print "Created %i Nodes ( from STRING ) in %f s ( %f / s )" % ( len( nodenames ), elapsed, len( nodenames ) / elapsed )
 		
 		
 		# CREATE MAYA NODES FROM DAGPATHS AND OBJECTS
 		starttime = time.clock( )
-		for node in mayanodes:
+		for node in Nodes:
 			if isinstance( node, nodes.DagNode ):
-				n = nodes.MayaNode( node._apidagpath )
+				n = nodes.Node( node._apidagpath )
 			else:
-				n = nodes.MayaNode( node._apiobj )
+				n = nodes.Node( node._apiobj )
 		
 		api_elapsed = time.clock() - starttime
-		print "Created %i MayaNodes ( from APIOBJ ) in %f s ( %f / s ) -> %f %% faster" % ( len( nodenames ), api_elapsed, len( nodenames ) / api_elapsed, (elapsed / api_elapsed) * 100 )
+		print "Created %i Nodes ( from APIOBJ ) in %f s ( %f / s ) -> %f %% faster" % ( len( nodenames ), api_elapsed, len( nodenames ) / api_elapsed, (elapsed / api_elapsed) * 100 )
 		
 	
 

@@ -1,12 +1,12 @@
 1
 x   | addChild                                | None                |                                         
     | boundingBox                             | None                | getBoundingBox                          
-    | child                                   | MayaNode            | getChild                                
+    | child                                   | Node            	   | getChild                                
     | childCount                              | None                | getChildCount                           
 x   | create                                  | None                |                                         
     | dagPath                                 | DagPath             | getDagPath                              
-    | dagRoot                                 | MayaNode            | getDagRoot                              
-    | duplicate                               | MayaNode            |                                         
+    | dagRoot                                 | Node	              | getDagRoot                              
+    | duplicate                               | Node	              |                                         
     | fullPathName                            | None                | getFullPathName                         
     | getAllPaths                             | None                |                                         
 x   | getPath                                 | None                |                                         
@@ -24,7 +24,7 @@ x   | getPath                                 | None                |
 x   | model                                   | None                |                                         
     | objectColor                             | None                | getObjectColor                          
     | objectGroupComponent                    | None                | getObjectGroupComponent                 
-    | parent                                  | MayaNode            | getParent                               
+    | parent                                  | Node	              | getParent                               
     | parentCount                             | None                | getParentCount                          
     | partialPathName                         | None                | getPartialName                          
 x   | removeChild                             | None                |                                         

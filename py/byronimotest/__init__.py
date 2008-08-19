@@ -55,7 +55,7 @@ def get_suite( ):
 	import byronimotest.byronimo as byronimo
 	import byronimotest.byronimo.maya as maya
 	import byronimotest.byronimo.maya.ui as mayaui
-	import byronimotest.byronimo.maya.nodes as mayanodes
+	import byronimotest.byronimo.maya.nodes as Nodes
 	import byronimotest.byronimo.maya.benchmark as benchmark
 	
 	testmodules = [ t[1] for t in locals().iteritems() if t[0] != 'inspect' and inspect.ismodule( t[1] ) ]

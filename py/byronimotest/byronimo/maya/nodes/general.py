@@ -39,7 +39,7 @@ class TestGeneral( unittest.TestCase ):
 		failedList = []
 		for nodename in cmds.ls( ):
 			try: 
-				node = nodes.MayaNode( nodename )
+				node = nodes.Node( nodename )
 			except TypeError:
 				failedList.append( ( nodename, cmds.nodeType( nodename ) ) )
 			except:
@@ -115,7 +115,7 @@ class TestGeneral( unittest.TestCase ):
 	def test_instancingSimple( self ):
 		"""byronimo.maya.nodes: assure that we get the right path if we wrap the node"""
 		node = nodes.createNode( "parent|middle|child", "transform" )
-		nodem = nodes.MayaNode( "parent|middle" )
+		nodem = nodes.Node( "parent|middle" )
 		print node.getName()
 		
 		instnode = node.duplicate( 1, 1 )
@@ -128,7 +128,7 @@ class TestGeneral( unittest.TestCase ):
 		path = instnode.getDagPath( )
 		print "%s = instnode.getDagPath" % str( path )
 		
-		childm1 = nodes.MayaNode( "parent|middle1|child" )
+		childm1 = nodes.Node( "parent|middle1|child" )
 		print "%s = childm1" % childm1
 		print "%s = childm1.getName" %  childm1.getName()
 		print "%s = childm1.getDagPath.getFullPathName" % childm1.getDagPath().getFullPathName()
@@ -161,7 +161,7 @@ class TestNodeBase( unittest.TestCase ):
 	
 	def test_wrapDepNode( self ):
 		"""byronimo.maya.nodes: create and access dependency nodes ( not being dag nodes )"""
-		node = nodes.MayaNode( "defaultRenderGlobals" )
+		node = nodes.Node( "defaultRenderGlobals" )
 		
 		# string should be name		
 		self.failUnless( str( node ) == node.getName( ) )
@@ -188,7 +188,7 @@ class TestNodeBase( unittest.TestCase ):
 		
 		
 		# DEPENDENCY INFO
-		persp = nodes.MayaNode( "persp" )
+		persp = nodes.Node( "persp" )
 		affected_attrs = persp.affects( "t" )
 		self.failUnless( len( affected_attrs ) > 1 )
 		affected_attrs = persp.affected( "t" )

@@ -67,7 +67,7 @@ class MetaClassCreatorNodes( MetaClassCreator ):
 
 	@staticmethod
 	def _wrapMfnFunc( mfncls, funcname, funcMutatorDB = None ):
-		""" Create a function that makes a MayaNode natively use its associated Maya 
+		""" Create a function that makes a Node natively use its associated Maya 
 		function set on calls.
 		
 		The created function will use the api object of the cls instance to initialize
@@ -474,7 +474,7 @@ class MfnMemberMap( UserDict.UserDict ):
 def writeMfnDBCacheFiles( ):
 	"""Create a simple Memberlist of available mfn classes and their members 
 	to allow a simple human-editable way of adjusting which methods will be added
-	to the MayaNodes"""
+	to the Nodes"""
 	mfnclsnames = [ clsname for clsname in dir( api ) if clsname.startswith( "MFn" ) ]
 	for mfnname in mfnclsnames:
 		mfnfile = nodes.getMfnDBPath( mfnname )

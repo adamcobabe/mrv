@@ -6,7 +6,7 @@ providing full undo and redo support.
 Features
 --------
    - modify dag or dg using the undo - enabled DG and DAG modifiers
-   - modify values using mayanodes and their plugs ( as the plugs are overridden
+   - modify values using Nodes and their plugs ( as the plugs are overridden
    to store undo information )
    
    

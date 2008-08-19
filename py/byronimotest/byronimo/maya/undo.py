@@ -77,9 +77,9 @@ class TestUndoQueue( unittest.TestCase ):
 	def test_dgmod( self ):
 		"""byronimo.maya.undo: test dg modifier capabilities
 		@note: DGmod is intensively used by MPlug """
-		persp = MayaNode( "persp" )
-		front = MayaNode( "front" )
-		side = MayaNode( "side" )
+		persp = Node( "persp" )
+		front = Node( "front" )
+		side = Node( "side" )
 		
 		# SIMPLE CONNECTION
 		################
