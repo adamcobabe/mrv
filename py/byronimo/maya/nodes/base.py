@@ -21,7 +21,7 @@ __id__="$Id: configuration.py 16 2008-05-29 00:30:46Z byron $"
 __copyright__='(c) 2008 Sebastian Thiel'
 
 
-from byronimo.util import uncapitalize, capitalize, IntKeyGenerator, getPythonIndex, iDagItem
+from byronimo.util import uncapitalize, capitalize, IntKeyGenerator, getPythonIndex, iDagItem, Call
 from byronimo.maya.util import StandinClass
 nodes = __import__( "byronimo.maya.nodes", globals(), locals(), ['nodes'] )
 from byronimo.maya.nodes.types import nodeTypeToMfnClsMap, nodeTypeTree
@@ -29,6 +29,7 @@ import maya.OpenMaya as api
 import maya.cmds as cmds
 import byronimo.maya.namespace as namespace
 undo = __import__( "byronimo.maya.undo", globals(), locals(),[ 'undo' ] )
+
 
 
 ############################
@@ -122,7 +123,7 @@ def objExists( objectname ):
 
 
 @undoable
-def createNode( nodename, nodetype, autocreateNamespace=True, autoRename = True ):
+def createNode( nodename, nodetype, autocreateNamespace=True, renameOnClash = True ):
 	"""Create a new node of nodetype with given nodename
 	@param nodename: like "mynode" or "namespace:mynode" or "|parent|mynode" or 
 	"|ns1:parent|ns1:ns2:parent|ns3:mynode". The name may contain any amount of parents
@@ -132,16 +133,17 @@ def createNode( nodename, nodetype, autocreateNamespace=True, autoRename = True 
 	@param nodetype: a nodetype known to maya to be created accordingly
 	@param autocreateNamespace: if True, namespaces given in the nodename will be created
 	if required
-	@param autoRename: if True, nameclashes will automatcially be resolved by creating a unique 
+	@param renameOnClash: if True, nameclashes will automatcially be resolved by creating a unique 
 	name - this only happens if a dependency node has the same name as a dag node
 	@raise RuntimeError: If nodename contains namespaces or parents that may not be created
 	@raise NameError: If name of desired node clashes as existing node has different type
 	@note: As this method is checking a lot and tries to be smart, its relatively slow ( creates ~400 nodes / s )
 	@return: the newly create Node"""
 	global _mfndep
-	if nodename.startswith( '|' ):
-		nodename = nodename[1:]
-		
+	
+	if nodename in ( '|', '' ):
+		raise RuntimeError( "Cannot create '|' or ''" )
+	
 	subpaths = nodename.split( '|' )
 	
 	parentnode = None
@@ -221,7 +223,7 @@ def createNode( nodename, nodetype, autocreateNamespace=True, autoRename = True 
 			_mfndep.setObject( newapiobj )
 			actualname = _mfndep.name()
 			if actualname != dagtoken:
-				if not autoRename:
+				if not renameOnClash:
 					msg = "DependencyNode named %s did already exist - cannot create a dag node with same name due to maya limitation" % nodepartialname
 					raise NameError( msg )
 				else:
@@ -246,16 +248,8 @@ def createNode( nodename, nodetype, autocreateNamespace=True, autoRename = True 
 	return Node( createdNode )
 
 
-@undoable
-def moveNode( node, newpath, instanced = False , autocreateNamespace=True, autocreateParents=True ):
-	"""Move or rename the given node to match newpath
-	@param newpath: changes result depending on the name:
-	- relative path name ( i.e. 'newname' ) will rename the node in place, keeping the parent
-	- absolute path name ( i.e. '|newname' ) will rename to newname and change parents to fit the given path
-	@param instanced: if True, the node at newpath will  be an instance of node, otherwise a copy  
-	@note: this method handles namespaces properly 
-	@note: be aware that children will be copied by default"""
-	pass 
+
+
 
 #}
 
@@ -282,7 +276,7 @@ def _checkedInstanceCreationDagPathSupport( apiobj_or_dagpath, clsToBeCreated, b
 		api.MFnDagNode( apiobj ).getPath( dagpath )
 	
 	if dagpath:
-		clsinstance._apidagpath = dagpath
+		clsinstance._apidagpath = DagPath( dagpath )	# add some convenience to it 
 		
 	return clsinstance
 
@@ -445,6 +439,52 @@ class DependNode( Node ):
 		return '%s("%s")' % ( self.__class__.__name__, DependNode.__str__( self ) )
 	#}
 	
+	
+	
+	#{ Edit
+	@undoable
+	def rename( self, newname, autocreateNamespace=True, renameOnClash = True ):
+		"""Rename this node to newname
+		@param newname: new name of the node 
+		@param autocreateNamespace: if true, namespaces given in newpath will be created automatically, otherwise 
+		a RuntimeException will be thrown if a required namespace does not exist
+		@param renameOnClash: if true, clashing names will automatically be resolved by adjusting the name 
+		@return: renamed node which is the node itself"""
+		if '|' in newname:
+			raise NameError( "new node names may not contain '|' as in %s" % newname )
+		
+		# ALREADY EXISTS ? 
+		if not renameOnClash:
+			exists = False
+			
+			if isinstance( self, DagNode ):	# dagnode: check existing children under parent 
+				testforobject = self.getParent().getFullChildName( newname )	# append our name to the path
+				if objExists( testforobject ):
+					raise RuntimeError( "Object %s did already exist" % testforobject )                            
+			else:
+				exists = objExists( newname )	# depnode: check if object exists
+				
+			if exists:
+				raise RuntimeError( "Node named %s did already exist, failed to rename %s" % ( newname, self ) )
+		# END not renameOnClash handling  
+		
+		# NAMESPACE 
+		ns = ":".join( newname.split( ":" )[:-1] )
+		if not namespace.exists( ns ) and not autocreateNamespace:
+			raise RuntimeError( "Cannot rename %s to %s as namespace %s does not exist" % ( self, newname, ns ) )
+		ns = namespace.create( ns )		# assure its there 
+		
+		
+		# rename the node
+		mod = undo.DGModifier( )
+		mod.renameNode( self._apiobj, newname )
+		mod.doIt()
+		
+		return self
+		
+		
+	#} END edit
+		
 	#{ Connections and Attributes 
 	
 	def getConnections( self ):
@@ -506,12 +546,10 @@ class Entity( DependNode ):
 	__metaclass__ = nodes.MetaClassCreatorNodes
 
 
-class DagNode( Entity ):
+class DagNode( Entity, iDagItem ):
 	""" Implements access to DAG nodes """
 	__metaclass__ = nodes.MetaClassCreatorNodes
-	_dpa = api.MDagPathArray( )
-	_dpac = 0
-	_dpa.setLength( 2 )
+	_sep = "|"
 	
 	
 	#{ Overridden from Object 
@@ -524,12 +562,122 @@ class DagNode( Entity ):
 		return self._apiobj == other._apiobj
 	#}
 	
+	#{ Edit
+	
+	@undoable
+	def reparent( self, parentnode, renameOnClash=True ):
+		"""Move or rename the given node to match newpath
+		@param parentnode: Node instance of transform under which this node should be parented to
+		if None, node will be reparented under the root ( which only works for transforms )
+		@param renameOnClash: resolve nameclashes by automatically renaming the node to make it unique
+		@return : self
+		@note: this method handles namespaces properly """
+		
+		if not renameOnClash and parentnode and self != parentnode:
+			# check existing children of parent and raise if same name exists 
+			# I think this check must be string based though as we are talking about
+			# a possbly different api object with the same name - probably api will be faster
+			testforobject = parentnode.getFullChildName( self.getBasename( ) )	# append our name to the path
+			if objExists( testforobject ):
+				raise RuntimeError( "Object %s did already exist" % testforobject )
+		# END rename on clash handling 
+			
+		thispathobj = self._apidagpath.getApiObj()
+		mod = None		# create it once we are sure the operation takes place 
+		if parentnode:
+			if parentnode == self:
+				raise RuntimeError( "Cannot parent object %s under itself" % self )
+			
+			mod = undo.DagModifier( )
+			parentpathobj = parentnode._apidagpath.getApiObj()
+			mod.reparentNode( thispathobj, parentpathobj )
+		else:
+			# sanity check
+			if isinstance( self, nodes.Shape ):
+				raise RuntimeError( "Shape %s cannot be parented under root '|' but needs a transform" % self )
+			mod = undo.DagModifier( )
+			mod.reparentNode( thispathobj )
+		
+		mod.doIt()
+		return self
+		
+		
+	@undoable
+	def duplicate( self, newpath, asInstance = False, instanceLeafOnly=False, 
+				  	autocreateNamespace=True, autocreateParents=True, renameOnClash=True ):
+		"""Duplciate the given node to newpath
+		@param newpath: result depends on its format
+		   - 'newname' - relative path, the node will be duplicated not chaning its current parent
+		   - '|parent|newname' - absolut path, the node will be duplicated and reparented under the given path
+	    @param asInstance: if True, this node will be instanced to the new path
+		@üaram instanceLeafOnly: if True, only leafs of this path ( i.e. shapes ) will be instanced
+		@param autocreateNamespace: if true, namespaces given in newpath will be created automatically, otherwise 
+		a RuntimeException will be thrown if a required namespace does not exist
+		@param autocreateParent: if True, inbetween parents are required as needed, 
+		@param renameOnClash: if true, clashing names will automatically be resolved by adjusting the name
+		@note: duplicate performance could be improved by checking more before doing work that does not 
+		really change the scene, but adds an undo options
+		@return: newly create Node """
+		
+		# DUPLICATE IT WITH UNDO 
+		############################
+		op = undo.GenericOperation( )
+		
+		doitcmd = Call( self._mfncls( self._apidagpath ).duplicate, asInstance, instanceLeafOnly )
+		duplicate_node = Node( doitcmd() )			 	 # get the duplicate 
+		
+		# bake the object to a string for deletion
+		undoitcmd =	Call( cmds.delete, str( duplicate_node ) )		# have to use mel here as dag modifiers cannot work like this 
+		
+		
+		# RENAME THE DUPLICATE
+		###########################
+		dagtokens = newpath.split( '|' )
+		leafobjectname = dagtokens[-1:][0]
+								  
+		duplicate_node.rename( leafobjectname, autocreateNamespace = autocreateNamespace, renameOnClash=renameOnClash )
+		
+		
+		# REPARENT 
+		###############
+		parenttokens = dagtokens[:-1]			
+		if len( parenttokens ):			# could be [''] too if newpath = '|newpath'
+			parentnodepath = '|'.join( parenttokens )
+			parentnode = None
+			
+			# happens on input like "|name"
+			if parentnodepath != '': 
+				parentnode = createNode( parentnodepath, "transform", 
+										renameOnClash=renameOnClash,
+										autocreateNamespace=autocreateNamespace )
+			# END create parent handling
+			
+			# DO THE REPARENT - parent can be none to indicate parenting below root, okay for transforms  
+			duplicate_node.reparent( parentnode, renameOnClash=renameOnClash)
+		# END parent handling 
+		 
+		return duplicate_node
+		
+	#} END edit
+	
 	#{ Overridden from DependNode
 	def getName( self ):
 		"""@return: fully qualified ( long ) name of this dag node"""
-		#return self.getDagPath().getFullPathName()
 		return self.getFullPathName()
+
+	def getParentAtIndex( self, index ):
+		"""@return: Node of the parent at the given index
+		@note: if a node is instanced, it can have L{getParentCount} parents"""
+		sutil = api.MScriptUtil()
+		uint = sutil.asUint()
+		sutil.setUint( uint , index )
+		
+		return nodes.Node( self._mfncls( self._apidagpath ).parent( uint ) )
 	
+	def getParent( self ):
+		"""@return: Maya node of the parent of this instance or None if this is the root"""
+		return nodes.Node( self._apidagpath.getParent( ) )
+		
 	#{ Query 
 		
 		
@@ -617,14 +765,27 @@ class DagPath( api.MDagPath, iDagItem ):
 	#}
 	
 	#{ Query
+	
+	def getApiObj( self ):
+		"""@return: the unwrapped api object this path is referring to"""
+		return  api.MDagPath.node( self )
+	
 	def getNode( self ):
 		"""@return: Node of the node we are attached to"""
-		return nodes.Node( self.node( ) )
+		return nodes.Node( self.getApiObj( ) )
 		
 	def getTransform( self ):
 		"""@return: Node of the lowest transform in the path
 		@note: if this is a shape, you would get its parent transform"""
-		return nodes.Node( self.transform( ) )
+		return nodes.Node( api.MDagPath.transform( self ) )
+		
+	def getParent( self ):
+		"""@return: DagPath to the parent path of the node this path points to"""
+		copy = DagPath( self )
+		copy.pop( 1 )
+		if len( copy ) == 0:		# ignore world !
+			return None
+		return copy
 		 
 	def getNumShapes( self ):
 		"""@return: return the number of shapes below this dag path"""
@@ -632,35 +793,59 @@ class DagPath( api.MDagPath, iDagItem ):
 		uintptr = sutil.asUintPtr()
 		sutil.setUint( uintptr , 0 )
 		
-		self.numberOfShapesDirectlyBelow( uintptr )
+		api.MDagPath.numberOfShapesDirectlyBelow( self, uintptr )
 		
 		return sutil.getUint( uintptr )
-	#}
+		
+	def getChildNode( self, index ):
+		"""@return: Maya node to child at index"""
+		return nodes.Node( self.getChildPath( index ) )
 	
-	#{ Edit 
-	def pop( self, num ):
-		"""Pop the given number of items off the end of the path"""
+	def	getChildPath( self, index ):
+		"""@return: DagPath to child at given index"""
+		copy = DagPath( self )
+		
 		sutil = api.MScriptUtil()
 		uint = sutil.asUint()
-		sutil.setUint( uint , num )
+		sutil.setUint( uint , index )
 		
-		return api.MDagPath.pop( uint )
+		copy.push( api.MDagPath.child( uint ) )
+		return copy
+		
+	def getChildren( self ):
+		"""@return: list of child DagPaths of this path
+		@note: this method is part of the iDagItem interface"""
+		outPaths = []
+		for i in xrange( self.getChildCount() ):
+			outPaths.append( self.getChildPath( i ) )
+		return outPaths
+		
+		
+	#}                                       
+	
+	#{ Edit Inplace
+	def pop( self, num ):
+		"""Pop the given number of items off the end of the path
+		@return: self
+		@note: will change the current path in place"""
+		api.MDagPath.pop( self, num )
+		return self
 	
 	def extendToShape( self, num ):
-		"""Extend this path to the given shape number"""
-		sutil = api.MScriptUtil()
-		uint = sutil.asUint()
-		sutil.setUint( uint , num )
-		
-		return api.MDagPath.extendToShapeDirectlyBelow( uint )
-		
+		"""Extend this path to the given shape number
+		@return: self """
+		api.MDagPath.extendToShapeDirectlyBelow( self, num )
+		return self	
+	#} END edit in place  
 	
-	#} END edit 
 	
 	
 	#{ Name Remapping 
+	
 	getApiType = api.MDagPath.apiType
-	node = getNode 
+	node = getNode
+	child = getChildPath
+	getChildCount = api.MDagPath.childCount 
 	transform = getTransform
 	getApiType = api.MDagPath.apiType
 	getLength = api.MDagPath.length
@@ -671,6 +856,7 @@ class DagPath( api.MDagPath, iDagItem ):
 	getFullPathName = api.MDagPath.fullPathName
 	getPartialName = api.MDagPath.partialPathName 
 	isNull = lambda self: not api.MDagPath.isValid( self )
+	
 	
 	getInclusiveMatrix = api.MDagPath.inclusiveMatrix
 	getInclusiveMatrixInverse = api.MDagPath.inclusiveMatrixInverse

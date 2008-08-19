@@ -50,7 +50,7 @@ class Namespace( unicode, iDagItem ):
 	      - :absolute:path
 	   - Path separator is ':'"""
 	
-	
+	_sep = ':'
 	rootNamespace = ':'
 	_defaultns = [ 'UI','shared' ]			# default namespaces that we want to ignore in our listings  
 	defaultIncrFunc = lambda b,i: "%s%02i" % ( b,i ) 
@@ -76,10 +76,6 @@ class Namespace( unicode, iDagItem ):
 				namespacepath = namespacepath[:-1]
 		# END if its not the root namespace 
 		return unicode.__new__( cls, namespacepath )
-	
-	def __init__( self , *args, **kwargs ):
-		""" Initialise the base classes """
-		return iDagItem.__init__( self, separator=":" )
 		
 	def __add__( self, other ):
 		"""Properly catenate namespace objects - other must be relative namespace

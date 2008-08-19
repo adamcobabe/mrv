@@ -95,6 +95,11 @@ class TestGeneral( unittest.TestCase ):
 			self.failUnless( newnsnode.isValid() and newnsnode.isAlive() )
 		# END for each created object 
 		
+		# EMPTY NAME and ROOT 
+		self.failUnlessRaises( RuntimeError, nodes.createNode, '|', "facade" ) 
+		self.failUnlessRaises( RuntimeError, nodes.createNode, '', "facade" )
+		
+		
 		# CHECK DIFFERENT ROOT TYPES 
 		depnode = nodes.createNode( "blablub", "facade" )
 		self.failUnlessRaises( NameError, nodes.createNode, "|blablub|:this", "transform" )
@@ -103,35 +108,27 @@ class TestGeneral( unittest.TestCase ):
 		nodes.createNode( "this|mesh", "mesh" )
 		self.failUnlessRaises( NameError, nodes.createNode, "this|mesh", "nurbsSurface" )
 		
-		# autorename  - it fails if the dep node exists first
+		# renameOnClash  - it fails if the dep node exists first
 		nodes.createNode( "node", "facade" )
-		self.failUnlessRaises( NameError, nodes.createNode, "this|that|node", "mesh", autoRename = False )
+		self.failUnlessRaises( NameError, nodes.createNode, "this|that|node", "mesh", renameOnClash = False )
 		
 		# but not if it comes after
 		nodes.createNode( "that|nodename", "mesh" )
-		nodes.createNode( "nodename", "facade", autoRename = False )
+		nodes.createNode( "nodename", "facade", renameOnClash = False )
 		
 		
 	def test_instancingSimple( self ):
 		"""byronimo.maya.nodes: assure that we get the right path if we wrap the node"""
 		node = nodes.createNode( "parent|middle|child", "transform" )
 		nodem = nodes.Node( "parent|middle" )
-		print node.getName()
 		
-		instnode = node.duplicate( 1, 1 )
-		instnodem = nodem.duplicate( 1, 1 )
+		instargs = { 'asInstance' : 1, 'instanceLeafOnly' : 1 }
+		instnode = node.duplicate( "child", **instargs )
+		instnodem = nodem.duplicate( "middle", **instargs )
 		
-		print "%s = isntnode" %  instnode
-		print "%s = instnodem" % instnodem
-		print instnode.getInstanceCount( False )
-		print instnode.getInstanceCount( True )
 		path = instnode.getDagPath( )
-		print "%s = instnode.getDagPath" % str( path )
-		
 		childm1 = nodes.Node( "parent|middle1|child" )
-		print "%s = childm1" % childm1
-		print "%s = childm1.getName" %  childm1.getName()
-		print "%s = childm1.getDagPath.getFullPathName" % childm1.getDagPath().getFullPathName()
+		
 		# if it didnt work, he would have returned a "|parent|middle|child" 
 		self.failUnless( "|parent|middle1|child" == str(childm1) ) 
 		
@@ -139,13 +136,13 @@ class TestGeneral( unittest.TestCase ):
 		ipath = instnode.getDagPath( )
 		#print "%s != %s" % ( npath, ipath )
 				
-		import time
-		count = 20000
-		starttime = time.clock()
-		for i in xrange( count ):
-			path = instnode.getDagPath()
-		elapsed = time.clock() - starttime
-		print "%f s for %i dagpath gets ( %f / s )" % ( elapsed, count, count / elapsed ) 
+		# import time
+		# count = 20000
+		# starttime = time.clock()
+		# for i in xrange( count ):
+			# path = instnode.getDagPath()
+		# elapsed = time.clock() - starttime
+		# print "%f s for %i dagpath gets ( %f / s )" % ( elapsed, count, count / elapsed )
 		
 class TestNodeBase( unittest.TestCase ):
 	""" Test node base functionality  """
@@ -215,11 +212,78 @@ class TestNodeBase( unittest.TestCase ):
 		ns = node.getNamespace( )
 		self.failUnless( ns == nodes.Namespace.rootNamespace )
 		
-			
+		
+		# RENAME DEP NODES
+		######################
+		node = nodes.createNode( "mynode", "facade" )
+		renamed = node.rename( "myrenamednode" )
+		
+		self.failUnless( renamed == "myrenamednode" )
+		self.failUnless( node == renamed )
+		
+		# trigger namespace error
+		self.failUnlessRaises( RuntimeError, node.rename, "nsdoesnotexist:othername", autocreateNamespace = False )
+		
+		# now it should work
+		node.rename( "nsdoesnotexist:othername", autocreateNamespace=True )
+		
+		# rename to same name 
+		renamed = node.rename( "nsdoesnotexist" )	# should be fine
+		self.failUnless( renamed == node )
+		
+		# othernode with different type exists
+		othernode = nodes.createNode( "othernode", "groupId" )
+		self.failUnlessRaises( RuntimeError, node.rename, "othernode", renameOnClash = False )
+		
+		# works if rename enabeld though
+		node.rename( "othernode" )
+		
+		
 		
 	def test_wrapDagNode( self ):
 		"""byronimo.maya.nodes: create and access dag nodes"""
-		self.fail()
+		mesh = nodes.createNode( "parent|mesh", "mesh" )
+		parent = mesh.getParent( )
+		
+		# simple rename 
+		mesh.rename( "fancymesh" )
+		
+		
+		# simple reparent 
+		otherparent = nodes.createNode( "oparent", "transform" )
+		mesh.reparent( otherparent, otherparent )
+		
+		# REPARENT RENAME CLASH  
+		origmesh = nodes.createNode( "parent|fancymesh", "mesh" )
+		self.failUnlessRaises( RuntimeError, mesh.reparent, parent , renameOnClash = False ) 
+		
+		# RENAME CLASH DAG NODE 
+		othermesh = nodes.createNode( "parent|mesh", "mesh" )
+		self.failUnlessRaises( RuntimeError, origmesh.rename, "mesh", renameOnClash = False )
+		
+		# now it works
+		othermesh.rename( "mesh" )
+		
+		
+		# shape under root 
+		self.failUnlessRaises( RuntimeError, mesh.reparent, None )
+		
+		# REPARENT AGAIN
+		# should just work as the endresult is the same 
+		mesh.reparent( otherparent )
+		mesh.reparent( otherparent )	
+		
+		# REPARENT UNDER SELF
+		self.failUnlessRaises( RuntimeError, mesh.reparent, mesh )
+		
+		
+		# TODO: navigate the object properly 
+		
+		
+		# DUPLICATE
+		################
+		
+		
 
 
 	def test_mfncachebuilder( self ):

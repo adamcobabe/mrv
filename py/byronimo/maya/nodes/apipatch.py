@@ -248,8 +248,6 @@ class MPlug( api.MPlug, util.iDagItem ):
 		# END for each child
 		
 		# found something ?
-		#print plug
-		#print plug.isNull()
 		if plug is not None:
 			setattr( self, attr, plug )
 			return plug
@@ -258,8 +256,7 @@ class MPlug( api.MPlug, util.iDagItem ):
 		#return super( MPlug, self ).__getattr__( self, attr )
 		raise AttributeError( "'%s' child plug not found in %s" % ( attr, self ) )
 	
-	def __init__( self, *args ):
-		return api.MPlug._api_init( self, *args )
+	
 	#} Overridden Methods
 	
 	#{ Plug Hierarchy Query 
@@ -434,10 +431,9 @@ class MPlug( api.MPlug, util.iDagItem ):
 		noInputs = len( inputs )
 		if noInputs == 0:
 			# TODO: find a better way to get a MPlugPtr type that can properly be tested for isNull
-			#pa = api.MPlugArray( )
-			#pa.setLength( 1 )
-			return api.MPlug()
-			#return pa[0]
+			pa = api.MPlugArray( )
+			pa.setLength( 1 )
+			return pa[0]
 		
 		if noInputs == 1:
 			return inputs[0]

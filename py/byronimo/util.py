@@ -135,18 +135,17 @@ class CallOnDeletion( object ):
 class iDagItem( object ):
 	""" Describes interface for a DAG item.
 	Its used to unify interfaces allowing to access objects in a dag like graph
-	@note: all methods of this class are abstract and need to be overwritten """
+	Of the underlying object has a string representation, the defatult implementation 
+	will work natively.
+	
+	Otherwise the getParent and getChildren methods should be overwritten
+	@note: all methods of this class are abstract and need to be overwritten
+	@note: this class expects the attribute '_sep' to exist containing the 
+	separator at which your object should be split ( for default implementations ).
+	This works as the passed in pointer will belong to derived classes that can 
+	define that attribute on instance or on class level"""
 	
 	kOrder_DepthFirst, kOrder_BreadthFirst = range(2)
-	
-	#{ Overridden Methods
-	def __init__( self, separator = None ):
-		"""Intiialize the instance with the path separator - this helps
-		the default implementation to natively work with most path types.
-		If this is not the case, you have to override the methods using it 
-		with your specialized version"""
-		self._sep = separator
-	#} 
 	
 	#{ Query Methods 
 	
@@ -163,12 +162,12 @@ class iDagItem( object ):
 	
 	def getBasename( self ):
 		"""@return: basename of this path, '/hello/world' -> 'world'"""
-		return self.split( self._sep )[-1]
+		return str(self).split( self._sep )[-1]
 		
 	def getParent( self ):
 		"""@return: parent of this path, '/hello/world' -> '/hello' or None if this path 
 		is the dag's root"""
-		tokens =  self.split( self._sep )
+		tokens =  str(self).split( self._sep )
 		if len( tokens ) <= 2:		# its already root 
 			return None
 			
@@ -230,6 +229,19 @@ class iDagItem( object ):
 		
 	#} END Query Methods
 
+	#{ Name Generation
+	def getFullChildName( self, childname ):
+		"""Add the given name to the string version of our instance
+		@return: string with childname added like name _sep childname"""
+		sname = str( self )
+		if not sname.endswith( self._sep ):
+			sname += self._sep
+		if childname.startswith( self._sep ):
+			childname = childname[1:]
+			
+		return sname + childname		
+	
+	#} END name generation
 
 class DAGTree( nxtree.DirectedTree ):
 	"""Adds utility functions to DirectedTree allowing to handle a directed tree like a dag

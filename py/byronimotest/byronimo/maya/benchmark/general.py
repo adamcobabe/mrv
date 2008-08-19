@@ -19,6 +19,7 @@ __copyright__='(c) 2008 Sebastian Thiel'
 import unittest
 import byronimo.maya as bmaya
 import byronimo.maya.nodes as nodes
+import byronimotest.byronimo.maya as common
 import sys
 import maya.cmds as cmds
 import byronimo.maya.undo as undo
@@ -31,15 +32,57 @@ import time
 class TestGeneralPerformance( unittest.TestCase ):
 	"""Tests to benchmark general performance"""
 	
+	deptypes =[ "facade", "groupId", "objectSet"  ]
+	dagtypes =[ "nurbsCurve", "nurbsSurface", "subdiv", "transform" ]
+	
+	def _createNodeFromName( self, name ):
+		"""@return: newly created maya node named 'name', using the respective 
+		type depending on its path ( with pipe or without""" 
+		nodetype = None
+		if '|' in name:			# name decides whether dag or dep node is created
+			nodetype = random.choice( self.dagtypes )
+		else:
+			nodetype = random.choice( self.deptypes )
+		
+		return nodes.createNode( name, nodetype, renameOnClash=True )
+		
+	
+	def test_buildTestScene( self ):
+		"""byronimo.maya.benchmark.general: build test scene with given amount of nodes  """
+		return 	# disabled		
+		numNodes = 100000
+		cmds.undoInfo( st=0 )
+		targetFile = common.get_maya_file( "large_scene_%i.mb" % numNodes )
+		bmaya.Scene.new( force = True )
+		
+		print 'Creating benchmark scene at "%s"' % targetFile
+		
+		nslist = genNestedNamesList( numNodes / 100, (0,3), genRandomNames(10,(3,8)),":" )
+		nodenames = genNodeNames( numNodes, (1,8),(3,8),nslist )
+		
+		for i, name in enumerate( nodenames ):
+			try: 
+				self._createNodeFromName( name )
+			except NameError:
+				pass 
+				
+			if i % 500 == 0:
+				print "%i of %i nodes created" % ( i, numNodes ) 
+		# END for each nodename
+		
+		cmds.undoInfo( st=1 )
+		bmaya.Scene.save( targetFile )
+		
+		
+	
 	def test_createNodes( self ):
 		"""byronimo.maya.benchmark.general: test random node creation performance"""
+		bmaya.Scene.new( force = True )
 		runs = [ 100,2500 ]
-		deptypes =[ "facade", "groupId", "objectSet"  ]
-		dagtypes =[ "nurbsCurve", "nurbsSurface", "subdiv", "transform" ]
 		all_elapsed = []
 		
 		numObjs = len( cmds.ls() )
-		
+		self._createNodeFromName( "this" )
 		print "\n"
 		for numNodes in runs:
 			
@@ -49,14 +92,8 @@ class TestGeneralPerformance( unittest.TestCase ):
 			starttime = time.clock( )
 			undoobj = undo.StartUndo()
 			for nodename in nodenames:
-				nodetype = None
-				if '|' in nodename:			# name decides whether dag or dep node is created
-					nodetype = random.choice( dagtypes )
-				else:
-					nodetype = random.choice( deptypes )
-				
 				try:	# it can happen that he creates dg and dag nodes with the same name 
-					nodes.createNode( nodename, nodetype, autoRename=True )
+					self._createNodeFromName( nodename )
 				except NameError:
 					pass 
 			# END for each node
