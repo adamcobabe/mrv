@@ -152,7 +152,7 @@ class MetaClassCreatorNodes( MetaClassCreator ):
 		# called if the given attribute is not available in class 
 		def meta_getattr_lazy( self, attr ):
 			actualcls = None										# the class finally used to store located functions 
-						
+			
 			# MFN ATTRTIBUTE HANDLING
 			############################
 			# check all bases for and their mfncls for a suitable function

@@ -132,20 +132,20 @@ class TestGeneral( unittest.TestCase ):
 		print "%s = childm1" % childm1
 		print "%s = childm1.getName" %  childm1.getName()
 		print "%s = childm1.getDagPath.getFullPathName" % childm1.getDagPath().getFullPathName()
-		self.failUnless( "|parent|middle1|child" == str(childm1) )
+		# if it didnt work, he would have returned a "|parent|middle|child" 
+		self.failUnless( "|parent|middle1|child" == str(childm1) ) 
 		
 		npath = node.getDagPath( )
 		ipath = instnode.getDagPath( )
 		#print "%s != %s" % ( npath, ipath )
-		
-		
-		# import time
-		# count = 20000
-		# starttime = time.clock()
-		# for i in xrange( count ):
-			# path = instnode.getDagPath()
-		# elapsed = time.clock() - starttime
-		# print "%f s for %i dagpath gets ( %f / s )" % ( elapsed, count, count / elapsed ) 
+				
+		import time
+		count = 20000
+		starttime = time.clock()
+		for i in xrange( count ):
+			path = instnode.getDagPath()
+		elapsed = time.clock() - starttime
+		print "%f s for %i dagpath gets ( %f / s )" % ( elapsed, count, count / elapsed ) 
 		
 class TestNodeBase( unittest.TestCase ):
 	""" Test node base functionality  """

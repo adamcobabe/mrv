@@ -384,7 +384,7 @@ class MayaNode( object ):
 			apiobj_or_dagpath = objorname
 		elif isinstance( objorname, basestring ):
 			if objorname.find( '.' ) != -1:
-				raise ValueError( "%s cannot be handled" % objorname ) 
+				raise ValueError( "%s cannot be handled - create a node, then access its attribute like MayaNode('name').attr" % objorname )
 			apiobj_or_dagpath = toApiobjOrDagPath( objorname )
 		elif isinstance( objorname, api.MObjectHandle ):
 			apiobj_or_dagpath = objorname.object()	
