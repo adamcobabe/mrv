@@ -48,6 +48,8 @@ class MetaClassCreatorNodes( MetaClassCreator ):
 	targetModule = None				# must be set in intialization to tell this class where to put newly created classes
 	mfnclsattr = '_mfncls'
 	mfndbattr = '_mfndb'
+	apiobjattr = '_apiobj'
+	apipathattr = '_apidagpath'
 	getattrorigname = '__getattr_orig'
 	
 	@staticmethod
@@ -109,15 +111,28 @@ class MetaClassCreatorNodes( MetaClassCreator ):
 		
 		# bound to class, self will be attached on class instantiation
 		if rvalfunc:	# wrap rval function around
-			def wrapMfnFunc( self, *args, **kwargs ):
-				mfninst = mfncls( self._apiobj )
-				return rvalfunc( getattr( mfninst, mfnfuncname )( *args, **kwargs ) )
-			newfunc = wrapMfnFunc
+			# INITIALIZED DAG NODES WITH DAG PATH !
+			if mfncls is api.MFnDagNode:			# yes, we duplicate code here to keep it fast !!
+				def wrapMfnFunc( self, *args, **kwargs ):
+					mfninst = mfncls( self._apidagpath )
+					return rvalfunc( getattr( mfninst, mfnfuncname )( *args, **kwargs ) )
+				newfunc = wrapMfnFunc
+			else:
+				def wrapMfnFunc( self, *args, **kwargs ):
+					mfninst = mfncls( self._apiobj )
+					return rvalfunc( getattr( mfninst, mfnfuncname )( *args, **kwargs ) )
+				newfunc = wrapMfnFunc
 		else:
-			def wrapMfnFunc( self, *args, **kwargs ):
-				mfninst = mfncls( self._apiobj )
-				return getattr( mfninst, mfnfuncname )( *args, **kwargs )
-			newfunc = wrapMfnFunc
+			if mfncls is api.MFnDagNode:			# yes, we duplicate code here to keep it fast !!
+				def wrapMfnFunc( self, *args, **kwargs ):
+					mfninst = mfncls( self._apidagpath )
+					return getattr( mfninst, mfnfuncname )( *args, **kwargs )
+				newfunc = wrapMfnFunc
+			else:
+				def wrapMfnFunc( self, *args, **kwargs ):
+					mfninst = mfncls( self._apiobj )
+					return getattr( mfninst, mfnfuncname )( *args, **kwargs )
+				newfunc = wrapMfnFunc
 			
 		newfunc.__name__ = funcname			# rename the method 
 		return newfunc
@@ -247,7 +262,9 @@ class MetaClassCreatorNodes( MetaClassCreator ):
 		else:
 			mfncls = clsdict[ metacls.mfnclsattr ]
 			
-		clsdict[ metacls.mfnclsattr ] = mfncls
+		clsdict[ metacls.mfnclsattr ] = mfncls			# we have at least a None mfn
+		clsdict[ metacls.apiobjattr ] = None			# always have an api obj
+		
 		
 		# SETUP slots - add common members
 		# NOTE: does not appear to have any effect :(

@@ -4,8 +4,8 @@ x   | addChild                                | None                |
     | child                                   | MayaNode            | getChild                                
     | childCount                              | None                | getChildCount                           
 x   | create                                  | None                |                                         
-    | dagPath                                 | None                | getDagPath                              
-    | dagRoot                                 | MayaNode                | getDagRoot                              
+    | dagPath                                 | DagPath             | getDagPath                              
+    | dagRoot                                 | MayaNode            | getDagRoot                              
     | duplicate                               | MayaNode            |                                         
     | fullPathName                            | None                | getFullPathName                         
     | getAllPaths                             | None                |                                         
@@ -14,7 +14,7 @@ x   | getPath                                 | None                |
     | hasParent                               | None                |                                         
     | inModel                                 | None                |                                         
     | inUnderWorld                            | None                |                                         
-    | instanceCount                           | None                |                                         
+    | instanceCount                           | None                | getInstanceCount                                         
     | isChildOf                               | None                |                                         
     | isInstanceable                          | None                |                                         
     | isInstanced                             | None                |                                         

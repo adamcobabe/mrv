@@ -21,7 +21,7 @@ __id__="$Id: configuration.py 16 2008-05-29 00:30:46Z byron $"
 __copyright__='(c) 2008 Sebastian Thiel'
 
 
-from byronimo.util import uncapitalize, capitalize, IntKeyGenerator, getPythonIndex
+from byronimo.util import uncapitalize, capitalize, IntKeyGenerator, getPythonIndex, iDagItem
 from byronimo.maya.util import StandinClass
 nodes = __import__( "byronimo.maya.nodes", globals(), locals(), ['nodes'] )
 from byronimo.maya.nodes.types import nodeTypeToMfnClsMap, nodeTypeTree
@@ -32,18 +32,21 @@ undo = __import__( "byronimo.maya.undo", globals(), locals(),[ 'undo' ] )
 
 
 ############################
+#### Cache 			  	####
+##########################
+# to prevent always creating instances of the same class per call
+_nameToApiSelList = api.MSelectionList() 
+_mfndep = api.MFnDependencyNode()
+
+############################
 #### Methods 		  	####
 ##########################
 
 #{ Node Mapping 
-def nodeTypeToNodeTypeCls( apiobj ):
-	""" Convert the given api object ( MObject ) or type name to the respective python node type class
-	@param apiobj: MObject or nodetype name """
-	nodeTypeName = apiobj			# assume string
-	if not isinstance( apiobj, basestring ):
-		fnDepend = api.MFnDependencyNode( apiobj )      
-		nodeTypeName = fnDepend.typeName( )
-		 
+
+def nodeTypeToNodeTypeCls( nodeTypeName ):
+	""" Convert the given  node type (str) to the respective python node type class
+	@param nodeTypeName: the type name you which to have the actual class for  """
 	try: 
 		nodeTypeCls = getattr( nodes, capitalize( nodeTypeName ) )
 	except AttributeError:
@@ -56,62 +59,48 @@ def nodeTypeToNodeTypeCls( apiobj ):
 		nodeTypeCls = nodeTypeCls.createCls( )
 	
 	return nodeTypeCls
-	
 
-def toApiObject( nodeName, dagPlugs=True ):
-	""" Get the API MPlug, MObject or (MObject, MComponent) tuple given the name 
-	of an existing node, attribute, components selection
-	@param dagPlugs: if True, plug result will be a tuple of type (MDagPath, MPlug)
-	@note: based on pymel          
-	""" 
-	sel = api.MSelectionList()
+
+
+def toApiobj( nodeName ):
+	""" Convert the given nodename to the respective MObject
+	@note: even dag objects will end up as MObject """
+	global _nameToApiSelList
+	_nameToApiSelList.clear()
+	
 	try:	# DEPEND NODE ?
-		sel.add( nodeName )
+		_nameToApiSelList.add( nodeName )
 	except:
-		if "." in nodeName :
-			# COMPOUND ATTRIBUTES
-			#  sometimes the index might be left off somewhere in a compound attribute 
-			# (ex 'Nexus.auxiliary.input' instead of 'Nexus.auxiliary[0].input' )
-			#  but we can still get a representative plug. this will return the equivalent of 'Nexus.auxiliary[-1].input'
-			try:
-				buf = nodeName.split('.')
-				obj = toApiObject( buf[0] )
-				plug = api.MFnDependencyNode(obj).findPlug( buf[-1], False )
-				if dagPlugs and isValidMDagPath(obj): 
-					return (obj, plug)
-				return plug
-			except RuntimeError:
-				return
+		return None 
 	else:
-		if "." in nodeName :
-			try:
-				# Plugs
-				plug = api.MPlug()
-				sel.getPlug( 0, plug )
-				if dagPlugs:
-					try:
-						# Plugs with DagPaths
-						sel.add( nodeName.split('.')[0] )
-						dag = api.MDagPath()
-						sel.getDagPath( 1, dag )
-						#if isValidMDagPath(dag) :
-						return (dag, plug)
-					except RuntimeError: pass
-				return plug
-			
-			except RuntimeError:
-				# Components
-				dag = api.MDagPath()
-				comp = api.MObject()
-				sel.getDagPath( 0, dag, comp )
-				#if not isValidMDagPath(dag) :	 return
-				return (dag, comp)
-		else:
-			# always get MObjects of the list !
+		obj = api.MObject()
+		_nameToApiSelList.getDependNode( 0, obj )
+		return obj
+		
+	# END if no exception on selectionList.add  
+	return None
+
+
+
+def toApiobjOrDagPath( nodeName, dagPlugs=True ):
+	""" Convert the given nodename to the respective MObject or DagPath"""
+	global _nameToApiSelList
+	_nameToApiSelList.clear()
+	
+	try:	# DEPEND NODE ?
+		_nameToApiSelList.add( nodeName )
+	except:
+		return None 
+	else:
+		try:
+			dag = api.MDagPath()
+			_nameToApiSelList.getDagPath( 0 , dag )
+			return DagPath( dag )
+		except RuntimeError:
 			obj = api.MObject()
-			sel.getDependNode( 0, obj )			 
-			#if not isValidMObject(obj) : return	 
+			_nameToApiSelList.getDependNode( 0, obj )
 			return obj
+		
 	# END if no exception on selectionList.add  
 	return None
 	
@@ -149,6 +138,7 @@ def createNode( nodename, nodetype, autocreateNamespace=True, autoRename = True 
 	@raise NameError: If name of desired node clashes as existing node has different type
 	@note: As this method is checking a lot and tries to be smart, its relatively slow ( creates ~400 nodes / s )
 	@return: the newly create MayaNode"""
+	global _mfndep
 	if nodename.startswith( '|' ):
 		nodename = nodename[1:]
 		
@@ -181,11 +171,12 @@ def createNode( nodename, nodetype, autocreateNamespace=True, autoRename = True 
 		# DAG ITEM EXISTS ?
 		######################
 		if objExists( nodepartialname ):
-			parentnode = createdNode = MayaNode( nodepartialname )	
+			parentnode = createdNode = toApiobj( nodepartialname )	
 			
 			# could be that the node already existed, but with an incorrect type
 			if i == lenSubpaths - 1:				# in the last iteration
-				existing_node_type = uncapitalize( createdNode.__class__.__name__ )
+				tmp_node = MayaNode( createdNode )
+				existing_node_type = uncapitalize( tmp_node.__class__.__name__ )
 				if nodetype != existing_node_type:
 					# allow more specialized types, but not less specialized ones 
 					if nodetype not in nodeTypeTree.parent_iter( existing_node_type ):
@@ -217,8 +208,8 @@ def createNode( nodename, nodetype, autocreateNamespace=True, autoRename = True 
 			# create dag node
 			mod = undo.DagModifier( )
 			newapiobj = None
-			if parentnode:		# use parent 
-				newapiobj = mod.createNode( actualtype, parentnode._apiobj )		# create with parent  
+			if parentnode:		# use parent
+				newapiobj = mod.createNode( actualtype, parentnode )		# create with parent  
 			else:
 				newapiobj = mod.createNode( actualtype )							# create 
 			
@@ -227,7 +218,8 @@ def createNode( nodename, nodetype, autocreateNamespace=True, autoRename = True 
 			
 			# PROBLEM: if a dep node with name of dagtoken already exists, it will 
 			# rename the newly created (sub) node although it is not the same !
-			actualname = api.MFnDependencyNode( newapiobj ).name()
+			_mfndep.setObject( newapiobj )
+			actualname = _mfndep.name()
 			if actualname != dagtoken:
 				if not autoRename:
 					msg = "DependencyNode named %s did already exist - cannot create a dag node with same name due to maya limitation" % nodepartialname
@@ -237,44 +229,79 @@ def createNode( nodename, nodetype, autocreateNamespace=True, autoRename = True 
 					subpaths[ i ] =  actualname
 					nodepartialname = '|'.join( subpaths[ 0 : i+1 ] )
 				
-			parentnode = createdNode = MayaNode( nodepartialname )					# update parent 
+			parentnode = createdNode = newapiobj				# update parent 
 		else:
 			# create dg node
 			mod = undo.DGModifier( )
 			newapiobj = mod.createNode( actualtype )								# create
 			mod.renameNode( newapiobj, dagtoken )									# rename 
 			mod.doIt()
-			createdNode = MayaNode( newapiobj ) 
+			createdNode = newapiobj
 		# END (partial) node creation
 	# END for each partial path
 	
 	if createdNode is None:
 		raise RuntimeError( "Failed to create %s ( %s )" % ( nodename, nodetype ) )
 	
-	return createdNode
+	return MayaNode( createdNode )
 
 
 @undoable
-def moveNode( node, newpath, autocreateNamespace=True, autocreateParents=True ):
+def moveNode( node, newpath, instanced = False , autocreateNamespace=True, autocreateParents=True ):
 	"""Move or rename the given node to match newpath
 	@param newpath: changes result depending on the name:
 	- relative path name ( i.e. 'newname' ) will rename the node in place, keeping the parent
 	- absolute path name ( i.e. '|newname' ) will rename to newname and change parents to fit the given path
-	- 
-	@note: this method handles namespaces properly  """
+	@param instanced: if True, the node at newpath will  be an instance of node, otherwise a copy  
+	@note: this method handles namespaces properly 
+	@note: be aware that children will be copied by default"""
 	pass 
 
 #}
 
-def _checkedClsCreation( apiobj, clsToBeCreated, basecls ):
+
+def _checkedInstanceCreationDagPathSupport( apiobj_or_dagpath, clsToBeCreated, basecls ):
+	"""Same purpose and attribtues as L{_checkedInstanceCreation}, but supports 
+	dagPaths as input as well"""
+	global _mfndep
+	
+	apiobj = apiobj_or_dagpath
+	dagpath = None
+	if isinstance( apiobj, api.MDagPath ):
+		apiobj = api.MDagPath.node( apiobj_or_dagpath )
+		dagpath = apiobj_or_dagpath
+		
+	_mfndep.setObject( apiobj )
+	nodeTypeName = _mfndep.typeName( )
+	clsinstance = _checkedInstanceCreation( apiobj, nodeTypeName, clsToBeCreated, basecls )	
+	
+	# ASSURE WE HAVE A DAG PATH
+	# Dag Objects should always have a dag path even if none was passed in 
+	if not dagpath and isinstance( clsinstance, DagNode ):
+		dagpath = api.MDagPath( )
+		api.MFnDagNode( apiobj ).getPath( dagpath )
+	
+	if dagpath:
+		clsinstance._apidagpath = dagpath
+		
+	return clsinstance
+
+
+def _checkedInstanceCreation( apiobj, typeName, clsToBeCreated, basecls ):
 	"""Utiliy method creating a new class instance according to additional type information
 	Its used by __new__ constructors to finalize class creation
-	@param apiobj: the MObject or the type name the caller figured out so far
+	@param apiobj: the MObject of object to wrap
+	@param typeName: the name of the node type to be created
 	@param clsToBeCreated: the cls object as passed in to __new__
 	@param basecls: the class of the caller containing the __new__ method
+	@param addDagPath: if True, the apiobj will is a dag path and will additionally 
+	be attached to the instance, if False it is an api object. The reason why this is 
+	not kwarg is that its supposed to be as fast as possible - many clients are calling 
+	this method, mostly with apiobjs
 	@return: create clsinstance if the proper type ( according to nodeTypeTree"""
 	# get the node type class for the api type object
-	nodeTypeCls = nodeTypeToNodeTypeCls( apiobj )
+	
+	nodeTypeCls = nodeTypeToNodeTypeCls( typeName )
 	
 	# NON-MAYA NODE Type 
 	# if an explicit type was requested, assure we are at least compatible with 
@@ -289,7 +316,8 @@ def _checkedClsCreation( apiobj, clsToBeCreated, basecls ):
 	
 	# FININSH INSTANCE
 	clsinstance = super( basecls, clsToBeCreated ).__new__( nodeTypeCls )
-	clsinstance._apiobj = apiobj			# set the api object - if this is a string, the called has to take care about it
+	
+	clsinstance._apiobj = apiobj				# set the api object - if this is a string, the called has to take care about it
 	return clsinstance
 
 
@@ -316,8 +344,7 @@ def _createInstByPredicate( apiobj, cls, basecls, predicate ):
 		except RuntimeError: 
 			continue
 		else:
-			newinst = _checkedClsCreation( attrtype, cls, basecls )		# lookup in node tree 
-			newinst._apiobj = apiobj				# make it our actual object 
+			newinst = _checkedInstanceCreation( apiobj, attrtype, cls, basecls )		# lookup in node tree 
 			return newinst
 	# END for each known attr type
 	return None
@@ -350,32 +377,28 @@ class MayaNode( object ):
 			raise ValueError( "First argument must specify the node to be wrapped" )
 			
 		objorname = args[0]
-		apiobj = None
+		apiobj_or_dagpath = None
 		
 		# GET AN API OBJECT
 		if isinstance( objorname, ( api.MObject, api.MDagPath ) ):
-			apiobj = objorname
-		elif isinstance( objorname, api.MObjectHandle ):
-			apiobj = objorname.object()
+			apiobj_or_dagpath = objorname
 		elif isinstance( objorname, basestring ):
 			if objorname.find( '.' ) != -1:
 				raise ValueError( "%s cannot be handled" % objorname ) 
-			apiobj = toApiObject( objorname )
-			
-			# currently we only handle objects - subclasses will get the type they need
-			if isinstance( apiobj, api.MDagPath ):
-				apiobj = apiobj.node( )
+			apiobj_or_dagpath = toApiobjOrDagPath( objorname )
+		elif isinstance( objorname, api.MObjectHandle ):
+			apiobj_or_dagpath = objorname.object()	
 		else:
 			raise ValueError( "objects of type %s cannot be handled" % type( objorname ) )
 			
-			
 		
-		if not apiobj or apiobj.isNull( ):
+		if not apiobj_or_dagpath or apiobj_or_dagpath.isNull( ):
 			raise ValueError( "object does not exist: %s" % objorname )
 		
 		# CREATE INSTANCE 
-		return _checkedClsCreation( apiobj, cls, MayaNode ) 
-	
+		return _checkedInstanceCreationDagPathSupport( apiobj_or_dagpath, cls, MayaNode ) 
+
+
 	#{ Overridden Methods 
 	def __eq__( self, other ):
 		"""Compare MObjects directly"""
@@ -477,6 +500,7 @@ class DependNode( MayaNode ):
 	
 	#}
 	
+	
 class Entity( DependNode ):
 	"""Common base for dagnodes and paritions"""
 	__metaclass__ = nodes.MetaClassCreatorNodes
@@ -485,6 +509,20 @@ class Entity( DependNode ):
 class DagNode( Entity ):
 	""" Implements access to DAG nodes """
 	__metaclass__ = nodes.MetaClassCreatorNodes
+	_dpa = api.MDagPathArray( )
+	_dpac = 0
+	_dpa.setLength( 2 )
+	
+	
+	#{ Overridden from Object 
+	def __eq__( self, other ):
+		"""Compare MObjects directly"""
+		if not isinstance( other, MayaNode ):
+			other = MayaNode( other )
+		if isinstance( other, DagNode ):
+			return self._apidagpath == other._apidagpath
+		return self._apiobj == other._apiobj
+	#}
 	
 	#{ Overridden from DependNode
 	def getName( self ):
@@ -559,5 +597,88 @@ class Data( api.MObject ):
 #} END base ( classes )
 
 		
+#{ Basic Types 
+
+class DagPath( api.MDagPath, iDagItem ):
+	"""Wraps a dag path adding some additional convenience functions
+	@note: We do NOT patch the actual api type as this would make it unusable to be passed in 
+	as reference/pointer type unless its being created by maya itself. Thus we manually convert
+	all dagpaths the system returns to our type having some more convenience in it"""
+	
+	#{ Overridden Methods 
+	def __len__( self ):
+		"""@return: number of dag nodes in this path"""
+		return self.length( )
+		
+	def __str__( self ):
+		"""@return: full path name"""
+		return self.getFullPathName()
+		
+	#}
+	
+	#{ Query
+	def getNode( self ):
+		"""@return: MayaNode of the node we are attached to"""
+		return nodes.MayaNode( self.node( ) )
+		
+	def getTransform( self ):
+		"""@return: MayaNode of the lowest transform in the path
+		@note: if this is a shape, you would get its parent transform"""
+		return nodes.MayaNode( self.transform( ) )
+		 
+	def getNumShapes( self ):
+		"""@return: return the number of shapes below this dag path"""
+		sutil = api.MScriptUtil()
+		uintptr = sutil.asUintPtr()
+		sutil.setUint( uintptr , 0 )
+		
+		self.numberOfShapesDirectlyBelow( uintptr )
+		
+		return sutil.getUint( uintptr )
+	#}
+	
+	#{ Edit 
+	def pop( self, num ):
+		"""Pop the given number of items off the end of the path"""
+		sutil = api.MScriptUtil()
+		uint = sutil.asUint()
+		sutil.setUint( uint , num )
+		
+		return api.MDagPath.pop( uint )
+	
+	def extendToShape( self, num ):
+		"""Extend this path to the given shape number"""
+		sutil = api.MScriptUtil()
+		uint = sutil.asUint()
+		sutil.setUint( uint , num )
+		
+		return api.MDagPath.extendToShapeDirectlyBelow( uint )
+		
+	
+	#} END edit 
+	
+	
+	#{ Name Remapping 
+	getApiType = api.MDagPath.apiType
+	node = getNode 
+	transform = getTransform
+	getApiType = api.MDagPath.apiType
+	getLength = api.MDagPath.length
+	numberOfShapesDirectlyBelow = getNumShapes
+	getChildCount = api.MDagPath.childCount
+	getInstanceNumber = api.MDagPath.instanceNumber
+	getPathCount = api.MDagPath.pathCount
+	getFullPathName = api.MDagPath.fullPathName
+	getPartialName = api.MDagPath.partialPathName 
+	isNull = lambda self: not api.MDagPath.isValid( self )
+	
+	getInclusiveMatrix = api.MDagPath.inclusiveMatrix
+	getInclusiveMatrixInverse = api.MDagPath.inclusiveMatrixInverse
+	getExclusiveMatrixInverse = api.MDagPath.exclusiveMatrixInverse
+	
+	#}
+
+
+#}
 
 	

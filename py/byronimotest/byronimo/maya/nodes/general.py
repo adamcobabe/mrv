@@ -112,6 +112,40 @@ class TestGeneral( unittest.TestCase ):
 		nodes.createNode( "nodename", "facade", autoRename = False )
 		
 		
+	def test_instancingSimple( self ):
+		"""byronimo.maya.nodes: assure that we get the right path if we wrap the node"""
+		node = nodes.createNode( "parent|middle|child", "transform" )
+		nodem = nodes.MayaNode( "parent|middle" )
+		print node.getName()
+		
+		instnode = node.duplicate( 1, 1 )
+		instnodem = nodem.duplicate( 1, 1 )
+		
+		print "%s = isntnode" %  instnode
+		print "%s = instnodem" % instnodem
+		print instnode.getInstanceCount( False )
+		print instnode.getInstanceCount( True )
+		path = instnode.getDagPath( )
+		print "%s = instnode.getDagPath" % str( path )
+		
+		childm1 = nodes.MayaNode( "parent|middle1|child" )
+		print "%s = childm1" % childm1
+		print "%s = childm1.getName" %  childm1.getName()
+		print "%s = childm1.getDagPath.getFullPathName" % childm1.getDagPath().getFullPathName()
+		self.failUnless( "|parent|middle1|child" == str(childm1) )
+		
+		npath = node.getDagPath( )
+		ipath = instnode.getDagPath( )
+		#print "%s != %s" % ( npath, ipath )
+		
+		
+		# import time
+		# count = 20000
+		# starttime = time.clock()
+		# for i in xrange( count ):
+			# path = instnode.getDagPath()
+		# elapsed = time.clock() - starttime
+		# print "%f s for %i dagpath gets ( %f / s )" % ( elapsed, count, count / elapsed ) 
 		
 class TestNodeBase( unittest.TestCase ):
 	""" Test node base functionality  """
