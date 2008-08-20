@@ -5,7 +5,15 @@ Contains some basic  classes that are required to run the nodes system
 All classes defined here can replace classes in the node type hierarachy if the name
 matches. This allows to create hand-implemented types.
 
-@todo: more documentation
+Implementing an undoable method
+-------------------------------
+   - decorate with @undoable
+   - minimize probability that your operation will fail before creating an operation ( for efficiency )
+   - only use operation's doIt() method to apply your changes
+   - if the operation's target is already met ( a node you should create already exists ), you have to
+   create an empty operation anyway ( otherwise cmds.undo would not undo your command as expected, but 
+   the previous one )
+   - if you raise, you should not have created an undo operation
 
 @newfield revision: Revision
 @newfield id: SVN Id
@@ -62,47 +70,85 @@ def nodeTypeToNodeTypeCls( nodeTypeName ):
 	return nodeTypeCls
 
 
+def makeAbsolutePath( nodename ):
+	if not nodename.startswith( '|' ):
+		return '|' + nodename
+	return nodename
+	
+def isAbsolutePath( nodename ):
+	return nodename.startswith( '|' )
 
-def toApiobj( nodeName ):
+def toApiobj( nodename ):
 	""" Convert the given nodename to the respective MObject
-	@note: even dag objects will end up as MObject """
+	@note: uses unique names only, and will fail if a non-unique path is given
+	@note: even dag objects will end up as MObject
+	@note: code repeats partly in toApiobjOrDagPath as its supposed to be as fast 
+	as possible - this method gets called quite a few times in benchmarks"""
 	global _nameToApiSelList
 	_nameToApiSelList.clear()
 	
-	try:	# DEPEND NODE ?
-		_nameToApiSelList.add( nodeName )
-	except:
-		return None 
-	else:
-		obj = api.MObject()
-		_nameToApiSelList.getDependNode( 0, obj )
-		return obj
+	nodename = makeAbsolutePath( nodename )
 		
-	# END if no exception on selectionList.add  
+	objnamelist = [ nodename ]
+	if nodename.count( '|' ) == 1:	# check dep node too !
+		objnamelist.append( nodename[1:] )
+	
+	for name in objnamelist:
+		try:	# DEPEND NODE ?
+			_nameToApiSelList.add( name )
+		except:
+			continue
+		else:
+			obj = api.MObject()
+			_nameToApiSelList.getDependNode( 0, obj )
+			
+			# if we requested a dg node, but got a dag node, fail 
+			if name.count( '|' ) == 0 and obj.hasFn( api.MFn.kDagNode ):
+				continue
+			
+			return obj
+		# END if no exception on selectionList.add
+	# END for each test-object
 	return None
 
 
 
-def toApiobjOrDagPath( nodeName, dagPlugs=True ):
-	""" Convert the given nodename to the respective MObject or DagPath"""
+def toApiobjOrDagPath( nodename, dagPlugs=True ):
+	"""Convert the given nodename to the respective MObject or DagPath
+	@note: we treat "nodename" and "|nodename" as the same objects as they occupy the 
+	same namespace - one time a dep node is meant, the other time a dag node. 
+	If querying a dag node, the dep node with the same name is not found, although it is in 
+	the same freaking namespace ! IMHO this is a big bug !"""
 	global _nameToApiSelList
 	_nameToApiSelList.clear()
 	
-	try:	# DEPEND NODE ?
-		_nameToApiSelList.add( nodeName )
-	except:
-		return None 
-	else:
-		try:
-			dag = api.MDagPath()
-			_nameToApiSelList.getDagPath( 0 , dag )
-			return DagPath( dag )
-		except RuntimeError:
-			obj = api.MObject()
-			_nameToApiSelList.getDependNode( 0, obj )
-			return obj
+	nodename = makeAbsolutePath( nodename )
 		
-	# END if no exception on selectionList.add  
+	objnamelist = [ nodename ]
+	if nodename.count( '|' ) == 1:	# check dep node too !	 ( "|nodename", but "nodename" could exist too, occupying the "|nodename" name !
+		objnamelist.append( nodename[1:] )
+	
+	for name in objnamelist:
+		try:	# DEPEND NODE ?
+			_nameToApiSelList.add( name )
+		except:
+			continue
+		else:
+			try:
+				dag = api.MDagPath()
+				_nameToApiSelList.getDagPath( 0 , dag )
+				return DagPath( dag )
+			except RuntimeError:
+				obj = api.MObject()
+				_nameToApiSelList.getDependNode( 0, obj )
+				
+				# if we requested a dg node, but got a dag node, fail 
+				if name.count( '|' ) == 0 and obj.hasFn( api.MFn.kDagNode ):
+					continue
+				
+				return obj
+		# END if no exception on selectionList.add
+	# END for each object name
 	return None
 	
 #} END node mapping 
@@ -113,13 +159,16 @@ def toApiobjOrDagPath( nodeName, dagPlugs=True ):
 
 def objExists( objectname ):
 	"""@return: True if given object exists, false otherwise
-	@note: perfer this method over mel as the API is used directly"""
-	try:
-		Node( objectname )
-	except ValueError:
-		return False
-	else:
-		return True
+	@param objectname: we always use absolute paths to have a unique name
+	@note: perfer this method over mel as the API is used directly as we have some special 
+	handling to assure we get the right nodes"""
+	return toApiobj( objectname ) is not None
+	# try:
+		# Node( objectname )
+	# except ValueError:
+		# return False
+	# else:
+		# return True
 
 
 @undoable
@@ -160,16 +209,6 @@ def createNode( nodename, nodetype, autocreateNamespace=True, renameOnClash = Tr
 	for i in xrange( start_index, lenSubpaths ):						# first token always pipe, need absolute paths
 		nodepartialname = '|'.join( subpaths[ 0 : i+1 ] )
 		
-		# DG NODE exists although DAG node is desired ?
-		################################
-		# in the first iteration, we also have to check whether a dep node with the 
-		# same name exists. If we check for "|nodename" it will not find a dep node with 
-		# "nodename" although you can create that dep node by giving "|nodename"
-		if i == start_index and lenSubpaths > 2 and objExists( nodepartialname[1:] ):
-			# check whether the object is really not a dag node 
-			if not isinstance( Node( nodepartialname[1:] ), DagNode ):
-				raise NameError( "dag node is requested, but root node name was taken by dependency node: %s" % nodepartialname[1:] ) 
-			
 		# DAG ITEM EXISTS ?
 		######################
 		if objExists( nodepartialname ):
@@ -207,6 +246,7 @@ def createNode( nodename, nodetype, autocreateNamespace=True, renameOnClash = Tr
 		# trust wrapped inherited methods with default attributes
 		#print "DAGTOKEN = %s - PARTIAL NAME = %s - TYPE = %s" % ( dagtoken, nodepartialname, actualtype )
 		if parentnode or actualtype == "transform":
+			
 			# create dag node
 			mod = undo.DagModifier( )
 			newapiobj = None
@@ -218,28 +258,33 @@ def createNode( nodename, nodetype, autocreateNamespace=True, renameOnClash = Tr
 			mod.renameNode( newapiobj, dagtoken )									# rename
 			mod.doIt()																# apply op
 			
-			# PROBLEM: if a dep node with name of dagtoken already exists, it will 
-			# rename the newly created (sub) node although it is not the same !
-			_mfndep.setObject( newapiobj )
-			actualname = _mfndep.name()
-			if actualname != dagtoken:
-				if not renameOnClash:
-					msg = "DependencyNode named %s did already exist - cannot create a dag node with same name due to maya limitation" % nodepartialname
-					raise NameError( msg )
-				else:
-					# update the tokens and use the new path
-					subpaths[ i ] =  actualname
-					nodepartialname = '|'.join( subpaths[ 0 : i+1 ] )
-				
 			parentnode = createdNode = newapiobj				# update parent 
 		else:
-			# create dg node
+			# create dg node - really have to check for clashes afterwards 
 			mod = undo.DGModifier( )
 			newapiobj = mod.createNode( actualtype )								# create
 			mod.renameNode( newapiobj, dagtoken )									# rename 
 			mod.doIt()
 			createdNode = newapiobj
 		# END (partial) node creation
+		
+		# CLASHING CHECK ( and name update ) !
+		# PROBLEM: if a dep node with name of dagtoken already exists, it will 
+		# rename the newly created (sub) node although it is not the same !
+		_mfndep.setObject( newapiobj )
+		actualname = _mfndep.name()
+		if actualname != dagtoken:
+			# Is it a renamed node because because a dep node of the same name existed ?
+			# Could be that a child of the same name existed too 
+			if not renameOnClash:
+				msg = "named %s did already exist - cannot create a dag node with same name due to maya limitation" % nodepartialname
+				raise NameError( msg )
+			else:
+				# update the tokens and use the new path
+				subpaths[ i ] =  actualname
+				nodepartialname = '|'.join( subpaths[ 0 : i+1 ] )
+		# END dag token renamed
+		
 	# END for each partial path
 	
 	if createdNode is None:
@@ -604,7 +649,7 @@ class DagNode( Entity, iDagItem ):
 		
 	@undoable
 	def duplicate( self, newpath, asInstance = False, instanceLeafOnly=False, 
-				  	autocreateNamespace=True, autocreateParents=True, renameOnClash=True ):
+				  	autocreateNamespace=True, renameOnClash=True ):
 		"""Duplciate the given node to newpath
 		@param newpath: result depends on its format
 		   - 'newname' - relative path, the node will be duplicated not chaning its current parent
@@ -612,18 +657,18 @@ class DagNode( Entity, iDagItem ):
 	    @param asInstance: if True, this node will be instanced to the new path
 		@üaram instanceLeafOnly: if True, only leafs of this path ( i.e. shapes ) will be instanced
 		@param autocreateNamespace: if true, namespaces given in newpath will be created automatically, otherwise 
-		a RuntimeException will be thrown if a required namespace does not exist
-		@param autocreateParent: if True, inbetween parents are required as needed, 
+		a RuntimeException will be thrown if a required namespace does not exist 
 		@param renameOnClash: if true, clashing names will automatically be resolved by adjusting the name
+		@return: newly create Node 
 		@note: duplicate performance could be improved by checking more before doing work that does not 
 		really change the scene, but adds an undo options
-		@return: newly create Node """
+		@note: inbetween parents are always required as needed"""
 		
 		# DUPLICATE IT WITH UNDO 
 		############################
 		op = undo.GenericOperation( )
 		
-		doitcmd = Call( self._mfncls( self._apidagpath ).duplicate, asInstance, instanceLeafOnly )
+		doitcmd = Call( api.MFnDagNode( self._apidagpath ).duplicate, asInstance, instanceLeafOnly )
 		undoitcmd = Call( None )												# placeholder, have to change it soon
 		duplicate_node = Node( op.addCmdAndCall( doitcmd, undoitcmd ) )		# get the duplicate 
 		
@@ -674,7 +719,7 @@ class DagNode( Entity, iDagItem ):
 		uint = sutil.asUint()
 		sutil.setUint( uint , index )
 		
-		return nodes.Node( self._mfncls( self._apidagpath ).parent( uint ) )
+		return nodes.Node( api.MFnDagNode( self._apidagpath ).parent( uint ) )
 	
 	def getParent( self ):
 		"""@return: Maya node of the parent of this instance or None if this is the root"""

@@ -82,7 +82,6 @@ class TestGeneralPerformance( unittest.TestCase ):
 		all_elapsed = []
 		
 		numObjs = len( cmds.ls() )
-		self._createNodeFromName( "this" )
 		print "\n"
 		for numNodes in runs:
 			
@@ -90,7 +89,7 @@ class TestGeneralPerformance( unittest.TestCase ):
 			nodenames = genNodeNames( numNodes, (1,5),(3,8),nslist )
 			
 			starttime = time.clock( )
-			undoobj = undo.StartUndo()
+			undoobj = undo.StartUndo( )
 			for nodename in nodenames:
 				try:	# it can happen that he creates dg and dag nodes with the same name 
 					self._createNodeFromName( nodename )
@@ -119,7 +118,7 @@ class TestGeneralPerformance( unittest.TestCase ):
 		#################################
 		# redo last operation to get lots of nodes
 		cmds.redo( )
-		nodenames = cmds.ls( )
+		nodenames = cmds.ls( l=1 )
 		Nodes = []
 		
 		starttime = time.clock( )

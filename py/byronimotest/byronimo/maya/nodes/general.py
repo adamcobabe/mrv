@@ -19,6 +19,7 @@ __copyright__='(c) 2008 Sebastian Thiel'
 import unittest
 import byronimo.maya as bmaya
 import byronimo.maya.env as env
+import byronimo.maya.namespace as namespace
 import byronimo.maya.nodes as nodes
 import byronimo.maya.nodes.types as types
 from byronimotest.byronimo.maya import get_maya_file
@@ -102,7 +103,7 @@ class TestGeneral( unittest.TestCase ):
 		
 		# CHECK DIFFERENT ROOT TYPES 
 		depnode = nodes.createNode( "blablub", "facade" )
-		self.failUnlessRaises( NameError, nodes.createNode, "|blablub|:this", "transform" )
+		self.failUnlessRaises( NameError, nodes.createNode, "|blablub|:this", "transform", renameOnClash = False )
 		
 		# DIFFERENT TYPES AT END OF PATH
 		nodes.createNode( "this|mesh", "mesh" )
@@ -112,13 +113,39 @@ class TestGeneral( unittest.TestCase ):
 		nodes.createNode( "node", "facade" )
 		self.failUnlessRaises( NameError, nodes.createNode, "this|that|node", "mesh", renameOnClash = False )
 		
-		# but not if it comes after
+		# obj exists should match dg nodes with dag node like path ( as they occupy the same 
+		# namespace after all
+		self.failUnless( nodes.objExists( "|node" ) )
+		
+		# it also clashes if the dg node is created after a  dag node with the same name
 		nodes.createNode( "that|nodename", "mesh" )
-		nodes.createNode( "nodename", "facade", renameOnClash = False )
+		self.failUnlessRaises( NameError, nodes.createNode, "nodename", "facade", renameOnClash = False )	
 		
 		
-	def test_instancingSimple( self ):
-		"""byronimo.maya.nodes: assure that we get the right path if we wrap the node"""
+		# it should be find to have the same name in several dag levels though !
+		nodes.createNode( "parent|nodename", "transform" )
+		nodes.createNode( "parent|nodename|nodename", "mesh" )
+		nodes.createNode( "otherparent|nodename|nodename", "mesh" )
+		
+		
+	def test_objectExistance( self ):
+		"""byronimo.maya.nodes: check whether we can properly handle node exist checks"""
+		depnode = nodes.createNode( "node", "facade" )
+		self.failUnless( nodes.objExists( str( depnode ) ) )
+		
+		dagnode = nodes.createNode( "parent|node", "mesh" )
+		self.failUnless( nodes.objExists( str( dagnode ) ) )
+		
+		# must clash with dg node ( in maya, dg nodes will block names of dag node leafs ! )
+		self.failUnlessRaises( NameError, nodes.createNode, "parent|node|node", "mesh", renameOnClash=False )
+		
+		# same clash occours if dag node exists first 
+		dagnode = nodes.createNode( "parent|othernode", "transform" )
+		self.failUnlessRaises( NameError, nodes.createNode, "othernode", "facade", renameOnClash=False )
+		
+		
+	def test_dagPathVSMobjects( self ):
+		"""byronimo.maya.nodes: if mobjects where used internally, this test would fail"""
 		node = nodes.createNode( "parent|middle|child", "transform" )
 		nodem = nodes.Node( "parent|middle" )
 		
@@ -134,15 +161,7 @@ class TestGeneral( unittest.TestCase ):
 		
 		npath = node.getDagPath( )
 		ipath = instnode.getDagPath( )
-		#print "%s != %s" % ( npath, ipath )
-				
-		# import time
-		# count = 20000
-		# starttime = time.clock()
-		# for i in xrange( count ):
-			# path = instnode.getDagPath()
-		# elapsed = time.clock() - starttime
-		# print "%f s for %i dagpath gets ( %f / s )" % ( elapsed, count, count / elapsed )
+		
 		
 class TestNodeBase( unittest.TestCase ):
 	""" Test node base functionality  """
@@ -221,11 +240,25 @@ class TestNodeBase( unittest.TestCase ):
 		self.failUnless( renamed == "myrenamednode" )
 		self.failUnless( node == renamed )
 		
+		# undo - redo
+		cmds.undo()
+		self.failUnless( node == "mynode" )
+		cmds.redo()
+		self.failUnless( node == "myrenamednode" )
+		
+		
 		# trigger namespace error
 		self.failUnlessRaises( RuntimeError, node.rename, "nsdoesnotexist:othername", autocreateNamespace = False )
 		
 		# now it should work
 		node.rename( "nsdoesnotexist:othername", autocreateNamespace=True )
+		
+		# multi undo - namespace is one operation in this one 
+		cmds.undo()
+		self.failUnless( not namespace.exists( "nsdoesnotexist" ) )
+		cmds.redo()
+		self.failUnless( node.isValid() )
+		
 		
 		# rename to same name 
 		renamed = node.rename( "nsdoesnotexist" )	# should be fine
@@ -251,7 +284,15 @@ class TestNodeBase( unittest.TestCase ):
 		
 		# simple reparent 
 		otherparent = nodes.createNode( "oparent", "transform" )
-		mesh.reparent( otherparent, otherparent )
+		mesh.reparent( otherparent )
+		
+		# REPARENT UNDO TEST
+		cmds.undo()
+		self.failUnless( mesh.getParent() == parent )
+		cmds.redo()
+		self.failUnless( mesh.getParent() == otherparent )
+		
+		
 		
 		# REPARENT RENAME CLASH  
 		origmesh = nodes.createNode( "parent|fancymesh", "mesh" )
@@ -262,7 +303,7 @@ class TestNodeBase( unittest.TestCase ):
 		self.failUnlessRaises( RuntimeError, origmesh.rename, "mesh", renameOnClash = False )
 		
 		# now it works
-		othermesh.rename( "mesh" )
+		othermesh.rename( "mesh", renameOnClash = True )
 		
 		
 		# shape under root 
@@ -270,19 +311,23 @@ class TestNodeBase( unittest.TestCase ):
 		
 		# REPARENT AGAIN
 		# should just work as the endresult is the same 
-		mesh.reparent( otherparent )
+		mesh.reparent( otherparent )	# it will also trigger a new undo event, so undo will react as it should
 		mesh.reparent( otherparent )	
 		
 		# REPARENT UNDER SELF
 		self.failUnlessRaises( RuntimeError, mesh.reparent, mesh )
 		
 		
+		# OBJECT NAVIGATION 
 		# TODO: navigate the object properly 
 		
 		
-		# DUPLICATE
-		################
 		
+		
+		# DUPLICATE ( Dag only )
+		################
+		newmesh = mesh.duplicate( "duplparent|duplmesh" )
+		self.failUnlessRaises( RuntimeError, mesh.duplicate, "duplparent2|doesntexistns:duplmesh", autocreateNamespace = False )
 		
 
 
