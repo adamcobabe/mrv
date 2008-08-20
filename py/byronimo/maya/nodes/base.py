@@ -171,6 +171,14 @@ def objExists( objectname ):
 		# return True
 
 
+def delete( *args ):
+	"""Delete the given Node instances
+	@note: all deletions will be stored on one undo operation"""
+	mod = undo.DGModifier()
+	for node in args:
+		mod.deleteNode( node._apiobj )
+	mod.doIt()
+
 @undoable
 def createNode( nodename, nodetype, autocreateNamespace=True, renameOnClash = True ):
 	"""Create a new node of nodetype with given nodename
@@ -527,6 +535,17 @@ class DependNode( Node ):
 		
 		return self
 		
+	@undoable
+	def delete( self ):
+		"""Delete this node
+		@note: if the undo queue is enabled, the object becomes invalid, but stays alive until it 
+		drops off the queue
+		@note: if you want to delete many nodes, its more efficient to delete them 
+		using the global L{delete} method"""
+		mod = undo.DGModifier( )
+		mod.deleteNode( self._apiobj )
+		mod.doIt()
+		
 		
 	#} END edit
 		
@@ -643,6 +662,12 @@ class DagNode( Entity, iDagItem ):
 			mod = undo.DagModifier( )
 			mod.reparentNode( thispathobj )
 		
+		
+		# UPDATE DAG PATH
+		dagpath = api.MDagPath( )
+		api.MFnDagNode( thispathobj ).getPath( dagpath )
+		self._apidagpath = DagPath( dagpath )
+		
 		mod.doIt()
 		return self
 		
@@ -667,7 +692,6 @@ class DagNode( Entity, iDagItem ):
 		# DUPLICATE IT WITH UNDO 
 		############################
 		op = undo.GenericOperation( )
-		
 		doitcmd = Call( api.MFnDagNode( self._apidagpath ).duplicate, asInstance, instanceLeafOnly )
 		undoitcmd = Call( None )												# placeholder, have to change it soon
 		duplicate_node = Node( op.addCmdAndCall( doitcmd, undoitcmd ) )		# get the duplicate 
@@ -677,13 +701,38 @@ class DagNode( Entity, iDagItem ):
 		undoitcmd.args = [ str( duplicate_node ) ]
 		
 		
+		# ASSERT TYPE  
+		##############
+		# If the leaf is a shape, it will return the transform it created instead of the freakin shape
+		# that I would expect if I duplicate a  ... shape !!
+		# The transform is nicely made such that it has the name of the shape we actually duplicate 
+		# in other words: this method is pure poo
+		if not isinstance( duplicate_node, self.__class__ ):
+			# SHAPE SPECIAL SHIT HANDLING !!
+			# if "|parent|meshshape" is duplicated, it creates "|meshshape|meshshape1" or for 
+			# "|parent|sub|meshshape" -> "|parent|meshshape|meshshape", returning the parent transform, not the shape !
+			# reparent all children
+			if duplicate_node.getChildCount() != 1:
+				raise AssertionError( "Expected to have just one child - the shape to duplicate, got %i" % duplicate_node.getChildCount() )
+			
+			ourparent = self.getParent( )
+			child = duplicate_node.getChildren()[0]
+			
+			child.reparent( ourparent )
+				
+			# delete duplicate 
+			duplicate_node.delete( )
+			duplicate_node = child
+		# END special duplicate fuckup handling 
+		
+		
 		# RENAME THE DUPLICATE
 		###########################
 		dagtokens = newpath.split( '|' )
 		leafobjectname = dagtokens[-1:][0]
-								  
-		duplicate_node.rename( leafobjectname, autocreateNamespace = autocreateNamespace, renameOnClash=renameOnClash )
 		
+		
+		duplicate_node.rename( leafobjectname, autocreateNamespace = autocreateNamespace, renameOnClash=renameOnClash )
 		
 		# REPARENT 
 		###############
@@ -702,7 +751,8 @@ class DagNode( Entity, iDagItem ):
 			# DO THE REPARENT - parent can be none to indicate parenting below root, okay for transforms  
 			duplicate_node.reparent( parentnode, renameOnClash=renameOnClash )
 		# END parent handling 
-		 
+		
+		
 		return duplicate_node
 		
 	#} END edit
@@ -724,6 +774,10 @@ class DagNode( Entity, iDagItem ):
 	def getParent( self ):
 		"""@return: Maya node of the parent of this instance or None if this is the root"""
 		return nodes.Node( self._apidagpath.getParent( ) )
+		
+	def getChildren( self ):
+		"""@return: all child nodes below this dag node"""
+		return [ Node( p ) for p in self._apidagpath.getChildren() ]
 		
 	#{ Query 
 		
@@ -851,12 +905,7 @@ class DagPath( api.MDagPath, iDagItem ):
 	def	getChildPath( self, index ):
 		"""@return: DagPath to child at given index"""
 		copy = DagPath( self )
-		
-		sutil = api.MScriptUtil()
-		uint = sutil.asUint()
-		sutil.setUint( uint , index )
-		
-		copy.push( api.MDagPath.child( uint ) )
+		copy.push( api.MDagPath.child(self, index ) )
 		return copy
 		
 	def getChildren( self ):

@@ -282,6 +282,12 @@ class TestNodeBase( unittest.TestCase ):
 		mesh.rename( "fancymesh" )
 		
 		
+		# simple dupl test 
+		duplbase = nodes.createNode( "parent|this|other|duplbase", "mesh" )
+		copy = duplbase.duplicate( "parent|this|other|duplcopy" )
+		self.failUnless( str( copy ) == "|parent|this|other|duplcopy" )
+		
+		
 		# simple reparent 
 		otherparent = nodes.createNode( "oparent", "transform" )
 		mesh.reparent( otherparent )
@@ -295,7 +301,7 @@ class TestNodeBase( unittest.TestCase ):
 		
 		
 		# REPARENT RENAME CLASH  
-		origmesh = nodes.createNode( "parent|fancymesh", "mesh" )
+		origmesh = nodes.createNode( "parent|fancymesh", "mesh" )			#  "|parent|fancymesh"
 		self.failUnlessRaises( RuntimeError, mesh.reparent, parent , renameOnClash = False ) 
 		
 		# RENAME CLASH DAG NODE 
@@ -304,6 +310,7 @@ class TestNodeBase( unittest.TestCase ):
 		
 		# now it works
 		othermesh.rename( "mesh", renameOnClash = True )
+		self.failUnless( othermesh.getBasename( ) == "mesh" )
 		
 		
 		# shape under root 
@@ -312,26 +319,64 @@ class TestNodeBase( unittest.TestCase ):
 		# REPARENT AGAIN
 		# should just work as the endresult is the same 
 		mesh.reparent( otherparent )	# it will also trigger a new undo event, so undo will react as it should
-		mesh.reparent( otherparent )	
+		mesh.reparent( otherparent )	#  "|otherparent|fancymesh"
 		
 		# REPARENT UNDER SELF
 		self.failUnlessRaises( RuntimeError, mesh.reparent, mesh )
 		
 		
-		# OBJECT NAVIGATION 
+		# OBJECT NAVIGATION
+		#######################
 		# TODO: navigate the object properly 
 		
 		
 		
 		
 		# DUPLICATE ( Dag only )
-		################
+		#########################
 		newmesh = mesh.duplicate( "duplparent|duplmesh" )
-		self.failUnlessRaises( RuntimeError, mesh.duplicate, "duplparent2|doesntexistns:duplmesh", autocreateNamespace = False )
+		self.failUnless( str( newmesh ) == "|duplparent|duplmesh" )
+		self.failUnlessRaises( RuntimeError, mesh.duplicate, "duplparent2|doesntexistns:duplmesh", 
+							  	autocreateNamespace = False )
+		
+		meshinst = mesh.duplicate( "duplparent2|newnamespace:instmesh", asInstance=True )
+		meshinstname = str( meshinst )
+		
+		# UNDO DUPLICATE
+		#################   
+		cmds.undo()
+		
+		# this object will end up pointing to the same object , as it came from, use string test
+		self.failUnless( not nodes.objExists( meshinstname ) )		 
+		cmds.redo()
+		self.failUnless( meshinst.isAlive() and meshinst.isValid() and str( meshinst ) == meshinstname )
+		
+		# Duplicate TRANSFORM ( just a name givne )
+		# dag paths should be different although object is the same
+		mesh = nodes.createNode( "parent|mybeautifuluniquemeshname", "mesh" )
+		meshassert = nodes.createNode( "parent|mesh", "mesh" )
+		meshself = nodes.Node( "parent|mybeautifuluniquemeshname" )
+		self.failUnless( mesh == meshself )
+		
+		# connect it, to track the instance by connection 
+		persp = nodes.Node( "persp" )
+		perspplug = persp.t.tx
+		triplug = meshself.maxTriangles
+		perspplug >> triplug 
+		
+		meshinst = mesh.duplicate( "newns:meshinst" , asInstance=True, instanceLeafOnly=True )
+		self.failUnless( isinstance( meshinst, nodes.Mesh ) )
+		self.failUnless( mesh != meshinst )
+		
+		# instance should have the persp.t connected
+		print type( meshinst )
+		self.failUnless( perspplug >= triplug )
+		self.failUnless( perspplug >= meshinst.maxTriangles )
+		self.failUnless( meshinst._apiobj == mesh._apiobj )
 		
 
 
-	def test_mfncachebuilder( self ):
+	def test_mfncachebuilder( sself ):
 		"""byroniom.maya.nodes.base: write a generated cache using the builder function"""
 		pass
 		#types.writeMfnDBCacheFiles( )

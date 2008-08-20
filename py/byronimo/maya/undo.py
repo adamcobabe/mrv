@@ -8,15 +8,7 @@ Features
    - modify dag or dg using the undo - enabled DG and DAG modifiers
    - modify values using Nodes and their plugs ( as the plugs are overridden
    to store undo information )
-   
-   
-Limitations
------------
-   - If you call MEL commands to affect the scene ( like cmds.currentTime instead of 
-   MGlobal.viewFrame or MAnimControl) while recording undo with this system, the cmds
-   will create a new undo-event, making it impossible to undo the whole operation 
-   at once. 
-   Thus calls changing the scene must be aware of this undo API 
+   - fully usable including MEL command ( using L{GenericOperation}
 
 
 
@@ -176,7 +168,9 @@ def undoable( func ):
 	def func( ):
 		pass 
 	@note: Using decorated functions appears to be only FASTER  than implementing it 
-	manually, thus using these is will greatly improve code readability"""
+	manually, thus using these is will greatly improve code readability
+	@note: if you use undoable functions, you should mark yourself undoable too - otherwise the 
+	functions you call will create individual undo steps"""
 	def wrapFunc( *args, **kwargs ):
 		"""This is the long version of the method as it is slightly faster than
 		simply using the StartUndo helper"""
