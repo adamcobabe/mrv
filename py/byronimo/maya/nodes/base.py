@@ -624,10 +624,12 @@ class DagNode( Entity, iDagItem ):
 		op = undo.GenericOperation( )
 		
 		doitcmd = Call( self._mfncls( self._apidagpath ).duplicate, asInstance, instanceLeafOnly )
-		duplicate_node = Node( doitcmd() )			 	 # get the duplicate 
+		undoitcmd = Call( None )												# placeholder, have to change it soon
+		duplicate_node = Node( op.addCmdAndCall( doitcmd, undoitcmd ) )		# get the duplicate 
 		
-		# bake the object to a string for deletion
-		undoitcmd =	Call( cmds.delete, str( duplicate_node ) )		# have to use mel here as dag modifiers cannot work like this 
+		# bake the object to a string for deletion - adjust undocmd
+		undoitcmd.func = cmds.delete
+		undoitcmd.args = [ str( duplicate_node ) ]
 		
 		
 		# RENAME THE DUPLICATE
@@ -653,7 +655,7 @@ class DagNode( Entity, iDagItem ):
 			# END create parent handling
 			
 			# DO THE REPARENT - parent can be none to indicate parenting below root, okay for transforms  
-			duplicate_node.reparent( parentnode, renameOnClash=renameOnClash)
+			duplicate_node.reparent( parentnode, renameOnClash=renameOnClash )
 		# END parent handling 
 		 
 		return duplicate_node

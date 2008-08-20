@@ -256,6 +256,9 @@ class GenericOperation( Operation ):
 	You can have only one command stored, or many if they should be executed in a row.
 	The vital part is that with each do command, you supply an undo command. 
 	This way your operations can be undone and redone once undo / redo is requested
+	@note: this class works well with L{byronimo.util.Call}
+	@note: to execute the calls added, you must call L{doIt} or L{addCmdAndCall} - otherwise 
+	the undoqueue might brake if exceptions occour !
 	@note: your calls may use MEL commands safely as the undo-queue will be torn off during execution
 	@note: Undocommand will be applied in reversed order automatically"""
 	
@@ -264,6 +267,7 @@ class GenericOperation( Operation ):
 		Operation.__init__( self )
 		self._docmds = []				# list of Calls 
 		self._undocmds = []				# will store reversed list !
+		self._undocmds_tmp = []			# keeps undo until their do was verified !
 
 	@staticmethod
 	def _callList( cmdlist ):
@@ -271,19 +275,51 @@ class GenericOperation( Operation ):
 		prevstate = cmds.undoInfo( q=1, st=1 )
 		cmds.undoInfo( st=False )
 		
-		for call in cmdlist:
-			call()
 		
 		cmds.undoInfo( st=prevstate )
 
 	def doIt( self ):
 		"""Call all doIt commands stored in our instance after temporarily disabling the undo queue"""
-		GenericOperation._callList( self._docmds )
+		prevstate = cmds.undoInfo( q=1, st=1 )
+		cmds.undoInfo( st=False )
+		
+		if self._undocmds_tmp:
+			# verify each doit command before we shedule undo 
+			# if it raies, we will not schedule the respective command for undo 
+			for i,call in enumerate( self._docmds ):
+				try:
+					call()
+				except:
+					# forget about this and all following commands and reraise 
+					del( self._docmds[i:] )
+					self._undocmds_tmp = None		# next time we only execute the cmds that worked ( and will undo only them )
+					raise
+				else:
+					self._undocmds.insert( 0, self._undocmds_tmp[i] )	# push front
+			# END for each call
+			self._undocmds_tmp = None			# free memory 
+		else:
+			for call in self._docmds:
+				call()
+			# END for each do calll
+		# END if undo cmds have been verified 
+		
+		cmds.undoInfo( st=prevstate )
 	
 	def undoIt( self ):
 		"""Call all undoIt commands stored in our instance after temporarily disabling the undo queue"""
 		# NOTE: the undo list is already reversed !
-		GenericOperation._callList( self._undocmds )
+		prevstate = cmds.undoInfo( q=1, st=1 )
+		cmds.undoInfo( st=False )
+		
+		# sanity check
+		if self._undocmds_tmp:	 
+			raise AssertionError( "Tmp undo commands queue was not None on first undo call - this means doit has not been called before - check your code!" )
+		
+		for call in self._undocmds:
+			call()
+		
+		cmds.undoInfo( st=prevstate )
 
 		
 	def addCmd( self, doCall, undoCall ):
@@ -294,8 +330,22 @@ class GenericOperation( Operation ):
 			raise TypeError( "(un)doIt callbacks must be of type 'Call'" )
 			
 		self._docmds.append( doCall )		# push 
-		self._undocmds.insert( 0, undoCall ) # push front
+		self._undocmds_tmp.append( undoCall ) 
 
+	def addCmdAndCall( self, doCall, undoCall ): 
+		"""Add commands to the queue and execute it right away - either always use 
+		this way to add your commands or the L{addCmd} method, never mix them !
+		@return: return value of the doCall
+		@note: use this method if you need the return value of the doCall right away"""
+		prevstate = cmds.undoInfo( q=1, st=1 )
+		cmds.undoInfo( st=False )
+		
+		rval = doCall()
+		self._docmds.append( doCall )
+		self._undocmds.insert( 0, undoCall )
+		
+		cmds.undoInfo( st=prevstate )
+		return rval
 
 
 from byronimo.util import MetaCopyClsMembers
