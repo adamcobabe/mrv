@@ -149,9 +149,12 @@ class TestGeneral( unittest.TestCase ):
 		node = nodes.createNode( "parent|middle|child", "transform" )
 		nodem = nodes.Node( "parent|middle" )
 		
-		instargs = { 'asInstance' : 1, 'instanceLeafOnly' : 1 }
-		instnode = node.duplicate( "child", **instargs )
-		instnodem = nodem.duplicate( "middle", **instargs )
+		duplnodemiddle = nodem.duplicate( "middle1" )
+		instnode = duplnodemiddle.addInstancedChild( node )
+		
+		
+		self.failUnless( instnode._apiobj == node._apiobj ) # compare mobject
+		self.failUnless( instnode != node )		# compare dag paths 
 		
 		path = instnode.getDagPath( )
 		childm1 = nodes.Node( "parent|middle1|child" )
@@ -341,7 +344,8 @@ class TestNodeBase( unittest.TestCase ):
 		self.failUnlessRaises( RuntimeError, mesh.duplicate, "|duplparent2|doesntexistns:duplmesh", 
 							  	autocreateNamespace = False )
 		self.failUnless( newmesh != mesh )
-		meshinst = mesh.duplicate( "|duplparent2|newnamespace:instmesh", asInstance=True )
+		instbase = nodes.createNode( "|duplparent2|newnamespace:instmesh", "transform" ) 
+		meshinst = instbase.addChild( mesh )
 		meshinstname = str( meshinst )
 		
 		# UNDO DUPLICATE
@@ -372,14 +376,7 @@ class TestNodeBase( unittest.TestCase ):
 		# target does exist
 		# this is blocking the target instance name with an incorrect type
 		nodes.createNode( "parent|this|mybeautifuluniquemeshname", "transform" )	 
-		self.failUnlessRaises( RuntimeError, mesh.duplicate, "|parent|this", asInstance=True )
-		self.failUnlessRaises( RuntimeError, mesh.duplicate, "|parent|this", asInstance=False )
-		
-		# shapes must have full paths
-		self.failUnlessRaises( NameError, mesh.duplicate, "newns:meshinst" , asInstance=True, instanceLeafOnly=True )
-		
-		# cannot parent instance under itself
-		self.failUnlessRaises( NameError, mesh.duplicate, str( mesh ), asInstance=True, instanceLeafOnly=True )
+		self.failUnlessRaises( RuntimeError, mesh.duplicate, "|parent|this" )
 		
 		# if the path is too short ... 
 		self.failUnlessRaises( NameError, mesh.duplicate, str( mesh.getTransform() ) )
@@ -387,16 +384,40 @@ class TestNodeBase( unittest.TestCase ):
 		
 		
 		meshinstname = mesh.getTransform().getFullChildName( "newns:meshinst" )
-		meshinst = mesh.duplicate( meshinstname  , asInstance=True, instanceLeafOnly=True )
 		self.failUnless( isinstance( meshinst, nodes.Mesh ) )
-		self.failUnless( mesh != meshinst )
-		
-		# instance should have the persp.t connected
-		self.failUnless( perspplug >= triplug )
-		self.failUnless( perspplug >= meshinst.maxTriangles )
-		self.failUnless( meshinst._apiobj == mesh._apiobj )
 		
 
+	def test_childEditing( self ):
+		"""byronimo.maya.nodes: tests the add and remove children"""
+		base = nodes.createNode( "basenode", "transform" )
+		obase = nodes.createNode( "otherbasenode", "transform" )
+		trans = nodes.createNode( "trans", "transform" )
+		mesh = nodes.createNode( "meshparent|meshshape", "mesh" )
+		curve = nodes.createNode( "nurbsparent|ncurve", "nurbsCurve" )
+		
+		# MULTIPLE ADDS
+		####################
+		# Returns the same instance - its what the user wants 
+		basetransinst = base.addInstancedChild( trans )
+		base.addInstancedChild( trans )
+		self.failUnless( trans != basetransinst and basetransinst.isValid() and trans.isValid() )
+		print "BASETRANSEINST = %r" % basetransinst
+		
+		basecurveinst = base.addInstancedChild( curve )
+		base.addInstancedChild( curve )
+		self.failUnless( curve != basecurveinst and basecurveinst.isValid() and curve.isValid() )
+		print "BASECURVEINST = %r" % basecurveinst
+		
+		basemeshinst = base.addInstancedChild( mesh )
+		base.addInstancedChild( mesh )
+		self.failUnless( mesh != basemeshinst and basemeshinst.isValid() and mesh.isValid() )
+		print "BASEMESHINST = %r" % basemeshinst
+			
+		
+		# ADD WITH REPARENT
+		self.fail()		# continue ... 
+		
+		
 
 	def test_mfncachebuilder( sself ):
 		"""byroniom.maya.nodes.base: write a generated cache using the builder function"""

@@ -675,7 +675,7 @@ class DagNode( Entity, iDagItem ):
 	
 	@undoable
 	def reparent( self, parentnode, renameOnClash=True ):
-		"""Move or rename the given node to match newpath
+		""" Change the parent of all nodes to be located below parentnode
 		@param parentnode: Node instance of transform under which this node should be parented to
 		if None, node will be reparented under the root ( which only works for transforms )
 		@param renameOnClash: resolve nameclashes by automatically renaming the node to make it unique
@@ -718,7 +718,13 @@ class DagNode( Entity, iDagItem ):
 		mod.doIt()
 		return self
 		
-		
+	@undoable
+	def addInstancedChild( self, childNode, position=api.MFnDagNode.kNextPos ):
+		"""Add childnode as instanced child to this node
+		@note: for more information, see L{addChild}
+		@note: its a shortcut to addChild allowing to clearly indicate what is happening"""
+		return self.addChild( childNode, position = position, keepExistingParent=True )
+	
 	@undoable
 	def removeChild( self, childNode ):
 		"""@remove the given childNode ( being a child of this node ) from our child list, effectively 
@@ -742,7 +748,8 @@ class DagNode( Entity, iDagItem ):
 		
 		
 	@undoable
-	def addChild( self, childNode, position=api.MFnDagNode.kNextPos, keepExistingParent=False ):
+	def addChild( self, childNode, position=api.MFnDagNode.kNextPos, keepExistingParent=False,
+				 renameOnClash=True):
 		"""Add the given childNode as child to this Node. Allows instancing !
 		@param childNode: Node you wish to add
 		@param position: the index to which to add the new child, kNextPos will add it as last child.
@@ -750,11 +757,42 @@ class DagNode( Entity, iDagItem ):
 		@param keepExistingParent: if True, the childNode will be instanced as it will 
 		have its previous parent and this one, if False, the previous parent will be removed 
 		from the child's parent list
-		@return: childNode whose path is pointing to the new child location
+		@param renameOnClash: resolve nameclashes by automatically renaming the node to make it unique
+		@return: childNode whose path is pointing to the new child location 
 		@note: the keepExistingParent flag is custom implemented as it would remove all existng parentS, 
 		not just the one of the path behind the object ( it does not use a path, so it must remove all existing 
 		parents unfortunatly ! )"""
 		# print "( %i/%i ) ADD CHILD (keep=%i): %r to %r"  % ( api.MGlobal.isUndoing(),api.MGlobal.isRedoing(), keepExistingParent, DependNode( childNode._apiobj ) , self )
+		
+		# CHILD ALREADY THERE ?
+		#########################
+		# We do not raise if the user already has what he wants 
+		# check if child is already part of our children
+		children = None
+		# lets speed things up - getting children is expensive
+		if isinstance( childNode, nodes.Transform ):
+			children = self.getChildTransforms( )
+		else:
+			children = self.getShapes( )
+		
+		# compare MObjects
+		for exChild in children:
+			if DependNode.__eq__( childNode, exChild ):
+				return exChild								# exchild has proper dagpath
+		del( children )			# release memory 
+		
+		if not renameOnClash:
+			# check existing children of parent and raise if same name exists 
+			# I think this check must be string based though as we are talking about
+			# a possbly different api object with the same name - probably api will be faster
+			testforobject = parentnode.getFullChildName( self.getBasename( ) )	# append our name to the path
+			if objExists( testforobject ):
+				raise RuntimeError( "Object %s did already exist below %r" % ( testforobject , self ) )
+		# END rename on clash handling 
+			
+		
+		# ADD CHILD 
+		###############
 		op = undo.GenericOperation( )
 		
 		pos = position
@@ -794,8 +832,8 @@ class DagNode( Entity, iDagItem ):
 			# does not work either when re-adding the child ( but when removing it !! )
 			# clear undocmd as it will not work and bake a mel cmd !
 			op.addCmd( docmd, undocmdCall )
-			
-		# END if not keep existing parent 
+		# END if not keep existing parent
+		
 		op.doIt()
 				
 		# UPDATE THE DAG PATH OF CHILDNODE
@@ -803,9 +841,8 @@ class DagNode( Entity, iDagItem ):
 		# find dag path at the used index
 		dagIndex = pos
 		if pos == self.kNextPos:
-			pos = self.getChildCount() - 1	# last entry as child got added  
-		
-		newChildNode = Node( self._apidagpath.getChildPath( pos ) )
+			dagIndex = self.getChildCount() - 1	# last entry as child got added  
+		newChildNode = Node( self._apidagpath.getChildPath( dagIndex ) )
 		
 		# ALTER CMD FOR WORLD SPECIAL CASE ?
 		######################################
@@ -999,15 +1036,27 @@ class DagNode( Entity, iDagItem ):
 		return nodes.Node( p )
 	
 	def getChildren( self, predicate = lambda x: True ):
-		"""@return: all child nodes below this dag node"""
-		return [ Node( p ) for p in self._apidagpath.getChildren() if predicate( p ) ]
+		"""@return: all child nodes below this dag node if predicate returns True for passed Node"""
+		childNodes = [ Node( p ) for p in self._apidagpath.getChildren() ]
+		return [ p for p in childNodes if predicate( p ) ]
+
+	def getChildrenByType( self, nodeType, predicate = lambda x: True ):
+		"""@return: all childnodes below this one matching the given nodeType and the predicate
+		@param nodetype: class of the nodeTyoe, like nodes.Transform"""
+		childNodes = [ Node( p ) for p in self._apidagpath.getChildren() ]
+		return [ p for p in childNodes if isinstance( p, nodeType ) and predicate( p ) ]
 		
 	def getShapes( self, predicate = lambda x: True ):
 		"""@return: all our Shape nodes
 		@note: you could use getChildren with a predicate, but this method is more 
 		efficient as it uses dagpath functions to filter shapes"""
-		return [ Node( p ) for p in self._apidagpath.getShapes() if predicate( p ) ]
+		shapeNodes = [ Node( s ) for s in self._apidagpath.getShapes() ]	# could use getChildrenByType, but this is faster 
+		return [ s for s in shapeNodes if predicate( s ) ]
 		
+	def getChildTransforms( self, predicate = lambda x: True ):
+		"""@return: list of all transform nodes below this one """
+		transformNodes = [ Node( s ) for s in self._apidagpath.getTransforms() ] # could use getChildrenByType, but this is faster
+		return [ t for t in transformNodes if predicate( t ) ]
 	#{ Query 
 		
 		
@@ -1129,11 +1178,12 @@ class DagPath( api.MDagPath, iDagItem ):
 		
 		return sutil.getUint( uintptr )
 	
-	def	getChildPath( self, index ):
-		"""@return: DagPath to child at given index"""
+	def getChildPath( self, index ):
+		"""@return: a dag path pointing to this path's shape with num"""
 		copy = DagPath( self )
 		copy.push( api.MDagPath.child(self, index ) )
 		return copy
+		
 		
 	def getChildren( self , predicate = lambda x: True ):
 		"""@return: list of child DagPaths of this path
@@ -1156,30 +1206,30 @@ class DagPath( api.MDagPath, iDagItem ):
 		api.MDagPath.pop( self, num )
 		return self
 	
-	def extendToShape( self, num ):
-		"""Extend this path to the given shape number
+	def extendToChild( self, num ):
+		"""Extend this path to the given child number - can be shape or transform
 		@return: self """
 		api.MDagPath.extendToShapeDirectlyBelow( self, num )
 		return self	
 		
-	def getShapePath( self, num ):
-		"""@return: a dag path pointing to this path's shape with num"""
-		copy = DagPath( self )
-		copy.extendToShape( num )
-		return copy
+	def getChildrenByFn( self, fn, predicate = lambda x: True ):
+		"""Get all children below this path supporting the given MFn.type
+		@return: paths to all matched paths below this path
+		@param fn: member of MFn"""
+		isMatch = lambda p: p.getApiObj().hasFn( fn )
+		return [ p for p in self.getChildren( predicate = isMatch ) if predicate( p ) ]
 		
 	def getShapes( self, predicate = lambda x: True ):
 		"""Get all shapes below this path
 		@return: paths to all shapes below this path
 		@param predicate: returns True to include path in result"""
-		out = []
-		for s in xrange( self.getNumShapes( ) ):
-			shape = self.getShapePath( s )
-			if predicate( shape ):
-				out.append( shape )
-		# END for each shape
-		return out 
-		
+		return self.getChildrenByFn( api.MFn.kShape, predicate=predicate )
+	
+	def getTransforms( self, predicate = lambda x: True ):
+		"""Get all transforms below this path
+		@return: paths to all transforms below this path
+		@param predicate: returns True to include path in result"""
+		return self.getChildrenByFn( api.MFn.kTransform, predicate=predicate )
 	#} END edit in place  
 	
 	
@@ -1194,7 +1244,6 @@ class DagPath( api.MDagPath, iDagItem ):
 	getApiType = api.MDagPath.apiType
 	getLength = api.MDagPath.length
 	numberOfShapesDirectlyBelow = getNumShapes
-	getChildCount = api.MDagPath.childCount
 	getInstanceNumber = api.MDagPath.instanceNumber
 	getPathCount = api.MDagPath.pathCount
 	getFullPathName = api.MDagPath.fullPathName
