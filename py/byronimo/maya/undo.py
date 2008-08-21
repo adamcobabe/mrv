@@ -229,7 +229,7 @@ class Operation:
 		"""Operations will always be placed on the undo queue if undo is available
 		This happens automatically upon creation
 		@note: assure subclasses call the superclass init !"""
-		if cmds.undoInfo( q=1, st=1 ):
+		if not om.MGlobal.isUndoing() and cmds.undoInfo( q=1, st=1 ):
 			# sanity check !
 			if sys._maya_stack_depth < 1:
 				raise ValueError( "Undo-Stack was %i, but must be at least 1 before operations can be put - check your code !" % sys._maya_stack_depth )
@@ -266,65 +266,57 @@ class GenericOperation( Operation ):
 		self._undocmds = []				# will store reversed list !
 		self._undocmds_tmp = []			# keeps undo until their do was verified !
 
-	@staticmethod
-	def _callList( cmdlist ):
-		"""Simply apply the given cmd list without maya undo"""
-		prevstate = cmds.undoInfo( q=1, st=1 )
-		cmds.undoInfo( st=False )
-		
-		
-		cmds.undoInfo( st=prevstate )
 
 	def doIt( self ):
 		"""Call all doIt commands stored in our instance after temporarily disabling the undo queue"""
 		prevstate = cmds.undoInfo( q=1, st=1 )
-		cmds.undoInfo( st=False )
+		cmds.undoInfo( swf=False )
 		
-		if self._undocmds_tmp:
-			# verify each doit command before we shedule undo 
-			# if it raies, we will not schedule the respective command for undo 
-			for i,call in enumerate( self._docmds ):
-				try:
+		try:
+			if self._undocmds_tmp:
+				# verify each doit command before we shedule undo 
+				# if it raies, we will not schedule the respective command for undo 
+				for i,call in enumerate( self._docmds ):
+					try:
+						call()
+					except:
+						# forget about this and all following commands and reraise 
+						del( self._docmds[i:] )
+						self._undocmds_tmp = None		# next time we only execute the cmds that worked ( and will undo only them )
+						raise
+					else:
+						self._undocmds.insert( 0, self._undocmds_tmp[i] )	# push front
+				# END for each call
+				self._undocmds_tmp = None			# free memory 
+			else:
+				for call in self._docmds:
 					call()
-				except:
-					# forget about this and all following commands and reraise 
-					del( self._docmds[i:] )
-					self._undocmds_tmp = None		# next time we only execute the cmds that worked ( and will undo only them )
-					raise
-				else:
-					self._undocmds.insert( 0, self._undocmds_tmp[i] )	# push front
-			# END for each call
-			self._undocmds_tmp = None			# free memory 
-		else:
-			for call in self._docmds:
-				call()
-			# END for each do calll
-		# END if undo cmds have been verified 
-		
-		cmds.undoInfo( st=prevstate )
+				# END for each do calll
+			# END if undo cmds have been verified
+		finally:
+			cmds.undoInfo( swf=prevstate )
 	
 	def undoIt( self ):
 		"""Call all undoIt commands stored in our instance after temporarily disabling the undo queue"""
 		# NOTE: the undo list is already reversed !
 		prevstate = cmds.undoInfo( q=1, st=1 )
-		cmds.undoInfo( st=False )
+		cmds.undoInfo( swf=False )
 		
 		# sanity check
-		if self._undocmds_tmp:	 
-			raise AssertionError( "Tmp undo commands queue was not None on first undo call - this means doit has not been called before - check your code!" )
-		
-		for call in self._undocmds:
-			call()
-		
-		cmds.undoInfo( st=prevstate )
+		try:
+			if self._undocmds_tmp:	 
+				raise AssertionError( "Tmp undo commands queue was not None on first undo call - this means doit has not been called before - check your code!" )
+			
+			for call in self._undocmds:
+				call()
+		finally:
+			cmds.undoInfo( swf=prevstate )
 
 		
 	def addCmd( self, doCall, undoCall ):
 		"""Add a command to the queue for later application
-		@param doCall: instance of byronimo.util.Call, called on doIt
-		@param undoCall: instance of byronimo.util.Call, called on undoIt"""
-		if not isinstance( doCall, Call ) or not isinstance( undoCall, Call ):
-			raise TypeError( "(un)doIt callbacks must be of type 'Call'" )
+		@param doCall: instance supporting __call__ interface, called on doIt
+		@param undoCall: instance supporting __call__ interface, called on undoIt"""
 			
 		self._docmds.append( doCall )		# push 
 		self._undocmds_tmp.append( undoCall ) 
@@ -335,13 +327,13 @@ class GenericOperation( Operation ):
 		@return: return value of the doCall
 		@note: use this method if you need the return value of the doCall right away"""
 		prevstate = cmds.undoInfo( q=1, st=1 )
-		cmds.undoInfo( st=False )
+		cmds.undoInfo( swf=False )
 		
 		rval = doCall()
 		self._docmds.append( doCall )
 		self._undocmds.insert( 0, undoCall )
 		
-		cmds.undoInfo( st=prevstate )
+		cmds.undoInfo( swf=prevstate )
 		return rval
 
 
