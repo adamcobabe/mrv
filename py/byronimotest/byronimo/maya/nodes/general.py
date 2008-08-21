@@ -396,6 +396,17 @@ class TestNodeBase( unittest.TestCase ):
 		self.failUnless( perspplug >= meshinst.maxTriangles )
 		self.failUnless( meshinst._apiobj == mesh._apiobj )
 		
+		newparent = nodes.createNode( "mynewparent", "transform" )
+		print "before reparent: %r ( %r )" % ( meshinst, mesh )
+		#meshinst.reparent( newparent ) # try add child
+		newparent.addChild( meshinst._apidagpath.getApiObj( ) )
+		print newparent.getChildren()
+		print nodes.DagNode( mesh._apiobj )
+		print "after reparent: %r ( %r )" % ( meshinst, mesh )
+		origname = nodes.Node( "|parent|mybeautifuluniquemeshname2" )
+		print origname
+		
+		
 
 
 	def test_mfncachebuilder( sself ):

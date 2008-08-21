@@ -662,7 +662,10 @@ class DagNode( Entity, iDagItem ):
 		if None, node will be reparented under the root ( which only works for transforms )
 		@param renameOnClash: resolve nameclashes by automatically renaming the node to make it unique
 		@return : self
-		@note: this method handles namespaces properly """
+		@note: this method handles namespaces properly
+		@note: reparent is not based on the DagModifier as it does not handle instances correctly ( it 
+		combines instances into one. One has to use the addChild method to work properly with 
+		instanced paths ... how pooish is that ??"""
 		
 		if not renameOnClash and parentnode and self != parentnode:
 			# check existing children of parent and raise if same name exists 
@@ -674,28 +677,41 @@ class DagNode( Entity, iDagItem ):
 		# END rename on clash handling 
 			
 		thispathobj = self._apidagpath.getApiObj()
-		mod = None		# create it once we are sure the operation takes place 
+		
+		op = undo.GenericOperation( )			# it can handle being empty
+		
+		# undo - just parent us back to current parent - the undo queue deals with undoable commands while undoing  
+		undocall = Call( self.reparent, self.getParent(), renameOnClash=False )	# there should not be a clash
+		docall = None
 		if parentnode:
 			if parentnode == self:
 				raise RuntimeError( "Cannot parent object %s under itself" % self )
 			
-			mod = undo.DagModifier( )
-			parentpathobj = parentnode._apidagpath.getApiObj()
-			mod.reparentNode( thispathobj, parentpathobj )
+			docall = Call( api.MFnDagNode( parentnode._apidagpath ).addChild, thispathobj )
 		else:
 			# sanity check
 			if isinstance( self, nodes.Shape ):
 				raise RuntimeError( "Shape %s cannot be parented under root '|' but needs a transform" % self )
-			mod = undo.DagModifier( )
-			mod.reparentNode( thispathobj )
+			
+			# reparenting under root is only possible using a DagModifier
+			def reparentToRootWithModifier( ):
+				mod = undo.DagModifier( )		# it handles being called during undo
+				mod.reparentNode( thispathobj )
+				mod.doIt()
 		
+			docall = reparentToRootWithModifier
+		# END root parent 
 		
-		# UPDATE DAG PATH
+		op.addCmd( docall, undocall )
+		
+		# execute command
+		op.doIt()
+		
+		# UPDATE DAG PATH-our cached path changed  
 		dagpath = api.MDagPath( )
 		api.MFnDagNode( thispathobj ).getPath( dagpath )
 		self._apidagpath = DagPath( dagpath )
 		
-		mod.doIt()
 		return self
 		
 		
