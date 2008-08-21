@@ -369,14 +369,22 @@ class TestNodeBase( unittest.TestCase ):
 		triplug = meshself.maxTriangles
 		perspplug >> triplug 
 		
+		# target does exist
+		# this is blocking the target instance name with an incorrect type
+		nodes.createNode( "parent|this|mybeautifuluniquemeshname", "transform" )	 
+		self.failUnlessRaises( RuntimeError, mesh.duplicate, "|parent|this", asInstance=True )
+		self.failUnlessRaises( RuntimeError, mesh.duplicate, "|parent|this", asInstance=False )
+		
 		# shapes must have full paths
 		self.failUnlessRaises( NameError, mesh.duplicate, "newns:meshinst" , asInstance=True, instanceLeafOnly=True )
 		
 		# cannot parent instance under itself
-		self.failUnlessRaises( NameError, mesh.duplicate, str( mesh.getTransform() ), asInstance=True, instanceLeafOnly=True )
+		self.failUnlessRaises( NameError, mesh.duplicate, str( mesh ), asInstance=True, instanceLeafOnly=True )
 		
-		# but should work if not an instance
-		meshdupl = mesh.duplicate( str( mesh.getTransform() ) )
+		# if the path is too short ... 
+		self.failUnlessRaises( NameError, mesh.duplicate, str( mesh.getTransform() ) )
+		self.failUnlessRaises( NameError, mesh.getParent().duplicate, '|' )
+		
 		
 		meshinstname = mesh.getTransform().getFullChildName( "newns:meshinst" )
 		meshinst = mesh.duplicate( meshinstname  , asInstance=True, instanceLeafOnly=True )

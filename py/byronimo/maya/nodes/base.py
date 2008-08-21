@@ -718,19 +718,53 @@ class DagNode( Entity, iDagItem ):
 		@note: duplicate performance could be improved by checking more before doing work that does not 
 		really change the scene, but adds an undo options
 		@note: inbetween parents are always required as needed
-		@todo: add example for each version of newpath """
+		@todo: add example for each version of newpath 
+		@todo: cleanup this method ! Its too large, and not clear what's going on"""
 		print "-"*5+"DUPLICATE: %r to %s (%i/%i)" % (self,newpath,asInstance,instanceLeafOnly)+"-"*5
+		thisNodeIsShape = isinstance( self, nodes.Shape )
 		
 		# Instance Parent Check
+		dagtokens = newpath.split( '|' )
+		targetCheckPath = newpath
 		if asInstance:
 			if not isAbsolutePath( newpath ) and not isinstance( self, nodes.Transform ):
 				raise NameError( "instanced shapes require an absolute path to a transform to be given, got %s for %r"  % ( newpath, self ) )
 		
-			# are we already a subpath of newpath ? 
-			if str( self.getTransform() ).find( newpath ) == 0  :	
-				raise NameError( "Instances cannot be children of themselves, %r to %s)" % ( self,newpath ) )
+			# duplicates always use newpath as base, shapes go under it - just thest for our basename 
+			targetCheckPath = newpath + "|" + self.getBasename()	# shape will go under the transform
 			
-		# END instance parent check 
+			# are we already a subpath of newpath ?
+			if newpath.find( str( self ) ) == 0:
+				raise NameError( "Instances cannot be children of themselves, %r to %s" % ( self,newpath ) )
+				
+		# END instance path check
+		else: # non-instnace
+			# need at least transform and shapename if path is absolute
+			numtokens = 3				# like "|parent|shape" -> ['','parent', 'shape']
+			shouldbe = '|transformname|shapename'
+			if not thisNodeIsShape:
+				numtokens = 2			# like "|parent" -> ['','parent']
+				shouldbe = '|transformname'
+				
+			if '|' in newpath and ( newpath == '|' or len( dagtokens ) < numtokens ):
+				raise NameError( "Duplicate paths should be at least %s, was %s" % ( shouldbe, newpath ) ) 
+		# END not instance path checking 
+		
+		
+		# TARGET EXISTS ?
+		#####################
+		if objExists( targetCheckPath ):
+			exnode = Node( targetCheckPath )
+			if asInstance: # must be same object 
+				if exnode != self:
+					raise RuntimeError( "node at %r did already exist, but was no instance of %r" % ( exnode, self ) )
+			else: # must be at least the same type 
+				if not isinstance( exnode, self.__class__ ):
+					raise RuntimeError( "Existing object at path %s was of type %s, should be %s" 
+										% ( targetCheckPath, exnode.__class__.__name__, self.__class__.__name__ ) )
+			return 	exnode# return already existing one as it has a compatible type
+		# END target exists check
+		
 
 		
 		# DUPLICATE IT WITH UNDO 
@@ -749,12 +783,9 @@ class DagNode( Entity, iDagItem ):
 		undoitcmd.args = [ str( duplicate_node_parent ) ]
 		
 		
-		thisNodeIsShape = isinstance( self, nodes.Shape )
-		
 		# RENAME DUPLICATE CHILDREN
 		###########################
 		#
-		dagtokens = newpath.split( '|' )
 		childsourceparent = self.getTransform()			# good if we are transform
 		self_shape_duplicated = None		# store Node of duplicates that corresponds to us ( only if self is shape ) 
 		if not asInstance:
@@ -842,7 +873,8 @@ class DagNode( Entity, iDagItem ):
 		################################
 		# assure we do not delete ourselves if the target path is a shape below our 
 		# own transform 
-		if dupparent_for_deletion and dupparent_for_deletion != self.getParent():
+		selfparent = self.getParent()
+		if dupparent_for_deletion and selfparent and dupparent_for_deletion != selfparent:
 			#print "DUP FOR DELETION %r" % dupparent_for_deletion
 			dupparent_for_deletion.delete()
 		
@@ -884,7 +916,10 @@ class DagNode( Entity, iDagItem ):
 	
 	def getParent( self ):
 		"""@return: Maya node of the parent of this instance or None if this is the root"""
-		return nodes.Node( self._apidagpath.getParent( ) )
+		p = self._apidagpath.getParent( )
+		if not p:
+			return None
+		return nodes.Node( p )
 	
 	def getChildren( self, predicate = lambda x: True ):
 		"""@return: all child nodes below this dag node"""
@@ -1097,6 +1132,21 @@ class DagPath( api.MDagPath, iDagItem ):
 	#}
 
 
-#}
+#} END basic types
+
+#{ Foreward created types
+
+class Transform:
+	"""Precreated class to allow isinstance checking against their types 
+	@note: bases determined by metaclass """
+	__metaclass__ = nodes.MetaClassCreatorNodes 
+
+class Shape:
+	"""Precreated class to allow isinstance checking against their types
+	@note: bases determined by metaclass"""
+	__metaclass__ = nodes.MetaClassCreatorNodes
+
+
+#} END foreward created types
 
 	
