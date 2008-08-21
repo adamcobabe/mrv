@@ -285,6 +285,8 @@ class TestNodeBase( unittest.TestCase ):
 		# simple dupl test 
 		duplbase = nodes.createNode( "parent|this|other|duplbase", "mesh" )
 		copy = duplbase.duplicate( "parent|this|other|duplcopy" )
+		self.failUnless( copy != duplbase )
+		self.failUnless( str( copy ) != str( duplbase ) )
 		self.failUnless( str( copy ) == "|parent|this|other|duplcopy" )
 		
 		
@@ -334,12 +336,12 @@ class TestNodeBase( unittest.TestCase ):
 		
 		# DUPLICATE ( Dag only )
 		#########################
-		newmesh = mesh.duplicate( "duplparent|duplmesh" )
+		newmesh = mesh.duplicate( "|duplparent|duplmesh" )
 		self.failUnless( str( newmesh ) == "|duplparent|duplmesh" )
-		self.failUnlessRaises( RuntimeError, mesh.duplicate, "duplparent2|doesntexistns:duplmesh", 
+		self.failUnlessRaises( RuntimeError, mesh.duplicate, "|duplparent2|doesntexistns:duplmesh", 
 							  	autocreateNamespace = False )
-		
-		meshinst = mesh.duplicate( "duplparent2|newnamespace:instmesh", asInstance=True )
+		self.failUnless( newmesh != mesh )
+		meshinst = mesh.duplicate( "|duplparent2|newnamespace:instmesh", asInstance=True )
 		meshinstname = str( meshinst )
 		
 		# UNDO DUPLICATE
@@ -349,13 +351,16 @@ class TestNodeBase( unittest.TestCase ):
 		# this object will end up pointing to the same object , as it came from, use string test
 		self.failUnless( not nodes.objExists( meshinstname ) )		 
 		cmds.redo()
+		cmds.undo()
+		cmds.redo()
+		self.failUnless( meshinst != mesh )
 		self.failUnless( meshinst.isAlive() and meshinst.isValid() and str( meshinst ) == meshinstname )
 		
 		# Duplicate TRANSFORM ( just a name givne )
 		# dag paths should be different although object is the same
-		mesh = nodes.createNode( "parent|mybeautifuluniquemeshname", "mesh" )
-		meshassert = nodes.createNode( "parent|mesh", "mesh" )
-		meshself = nodes.Node( "parent|mybeautifuluniquemeshname" )
+		mesh = nodes.createNode( "|parent|mybeautifuluniquemeshname", "mesh" )
+		meshassert = nodes.createNode( "|parent|mesh", "mesh" )
+		meshself = nodes.Node( "|parent|mybeautifuluniquemeshname" )
 		self.failUnless( mesh == meshself )
 		
 		# connect it, to track the instance by connection 
@@ -364,12 +369,21 @@ class TestNodeBase( unittest.TestCase ):
 		triplug = meshself.maxTriangles
 		perspplug >> triplug 
 		
-		meshinst = mesh.duplicate( "newns:meshinst" , asInstance=True, instanceLeafOnly=True )
+		# shapes must have full paths
+		self.failUnlessRaises( NameError, mesh.duplicate, "newns:meshinst" , asInstance=True, instanceLeafOnly=True )
+		
+		# cannot parent instance under itself
+		self.failUnlessRaises( NameError, mesh.duplicate, str( mesh.getTransform() ), asInstance=True, instanceLeafOnly=True )
+		
+		# but should work if not an instance
+		meshdupl = mesh.duplicate( str( mesh.getTransform() ) )
+		
+		meshinstname = mesh.getTransform().getFullChildName( "newns:meshinst" )
+		meshinst = mesh.duplicate( meshinstname  , asInstance=True, instanceLeafOnly=True )
 		self.failUnless( isinstance( meshinst, nodes.Mesh ) )
 		self.failUnless( mesh != meshinst )
 		
 		# instance should have the persp.t connected
-		print type( meshinst )
 		self.failUnless( perspplug >= triplug )
 		self.failUnless( perspplug >= meshinst.maxTriangles )
 		self.failUnless( meshinst._apiobj == mesh._apiobj )

@@ -163,12 +163,6 @@ def objExists( objectname ):
 	@note: perfer this method over mel as the API is used directly as we have some special 
 	handling to assure we get the right nodes"""
 	return toApiobj( objectname ) is not None
-	# try:
-		# Node( objectname )
-	# except ValueError:
-		# return False
-	# else:
-		# return True
 
 
 def delete( *args ):
@@ -448,10 +442,14 @@ class Node( object ):
 
 	#{ Overridden Methods 
 	def __eq__( self, other ):
-		"""Compare MObjects directly"""
-		if not isinstance( other, Node ):
-			other = Node( other )
-		return self._apiobj == other._apiobj
+		"""compare the nodes according to their api object"""
+		otherapiobj = None
+		if isinstance( other, basestring ):
+			otherapiobj = toApiobj( other )
+		else: # assume Node 
+			otherapiobj = other._apiobj
+			
+		return self._apiobj == otherapiobj		# does not appear to work as expected ... 
 	
 	#}
 	
@@ -479,7 +477,7 @@ class DependNode( Node ):
 		
 		self.__dict__[ attr ] = plug
 		return plug
-		
+	
 	def __str__( self ):
 		"""@return: name of this object"""
 		#mfn = DependNode._mfncls( self._apiobj )
@@ -502,7 +500,8 @@ class DependNode( Node ):
 		@param autocreateNamespace: if true, namespaces given in newpath will be created automatically, otherwise 
 		a RuntimeException will be thrown if a required namespace does not exist
 		@param renameOnClash: if true, clashing names will automatically be resolved by adjusting the name 
-		@return: renamed node which is the node itself"""
+		@return: renamed node which is the node itself
+		@note: for safety reasons, this nod is dagnode aware and uses a dag modifier for them !"""
 		if '|' in newname:
 			raise NameError( "new node names may not contain '|' as in %s" % newname )
 		
@@ -528,9 +527,26 @@ class DependNode( Node ):
 		ns = namespace.create( ns )		# assure its there 
 		
 		
+		# NOTE: this stupid method will also rename shapes !!!
+		# you cannot prevent it, so we have to store the names and rename it lateron !!
+		shapenames = shapes = None			# HACK: this is dagnodes only ( only put here for convenience, should be in DagNode ) 
+		
 		# rename the node
-		mod = undo.DGModifier( )
+		mod = None
+		if isinstance( self, DagNode ):
+			mod = undo.DagModifier( )
+			shapes = self.getShapes( )
+			shapenames = [ s.getBasename( ) for s in shapes  ]
+		else:
+			mod = undo.DGModifier( )
 		mod.renameNode( self._apiobj, newname )
+		
+		
+		if shapes:
+			for shape,oldname in zip( shapes, shapenames ): 	 # could use izip, but this is not about memory here  
+				mod.renameNode( shape._apiobj, oldname )
+		
+		# rename children back
 		mod.doIt()
 		
 		return self
@@ -629,6 +645,17 @@ class DagNode( Entity, iDagItem ):
 	#{ Edit
 	
 	@undoable
+	def delete( self ):
+		"""Delete this node - this special version must be 
+		@note: if the undo queue is enabled, the object becomes invalid, but stays alive until it 
+		drops off the queue
+		@note: if you want to delete many nodes, its more efficient to delete them 
+		using the global L{delete} method"""
+		mod = undo.DagModifier( )
+		mod.deleteNode( self._apiobj )
+		mod.doIt()
+	
+	@undoable
 	def reparent( self, parentnode, renameOnClash=True ):
 		"""Move or rename the given node to match newpath
 		@param parentnode: Node instance of transform under which this node should be parented to
@@ -677,8 +704,11 @@ class DagNode( Entity, iDagItem ):
 				  	autocreateNamespace=True, renameOnClash=True ):
 		"""Duplciate the given node to newpath
 		@param newpath: result depends on its format
-		   - 'newname' - relative path, the node will be duplicated not chaning its current parent
+		   - 'newname' - relative path, the node will be duplicated not chaning its current parent, isInstance must be false
 		   - '|parent|newname' - absolut path, the node will be duplicated and reparented under the given path
+		   - if asInstance is set, the path will describe the parent transform of the target instance if this node 
+		   is a shape, if it is a transform, a relative name will just create an instance on with a different name 
+		   on the same dag hierarchy level
 	    @param asInstance: if True, this node will be instanced to the new path
 		@üaram instanceLeafOnly: if True, only leafs of this path ( i.e. shapes ) will be instanced
 		@param autocreateNamespace: if true, namespaces given in newpath will be created automatically, otherwise 
@@ -687,59 +717,79 @@ class DagNode( Entity, iDagItem ):
 		@return: newly create Node 
 		@note: duplicate performance could be improved by checking more before doing work that does not 
 		really change the scene, but adds an undo options
-		@note: inbetween parents are always required as needed"""
+		@note: inbetween parents are always required as needed
+		@todo: add example for each version of newpath """
+		print "-"*5+"DUPLICATE: %r to %s (%i/%i)" % (self,newpath,asInstance,instanceLeafOnly)+"-"*5
+		
+		# Instance Parent Check
+		if asInstance:
+			if not isAbsolutePath( newpath ) and not isinstance( self, nodes.Transform ):
+				raise NameError( "instanced shapes require an absolute path to a transform to be given, got %s for %r"  % ( newpath, self ) )
+		
+			# are we already a subpath of newpath ? 
+			if str( self.getTransform() ).find( newpath ) == 0  :	
+				raise NameError( "Instances cannot be children of themselves, %r to %s)" % ( self,newpath ) )
+			
+		# END instance parent check 
+
 		
 		# DUPLICATE IT WITH UNDO 
 		############################
+		# it will always duplicate the transform and return it
+		# in case of instances, its the only way we have to get it below an own parent 
 		op = undo.GenericOperation( )
 		doitcmd = Call( api.MFnDagNode( self._apidagpath ).duplicate, asInstance, instanceLeafOnly )
 		undoitcmd = Call( None )												# placeholder, have to change it soon
-		duplicate_node = Node( op.addCmdAndCall( doitcmd, undoitcmd ) )		# get the duplicate 
+		duplicate_node_parent = Node( op.addCmdAndCall( doitcmd, undoitcmd ) )		# get the duplicate 
+		#print "duplicate_node_parent = %r" % duplicate_node_parent
+		#print "children = %r" % duplicate_node_parent.getChildren()
 		
 		# bake the object to a string for deletion - adjust undocmd
 		undoitcmd.func = cmds.delete
-		undoitcmd.args = [ str( duplicate_node ) ]
+		undoitcmd.args = [ str( duplicate_node_parent ) ]
 		
 		
-		# ASSERT TYPE  
-		##############
-		# If the leaf is a shape, it will return the transform it created instead of the freakin shape
-		# that I would expect if I duplicate a  ... shape !!
-		# The transform is nicely made such that it has the name of the shape we actually duplicate 
-		# in other words: this method is pure poo
-		if not isinstance( duplicate_node, self.__class__ ):
-			# SHAPE SPECIAL SHIT HANDLING !!
-			# if "|parent|meshshape" is duplicated, it creates "|meshshape|meshshape1" or for 
-			# "|parent|sub|meshshape" -> "|parent|meshshape|meshshape", returning the parent transform, not the shape !
-			# reparent all children
-			if duplicate_node.getChildCount() != 1:
-				raise AssertionError( "Expected to have just one child - the shape to duplicate, got %i" % duplicate_node.getChildCount() )
-			
-			ourparent = self.getParent( )
-			child = duplicate_node.getChildren()[0]
-			
-			child.reparent( ourparent )
-				
-			# delete duplicate 
-			duplicate_node.delete( )
-			duplicate_node = child
-		# END special duplicate fuckup handling 
+		thisNodeIsShape = isinstance( self, nodes.Shape )
 		
-		
-		# RENAME THE DUPLICATE
+		# RENAME DUPLICATE CHILDREN
 		###########################
+		#
 		dagtokens = newpath.split( '|' )
-		leafobjectname = dagtokens[-1:][0]
+		childsourceparent = self.getTransform()			# good if we are transform
+		self_shape_duplicated = None		# store Node of duplicates that corresponds to us ( only if self is shape ) 
+		if not asInstance:
+			
+			srcchildren = childsourceparent.getChildrenDeep( )
+			destchildren = duplicate_node_parent.getChildrenDeep( )
+			
+			if len( srcchildren ) != len( destchildren ):
+				raise AssertionError( "childcount of source and duplicate must match" )
 		
+			# this is the only part where we have a one-one relationship between the original children
+			# and their copies - store the id the current basename once we encounter it
+			selfbasename = self.getBasename()
+			for i,targetchild in enumerate( destchildren ):
+				#print "RENAME %r to %s" % ( targetchild, srcchildren[ i ].getBasename( ) )
+				srcchildbasename = srcchildren[ i ].getBasename( )
+				targetchild.rename( srcchildbasename )
+				# HACK: we should only check the intermediate children, but actually conisder them deep
+				# trying to reduce risk of problem by only setting duplicate_shape_index once
+				if not self_shape_duplicated and selfbasename == srcchildbasename:
+					self_shape_duplicated = targetchild
+					
+		# END CHILD RENAME 
 		
-		duplicate_node.rename( leafobjectname, autocreateNamespace = autocreateNamespace, renameOnClash=renameOnClash )
-		
+		dupparent_for_deletion = None			 # might later be filled to delete intermediate transform
+			
 		# REPARENT 
 		###############
-		parenttokens = dagtokens[:-1]			
+		# create requested parents up to transform
+		parenttokens = dagtokens[:-1]
+		leafobjectname = dagtokens[-1:][0]		# the basename of the dagpath
+		
 		if len( parenttokens ):			# could be [''] too if newpath = '|newpath'
 			parentnodepath = '|'.join( parenttokens )
-			parentnode = None
+			parentnode = childsourceparent			# in case we have a relative name 		
 			
 			# happens on input like "|name"
 			if parentnodepath != '': 
@@ -748,12 +798,64 @@ class DagNode( Entity, iDagItem ):
 										autocreateNamespace=autocreateNamespace )
 			# END create parent handling
 			
-			# DO THE REPARENT - parent can be none to indicate parenting below root, okay for transforms  
-			duplicate_node.reparent( parentnode, renameOnClash=renameOnClash )
+			nodes_for_parenting = [ duplicate_node_parent ]				# for instanced paths
+			if not asInstance:
+				# get all children
+				nodes_for_parenting = duplicate_node_parent.getChildren()
+				dupparent_for_deletion = duplicate_node_parent				# remove the parent - its not required anymore
+			# END if duplicate is not instance 
+			
+			 
+			# DO THE REPARENT - parent can be none to indicate parenting below root, okay for transforms
+			for reparent_node in nodes_for_parenting:
+				#print "dup before REPARENT %r (%r)" % (reparent_node,self)
+				reparent_node.reparent( parentnode, renameOnClash=renameOnClash )
+				#print "dup after reparent %r (%r)" % (reparent_node,self)
+				#print "dup after reparent children %r" % (reparent_node.getChildren())
+			
 		# END parent handling 
 		
+		# FIND RETURN NODE
+		######################
 		
-		return duplicate_node
+		final_node = rename_target = duplicate_node_parent		# item that is to be renamed to the final name later
+		
+		# rename target must be the child matching our name
+		if thisNodeIsShape:	# want shape, have transform
+			
+			if not asInstance:
+				final_node = rename_target = self_shape_duplicated				
+			else:
+				# our rename target is just a transform - extend to the instanced 
+				# shape below 
+				# as we are instanced and a shape, we have the same MObject
+				for child in duplicate_node_parent.getChildren( ):
+					if child._apiobj == self._apiobj:
+						final_node = child
+						break
+				# END for each child in rename target 
+			# END instance return node handling 
+			 
+		# END if self is shape
+		
+		# DELETE INTERMEDIATE PARENTS 
+		################################
+		# assure we do not delete ourselves if the target path is a shape below our 
+		# own transform 
+		if dupparent_for_deletion and dupparent_for_deletion != self.getParent():
+			#print "DUP FOR DELETION %r" % dupparent_for_deletion
+			dupparent_for_deletion.delete()
+		
+		
+		# RENAME TARGET
+		# rename the target to match the leaf of the path
+		#print "RENAME TARGET BEFORE: %r"  % rename_target
+		rename_target.rename( leafobjectname, autocreateNamespace = autocreateNamespace, 
+							  renameOnClash=renameOnClash )
+		#print "RENAME TARGET AFTER: %r"  % rename_target	
+		print "FinalName: %r ( %r )" % ( final_node, self )
+		
+		return final_node
 		
 	#} END edit
 	
@@ -771,13 +873,28 @@ class DagNode( Entity, iDagItem ):
 		
 		return nodes.Node( api.MFnDagNode( self._apidagpath ).parent( uint ) )
 	
+	def getTransform( self ):
+		"""@return: Node to lowest transform in the path attached to our node
+		@note: for shapes this is the parent, for transforms the transform itself"""
+		# this should be faster than asking maya for the path and converting 
+		# back to a Node
+		if isinstance( self, nodes.Transform ):	
+			return self	
+		return Node( self._apidagpath.getTransform( ) )
+	
 	def getParent( self ):
 		"""@return: Maya node of the parent of this instance or None if this is the root"""
 		return nodes.Node( self._apidagpath.getParent( ) )
-		
-	def getChildren( self ):
+	
+	def getChildren( self, predicate = lambda x: True ):
 		"""@return: all child nodes below this dag node"""
-		return [ Node( p ) for p in self._apidagpath.getChildren() ]
+		return [ Node( p ) for p in self._apidagpath.getChildren() if predicate( p ) ]
+		
+	def getShapes( self, predicate = lambda x: True ):
+		"""@return: all our Shape nodes
+		@note: you could use getChildren with a predicate, but this method is more 
+		efficient as it uses dagpath functions to filter shapes"""
+		return [ Node( p ) for p in self._apidagpath.getShapes() if predicate( p ) ]
 		
 	#{ Query 
 		
@@ -854,6 +971,8 @@ class DagPath( api.MDagPath, iDagItem ):
 	as reference/pointer type unless its being created by maya itself. Thus we manually convert
 	all dagpaths the system returns to our type having some more convenience in it"""
 	
+	_sep = '|'		#	used by iDagItem
+	
 	#{ Overridden Methods 
 	def __len__( self ):
 		"""@return: number of dag nodes in this path"""
@@ -876,9 +995,9 @@ class DagPath( api.MDagPath, iDagItem ):
 		return nodes.Node( self.getApiObj( ) )
 		
 	def getTransform( self ):
-		"""@return: Node of the lowest transform in the path
+		"""@return: path of the lowest transform in the path
 		@note: if this is a shape, you would get its parent transform"""
-		return nodes.Node( api.MDagPath.transform( self ) )
+		return api.MDagPath.transform( self )
 		
 	def getParent( self ):
 		"""@return: DagPath to the parent path of the node this path points to"""
@@ -897,10 +1016,6 @@ class DagPath( api.MDagPath, iDagItem ):
 		api.MDagPath.numberOfShapesDirectlyBelow( self, uintptr )
 		
 		return sutil.getUint( uintptr )
-		
-	def getChildNode( self, index ):
-		"""@return: Maya node to child at index"""
-		return nodes.Node( self.getChildPath( index ) )
 	
 	def	getChildPath( self, index ):
 		"""@return: DagPath to child at given index"""
@@ -908,12 +1023,14 @@ class DagPath( api.MDagPath, iDagItem ):
 		copy.push( api.MDagPath.child(self, index ) )
 		return copy
 		
-	def getChildren( self ):
+	def getChildren( self , predicate = lambda x: True ):
 		"""@return: list of child DagPaths of this path
 		@note: this method is part of the iDagItem interface"""
 		outPaths = []
 		for i in xrange( self.getChildCount() ):
-			outPaths.append( self.getChildPath( i ) )
+			childpath = self.getChildPath( i )
+			if predicate( childpath ):
+				outPaths.append( childpath )
 		return outPaths
 		
 		
@@ -932,6 +1049,25 @@ class DagPath( api.MDagPath, iDagItem ):
 		@return: self """
 		api.MDagPath.extendToShapeDirectlyBelow( self, num )
 		return self	
+		
+	def getShapePath( self, num ):
+		"""@return: a dag path pointing to this path's shape with num"""
+		copy = DagPath( self )
+		copy.extendToShape( num )
+		return copy
+		
+	def getShapes( self, predicate = lambda x: True ):
+		"""Get all shapes below this path
+		@return: paths to all shapes below this path
+		@param predicate: returns True to include path in result"""
+		out = []
+		for s in xrange( self.getNumShapes( ) ):
+			shape = self.getShapePath( s )
+			if predicate( shape ):
+				out.append( shape )
+		# END for each shape
+		return out 
+		
 	#} END edit in place  
 	
 	

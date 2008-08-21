@@ -10,7 +10,10 @@ Features
    to store undo information )
    - fully usable including MEL command ( using L{GenericOperation}
 
-
+Limitations
+-----------
+	- You need a rather long undo queue as undo will count the individual byronimo cmds
+	although most of them are actually not undoable 
 
 @todo: more documentation about how to use the system and how it actually works 
 
