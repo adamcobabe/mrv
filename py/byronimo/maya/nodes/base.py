@@ -674,15 +674,21 @@ class DagNode( Entity, iDagItem ):
 		mod.doIt()
 	
 	@undoable
-	def reparent( self, parentnode, renameOnClash=True ):
+	def reparent( self, parentnode, renameOnClash=True, raiseOnInstance=True ):
 		""" Change the parent of all nodes ( also instances ) to be located below parentnode
 		@param parentnode: Node instance of transform under which this node should be parented to
 		if None, node will be reparented under the root ( which only works for transforms )
 		@param renameOnClash: resolve nameclashes by automatically renaming the node to make it unique
-		@return : self                    
+		@param instanceCheck: if True, this method will raise if you try to reparent an instanced object.
+		If false, instanced objects will be merged into the newly created path under parentnode, effectively 
+		eliminating all other paths , keeping the newly created one 
+		@return : copy of self pointing to the new dag path self                    
 		@note: will remove all instance of this object and leave this object at only one path - 
 		if this is not what you want, use the addChild method instead as it can properly handle this case  
 		@note: this method handles namespaces properly """
+		
+		if raiseOnInstance and self.getInstanceCount( False ) > 1:
+			raise RuntimeError( "%r is instanced - reparent operation would destroy direct instances" % self )
 		
 		if not renameOnClash and parentnode and self != parentnode:
 			# check existing children of parent and raise if same name exists 
@@ -711,14 +717,15 @@ class DagNode( Entity, iDagItem ):
 			mod = undo.DagModifier( )
 			mod.reparentNode( thispathobj )
 		
+		mod.doIt()
 		
 		# UPDATE DAG PATH
-		dagpath = api.MDagPath( )
-		api.MFnDagNode( thispathobj ).getPath( dagpath )
-		self._apidagpath = DagPath( dagpath )
+		# find it in parentnodes children
+		for child in parentnode.getChildren():
+			if DependNode.__eq__( self, child ):
+				return child 
 		
-		mod.doIt()
-		return self
+		raise AssertionError( "Could not find self in children after reparenting" )
 		
 	@undoable
 	def addInstancedChild( self, childNode, position=api.MFnDagNode.kNextPos ):
@@ -1021,7 +1028,7 @@ class DagNode( Entity, iDagItem ):
 		
 	def getName( self ):
 		"""@return: fully qualified ( long ) name of this dag node"""
-		return self.getFullPathName()
+		return self.getFullPathName( )
 
 	
 	#{ Hierarchy Query

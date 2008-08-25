@@ -169,6 +169,10 @@ class TestGeneral( unittest.TestCase ):
 class TestNodeBase( unittest.TestCase ):
 	""" Test node base functionality  """
 	
+	def setUp( self ):
+		"""Create a new scene to assure we do not resue nodes or configuration"""
+		cmds.file( new=1,force=1 )
+	
 	def test_customTypes( self ):
 		"""byronimo.maya.nodes: add a custom type to the system"""
 		nodes.addCustomType( "MyNewCls",parentClsName = "dependNode" )
@@ -274,7 +278,39 @@ class TestNodeBase( unittest.TestCase ):
 		# works if rename enabeld though
 		node.rename( "othernode" )
 		
+	def test_reparentAndInstances( self ):
+		"""byronimo.maya.nodes: see of reparenting is responding when instances are involved"""
+		mesh = nodes.createNode( "trans|mesh", "mesh" )
+		base = nodes.createNode( "base", "transform" )
+		obase = nodes.createNode( "obase", "transform" )
+		rbase = nodes.createNode( "reparentBase", "transform" )
 		
+		baseinst = base.addInstancedChild( mesh )
+		obaseinst = obase.addInstancedChild( mesh )
+		
+		self.failUnless( mesh.isValid() and baseinst.isValid() and obaseinst.isValid() )
+		
+		# assure we catch this possibly damaage 
+		self.failUnlessRaises( RuntimeError, mesh.reparent, rbase, raiseOnInstance=True )
+		
+		# instances are gone should be gone
+		mesh = mesh.reparent( rbase, raiseOnInstance=False )
+		self.failUnless( mesh.isValid() and not baseinst.isValid() and not obaseinst.isValid() )
+		
+	def test_duplicateInstances( self ):
+		"""byronimo.maya.nodes: handle duplication of instances"""
+		base = nodes.createNode( "base", "transform" )
+		obase = nodes.createNode( "obase", "transform" )
+		basemesh = nodes.createNode( "base|mesh", "mesh" )
+		
+		obasemeshinst = obase.addInstancedChild( basemesh )
+		
+		duplmesh = obasemeshinst.duplicate( "newmeshname" )	# is a separate copy !
+		self.failUnless( duplmesh != obasemeshinst )
+		
+		dupltrans = base.duplicate( "duplbase" )
+		baseduplmesh = dupltrans.getChildrenByType( nodes.Mesh )[0]
+		self.failUnless( baseduplmesh != basemesh )		# its a separate copy  
 		
 	def test_wrapDagNode( self ):
 		"""byronimo.maya.nodes: create and access dag nodes"""
