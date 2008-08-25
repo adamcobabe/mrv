@@ -557,8 +557,8 @@ class DependNode( Node ):
 		# Yeah, of course the rename method renames shapes although this has never been 
 		# requested ... its so stupid ... 
 		if shapes:
-			for shape,oldname in zip( shapes, shapenames ): 	 # could use izip, but this is not about memory here  
-				mod.renameNode( shape._apiobj, oldname )
+			for shape,shapeorigname in zip( shapes, shapenames ): 	 # could use izip, but this is not about memory here  
+				mod.renameNode( shape._apiobj, shapeorigname )
 		
 		# rename children back
 		mod.doIt()
@@ -675,11 +675,13 @@ class DagNode( Entity, iDagItem ):
 	
 	@undoable
 	def reparent( self, parentnode, renameOnClash=True ):
-		""" Change the parent of all nodes to be located below parentnode
+		""" Change the parent of all nodes ( also instances ) to be located below parentnode
 		@param parentnode: Node instance of transform under which this node should be parented to
 		if None, node will be reparented under the root ( which only works for transforms )
 		@param renameOnClash: resolve nameclashes by automatically renaming the node to make it unique
-		@return : self
+		@return : self                    
+		@note: will remove all instance of this object and leave this object at only one path - 
+		if this is not what you want, use the addChild method instead as it can properly handle this case  
 		@note: this method handles namespaces properly """
 		
 		if not renameOnClash and parentnode and self != parentnode:
@@ -785,7 +787,7 @@ class DagNode( Entity, iDagItem ):
 			# check existing children of parent and raise if same name exists 
 			# I think this check must be string based though as we are talking about
 			# a possbly different api object with the same name - probably api will be faster
-			testforobject = parentnode.getFullChildName( self.getBasename( ) )	# append our name to the path
+			testforobject = self.getFullChildName( childNode.getBasename( ) )	# append our name to the path
 			if objExists( testforobject ):
 				raise RuntimeError( "Object %s did already exist below %r" % ( testforobject , self ) )
 		# END rename on clash handling 
@@ -843,6 +845,9 @@ class DagNode( Entity, iDagItem ):
 		if pos == self.kNextPos:
 			dagIndex = self.getChildCount() - 1	# last entry as child got added  
 		newChildNode = Node( self._apidagpath.getChildPath( dagIndex ) )
+		
+		# update undo cmd to use the newly created child with the respective dag path 
+		undocmd.args = [ newChildNode ]
 		
 		# ALTER CMD FOR WORLD SPECIAL CASE ?
 		######################################
@@ -1005,10 +1010,22 @@ class DagNode( Entity, iDagItem ):
 	#} END edit
 	
 	#{ Overridden from DependNode
+	
+	def isValid( self ):
+		"""@return: True if the object exists in the scene
+		@note: Handles DAG objects correctly that can be instanced, in which case 
+		the MObject may be valid , but the respective dag path is not.
+		Additionally, if the object is not parented below any object, everything appears 
+		to be valid, but the path name is empty """
+		return self._apidagpath.isValid() and self._apidagpath.fullPathName() != '' and DependNode.isValid( self )
+		
 	def getName( self ):
 		"""@return: fully qualified ( long ) name of this dag node"""
 		return self.getFullPathName()
 
+	
+	#{ Hierarchy Query
+	
 	def getParentAtIndex( self, index ):
 		"""@return: Node of the parent at the given index
 		@note: if a node is instanced, it can have L{getParentCount} parents
@@ -1057,10 +1074,8 @@ class DagNode( Entity, iDagItem ):
 		"""@return: list of all transform nodes below this one """
 		transformNodes = [ Node( s ) for s in self._apidagpath.getTransforms() ] # could use getChildrenByType, but this is faster
 		return [ t for t in transformNodes if predicate( t ) ]
-	#{ Query 
 		
-		
-	#} END query 
+	#} END hierarchy query 
 	
 	
 	#{ Name Remapping 

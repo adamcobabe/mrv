@@ -360,7 +360,7 @@ class TestNodeBase( unittest.TestCase ):
 		self.failUnless( meshinst != mesh )
 		self.failUnless( meshinst.isAlive() and meshinst.isValid() and str( meshinst ) == meshinstname )
 		
-		# Duplicate TRANSFORM ( just a name givne )
+		# Duplicate TRANSFORM ( just a name given )
 		# dag paths should be different although object is the same
 		mesh = nodes.createNode( "|parent|mybeautifuluniquemeshname", "mesh" )
 		meshassert = nodes.createNode( "|parent|mesh", "mesh" )
@@ -385,37 +385,89 @@ class TestNodeBase( unittest.TestCase ):
 		
 		meshinstname = mesh.getTransform().getFullChildName( "newns:meshinst" )
 		self.failUnless( isinstance( meshinst, nodes.Mesh ) )
+
+	def test_removeChild( self ):
+		"""byronimo.maya.nodes: test how remove child responds"""
+		base = nodes.createNode( "base" , "transform" )
+		trans = nodes.createNode( "base|trans", "transform" )
+		mesh = nodes.createNode( "base|mesh", "mesh" )
+		
+		for item in [ trans, mesh ]:
+			removeditem = base.removeChild( item )
+		
+			# PATHS ARE INVALID NOW - object is nowhere to be found
+			self.failUnless( not removeditem.isValid() and removeditem.isAlive() )
+		
+			cmds.undo()
+			self.failUnless( removeditem.isValid() and removeditem.isAlive() )
+		# END for each removeChild item 
 		
 
 	def test_childEditing( self ):
 		"""byronimo.maya.nodes: tests the add and remove children"""
 		base = nodes.createNode( "basenode", "transform" )
 		obase = nodes.createNode( "otherbasenode", "transform" )
+		
 		trans = nodes.createNode( "trans", "transform" )
+		otrans = nodes.createNode( "parent|trans", "transform" )
 		mesh = nodes.createNode( "meshparent|meshshape", "mesh" )
 		curve = nodes.createNode( "nurbsparent|ncurve", "nurbsCurve" )
+		itemlist = [ trans, mesh, curve ]
+		
+		instlist = []
 		
 		# MULTIPLE ADDS
 		####################
-		# Returns the same instance - its what the user wants 
-		basetransinst = base.addInstancedChild( trans )
-		base.addInstancedChild( trans )
-		self.failUnless( trans != basetransinst and basetransinst.isValid() and trans.isValid() )
-		print "BASETRANSEINST = %r" % basetransinst
-		
-		basecurveinst = base.addInstancedChild( curve )
-		base.addInstancedChild( curve )
-		self.failUnless( curve != basecurveinst and basecurveinst.isValid() and curve.isValid() )
-		print "BASECURVEINST = %r" % basecurveinst
-		
-		basemeshinst = base.addInstancedChild( mesh )
-		base.addInstancedChild( mesh )
-		self.failUnless( mesh != basemeshinst and basemeshinst.isValid() and mesh.isValid() )
-		print "BASEMESHINST = %r" % basemeshinst
+		# Returns the same instance - its what the user wants
+		for item in itemlist:
+			baseiteminst = base.addInstancedChild( item )
+			base.addInstancedChild( item )
+			self.failUnless( item != baseiteminst and baseiteminst.isValid() and item.isValid() )
 			
+			instlist.append( baseiteminst )
+			
+			# UNDO TEST 
+			# undo basemesh 
+			cmds.undo()
+			cmds.undo()
+			self.failUnless( not baseiteminst.isValid() and baseiteminst.isAlive() )
 		
-		# ADD WITH REPARENT
-		self.fail()		# continue ... 
+			cmds.redo()
+			self.failUnless( baseiteminst.isValid() and baseiteminst.isAlive() )
+		# END for each object including undo/redo
+		
+		
+		# KEEP PARENT FALSE - USE INSTANCES
+		for orig,inst in zip( itemlist, instlist ):
+			reparentednode = obase.addChild( inst, keepExistingParent=False )
+			obase.addChild( inst, keepExistingParent=False )	 # duplicate adds are not problem
+			print "REPARENTED = %r" % ( reparentednode )
+			
+			self.failUnless( reparentednode.isValid() and inst.isAlive() )
+			self.failUnless( not inst.isValid() )
+			self.failUnless( orig.isValid() )			# original may not be influenced by that operation
+			
+			# undo / redo 
+			cmds.undo()
+			cmds.undo()
+			self.failUnless( not reparentednode.isValid() and inst.isValid() and orig.isValid() ) 
+			
+			cmds.redo()
+		# END for each instance 
+		
+		# RENAME ON CLASH = False  
+		self.failUnlessRaises( RuntimeError, obase.addChild, otrans, renameOnClash = False )
+		
+		# RENAME ON CLASH = True
+		otransname = str( otrans )
+		renamedtrans = obase.addChild( otrans, renameOnClash = True )
+		self.failUnless( renamedtrans.isValid() and not otrans.isValid() )
+		self.failUnless( str( renamedtrans ) != otransname )
+		
+		cmds.undo( )
+		self.failUnless( not renamedtrans.isValid() and otrans.isValid() )
+		
+		cmds.redo()
 		
 		
 
