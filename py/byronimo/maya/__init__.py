@@ -24,7 +24,7 @@ import os, sys
 from byronimo import init_modules
 from byronimo.util import capitalize, DAGTree
 from byronimo.exceptions import ByronimoError
-
+from byronimo.path import Path
 
 ############################
 #### COMMON   			####
@@ -73,6 +73,19 @@ def _dagTreeFromTupleList( tuplelist ):
 	# END for each line in hiearchy map
 	
 	return tree
+
+def _tupleListFromFile( filepath ):
+	"""Create a tuple hierarchy list from the file at the given path
+	@return: tuple list suitable for _dagTreeFromTupleList"""
+	lines = Path( filepath ).lines( retain = False )
+
+	hierarchytuples = []
+	# PARSE THE FILE INTO A TUPLE LIST 
+	for no,line in enumerate( lines ):
+		item = ( line.count( '\t' ), line.lstrip( '\t' ) )
+		hierarchytuples.append( item )
+	
+	return hierarchytuples
 
 def _initWrappers( module, types, metacreatorcls ):
 	""" Create standin classes that will create the actual class once creation is

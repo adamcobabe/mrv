@@ -32,6 +32,7 @@ __id__="$Id: configuration.py 16 2008-05-29 00:30:46Z byron $"
 __copyright__='(c) 2008 Sebastian Thiel'
 
 
+bmaya = __import__( "byronimo.maya", globals(), locals(), ['maya'] )
 _thismodule = __import__( "byronimo.maya.nodes", globals(), locals(), ['nodes'] )
 from byronimo.path import Path
 env =  __import__( "byronimo.maya.env", globals(), locals(), ['env'] ) 
@@ -71,7 +72,35 @@ def addCustomType( newcls, metaClass=types.MetaClassCreatorNodes, parentClsName=
 	if newclsobj:
 		setattr( _thismodule, newclsname, newclsobj )
 	
+	
+def addCustomTypeFromFile( hierarchyfile, **kwargs ):
+	"""Add a custom classes as defined by the given tab separated file. 
+	Call addCustomClasses afterwards to register your own base classes to the system
+	This will be required to assure your own base classes will be used instead of auto-generated 
+	stand-in classes
+	@param hierarchyfile: Filepath to file modeling the class hierarchy:
+	basenode
+		derivednode
+			subnode
+		otherderivednode
+	@note: all attributes of L{addCustomType} are supported
+	@note: there must be exactly one root type
+	@return: iterator providing all class names that have been added"""
+	dagtree = bmaya._dagTreeFromTupleList( bmaya._tupleListFromFile( hierarchyfile ) )
+	types._addCustomTypeFromDagtree( _thismodule, dagtree, **kwargs )
+	return dagtree.nodes_iter()
+	
 
+def addCustomClasses( clsobjlist ):
+	"""Add the given classes to the nodes module, making them available to the sytem
+	@note: first the class hierarchy need to be updated using addCustomTypeFromFile. This 
+	must appen before your additional classes are parsed to assure our metaclass creator will not 
+	be called before it knows the class hierarchy ( and where to actually put your type 
+	@param clslist: list of class objects whose names are mentioned in the dagtree"""
+	# add the classes 
+	for cls in clsobjlist:
+		setattr( _thismodule, cls.__name__, cls )
+		
 #}
 
 

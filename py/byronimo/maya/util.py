@@ -334,7 +334,7 @@ class MetaClassCreator( type ):
 			bases += ( parentcls, )
 			
 		# create the class 
-		newcls = super( MetaClassCreator, metacls ).__new__( metacls, name, bases, clsdict )
+		newcls = super( MetaClassCreator, metacls ).__new__( metacls, str( name ), bases, clsdict )
 		
 		# change the module - otherwise it will get our module 
 		newcls.__module__ = module.__name__

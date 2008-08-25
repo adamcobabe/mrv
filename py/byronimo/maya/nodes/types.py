@@ -369,6 +369,25 @@ def _addCustomType( targetmodule, parentclsname, newclsname, metaclass=MetaClass
 	
 	# create wrapper ( in case newclsname does not yet exist in target module )
 	bmaya._initWrappers( targetmodule, [ newclsname ], metaclass )
+	
+	
+def _addCustomTypeFromDagtree( targetModule, dagtree, metaclass=MetaClassCreatorNodes ):
+	"""As L{_addCustomType}, but allows to enter the type relations using a 
+	L{DAGTree} instead of individual names. Thus multiple edges can be added at once
+	@note: node names in dagtree must be uncapitalized"""
+	global nodeTypeTree	
+	
+	# add edges - have to start at root 
+	rootnode = dagtree.get_root()
+	def recurseOutEdges( node ):		# postorder
+		for child in dagtree.children_iter( node ):
+			yield (node,child)
+			for edge in recurseOutEdges( child ):	# step down the hierarchy 
+				yield edge
+				
+	nodeTypeTree.add_edges_from( recurseOutEdges( rootnode ) )
+	
+	bmaya._initWrappers( targetModule, dagtree.nodes_iter(), metaclass )
 
 	
 ################################

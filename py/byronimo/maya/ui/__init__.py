@@ -78,17 +78,10 @@ def init_classhierarchy( ):
 	""" Read a simple hiearchy file and create an Indexed tree from it
 	@todo: cache the pickled tree and try to load it instead  """
 	mfile = Path( __file__ ).p_parent.p_parent / "cache/UICommandsHierachy"
-	lines = mfile.lines( retain = False )
 
-	hierarchytuples = []
-	# PARSE THE FILE INTO A TUPLE LIST 
-	for no,line in enumerate( mfile.lines( retain=False ) ):
-		item = ( line.count( '\t' ), line.lstrip( '\t' ) )
-		hierarchytuples.append( item )
-		
 	# STORE THE TYPE TREE
 	global _typetree
-	_typetree = bmaya._dagTreeFromTupleList( hierarchytuples )
+	_typetree = bmaya._dagTreeFromTupleList( bmaya._tupleListFromFile( mfile ) )
 	
 
 def init_wrappers( ):

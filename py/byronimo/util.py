@@ -272,6 +272,20 @@ class DAGTree( nxtree.DirectedTree ):
 			yield p
 			n = p
 			
+	def get_root( self, startnode = None ):
+		"""@return: the root node of this dag tree
+		@param startnode: if None, the first node will be used to get the root from
+		( good for single rooted dags ), otherwise this node will be used to get the root from
+		- thus it must exist in the dag tree"""
+		if startnode is None:
+			startnode = self.nodes_iter().next()
+			
+		root = None
+		for parent in self.parent_iter( startnode ):
+			root = parent
+			
+		return root
+		
 
 class PipeSeparatedFile( object ):
 	"""Read and write simple pipe separated files containing a version number.
