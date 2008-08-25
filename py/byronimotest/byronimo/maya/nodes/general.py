@@ -477,7 +477,6 @@ class TestNodeBase( unittest.TestCase ):
 		for orig,inst in zip( itemlist, instlist ):
 			reparentednode = obase.addChild( inst, keepExistingParent=False )
 			obase.addChild( inst, keepExistingParent=False )	 # duplicate adds are not problem
-			print "REPARENTED = %r" % ( reparentednode )
 			
 			self.failUnless( reparentednode.isValid() and inst.isAlive() )
 			self.failUnless( not inst.isValid() )
