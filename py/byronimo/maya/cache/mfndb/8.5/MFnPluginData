@@ -1,6 +1,6 @@
 1
-    | constData                               | None                |                                         
+x   | constData                               | None                |                                         
     | create                                  | None                |                                         
-    | data                                    | None                |                                         
-    | type                                    | None                |                                         
-    | typeId                                  | None                |                                         
+    | data                                    | None                | getData                                         
+    | type                                    | None                | getType                                        
+    | typeId                                  | None                | getTypeId                                        

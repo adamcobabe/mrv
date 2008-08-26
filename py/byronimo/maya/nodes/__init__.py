@@ -37,6 +37,7 @@ _thismodule = __import__( "byronimo.maya.nodes", globals(), locals(), ['nodes'] 
 from byronimo.path import Path
 env =  __import__( "byronimo.maya.env", globals(), locals(), ['env'] ) 
 from types import *
+from byronimo import init_modules
 
 
 #{ Common
@@ -115,6 +116,10 @@ if not init_done:
 	types.init_nodeTypeToMfnClsMap( )
 	apipatch.init_applyPatches( )
 	types.init_wrappers( _thismodule )
+	
+	# initialize modules
+	init_modules( __file__, "byronimo.maya.nodes" )
+	
 
 	# overwrite dummy node bases with hand-implemented ones
 	from base import *
