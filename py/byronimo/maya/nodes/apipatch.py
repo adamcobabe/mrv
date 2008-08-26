@@ -242,7 +242,7 @@ class MPlug( api.MPlug, util.iDagItem ):
 		plug = None
 		for child in self.getChildren( ):
 			# short and long name test 
-			if child.partialName( ) == attr or child.partialName( 0, 0, 0, 0, 0, 1 ) == attr: 
+			if child.partialName( ).split('.')[-1] == attr or child.partialName( 0, 0, 0, 0, 0, 1 ).split('.')[-1] == attr: 
 				plug = child
 				break
 		# END for each child
@@ -476,6 +476,36 @@ class MPlug( api.MPlug, util.iDagItem ):
 	#}
 	
 	#{ General Query
+	def getNextLogicalIndex( self ):
+		"""@return: index of logical indexed plug that does not yet exist
+		@note: as this method does a thorough search, it is relatively slow
+		compared to a simple numPlugs + 1 algorithm 
+		@note: only makes sense for array plugs"""
+		indices = api.MIntArray()
+		self.getExistingArrayAttributeIndices( indices )
+		
+		logicalIndex = 0
+		numIndices = indices.length()
+		
+		# do a proper serach
+		if numIndices == 1:
+			logicalIndex =  indices[0] + 1	# just increment the first one
+		else:
+			# assume indices are SORTED, smallest first
+			for i in xrange( numIndices - 1 ):
+				if indices[i+1] - indices[i] > 1:
+					logicalIndex = indices[i] + 1 	# at least one free slot here
+					break
+				else:
+					logicalIndex = indices[i+1] + 1	# be always one larger than the last one
+			# END for each logical index
+		# END if more than one indices exist
+		return logicalIndex
+		
+	def getNextLogicalPlug( self ):
+		"""@return: plug at newly created logical index
+		@note: only valid for array plugs"""
+		return self.getByLogicalIndex( self.getNextLogicalIndex() )
 	
 	def getAttribute( self ):
 		"""@return: Attribute instance of our underlying attribute"""

@@ -20,6 +20,7 @@ import maya.OpenMaya as om
 import maya.cmds as cmds
 import byronimo.util as util
 from byronimo.util import capitalize,uncapitalize
+import networkx.exception as networkxexc
 
 
 #{ Return Value Conversion
@@ -307,9 +308,10 @@ class MetaClassCreator( type ):
 		class creator as well"""
 		# recreate the hierarchy of classes leading to the current type
 		nameForTree = nameToTreeFunc( name )
+		parentname = None
 		try:
 			parentname = dagtree.parent( nameForTree )
-		except KeyError:
+		except networkxexc.NetworkXError:
 			# should we allow key errors ?
 			if clsdict.get( 'isNodeTypeTreeMember', 1 ):
 				raise KeyError( "Class %s is required to be part of the nodetypetree to be created" % name )

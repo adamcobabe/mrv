@@ -125,11 +125,12 @@ class TestDataBase( unittest.TestCase ):
 		# CHILD ITERATION
 		for child in translate.getChildren( ):
 			self.failUnless( child.getParent( ) == translate )
-			
+		self.failUnless( len( translate.getChildren() ) == 3 )
 			
 		# SUB PLUGS GENERAL METHOD
 		self.failUnless( len( matworld ) == len( matworld.getSubPlugs() ) )
 		self.failUnless( translate.numChildren() == len( translate.getSubPlugs() ) )
+		self.failUnless( len( translate.getSubPlugs() ) == 3 )
 
 		
 		# assure the standin classes are there - otherwise my list there would 
