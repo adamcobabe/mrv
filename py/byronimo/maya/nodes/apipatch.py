@@ -257,6 +257,17 @@ class MPlug( api.MPlug, util.iDagItem ):
 		raise AttributeError( "'%s' child plug not found in %s" % ( attr, self ) )
 	
 	
+	def __eq__( self, other ):
+		"""Compare plugs,handle elements correctly"""
+		if not api.MPlug._api___eq__( self, other ):
+			return False 
+			
+		# see whether elements are right - both must be elements if one is 
+		if self.isElement():
+			return self.getLogicalIndex( ) == other.getLogicalIndex()
+			
+		return True
+	
 	#} Overridden Methods
 	
 	#{ Plug Hierarchy Query 
@@ -278,12 +289,14 @@ class MPlug( api.MPlug, util.iDagItem ):
 		"""@return: list of intermediate child plugs, [ plug1 , plug2 ]
 		@param predicate: return True to include x in result"""
 		outchildren = []
-		nc = self.getNumChildren( )
-		for c in xrange( nc ):
-			child = self.getChild( c )
-			if predicate( child ):
-				outchildren.append( child )
-		# END FOR EACH CHILD 
+		if self.isCompound( ):
+			nc = self.getNumChildren( )
+			for c in xrange( nc ):
+				child = self.getChild( c )
+				if predicate( child ):
+					outchildren.append( child )
+			# END FOR EACH CHILD
+		# END if is compound 
 		
 		return outchildren
 		
