@@ -117,7 +117,7 @@ class UndoCmd( mpx.MPxCommand ):
 		"""Called once undo is requested"""
 		if not self._operations:
 			return
-			
+			                                                  
 		# run in reversed order !
 		for index in xrange( len( self._operations )-1, -1, -1 ):
 			self._operations[ index ].undoIt()

@@ -344,7 +344,7 @@ class MPlug( api.MPlug, util.iDagItem ):
 		if not destinputplug.isNull():
 			# handle possibly connected plugs 
 			if self == destinputplug:		# is it us ?
-				return 
+				return destplug
 				
 			if not force:
 				raise RuntimeError( "%s > %s failed as destination is connected to %s" % ( self, destplug, destinputplug ) )
@@ -402,13 +402,15 @@ class MPlug( api.MPlug, util.iDagItem ):
 		"""Disconnect this plug from other plug if they are connected
 		@note: equals a | b 
 		@return: other plug allowing to chain disconnections"""
-		if not self.isConnectedTo( other ):
-			return 
+		#if not self.isConnectedTo( other ):
+		#	return 
 		
-		mod = undo.DGModifier( )
-		mod.disconnect( self, other )
-		mod.doIt()
-		
+		try:
+			mod = undo.DGModifier( )
+			mod.disconnect( self, other )
+			mod.doIt()
+		except RuntimeError:
+			pass 
 		return other
 		
 	#} END connections edit 

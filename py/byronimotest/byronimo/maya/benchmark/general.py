@@ -73,6 +73,59 @@ class TestGeneralPerformance( unittest.TestCase ):
 		cmds.undoInfo( st=1 )
 		bmaya.Scene.save( targetFile )
 		
+	
+	def test_plugs( self ):
+		"""byronimo.maya.apipatch: test plug performance"""
+		bmaya.Scene.new( force = True )
+		
+		s1 = nodes.createNode( "storage1", "StorageNode" )
+		s2 = nodes.createNode( "storage2", "StorageNode" )
+		
+		s1msg = s1.getStoragePlug( "s1", plugType = 1, autoCreate = True )
+		s2msg = s1.getStoragePlug( "s1", plugType = 1, autoCreate = True )
+		
+		# connect the message attributes respectively 
+		
+		def measurePlugConnection( msg, func, callNumberList ):
+			"""Call func of named operation msg number of times as in callNumberList""" 
+			for numcons in callNumberList:
+				undoObj = undo.StartUndo()
+				
+				starttime = time.clock()
+				for i in xrange( numcons ):
+					func( i )
+				elapsed = time.clock( ) - starttime
+				
+				print "%i %s in %f s ( %f / s )" % ( numcons, msg, elapsed, numcons / elapsed )
+				
+				del( undoObj )
+				
+				starttime = time.clock()
+				cmds.undo()
+				undoelapsed = time.clock() - starttime
+				
+				starttime = time.clock()
+				cmds.redo()
+				redoelapsed = time.clock() - starttime
+				
+				print "UNDO / REDO Time = %f / %f ( %f * faster than initial creation )" % ( undoelapsed, redoelapsed,  elapsed / max( redoelapsed, 0.001) )
+			# END for each amount of plugs to connct
+		# END measure function
+		
+		conlist = [ 10, 50, 100, 200 ]
+		
+		# CONNECT MULTI PLUGS
+		######################
+		multifunc = lambda i: s1msg.getByLogicalIndex( i ) >> s2msg.getByLogicalIndex( i )
+		measurePlugConnection( "MULTI PLUG Connected", multifunc, conlist )
+		
+		# CONNECT SINGLE PLUGS
+		persp = nodes.Node( "persp" )
+		front = nodes.Node( "front" )
+		def singleFunc( i ):
+			persp.message >> front.isHistoricallyInteresting
+			persp.message | front.isHistoricallyInteresting
+		measurePlugConnection( "SINGLE PLUGS Connected", singleFunc, conlist )
 		
 	
 	def test_createNodes( self ):
@@ -140,7 +193,6 @@ class TestGeneralPerformance( unittest.TestCase ):
 		api_elapsed = time.clock() - starttime
 		print "Created %i Nodes ( from APIOBJ ) in %f s ( %f / s ) -> %f %% faster" % ( len( nodenames ), api_elapsed, len( nodenames ) / api_elapsed, (elapsed / api_elapsed) * 100 )
 		
-	
 
 #{ Name Generators
 def genRandomNames( numNames, wordLength ):
