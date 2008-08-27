@@ -536,6 +536,7 @@ class MPlug( api.MPlug, util.iDagItem ):
 	__and__ = lambda lhs,rhs: MPlug.haveConnection( lhs, rhs )
 	__or__ = disconnectFrom
 	node = getNode
+	getData = asMObject			# simple rename
 	attribute = getAttribute
 	getChild = api.MPlug.child
 	getArray = api.MPlug.array

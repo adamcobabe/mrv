@@ -38,7 +38,11 @@ from byronimo.path import Path
 env =  __import__( "byronimo.maya.env", globals(), locals(), ['env'] ) 
 from types import *
 from byronimo import init_modules
+import sys
 
+if not hasattr( sys,"_dataTypeIdToTrackingDictMap" ):
+		sys._dataTypeIdToTrackingDictMap = {}			 # DataTypeId : tracking dict
+	
 
 #{ Common
 def getMfnDBPath( mfnclsname ):
@@ -46,6 +50,14 @@ def getMfnDBPath( mfnclsname ):
 	appversion = str( env.getAppVersion( )[0] )
 	return Path( __file__ ).p_parent.p_parent / ( "cache/mfndb/"+appversion+"/"+mfnclsname )
 
+
+
+def registerPluginDataTrackingDict( dataTypeID, trackingDict ):
+	"""Using the given dataTypeID and tracking dict, nodes.MFnPluginData can return 
+	self pointers belonging to an MPxPluginData instance as returned by MFnPluginData.
+	Call this method to register your PluginData information to the byronimo system.
+	Afterwards you can extract the self pointer using plug.asMObject.getData()"""
+	sys._dataTypeIdToTrackingDictMap[ dataTypeID.id() ] = trackingDict
 
 def addCustomType( newcls, metaClass=types.MetaClassCreatorNodes, parentClsName=None ):
 	""" Add a custom class to this module - it will be handled like a native type  

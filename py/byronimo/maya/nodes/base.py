@@ -38,7 +38,7 @@ import maya.cmds as cmds
 import maya.OpenMayaMPx as OpenMayaMPx
 import byronimo.maya.namespace as namespace
 undo = __import__( "byronimo.maya.undo", globals(), locals(),[ 'undo' ] )
-
+import sys
 
 
 ############################
@@ -1149,15 +1149,8 @@ class PluginData:
 	"""Wraps plugin data as received by a plug. If plugin's registered their data
 	types and tracking dictionaries with this class, the original self pointer 
 	can easily be retrieved using this classes interface"""
-	_dataTypeIdToTrackingDictMap = {}			 # DataTypeId : tracking dict
+	__metaclass__ = nodes.MetaClassCreatorNodes
 	
-	@classmethod
-	def registerTrackingDictionary( cls, dataTypeID, trackingDict ):
-		"""Using the given dataTypeID and tracking dict, this class can return 
-		self pointers belonging to a certain MPxData pointer as wrapped the MObject 
-		that initialized this classes function set"""
-		cls._dataTypeIdToTrackingDictMap[ dataTypeID ] = trackingDict
-		
 	
 	def getData( self ):
 		"""@return: python data wrapped by this plugin data object
@@ -1167,16 +1160,18 @@ class PluginData:
 		mfn = self._mfncls( self._apiobj )
 		datatype = mfn.typeId( )
 		try:
-			trackingdict = self._dataTypeIdToTrackingDictMap[ datatype ]
+			trackingdict = sys._dataTypeIdToTrackingDictMap[ datatype.id() ]
 		except KeyError:
 			raise RuntimeError( "Datatype %r is not registered to python as plugin data" % datatype )
 		else:
 			# retrieve the data pointer
-			dataptrmpx = OpenMayaMPx.asHashable( mfnplug.data() )
-			if not dataptrmpx in trackingdict:
+			dataptrmpx = OpenMayaMPx.asHashable( mfn.data() )
+			try:
+				return trackingdict[ dataptrmpx ] 
+			except KeyError:
 				raise RuntimeError( "Could not find data associated with plugin data pointer at %r" % dataptrmpx )
 			
-			return trackingdict[ dataptrmpx ]
+			
 	
 	
 #} END base ( classes )

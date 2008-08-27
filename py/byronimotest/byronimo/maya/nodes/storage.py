@@ -27,57 +27,27 @@ class TestStorage( unittest.TestCase ):
 	
 	def test_storageAccess( self ):
 		"""byronimo.maya.nodes.iterators: todo"""
-		storage = nodes.createNode( "storage", "StorageNode" )
+		storagenode = nodes.createNode( "storage", "StorageNode" )
 		
-		# TRY NUMERIC DATA
+		# Check multuple values
 		####################
-		numplug = storage.addAccept( "numeric" , MFnNumericData = api.MFnNumericData.kInt )
+		# fail as it does not yet exist
+		self.failUnlessRaises( AttributeError, storagenode.getValueElement, "test", 0 )
+		pyValue = storagenode.getValueElement( "test", 0, autoCreate = True )
 		
-		# some sparse plug testing 
-		n1 = numplug.getNextLogicalPlug()
-		n1.setInt( 10 )
-		self.failUnless( n1.getLogicalIndex( ) == 0 )
-		self.failUnless( n1.asInt() == 10 )
+		print pyValue
 		
-		n2 = numplug.getNextLogicalPlug()
-		n2.setInt( 20 )
-		self.failUnless( n2.getLogicalIndex( ) == 1 )
-		self.failUnless( n2.asInt() == 20 )
+		# get another plug 
+		#otherplug = storage.makePlug( "other" )
+		#self.failUnless( testmainplug != otherplug and testmainplug.getLogicalIndex() != otherplug.getLogicalIndex() )
 		
-		# remove
-		# NOTE: in 8.5, it seems not to be possible to remove numeric accepts - even if there is 
-		# no child plug yet
-		self.failUnlessRaises( RuntimeError , storage.removeAccept, "numeric", MFnNumericData = api.MFnNumericData.kInt )
+		# save and load !
+		#################
 		
-		# remove nonexisting type
-		# storage.removeAccept( "numeric", MFnNumericData = api.MFnNumericData.kShort )
+		# ascii 
 		
-		# remove on nonexisting plug 
-		storage.removeAccept( "numericnoexist", MFnNumericData = api.MFnNumericData.kInt )
-		
-		# adding accepts twice fails
-		self.failUnlessRaises( RuntimeError, storage.addAccept, "numeric" , MFnNumericData = api.MFnNumericData.kInt )
+		# binary
 		
 		
-		# TRY TYPED DATA
-		##################
-		stringplug = storage.addAccept( "string" , MFnData = api.MFnData.kString )
-		s1 = stringplug.getNextLogicalPlug( )
 		
-		sval = "hello world"
-		s1.setString( sval )
-		self.failUnless( s1.asString() == sval )
-		
-		stringplug.getNextLogicalPlug( ).setString( "another" )
-		
-		for elm in stringplug:
-			print elm.asString( )
-		
-		# remove
-		storage.removeAccept( "string", MFnData = api.MFnData.kString )
-		
-		# remove twice fails
-		self.failUnlessRaises( RuntimeError, storage.removeAccept,  "string", MFnData = api.MFnData.kString )
-		
-		# TRY PLUGIN DATA
 		
