@@ -336,15 +336,16 @@ class MPlug( api.MPlug, util.iDagItem ):
 		@note: equals lhsplug >> rhsplug ( force = True ) or lhsplug > rhsplug ( force = False )
 		@raise RuntimeError: If destination is already connected and force = False """
 		
-		# handle possibly connected plugs 
-		if self.isConnectedTo( destplug ):		# already connected ?
-			return 
 		
 		mod = None		# create mod only once we really need it
 		
 		# is destination already input-connected ? - disconnect it if required 
 		destinputplug = destplug.p_input
 		if not destinputplug.isNull():
+			# handle possibly connected plugs 
+			if self == destinputplug:		# is it us ?
+				return 
+				
 			if not force:
 				raise RuntimeError( "%s > %s failed as destination is connected to %s" % ( self, destplug, destinputplug ) )
 			else:

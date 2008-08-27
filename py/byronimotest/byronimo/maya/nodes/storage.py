@@ -148,6 +148,5 @@ class TestStorage( unittest.TestCase ):
 		self.failUnless( len( conarray ) == 10 )
 		self.failUnless( len( persp.message.p_outputs ) == 10 )
 		
-		print bmaya.Scene.save( "/usr/tmp/testscene.ma" )
 		
 		
