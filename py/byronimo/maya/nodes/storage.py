@@ -22,16 +22,6 @@ import maya.cmds as cmds
 nodes = __import__( "byronimo.maya.nodes", globals(), locals(), [ 'nodes' ] )
 
 
-import maya.OpenMaya as api
-import maya.OpenMayaMPx as mpx
-
-import sys 
-import cPickle
-import cStringIO
-import base64
-import struct
-
-
 #{ Initialization 
 
 def __initialize():
@@ -48,7 +38,18 @@ def __initialize():
 	# register plugin data in the respective class 
 	nodes.registerPluginDataTrackingDict( PyPickleData.kPluginDataId, sys._maya_pyPickleData_trackingDict )
 	
+	
 #} END initialization
+
+
+import maya.OpenMaya as api
+import maya.OpenMayaMPx as mpx
+
+import sys 
+import cPickle
+import cStringIO
+import base64
+import struct
 
 
 #{ Storage Plugin
@@ -294,23 +295,25 @@ class StorageBase( object ):
 	@todo: should self._node be stored as weakref ?"""
 	kValue, kMessage, kStorage = range( 3 )
 	
-	class PyPickleValue:
+	class PyPickleValue( object ):
 		"""Wrapper object prividing native access to the wrapped python pickle object
 		and to the corresponding value plug, providing utlity methods for easier handling"""
+		__slots__ = frozenset( ['_plug', '_pydata', '_isReferenced', '_updateCalled'] )
+		
 		def __init__( self, valueplug, pythondata ):
 			"""value plug contains the plugin data in pythondata"""
-			self.__dict__[ '_plug' ] = valueplug
-			self.__dict__[ '_pydata' ] = pythondata
-			self.__dict__[ '_isReferenced' ] = valueplug.getNode( ).isFromReferencedFile( )
-			self.__dict__[ '_updateCalled' ] = False
+			object.__setattr__( self, '_plug', valueplug )
+			object.__setattr__( self, '_pydata', pythondata )
+			object.__setattr__( self, '_isReferenced', valueplug.getNode( ).isFromReferencedFile( ) )
+			object.__setattr__( self, '_updateCalled', False )
 			
 		def __getattr__( self, attr ):
 			return getattr( self._pydata, attr )
 			
 		def __setattr__( self, attr, val ):
 			try:
-				self.__dict__[attr] = val
-			except KeyError:
+				object.__setattr__( self, attr, val )
+			except AttributeError:
 				self._pydata[ attr ] = val 
 				
 		def __getitem__( self, key ):
@@ -471,4 +474,5 @@ class StorageNode( nodes.DependNode, StorageBase ):
 	
 
 #} 
+
 

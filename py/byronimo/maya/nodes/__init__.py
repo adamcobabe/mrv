@@ -59,7 +59,7 @@ def registerPluginDataTrackingDict( dataTypeID, trackingDict ):
 	Afterwards you can extract the self pointer using plug.asMObject.getData()"""
 	sys._dataTypeIdToTrackingDictMap[ dataTypeID.id() ] = trackingDict
 
-def addCustomType( newcls, metaClass=types.MetaClassCreatorNodes, parentClsName=None ):
+def addCustomType( newcls, parentClsName=None, **kwargs ):
 	""" Add a custom class to this module - it will be handled like a native type  
 	@param newcls: new class object if metaclass is None, otherwise string name of the 
 	type name to be created by your metaclass
@@ -79,7 +79,7 @@ def addCustomType( newcls, metaClass=types.MetaClassCreatorNodes, parentClsName=
 	
 	# add to hierarchy tree 
 	import types
-	types._addCustomType( _thismodule, parentname, newclsname, metaclass=metaClass )
+	types._addCustomType( _thismodule, parentname, newclsname, **kwargs )
 	
 	# add the class to our module if required
 	if newclsobj:
@@ -99,6 +99,7 @@ def addCustomTypeFromFile( hierarchyfile, **kwargs ):
 	@note: all attributes of L{addCustomType} are supported
 	@note: there must be exactly one root type
 	@return: iterator providing all class names that have been added"""
+	import types
 	dagtree = bmaya._dagTreeFromTupleList( bmaya._tupleListFromFile( hierarchyfile ) )
 	types._addCustomTypeFromDagtree( _thismodule, dagtree, **kwargs )
 	return dagtree.nodes_iter()
@@ -116,13 +117,11 @@ def addCustomClasses( clsobjlist ):
 		
 #}
 
-
-if 'init_done' not in locals():
-	init_done = False
-	
-if not init_done:
-	types.MetaClassCreatorNodes.targetModule = _thismodule			# init metaclass with our module
+def init_package( ):
+	"""Do the main initialization of this package"""
+	import types
 	import apipatch
+	types.MetaClassCreatorNodes.targetModule = _thismodule			# init metaclass with our module
 	
 	types.init_nodehierarchy( )
 	types.init_nodeTypeToMfnClsMap( )
@@ -131,6 +130,15 @@ if not init_done:
 	
 	# initialize modules
 	init_modules( __file__, "byronimo.maya.nodes" )
+
+
+
+if 'init_done' not in locals():
+	init_done = False
+
+if not init_done:
+	
+	init_package( )
 	
 
 	# overwrite dummy node bases with hand-implemented ones

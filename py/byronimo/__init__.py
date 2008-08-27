@@ -29,32 +29,53 @@ from path import Path
 
 
 #{ Common 
-def init_modules( filepath, moduleprefix ):
+def init_modules( filepath, moduleprefix, recurse=False ):
 	""" Call '__initialize' functions in submodules of module at filepath if they exist
 	These functions should setup the module to be ready for work, its a callback informing 
 	the submodules that the super module is being requested
 	@param filepath: your module module.__file__ value
 	@param moduleprefix: prefix like "super.yourmodule." leading to the submodules from 
 	an available system include path
+	@param recurse: if True, method will recursively initialize submodules
 	@note: in this moment, all submodules will be 'pulled' in"""
 	moduledir = Path( filepath  ).p_parent
-	modulefiles = moduledir.glob( "*.py" )
+	moduleitems = moduledir.listdir( )
+	
+	if not moduleprefix.endswith( "." ):
+		moduleprefix += "."
 	
 	# import each module
-	for modulefile in modulefiles:
-		modulename = modulefile.p_namebase
+	for path in moduleitems:
+		
+		# SUB-PACKAGE ?
+		if path.isdir( ):
+			if not recurse:
+				continue
+				
+			packageinitfile = path / "__init__.py"
+			print packageinitfile
+			if not packageinitfile.exists():
+				continue
+				
+			init_modules( packageinitfile, moduleprefix + path.basename(), recurse=True )
+			continue
+		# END path handling 
+		
+		if path.p_ext != ".py":
+			continue
+		
+		modulename = path.p_namebase
 		if modulename.startswith( "_" ) or modulename.startswith( "." ):
 			continue
 		
-		if not moduleprefix.endswith( "." ):
-			moduleprefix += "."
-			
-		module = __import__( moduleprefix + modulename , globals(), locals(), [ modulename ] )
+		fullModuleName = moduleprefix + modulename
+		module = __import__( fullModuleName , globals(), locals(), [ modulename ] )
 		
 		# call init 
 		if hasattr( module, "__initialize" ):
 			print "Initializing " + module.__name__ 
 			module.__initialize( )
+	# END for each file or dir 
 
 #} END common
 
