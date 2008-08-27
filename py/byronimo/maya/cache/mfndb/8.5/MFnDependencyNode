@@ -31,6 +31,6 @@ x   | create                                  | None                |
     | setLocked                               | None                |                                         
 x   | setName                                 | None                |                                         
     | type                                    | None                | getType                                 
-    | typeId                                  | None                | getTyppId                               
+    | typeId                                  | None                | getTypeId                               
     | typeName                                | None                | getTypeName                             
     | userNode                                | None                | getUserNode                             

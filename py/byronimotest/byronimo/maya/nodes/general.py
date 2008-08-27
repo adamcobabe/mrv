@@ -365,6 +365,17 @@ class TestNodeBase( unittest.TestCase ):
 		# REPARENT UNDER SELF
 		self.failUnlessRaises( RuntimeError, mesh.reparent, mesh )
 		
+		# reparent transform to world
+		wtrans = nodes.createNode( "parent2|worldtrans", "transform" )
+		parent = nodes.Node( "parent2" )
+		oparent = nodes.createNode( "oparent2", "transform" )
+		wtrans = wtrans.reparent( None )
+		
+		wtrans = wtrans.setParent( parent )
+		wtrans.addParent( oparent )
+		wtrans.removeParent( parent )
+		
+		
 		
 		# OBJECT NAVIGATION
 		#######################

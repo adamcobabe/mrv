@@ -441,7 +441,7 @@ class Node( object ):
 			raise ValueError( "objects of type %s cannot be handled" % type( objorname ) )
 			
 		
-		if not apiobj_or_dagpath or apiobj_or_dagpath.isNull( ):
+		if not apiobj_or_dagpath or ( isinstance( apiobj_or_dagpath, api.MDagPath ) and not apiobj_or_dagpath.isValid() ) or ( isinstance( apiobj_or_dagpath, api.MObject ) and apiobj_or_dagpath.isNull() ):
 			raise ValueError( "object does not exist: %s" % objorname )
 		
 		# CREATE INSTANCE 
@@ -661,19 +661,7 @@ class DagNode( Entity, iDagItem ):
 		return not DagNode.__eq__( self, other )
 	#}
 	
-	#{ Edit
-	
-	@undoable
-	def delete( self ):
-		"""Delete this node - this special version must be 
-		@note: if the undo queue is enabled, the object becomes invalid, but stays alive until it 
-		drops off the queue
-		@note: if you want to delete many nodes, its more efficient to delete them 
-		using the global L{delete} method"""
-		mod = undo.DagModifier( )
-		mod.deleteNode( self._apiobj )
-		mod.doIt()
-	
+	#{ Hierarchy Modification
 	@undoable
 	def reparent( self, parentnode, renameOnClash=True, raiseOnInstance=True ):
 		""" Change the parent of all nodes ( also instances ) to be located below parentnode
@@ -722,9 +710,13 @@ class DagNode( Entity, iDagItem ):
 		
 		# UPDATE DAG PATH
 		# find it in parentnodes children
-		for child in parentnode.getChildren():
-			if DependNode.__eq__( self, child ):
-				return child 
+		if parentnode:
+			for child in parentnode.getChildren():
+				if DependNode.__eq__( self, child ):
+					return child
+		else: # return updated version of ourselves 
+			return Node( self._apiobj )
+					
 		
 		raise AssertionError( "Could not find self in children after reparenting" )
 		
@@ -868,6 +860,38 @@ class DagNode( Entity, iDagItem ):
 
 		return newChildNode
 		
+	@undoable
+	def addParent( self, parentnode, position=api.MFnDagNode.kNextPos ):
+		"""Adds ourselves as instance to the given parentnode at position 
+		@return: self with updated dag path"""
+		return parentnode.addChild( self, position = position, keepExistingParent = True )
+		
+	@undoable
+	def setParent( self, parentnode, position=api.MFnDagNode.kNextPos ):
+		"""Change the parent of self to parentnode being placed at position 
+		@return: self with updated dag path"""
+		return parentnode.addChild( self, position = position, keepExistingParent = False )
+		
+	@undoable
+	def removeParent( self, parentnode  ):
+		"""Remove ourselves from given parentnode
+		@return: None"""
+		return parentnode.removeChild( self )
+	
+
+	#} END hierarchy modification
+		
+	#{ Edit
+	@undoable
+	def delete( self ):
+		"""Delete this node - this special version must be 
+		@note: if the undo queue is enabled, the object becomes invalid, but stays alive until it 
+		drops off the queue
+		@note: if you want to delete many nodes, its more efficient to delete them 
+		using the global L{delete} method"""
+		mod = undo.DagModifier( )
+		mod.deleteNode( self._apiobj )
+		mod.doIt()
 		
 	@undoable
 	def duplicate( self, newpath, autocreateNamespace=True, renameOnClash=True ):
