@@ -20,34 +20,95 @@ import unittest
 import byronimo.maya.nodes.storage as storage
 import byronimo.maya.nodes as nodes 
 import maya.OpenMaya as api
-import byronimo.maya as bmaya 
+import byronimo.maya as bmaya
+import tempfile
+from byronimo.path import Path
+import sys
 
 class TestStorage( unittest.TestCase ):
 	""" Test general maya framework """
 	
-	def test_storageAccess( self ):
-		"""byronimo.maya.nodes.iterators: todo"""
-		storagenode = nodes.createNode( "storage", "StorageNode" )
+	
+	def test_storagePickleData( self ):
+		"""byronimo.maya.nodes.storage: test pickle data"""
+		tmpdir = Path( tempfile.gettempdir() )
 		
-		# Check multuple values
-		####################
-		# fail as it does not yet exist
-		self.failUnlessRaises( AttributeError, storagenode.getValueElement, "test", 0 )
-		pyValue = storagenode.getValueElement( "test", 0, autoCreate = True )
-		
-		print pyValue
-		
-		# get another plug 
-		#otherplug = storage.makePlug( "other" )
-		#self.failUnless( testmainplug != otherplug and testmainplug.getLogicalIndex() != otherplug.getLogicalIndex() )
-		
-		# save and load !
-		#################
-		
-		# ascii 
-		
-		# binary
+		def setTestValue( mydict ):
+			mydict['string'] = "hello world"
+			mydict[1] = 3.0
+			mydict["list"] = ["this", 2, 45.0]
+			
+		def checkTestValue( self, mydict ):
+			sval = mydict.get( "string" )
+			self.failUnless( sval == "hello world" )
+			
+			fval = mydict.get( 1 )
+			self.failUnless( fval == 3.0 )
+							  
+			lval = mydict.get( "list" )
+			self.failUnless( len( lval ) == 3 )
 		
 		
+		for filetype in [ ".ma", ".mb" ]:
+			bmaya.Scene.new( force = True )
+			
+			# BASIC DATA CREATION AND EDITING 
+			####################################
+			storagenode = nodes.createNode( "storage", "StorageNode" )
+			refcomparator = nodes.createNode( "trans", "transform" )
 		
+			# fail as it does not yet exist
+			self.failUnlessRaises( AttributeError, storagenode.getPythonData, "test")
+			pyval = storagenode.getPythonData( "test", autoCreate = True )
+
+
+			# adjust the value - will be changed in place
+			setTestValue( pyval )
+
+			# SAVE AND LOAD !
+			#################
+			# ascii and binary ( including reference test )
+			filepath = tmpdir / ( "storagetest" + filetype )
+			print "testing %s" % filepath
+			bmaya.Scene.save( filepath )
 		
+			# reload 
+			bmaya.Scene.open( filepath, force=True )
+			
+			# get and test data 
+			storagenode = nodes.Node( "storage" )
+			pyvalloaded = storagenode.getPythonData( "test", autoCreate = False )
+			
+			checkTestValue( self, pyvalloaded )
+			
+			# CREATE REFERENCE
+			##################
+			bmaya.Scene.new( force = True )
+			bmaya.Scene.createReference( filepath, namespace="referenced" )
+			
+			refstoragenode = nodes.Node( "referenced:storage" )
+			refcomparator = nodes.Node( "referenced:trans" )
+			pyval = refstoragenode.getPythonData( "test" )
+			
+			# adjust values 
+			pyval[ "refchange" ] = "changed in reference"
+			refcomparator.translate.tx.setFloat( 5.5 )
+
+			# save reference 
+			filewithrefpath = tmpdir / ( "refstoragetest" + filetype )
+			bmaya.Scene.save( filewithrefpath )
+			bmaya.Scene.open( filewithrefpath, force = True )
+			
+			# check test value and the newly written one 
+			refstoragenode = nodes.Node( "referenced:storage" )
+			pyval = refstoragenode.getPythonData( "test" )
+			
+			checkTestValue( self, pyval )
+			sval = pyval[ 'refchange' ]
+			self.failUnless( sval == "changed in reference" )
+			
+		
+	
+	def test_storageAttributeHanlding( self ):
+		"""byronimo.maya.nodes.storage: test of the attribute accesss on storages is working"""
+		pass 

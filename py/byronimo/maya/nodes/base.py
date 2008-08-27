@@ -1151,11 +1151,13 @@ class PluginData:
 	can easily be retrieved using this classes interface"""
 	__metaclass__ = nodes.MetaClassCreatorNodes
 	
-	
+		
 	def getData( self ):
 		"""@return: python data wrapped by this plugin data object
 		@note: the python data should be made such that it can be changed using 
-		the reference we return - otherwise it will be read-only 
+		the reference we return - otherwise it will be read-only as it is just a copy !
+		@note: the data retrieved by this method cannot be used in plug.setMObject( data ) as it
+		is ordinary python data, not an mobject 
 		@raise RuntimeError: if the data object's id is unknown to this class"""
 		mfn = self._mfncls( self._apiobj )
 		datatype = mfn.typeId( )
@@ -1165,11 +1167,12 @@ class PluginData:
 			raise RuntimeError( "Datatype %r is not registered to python as plugin data" % datatype )
 		else:
 			# retrieve the data pointer
-			dataptrmpx = OpenMayaMPx.asHashable( mfn.data() )
+			dataptrkey = OpenMayaMPx.asHashable( mfn.data() )
+			print "GETTING DATA at %r" % dataptrkey
 			try:
-				return trackingdict[ dataptrmpx ] 
+				return trackingdict[ dataptrkey ]
 			except KeyError:
-				raise RuntimeError( "Could not find data associated with plugin data pointer at %r" % dataptrmpx )
+				raise RuntimeError( "Could not find data associated with plugin data pointer at %r" % dataptrkey )
 			
 			
 	

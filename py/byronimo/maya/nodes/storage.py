@@ -22,6 +22,9 @@ import maya.cmds as cmds
 nodes = __import__( "byronimo.maya.nodes", globals(), locals(), [ 'nodes' ] )
 
 
+import maya.OpenMaya as api
+import maya.OpenMayaMPx as mpx
+
 import sys 
 import cPickle
 import cStringIO
@@ -49,11 +52,6 @@ def __initialize():
 
 
 #{ Storage Plugin
-
-import maya.OpenMaya as api
-import maya.OpenMayaMPx as mpx
-import copy
-
 
 ####################
 ## Tracking Dict
@@ -86,7 +84,6 @@ def addStorageAttributes( cls, dataType ):
 		typeInfo = nAttr.create( "ba_data_type", "type", api.MFnNumericData.kInt )	# can be used for additional type info
 		
 		typedData = tAttr.create( "ba_value", "dval", dataType )
-		tAttr.setArray( True )
 		
 		messageData = mAttr.create( "ba_message", "dmsg" )
 		mAttr.setArray( True )
@@ -137,7 +134,11 @@ class PyPickleData( mpx.MPxData ):
 	the cPickle will be taken in its original value.
 	
 	To get the respective dict-references back, we use a tracking dict as proposed
-	by the API Docs"""
+	by the API Docs
+	
+	@note: This datatype is copies the data by reference which is why maya always calls 
+	the copy constructor, even if you retrieve a const data reference, where this would not be 
+	required actually. This is fine for most uses"""
 	
 	kPluginDataId = api.MTypeId( 0x0010D135 )
 	kDataName = "PickleData"
@@ -145,24 +146,28 @@ class PyPickleData( mpx.MPxData ):
 	def __init__(self):
 		mpx.MPxData.__init__( self )
 		self.__data = dict()
+		print "CREATED DATA at %i" % mpx.asHashable( self )
 		sys._maya_pyPickleData_trackingDict[ mpx.asHashable( self ) ] = self.__data
 
-	def readASCII(self, args, lastParsedElement ):
-		"""Read base64 element and decode to cStringIO, then unpickle"""
-		self.__data = dict()		# start fresh 
-		try:
-			parsedIndex = api.MScriptUtil.getUint(lastParsedElement)
-			# self.__data = args.asDouble( parsedIndex )
-			parsedIndex += 1
-			api.MScriptUtil.setUint(lastParsedElement,parsedIndex)
-			sys._maya_pyPickleData_trackingDict[mpx.asHashable(self)]=self.__data
-		except:
-			sys.stderr.write("Failed to read ASCII value.")
-			raise
+	def __del__( self ):
+		"""Remove ourselves from the dictionary to prevent flooding"""
+		del( sys._maya_pyPickleData_trackingDict[ mpx.asHashable( self ) ] )
 
-
+	def _writeToStream( self, ostream, asBinary ):
+		"""Write our data binary or ascii respectively"""
+		sout = cStringIO.StringIO()
+		cPickle.dump( self.__data, sout, protocol=2 )
+		api.MStreamUtils.writeChar( ostream, '"', False )			
+		api.MStreamUtils.writeCharBuffer( ostream, base64.b64encode( sout.getvalue() ), False )
+		api.MStreamUtils.writeChar( ostream, '"', False )
+	
+	def writeBinary(self, out):
+		"""cPickle to cStringIO, write in 4 byte packs using ScriptUtil"""
+		self._writeToStream( out, True )
+	
 	def readBinary(self, inStream, numBytesToRead ):
 		"""Read in 4 byte packs to cStringIO, unpickle from there"""
+		print "LOADED %i FROM BINARY" % mpx.asHashable( self )
 		readParam = api.MScriptUtil()
 		readParam.createFromInt(0)		# 4 bytes ... or from MIntArray
 		readPtr = readParam.asDoublePtr()
@@ -173,28 +178,32 @@ class PyPickleData( mpx.MPxData ):
 
 	def writeASCII(self, out):
 		"""cPickle to cStringIO, encode with base64 encoding"""
-		try:
-			api.MStreamUtils.writeDouble(out, self.__data, False)
-		except:
-			sys.stderr.write("Failed to write ASCII value.")
-			raise
-			
+		print "WRITING %i" % mpx.asHashable( self )
+		self._writeToStream( out, False )
+		
+	
+	def readASCII(self, args, lastParsedElement ):
+		"""Read base64 element and decode to cStringIO, then unpickle"""
+		parsedIndex = api.MScriptUtil.getUint( lastParsedElement )
+		base64encodedstring = args.asString( parsedIndex )
+		self.__data = cPickle.loads( base64.b64decode( base64encodedstring ) )
+		
+		parsedIndex += 1
+		api.MScriptUtil.setUint(lastParsedElement,parsedIndex)	# proceed the index
+		
+		# update tracking dict 
+		print "LOADED %i FROM ASCII" % mpx.asHashable( self )
+		sys._maya_pyPickleData_trackingDict[ mpx.asHashable( self ) ] = self.__data
+	
 
-	def writeBinary(self, out):
-		"""cPickle to cStringIO, write in 4 byte packs using ScriptUtil"""
-		try:
-			api.MStreamUtils.writeDouble(out, self.__data, True)
-		except:
-			sys.stderr.write("Failed to write binary value.")
-			raise
 			
 	def copy( self, other ):
-		"""Copy other into self - if the object is not deep-copyable, use a shallow copy"""
+		"""Copy other into self - allows copy pointers as maya copies the data each 
+		time you retrieve it"""
 		otherdata = sys._maya_pyPickleData_trackingDict[ mpx.asHashable( other ) ]
-		try:
-			self.__data = copy.deepcopy( otherdata )
-		except copy.Error:
-			self.__data = otherdata
+		self.__data = otherdata
+		print "COPY CONSTRUCTOR from %i to %i ( %r )" % ( mpx.asHashable( other ), mpx.asHashable( self ), otherdata )
+		sys._maya_pyPickleData_trackingDict[ mpx.asHashable( self ) ] = self.__data
 		
 	@staticmethod
 	def creator( ):
@@ -232,13 +241,15 @@ class StorageBase( object ):
 	Nodes used with this interface must be compatible to the following attribute scheme.
 	To create that scheme, use L{addStorageAttributes}
 	
+	
+	
 	Attribute Setup
 	---------------
 	-- shortname ( description ) [ data type ] -- 
 	dta ( data )[ multi compound ]
 	 	id ( data id )[ string ]
 		type ( data type ) [ int ]	# for your own use, store bitflags to specify attribute
-		dval ( data value ) [ multi python pickle ]
+		dval ( data value ) [ python pickle ]
 		dmsg ( data message )[ multi string ]
 	
 	Configuration
@@ -248,12 +259,52 @@ class StorageBase( object ):
 		It acts like a namespace
 	mayaNode: the maya node holding the actual attributes
 	
-	@note: A byronimo node must derive from this class to allow easy attribute access of its 
-	own compatible attributes
+	@note: A byronimo node should derive from this class to allow easy attribute access of its 
+	own compatible attributes - its designed for flexiblity 
 	@note: attribute accepts on the generic attribute should be set by a plugin node when it 
 	creates its attributes
 	@todo: should self._node be stored as weakref ?"""
 	kValue, kMessage, kStorage = range( 3 )
+	
+	class PyPickleValue:
+		"""Wrapper object prividing native access to the wrapped python pickle object
+		and to the corresponding value plug, providing utlity methods for easier handling"""
+		def __init__( self, valueplug, pythondata ):
+			"""value plug contains the plugin data in pythondata"""
+			self.__dict__[ '_plug' ] = valueplug
+			self.__dict__[ '_pydata' ] = pythondata
+			self.__dict__[ '_isReferenced' ] = valueplug.getNode( ).isFromReferencedFile( )
+			self.__dict__[ '_updateCalled' ] = False
+			
+		def __getattr__( self, attr ):
+			return getattr( self._pydata, attr )
+			
+		def __setattr__( self, attr, val ):
+			try:
+				self.__dict__[attr] = val
+			except KeyError:
+				self._pydata[ attr ] = val 
+				
+		def __getitem__( self, key ):
+			return self._pydata[ key ]
+			
+		def __setitem__( self, key, value ):
+			self._pydata[ key ] = value
+			if self._isReferenced:
+				self.valueChanged()		# assure we make it into the reference 
+			
+		def valueChanged( self ): 
+			"""Will be called automatically if the underlying value changed if 
+			the node of the underlying plug is referenced
+			@note: this method will only be called once during the lifetime of this object
+			as its enough to trigger reference to write the value if it changes once.
+			Getting and setting data is expensive as there is a tracking dict in the background 
+			being spawned with internally created copies"""
+			if self._updateCalled:
+				return 
+			self._plug.setMObject( self._plug.asMObject() )
+			self._updateCalled = True
+		
 	
 	#{ Overridden Methods 
 	def __init__( self, attrprefix = "", mayaNode = None ):
@@ -335,32 +386,30 @@ class StorageBase( object ):
 			raise TypeError( "Invalid plugType value: %s" % plugType )
 
 	
-	def getValueElement( self, dataID, index, **kwargs ):
-		"""@return: python pickle value at the given index ( it can be modified natively )
+	def getPythonData( self, dataID, **kwargs ):
+		"""@return: PyPickleVal object at the given index ( it can be modified natively )
 		@param dataID: id of of the data to retrieve
 		@param index: element number of the plug to retrieve, or -1 to get a new plug.
 		Plugs will always be created, the given index specifies a logical plug index
 		@param **kwargs: all arguments supported by L{getStoragePlug}"""
 		storagePlug = self.getStoragePlug( dataID, plugType = StorageBase.kStorage, **kwargs )
-		valarray = storagePlug.dval
-		
-		# get the element
-		lindex = index
-		if index < 0:		# get next ?
-			lindex = valarray.getNextLogicalIndex( )
-		
-		valplug = valarray.getByLogicalIndex( lindex )
+		valplug = storagePlug.dval
 		
 		# initialize data if required
+		# if the data is null, we do not get a kNullObject, but an exception - fair enough ...
 		try:
-			plugindata = valplug.getData()
+			plugindata = valplug.asMObject()
 		except RuntimeError:
-			# set value 
-			plugindata = nodes.Data( api.MFnPluginData( ).create( PyPickleData.kPluginDataId ) )
-			valplug.setMObject( plugindata )
+			# set value
+			plugindataobj = api.MFnPluginData( ).create( PyPickleData.kPluginDataId )
+			
+			# data gets copied here - re-retrieve data
+			valplug.setMObject( plugindataobj )
+			plugindata = nodes.Data( plugindataobj )	
 		
 		# exstract the data
-		return plugindata.getData()
+		#return plugindata.getData()
+		return StorageBase.PyPickleValue( valplug, plugindata.getData() )
 		
 		
 	

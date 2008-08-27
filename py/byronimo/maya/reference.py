@@ -106,6 +106,8 @@ class FileReference( Path, iDagItem ):
 		if not ns:										# assure unique namespace 
 			nsbasename = filepath.stripext().basename()
 			ns = Namespace.getUnique( nsbasename, incrementFunc = nsfunc )
+		else:
+			ns = Namespace( ns )		# assure we have a namespace object 
 		
 		ns = ns.getRelativeTo( Namespace( Namespace.rootNamespace ) )
 		if ns.exists():
