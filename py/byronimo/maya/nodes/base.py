@@ -1168,7 +1168,6 @@ class PluginData:
 		else:
 			# retrieve the data pointer
 			dataptrkey = OpenMayaMPx.asHashable( mfn.data() )
-			print "GETTING DATA at %r" % dataptrkey
 			try:
 				return trackingdict[ dataptrkey ]
 			except KeyError:

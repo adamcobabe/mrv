@@ -58,7 +58,6 @@ class TestStorage( unittest.TestCase ):
 			refcomparator = nodes.createNode( "trans", "transform" )
 		
 			# fail as it does not yet exist
-			self.failUnlessRaises( AttributeError, storagenode.getPythonData, "test")
 			pyval = storagenode.getPythonData( "test", autoCreate = True )
 
 
@@ -98,6 +97,7 @@ class TestStorage( unittest.TestCase ):
 			filewithrefpath = tmpdir / ( "refstoragetest" + filetype )
 			bmaya.Scene.save( filewithrefpath )
 			bmaya.Scene.open( filewithrefpath, force = True )
+			print "referencetestfile: %s " % filewithrefpath
 			
 			# check test value and the newly written one 
 			refstoragenode = nodes.Node( "referenced:storage" )
@@ -106,9 +106,48 @@ class TestStorage( unittest.TestCase ):
 			checkTestValue( self, pyval )
 			sval = pyval[ 'refchange' ]
 			self.failUnless( sval == "changed in reference" )
-			
+		# END for each filetype 
 		
 	
 	def test_storageAttributeHanlding( self ):
 		"""byronimo.maya.nodes.storage: test of the attribute accesss on storages is working"""
-		pass 
+		bmaya.Scene.new( force = True )
+		snode = nodes.createNode( "storage",  "StorageNode" )
+		
+		# autocreate off
+		self.failUnlessRaises( AttributeError, snode.getPythonData, "test" )
+		
+		data = snode.dta
+		val = snode.getPythonData( "test", autoCreate=True )
+		oval = snode.getPythonData( "othertest", autoCreate=True )
+		self.failUnless( len( data ) == 2 )
+		
+		# PREFIXES
+		############
+		snode._attrprefix = "prefix"				# must create new one 
+		pval = snode.getPythonData( "othertest", autoCreate=True )
+		self.failUnless( len( data ) == 3 )
+		self.failUnless( pval._plug.getParent().id.asString() == "prefixothertest" )
+		
+		
+		# STORAGE PLUGS ( MAIN PLUG )
+		# contains connection plug too 
+		mainplug = snode.findStoragePlug( "othertest" )
+		self.failUnless( mainplug == pval._plug.getParent() )
+		
+		
+		# CONNECTION PLUGS 
+		###################
+		persp = nodes.Node( "persp" )
+		
+		conarray = mainplug.dmsg
+		for c in range( 10 ):
+			nextplug = conarray.getByLogicalIndex( c )
+			persp.message >> nextplug 
+			self.failUnless( persp.message >= nextplug )
+		self.failUnless( len( conarray ) == 10 )
+		self.failUnless( len( persp.message.p_outputs ) == 10 )
+		
+		print bmaya.Scene.save( "/usr/tmp/testscene.ma" )
+		
+		

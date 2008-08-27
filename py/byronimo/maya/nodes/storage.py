@@ -146,7 +146,6 @@ class PyPickleData( mpx.MPxData ):
 	def __init__(self):
 		mpx.MPxData.__init__( self )
 		self.__data = dict()
-		print "CREATED DATA at %i" % mpx.asHashable( self )
 		sys._maya_pyPickleData_trackingDict[ mpx.asHashable( self ) ] = self.__data
 
 	def __del__( self ):
@@ -157,28 +156,59 @@ class PyPickleData( mpx.MPxData ):
 		"""Write our data binary or ascii respectively"""
 		sout = cStringIO.StringIO()
 		cPickle.dump( self.__data, sout, protocol=2 )
-		api.MStreamUtils.writeChar( ostream, '"', False )			
-		api.MStreamUtils.writeCharBuffer( ostream, base64.b64encode( sout.getvalue() ), False )
-		api.MStreamUtils.writeChar( ostream, '"', False )
+		
+		if not asBinary:
+			api.MStreamUtils.writeChar( ostream, '"', asBinary )
+			
+		# assure number of bytes is a multiple of 4
+		if asBinary:
+			for c in range( sout.tell() % 4 ):
+				sout.write( chr( 0 ) )		# 0 bytes 
+		
+		# NOTE: even binaries will be encoded as this circumvents the 0 byte which terminates the 
+		# char byte stream ... can't help it but writing individual bytes 
+		# TODO: improve this if it turns out to be too slow 
+		api.MStreamUtils.writeCharBuffer( ostream, base64.b64encode( sout.getvalue() ), asBinary )
+		
+		if not asBinary:
+			api.MStreamUtils.writeChar( ostream, '"', asBinary )
 	
 	def writeBinary(self, out):
 		"""cPickle to cStringIO, write in 4 byte packs using ScriptUtil"""
 		self._writeToStream( out, True )
 	
 	def readBinary(self, inStream, numBytesToRead ):
-		"""Read in 4 byte packs to cStringIO, unpickle from there"""
-		print "LOADED %i FROM BINARY" % mpx.asHashable( self )
-		readParam = api.MScriptUtil()
-		readParam.createFromInt(0)		# 4 bytes ... or from MIntArray
-		readPtr = readParam.asDoublePtr()
+		"""Read in 4 byte packs to cStringIO, unpickle from there
+		@note: this method is more complicated than it needs be since asCharPtr does not work !
+		It returns a string of a single char ... which is not the same :) !
+		@note: YES, this is a CUMBERSOME way to deal with bytes ... terrible, thanks maya :), thanks python"""
+		sio = cStringIO.StringIO( )
+		scriptutil = api.MScriptUtil( )
+		scriptutil.createFromInt( 0 )
+		intptr = scriptutil.asIntPtr()
 		
-		api.MStreamUtils.readDouble(inStream, readPtr, True )
-		self.__data = api.MScriptUtil.getDouble( readPtr )
-
+		# require multiple of 4 !
+		if numBytesToRead % 4 != 0:
+			raise AssertionError( "Require multiple of for for number of bytes to be read, but is %i" % numBytesToRead )
+		
+		bitmask = 255								# mask the lower 8 bit
+		shiftlist = [ 0, 8, 16, 24 ]				# used to shift bits by respective values 
+		for i in xrange( numBytesToRead  / 4 ):
+			api.MStreamUtils.readInt( inStream, intptr, True )
+			intval = scriptutil.getInt( intptr )
+			
+			# convert to chars - endianess should be taken care of by python
+			#for shift in [ 24, 16, 8, 0 ]:
+			for shift in shiftlist:
+				sio.write( chr( ( intval >> shift ) & bitmask ) )
+			# END for each byte
+		# END for all 4 bytes to read 
+		
+		self.__data = cPickle.loads( base64.b64decode( sio.getvalue() ) )
+		sys._maya_pyPickleData_trackingDict[ mpx.asHashable( self ) ] = self.__data
 
 	def writeASCII(self, out):
 		"""cPickle to cStringIO, encode with base64 encoding"""
-		print "WRITING %i" % mpx.asHashable( self )
 		self._writeToStream( out, False )
 		
 	
@@ -192,7 +222,6 @@ class PyPickleData( mpx.MPxData ):
 		api.MScriptUtil.setUint(lastParsedElement,parsedIndex)	# proceed the index
 		
 		# update tracking dict 
-		print "LOADED %i FROM ASCII" % mpx.asHashable( self )
 		sys._maya_pyPickleData_trackingDict[ mpx.asHashable( self ) ] = self.__data
 	
 
@@ -202,7 +231,6 @@ class PyPickleData( mpx.MPxData ):
 		time you retrieve it"""
 		otherdata = sys._maya_pyPickleData_trackingDict[ mpx.asHashable( other ) ]
 		self.__data = otherdata
-		print "COPY CONSTRUCTOR from %i to %i ( %r )" % ( mpx.asHashable( other ), mpx.asHashable( self ), otherdata )
 		sys._maya_pyPickleData_trackingDict[ mpx.asHashable( self ) ] = self.__data
 		
 	@staticmethod
@@ -291,15 +319,15 @@ class StorageBase( object ):
 		def __setitem__( self, key, value ):
 			self._pydata[ key ] = value
 			if self._isReferenced:
-				self.valueChanged()		# assure we make it into the reference 
+				self.valueChanged()		# assure we make it into the reference , but only if we change
 			
 		def valueChanged( self ): 
 			"""Will be called automatically if the underlying value changed if 
 			the node of the underlying plug is referenced
-			@note: this method will only be called once during the lifetime of this object
+			@note: this method will only be called once during the lifetime of this object if it changes,
 			as its enough to trigger reference to write the value if it changes once.
 			Getting and setting data is expensive as there is a tracking dict in the background 
-			being spawned with internally created copies"""
+			being spawned with internally created copies."""
 			if self._updateCalled:
 				return 
 			self._plug.setMObject( self._plug.asMObject() )
