@@ -515,8 +515,39 @@ class TestNodeBase( unittest.TestCase ):
 		
 		cmds.redo()
 		
+	def test_instanceTraversal( self ):
+		"""byronimo.maya.nodes.base: traverse instances"""
+		base = nodes.createNode( "base", "transform" )
+		obase = nodes.createNode( "obase", "transform" )
+		abase = nodes.createNode( "abase", "transform" )
+		bases = ( base, obase, abase )
 		
-
+		trans = nodes.createNode( "trans", "transform" )
+		shape = nodes.createNode( "meshtrans|mesh", "mesh" )
+		instances = ( trans, shape )
+		
+		# create instances
+		for inst in instances:
+			for b in bases:
+				b.addInstancedChild( inst )
+		
+		# INSTANCE TRAVERSAL
+		for inst in instances:
+			self.failUnless( inst.getInstanceCount( False ) == 4 )	
+			self.failUnless( inst == inst.getInstance( inst.getInstanceNumber( ) ) ) 
+			for instinst in inst.iterInstances( excludeSelf = True ):
+				self.failUnless( instinst != inst )
+			foundself = False
+			for instinst in inst.iterInstances( excludeSelf = False ):
+				if instinst == inst:
+					foundself = True
+			self.failUnless( foundself )
+			
+			base.removeChild( inst )	# remove one inst
+			self.failUnless( inst.getInstanceCount( False ) == 3 )
+			# END for each instance path 
+		# END for each instanced node 
+				
 	def test_mfncachebuilder( sself ):
 		"""byroniom.maya.nodes.base: write a generated cache using the builder function"""
 		pass

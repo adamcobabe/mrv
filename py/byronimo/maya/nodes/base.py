@@ -1107,7 +1107,43 @@ class DagNode( Entity, iDagItem ):
 		transformNodes = [ Node( s ) for s in self._apidagpath.getTransforms() ] # could use getChildrenByType, but this is faster
 		return [ t for t in transformNodes if predicate( t ) ]
 		
-	#} END hierarchy query 
+	def getInstanceNumber( self ):
+		"""@return: our instance number
+		@note: 0 does not indicate that this object is not instanced - use getInstanceCount instead"""
+		return self._apidagpath.getInstanceNumber()
+	
+	def getInstance( self, instanceNumber ):
+		"""@return: Node to the instance identified by instanceNumber
+		@param instanceNumber: range( 0, self.getInstanceCount()-1 )"""
+		allpaths = api.MDagPathArray()
+		self.getAllPaths( allpaths )
+		return Node( allpaths[ instanceNumber ] )
+		
+	#} END hierarchy query
+	
+	
+	#{ Iterators 
+	def iterInstances( self, excludeSelf = False ):
+		"""Get iterator over all direct instances of this node
+		@param excludeSelf: if True, self will not be returned, if False, it will be in 
+		the list of items
+		@note: Iterating instances is more efficient than querying all instances individually using 
+		L{getInstance}"""
+		ownNumber = -1
+		if excludeSelf:
+			ownNumber = self.getInstanceNumber( )
+		
+		allpaths = api.MDagPathArray()
+		self.getAllPaths( allpaths )
+		
+		# paths are ordered by instance number 
+		for i in range( allpaths.length() ):
+			if i != ownNumber:
+				yield Node( allpaths[ i ] )
+		# END for each instance 
+	
+	
+	#}
 	
 	
 	#{ Name Remapping 
