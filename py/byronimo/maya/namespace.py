@@ -299,9 +299,13 @@ class Namespace( unicode, iDagItem ):
 			
 		return Namespace( relnamespace, absolute = False )
 	
-	def getObjectsIter( self ):
+	#} END query methods
+	
+	
+	#{ Iterators 
+	def iterObjects( self ):
 		"""@return: generator returning all objects in this namespace"""
 		raise NotImplementedError()
 
 	
-	#} END query methods 
+	#} END objects 

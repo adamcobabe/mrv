@@ -659,6 +659,13 @@ class DagNode( Entity, iDagItem ):
 		
 	def __ne__( self, other ):
 		return not DagNode.__eq__( self, other )
+		
+	def __getitem__( self, index ):
+		"""@return: Node( child )  at index
+		@note: returned child can be transform or shape, use L{getShapes} or 
+		L{getChildTransforms} if you need a quickfilter """
+		return self.getChild( index )
+		
 	#}
 	
 	#{ Hierarchy Modification

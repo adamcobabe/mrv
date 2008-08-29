@@ -189,7 +189,7 @@ def undoable( func ):
 	if not sys._maya_undo_enabled:
 		return func
 	
-	def wrapFunc( *args, **kwargs ):
+	def undoableDecoratorWrapFunc( *args, **kwargs ):
 		"""This is the long version of the method as it is slightly faster than
 		simply using the StartUndo helper"""
 		mel.eval( "byronimoUndo -psh" )
@@ -203,8 +203,8 @@ def undoable( func ):
 			
 	# END wrapFunc
 	
-	wrapFunc.__name__ = func.__name__
-	return wrapFunc	
+	undoableDecoratorWrapFunc.__name__ = func.__name__
+	return undoableDecoratorWrapFunc	
 	
 
 class StartUndo:

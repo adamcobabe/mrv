@@ -16,7 +16,7 @@ x   | create                                  | None                |
     | hasUniqueName                           | None                |                                         
     | isDefaultNode                           | None                |                                         
     | isFlagSet                               | None                |                                         
-    | isFromReferencedFile                    | None                |                                         
+    | isFromReferencedFile                    | None                | isReferenced                                         
     | isLocked                                | None                |                                         
     | isNewAttribute                          | None                |                                         
     | isShared                                | None                |                                         
