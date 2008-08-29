@@ -121,9 +121,8 @@ class Namespace( unicode, iDagItem ):
 			# put operation on the queue - as we create empty namespaces, we can delete 
 			# them at any time 
 			op = undo.GenericOperation( )
-			doit = Call( cmds.namespace, p=base.getParent() , add=base.getBasename() )
-			undoit = Call(cmds.namespace, rm=base )
-			op.addCmd( doit, undoit )
+			op.addDoit( cmds.namespace, p=base.getParent() , add=base.getBasename() )
+			op.addUndoit(cmds.namespace, rm=base )
 			op.doIt( )
 		# END for each token
 		
@@ -207,11 +206,9 @@ class Namespace( unicode, iDagItem ):
 		"""Set this namespace to be the current one - new objects will be put in it 
 		by default"""
 		# THIS IS FASTER ! 
-		doit = Call( cmds.namespace, set = self )
-		undoit = Call( cmds.namespace, set = Namespace.getCurrent() )
-		
 		melop = undo.GenericOperation( )
-		melop.addCmd( doit, undoit )
+		melop.addDoit( cmds.namespace, set = self )
+		melop.addUndoit( cmds.namespace, set = Namespace.getCurrent() )
 		melop.doIt()
 		
 		#mod = undo.DGModifier( )

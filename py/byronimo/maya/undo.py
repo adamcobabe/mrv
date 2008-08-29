@@ -8,7 +8,7 @@ Features
    - modify dag or dg using the undo - enabled DG and DAG modifiers
    - modify values using Nodes and their plugs ( as the plugs are overridden
    to store undo information )
-   - fully usable including MEL command ( using L{GenericOperation}
+   - fully usable including MEL command ( using L{GenericOperationStack}
 
 Limitations
 -----------
@@ -259,11 +259,62 @@ class Operation:
 	def undoId( self ):
 		"""Undo whatever you did"""
 		raise NotImplementedError
-		
 
 class GenericOperation( Operation ):
-	"""Operation able to undo generic mel commands
-	@usage: in your api command, create a GenericOperation operation instance, add your (mel) commands 
+	"""Simple oeration allowing to use a generic doit and untoit call to be accessed 
+	using the operation interface.
+	In other words: If you do not want to derive from operation just because you would like
+	to have your own custom (  but simple ) do it and undo it methods, you would just 
+	use this all-in-one operation"""
+	
+	__slots__ = (  "_dofunc", "_doargs", "_dokwargs", "_doitfailed", 	
+					"_undofunc", "_undoargs", "_undokwargs" )
+	
+	def __init__( self ):
+		"""intiialize our variables"""
+		Operation.__init__( self )
+		self._dofunc = None
+		self._doargs = None
+		self._dokwargs = None
+		self._doitfailed = False	# keep track whether we may actually undo something
+		
+		self._undofunc = None
+		self._undoargs = None
+		self._undokwargs = None
+		
+	def addDoit( self, func, *args, **kwargs ):
+		"""Add the doit call to our instance"""
+		self._dofunc = func
+		self._doargs = args
+		self._dokwargs = kwargs
+	
+	def addUndoit( self, func, *args, **kwargs ):
+			"""Add the undoit call to our instance"""
+			self._undofunc = func
+			self._undoargs = args
+			self._undokwargs = kwargs
+	
+	def doIt( self ):
+		"""Execute the doit command
+		@return: result of the doit command"""
+		try:
+			return self._dofunc( *self._doargs, **self._dokwargs )
+		except:
+			self._doitfailed = True
+			
+	def undoIt( self ):
+		"""Execute undoit if doit did not fail"""
+		if self._doitfailed:
+			return 
+			
+		self._undofunc( *self._undoargs, **self._undokwargs )
+		
+	
+
+class GenericOperationStack( Operation ):
+	"""Operation able to undo generic callable commands ( one or multiple ). It would be used
+	whenever a simple generic operatino is not sufficient
+	@usage: in your api command, create a GenericOperationStack operation instance, add your (mel) commands 
 	that should be executed in a row as Call. To apply them, call doIt once ( and only once ! ).
 	You can have only one command stored, or many if they should be executed in a row.
 	The vital part is that with each do command, you supply an undo command. 
@@ -273,6 +324,8 @@ class GenericOperation( Operation ):
 	the undoqueue might brake if exceptions occour !
 	@note: your calls may use MEL commands safely as the undo-queue will be torn off during execution
 	@note: Undocommand will be applied in reversed order automatically"""
+	
+	__slots__ = ( "_docmds", "_undocmds", "_undocmds_tmp" )
 	
 	def __init__( self ):
 		"""intiialize our variables"""

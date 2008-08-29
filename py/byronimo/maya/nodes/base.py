@@ -741,9 +741,8 @@ class DagNode( Entity, iDagItem ):
 		# The method will not fail if the child cannot be found in child list
 		# just go ahead
 		
-		docmd = Call( dagfn.removeChild, childNode._apiobj )
-		undocmd = Call( self.addChild, childNode, keepExistingParent=True )	# TODO: add child to position it had 
-		op.addCmd( docmd, undocmd )
+		op.addDoit( dagfn.removeChild, childNode._apiobj )
+		op.addUndoit( self.addChild, childNode, keepExistingParent=True )	# TODO: add child to position it had 
 		op.doIt()
 		 
 		return Node( childNode._apiobj )	# will attach A new dag path respectively - it will just pick the first one it gets 
@@ -795,7 +794,7 @@ class DagNode( Entity, iDagItem ):
 		
 		# ADD CHILD 
 		###############
-		op = undo.GenericOperation( )
+		op = undo.GenericOperationStack( )
 		
 		pos = position
 		if pos != self.kNextPos:
@@ -943,7 +942,7 @@ class DagNode( Entity, iDagItem ):
 		############################
 		# it will always duplicate the transform and return it
 		# in case of instances, its the only way we have to get it below an own parent 
-		op = undo.GenericOperation( )
+		op = undo.GenericOperationStack( )
 		doitcmd = Call( api.MFnDagNode( self._apidagpath ).duplicate, False, False )
 		undoitcmd = Call( None )												# placeholder, have to change it soon
 		duplicate_node_parent = Node( op.addCmdAndCall( doitcmd, undoitcmd ) )		# get the duplicate 

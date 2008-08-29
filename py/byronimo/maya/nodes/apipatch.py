@@ -564,11 +564,11 @@ class MPlug( api.MPlug, util.iDagItem ):
 			curdata = getattrfunc( self )
 			op = undo.GenericOperation( )
 			
-			doit = util.Call( setattrfunc, self, data )
-			undoit = util.Call( setattrfunc, self, curdata )
+			op.addDoit( setattrfunc, self, data )
+			op.addUndoit( setattrfunc, self, curdata )
 			
-			op.addCmd( doit, undoit )
 			op.doIt()
+		# END wrappedSetAttr method
 		
 		# did undoable do anything ? If not, its disabled 
 		wrappedUndoableSetAttr = undoable( wrappedSetAttr )
