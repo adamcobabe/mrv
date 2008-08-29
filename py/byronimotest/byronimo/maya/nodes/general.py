@@ -547,6 +547,11 @@ class TestNodeBase( unittest.TestCase ):
 			self.failUnless( inst.getInstanceCount( False ) == 3 )
 			# END for each instance path 
 		# END for each instanced node 
+		
+		# TRAVERSE NON-INSTANCED  - should have one or 0
+		self.failUnless( len( [ base.iterInstances( excludeSelf = True ) ] ) == 0 )
+		self.failUnless( len( [ base.iterInstances( excludeSelf = False ) ] ) == 1 )
+				
 				
 	def test_mfncachebuilder( sself ):
 		"""byroniom.maya.nodes.base: write a generated cache using the builder function"""

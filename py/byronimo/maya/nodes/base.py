@@ -1115,6 +1115,12 @@ class DagNode( Entity, iDagItem ):
 	def getInstance( self, instanceNumber ):
 		"""@return: Node to the instance identified by instanceNumber
 		@param instanceNumber: range( 0, self.getInstanceCount()-1 )"""
+		# secure it - could crash if its not an instanced node 
+		if self.getInstanceCount( False ) == 1:
+			if instanceNumber:
+				raise AssertionError( "instanceNumber for non-instanced nodes must be 0, was %i" % instanceNumber )
+			return self
+			
 		allpaths = api.MDagPathArray()
 		self.getAllPaths( allpaths )
 		return Node( allpaths[ instanceNumber ] )
@@ -1128,7 +1134,14 @@ class DagNode( Entity, iDagItem ):
 		@param excludeSelf: if True, self will not be returned, if False, it will be in 
 		the list of items
 		@note: Iterating instances is more efficient than querying all instances individually using 
-		L{getInstance}"""
+		L{getInstance}
+		@todo: add flag to allow iteration of indirect instances as well """
+		# prevents crashes if this method is called within a dag instance added callback
+		if self.getInstanceCount( False ) == 1:
+			if not excludeSelf:
+				yield self
+			raise StopIteration
+		
 		ownNumber = -1
 		if excludeSelf:
 			ownNumber = self.getInstanceNumber( )
@@ -1138,8 +1151,10 @@ class DagNode( Entity, iDagItem ):
 		
 		# paths are ordered by instance number 
 		for i in range( allpaths.length() ):
-			if i != ownNumber:
-				yield Node( allpaths[ i ] )
+			# index is NOT instance number ! If transforms are instanced, children increase instance number
+			dagpath = allpaths[ i ]
+			if dagpath.instanceNumber() != ownNumber:
+				yield Node( dagpath )
 		# END for each instance 
 	
 	

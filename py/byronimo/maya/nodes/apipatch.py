@@ -523,6 +523,11 @@ class MPlug( api.MPlug, util.iDagItem ):
 		@note: only valid for array plugs"""
 		return self.getByLogicalIndex( self.getNextLogicalIndex() )
 	
+	def getAttributeApiObj( self ):
+		"""@return: the original unwrapped api object - use this if you 
+		prefer speed over convenience"""
+		return api.MPlug._api_attribute( self )
+	
 	def getAttribute( self ):
 		"""@return: Attribute instance of our underlying attribute"""
 		return nodes.Attribute( api.MPlug._api_attribute( self ) )
@@ -531,8 +536,13 @@ class MPlug( api.MPlug, util.iDagItem ):
 		"""@return: Node instance of our underlying node"""
 		return nodes.Node( api.MPlug._api_node( self ) )
 	
+	def getNodeApiObj( self ):
+		"""@return: unwrapped api object of the plugs node 
+		@note: use this if you prefer speed over convenience"""
+		return api.MPlug._api_node( self )
+	
 	def asMObject( *args, **kwargs ):
-		"""@return: our Mobjects wrapped in L{Data}"""
+		"""@return: our data Mobject wrapped in L{Data}"""
 		return nodes.Data( api.MPlug._api_asMObject( *args, **kwargs ) )
 		
 	#} END query
