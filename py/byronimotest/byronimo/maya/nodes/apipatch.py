@@ -149,7 +149,25 @@ class TestDataBase( unittest.TestCase ):
 			self.failUnless( isinstance( node, nodes.Node ) )
 			self.failUnless( node == persp )
 			
-		
+		# UNDO / REDO
+		##############
+		cmds.undoInfo( swf = 1 )
+		cam = nodes.createNode( "myTrans", "transform" )
+		testdb = [  ( cam.visibility, "Bool", True, False ),
+					( cam.translate.tx, "Double", 0.0, 2.0 ) ]
+		# TODO: Add all missing types ! 
+		for plug, typename, initialval, targetval in testdb:
+			getattrfunc = getattr( plug, "as"+typename )
+			setattrfunc = getattr( plug, "set"+typename )
+			
+			self.failUnless( getattrfunc() == initialval )
+			setattrfunc( targetval )
+			self.failUnless( getattrfunc() == targetval )
+			cmds.undo()
+			self.failUnless( getattrfunc() == initialval )
+			cmds.redo()
+			self.failUnless( getattrfunc() == targetval )
+		# END for each tuple in testdb 
 	
 	def test_matrixData( self ):
 		"""byronimo.maya.nodes: test matrix data"""

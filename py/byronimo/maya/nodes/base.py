@@ -1130,14 +1130,14 @@ class DagNode( Entity, iDagItem ):
 	
 	#{ Iterators 
 	def iterInstances( self, excludeSelf = False ):
-		"""Get iterator over all direct instances of this node
+		"""Get iterator over all ( direct and indirect )instances of this node
 		@param excludeSelf: if True, self will not be returned, if False, it will be in 
 		the list of items
 		@note: Iterating instances is more efficient than querying all instances individually using 
 		L{getInstance}
 		@todo: add flag to allow iteration of indirect instances as well """
 		# prevents crashes if this method is called within a dag instance added callback
-		if self.getInstanceCount( False ) == 1:
+		if self.getInstanceCount( True ) == 1:	
 			if not excludeSelf:
 				yield self
 			raise StopIteration

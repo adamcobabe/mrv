@@ -371,9 +371,12 @@ class TestNodeBase( unittest.TestCase ):
 		oparent = nodes.createNode( "oparent2", "transform" )
 		wtrans = wtrans.reparent( None )
 		
-		wtrans = wtrans.setParent( parent )
-		wtrans.addParent( oparent )
-		wtrans.removeParent( parent )
+		wtransnewparent = wtrans = wtrans.setParent( parent )
+		self.failUnless( wtransnewparent.getInstanceCount( 1 ) == 1 ) 
+		wtransnewparent.addParent( oparent )
+		self.failUnless( wtransnewparent.getInstanceCount( 1 ) == 2 ) 
+		wtransnewparent.removeParent( oparent )
+		self.failUnless( wtrans.getInstanceCount( 1 ) == 1 )
 		
 		
 		
@@ -534,7 +537,7 @@ class TestNodeBase( unittest.TestCase ):
 		# INSTANCE TRAVERSAL
 		for inst in instances:
 			self.failUnless( inst.getInstanceCount( False ) == 4 )	
-			self.failUnless( inst == inst.getInstance( inst.getInstanceNumber( ) ) ) 
+			self.failUnless( inst == inst.getInstance( inst.getInstanceNumber( ) ) )
 			for instinst in inst.iterInstances( excludeSelf = True ):
 				self.failUnless( instinst != inst )
 			foundself = False
@@ -545,13 +548,22 @@ class TestNodeBase( unittest.TestCase ):
 			
 			base.removeChild( inst )	# remove one inst
 			self.failUnless( inst.getInstanceCount( False ) == 3 )
+			base.addInstancedChild( inst )	# readd it
 			# END for each instance path 
 		# END for each instanced node 
 		
 		# TRAVERSE NON-INSTANCED  - should have one or 0
-		self.failUnless( len( [ base.iterInstances( excludeSelf = True ) ] ) == 0 )
-		self.failUnless( len( [ base.iterInstances( excludeSelf = False ) ] ) == 1 )
-				
+		self.failUnless( len( list(( base.iterInstances( excludeSelf = True ) )) ) == 0 )
+		self.failUnless( len( list(( base.iterInstances( excludeSelf = False ) )) ) == 1 )
+		
+		# TEST DIRECT VS INDIRECT INSTANCES
+		baseinst = base.addParent( obase )
+		self.failUnless( base.getInstanceCount( False ) == 2 )
+		self.failUnless( trans.getInstanceCount( False ) != trans.getInstanceCount( True ) )
+		
+		# iteration is always over all instances
+		self.failUnless( len( list( ( trans.iterInstances(excludeSelf=False))) ) == trans.getInstanceCount( True ) )
+		
 				
 	def test_mfncachebuilder( sself ):
 		"""byroniom.maya.nodes.base: write a generated cache using the builder function"""

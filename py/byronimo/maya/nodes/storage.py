@@ -139,7 +139,9 @@ class PyPickleData( mpx.MPxData ):
 	
 	@note: This datatype is copies the data by reference which is why maya always calls 
 	the copy constructor, even if you retrieve a const data reference, where this would not be 
-	required actually. This is fine for most uses"""
+	required actually. This is fine for most uses
+	@note: as the datatype is reference based, undo is currently not supported ( or does not 
+	work as it is expected to do"""
 	
 	kPluginDataId = api.MTypeId( 0x0010D135 )
 	kDataName = "PickleData"
@@ -429,18 +431,18 @@ class StorageBase( object ):
 		# initialize data if required
 		# if the data is null, we do not get a kNullObject, but an exception - fair enough ...
 		try:
-			plugindata = valplug.asMObject()
+			plugindata = valplug.asMObject()	 
 		except RuntimeError:
 			# set value
 			plugindataobj = api.MFnPluginData( ).create( PyPickleData.kPluginDataId )
 			
 			# data gets copied here - re-retrieve data
-			valplug.setMObject( plugindataobj )
+			valplug._api_setMObject( plugindataobj ) # use original version only - no undo support
 			plugindata = nodes.Data( plugindataobj )	
 		
 		# exstract the data
 		#return plugindata.getData()
-		return StorageBase.PyPickleValue( valplug, plugindata.getData() )
+		return StorageBase.PyPickleValue( valplug, plugindata.getData( ) )
 		
 		
 	

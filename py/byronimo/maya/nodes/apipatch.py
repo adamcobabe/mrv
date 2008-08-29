@@ -548,6 +548,52 @@ class MPlug( api.MPlug, util.iDagItem ):
 	#} END query
 	
 	
+	#{ Set Data with Undo
+	def _createUndoSetFunc( dataTypeId, getattroverride = None ):
+		"""Create a function setting a value with undo support
+		@param dataTypeId: string naming the datatype, like "Bool" - capitalization is 
+		important
+		@note: to use the orinal method without undo, use """
+		# this binds the original setattr and getattr, not the patched one
+		getattrfunc = getattroverride
+		if not getattrfunc:
+			getattrfunc = getattr( api.MPlug, "as"+dataTypeId )
+		setattrfunc = getattr( api.MPlug, "set"+dataTypeId )
+		
+		def wrappedSetAttr( self, data ):
+			curdata = getattrfunc( self )
+			op = undo.GenericOperation( )
+			
+			doit = util.Call( setattrfunc, self, data )
+			undoit = util.Call( setattrfunc, self, curdata )
+			
+			op.addCmd( doit, undoit )
+			op.doIt()
+		
+		# did undoable do anything ? If not, its disabled 
+		wrappedUndoableSetAttr = undoable( wrappedSetAttr )
+		if wrappedUndoableSetAttr == wrappedSetAttr:
+			# return original 
+			return setattrfunc
+			
+		return wrappedUndoableSetAttr
+		
+	# wrap the methods 
+	setBool = _createUndoSetFunc( "Bool" )
+	setChar = _createUndoSetFunc( "Char" )
+	setShort = _createUndoSetFunc( "Short" )
+	setInt = _createUndoSetFunc( "Int" )
+	setFloat = _createUndoSetFunc( "Float" )
+	setDouble = _createUndoSetFunc( "Double" )
+	setString = _createUndoSetFunc( "String" )
+	setMAngle = _createUndoSetFunc( "MAngle" )
+	setMDistance = _createUndoSetFunc( "MDistance" )
+	setMTime = _createUndoSetFunc( "MTime" )
+	setMObject = _createUndoSetFunc( "MObject" )
+	
+	#} END set data 
+	
+	
 	#{ Properties
 	p_outputs = property( getOutputs )
 	p_input = property( getInput )

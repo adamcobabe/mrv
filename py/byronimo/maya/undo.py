@@ -14,6 +14,14 @@ Limitations
 -----------
 	- You need a rather long undo queue as undo will count the individual byronimo cmds
 	although most of them are actually not undoable 
+	
+Configuration
+-------------
+To globally disable the undo queue using cmds.undo will disable tracking of opeartions, but will
+still call the mel command.
+
+Disable the 'undoable' decorator effectively remove the surroinding mel script calls using
+sys._maya_undo_enabled = False ( default True )
 
 @todo: more documentation about how to use the system and how it actually works 
 
@@ -47,6 +55,7 @@ def __initialize():
 	import __builtin__
 	setattr( __builtin__, 'undoable', undoable )
 	
+	
 #} END initialization
 
 
@@ -63,6 +72,8 @@ if not hasattr( sys, "_maya_stack_depth" ):
 	sys._maya_stack_depth = 0
 	sys._maya_stack = []
 	
+if not hasattr( sys, "_maya_undo_enabled" ):
+	sys._maya_undo_enabled = True
 
 # command
 class UndoCmd( mpx.MPxCommand ):
@@ -173,7 +184,11 @@ def undoable( func ):
 	@note: Using decorated functions appears to be only FASTER  than implementing it 
 	manually, thus using these is will greatly improve code readability
 	@note: if you use undoable functions, you should mark yourself undoable too - otherwise the 
-	functions you call will create individual undo steps"""
+	functions you call will create individual undo steps
+	@note: if sys._maya_undo_enabled is False, the decorator will do nothing """
+	if not sys._maya_undo_enabled:
+		return func
+	
 	def wrapFunc( *args, **kwargs ):
 		"""This is the long version of the method as it is slightly faster than
 		simply using the StartUndo helper"""
