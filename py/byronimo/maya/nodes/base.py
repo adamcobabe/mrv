@@ -598,8 +598,7 @@ class DependNode( Node ):
 		@note: USING MEL: as api command and mObject array always crashed on me ... don't know :("""
 		if isinstance( attribute, basestring ):
 			attribute = self.getAttribute( attribute )
-			
-		attrs = cmds.affects( attribute.getName() , self, by=by )
+		attrs = cmds.affects( attribute.getName() , str(self), by=by )
 		
 		outattrs = []
 		for attr in attrs:
@@ -661,10 +660,18 @@ class DagNode( Entity, iDagItem ):
 		return not DagNode.__eq__( self, other )
 		
 	def __getitem__( self, index ):
-		"""@return: Node( child )  at index
+		"""@return: if index >= 0: Node( child )  at index                                   
+		if index < 0: Node parent at  -(index+1)( if walking up the hierarchy )
 		@note: returned child can be transform or shape, use L{getShapes} or 
 		L{getChildTransforms} if you need a quickfilter """
-		return self.getChild( index )
+		if index > -1:
+			return self.getChild( index )
+		else:
+			for i,parent in enumerate( self.iterParents( ) ):
+				if i == -(index+1):
+					return parent
+			# END for each parent 
+			raise IndexError( "Parent with index %i did not exist for %r" % ( index, self ) )
 		
 	#}
 	
@@ -1065,7 +1072,7 @@ class DagNode( Entity, iDagItem ):
 	#{ Hierarchy Query
 	
 	def getParentAtIndex( self, index ):
-		"""@return: Node of the parent at the given index
+		"""@return: Node of the parent at the given index - non-instanced nodes only have one parent 
 		@note: if a node is instanced, it can have L{getParentCount} parents
 		@todo: Update dagpath afterwards ! Use dagpaths instead !"""
 		sutil = api.MScriptUtil()

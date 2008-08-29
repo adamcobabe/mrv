@@ -452,6 +452,16 @@ class TestNodeBase( unittest.TestCase ):
 			self.failUnless( removeditem.isValid() and removeditem.isAlive() )
 		# END for each removeChild item 
 		
+		
+	def test_dependnode_getitem( self ):
+		"""byronimo.nodes.maya: DependeNode.__getitem__"""
+		mesh = nodes.createNode( "p1|p2|mesh", "mesh" )
+		self.failUnless( len( list( mesh.iterParents() ) ) == 2 )
+		p2 = mesh.getParent()
+		p1 = p2.getParent()
+		self.failUnless( mesh[-1] == p2 )
+		self.failUnless( mesh[-2] == p1 )
+		self.failUnlessRaises( IndexError, mesh.__getitem__, -3 )
 
 	def test_childEditing( self ):
 		"""byronimo.maya.nodes: tests the add and remove children"""

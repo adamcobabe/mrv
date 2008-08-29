@@ -175,16 +175,7 @@ class iDagItem( object ):
 		
 	def getParentDeep( self ):
 		"""@return: all parents of this path, '/hello/my/world' -> [ '/hello/my','/hello' ]"""
-		out = []
-		curpath = self
-		while True:
-			parent = curpath.getParent( )
-			if not parent:
-				break
-			
-			out.append( parent )
-			curpath = parent
-		# END while true
+		return list( self.iterParents( ) )
 		
 		return out 
 		
@@ -228,6 +219,23 @@ class iDagItem( object ):
 		return out
 		
 	#} END Query Methods
+	
+	#{ Iterators 
+	def iterParents( self , predicate = lambda x : True ):
+		"""@return: generator retrieving all parents up to the root
+		@param predicate: returns True for all x that you want to be returned"""
+		curpath = self
+		while True:
+			parent = curpath.getParent( )
+			if not parent:
+				raise StopIteration
+			
+			yield parent
+			curpath = parent
+		# END while true
+		
+		
+	#} END Iterators 
 
 	#{ Name Generation
 	def getFullChildName( self, childname ):

@@ -472,7 +472,7 @@ class MPlug( api.MPlug, util.iDagItem ):
 		required - this will also be faster
 		@note: have to use MEL :("""
 		ownnode = self.getNode()
-		attrs = cmds.affects( self.getAttribute().getName() , ownnode, by=by )
+		attrs = cmds.affects( self.getAttribute().getName() , str( ownnode ), by=by )
 		
 		outplugs = []
 		depfn = api.MFnDependencyNode( ownnode._apiobj )
