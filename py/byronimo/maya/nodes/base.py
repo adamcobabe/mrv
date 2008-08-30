@@ -82,7 +82,7 @@ def isAbsolutePath( nodename ):
 def toDagPath( apiobj ):
 	"""Find ONE valid dag path to the given dag api object"""
 	dagpath = DagPath( )
-	api.MFnDagNode( childNode._apiobj ).getPath( dagpath )
+	api.MFnDagNode( apiobj ).getPath( dagpath )
 	return dagpath
 	
 
@@ -121,7 +121,7 @@ def toApiobj( nodename ):
 
 
 
-def toApiobjOrDagPath( nodename, dagPlugs=True ):
+def toApiobjOrDagPath( nodename ):
 	"""Convert the given nodename to the respective MObject or DagPath
 	@note: we treat "nodename" and "|nodename" as the same objects as they occupy the 
 	same namespace - one time a dep node is meant, the other time a dag node. 
@@ -629,6 +629,13 @@ class DependNode( Node ):
 	
 	#} END status 
 	
+	#{ General Query  
+	def getObject( self ):
+		"""@return: the MObject attached to this Node"""
+		return self._apiobj
+		
+	#}END general query 
+	
 	#{ Edit Methods 
 	
 	
@@ -747,8 +754,15 @@ class DagNode( Entity, iDagItem ):
 		parenting it under world !
 		@param childNode: Node to unparent - if it is not one of our children, no change takes place 
 		@return: copy of childnode pointing to one valid dag path  
-		@note: the child will dangle in unknown space and might have no parents at all !"""
+		@note: to prevent the child ( if transform ) to dangle in unknown space if the last instance
+		is to be removed, it will instead be reparented to world.
+		@note: removing shapes from their last parent will result in an error"""
 		# print "( %i, %i ) REMOVE CHILD: %r from %r" % ( api.MGlobal.isUndoing(),api.MGlobal.isRedoing(),childNode , self )
+		
+		# reparent if we have a last-instance of something 
+		if isinstance( childNode, nodes.Transform ) and childNode.getInstanceCount( False ) == 1:
+			return childNode.reparent( None )
+			
 		op = undo.GenericOperation( )
 		dagfn = api.MFnDagNode( self._apidagpath )
 		
@@ -1138,8 +1152,26 @@ class DagNode( Entity, iDagItem ):
 		self.getAllPaths( allpaths )
 		return Node( allpaths[ instanceNumber ] )
 		
+	def hasChild( self, node ):
+		"""@return: True if node is a child of self"""
+		return api.MFnDagNode( self._apidagpath ).hasChild( node._apiobj )
+		
+	def getChild( self, index ):
+		"""@return: child of self at index
+		@note: this method fixes the MFnDagNode.child method - it returns an MObject, 
+		which doesnt work well with instanced nodes - a dag path is required, which is what 
+		we use to aquire the object"""
+		return Node( self._apidagpath.getChildPath( index ) )
+		
+	child = getChild 		# assure the mfnmethod cannot be called anymore - its dangerous !
 	#} END hierarchy query
 	
+	#{ General Query  
+	def getDagPath( self ):
+		"""@return: the DagPath attached to this Node"""
+		return DagPath( self._apidagpath )
+		
+	#}END general query 
 	
 	#{ Iterators 
 	def iterInstances( self, excludeSelf = False ):
@@ -1337,7 +1369,6 @@ class DagPath( api.MDagPath, iDagItem ):
 			if predicate( childpath ):
 				outPaths.append( childpath )
 		return outPaths
-		
 		
 	#}                                       
 	
