@@ -296,6 +296,7 @@ class StorageBase( object ):
 	creates its attributes
 	@todo: should self._node be stored as weakref ?"""
 	kValue, kMessage, kStorage = range( 3 )
+	__slots__ = ( '_attrprefix', '_node' )
 	
 	class PyPickleValue( object ):
 		"""Wrapper object prividing native access to the wrapped python pickle object
@@ -343,6 +344,8 @@ class StorageBase( object ):
 	def __init__( self, attrprefix = "", mayaNode = None ):
 		"""Allows customization of this base to modify its behaviour
 		@note: see more information on the input attributes in the class description"""
+		# now one can derive from us and override __setattr__
+		object.__init__( self )
 		self._attrprefix = attrprefix
 		self._node = mayaNode
 		if not mayaNode:
@@ -427,6 +430,14 @@ class StorageBase( object ):
 		@param **kwargs: all arguments supported by L{getStoragePlug}"""
 		storagePlug = self.getStoragePlug( dataID, plugType = StorageBase.kStorage, **kwargs )
 		valplug = storagePlug.dval
+		return StorageBase.getPythonDataFromPlug( valplug )
+		
+		
+	@staticmethod
+	def getPythonDataFromPlug( valplug ):
+		"""Exract the python data using the given plug directly
+		@param valplug: data value plug containing the plugin data 
+		@return: PyPickleData object allowing data access"""
 		
 		# initialize data if required
 		# if the data is null, we do not get a kNullObject, but an exception - fair enough ...
@@ -443,7 +454,6 @@ class StorageBase( object ):
 		# exstract the data
 		#return plugindata.getData()
 		return StorageBase.PyPickleValue( valplug, plugindata.getData( ) )
-		
 		
 	
 	#} END query	
@@ -466,12 +476,7 @@ class StorageNode( nodes.DependNode, StorageBase ):
 		nodes.DependNode.__init__( self, *args )
 		StorageBase.__init__( self )
 	
-	def __getattr__( self, attr ):
-		"""Try to find an attribute by data id in our array and return the plug to it
-		Otherwise ask the default base node for it
-		@note: the plug will be cached once found, so there is no penalty on successive access"""
-		
-		return super( StorageNode, self ).__getattr__( attr )
+	
 	#} END overridden methods 
 	
 

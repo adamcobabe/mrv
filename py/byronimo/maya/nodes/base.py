@@ -478,15 +478,16 @@ class DependNode( Node ):
 		"""Interpret attributes not in our dict as attributes on the wrapped node, 
 		create a plug for it and add it to our class dict, effectively caching the attribute"""
 		depfn = DependNode._mfncls( self._apiobj )
+		base = super( DependNode, self )
 		try:
 			plug = self.findPlug( str(attr) )
 		except RuntimeError:		# perhaps a base class can handle it
 			try: 
-				return super( DependNode, self ).__getattr__( self, attr )
+				return base.__getattr__( self, attr )
 			except AttributeError:
 				raise AttributeError( "Attribute '%s' does not exist on '%s', neither as function not as attribute" % ( attr, self.name() ) )
 		
-		self.__dict__[ attr ] = plug
+		base.__setattr__( attr, plug )
 		return plug
 	
 	def __str__( self ):
