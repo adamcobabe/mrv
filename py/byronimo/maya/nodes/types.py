@@ -192,8 +192,9 @@ class MetaClassCreatorNodes( MetaClassCreator ):
 			# store the new function on instance level !
 			# ... and on class level
 			if newclsfunc:
-				setattr( self, attr, newinstfunc )
-				setattr( actualcls, attr, newclsfunc )
+				# assure we do not call overwridden functions 
+				object.__setattr__( self, attr, newinstfunc )
+				type.__setattr__( actualcls, attr, newclsfunc )		# setattr would do too, but its more dramatic this way :)
 				return newinstfunc
 			
 			

@@ -307,9 +307,12 @@ class StorageBase( object ):
 			"""value plug contains the plugin data in pythondata"""
 			object.__setattr__( self, '_plug', valueplug )
 			object.__setattr__( self, '_pydata', pythondata )
-			object.__setattr__( self, '_isReferenced', valueplug.getNode( ).isFromReferencedFile( ) )
+			object.__setattr__( self, '_isReferenced', valueplug.getNode( ).isReferenced( ) )
 			object.__setattr__( self, '_updateCalled', False )
 			
+		def __iter__( self ):
+			return iter( self._pydata )
+		
 		def __getattr__( self, attr ):
 			return getattr( self._pydata, attr )
 			
@@ -318,7 +321,8 @@ class StorageBase( object ):
 				object.__setattr__( self, attr, val )
 			except AttributeError:
 				self._pydata[ attr ] = val 
-				
+			
+			
 		def __getitem__( self, key ):
 			return self._pydata[ key ]
 			

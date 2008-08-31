@@ -443,7 +443,7 @@ class TestNodeBase( unittest.TestCase ):
 		mesh = nodes.createNode( "base|mesh", "mesh" )
 		
 		for item in [ trans, mesh ]:
-			removeditem = base.removeChild( item )
+			removeditem = base.removeChild( item, allowZeroParents=True )
 		
 			# PATHS ARE INVALID NOW - object is nowhere to be found
 			self.failUnless( not removeditem.isValid() and removeditem.isAlive() )

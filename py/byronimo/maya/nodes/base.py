@@ -331,7 +331,7 @@ def _checkedInstanceCreationDagPathSupport( apiobj_or_dagpath, clsToBeCreated, b
 		api.MFnDagNode( apiobj ).getPath( dagpath )
 	
 	if dagpath:
-		clsinstance._apidagpath = DagPath( dagpath )	# add some convenience to it 
+		object.__setattr__( clsinstance, '_apidagpath', DagPath( dagpath ) )	# add some convenience to it 
 		
 	return clsinstance
 
@@ -366,7 +366,7 @@ def _checkedInstanceCreation( apiobj, typeName, clsToBeCreated, basecls ):
 	# FININSH INSTANCE
 	clsinstance = super( basecls, clsToBeCreated ).__new__( nodeTypeCls )
 	
-	clsinstance._apiobj = apiobj				# set the api object - if this is a string, the called has to take care about it
+	object.__setattr__( clsinstance, '_apiobj',  apiobj )				# set the api object - if this is a string, the called has to take care about it
 	return clsinstance
 
 
@@ -750,10 +750,12 @@ class DagNode( Entity, iDagItem ):
 		return self.addChild( childNode, position = position, keepExistingParent=True )
 	
 	@undoable
-	def removeChild( self, childNode ):
+	def removeChild( self, childNode, allowZeroParents = False ):
 		"""@remove the given childNode ( being a child of this node ) from our child list, effectively 
 		parenting it under world !
-		@param childNode: Node to unparent - if it is not one of our children, no change takes place 
+		@param childNode: Node to unparent - if it is not one of our children, no change takes place
+		@param allowZeroParents: if True, it is possible to leave a node unparented, thus no valid 
+		dag paths leads to it. If False, transforms will just be unparented
 		@return: copy of childnode pointing to one valid dag path  
 		@note: to prevent the child ( if transform ) to dangle in unknown space if the last instance
 		is to be removed, it will instead be reparented to world.
@@ -761,8 +763,16 @@ class DagNode( Entity, iDagItem ):
 		# print "( %i, %i ) REMOVE CHILD: %r from %r" % ( api.MGlobal.isUndoing(),api.MGlobal.isRedoing(),childNode , self )
 		
 		# reparent if we have a last-instance of something 
-		if isinstance( childNode, nodes.Transform ) and childNode.getInstanceCount( False ) == 1:
-			return childNode.reparent( None )
+		if not allowZeroParents:
+			if childNode.getInstanceCount( False ) == 1:
+				if isinstance( childNode, nodes.Transform ):
+					return childNode.reparent( None )
+				else:
+					# must be shape - raise 
+					# TODO: could create new transform node which is pretty close to the maya default behaviour
+					raise RuntimeError( "Shapenodes cannot be unparented if no parent transform would be left" )
+			# END if instance count == 1 
+		# END if not allowZeroParents
 			
 		op = undo.GenericOperation( )
 		dagfn = api.MFnDagNode( self._apidagpath )
