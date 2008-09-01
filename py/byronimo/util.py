@@ -230,7 +230,9 @@ class iDagItem( object ):
 			if not parent:
 				raise StopIteration
 			
-			yield parent
+			if predicate( parent ):	
+				yield parent
+				
 			curpath = parent
 		# END while true
 		
