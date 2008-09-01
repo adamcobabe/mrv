@@ -31,7 +31,7 @@ mayautil = __import__( "byronimo.maya.util", globals(), locals(), [ "util" ] )
 util = __import__( "byronimo.util", globals(), locals(), [ "util" ] )
 import maya.OpenMaya as om
 import maya.cmds as cmds
-from byronimo.maya.reference import FileReference
+refmod = __import__( "byronimo.maya.reference", globals(), locals(), ['reference'] )
 from byronimo.util import iDagItem
 
 
@@ -148,7 +148,7 @@ class Scene( util.Singleton ):
 		@param filepath: filepath of the reference you wish to create
 		@param **kwargs: all arguments supported by L{FileReference.create} 
 		@return: newly created FileReference"""
-		return FileReference.create( filepath, **kwargs )
+		return refmod.FileReference.create( filepath, **kwargs )
 	
 	@staticmethod
 	def importReference( filepath, **kwargs ):
@@ -182,7 +182,7 @@ class Scene( util.Singleton ):
 		@return: list of L{FileReference}s objects"""
 		out = []
 		for reffile in cmds.file( str( referenceFile ), q=1, r=1, un=1 ):
-			refobj = FileReference( filepath = reffile )
+			refobj = refmod.FileReference( filepath = reffile )
 			if predicate( refobj ):
 				out.append( refobj )
 		# END for each reference file
