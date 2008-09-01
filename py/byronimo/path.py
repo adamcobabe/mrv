@@ -30,6 +30,7 @@ TODO
 @newfield revision: Revision
 @newfield id: SVN Id
 """
+from __future__ import generators
 
 __author__='Jason Orendorff <jason.orendorff\x40gmail\x2ecom> (and others - see the url!)'
 __license__='Freeware'
@@ -39,8 +40,6 @@ __id__="$Id: configuration.py 16 2008-05-29 00:30:46Z byron $"
 
 
 
-
-from __future__ import generators
 
 import sys, warnings, os, fnmatch, glob, shutil, codecs
 

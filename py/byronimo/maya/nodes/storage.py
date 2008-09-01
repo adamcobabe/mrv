@@ -301,7 +301,7 @@ class StorageBase( object ):
 	class PyPickleValue( object ):
 		"""Wrapper object prividing native access to the wrapped python pickle object
 		and to the corresponding value plug, providing utlity methods for easier handling"""
-		__slots__ = frozenset( ['_plug', '_pydata', '_isReferenced', '_updateCalled'] )
+		__slots__ = ( '_plug', '_pydata', '_isReferenced', '_updateCalled' )
 		
 		def __init__( self, valueplug, pythondata ):
 			"""value plug contains the plugin data in pythondata"""
@@ -459,7 +459,9 @@ class StorageBase( object ):
 		#return plugindata.getData()
 		return StorageBase.PyPickleValue( valplug, plugindata.getData( ) )
 		
-	
+	def getStorageNode( self ):
+		"""@return: Node actually being used as storage"""
+		return self._node
 	#} END query	
 	
 
