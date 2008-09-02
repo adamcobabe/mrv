@@ -379,6 +379,18 @@ class StorageBase( object ):
 		# otherwise create it - find a free logical index - do a proper search
 		return self.__makePlug( actualID )
 		
+	def clearAll( self ):
+		"""empty the whole storage, creating new python storage data to assure 
+		nothing is still referenced
+		@note: use this method if you want to make sure your node 
+		is empty after it has been duplicated ( would usually be done in the 
+		postContructor"""
+		for compoundplug in self._node.dta:
+			compoundplug.id.setString( "" )
+			compoundplug.dval.setMObject( api.MFnPluginData( ).create( PyPickleData.kPluginDataId ) )
+		
+		
+		
 	#} END edit
 	
 	

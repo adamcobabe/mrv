@@ -23,10 +23,11 @@ import byronimotest.byronimo.maya as common
 import sys
 import maya.cmds as cmds
 import byronimo.maya.undo as undo
+import maya.OpenMaya as api
 import string 
 import random
 import time
-
+import byronimo.maya.nodes.iterators as iterators
 
 
 class TestGeneralPerformance( unittest.TestCase ):
@@ -47,7 +48,7 @@ class TestGeneralPerformance( unittest.TestCase ):
 		return nodes.createNode( name, nodetype, renameOnClash=True )
 		
 	
-	def test_buildTestScene( self ):
+	def _test_buildTestScene( self ):
 		"""byronimo.maya.benchmark.general: build test scene with given amount of nodes  """
 		return 	# disabled		
 		numNodes = 100000
@@ -74,7 +75,7 @@ class TestGeneralPerformance( unittest.TestCase ):
 		bmaya.Scene.save( targetFile )
 		
 	
-	def test_plugs( self ):
+	def _test_plugs( self ):
 		"""byronimo.maya.apipatch: test plug performance"""
 		bmaya.Scene.new( force = True )
 		
@@ -126,9 +127,47 @@ class TestGeneralPerformance( unittest.TestCase ):
 			persp.message >> front.isHistoricallyInteresting
 			persp.message | front.isHistoricallyInteresting
 		measurePlugConnection( "SINGLE PLUGS Connected", singleFunc, conlist )
-		
 	
-	def test_createNodes( self ):
+	def test_dagwalking( self ):
+		"""byronimo.maya.benchmark.general.dagWalking: see how many nodes per second we walk"""
+		# numnodes = [ 2500, 25000, 100000 ]
+		numnodes = [ 2500, 25000 ]
+		for nodecount in numnodes:
+			benchfile = common.get_maya_file( "large_scene_%i.mb" % nodecount )
+			bmaya.Scene.open( benchfile, force = 1 )
+			
+			
+			# NO NODE CONVERSION
+			starttime = time.clock( )
+			
+			#while not iterdag.isDone( ):
+			for dagpath in iterators.iterDagNodes( dagpath = 1 ):
+				pass 
+				
+			elapsed = time.clock() - starttime
+			print "Walked %i nodes in %f s ( %f / s )" % ( nodecount, elapsed, nodecount / elapsed )
+			
+			# WITH NODE CONVERSION
+			starttime = time.clock( )
+			
+			for node in iterators.iterDagNodes( asNode = 1 ):
+				pass 
+			
+			elapsed = time.clock() - starttime
+			print "Walked %i WRAPPED nodes in %f s ( %f / s )" % ( nodecount, elapsed, nodecount / elapsed )
+			
+			
+			# BREADTH
+			starttime = time.clock( )
+			for dagpath in iterators.iterDagNodes( depth = 0 ):
+				pass 
+				
+			elapsed = time.clock() - starttime
+			print "Walked %i nodes BREADTH FIRST in %f s ( %f / s )" % ( nodecount, elapsed, nodecount / elapsed )
+			
+		# END for each run
+	
+	def _test_createNodes( self ):
 		"""byronimo.maya.benchmark.general: test random node creation performance"""
 		bmaya.Scene.new( force = True )
 		runs = [ 100,2500 ]
@@ -247,5 +286,6 @@ def genNodeNames( numNames, dagLevelRange, wordRange, nslist ):
 		nsdagpaths.append( '|'.join( tokens ) )
 	# END for each dagpath 
 	return nsdagpaths
+	
 	
 #} END name generators
