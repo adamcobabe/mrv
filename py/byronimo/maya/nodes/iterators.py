@@ -46,6 +46,7 @@ def getDgIteartor( *args, **kwargs ):
 	@note: use this method if you want to use more advanced features of the iterator"""
 	typeFilter = _argsToFilter( args )
 	iterObj = api.MItDependencyNodes( typeFilter )
+	return iterObj
 
 
 def iterDgNodes( *args, **kwargs ):
@@ -190,35 +191,41 @@ def getGraphIterator( nodeOrPlug, *args, **kwargs ):
 	L{iterGraph}.
 	@note: use this method if you want to use more advanced features of the iterator"""
 	startObj = startPlug = None
+	
+	pa = api.MPlugArray( )			# have to pass a proper empty plug pointer
+	pa.setLength( 1 )				# this is an ugly way to get it - needs just to be valid 
+									# during mit object initialization
 	if isinstance( nodeOrPlug, api.MPlug ):
 		startPlug = nodeOrPlug
-	else:
-		startObj = nodeOrPlug
+		startObj = api.MObject()
+	elif isinstance( nodeOrPlug, nodes.Node ):
+		startObj = nodeOrPlug._apiobj
+		startPlug = pa[0]
 		
-	upstream = kwargs.get('upstream', False)
+	inputPlugs = kwargs.get('input', False)
 	breadth = kwargs.get('breadth', False)
 	plug = kwargs.get('plug', False)
 	prune = kwargs.get('prune', False)
 	typeFilter = _argsToFilter( args )
 
 	if startPlug is not None :
-		typeFilter.setObjectType ( MIteratorType.kMPlugObject )
+		typeFilter.setObjectType( api.MIteratorType.kMPlugObject )
 	else :
-		typeFilter.setObjectType ( MIteratorType.kMObject )
+		typeFilter.setObjectType( api.MIteratorType.kMObject )
 	
-	direction = MItDependencyGraph.kDownstream
-	if upstream :
-		direction = MItDependencyGraph.kUpstream
+	direction = api.MItDependencyGraph.kDownstream
+	if inputPlugs :
+		direction = api.MItDependencyGraph.kUpstream
 		
-	traversal =	 MItDependencyGraph.kDepthFirst
+	traversal =	 api.MItDependencyGraph.kDepthFirst
 	if breadth :
-		traversal = MItDependencyGraph.kBreadthFirst 
+		traversal = api.MItDependencyGraph.kBreadthFirst 
 		
-	level = MItDependencyGraph.kNodeLevel
+	level = api.MItDependencyGraph.kNodeLevel
 	if plug :
-		level = MItDependencyGraph.kPlugLevel
+		level = api.MItDependencyGraph.kPlugLevel
 	
-	iterObj = MItDependencyGraph( startObj, startPlug, typeFilter, direction, traversal, level )
+	iterObj = api.MItDependencyGraph( startObj, startPlug, typeFilter, direction, traversal, level )
 	
 	iterObj.disablePruningOnFilter()
 	if prune :
@@ -232,7 +239,8 @@ def iterGraph( nodeOrPlug, *args, **kwargs ):
 		if no type is provided all connected nodes will be iterated on.
 		Types are specified as Maya API types.
 		The following keywords will affect order and behavior of traversal:
-		@param upstream: if True connections will be followed from destination to source,
+		@param nodeOrPlug: node or plug to start the iteration at
+		@param intput: if True connections will be followed from destination to source,
 				  if False from source to destination
 				  default is False (downstream)
 		@param breadth: if True nodes will be returned as a breadth first traversal of the connection graph,
@@ -243,12 +251,28 @@ def iterGraph( nodeOrPlug, *args, **kwargs ):
 			  default is False (node level)
 		@param prune : if True will stop the iteration on nodes than do not fit the types list,
 				if False these nodes will be traversed but not returned
-				default is False (do not prune) """
+				default is False (do not prune) 
+		@param asNode: if the iteration is on node level, Nodes ( wrapped MObjects ) will be returned
+						If False, MObjects will be returned
+						default False
+		@yield: MObject, Node or Plug depending on the configuration flags
+		@node: based on pymel"""
 	iterObj = getGraphIterator( nodeOrPlug, *args, **kwargs )
+	retrievePlugs = not iterObj.atNodeLevel( )
+	asNode = kwargs.get( "asNode", False )
 	 
 	# iterates and yields MObjects
-	while not iterObj.isDone() :
-		yield (iterObj.thisNode())
+	while not iterObj.isDone():
+		if retrievePlugs:
+			yield iterObj.thisPlug()
+		else:
+			obj = iterObj.currentItem()
+			if asNode:
+				yield nodes.Node( obj )
+			else:
+				yield obj
+		# END if return on node level
 		iterObj.next()
+	# END of iteration 
 	
 

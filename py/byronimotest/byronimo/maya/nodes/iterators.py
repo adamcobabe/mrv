@@ -66,7 +66,7 @@ class TestGeneral( unittest.TestCase ):
 			break
 		
 		# ROOT 
-		########
+		#########
 		# dagpath
 		dagiter = iterDagNodes( root=trans._apidagpath,depth=1,asNode=1 )
 		self.failUnless( dagiter.next() == trans )		# 
@@ -89,8 +89,35 @@ class TestGeneral( unittest.TestCase ):
 	
 	def test_dggraph( self ):
 		"""byronimo.maya.nodes.iterators: simple dg graph iteration"""
-		pass 
+		bmaya.Scene.new( force=1 )
+		persp = nodes.Node( "persp" )
+		front = nodes.Node( "front" )
+		cam = nodes.Node( "persp|perspShape" )
+		
+		persp.t > front.t
+		front.t.tx > cam.fl
+		
+		# NODE LEVEL
+		#############
+		graphiter = iterGraph( persp, input=0, plug=0, asNode=1 )
+		self.failUnless( graphiter.next() == persp )
+		self.failUnless( graphiter.next() == front )
+		self.failUnlessRaises( StopIteration, graphiter.next )
 	
+		# apparently, one cannot easily traverse plugs if just a root node was given
+		graphiter = iterGraph( persp, input=1, plug=1, asNode=1 )
+		self.failUnlessRaises( RuntimeError, graphiter.next )
+	
+		# PLUG LEVEL
+		#############
+		graphiter = iterGraph( persp.t, input=0, plug=1, asNode=1 )
+		self.failUnless( graphiter.next() == persp.t )
+		self.failUnless( graphiter.next() == front.t )
+		
+		# TODO: PLUGLEVEL  + filter 
+		# Currently I do not really have any application for this, so lets wait 
+		# till I need it 
+		
 		
 	def test_dgiter( self ):
 		"""byronimo.maya.nodes.iterators: simple DG iteration"""
