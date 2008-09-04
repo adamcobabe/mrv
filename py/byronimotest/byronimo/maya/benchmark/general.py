@@ -75,7 +75,7 @@ class TestGeneralPerformance( unittest.TestCase ):
 		bmaya.Scene.save( targetFile )
 		
 	
-	def _test_plugs( self ):
+	def test_plugs( self ):
 		"""byronimo.maya.apipatch: test plug performance"""
 		bmaya.Scene.new( force = True )
 		
@@ -167,7 +167,7 @@ class TestGeneralPerformance( unittest.TestCase ):
 			
 		# END for each run
 	
-	def _test_createNodes( self ):
+	def test_createNodes( self ):
 		"""byronimo.maya.benchmark.general: test random node creation performance"""
 		bmaya.Scene.new( force = True )
 		runs = [ 100,2500 ]

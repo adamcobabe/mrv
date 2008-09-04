@@ -32,7 +32,7 @@ __copyright__='(c) 2008 Sebastian Thiel'
 from byronimo.util import uncapitalize, capitalize, IntKeyGenerator, getPythonIndex, iDagItem, Call
 from byronimo.maya.util import StandinClass
 nodes = __import__( "byronimo.maya.nodes", globals(), locals(), ['nodes'] )
-from byronimo.maya.nodes.types import nodeTypeToMfnClsMap, nodeTypeTree
+from types import nodeTypeToMfnClsMap, nodeTypeTree
 import maya.OpenMaya as api
 import maya.cmds as cmds
 import maya.OpenMayaMPx as OpenMayaMPx
