@@ -164,16 +164,16 @@
         <dia:point val="42.26,33.145"/>
       </dia:attribute>
       <dia:attribute name="obj_bb">
-        <dia:rectangle val="42.21,33.095;61.36,46.995"/>
+        <dia:rectangle val="42.21,33.095;65.21,45.9375"/>
       </dia:attribute>
       <dia:attribute name="elem_corner">
         <dia:point val="42.26,33.145"/>
       </dia:attribute>
       <dia:attribute name="elem_width">
-        <dia:real val="19.050000000000001"/>
+        <dia:real val="22.899999999999999"/>
       </dia:attribute>
       <dia:attribute name="elem_height">
-        <dia:real val="13.799999999999999"/>
+        <dia:real val="12.7425"/>
       </dia:attribute>
       <dia:attribute name="name">
         <dia:string>#ProcessBase#</dia:string>
@@ -380,7 +380,7 @@ NOTE: in future, it should just be described useing networkx using the .dot inte
       <dia:attribute name="operations">
         <dia:composite type="umloperation">
           <dia:attribute name="name">
-            <dia:string>#canAchieveGoal#</dia:string>
+            <dia:string>#canOutputTarget#</dia:string>
           </dia:attribute>
           <dia:attribute name="stereotype">
             <dia:string>##</dia:string>
@@ -409,10 +409,10 @@ NOTE: in future, it should just be described useing networkx using the .dot inte
           <dia:attribute name="parameters">
             <dia:composite type="umlparameter">
               <dia:attribute name="name">
-                <dia:string>#Goal#</dia:string>
+                <dia:string>#targetOrType#</dia:string>
               </dia:attribute>
               <dia:attribute name="type">
-                <dia:string>#Object#</dia:string>
+                <dia:string>#Target#</dia:string>
               </dia:attribute>
               <dia:attribute name="value">
                 <dia:string>##</dia:string>
@@ -458,7 +458,7 @@ NOTE: in future, it should just be described useing networkx using the .dot inte
         </dia:composite>
         <dia:composite type="umloperation">
           <dia:attribute name="name">
-            <dia:string>#getInput#</dia:string>
+            <dia:string>#getInputByTarget#</dia:string>
           </dia:attribute>
           <dia:attribute name="stereotype">
             <dia:string>##</dia:string>
@@ -470,7 +470,7 @@ NOTE: in future, it should just be described useing networkx using the .dot inte
             <dia:enum val="2"/>
           </dia:attribute>
           <dia:attribute name="comment">
-            <dia:string>#get input with given ID - an input is the result of another process or just some static data being queried using a common interface#</dia:string>
+            <dia:string>#get input with given ID - it will be passed the target#</dia:string>
           </dia:attribute>
           <dia:attribute name="abstract">
             <dia:boolean val="false"/>
@@ -504,13 +504,13 @@ NOTE: in future, it should just be described useing networkx using the .dot inte
             </dia:composite>
             <dia:composite type="umlparameter">
               <dia:attribute name="name">
-                <dia:string>#goal#</dia:string>
+                <dia:string>#target#</dia:string>
               </dia:attribute>
               <dia:attribute name="type">
-                <dia:string>#Goal#</dia:string>
+                <dia:string>#any#</dia:string>
               </dia:attribute>
               <dia:attribute name="value">
-                <dia:string>#owngoal#</dia:string>
+                <dia:string>#owntarget#</dia:string>
               </dia:attribute>
               <dia:attribute name="comment">
                 <dia:string>##</dia:string>
@@ -523,7 +523,7 @@ NOTE: in future, it should just be described useing networkx using the .dot inte
         </dia:composite>
         <dia:composite type="umloperation">
           <dia:attribute name="name">
-            <dia:string>#getInputByGoal#</dia:string>
+            <dia:string>#getInputByTargetType#</dia:string>
           </dia:attribute>
           <dia:attribute name="stereotype">
             <dia:string>##</dia:string>
@@ -535,7 +535,7 @@ NOTE: in future, it should just be described useing networkx using the .dot inte
             <dia:enum val="2"/>
           </dia:attribute>
           <dia:attribute name="comment">
-            <dia:string>#Get the input from a process able to deliver the given goal best#</dia:string>
+            <dia:string>#Get the input from a process able to deliver the given targettype best#</dia:string>
           </dia:attribute>
           <dia:attribute name="abstract">
             <dia:boolean val="false"/>
@@ -552,16 +552,33 @@ NOTE: in future, it should just be described useing networkx using the .dot inte
           <dia:attribute name="parameters">
             <dia:composite type="umlparameter">
               <dia:attribute name="name">
-                <dia:string>#goal#</dia:string>
+                <dia:string>#target#</dia:string>
               </dia:attribute>
               <dia:attribute name="type">
-                <dia:string>#GoalClsOrInst#</dia:string>
+                <dia:string>#targetType#</dia:string>
               </dia:attribute>
               <dia:attribute name="value">
                 <dia:string>##</dia:string>
               </dia:attribute>
               <dia:attribute name="comment">
                 <dia:string>##</dia:string>
+              </dia:attribute>
+              <dia:attribute name="kind">
+                <dia:enum val="0"/>
+              </dia:attribute>
+            </dia:composite>
+            <dia:composite type="umlparameter">
+              <dia:attribute name="name">
+                <dia:string>#data#</dia:string>
+              </dia:attribute>
+              <dia:attribute name="type">
+                <dia:string>#void#</dia:string>
+              </dia:attribute>
+              <dia:attribute name="value">
+                <dia:string>#None#</dia:string>
+              </dia:attribute>
+              <dia:attribute name="comment">
+                <dia:string>#Data to pass along - if it matches a suitable input type, it will be used automatically if no connection can supply the value otherwise#</dia:string>
               </dia:attribute>
               <dia:attribute name="kind">
                 <dia:enum val="0"/>
@@ -679,7 +696,25 @@ NOTE: in future, it should just be described useing networkx using the .dot inte
           <dia:attribute name="class_scope">
             <dia:boolean val="false"/>
           </dia:attribute>
-          <dia:attribute name="parameters"/>
+          <dia:attribute name="parameters">
+            <dia:composite type="umlparameter">
+              <dia:attribute name="name">
+                <dia:string>#targetType#</dia:string>
+              </dia:attribute>
+              <dia:attribute name="type">
+                <dia:string>##</dia:string>
+              </dia:attribute>
+              <dia:attribute name="value">
+                <dia:string>##</dia:string>
+              </dia:attribute>
+              <dia:attribute name="comment">
+                <dia:string>##</dia:string>
+              </dia:attribute>
+              <dia:attribute name="kind">
+                <dia:enum val="0"/>
+              </dia:attribute>
+            </dia:composite>
+          </dia:attribute>
         </dia:composite>
         <dia:composite type="umloperation">
           <dia:attribute name="name">
@@ -713,108 +748,13 @@ NOTE: in future, it should just be described useing networkx using the .dot inte
         </dia:composite>
         <dia:composite type="umloperation">
           <dia:attribute name="name">
-            <dia:string>#toInputGoal#</dia:string>
+            <dia:string>#getSupportedTargetTypes#</dia:string>
           </dia:attribute>
           <dia:attribute name="stereotype">
             <dia:string>##</dia:string>
           </dia:attribute>
           <dia:attribute name="type">
-            <dia:string>#Goal#</dia:string>
-          </dia:attribute>
-          <dia:attribute name="visibility">
-            <dia:enum val="2"/>
-          </dia:attribute>
-          <dia:attribute name="comment">
-            <dia:string>#Convert own goal to a goal suitable for the given input#</dia:string>
-          </dia:attribute>
-          <dia:attribute name="abstract">
-            <dia:boolean val="false"/>
-          </dia:attribute>
-          <dia:attribute name="inheritance_type">
-            <dia:enum val="1"/>
-          </dia:attribute>
-          <dia:attribute name="query">
-            <dia:boolean val="false"/>
-          </dia:attribute>
-          <dia:attribute name="class_scope">
-            <dia:boolean val="false"/>
-          </dia:attribute>
-          <dia:attribute name="parameters">
-            <dia:composite type="umlparameter">
-              <dia:attribute name="name">
-                <dia:string>#inputclass#</dia:string>
-              </dia:attribute>
-              <dia:attribute name="type">
-                <dia:string>##</dia:string>
-              </dia:attribute>
-              <dia:attribute name="value">
-                <dia:string>##</dia:string>
-              </dia:attribute>
-              <dia:attribute name="comment">
-                <dia:string>##</dia:string>
-              </dia:attribute>
-              <dia:attribute name="kind">
-                <dia:enum val="0"/>
-              </dia:attribute>
-            </dia:composite>
-            <dia:composite type="umlparameter">
-              <dia:attribute name="name">
-                <dia:string>#goal#</dia:string>
-              </dia:attribute>
-              <dia:attribute name="type">
-                <dia:string>#Goal#</dia:string>
-              </dia:attribute>
-              <dia:attribute name="value">
-                <dia:string>##</dia:string>
-              </dia:attribute>
-              <dia:attribute name="comment">
-                <dia:string>#the goal to convert#</dia:string>
-              </dia:attribute>
-              <dia:attribute name="kind">
-                <dia:enum val="0"/>
-              </dia:attribute>
-            </dia:composite>
-          </dia:attribute>
-        </dia:composite>
-        <dia:composite type="umloperation">
-          <dia:attribute name="name">
-            <dia:string>#getRe#</dia:string>
-          </dia:attribute>
-          <dia:attribute name="stereotype">
-            <dia:string>##</dia:string>
-          </dia:attribute>
-          <dia:attribute name="type">
-            <dia:string>##</dia:string>
-          </dia:attribute>
-          <dia:attribute name="visibility">
-            <dia:enum val="0"/>
-          </dia:attribute>
-          <dia:attribute name="comment">
-            <dia:string>##</dia:string>
-          </dia:attribute>
-          <dia:attribute name="abstract">
-            <dia:boolean val="false"/>
-          </dia:attribute>
-          <dia:attribute name="inheritance_type">
-            <dia:enum val="2"/>
-          </dia:attribute>
-          <dia:attribute name="query">
-            <dia:boolean val="false"/>
-          </dia:attribute>
-          <dia:attribute name="class_scope">
-            <dia:boolean val="false"/>
-          </dia:attribute>
-          <dia:attribute name="parameters"/>
-        </dia:composite>
-        <dia:composite type="umloperation">
-          <dia:attribute name="name">
-            <dia:string>#getSupportedGoals#</dia:string>
-          </dia:attribute>
-          <dia:attribute name="stereotype">
-            <dia:string>##</dia:string>
-          </dia:attribute>
-          <dia:attribute name="type">
-            <dia:string>#list of goals#</dia:string>
+            <dia:string>#list of types#</dia:string>
           </dia:attribute>
           <dia:attribute name="visibility">
             <dia:enum val="0"/>
@@ -844,13 +784,13 @@ NOTE: in future, it should just be described useing networkx using the .dot inte
     </dia:object>
     <dia:object type="UML - Class" version="0" id="O4">
       <dia:attribute name="obj_pos">
-        <dia:point val="35.425,14.55"/>
+        <dia:point val="28.725,15.55"/>
       </dia:attribute>
       <dia:attribute name="obj_bb">
-        <dia:rectangle val="35.375,14.5;47.875,18"/>
+        <dia:rectangle val="28.675,15.5;41.175,19"/>
       </dia:attribute>
       <dia:attribute name="elem_corner">
-        <dia:point val="35.425,14.55"/>
+        <dia:point val="28.725,15.55"/>
       </dia:attribute>
       <dia:attribute name="elem_width">
         <dia:real val="12.4"/>
@@ -859,13 +799,13 @@ NOTE: in future, it should just be described useing networkx using the .dot inte
         <dia:real val="3.3999999999999999"/>
       </dia:attribute>
       <dia:attribute name="name">
-        <dia:string>#GoalList#</dia:string>
+        <dia:string>#Target#</dia:string>
       </dia:attribute>
       <dia:attribute name="stereotype">
         <dia:string>##</dia:string>
       </dia:attribute>
       <dia:attribute name="comment">
-        <dia:string>#Describes a goal - this can be anything, from a file, a completed task, a scene file ready for work, and many more#</dia:string>
+        <dia:string>#Describes a specific result of a process#</dia:string>
       </dia:attribute>
       <dia:attribute name="abstract">
         <dia:boolean val="false"/>
@@ -945,17 +885,17 @@ NOTE: in future, it should just be described useing networkx using the .dot inte
       <dia:attribute name="attributes">
         <dia:composite type="umlattribute">
           <dia:attribute name="name">
-            <dia:string>#next_goal#</dia:string>
+            <dia:string>#next_target#</dia:string>
           </dia:attribute>
           <dia:attribute name="type">
-            <dia:string>#Goal_ref#</dia:string>
+            <dia:string>#target_ref#</dia:string>
           </dia:attribute>
           <dia:attribute name="value">
             <dia:string>##</dia:string>
           </dia:attribute>
           <dia:attribute name="comment">
             <dia:string>#The goal being produced next in the processing chain.
-Once the goal is passed back for goal resolution, the callee is able to see 'future' goals alowwing them to influence their decision ( good for selectors ). This way, more versatile classes can be created, reducing code duplication#</dia:string>
+Once the goal is passed back for goal resolution, the callee is able to see 'future' goals alowwing them to influence their decision ( good for selectors ). This way, more versatile classes can be created, reducing code duplication		#</dia:string>
           </dia:attribute>
           <dia:attribute name="visibility">
             <dia:enum val="0"/>
@@ -1208,13 +1148,13 @@ Once the goal is passed back for goal resolution, the callee is able to see 'fut
         <dia:point val="20.17,24.62"/>
       </dia:attribute>
       <dia:attribute name="obj_bb">
-        <dia:rectangle val="20.12,24.57;31.22,30.67"/>
+        <dia:rectangle val="20.12,24.57;33.32,30.67"/>
       </dia:attribute>
       <dia:attribute name="elem_corner">
         <dia:point val="20.17,24.62"/>
       </dia:attribute>
       <dia:attribute name="elem_width">
-        <dia:real val="11"/>
+        <dia:real val="13.1"/>
       </dia:attribute>
       <dia:attribute name="elem_height">
         <dia:real val="6"/>
@@ -1309,7 +1249,7 @@ Storing the edges alloes to easily modify workflows before use without having to
       <dia:attribute name="operations">
         <dia:composite type="umloperation">
           <dia:attribute name="name">
-            <dia:string>#getSuitableProcess#</dia:string>
+            <dia:string>#findProcess#</dia:string>
           </dia:attribute>
           <dia:attribute name="stereotype">
             <dia:string>##</dia:string>
@@ -1321,7 +1261,7 @@ Storing the edges alloes to easily modify workflows before use without having to
             <dia:enum val="0"/>
           </dia:attribute>
           <dia:attribute name="comment">
-            <dia:string>#Return a process suitable to deliver the given goal#</dia:string>
+            <dia:string>#Return a process suitable to deliver the given targetType#</dia:string>
           </dia:attribute>
           <dia:attribute name="abstract">
             <dia:boolean val="false"/>
@@ -1338,10 +1278,10 @@ Storing the edges alloes to easily modify workflows before use without having to
           <dia:attribute name="parameters">
             <dia:composite type="umlparameter">
               <dia:attribute name="name">
-                <dia:string>#goal#</dia:string>
+                <dia:string>#target#</dia:string>
               </dia:attribute>
               <dia:attribute name="type">
-                <dia:string>#Goal#</dia:string>
+                <dia:string>#targetType#</dia:string>
               </dia:attribute>
               <dia:attribute name="value">
                 <dia:string>##</dia:string>
@@ -1465,7 +1405,7 @@ Storing the edges alloes to easily modify workflows before use without having to
         </dia:composite>
         <dia:composite type="umloperation">
           <dia:attribute name="name">
-            <dia:string>#getGoalList#</dia:string>
+            <dia:string>#getTargetTypeList#</dia:string>
           </dia:attribute>
           <dia:attribute name="stereotype">
             <dia:string>##</dia:string>
@@ -1477,7 +1417,7 @@ Storing the edges alloes to easily modify workflows before use without having to
             <dia:enum val="0"/>
           </dia:attribute>
           <dia:attribute name="comment">
-            <dia:string>#return all goals that can be handled by this workflow#</dia:string>
+            <dia:string>#return all targetTypes that can be handled by this workflow#</dia:string>
           </dia:attribute>
           <dia:attribute name="abstract">
             <dia:boolean val="false"/>
@@ -1680,13 +1620,13 @@ Storing the edges alloes to easily modify workflows before use without having to
         <dia:point val="25.705,32.7245"/>
       </dia:attribute>
       <dia:attribute name="obj_bb">
-        <dia:rectangle val="24.855,30.57;26.555,32.7745"/>
+        <dia:rectangle val="24.855,30.57;26.77,32.7745"/>
       </dia:attribute>
       <dia:attribute name="orth_points">
         <dia:point val="25.705,32.7245"/>
         <dia:point val="25.705,31.6723"/>
-        <dia:point val="25.67,31.6723"/>
-        <dia:point val="25.67,30.62"/>
+        <dia:point val="26.72,31.6723"/>
+        <dia:point val="26.72,30.62"/>
       </dia:attribute>
       <dia:attribute name="orth_orient">
         <dia:enum val="1"/>
@@ -1863,14 +1803,14 @@ Storing the edges alloes to easily modify workflows before use without having to
     </dia:object>
     <dia:object type="UML - Generalization" version="1" id="O12">
       <dia:attribute name="obj_pos">
-        <dia:point val="51.785,33.145"/>
+        <dia:point val="53.71,33.145"/>
       </dia:attribute>
       <dia:attribute name="obj_bb">
-        <dia:rectangle val="39.67,28.125;52.635,33.195"/>
+        <dia:rectangle val="39.67,28.125;54.56,33.195"/>
       </dia:attribute>
       <dia:attribute name="orth_points">
-        <dia:point val="51.785,33.145"/>
-        <dia:point val="51.785,30.66"/>
+        <dia:point val="53.71,33.145"/>
+        <dia:point val="53.71,30.66"/>
         <dia:point val="39.72,30.66"/>
         <dia:point val="39.72,28.175"/>
       </dia:attribute>
@@ -2008,15 +1948,15 @@ Storing the edges alloes to easily modify workflows before use without having to
     </dia:object>
     <dia:object type="UML - Generalization" version="1" id="O14">
       <dia:attribute name="obj_pos">
-        <dia:point val="31.17,25.32"/>
+        <dia:point val="33.27,25.32"/>
       </dia:attribute>
       <dia:attribute name="obj_bb">
-        <dia:rectangle val="31.12,24.47;35.9545,26.17"/>
+        <dia:rectangle val="33.22,24.47;35.9545,26.17"/>
       </dia:attribute>
       <dia:attribute name="orth_points">
-        <dia:point val="31.17,25.32"/>
-        <dia:point val="33.5373,25.32"/>
-        <dia:point val="33.5373,25.325"/>
+        <dia:point val="33.27,25.32"/>
+        <dia:point val="34.5873,25.32"/>
+        <dia:point val="34.5873,25.325"/>
         <dia:point val="35.9045,25.325"/>
       </dia:attribute>
       <dia:attribute name="orth_orient">
@@ -2291,14 +2231,14 @@ Storing the edges alloes to easily modify workflows before use without having to
     </dia:object>
     <dia:object type="UML - Generalization" version="1" id="O17">
       <dia:attribute name="obj_pos">
-        <dia:point val="51.785,33.145"/>
+        <dia:point val="53.71,33.145"/>
       </dia:attribute>
       <dia:attribute name="obj_bb">
-        <dia:rectangle val="50.935,27.6125;78.3713,33.195"/>
+        <dia:rectangle val="52.86,27.6125;78.3713,33.195"/>
       </dia:attribute>
       <dia:attribute name="orth_points">
-        <dia:point val="51.785,33.145"/>
-        <dia:point val="51.785,30.4037"/>
+        <dia:point val="53.71,33.145"/>
+        <dia:point val="53.71,30.4037"/>
         <dia:point val="78.3213,30.4037"/>
         <dia:point val="78.3213,27.6625"/>
       </dia:attribute>
@@ -2329,19 +2269,19 @@ Storing the edges alloes to easily modify workflows before use without having to
     </dia:object>
     <dia:object type="UML - LargePackage" version="0" id="O18">
       <dia:attribute name="obj_pos">
-        <dia:point val="19.0875,48.1875"/>
+        <dia:point val="19.0875,44.8125"/>
       </dia:attribute>
       <dia:attribute name="obj_bb">
-        <dia:rectangle val="19.0375,47.1375;39.3375,62.55"/>
+        <dia:rectangle val="19.0375,43.7625;40.3875,62.55"/>
       </dia:attribute>
       <dia:attribute name="elem_corner">
-        <dia:point val="19.0875,48.1875"/>
+        <dia:point val="19.0875,44.8125"/>
       </dia:attribute>
       <dia:attribute name="elem_width">
-        <dia:real val="20.199999999999999"/>
+        <dia:real val="21.249999999999993"/>
       </dia:attribute>
       <dia:attribute name="elem_height">
-        <dia:real val="14.312499999999922"/>
+        <dia:real val="17.687499999999915"/>
       </dia:attribute>
       <dia:attribute name="line_colour">
         <dia:color val="#000000"/>
@@ -2361,13 +2301,13 @@ Storing the edges alloes to easily modify workflows before use without having to
     </dia:object>
     <dia:object type="UML - Class" version="0" id="O19">
       <dia:attribute name="obj_pos">
-        <dia:point val="21.9375,54.05"/>
+        <dia:point val="20.4875,55"/>
       </dia:attribute>
       <dia:attribute name="obj_bb">
-        <dia:rectangle val="21.8875,54;30.2475,56.3"/>
+        <dia:rectangle val="20.4375,54.95;28.7975,57.25"/>
       </dia:attribute>
       <dia:attribute name="elem_corner">
-        <dia:point val="21.9375,54.05"/>
+        <dia:point val="20.4875,55"/>
       </dia:attribute>
       <dia:attribute name="elem_width">
         <dia:real val="8.2599999999999998"/>
@@ -2469,121 +2409,13 @@ Storing the edges alloes to easily modify workflows before use without having to
     </dia:object>
     <dia:object type="UML - Class" version="0" id="O20">
       <dia:attribute name="obj_pos">
-        <dia:point val="20.2875,59.45"/>
+        <dia:point val="21.1375,57.75"/>
       </dia:attribute>
       <dia:attribute name="obj_bb">
-        <dia:rectangle val="20.2375,59.4;30.255,61.7"/>
+        <dia:rectangle val="21.0875,57.7;28.7,60"/>
       </dia:attribute>
       <dia:attribute name="elem_corner">
-        <dia:point val="20.2875,59.45"/>
-      </dia:attribute>
-      <dia:attribute name="elem_width">
-        <dia:real val="9.9175000000000004"/>
-      </dia:attribute>
-      <dia:attribute name="elem_height">
-        <dia:real val="2.1999999999999997"/>
-      </dia:attribute>
-      <dia:attribute name="name">
-        <dia:string>#DirtyAfterComputation#</dia:string>
-      </dia:attribute>
-      <dia:attribute name="stereotype">
-        <dia:string>##</dia:string>
-      </dia:attribute>
-      <dia:attribute name="comment">
-        <dia:string>#Raised if the computed process is still dirty although it has just successfully computed itself#</dia:string>
-      </dia:attribute>
-      <dia:attribute name="abstract">
-        <dia:boolean val="false"/>
-      </dia:attribute>
-      <dia:attribute name="suppress_attributes">
-        <dia:boolean val="false"/>
-      </dia:attribute>
-      <dia:attribute name="suppress_operations">
-        <dia:boolean val="false"/>
-      </dia:attribute>
-      <dia:attribute name="visible_attributes">
-        <dia:boolean val="true"/>
-      </dia:attribute>
-      <dia:attribute name="visible_operations">
-        <dia:boolean val="true"/>
-      </dia:attribute>
-      <dia:attribute name="visible_comments">
-        <dia:boolean val="false"/>
-      </dia:attribute>
-      <dia:attribute name="wrap_operations">
-        <dia:boolean val="true"/>
-      </dia:attribute>
-      <dia:attribute name="wrap_after_char">
-        <dia:int val="40"/>
-      </dia:attribute>
-      <dia:attribute name="comment_line_length">
-        <dia:int val="17"/>
-      </dia:attribute>
-      <dia:attribute name="comment_tagging">
-        <dia:boolean val="false"/>
-      </dia:attribute>
-      <dia:attribute name="line_color">
-        <dia:color val="#000000"/>
-      </dia:attribute>
-      <dia:attribute name="fill_color">
-        <dia:color val="#ffffff"/>
-      </dia:attribute>
-      <dia:attribute name="text_color">
-        <dia:color val="#000000"/>
-      </dia:attribute>
-      <dia:attribute name="normal_font">
-        <dia:font family="monospace" style="0" name="Courier"/>
-      </dia:attribute>
-      <dia:attribute name="abstract_font">
-        <dia:font family="monospace" style="88" name="Courier-BoldOblique"/>
-      </dia:attribute>
-      <dia:attribute name="polymorphic_font">
-        <dia:font family="monospace" style="8" name="Courier-Oblique"/>
-      </dia:attribute>
-      <dia:attribute name="classname_font">
-        <dia:font family="sans" style="80" name="Helvetica-Bold"/>
-      </dia:attribute>
-      <dia:attribute name="abstract_classname_font">
-        <dia:font family="sans" style="88" name="Helvetica-BoldOblique"/>
-      </dia:attribute>
-      <dia:attribute name="comment_font">
-        <dia:font family="sans" style="8" name="Helvetica-Oblique"/>
-      </dia:attribute>
-      <dia:attribute name="normal_font_height">
-        <dia:real val="0.80000000000000004"/>
-      </dia:attribute>
-      <dia:attribute name="polymorphic_font_height">
-        <dia:real val="0.80000000000000004"/>
-      </dia:attribute>
-      <dia:attribute name="abstract_font_height">
-        <dia:real val="0.80000000000000004"/>
-      </dia:attribute>
-      <dia:attribute name="classname_font_height">
-        <dia:real val="1"/>
-      </dia:attribute>
-      <dia:attribute name="abstract_classname_font_height">
-        <dia:real val="1"/>
-      </dia:attribute>
-      <dia:attribute name="comment_font_height">
-        <dia:real val="0.69999999999999996"/>
-      </dia:attribute>
-      <dia:attribute name="attributes"/>
-      <dia:attribute name="operations"/>
-      <dia:attribute name="template">
-        <dia:boolean val="false"/>
-      </dia:attribute>
-      <dia:attribute name="templates"/>
-      <dia:childnode parent="O18"/>
-    </dia:object>
-    <dia:object type="UML - Class" version="0" id="O21">
-      <dia:attribute name="obj_pos">
-        <dia:point val="22.5875,56.8"/>
-      </dia:attribute>
-      <dia:attribute name="obj_bb">
-        <dia:rectangle val="22.5375,56.75;30.15,59.05"/>
-      </dia:attribute>
-      <dia:attribute name="elem_corner">
-        <dia:point val="22.5875,56.8"/>
+        <dia:point val="21.1375,57.75"/>
       </dia:attribute>
       <dia:attribute name="elem_width">
         <dia:real val="7.5125000000000002"/>
@@ -2683,7 +2515,7 @@ Storing the edges alloes to easily modify workflows before use without having to
       <dia:attribute name="templates"/>
       <dia:childnode parent="O18"/>
     </dia:object>
-    <dia:object type="UML - Dependency" version="1" id="O22">
+    <dia:object type="UML - Dependency" version="1" id="O21">
       <dia:attribute name="obj_pos">
         <dia:point val="27.55,11.55"/>
       </dia:attribute>
@@ -2722,7 +2554,7 @@ Storing the edges alloes to easily modify workflows before use without having to
         <dia:connection handle="1" to="O15" connection="1"/>
       </dia:connections>
     </dia:object>
-    <dia:object type="UML - Note" version="0" id="O23">
+    <dia:object type="UML - Note" version="0" id="O22">
       <dia:attribute name="obj_pos">
         <dia:point val="14.7875,-5.6"/>
       </dia:attribute>
@@ -2767,7 +2599,7 @@ Storing the edges alloes to easily modify workflows before use without having to
         </dia:composite>
       </dia:attribute>
     </dia:object>
-    <dia:object type="UML - Note" version="0" id="O24">
+    <dia:object type="UML - Note" version="0" id="O23">
       <dia:attribute name="obj_pos">
         <dia:point val="14.7575,-2.3925"/>
       </dia:attribute>
@@ -2812,7 +2644,7 @@ Storing the edges alloes to easily modify workflows before use without having to
         </dia:composite>
       </dia:attribute>
     </dia:object>
-    <dia:object type="UML - Note" version="0" id="O25">
+    <dia:object type="UML - Note" version="0" id="O24">
       <dia:attribute name="obj_pos">
         <dia:point val="14.7375,0.65"/>
       </dia:attribute>
@@ -2857,15 +2689,15 @@ Storing the edges alloes to easily modify workflows before use without having to
         </dia:composite>
       </dia:attribute>
     </dia:object>
-    <dia:object type="UML - Class" version="0" id="O26">
+    <dia:object type="UML - Class" version="0" id="O25">
       <dia:attribute name="obj_pos">
-        <dia:point val="32.7375,59.425"/>
+        <dia:point val="34.0875,59.475"/>
       </dia:attribute>
       <dia:attribute name="obj_bb">
-        <dia:rectangle val="32.6875,59.375;37.935,61.675"/>
+        <dia:rectangle val="34.0375,59.425;39.285,61.725"/>
       </dia:attribute>
       <dia:attribute name="elem_corner">
-        <dia:point val="32.7375,59.425"/>
+        <dia:point val="34.0875,59.475"/>
       </dia:attribute>
       <dia:attribute name="elem_width">
         <dia:real val="5.1475"/>
@@ -2965,21 +2797,19 @@ Storing the edges alloes to easily modify workflows before use without having to
       <dia:attribute name="templates"/>
       <dia:childnode parent="O18"/>
     </dia:object>
-    <dia:object type="UML - Generalization" version="1" id="O27">
+    <dia:object type="UML - Generalization" version="1" id="O26">
       <dia:attribute name="obj_pos">
-        <dia:point val="32.7375,60.125"/>
+        <dia:point val="36.6612,59.475"/>
       </dia:attribute>
       <dia:attribute name="obj_bb">
-        <dia:rectangle val="30.155,59.275;32.7875,60.975"/>
+        <dia:rectangle val="28.6,57.65;37.5112,59.525"/>
       </dia:attribute>
       <dia:attribute name="orth_points">
-        <dia:point val="32.7375,60.125"/>
-        <dia:point val="31.4712,60.125"/>
-        <dia:point val="31.4712,60.15"/>
-        <dia:point val="30.205,60.15"/>
+        <dia:point val="36.6612,59.475"/>
+        <dia:point val="36.6612,58.45"/>
+        <dia:point val="28.65,58.45"/>
       </dia:attribute>
       <dia:attribute name="orth_orient">
-        <dia:enum val="0"/>
         <dia:enum val="1"/>
         <dia:enum val="0"/>
       </dia:attribute>
@@ -2999,22 +2829,22 @@ Storing the edges alloes to easily modify workflows before use without having to
         <dia:string>##</dia:string>
       </dia:attribute>
       <dia:connections>
-        <dia:connection handle="0" to="O26" connection="3"/>
+        <dia:connection handle="0" to="O25" connection="1"/>
         <dia:connection handle="1" to="O20" connection="4"/>
       </dia:connections>
       <dia:childnode parent="O18"/>
     </dia:object>
-    <dia:object type="UML - Generalization" version="1" id="O28">
+    <dia:object type="UML - Generalization" version="1" id="O27">
       <dia:attribute name="obj_pos">
-        <dia:point val="35.3112,59.425"/>
+        <dia:point val="36.6612,59.475"/>
       </dia:attribute>
       <dia:attribute name="obj_bb">
-        <dia:rectangle val="30.05,56.7;36.1612,59.475"/>
+        <dia:rectangle val="28.6975,54.9;37.5112,59.525"/>
       </dia:attribute>
       <dia:attribute name="orth_points">
-        <dia:point val="35.3112,59.425"/>
-        <dia:point val="35.3112,57.5"/>
-        <dia:point val="30.1,57.5"/>
+        <dia:point val="36.6612,59.475"/>
+        <dia:point val="36.6612,55.7"/>
+        <dia:point val="28.7475,55.7"/>
       </dia:attribute>
       <dia:attribute name="orth_orient">
         <dia:enum val="1"/>
@@ -3036,58 +2866,21 @@ Storing the edges alloes to easily modify workflows before use without having to
         <dia:string>##</dia:string>
       </dia:attribute>
       <dia:connections>
-        <dia:connection handle="0" to="O26" connection="1"/>
-        <dia:connection handle="1" to="O21" connection="4"/>
-      </dia:connections>
-      <dia:childnode parent="O18"/>
-    </dia:object>
-    <dia:object type="UML - Generalization" version="1" id="O29">
-      <dia:attribute name="obj_pos">
-        <dia:point val="35.3112,59.425"/>
-      </dia:attribute>
-      <dia:attribute name="obj_bb">
-        <dia:rectangle val="30.1475,53.95;36.1612,59.475"/>
-      </dia:attribute>
-      <dia:attribute name="orth_points">
-        <dia:point val="35.3112,59.425"/>
-        <dia:point val="35.3112,54.75"/>
-        <dia:point val="30.1975,54.75"/>
-      </dia:attribute>
-      <dia:attribute name="orth_orient">
-        <dia:enum val="1"/>
-        <dia:enum val="0"/>
-      </dia:attribute>
-      <dia:attribute name="orth_autoroute">
-        <dia:boolean val="true"/>
-      </dia:attribute>
-      <dia:attribute name="text_colour">
-        <dia:color val="#000000"/>
-      </dia:attribute>
-      <dia:attribute name="line_colour">
-        <dia:color val="#000000"/>
-      </dia:attribute>
-      <dia:attribute name="name">
-        <dia:string>##</dia:string>
-      </dia:attribute>
-      <dia:attribute name="stereotype">
-        <dia:string>##</dia:string>
-      </dia:attribute>
-      <dia:connections>
-        <dia:connection handle="0" to="O26" connection="1"/>
+        <dia:connection handle="0" to="O25" connection="1"/>
         <dia:connection handle="1" to="O19" connection="4"/>
       </dia:connections>
     </dia:object>
-    <dia:object type="UML - Generalization" version="1" id="O30">
+    <dia:object type="UML - Generalization" version="1" id="O28">
       <dia:attribute name="obj_pos">
-        <dia:point val="35.3112,59.425"/>
+        <dia:point val="36.6612,59.475"/>
       </dia:attribute>
       <dia:attribute name="obj_bb">
-        <dia:rectangle val="29.6025,48.525;36.1612,59.475"/>
+        <dia:rectangle val="28.1525,49.475;37.5112,59.525"/>
       </dia:attribute>
       <dia:attribute name="orth_points">
-        <dia:point val="35.3112,59.425"/>
-        <dia:point val="35.3112,49.325"/>
-        <dia:point val="29.6525,49.325"/>
+        <dia:point val="36.6612,59.475"/>
+        <dia:point val="36.6612,50.275"/>
+        <dia:point val="28.2025,50.275"/>
       </dia:attribute>
       <dia:attribute name="orth_orient">
         <dia:enum val="1"/>
@@ -3109,12 +2902,12 @@ Storing the edges alloes to easily modify workflows before use without having to
         <dia:string>##</dia:string>
       </dia:attribute>
       <dia:connections>
-        <dia:connection handle="0" to="O26" connection="1"/>
-        <dia:connection handle="1" to="O39" connection="4"/>
+        <dia:connection handle="0" to="O25" connection="1"/>
+        <dia:connection handle="1" to="O37" connection="4"/>
       </dia:connections>
       <dia:childnode parent="O18"/>
     </dia:object>
-    <dia:object type="UML - Note" version="0" id="O31">
+    <dia:object type="UML - Note" version="0" id="O29">
       <dia:attribute name="obj_pos">
         <dia:point val="15.0375,3.3"/>
       </dia:attribute>
@@ -3160,7 +2953,7 @@ Storing the edges alloes to easily modify workflows before use without having to
         </dia:composite>
       </dia:attribute>
     </dia:object>
-    <dia:object type="UML - Class" version="0" id="O32">
+    <dia:object type="UML - Class" version="0" id="O30">
       <dia:attribute name="obj_pos">
         <dia:point val="45.615,23.92"/>
       </dia:attribute>
@@ -3268,16 +3061,16 @@ Base implementation just passes on the call.#</dia:string>
       </dia:attribute>
       <dia:attribute name="templates"/>
     </dia:object>
-    <dia:object type="UML - Generalization" version="1" id="O33">
+    <dia:object type="UML - Generalization" version="1" id="O31">
       <dia:attribute name="obj_pos">
-        <dia:point val="51.785,33.145"/>
+        <dia:point val="53.71,33.145"/>
       </dia:attribute>
       <dia:attribute name="obj_bb">
-        <dia:rectangle val="48.0063,26.07;52.635,33.195"/>
+        <dia:rectangle val="48.0063,26.07;54.56,33.195"/>
       </dia:attribute>
       <dia:attribute name="orth_points">
-        <dia:point val="51.785,33.145"/>
-        <dia:point val="51.785,29.6325"/>
+        <dia:point val="53.71,33.145"/>
+        <dia:point val="53.71,29.6325"/>
         <dia:point val="48.0563,29.6325"/>
         <dia:point val="48.0563,26.12"/>
       </dia:attribute>
@@ -3303,10 +3096,10 @@ Base implementation just passes on the call.#</dia:string>
       </dia:attribute>
       <dia:connections>
         <dia:connection handle="0" to="O3" connection="1"/>
-        <dia:connection handle="1" to="O32" connection="6"/>
+        <dia:connection handle="1" to="O30" connection="6"/>
       </dia:connections>
     </dia:object>
-    <dia:object type="UML - Class" version="0" id="O34">
+    <dia:object type="UML - Class" version="0" id="O32">
       <dia:attribute name="obj_pos">
         <dia:point val="54.835,23.9275"/>
       </dia:attribute>
@@ -3413,16 +3206,16 @@ Base implementation just passes on the call.#</dia:string>
       </dia:attribute>
       <dia:attribute name="templates"/>
     </dia:object>
-    <dia:object type="UML - Generalization" version="1" id="O35">
+    <dia:object type="UML - Generalization" version="1" id="O33">
       <dia:attribute name="obj_pos">
-        <dia:point val="51.785,33.145"/>
+        <dia:point val="53.71,33.145"/>
       </dia:attribute>
       <dia:attribute name="obj_bb">
-        <dia:rectangle val="50.935,26.0775;57.9288,33.195"/>
+        <dia:rectangle val="52.86,26.0775;57.9288,33.195"/>
       </dia:attribute>
       <dia:attribute name="orth_points">
-        <dia:point val="51.785,33.145"/>
-        <dia:point val="51.785,29.6362"/>
+        <dia:point val="53.71,33.145"/>
+        <dia:point val="53.71,29.6362"/>
         <dia:point val="57.8788,29.6362"/>
         <dia:point val="57.8788,26.1275"/>
       </dia:attribute>
@@ -3448,10 +3241,10 @@ Base implementation just passes on the call.#</dia:string>
       </dia:attribute>
       <dia:connections>
         <dia:connection handle="0" to="O3" connection="1"/>
-        <dia:connection handle="1" to="O34" connection="6"/>
+        <dia:connection handle="1" to="O32" connection="6"/>
       </dia:connections>
     </dia:object>
-    <dia:object type="UML - Note" version="0" id="O36">
+    <dia:object type="UML - Note" version="0" id="O34">
       <dia:attribute name="obj_pos">
         <dia:point val="14.9575,-11.1925"/>
       </dia:attribute>
@@ -3496,24 +3289,24 @@ Base implementation just passes on the call.#</dia:string>
         </dia:composite>
       </dia:attribute>
     </dia:object>
-    <dia:object type="UML - Class" version="0" id="O37">
+    <dia:object type="UML - Class" version="0" id="O35">
       <dia:attribute name="obj_pos">
-        <dia:point val="22.6875,51.2375"/>
+        <dia:point val="21.2375,52.1875"/>
       </dia:attribute>
       <dia:attribute name="obj_bb">
-        <dia:rectangle val="22.6375,51.1875;29.57,53.4875"/>
+        <dia:rectangle val="21.1875,52.1375;28.565,54.4375"/>
       </dia:attribute>
       <dia:attribute name="elem_corner">
-        <dia:point val="22.6875,51.2375"/>
+        <dia:point val="21.2375,52.1875"/>
       </dia:attribute>
       <dia:attribute name="elem_width">
-        <dia:real val="6.8325000000000005"/>
+        <dia:real val="7.2775000000000007"/>
       </dia:attribute>
       <dia:attribute name="elem_height">
         <dia:real val="2.1999999999999997"/>
       </dia:attribute>
       <dia:attribute name="name">
-        <dia:string>#AmbitiousInput#</dia:string>
+        <dia:string>#AmbiguousInput#</dia:string>
       </dia:attribute>
       <dia:attribute name="stereotype">
         <dia:string>##</dia:string>
@@ -3604,17 +3397,17 @@ Base implementation just passes on the call.#</dia:string>
       <dia:attribute name="templates"/>
       <dia:childnode parent="O18"/>
     </dia:object>
-    <dia:object type="UML - Generalization" version="1" id="O38">
+    <dia:object type="UML - Generalization" version="1" id="O36">
       <dia:attribute name="obj_pos">
-        <dia:point val="35.3112,59.425"/>
+        <dia:point val="36.6612,59.475"/>
       </dia:attribute>
       <dia:attribute name="obj_bb">
-        <dia:rectangle val="29.47,51.1375;36.1612,59.475"/>
+        <dia:rectangle val="28.465,52.0875;37.5112,59.525"/>
       </dia:attribute>
       <dia:attribute name="orth_points">
-        <dia:point val="35.3112,59.425"/>
-        <dia:point val="35.3112,51.9375"/>
-        <dia:point val="29.52,51.9375"/>
+        <dia:point val="36.6612,59.475"/>
+        <dia:point val="36.6612,52.8875"/>
+        <dia:point val="28.515,52.8875"/>
       </dia:attribute>
       <dia:attribute name="orth_orient">
         <dia:enum val="1"/>
@@ -3636,19 +3429,19 @@ Base implementation just passes on the call.#</dia:string>
         <dia:string>##</dia:string>
       </dia:attribute>
       <dia:connections>
-        <dia:connection handle="0" to="O26" connection="1"/>
-        <dia:connection handle="1" to="O37" connection="4"/>
+        <dia:connection handle="0" to="O25" connection="1"/>
+        <dia:connection handle="1" to="O35" connection="4"/>
       </dia:connections>
     </dia:object>
-    <dia:object type="UML - Class" version="0" id="O39">
+    <dia:object type="UML - Class" version="0" id="O37">
       <dia:attribute name="obj_pos">
-        <dia:point val="24.8875,48.625"/>
+        <dia:point val="23.4375,49.575"/>
       </dia:attribute>
       <dia:attribute name="obj_bb">
-        <dia:rectangle val="24.8375,48.575;29.7025,50.875"/>
+        <dia:rectangle val="23.3875,49.525;28.2525,51.825"/>
       </dia:attribute>
       <dia:attribute name="elem_corner">
-        <dia:point val="24.8875,48.625"/>
+        <dia:point val="23.4375,49.575"/>
       </dia:attribute>
       <dia:attribute name="elem_width">
         <dia:real val="4.7649999999999997"/>
@@ -3748,7 +3541,7 @@ Base implementation just passes on the call.#</dia:string>
       <dia:attribute name="templates"/>
       <dia:childnode parent="O18"/>
     </dia:object>
-    <dia:object type="UML - Note" version="0" id="O40">
+    <dia:object type="UML - Note" version="0" id="O38">
       <dia:attribute name="obj_pos">
         <dia:point val="14.8275,-14.185"/>
       </dia:attribute>
@@ -3794,7 +3587,7 @@ return the currently evaluated path through the graph#</dia:string>
         </dia:composite>
       </dia:attribute>
     </dia:object>
-    <dia:object type="UML - LargePackage" version="0" id="O41">
+    <dia:object type="UML - LargePackage" version="0" id="O39">
       <dia:attribute name="obj_pos">
         <dia:point val="64.0275,22.4225"/>
       </dia:attribute>
@@ -3826,7 +3619,7 @@ return the currently evaluated path through the graph#</dia:string>
         <dia:string>#Generator#</dia:string>
       </dia:attribute>
     </dia:object>
-    <dia:object type="UML - Class" version="0" id="O42">
+    <dia:object type="UML - Class" version="0" id="O40">
       <dia:attribute name="obj_pos">
         <dia:point val="65.455,23.995"/>
       </dia:attribute>
@@ -3933,16 +3726,16 @@ return the currently evaluated path through the graph#</dia:string>
       </dia:attribute>
       <dia:attribute name="templates"/>
     </dia:object>
-    <dia:object type="UML - Generalization" version="1" id="O43">
+    <dia:object type="UML - Generalization" version="1" id="O41">
       <dia:attribute name="obj_pos">
-        <dia:point val="51.785,33.145"/>
+        <dia:point val="53.71,33.145"/>
       </dia:attribute>
       <dia:attribute name="obj_bb">
-        <dia:rectangle val="50.935,26.145;67.8388,33.195"/>
+        <dia:rectangle val="52.86,26.145;67.8388,33.195"/>
       </dia:attribute>
       <dia:attribute name="orth_points">
-        <dia:point val="51.785,33.145"/>
-        <dia:point val="51.785,29.67"/>
+        <dia:point val="53.71,33.145"/>
+        <dia:point val="53.71,29.67"/>
         <dia:point val="67.7888,29.67"/>
         <dia:point val="67.7888,26.195"/>
       </dia:attribute>
@@ -3968,10 +3761,10 @@ return the currently evaluated path through the graph#</dia:string>
       </dia:attribute>
       <dia:connections>
         <dia:connection handle="0" to="O3" connection="1"/>
-        <dia:connection handle="1" to="O42" connection="6"/>
+        <dia:connection handle="1" to="O40" connection="6"/>
       </dia:connections>
     </dia:object>
-    <dia:object type="UML - Note" version="0" id="O44">
+    <dia:object type="UML - Note" version="0" id="O42">
       <dia:attribute name="obj_pos">
         <dia:point val="55.3375,5.7375"/>
       </dia:attribute>
@@ -4016,7 +3809,7 @@ return the currently evaluated path through the graph#</dia:string>
         </dia:composite>
       </dia:attribute>
     </dia:object>
-    <dia:object type="UML - Note" version="0" id="O45">
+    <dia:object type="UML - Note" version="0" id="O43">
       <dia:attribute name="obj_pos">
         <dia:point val="54.8875,9.7875"/>
       </dia:attribute>
@@ -4061,6 +3854,312 @@ Goal and output types must be documented#</dia:string>
           </dia:attribute>
         </dia:composite>
       </dia:attribute>
+    </dia:object>
+    <dia:object type="UML - Class" version="0" id="O44">
+      <dia:attribute name="obj_pos">
+        <dia:point val="21.4475,46.9175"/>
+      </dia:attribute>
+      <dia:attribute name="obj_bb">
+        <dia:rectangle val="21.3975,46.8675;28.1675,49.1675"/>
+      </dia:attribute>
+      <dia:attribute name="elem_corner">
+        <dia:point val="21.4475,46.9175"/>
+      </dia:attribute>
+      <dia:attribute name="elem_width">
+        <dia:real val="6.6699999999999999"/>
+      </dia:attribute>
+      <dia:attribute name="elem_height">
+        <dia:real val="2.1999999999999997"/>
+      </dia:attribute>
+      <dia:attribute name="name">
+        <dia:string>#InputNotFound#</dia:string>
+      </dia:attribute>
+      <dia:attribute name="stereotype">
+        <dia:string>##</dia:string>
+      </dia:attribute>
+      <dia:attribute name="comment">
+        <dia:string>#A cycle has been detected during execution#</dia:string>
+      </dia:attribute>
+      <dia:attribute name="abstract">
+        <dia:boolean val="false"/>
+      </dia:attribute>
+      <dia:attribute name="suppress_attributes">
+        <dia:boolean val="false"/>
+      </dia:attribute>
+      <dia:attribute name="suppress_operations">
+        <dia:boolean val="false"/>
+      </dia:attribute>
+      <dia:attribute name="visible_attributes">
+        <dia:boolean val="true"/>
+      </dia:attribute>
+      <dia:attribute name="visible_operations">
+        <dia:boolean val="true"/>
+      </dia:attribute>
+      <dia:attribute name="visible_comments">
+        <dia:boolean val="false"/>
+      </dia:attribute>
+      <dia:attribute name="wrap_operations">
+        <dia:boolean val="true"/>
+      </dia:attribute>
+      <dia:attribute name="wrap_after_char">
+        <dia:int val="40"/>
+      </dia:attribute>
+      <dia:attribute name="comment_line_length">
+        <dia:int val="17"/>
+      </dia:attribute>
+      <dia:attribute name="comment_tagging">
+        <dia:boolean val="false"/>
+      </dia:attribute>
+      <dia:attribute name="line_color">
+        <dia:color val="#000000"/>
+      </dia:attribute>
+      <dia:attribute name="fill_color">
+        <dia:color val="#ffffff"/>
+      </dia:attribute>
+      <dia:attribute name="text_color">
+        <dia:color val="#000000"/>
+      </dia:attribute>
+      <dia:attribute name="normal_font">
+        <dia:font family="monospace" style="0" name="Courier"/>
+      </dia:attribute>
+      <dia:attribute name="abstract_font">
+        <dia:font family="monospace" style="88" name="Courier-BoldOblique"/>
+      </dia:attribute>
+      <dia:attribute name="polymorphic_font">
+        <dia:font family="monospace" style="8" name="Courier-Oblique"/>
+      </dia:attribute>
+      <dia:attribute name="classname_font">
+        <dia:font family="sans" style="80" name="Helvetica-Bold"/>
+      </dia:attribute>
+      <dia:attribute name="abstract_classname_font">
+        <dia:font family="sans" style="88" name="Helvetica-BoldOblique"/>
+      </dia:attribute>
+      <dia:attribute name="comment_font">
+        <dia:font family="sans" style="8" name="Helvetica-Oblique"/>
+      </dia:attribute>
+      <dia:attribute name="normal_font_height">
+        <dia:real val="0.80000000000000004"/>
+      </dia:attribute>
+      <dia:attribute name="polymorphic_font_height">
+        <dia:real val="0.80000000000000004"/>
+      </dia:attribute>
+      <dia:attribute name="abstract_font_height">
+        <dia:real val="0.80000000000000004"/>
+      </dia:attribute>
+      <dia:attribute name="classname_font_height">
+        <dia:real val="1"/>
+      </dia:attribute>
+      <dia:attribute name="abstract_classname_font_height">
+        <dia:real val="1"/>
+      </dia:attribute>
+      <dia:attribute name="comment_font_height">
+        <dia:real val="0.69999999999999996"/>
+      </dia:attribute>
+      <dia:attribute name="attributes"/>
+      <dia:attribute name="operations"/>
+      <dia:attribute name="template">
+        <dia:boolean val="false"/>
+      </dia:attribute>
+      <dia:attribute name="templates"/>
+    </dia:object>
+    <dia:object type="UML - Generalization" version="1" id="O45">
+      <dia:attribute name="obj_pos">
+        <dia:point val="36.6612,59.475"/>
+      </dia:attribute>
+      <dia:attribute name="obj_bb">
+        <dia:rectangle val="28.0675,46.8175;37.5112,59.525"/>
+      </dia:attribute>
+      <dia:attribute name="orth_points">
+        <dia:point val="36.6612,59.475"/>
+        <dia:point val="36.6612,47.6175"/>
+        <dia:point val="28.1175,47.6175"/>
+      </dia:attribute>
+      <dia:attribute name="orth_orient">
+        <dia:enum val="1"/>
+        <dia:enum val="0"/>
+      </dia:attribute>
+      <dia:attribute name="orth_autoroute">
+        <dia:boolean val="true"/>
+      </dia:attribute>
+      <dia:attribute name="text_colour">
+        <dia:color val="#000000"/>
+      </dia:attribute>
+      <dia:attribute name="line_colour">
+        <dia:color val="#000000"/>
+      </dia:attribute>
+      <dia:attribute name="name">
+        <dia:string>##</dia:string>
+      </dia:attribute>
+      <dia:attribute name="stereotype">
+        <dia:string>##</dia:string>
+      </dia:attribute>
+      <dia:connections>
+        <dia:connection handle="0" to="O25" connection="1"/>
+        <dia:connection handle="1" to="O44" connection="4"/>
+      </dia:connections>
+    </dia:object>
+    <dia:object type="UML - Class" version="0" id="O46">
+      <dia:attribute name="obj_pos">
+        <dia:point val="42.5125,15.68"/>
+      </dia:attribute>
+      <dia:attribute name="obj_bb">
+        <dia:rectangle val="42.4625,15.63;54.9625,19.13"/>
+      </dia:attribute>
+      <dia:attribute name="elem_corner">
+        <dia:point val="42.5125,15.68"/>
+      </dia:attribute>
+      <dia:attribute name="elem_width">
+        <dia:real val="12.4"/>
+      </dia:attribute>
+      <dia:attribute name="elem_height">
+        <dia:real val="3.3999999999999999"/>
+      </dia:attribute>
+      <dia:attribute name="name">
+        <dia:string>#TargetType#</dia:string>
+      </dia:attribute>
+      <dia:attribute name="stereotype">
+        <dia:string>##</dia:string>
+      </dia:attribute>
+      <dia:attribute name="comment">
+        <dia:string>#Given to processes to determine whether they can produce a given target#</dia:string>
+      </dia:attribute>
+      <dia:attribute name="abstract">
+        <dia:boolean val="false"/>
+      </dia:attribute>
+      <dia:attribute name="suppress_attributes">
+        <dia:boolean val="false"/>
+      </dia:attribute>
+      <dia:attribute name="suppress_operations">
+        <dia:boolean val="false"/>
+      </dia:attribute>
+      <dia:attribute name="visible_attributes">
+        <dia:boolean val="true"/>
+      </dia:attribute>
+      <dia:attribute name="visible_operations">
+        <dia:boolean val="true"/>
+      </dia:attribute>
+      <dia:attribute name="visible_comments">
+        <dia:boolean val="false"/>
+      </dia:attribute>
+      <dia:attribute name="wrap_operations">
+        <dia:boolean val="true"/>
+      </dia:attribute>
+      <dia:attribute name="wrap_after_char">
+        <dia:int val="40"/>
+      </dia:attribute>
+      <dia:attribute name="comment_line_length">
+        <dia:int val="17"/>
+      </dia:attribute>
+      <dia:attribute name="comment_tagging">
+        <dia:boolean val="false"/>
+      </dia:attribute>
+      <dia:attribute name="line_color">
+        <dia:color val="#000000"/>
+      </dia:attribute>
+      <dia:attribute name="fill_color">
+        <dia:color val="#70b370"/>
+      </dia:attribute>
+      <dia:attribute name="text_color">
+        <dia:color val="#000000"/>
+      </dia:attribute>
+      <dia:attribute name="normal_font">
+        <dia:font family="monospace" style="0" name="Courier"/>
+      </dia:attribute>
+      <dia:attribute name="abstract_font">
+        <dia:font family="monospace" style="88" name="Courier-BoldOblique"/>
+      </dia:attribute>
+      <dia:attribute name="polymorphic_font">
+        <dia:font family="monospace" style="8" name="Courier-Oblique"/>
+      </dia:attribute>
+      <dia:attribute name="classname_font">
+        <dia:font family="sans" style="80" name="Helvetica-Bold"/>
+      </dia:attribute>
+      <dia:attribute name="abstract_classname_font">
+        <dia:font family="sans" style="88" name="Helvetica-BoldOblique"/>
+      </dia:attribute>
+      <dia:attribute name="comment_font">
+        <dia:font family="sans" style="8" name="Helvetica-Oblique"/>
+      </dia:attribute>
+      <dia:attribute name="normal_font_height">
+        <dia:real val="0.80000000000000004"/>
+      </dia:attribute>
+      <dia:attribute name="polymorphic_font_height">
+        <dia:real val="0.80000000000000004"/>
+      </dia:attribute>
+      <dia:attribute name="abstract_font_height">
+        <dia:real val="0.80000000000000004"/>
+      </dia:attribute>
+      <dia:attribute name="classname_font_height">
+        <dia:real val="1"/>
+      </dia:attribute>
+      <dia:attribute name="abstract_classname_font_height">
+        <dia:real val="1"/>
+      </dia:attribute>
+      <dia:attribute name="comment_font_height">
+        <dia:real val="0.69999999999999996"/>
+      </dia:attribute>
+      <dia:attribute name="attributes">
+        <dia:composite type="umlattribute">
+          <dia:attribute name="name">
+            <dia:string>#next_target#</dia:string>
+          </dia:attribute>
+          <dia:attribute name="type">
+            <dia:string>#target_ref#</dia:string>
+          </dia:attribute>
+          <dia:attribute name="value">
+            <dia:string>##</dia:string>
+          </dia:attribute>
+          <dia:attribute name="comment">
+            <dia:string>#The goal being produced next in the processing chain.
+Once the goal is passed back for goal resolution, the callee is able to see 'future' goals alowwing them to influence their decision ( good for selectors ). This way, more versatile classes can be created, reducing code duplication		#</dia:string>
+          </dia:attribute>
+          <dia:attribute name="visibility">
+            <dia:enum val="0"/>
+          </dia:attribute>
+          <dia:attribute name="abstract">
+            <dia:boolean val="false"/>
+          </dia:attribute>
+          <dia:attribute name="class_scope">
+            <dia:boolean val="false"/>
+          </dia:attribute>
+        </dia:composite>
+      </dia:attribute>
+      <dia:attribute name="operations">
+        <dia:composite type="umloperation">
+          <dia:attribute name="name">
+            <dia:string>#getGoalList()#</dia:string>
+          </dia:attribute>
+          <dia:attribute name="stereotype">
+            <dia:string>##</dia:string>
+          </dia:attribute>
+          <dia:attribute name="type">
+            <dia:string>#list(Goal, ... )#</dia:string>
+          </dia:attribute>
+          <dia:attribute name="visibility">
+            <dia:enum val="0"/>
+          </dia:attribute>
+          <dia:attribute name="comment">
+            <dia:string>#Contains all goals - list[-1] is the goal first being created #</dia:string>
+          </dia:attribute>
+          <dia:attribute name="abstract">
+            <dia:boolean val="false"/>
+          </dia:attribute>
+          <dia:attribute name="inheritance_type">
+            <dia:enum val="2"/>
+          </dia:attribute>
+          <dia:attribute name="query">
+            <dia:boolean val="false"/>
+          </dia:attribute>
+          <dia:attribute name="class_scope">
+            <dia:boolean val="false"/>
+          </dia:attribute>
+          <dia:attribute name="parameters"/>
+        </dia:composite>
+      </dia:attribute>
+      <dia:attribute name="template">
+        <dia:boolean val="false"/>
+      </dia:attribute>
+      <dia:attribute name="templates"/>
     </dia:object>
   </dia:layer>
 </dia:diagram>
