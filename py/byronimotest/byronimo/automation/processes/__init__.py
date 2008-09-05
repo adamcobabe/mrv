@@ -17,7 +17,8 @@ __copyright__='(c) 2008 Sebastian Thiel'
 
 import unittest
 import byronimotest as common
-	
+import byronimo.automation.processes as processes
+
 def get_suite( ):
 	""" @return: testsuite with all tests of this package
 	@note: does some custom setup required for all tests to work"""
@@ -40,3 +41,64 @@ if __name__ == '__main__':
 	""" run all tests if run directly """
 	main( [] )
 	
+	
+#{ Processes 
+
+class TestProcess( processes.ProcessBase ):
+	"""TestProcess helping to debugging the calles done 
+	
+	Supported Targets: int instance, basestring class
+	Thus it is a generator for strings, and a processor for ints"""
+	def __init__( self, workflow ):
+		super( TestProcess, self ).__init__( "Test", "testing", workflow )
+		self._intPrequesite = False		 # int depends on true value of this one to be valid 
+		
+	#{ Implementation 
+	
+	def getSupportedTargetTypes( self ):
+		"""@return: list target types that can be output
+		@note: targetTypes are classes, not instances"""
+		return [ int, basestring ]
+		
+		
+	def canOutputTarget( self, target ):
+		if isinstance( target, int ):
+			return processes.ProcessBase.kPerfect
+			
+		return self._getClassRating( target, basestring )
+		
+		
+	def needsUpdate( self, target ):
+		if isinstance( target, int ):
+			return not self._intPrequesite
+	
+		# generators are always dirty ( as they need to generate their value 
+		if self._getClassRating( target, basestring ):
+			return True
+		
+	#}
+
+
+class OtherTestProcess( TestProcess ):
+	"""TestProcess helping to debugging the calles done
+	Supported Targets: unicode instances """
+	
+	def getSupportedTargetTypes( self ):
+		"""@return: list target types that can be output
+		@note: targetTypes are classes, not instances"""
+		return [ unicode ]
+	
+	def canOutputTarget( self, target ):
+		if isinstance( target, unicode ):
+			return 255
+		return 0
+	
+
+
+#} END processes 
+
+
+#{ Process Initialization
+processes.addProcesses( TestProcess )
+
+#}

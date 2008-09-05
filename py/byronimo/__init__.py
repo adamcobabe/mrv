@@ -85,11 +85,20 @@ def _init_syspath( ):
 	# get external base
 	extbase = os.path.join( os.path.split( __file__ )[0], "../../ext" )
 	
+	# pyparsing
+	pyparsing = os.path.join( extbase, "pyparsing" )
+	
+	# pydot
+	pydot = os.path.join( extbase, "pydot" )
+	
 	# networkx
 	networkxpath = os.path.join( extbase, "networkx" )
 	
 	# add all to the path
+	sys.path.append( pyparsing )
+	sys.path.append( pydot )
 	sys.path.append( networkxpath )
+	
 
 # end __init_syspath
 
