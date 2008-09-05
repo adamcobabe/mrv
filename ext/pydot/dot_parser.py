@@ -21,7 +21,7 @@ from pyparsing import __version__ as pyparsing_version
 from pyparsing import Literal, CaselessLiteral, Word,	\
 	Upcase, OneOrMore, ZeroOrMore, Forward, NotAny,		\
 	delimitedList, oneOf, Group, Optional, Combine,		\
-	alphas, nums, restOfLine, cStyleComment, nums,		\
+	alphas, nums, restOfLine, cStyleComment,pythonStyleComment, nums,		\
 	alphanums, printables, empty, quotedString,			\
 	ParseException, ParseResults, CharsNotIn, _noncomma,\
 	dblQuotedString
@@ -349,6 +349,7 @@ def graph_definition():
 		
 		graphparser.ignore(singleLineComment)
 		graphparser.ignore(cStyleComment)
+		graphparser.ignore(pythonStyleComment)
 
 		assignment.setParseAction(push_attr_list)
 		a_list.setParseAction(push_attr_list)
