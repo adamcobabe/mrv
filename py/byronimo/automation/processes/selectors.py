@@ -20,6 +20,7 @@ __all__ = []
 
 class SelectorBase( PassThroughProcess ):
 	"""Base class for all selectors"""
+	__all__.append( "SelectorBase" )
 		
 	def getSupportedTargetTypes( self ):
 		"""No types suppoorted by default"""

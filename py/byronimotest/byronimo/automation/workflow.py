@@ -92,5 +92,30 @@ class TestWorkflow( unittest.TestCase ):
 		res = miwfl.makeTarget( unicode( "this" ) )
 		self.failUnless( res == "this3.020202020" )
 		
+	
+	def test_callgraph( self ):
+		"""byronimo.automation.workflow: assure callgraph can be generated properly"""
+		scwfl = workflows.simpleconnection
 		
+		# ONE NODE ONLY
+		####################
+		# target resolved by the actual node - no input needed 
+		res = scwfl.makeTarget( 5, dry_run = False )		# computes in-node
+		cg = scwfl._callgraph
+		self.failUnless( len( cg.nodes() ) == 1 )
+		self.failUnless( len( cg.edges() ) == 0 )
+		
+		
+		# INPUT REQUIRED  - multiple nodes 
+		###############################
+		res = scwfl.makeTarget( 2.0, dry_run = False )		# computes in-node
+		cg = scwfl._callgraph
+		self.failUnless( len( cg.nodes() ) == 2 )
+		self.failUnless( len( cg.edges() ) == 1 )
+		
+		miwfl = workflows.multiinput
+		res = miwfl.makeTarget( unicode( "this" ) )
+		cg = miwfl._callgraph
+		self.failUnless( len( cg.nodes() ) == 7 )
+		self.failUnless( len( cg.edges() ) == 6 )
 		

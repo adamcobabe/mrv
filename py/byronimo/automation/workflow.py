@@ -36,13 +36,20 @@ class Workflow( DiGraph ):
 	#{ Utility Classes 
 	class ProcessData( object ):
 		"""Allows to store additional information with each process called during the workflow"""
-		__slots__ = ( 'target', 'starttime', 'endtime','exception','index' ) 
+		__slots__ = ( 'process','target', 'starttime', 'endtime','exception','index' ) 
 		def __init__( self, process, target ):
+			self.process = process
 			self.target = target				
 			self.starttime = time.clock()
 			self.endtime = self.starttime
 			self.exception = None				# stores exception on error
 			self.index = 0						# index of the child - graph stores nodes unordered
+			
+		def __repr__( self ):
+			out = "%s(%r)" % ( self.process, self.target )
+			if self.exception:
+				out += "&ERROR"
+			return out
 			
 		def getElapsed( ):
 			"""@return: time to process the call"""
@@ -99,11 +106,11 @@ class Workflow( DiGraph ):
 	
 	#{ Main Interface
 	
-	def makeTarget( self, target, dry_run = False, plan = None ):
+	def makeTarget( self, target, dry_run = False, report = None ):
 		"""Make or update the target using a process in our workflow
 		@param target: target to make - can be class or instance
 		@param dry_run: if True, the target's creation will only be simulated
-		@param plan: if Plan instance, the plan will be filled with information of 
+		@param report: if Report instance, the report will be filled with information of 
 		our callstack allowing to recreate the happened events 
 		@return: result when producing the target"""
 		# find suitable process 
@@ -122,21 +129,24 @@ class Workflow( DiGraph ):
 		# trigger the output
 		result = process.getOutputBase( target )
 		
+		if report:
+			report.analyseCallgraph( self._callgraph )
+		
 		if len( self._callgraph._call_stack ):
 			raise AssertionError( "Callstack was not empty after calculations for %r where done" % target )
 		
 		return result
 		
 		
-	def makePlan( self, target, plan ):
-		"""Create a plan that describes how the target will be made
-		@param target: the target whose plan you would like to have 
-		@param plan: Plan to populate with information"""
+	def makeReport( self, target, report ):
+		"""Create a report that describes how the target will be made - nothing is 
+		actually being changed as the target is made in dry_run mode
+		@param target: the target whose report you would like to have 
+		@param report: Report to populate with information
+		@return: report instance whose getReport method can be called to retrieve it"""
 		# make the target as dry run
-		self.makeTarget( target , dry_run = True )
-		
-		# analyse the callgraph to fill the plan instance !
-		raise NotImplementedError( "TODO" )
+		self.makeTarget( target , dry_run = True, report = report )
+		return report
 	
 	#} END main interface
 
@@ -195,7 +205,7 @@ class Workflow( DiGraph ):
 		"""Called by process base to indicate the start of a call of curProcess to targetProcess 
 		This method tracks the actual call path taken through the graph ( which is dependent on the 
 		dirty state of the prcoesses, allowing to walk it depth first to resolve the calls.
-		This also allows to create precise plans telling how to achieve a certain goal"""
+		This also allows to create precise reports telling how to achieve a certain goal"""
 		pdata = Workflow.ProcessData( process, target )
 		# keep the call graph
 		self._callgraph.startCall( pdata )

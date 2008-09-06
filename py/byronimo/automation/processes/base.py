@@ -87,8 +87,8 @@ class ProcessBase( object ):
 		Piped attributes will only be passed automatically if you do not provide an output of that type 
 		yourself.
 		@param workflow: workflow this instance of part of """
-		self._noun = noun			# used in plans
-		self._verb = verb			# used in plans 
+		self.noun = noun			# used in plans
+		self.verb = verb			# used in plans 
 		
 		self._targetcache = None
 		if allow_cache:
@@ -99,7 +99,7 @@ class ProcessBase( object ):
 		
 	def __str__( self ):
 		"""@return: just the process noun"""
-		return self._noun
+		return self.noun
 
 	#{ Query
 	def canOutputTarget( self, target ):

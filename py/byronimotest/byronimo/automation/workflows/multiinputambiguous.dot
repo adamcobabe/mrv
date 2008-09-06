@@ -1,5 +1,5 @@
 digraph test {
-ratio=0.132
+ratio=1
 node [style=filled]
 "TestProcessi1" [fillcolor="#ebba66",label="TestProcess"];
 "TestProcessi2" [fillcolor="#ebba66",label="TestProcess"];

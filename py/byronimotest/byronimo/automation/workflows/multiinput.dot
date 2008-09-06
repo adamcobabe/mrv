@@ -1,5 +1,5 @@
 digraph test {
-ratio=0.132
+ratio=1.0
 node [style=filled]
 "InputPriorityBoost" [fillcolor="#ebba66",label="InputPriorityBoost",toplabel="1.25"];
 "TestProcessi1" [fillcolor="#ebba66",label="TestProcess"];
