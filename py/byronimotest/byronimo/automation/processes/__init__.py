@@ -55,6 +55,16 @@ class TestProcess( processes.ProcessBase ):
 		
 	#{ Implementation 
 	
+	def getOutput( self, target, is_dry_run ):
+		"""@return: target is int instance: return int * 2
+					target is string cls, return "hello world"""
+		if isinstance( target, int ):
+			return target * 2
+		elif self._isCompatibleWith( target, basestring ):
+			return "hello world"
+		else:
+			raise AssertionError( "Incompatible target %r passed to %s - canOutputTarget method buggy ?" % ( target, self ) )			
+	
 	def getSupportedTargetTypes( self ):
 		"""@return: list target types that can be output
 		@note: targetTypes are classes, not instances"""
@@ -100,5 +110,6 @@ class OtherTestProcess( TestProcess ):
 
 #{ Process Initialization
 processes.addProcesses( TestProcess )
+processes.addProcesses( OtherTestProcess )
 
 #}

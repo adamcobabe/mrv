@@ -16,6 +16,32 @@ __copyright__='(c) 2008 Sebastian Thiel'
 
 __all__ = []
 
+from byronimo.util import CallOnDeletion 
+
+#####################
+## EXCEPTIONS ######
+###################
+class InputError( ValueError ):
+	"""General exception raised if something is wrong with the input"""
+
+class NoSuitableInput( InputError ):
+	"""Raised if no input matching target could be found"""
+	
+class AmbiguousInput( InputError ):
+	"""There are two equally well suited inputs and the system cannot decide which one 
+	to use. Use an input selector process to resolve that"""
+	
+class ComputationFailed( InputError ):
+	"""An unhandled exception was thrown when the input was about to be retrieved.
+	This usually indicates a bug """
+	
+class TargetUnreachable( InputError ):
+	"""The target can not be obtained anymore as the context of the process does not 
+	allow that anymore"""
+
+
+
+
 class ProcessBase( object ):
 	"""The base class for all processes, defining a common interface"""
 	kNo, kGood, kPerfect = 0, 127, 255			# specify how good a certain target can be produced 
@@ -64,6 +90,12 @@ class ProcessBase( object ):
 	#} END query 
 
 	#{ Interface
+	@staticmethod
+	def _isCompatibleWith( target, thisclass ):
+		"""@return: True if target is a class and thisclass is in it's mro"""
+		if not isinstance( target, type ) or thisclass not in target.mro():
+			return False
+		return True
 	
 	def _getClassRating( self, target, comparecls ):
 		"""@return: rating based on target being a class and compare
@@ -83,7 +115,7 @@ class ProcessBase( object ):
 		return ( float( mro.index( comparecls ) ) / float( len( mro ) - 1 ) ) * 255 
 	
 	def getOutput( self, target, is_dry_run ):
-		"""@return: an instance suitable for the given targetType
+		"""@return: an instance suitable for the given targetType or the handed in instance itself
 		@param target: target that should be produced by the process - this should be done 
 		as efficient as possible. target can either be abstract as it specifies a target type using 
 		a class instance, or it can be an instance exactly specifying the target. The caller must 
@@ -91,7 +123,8 @@ class ProcessBase( object ):
 		returned by L{getSupportedTargetTypes}
 		@param is_dry_run: if True, no change may be made , and the method is strictly read-only.
 		It should proceed as far as possible simulating the process that will actually be run, assuming 
-		success in all mutating methods
+		success in all mutating methods. Its important to call all inputs as you would usually do
+		to follow the actually made call graph as close as possible.
 		
 		The call takes place as there is no cache for targetType. you must find out yourself
 		whether your target needs to be produced or is already available and uptodate.
@@ -114,25 +147,49 @@ class ProcessBase( object ):
 	
 	#{ Base 
 	# methods that drive the actual call
+	def _getSuitableProcess( self , target ):
+		"""@return: process suitable to make target"""
+		candidateList = []		# list of ( rate, input_process ) tuples 
+		for inputprocess in self._wfl.successors_iter( self ):
+			rate = inputprocess.canOutputTarget( target )
+			if not rate:
+				continue
+			candidateList.append( ( rate, inputprocess ) )
+		# END for each input process
+		if not candidateList:
+			raise NoSuitableInput( "Cannot find input of %s suitable to make target %r" % ( self, target ) )
+			
+		candidateList.sort()			# sort by rate - last one is best 
+		rate, inputprocess = candidateList[-1]
+		
+		# search for ambituous inputs
+		candidateCount = 0
+		for r, p in candidateList:
+			if r == rate:
+				candidateCount += 1
+		
+		if candidateCount > 1:
+			raise AmbiguousInput( "Found %i input processes able to deliver target %r for process %s" % (candidateCount, target, self ) )
+			
+		return inputprocess
+		
+		
 	def getInput( self, target, *args ):
 		"""Get an input from a connected process producing the given target 
 		@param target: target you wish to receive. Can be either a target type as an abstract 
 		indicator of the type you wish to have, or a concrete instance of something that 
 		should be brought into an up-to-date state
-		@param data: additional data that the process may understand and use. It will 
-		be passed implicitly if the called process requests an input that is otherwise 
-		not available.
 		@raises AmbiguousInput: if several inputs exist delivering the same goal
 		@raises CycleError: if the same process and goal is already being visited
 		@raises ComputationFailed: computation has thrown an unknown exception
-		@raises InputNotFound: there is no input having the requested type
+		@raises NoSuitableInput: there is no input having the requested type
 		@raises GoalUnreachable: the goal cannot be achieved anymore 
 		@return: the requested input as result of achieving the goal"""
-		
-		# do bookkeeping 
+		# find compatible process 
+		targetProcess = self._getSuitableProcess( target )
 		
 		# trigger actual computation 
-		raise NotImplementedError( "TODO" ) 
+		result = targetProcess.getOutputBase( target, self )
 	
 	
 	def getOutputBase( self, target, dry_run = False ):
@@ -140,14 +197,33 @@ class ProcessBase( object ):
 		Handles caching and flow tracking before the actual implementation is called
 		This allows to create plans and analyse the flow of execution
 		Handle dry runs
-		@param *args: will be made available as cached output of this process"""
+		@param target: target to make"""
+		# track our method return - this is required to get a proper call graph
+		# Use onDeletion event in case we raises
+		self._wfl._trackOutputQueryStart( self, target )
+		methodExitTracker = CallOnDeletion( self._wfl._trackOutputQueryEnd )
+		
+		# Store the target as we can hand it out to other nodes if requested
+		# this allows easy data sharing of targets known at a certain processing 
+		# step - will only work for instances
+		if not isinstance( target, type ):
+			self.setCache( type( target ), target )
+		
 		if self.hasCache( target ):
 			return self.getCache( target )
-			
-		# call actually implemented method
-		raise NotImplementedError( "TODO" )
 		
-		# cache result if possible 
+		try: 
+			# call actually implemented method
+			result = self.getOutput( target, dry_run )
+		except TargetUnreachable:
+			raise 			
+		except Exception,e:		# except all - this is an unknown excetion
+			raise ComputationFailed( "Computation of %s for target %r failed" % ( self, target ), str(e),e )
+		
+		
+		# cache result 
+		self.setCache( target, result )
+		return result 
 		
 	def needsUpdateBase( self, target ):
 		"""@return: True if target needs to be updated
@@ -158,7 +234,6 @@ class ProcessBase( object ):
 			
 		# check parent class 
 		return self.needsUpdate( target )
-		
 		
 	def setCache( self, target, data ):
 		"""Set the processes cache for the given target type
@@ -173,11 +248,27 @@ class ProcessBase( object ):
 		
 	def getCache( self, target ):
 		"""@return: cached data associcated with the given target
-		@raise ValueError: if no cache value exists for given target""" 
+		@raise ValueError: if no cache value exists for given target"""
 		try: 
 			return self._targetcache[ target ]
 		except KeyError:
+			# try check compatability by taking class inheritance into account
+			if isinstance( target, type ):
+				cachelist = []
+				for key in self._targetcache.iterkeys():
+					cachelist.append( self._getClassRating( key, target ), key )
+					
+				if cachelist:
+					cachelist.sort()
+					# TODO: check for ambiguous cache entries - thus two cached 
+					# items having the same vlaues 
+					return self._targetcache[ cachelist[-1][1] ]
+				# END compatible cached item found 
+			# END is class
+			
+			# no other way but throw 
 			raise ValueError( "Target %r was not cached in %s" % ( target, self ) )
+		# END no direct key match
 			
 	def hasCache( self, target ):
 		"""@return: True if the target has a cached value, False otherwise"""
@@ -186,7 +277,7 @@ class ProcessBase( object ):
 			
 		try:
 			self.getCache( target )
-		except:
+		except ValueError:
 			return False
 		else:
 			return True
@@ -231,7 +322,7 @@ class WorkflowProcessBase( ProcessBase ):
 	#} END overridden methods 
 	
 	
-	#{ ProcessBase Methods 
+	#{ ProcessBase Methods TODO 
 	
 	
 	#} END processbase methods 

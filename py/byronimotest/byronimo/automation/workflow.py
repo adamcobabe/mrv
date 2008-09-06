@@ -60,10 +60,11 @@ class TestWorkflow( unittest.TestCase ):
 		
 		
 		
-		# Target Creation  
+		# Target Creation 
 		#################
 		# generators are always dirty, everyting else depends on something
-		
+		intResult = scwfl.makeTarget( 5, dry_run = False )
+		intResult = scwfl.makeTarget( 5, dry_run = True )
 		
 		
 		

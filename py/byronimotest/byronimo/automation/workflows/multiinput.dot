@@ -1,0 +1,9 @@
+digraph test {
+ratio=0.132
+node [style=filled]
+"TestProcessi1" [fillcolor="#ebba66",label="TestProcess",toplabel="arglist",bottomlabel="kwarg=value"];
+"TestProcessi2" [fillcolor="#ebba66",label="TestProcess",toplabel="arglist",bottomlabel="kwarg=value"];
+"TestProcessTarget" [fillcolor="#ebba66",label="OtherTestProcess"];
+"TestProcessi1" -> "TestProcessTarget" [label="TestData",headlabel="1"];
+"TestProcessi2" -> "TestProcessTarget" [label="TestData",headlabel="1"];
+}
