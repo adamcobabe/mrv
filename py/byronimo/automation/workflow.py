@@ -41,6 +41,7 @@ class Workflow( DiGraph ):
 			self.target = target				
 			self.starttime = time.clock()
 			self.endtime = self.starttime
+			self.exception = None				# stores exception on error
 			
 		def getElapsed( ):
 			"""@return: time to process the call"""
@@ -167,6 +168,7 @@ class Workflow( DiGraph ):
 			self._callgraph.add_node( pdata )	
 			
 		self._process_stack.append( pdata )
+		return pdata			# return so that decorators can use this information 
 		
 	def _trackOutputQueryEnd( self ):
 		"""Track that the process just finished its computation - thus the previously active process

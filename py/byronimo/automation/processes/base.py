@@ -41,6 +41,25 @@ class TargetUnreachable( InputError ):
 
 
 
+#####################
+## Methods    ######
+###################
+def track_output_call( func ):
+	"""Wraps the proecss.getOutputBase function allowing to gather plenty of information 
+	about the call, as well as error statistics"""
+	
+	def track_func( self, target, **kwargs ):
+		pdata = self._wfl._trackOutputQueryStart( self, target )
+		
+		try:
+			result = func( self, target, **kwargs )
+		except Exception,e:
+			pdata.exception = e
+			
+		self._wfl._trackOutputQueryEnd( )
+	
+	return track_func
+
 
 class ProcessBase( object ):
 	"""The base class for all processes, defining a common interface"""
@@ -191,18 +210,13 @@ class ProcessBase( object ):
 		# trigger actual computation 
 		result = targetProcess.getOutputBase( target, self )
 	
-	
+	@track_output_call
 	def getOutputBase( self, target, dry_run = False ):
 		"""Base implementation of the output, called by L{getInput} Method. 
 		Handles caching and flow tracking before the actual implementation is called
 		This allows to create plans and analyse the flow of execution
 		Handle dry runs
 		@param target: target to make"""
-		# track our method return - this is required to get a proper call graph
-		# Use onDeletion event in case we raises
-		self._wfl._trackOutputQueryStart( self, target )
-		methodExitTracker = CallOnDeletion( self._wfl._trackOutputQueryEnd )
-		
 		# Store the target as we can hand it out to other nodes if requested
 		# this allows easy data sharing of targets known at a certain processing 
 		# step - will only work for instances
