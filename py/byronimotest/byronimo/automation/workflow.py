@@ -19,6 +19,7 @@ __copyright__='(c) 2008 Sebastian Thiel'
 import unittest
 import workflows
 from byronimo.automation.workflow import Workflow
+from byronimo.automation.processes import *
 
 class TestWorkflow( unittest.TestCase ):
 	"""Test workflow class"""
@@ -48,7 +49,7 @@ class TestWorkflow( unittest.TestCase ):
 		# QUERY TARGETS
 		##################
 		# assure list is pruned, otherwise it would be 4 
-		self.failUnless( len( scwfl.getTargetSupportList( ) ) == 2 )
+		self.failUnless( len( scwfl.getTargetSupportList( ) ) == 3 )
 		
 		# both are the same and produce the same rating
 		self.failUnless( scwfl.getTargetRating( 5 )[0] == 255 )
@@ -56,17 +57,40 @@ class TestWorkflow( unittest.TestCase ):
 		self.failUnless( scwfl.getTargetRating( basestring )[0] == 255 )	 
 		
 		self.failUnless( scwfl.getTargetRating( unicode )[0] == 127 )
-		self.failUnless( scwfl.getTargetRating( bool )[1] == None )
+		self.failUnless( scwfl.getTargetRating( dict )[1] == None )
 		
+		self.failUnless( scwfl.getTargetRating( float )[0] == 255 )
 		
 		
 		# Target Creation 
 		#################
 		# generators are always dirty, everyting else depends on something
-		intResult = scwfl.makeTarget( 5, dry_run = False )
-		intResult = scwfl.makeTarget( 5, dry_run = True )
+		res = scwfl.makeTarget( 5, dry_run = False )
+		self.failUnless( res == 10 )
+		
+		res = scwfl.makeTarget( unicode, dry_run = False )
+		self.failUnless( res == "hello world" )
+		
+		res = scwfl.makeTarget( int, dry_run = False )
+		self.failUnless( res == 4 )
+		
+		res = scwfl.makeTarget( float, dry_run = False )
+		self.failUnless( res == 3.0 )
+		
+		res = scwfl.makeTarget( 2.0, dry_run = False )
+		self.failUnless( res == 6.0 )
+		
+		self.failUnlessRaises( ValueError, scwfl.makeTarget, dict )
 		
 		
+		# GET TWO INPUTS 
+		##################
+		ambwfl = workflows.multiinputambiguous
+		self.failUnlessRaises( AmbiguousInput, ambwfl.makeTarget, unicode( "this" ) )
+		
+		miwfl = workflows.multiinput
+		res = miwfl.makeTarget( unicode( "this" ) )
+		self.failUnless( res == "this3.020202020" )
 		
 		
 		

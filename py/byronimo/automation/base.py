@@ -19,11 +19,30 @@ from byronimo.path import Path
 
 #{ Edit
 
+def _toSimpleType( stringtype ):
+	for cls in [ int, float, str ]:
+		try:
+			return cls( stringtype )
+		except ValueError:
+			pass 
+	# END for each simple type
+	raise ValueError( "Could not convert %r to any simple type" % stringtype )
+
 def _getNodeInfo( node ):
 	"""@return: ( nodename, args, kwargs ) - all arguments have been parsed"""
-	
-	# node.toplabel, node.bottomlabel
-	return ( node.label, [], {} )
+	args = []
+	if node.toplabel:
+		args = [ _toSimpleType( a ) for a in node.toplabel.split(',') ]
+	# END if args are set
+		
+	kwargs = dict()
+	if node.bottomlabel:
+		for kwa in node.bottomlabel.split(','):
+			for k,v in kwa.split('='):
+				kwargs[ k ] = _toSimpleType( v )
+	# END if bottom label is set
+			
+	return ( node.label, args,kwargs )
 
 def _loadWorkflowFromDotFile( dotfile ):
 	"""Create a graph from the given dotfile and create a workflow from it.

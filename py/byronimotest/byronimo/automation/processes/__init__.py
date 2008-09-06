@@ -49,39 +49,50 @@ class TestProcess( processes.ProcessBase ):
 	
 	Supported Targets: int instance, basestring class
 	Thus it is a generator for strings, and a processor for ints"""
-	def __init__( self, workflow ):
-		super( TestProcess, self ).__init__( "Test", "testing", workflow )
-		self._intPrequesite = False		 # int depends on true value of this one to be valid 
+	def __init__( self, workflow , name="SimpleTest"):
+		super( TestProcess, self ).__init__( name, "testing simple", workflow )
 		
 	#{ Implementation 
 	
 	def getOutput( self, target, is_dry_run ):
 		"""@return: target is int instance: return int * 2
+					target is float instance: return float * 3, input query 
 					target is string cls, return "hello world"""
 		if isinstance( target, int ):
 			return target * 2
+		elif isinstance( target, float ):
+			return self.getInput( float ) * target 
 		elif self._isCompatibleWith( target, basestring ):
 			return "hello world"
+		elif self._isCompatibleWith( target, float ):
+			return 3.0
+		elif self._isCompatibleWith( target, int ):
+			return 4
 		else:
 			raise AssertionError( "Incompatible target %r passed to %s - canOutputTarget method buggy ?" % ( target, self ) )			
 	
 	def getSupportedTargetTypes( self ):
 		"""@return: list target types that can be output
 		@note: targetTypes are classes, not instances"""
-		return [ int, basestring ]
+		return [ int, float, basestring ]
 		
 		
 	def canOutputTarget( self, target ):
-		if isinstance( target, int ):
+		if isinstance( target, ( float, int ) ):
 			return processes.ProcessBase.kPerfect
-			
+		
+		if self._isCompatibleWith( target, float ):
+			return self._getClassRating( target, float )
+		
+		if self._isCompatibleWith( target, int ):
+			return self._getClassRating( target, int )
+		
 		return self._getClassRating( target, basestring )
 		
 		
 	def needsUpdate( self, target ):
-		if isinstance( target, int ):
-			return not self._intPrequesite
-	
+		return True
+		
 		# generators are always dirty ( as they need to generate their value 
 		if self._getClassRating( target, basestring ):
 			return True
@@ -92,7 +103,9 @@ class TestProcess( processes.ProcessBase ):
 class OtherTestProcess( TestProcess ):
 	"""TestProcess helping to debugging the calles done
 	Supported Targets: unicode instances """
-	
+	def __init__( self, workflow ):
+		super( OtherTestProcess, self ).__init__( workflow, name = "OtherSimpleTest" )
+		
 	def getSupportedTargetTypes( self ):
 		"""@return: list target types that can be output
 		@note: targetTypes are classes, not instances"""
@@ -103,7 +116,11 @@ class OtherTestProcess( TestProcess ):
 			return 255
 		return 0
 	
-
+	def getOutput( self, target, is_dry_run ):
+		"""@return: version of target requireing int and float instance"""
+		floatinst = self.getInput( float )
+		intinst = self.getInput( int )
+		return target + unicode( floatinst ) + unicode( self.getInput( 10 ) ) * intinst
 
 #} END processes 
 

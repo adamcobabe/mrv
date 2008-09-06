@@ -36,18 +36,53 @@ class Workflow( DiGraph ):
 	#{ Utility Classes 
 	class ProcessData( object ):
 		"""Allows to store additional information with each process called during the workflow"""
-		__slots__ = ( 'target', 'starttime', 'endtime' ) 
+		__slots__ = ( 'target', 'starttime', 'endtime','exception','index' ) 
 		def __init__( self, process, target ):
 			self.target = target				
 			self.starttime = time.clock()
 			self.endtime = self.starttime
 			self.exception = None				# stores exception on error
+			self.index = 0						# index of the child - graph stores nodes unordered
 			
 		def getElapsed( ):
 			"""@return: time to process the call"""
 			return self.endtime - self.starttime
+	
+	
+	class CallGraph( DiGraph ):
+		"""Simple wrapper storing a call graph, keeping the root at which the call started
+		@note: this class is specialized to be used by workflows, its not general for that 
+		purpose"""
+		def __init__( self ):
+			super( Workflow.CallGraph, self ).__init__( name="Callgraph" )
+			self._call_stack = []
+			self._root = None
 			
-	#} END utility classes 
+		def startCall( self, pdata ):
+			"""Add a call of a process"""
+			# keep the call graph
+			if self._call_stack:
+				curdata = self._call_stack[ -1 ]
+				pdata.index = self.in_degree( curdata )
+				self.add_edge( pdata, curdata )
+			else:
+				# its the first call, thus we add it as node - would work on first edge add too though
+				self.add_node( pdata )
+				self._root = pdata
+				
+			self._call_stack.append( pdata )
+			
+		def endCall( self ):
+			"""End the call start started previously"""
+			lastprocessdata = self._call_stack.pop( )
+			lastprocessdata.endtime = time.clock( )
+			
+		def getCallRoot( self ):
+			"""@return: root at which the call started"""
+			return self._root
+			
+	#} END utility classes
+	
 	
 				
 	#{ Overridden Methods 
@@ -55,8 +90,8 @@ class Workflow( DiGraph ):
 		"""Initalized base class"""
 		super( Workflow, self ).__init__( **kwargs )
 		
-		self._callgraph = None		# only populated after make target call
-		self._process_stack = None
+		self._callgraph = None
+		self._dry_run = False 
 	
 	def __str__( self ):
 		return self.name
@@ -77,17 +112,19 @@ class Workflow( DiGraph ):
 			raise ValueError( "Cannot handle target %r" % target )
 			
 		# clear previous callgraph
-		self._callgraph = DiGraph( name="Callgraph" )
-		self._process_stack = []			# keeps the process currently computing 
+		self._callgraph = Workflow.CallGraph( )
+		self._dry_run = dry_run
 		
 		# reset all process to prep for computation 
 		for p in self.nodes_iter():
 			p.prepareProcess( )
-		
-		
-		
+			
 		# trigger the output
-		result = process.getOutputBase( target, dry_run = dry_run  )
+		result = process.getOutputBase( target )
+		
+		if len( self._callgraph._call_stack ):
+			raise AssertionError( "Callstack was not empty after calculations for %r where done" % target )
+		
 		return result
 		
 		
@@ -129,7 +166,6 @@ class Workflow( DiGraph ):
 			rate = p.canOutputTarget( target )
 			if not self.successors( p ): 		# is leaf ?
 				rate = rate * 2					# prefer leafs in the rating 
-			
 			rescache.append( ( rate, p ) )
 		# END for each process 
 		
@@ -151,31 +187,25 @@ class Workflow( DiGraph ):
 	
 	#{ Internal Process Interface 
 	
+	def _isDryRun( self ):
+		"""@return: True if the current computation is a dry run"""
+		return self._dry_run
+	
 	def _trackOutputQueryStart( self, process, target ):
 		"""Called by process base to indicate the start of a call of curProcess to targetProcess 
 		This method tracks the actual call path taken through the graph ( which is dependent on the 
 		dirty state of the prcoesses, allowing to walk it depth first to resolve the calls.
 		This also allows to create precise plans telling how to achieve a certain goal"""
 		pdata = Workflow.ProcessData( process, target )
-		
 		# keep the call graph
-		curdata = None
-		if self._process_stack:
-			curdata = self._process_stack[ -1 ]
-			self._callgraph.add_edge( pdata, curdata )
-		else:
-			# its the first call, thus we add it as node - would work on first edge add too though
-			self._callgraph.add_node( pdata )	
-			
-		self._process_stack.append( pdata )
-		return pdata			# return so that decorators can use this information 
+		self._callgraph.startCall( pdata )
+		return pdata			# return so that decorators can use this information
 		
 	def _trackOutputQueryEnd( self ):
 		"""Track that the process just finished its computation - thus the previously active process
 		should be on top of the stack again"""
 		# update last data and its call time 
-		lastprocessdata = self._process_stack.pop( )
-		lastprocessdata.endtime = time.clock( )
+		self._callgraph.endCall()
 	#}
 	
 	

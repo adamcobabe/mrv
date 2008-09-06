@@ -14,13 +14,13 @@ __revision__="$Revision: 50 $"
 __id__="$Id: configuration.py 50 2008-08-12 13:33:55Z byron $"
 __copyright__='(c) 2008 Sebastian Thiel'
 
-__all__ = []
+__all__ = [ 'InputError', 'NoSuitableInput', 'AmbiguousInput', 'ComputationFailed', 'TargetUnreachable' ]
 
-from byronimo.util import CallOnDeletion 
 
 #####################
 ## EXCEPTIONS ######
 ###################
+#{ Exceptions 
 class InputError( ValueError ):
 	"""General exception raised if something is wrong with the input"""
 
@@ -38,7 +38,7 @@ class ComputationFailed( InputError ):
 class TargetUnreachable( InputError ):
 	"""The target can not be obtained anymore as the context of the process does not 
 	allow that anymore"""
-
+#} END exceptions 
 
 
 #####################
@@ -55,12 +55,21 @@ def track_output_call( func ):
 			result = func( self, target, **kwargs )
 		except Exception,e:
 			pdata.exception = e
+			self._wfl._trackOutputQueryEnd( )
+			raise 
 			
 		self._wfl._trackOutputQueryEnd( )
+		return result 
+		
+	# END track func 
+		
 	
 	return track_func
 
 
+#####################
+## Classes    ######
+###################
 class ProcessBase( object ):
 	"""The base class for all processes, defining a common interface"""
 	kNo, kGood, kPerfect = 0, 127, 255			# specify how good a certain target can be produced 
@@ -169,7 +178,7 @@ class ProcessBase( object ):
 	def _getSuitableProcess( self , target ):
 		"""@return: process suitable to make target"""
 		candidateList = []		# list of ( rate, input_process ) tuples 
-		for inputprocess in self._wfl.successors_iter( self ):
+		for inputprocess in self._wfl.predecessors_iter( self ):
 			rate = inputprocess.canOutputTarget( target )
 			if not rate:
 				continue
@@ -182,54 +191,57 @@ class ProcessBase( object ):
 		rate, inputprocess = candidateList[-1]
 		
 		# search for ambituous inputs
-		candidateCount = 0
+		valid_candidates = []
 		for r, p in candidateList:
 			if r == rate:
-				candidateCount += 1
+				valid_candidates.append( p )
 		
-		if candidateCount > 1:
-			raise AmbiguousInput( "Found %i input processes able to deliver target %r for process %s" % (candidateCount, target, self ) )
+		if len( valid_candidates ) > 1:
+			cstrings = [ str( p ) for p in valid_candidates ]
+			raise AmbiguousInput( "Found %i input processes ( %s ) able to deliver target %r for process %s" % (len(valid_candidates), ", ".join( cstrings ), target, self ) )
 			
 		return inputprocess
 		
 		
-	def getInput( self, target, *args ):
+	def getInput( self, target ):
 		"""Get an input from a connected process producing the given target 
 		@param target: target you wish to receive. Can be either a target type as an abstract 
 		indicator of the type you wish to have, or a concrete instance of something that 
 		should be brought into an up-to-date state
-		@raises AmbiguousInput: if several inputs exist delivering the same goal
-		@raises CycleError: if the same process and goal is already being visited
+		@raises AmbiguousInput: if several inputs exist delivering the same target
 		@raises ComputationFailed: computation has thrown an unknown exception
 		@raises NoSuitableInput: there is no input having the requested type
-		@raises GoalUnreachable: the goal cannot be achieved anymore 
-		@return: the requested input as result of achieving the goal"""
+		@raises TargetUnreachable: the target cannot be achieved anymore 
+		@return: the requested input as result of achieving the target"""
 		# find compatible process 
 		targetProcess = self._getSuitableProcess( target )
 		
 		# trigger actual computation 
-		result = targetProcess.getOutputBase( target, self )
+		result = targetProcess.getOutputBase( target )
+		
+		return result
+		
 	
 	@track_output_call
-	def getOutputBase( self, target, dry_run = False ):
+	def getOutputBase( self, target ):
 		"""Base implementation of the output, called by L{getInput} Method. 
 		Handles caching and flow tracking before the actual implementation is called
 		This allows to create plans and analyse the flow of execution
 		Handle dry runs
 		@param target: target to make"""
+		if self.hasCache( target ):
+			return self.getCache( target )
+		
 		# Store the target as we can hand it out to other nodes if requested
 		# this allows easy data sharing of targets known at a certain processing 
 		# step - will only work for instances
 		if not isinstance( target, type ):
 			self.setCache( type( target ), target )
 		
-		if self.hasCache( target ):
-			return self.getCache( target )
-		
 		try: 
 			# call actually implemented method
-			result = self.getOutput( target, dry_run )
-		except TargetUnreachable:
+			result = self.getOutput( target, self._wfl._isDryRun() )
+		except InputError:
 			raise 			
 		except Exception,e:		# except all - this is an unknown excetion
 			raise ComputationFailed( "Computation of %s for target %r failed" % ( self, target ), str(e),e )
@@ -270,13 +282,15 @@ class ProcessBase( object ):
 			if isinstance( target, type ):
 				cachelist = []
 				for key in self._targetcache.iterkeys():
-					cachelist.append( self._getClassRating( key, target ), key )
-					
+					cachelist.append( ( self._getClassRating( key, target ), key ) )
+					                                        
 				if cachelist:
 					cachelist.sort()
 					# TODO: check for ambiguous cache entries - thus two cached 
-					# items having the same vlaues 
-					return self._targetcache[ cachelist[-1][1] ]
+					# items having the same values
+					rate,key = cachelist[-1]
+					if rate:
+						return self._targetcache[ key ]
 				# END compatible cached item found 
 			# END is class
 			
@@ -309,6 +323,26 @@ class ProcessBase( object ):
 	#} END base 
 	
 	
+	
+class PassThroughProcess( ProcessBase ):
+	"""Simple process passing through calls to the most appropriate input
+	It should be used as mostly neutral baseclass for process that alter inputs or generate them"""
+	__all__.append( "PassThroughProcess" )
+	
+	def getOutput( self, target, is_dry_run ):
+		"""Pass-through of all targets - we cannot do any work"""
+		return self.getInput( target )
+		
+	def canOutputTarget( self, target ):
+		"""Pass-thourgh all calls by default"""
+		inputprocess = self._getSuitableProcess( target )
+		return inputprocess.canOutputTarget( target )
+	
+	def needsUpdate( self, target ):
+		"""Pass-thourgh all calls by default"""
+		inputprocess = self._getSuitableProcess( target )
+		return inputprocess.needsUpdate( target )
+		
 	
 class WorkflowProcessBase( ProcessBase ):
 	"""A process wrapping a workflow, allowing workflows to be nested

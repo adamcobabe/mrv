@@ -41,7 +41,7 @@ if 'init_done' not in locals():
 if not init_done:
 	# import everything into the processes module 
 	from base import *
-
+	from selectors import *
 #} END initialization
 
 
