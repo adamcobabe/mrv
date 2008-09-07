@@ -24,7 +24,7 @@ class TestReport( unittest.TestCase ):
 	"""Test workflow class"""
 	
 	def test_plan( self ):
-		"""byronimo.automation.report: test plan style report"""
+		"""byronimo.automation.report: test plan report"""
 		miwfl = workflows.multiinput
 		
 		

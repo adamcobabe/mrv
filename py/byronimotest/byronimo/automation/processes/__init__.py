@@ -123,11 +123,23 @@ class OtherTestProcess( TestProcess ):
 		
 		return target + unicode( floatinst ) + unicode( self.getInput( 10 ) ) * intinst
 
+
+class WorkflowWrapTestProcess( processes.WorkflowProcessBase ):
+	
+	def __init__( self, workflow, wflname, **kwargs ):
+		"""Wrap the workflow with the given name"""
+		workflows = __import__( "byronimotest.byronimo.automation.workflows", globals(), locals(), ['workflows'] )
+		return super( WorkflowWrapTestProcess, self ).__init__( workflow, workflows, wflname , **kwargs )
+		
+
 #} END processes 
+
+
 
 
 #{ Process Initialization
 processes.addProcesses( TestProcess )
 processes.addProcesses( OtherTestProcess )
+processes.addProcesses( WorkflowWrapTestProcess )
 
 #}

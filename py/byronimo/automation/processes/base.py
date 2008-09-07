@@ -55,10 +55,10 @@ def track_output_call( func ):
 			result = func( self, target, **kwargs )
 		except Exception,e:
 			pdata.exception = e
-			self._wfl._trackOutputQueryEnd( )
+			self._wfl._trackOutputQueryEnd( None )
 			raise 
 			
-		self._wfl._trackOutputQueryEnd( )
+		self._wfl._trackOutputQueryEnd( result )
 		return result 
 		
 	# END track func 
@@ -346,23 +346,27 @@ class PassThroughProcess( ProcessBase ):
 	
 class WorkflowProcessBase( ProcessBase ):
 	"""A process wrapping a workflow, allowing workflows to be nested
-	Derive from this class and initialize it with the workflow you would like to have wrapped"""
+	Derive from this class and initialize it with the workflow you would like to have wrapped
+	@note: to prevent dependency issues, the workflow instance will be bound on first use"""
 	__all__.append( "WorkflowProcessBase" )
 	
 	#{ Overridden Object Methods 
 	
-	def __init__( self, workflowinst, *args, **kwargs ):
+	def __init__( self, workflow, workflowModule, workflowName, **kwargs ):
 		"""@param workflowinst: instance of the Workflow you would like to wrap
-		@param *args, **kwargs: all arguments required to initialize the ProcessBase"""
-		super( WorkflowProcessBase, ProcessBase ).__init__( self, *args, **kwargs )
-		
-		self._wrappedwfl = workflowinst		# wrapped workflow 
-		
+		@param workflow: the workflow we are in ( the parent workflow )
+		@param workflowModule: module which will contain the workflow
+		@param workflowName: name of the workflow as it will exist in workflowModule 
+		@param **kwargs: all arguments required to initialize the ProcessBase"""
+		self.__wrappedwfl = None
+		self._wflmod = workflowModule
+		self._wflname = workflowName
+		super( WorkflowProcessBase, self ).__init__( "TO BE SET", "passing on", workflow, **kwargs )
 		
 	def __getattr__( self , attr ):
 		"""@return: attribute on the wrapped workflow"""
 		try:
-			return getattr( self._wrappedwfl, attr )
+			return getattr( self.getWorkflow(), attr )
 		except AttributeError:
 			return super( WorkflowProcessBase, self ).__getattribute__( attr )
 			
@@ -370,7 +374,43 @@ class WorkflowProcessBase( ProcessBase ):
 	#} END overridden methods 
 	
 	
-	#{ ProcessBase Methods TODO 
+	#{ ProcessBase Methods
+	def getWorkflow( self ):
+		"""@return: our wrapped workflow instance
+		@note: Assures that the workflow instance is bound, it will be bound 
+		as required """
+		if not self.__wrappedwfl:
+			self.__wrappedwfl = getattr( self._wflmod, self._wflname )
+			self.noun = self.__wrappedwfl.name
+			
+		return self.__wrappedwfl
+		
+	def getOutput( self, target, is_dry_run ):
+		"""Ask our workflow instead """
+		result = self.getWorkflow().makeTarget( target, dry_run = is_dry_run )
+		
+		# UPDATE CALLGRAPH
+		wgraph = self.__wrappedwfl._callgraph
+		owngraph = self._wfl._callgraph 
+		
+		# add all edges and connect our graph by simulating an input call
+		owngraph.add_edges_from( wgraph.edges_iter() )
+		owngraph.startCall( wgraph.getCallRoot() )
+		owngraph.endCall( result )
+		
+		return result
+		
+		
+	def canOutputTarget( self, target ):
+		"""Ask our workflow"""
+		return self.getWorkflow().getTargetRating( target )[0]
+	
+	def needsUpdate( self, target ):
+		"""Pass-thourgh all calls by default"""
+		rating,process = self.getWorkflow().getTargetRating( target )
+		if not rating:	
+			raise AssertionError( "needsUpdate called to %r for unsupported target %r" % ( self, target ) ) 
+		return process.needsUpdate( target )
 	
 	
 	#} END processbase methods 

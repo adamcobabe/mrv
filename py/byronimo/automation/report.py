@@ -35,19 +35,20 @@ class ReportBase( object ):
 	
 	#{ Base Methods 
 	def _toCallList( self, callgraph ):
-		"""@return: flattened version of graph as list of ProcessData nodes , having
+		"""@return: flattened version of graph as list of ProcessData edges in call order , having
 		the root as last element of the list"""
 		# return search.dfs_postorder( callgraph )
-		def getPredecessors( node ):
+		def getPredecessors( node, nextNode ):
 			out = []
 			predlist = [ (p.index,p) for p in callgraph.predecessors( node ) ]
 			predlist.sort()
 			for i,pred in predlist:
-				out.extend( getPredecessors( pred ) )
-			out.append( node )
+				out.extend( getPredecessors( pred, node ) )
+					
+			out.append( ( node, nextNode ) )
 			return out
 		
-		calllist = getPredecessors( callgraph.getCallRoot() )
+		calllist = getPredecessors( callgraph.getCallRoot(), None )
 		calllist.reverse()
 		return calllist
 		# return search.dfs_postorder( callgraph )
@@ -92,12 +93,18 @@ class Plan( ReportBase ):
 		out = []
 		out.append( self._headline )
 		skipcount = 0
-		for i,p in enumerate( self._calllist ):
-			if isinstance( p.process, processes.SelectorBase ):
+		for i,pedge in enumerate( self._calllist ):
+			sp,ep = pedge
+			if isinstance( sp.process, processes.SelectorBase ):
 				skipcount += 1 
 				continue 
 				
-			line = "%i. %s %s %r" % ( i-skipcount+1, p.process.noun, p.process.verb, p.target )
+			# its an edge
+			if ep:
+				line = "%i. %s provides %r to %s ( wanted %r )" % ( i-skipcount+1, sp.process.noun, sp.getResult(), ep.process.noun, sp.target )
+			else:
+				# its root 
+				line = "%i. %s %s %r to produce %r" % ( i-skipcount+1, sp.process.noun, sp.process.verb, sp.target, sp.getResult() )
 			out.append( line )
 		return out
 		

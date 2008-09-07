@@ -16,6 +16,7 @@ __copyright__='(c) 2008 Sebastian Thiel'
 
 from networkx.digraph import DiGraph
 import time 
+import weakref
 
 #####################
 ## EXCEPTIONS ######
@@ -36,10 +37,11 @@ class Workflow( DiGraph ):
 	#{ Utility Classes 
 	class ProcessData( object ):
 		"""Allows to store additional information with each process called during the workflow"""
-		__slots__ = ( 'process','target', 'starttime', 'endtime','exception','index' ) 
+		__slots__ = ( 'process','target', '_result', 'starttime', 'endtime','exception','index' ) 
 		def __init__( self, process, target ):
 			self.process = process
-			self.target = target				
+			self.target = target
+			self._result = None				# can be weakref or actual value 
 			self.starttime = time.clock()
 			self.endtime = self.starttime
 			self.exception = None				# stores exception on error
@@ -54,6 +56,27 @@ class Workflow( DiGraph ):
 		def getElapsed( ):
 			"""@return: time to process the call"""
 			return self.endtime - self.starttime
+			
+		def setResult( self, result ):
+			"""Set the given result
+			@note: uses weak references as the tracking structure should not cause a possible
+			mutation of the program flow ( as instances stay alive although code expects it to be 
+			deleted"""
+			if result is not None:
+				try:
+					self._result = weakref.ref( result )
+				except TypeError:
+					self._result = result
+			# END if result not None
+			
+		def getResult( self ):
+			"""@return: result stored in this instance, or None if it is not present or not alive"""
+			if self._result:
+				if isinstance( self._result, weakref.ref ):
+					return self._result()
+				return self._result
+				
+			return None
 	
 	
 	class CallGraph( DiGraph ):
@@ -79,10 +102,12 @@ class Workflow( DiGraph ):
 				
 			self._call_stack.append( pdata )
 			
-		def endCall( self ):
-			"""End the call start started previously"""
+		def endCall( self, result ):
+			"""End the call start started previously
+			@param result: the result of the call"""
 			lastprocessdata = self._call_stack.pop( )
 			lastprocessdata.endtime = time.clock( )
+			lastprocessdata.setResult( result )
 			
 		def getCallRoot( self ):
 			"""@return: root at which the call started"""
@@ -211,11 +236,11 @@ class Workflow( DiGraph ):
 		self._callgraph.startCall( pdata )
 		return pdata			# return so that decorators can use this information
 		
-	def _trackOutputQueryEnd( self ):
+	def _trackOutputQueryEnd( self, result = None ):
 		"""Track that the process just finished its computation - thus the previously active process
 		should be on top of the stack again"""
 		# update last data and its call time 
-		self._callgraph.endCall()
+		self._callgraph.endCall( result )
 	#}
 	
 	
