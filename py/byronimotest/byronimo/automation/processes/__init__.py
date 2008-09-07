@@ -118,8 +118,8 @@ class OtherTestProcess( TestProcess ):
 	
 	def getOutput( self, target, is_dry_run ):
 		"""@return: version of target requireing int and float instance"""
-		intinst = self.getInput( int )
 		floatinst = self.getInput( float )
+		intinst = self.getInput( int )
 		
 		return target + unicode( floatinst ) + unicode( self.getInput( 10 ) ) * intinst
 

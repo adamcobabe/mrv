@@ -37,8 +37,20 @@ class ReportBase( object ):
 	def _toCallList( self, callgraph ):
 		"""@return: flattened version of graph as list of ProcessData nodes , having
 		the root as last element of the list"""
-		#return search.dfs_postorder( callgraph, source=callgraph.getCallRoot() )
-		return search.dfs_postorder( callgraph )
+		# return search.dfs_postorder( callgraph )
+		def getPredecessors( node ):
+			out = []
+			predlist = [ (p.index,p) for p in callgraph.predecessors( node ) ]
+			predlist.sort()
+			for i,pred in predlist:
+				out.extend( getPredecessors( pred ) )
+			out.append( node )
+			return out
+		
+		calllist = getPredecessors( callgraph.getCallRoot() )
+		calllist.reverse()
+		return calllist
+		# return search.dfs_postorder( callgraph )
 	#}
 	
 	#{ Report Methods
