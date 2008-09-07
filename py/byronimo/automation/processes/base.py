@@ -75,17 +75,15 @@ class ProcessBase( object ):
 	kNo, kGood, kPerfect = 0, 127, 255			# specify how good a certain target can be produced 
 	__all__.append( "ProcessBase" )
 	
-	def __init__( self, noun, verb, workflow, allow_cache = True, pipe_through = True ):
+	def __init__( self, noun, verb, workflow, allow_cache = True, provide_own_target = True ):
 		"""Initialize process with most common information
 		@param noun: noun describing the process, ( i.e. "Process" )
 		@param verb: verb describing the process, ( i.e. "processing" )
 		@param allow_cache: if true, results will automatically be cached and need no recomputation
 		if the result is gathered multiple times
-		@param pipe_through: if True, our inputs as well as our target will be available as output 
-		during our own calculation. This allows a datastream to be accessed by many processes.Processes 
-		attempting to access these attributes need to be connected to the respective node. 
-		Piped attributes will only be passed automatically if you do not provide an output of that type 
-		yourself.
+		@param pipe_through: if True, our target instance will be handed out if the target instance's 
+		tyoe is requested, allowing more versatile Processes as the originally supplied target can be 
+		piped to many different processes at once and automatically ( as long as they are connected )
 		@param workflow: workflow this instance of part of """
 		self.noun = noun			# used in plans
 		self.verb = verb			# used in plans 
@@ -95,7 +93,7 @@ class ProcessBase( object ):
 			self._targetcache = dict()
 			
 		self._wfl = workflow
-		# dry run !! Attr on workflow ?
+		self._provide_own_target = provide_own_target
 		
 	def __str__( self ):
 		"""@return: just the process noun"""
@@ -235,8 +233,9 @@ class ProcessBase( object ):
 		# Store the target as we can hand it out to other nodes if requested
 		# this allows easy data sharing of targets known at a certain processing 
 		# step - will only work for instances
-		if not isinstance( target, type ):
-			self.setCache( type( target ), target )
+		if self._provide_own_target:
+			if not isinstance( target, type ):
+				self.setCache( type( target ), target )
 		
 		try: 
 			# call actually implemented method

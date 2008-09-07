@@ -40,7 +40,7 @@ def _argsToFilter( args ):
 	return typeFilter
 
 
-def getDgIteartor( *args, **kwargs ):
+def getDgIterator( *args, **kwargs ):
 	"""@return: MItDependencyNodes configured according to args - see docs at 
 	L{iterDgNodes}.
 	@note: use this method if you want to use more advanced features of the iterator"""
@@ -60,7 +60,7 @@ def iterDgNodes( *args, **kwargs ):
 		default : lambda x: True
 		@note: adjusted pymel implementation"""
 	
-	iterObj = getDgIteartor( *args, **kwargs )
+	iterObj = getDgIterator( *args, **kwargs )
 	predicate = kwargs.get( "predicate", lambda x: True )
 	asNode = kwargs.get( "asNode", False )
 	while not iterObj.isDone() :
@@ -131,10 +131,11 @@ def iterDagNodes( *args, **kwargs ):
 		Types are specified as Maya API types.
 		The following keywords will affect order and behavior of traversal:
 		@param dagpath:	if True, MDagPaths will be returned ( ~6k paths/s )
-						If False, MObjects will be returned - it will return each object only once ( ~10k objs/s ) 
+						If False, MObjects will be returned - it will return each object only once ( ~10k objs/s )
+						default True
 		@param depth: 	if True nodes Mobjects will be returned as a depth first traversal of the hierarchy tree ( ~6k path/s )
 				 		if False as a post-order (breadth first) ( ¬3.5k paths/s, or slower, depending on the scene )
-						default is True (depth first)
+						default True
 		@param underworld: if True traversal will include a shape's underworld (dag object parented to the shape),
 			  				if False underworld will not be traversed,
 							default is False (do not traverse underworld )

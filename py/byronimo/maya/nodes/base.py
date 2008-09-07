@@ -226,11 +226,11 @@ def createNode( nodename, nodetype, autocreateNamespace=True, renameOnClash = Tr
 			
 			# could be that the node already existed, but with an incorrect type
 			if i == lenSubpaths - 1:				# in the last iteration
-				tmp_node = Node( createdNode )
-				existing_node_type = uncapitalize( tmp_node.__class__.__name__ )
-				if nodetype != existing_node_type:
+				existing_node_type = uncapitalize( api.MFnDependencyNode( createdNode ).typeName() )
+				nodetypecmp = uncapitalize( nodetype )
+				if nodetypecmp != existing_node_type:
 					# allow more specialized types, but not less specialized ones 
-					if nodetype not in nodeTypeTree.parent_iter( existing_node_type ):
+					if nodetypecmp not in nodeTypeTree.parent_iter( existing_node_type ):
 						msg = "node %s did already exist, its type %s is incompatible with the requested type %s" % ( nodepartialname, existing_node_type, nodetype )
 						raise NameError( msg )
 				# END nodetypes different
