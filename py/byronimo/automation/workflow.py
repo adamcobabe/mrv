@@ -123,7 +123,7 @@ class Workflow( DiGraph ):
 		super( Workflow, self ).__init__( **kwargs )
 		
 		self._callgraph = None
-		self._dry_run = False 
+		self._dry_run = False
 	
 	def __str__( self ):
 		return self.name
@@ -131,12 +131,10 @@ class Workflow( DiGraph ):
 	
 	#{ Main Interface
 	
-	def makeTarget( self, target, dry_run = False, report = None ):
+	def makeTarget( self, target, dry_run = False ):
 		"""Make or update the target using a process in our workflow
 		@param target: target to make - can be class or instance
 		@param dry_run: if True, the target's creation will only be simulated
-		@param report: if Report instance, the report will be filled with information of 
-		our callstack allowing to recreate the happened events 
 		@return: result when producing the target"""
 		# find suitable process 
 		process = self.getTargetRating( target )[1]
@@ -154,24 +152,18 @@ class Workflow( DiGraph ):
 		# trigger the output
 		result = process.getOutputBase( target )
 		
-		if report:
-			report.analyseCallgraph( self._callgraph )
-		
 		if len( self._callgraph._call_stack ):
 			raise AssertionError( "Callstack was not empty after calculations for %r where done" % target )
 		
 		return result
 		
 		
-	def makeReport( self, target, report ):
-		"""Create a report that describes how the target will be made - nothing is 
-		actually being changed as the target is made in dry_run mode
-		@param target: the target whose report you would like to have 
-		@param report: Report to populate with information
+	def getReportInstance( self, reportType ):
+		"""Create a report instance that describes how the previous target was made 
+		@param reportType: Report to populate with information
 		@return: report instance whose getReport method can be called to retrieve it"""
 		# make the target as dry run
-		self.makeTarget( target , dry_run = True, report = report )
-		return report
+		return reportType( self._callgraph )
 	
 	#} END main interface
 

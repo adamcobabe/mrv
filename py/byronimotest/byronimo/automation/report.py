@@ -27,12 +27,10 @@ class TestReport( unittest.TestCase ):
 		"""byronimo.automation.report: test plan report"""
 		miwfl = workflows.multiinput
 		
-		
 		# try as real target - stil very simple 
-		plan = Plan( "unicode(real)" )
-		res = miwfl.makeTarget( unicode( "this" ), report=plan )
-		r = plan.getReport()
-		
+		res = miwfl.makeTarget( unicode( "this" ) )
+		plan = miwfl.getReportInstance( Plan )
+		r = plan.getReport( headline = "unicode workflow test" )
 		self.failUnless( len( r ) == 5 )
 		for l in r:
 			print l

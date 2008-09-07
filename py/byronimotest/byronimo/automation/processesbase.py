@@ -43,10 +43,8 @@ class TestProcesses( unittest.TestCase ):
 		
 		# NESTED WFLS AND PLANS 
 		########################
-		plan = Plan( "nested unicode(real)" )
-		res = wfl.makeTarget( unicode( "this" ), report=plan, dry_run = 1 )
-		lines = plan.getReport()
-		
+		plan = wfl.getReportInstance( Plan )
+		lines = plan.getReport( )
 		for l in lines:
 			print l
 		
