@@ -1278,8 +1278,8 @@ class Data( api.MObject ):
 	
 class PluginData: 
 	"""Wraps plugin data as received by a plug. If plugin's registered their data
-	types and tracking dictionaries with this class, the original self pointer 
-	can easily be retrieved using this classes interface"""
+	types and tracking dictionaries using the L{registerPluginDataTrackingDict}, 
+	the original self pointer can easily be retrieved using this classes interface"""
 	__metaclass__ = nodes.MetaClassCreatorNodes
 	
 		

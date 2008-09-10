@@ -267,6 +267,9 @@ class MPlug( api.MPlug, util.iDagItem ):
 			return self.getLogicalIndex( ) == other.getLogicalIndex()
 			
 		return True
+		
+	def __ne__( self, other ):
+		return not( self.__eq__( other ) ) 
 	
 	#} Overridden Methods
 	
@@ -328,15 +331,15 @@ class MPlug( api.MPlug, util.iDagItem ):
 	@undoable
 	def connectTo( self, destplug, force=True ):
 		"""Connect this plug to the right hand side plug
-		@param destplug: the plug to which to connect this plug to
+		@param destplug: the plug to which to connect this plug to. If it is an array plug, 
+		the next available element will be connected
 		@param force: if True, the connection will be created even if another connection 
 		has to be broken to achieve that. 
 		If False, the connection will fail if destplug is already connected to another plug
 		@return: destplug allowing chained connections a >> b >> c
 		@note: equals lhsplug >> rhsplug ( force = True ) or lhsplug > rhsplug ( force = False )
-		@raise RuntimeError: If destination is already connected and force = False """
-		
-		
+		@raise RuntimeError: If destination is already connected and force = False
+		@todo: currently we cannot handle nested array structures properly"""
 		mod = None		# create mod only once we really need it
 		
 		# is destination already input-connected ? - disconnect it if required 
@@ -362,6 +365,32 @@ class MPlug( api.MPlug, util.iDagItem ):
 		mod.connect( self, destplug )	# finally do the connection
 		mod.doIt( )
 		return destplug 
+		
+	def connectToArray( self, arrayplug, force = True, exclusive_connection = False ):
+		"""Connect self an element of the given arrayplug.
+		@param arrayplug: the array plug to which you want to connect to
+		@param force: if True, the connection will be created even if another connection 
+		has to be broken to achieve that. 
+		@param exclusive_connection: if True and destplug is an array, the plug will only be connected
+		to an array element if it is not yet connected
+		@return: newly created element plug or the existing one"""
+		# ARRAY PLUG HANDLING 
+		######################
+		if arrayplug.isArray( ):
+			if exclusive_connection:
+				arrayplug.evaluateNumElements( )
+				for delm in arrayplug:
+					if self == delm.p_input:
+						return delm
+					# END if self == elm plug 
+				# END for each elemnt in destplug
+			# END if exclusive array connection
+			
+			# connect the next free plug
+			return self.connectTo( arrayplug.getNextLogicalPlug( ), force = force )
+		# END Array handling
+		raise AssertionError( "Given plug %r was not an array plug" % arrayplug )
+		
 	
 	def disconnect( self ):
 		"""Completely disconnect all inputs and outputs of this plug
@@ -400,6 +429,7 @@ class MPlug( api.MPlug, util.iDagItem ):
 	@undoable
 	def disconnectFrom( self, other ):
 		"""Disconnect this plug from other plug if they are connected
+		@param other: MPlug that will be disconnected from this plug
 		@note: equals a | b 
 		@return: other plug allowing to chain disconnections"""
 		#if not self.isConnectedTo( other ):
@@ -412,6 +442,15 @@ class MPlug( api.MPlug, util.iDagItem ):
 		except RuntimeError:
 			pass 
 		return other
+		
+	@undoable
+	def disconnectNode( self, other ):
+		"""Disconnect this plug from the given node if they are connected
+		@param other: Node that will be completely disconnected from this plug"""
+		for p in self.p_outputs:
+			if p.getNode() == other:
+				self | p
+		# END for each plug in output
 		
 	#} END connections edit 
 		
@@ -438,6 +477,26 @@ class MPlug( api.MPlug, util.iDagItem ):
 		self.connectedTo( outputs, False, True )
 		return outputs
 		
+	def getInputs( self ):
+		"""Special handler retunring the input plugs of array eleemts
+		@return: list of plugs connected to the elements of this arrayplug
+		@note: if self is not an array, a list with 1 or 0 plugs will be returned"""
+		out = []
+		if self.isArray():
+			self.evaluateNumElements()
+			for elm in self:
+				elminput = elm.p_input
+				if elminput.isNull():
+					continue
+				out.append( elminput )
+			# END for each elm plug in sets
+		else:
+			inplug = self.p_input
+			if not inplug.isNull():
+				out.append( inplug )
+		# END array handling 
+		return out
+	
 	def getInput( self ):
 		"""@return: plug being the source of a connection to this plug or a null plug 
 		if no such plug exists"""
@@ -459,7 +518,7 @@ class MPlug( api.MPlug, util.iDagItem ):
 		
 	def getConnections( self ):
 		"""@return: tuple with input and outputs ( inputPlug, outputPlugs )"""
-		return ( self.getInput( ), self, getOutputs( ) )
+		return ( self.getInput( ), self.getOutputs( ) )
 		
 		
 	#} END connections query 
@@ -597,6 +656,7 @@ class MPlug( api.MPlug, util.iDagItem ):
 	#{ Properties
 	p_outputs = property( getOutputs )
 	p_input = property( getInput )
+	p_inputs = property( getInputs )
 	p_connections = property( getConnections )
 	
 	#}

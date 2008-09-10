@@ -131,6 +131,22 @@ class TestDataBase( unittest.TestCase ):
 		self.failUnless( len( matworld ) == len( matworld.getSubPlugs() ) )
 		self.failUnless( translate.numChildren() == len( translate.getSubPlugs() ) )
 		self.failUnless( len( translate.getSubPlugs() ) == 3 )
+		
+		
+		# ARRAY CONNECTIONS
+		###################
+		objset = nodes.createNode( "set1", "objectSet" )
+		partition = nodes.createNode( "partition1", "partition" )
+		pma = nodes.createNode( "plusMinusAverage1", "plusMinusAverage" )
+		destplug = persp.translate.connectToArray( pma.input3D, exclusive_connection = True )
+		self.failUnless( persp.translate >= destplug )
+		
+		# exclusive connection should return exisiting plug
+		self.failUnless( persp.translate.connectToArray( pma.input3D, exclusive_connection = True ) == destplug )
+		
+		# but newones can also be created
+		self.failUnless( persp.translate.connectToArray( pma.input3D, exclusive_connection = False ) != destplug )
+		#self.failUnless( objset.partition.connectToArray( partition.sets, exclusive_connection = False ) != destplug )
 
 		
 		# assure the standin classes are there - otherwise my list there would 

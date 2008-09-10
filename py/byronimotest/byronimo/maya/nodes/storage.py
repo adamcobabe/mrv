@@ -21,6 +21,7 @@ import byronimo.maya.nodes.storage as storage
 import byronimo.maya.nodes as nodes 
 import maya.OpenMaya as api
 import byronimo.maya as bmaya
+import maya.cmds as cmds 
 import tempfile
 from byronimo.path import Path
 import sys
@@ -147,6 +148,38 @@ class TestStorage( unittest.TestCase ):
 			self.failUnless( persp.message >= nextplug )
 		self.failUnless( len( conarray ) == 10 )
 		self.failUnless( len( persp.message.p_outputs ) == 10 )
+		
+	def test_storageSetHandling( self ):
+		"""byronimo.maya.nodes.storage: test built-in sethandling"""
+		bmaya.Scene.new( force = True )
+		snode = nodes.createNode( "storage",  "StorageNode" )
+		
+		# SIMPLE SET 
+		did = "objset"
+		objset = snode.getObjectSet( did, 0, autoCreate = True )
+		self.failUnless( isinstance( objset, nodes.ObjectSet ) )
+		
+		# does not exist anymore
+		cmds.undo()
+		self.failUnlessRaises( ValueError, snode.getObjectSet, did, 0, autoCreate = False )
+		
+		# objset should be valid again
+		cmds.redo()
+		self.failUnless( objset.isValid() and objset.isAlive() )
+		
+		# SIMPLE OBJSET OPERATIONS 
+		
+		# MULTIPLE SETS 
+		
+		
+		
+		# PARTITION HANDLING 
+		snode.setPartition( did, 1 )
+		self.failUnless( snode.getPartition( did ) != None )
+		
+		snode.setPartition( did, 0 )
+		self.failUnless( snode.getPartition( did ) is None )
+		
 		
 		
 		

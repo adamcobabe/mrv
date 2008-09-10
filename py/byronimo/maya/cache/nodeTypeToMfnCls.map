@@ -5,6 +5,7 @@ transform			| 	MFnTransform
 mesh				| 	MFnMesh
 camera				| 	MFnCamera
 objectSet			| 	MFnSet
+partion				| 	MFnPartition
 
 attribute			| 	MFnAttribute
 unitAttribute		|	MFnUnitAttribute

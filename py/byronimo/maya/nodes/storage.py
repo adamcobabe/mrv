@@ -17,7 +17,7 @@ __revision__="$Revision: 16 $"
 __id__="$Id: configuration.py 16 2008-05-29 00:30:46Z byron $"
 __copyright__='(c) 2008 Sebastian Thiel'
 
-
+import byronimo.maya.undo as undo 
 import maya.cmds as cmds
 nodes = __import__( "byronimo.maya.nodes", globals(), locals(), [ 'nodes' ] )
 
@@ -104,7 +104,7 @@ def addStorageAttributes( cls, dataType ):
 	
 	
 class StorageMayaNode( mpx.MPxNode ):
-	""" Base Class defining common functions for all EntityNodes """
+	""" Base Class defining the storage node data interfaces  """
 	
 	kPluginNodeTypeName = "StorageNode"
 	kPluginNodeId = api.MTypeId( 0x0010D134 )
@@ -281,7 +281,7 @@ class StorageBase( object ):
 	 	id ( data id )[ string ]
 		type ( data type ) [ int ]	# for your own use, store bitflags to specify attribute
 		dval ( data value ) [ python pickle ]
-		dmsg ( data message )[ multi string ]
+		dmsg ( data message )[ multi message ]
 	
 	Configuration
 	-------------
@@ -394,7 +394,7 @@ class StorageBase( object ):
 	#} END edit
 	
 	
-	#{ Query
+	#{ Query Plugs 
 	def findStoragePlug( self, dataID ):
 		"""@return: compond plug with given dataID or None"""
 		actualID = self._attrprefix + dataID
@@ -437,7 +437,10 @@ class StorageBase( object ):
 		else:
 			raise TypeError( "Invalid plugType value: %s" % plugType )
 
+	#} END query plugs 
 	
+	
+	#{ Query Data 
 	def getPythonData( self, dataID, **kwargs ):
 		"""@return: PyPickleVal object at the given index ( it can be modified natively )
 		@param dataID: id of of the data to retrieve
@@ -470,15 +473,83 @@ class StorageBase( object ):
 		# exstract the data
 		#return plugindata.getData()
 		return StorageBase.PyPickleValue( valplug, plugindata.getData( ) )
+			
+	#} END query Data
+
+	#{ Set Handling 
+	def getObjectSet( self, dataID, setIndex, autoCreate = True ):
+		"""Get an object set identified with setIndex at the given dataId 
+		@param dataID: id identifying the storage plug on this node
+		@param setIndex: logical index at which the set will be connected to our message plug array
+		@param autoCreate: if True, a set will be created if it does not yet exist
+		@raises ValueError: if a set does not exist at setIndex and autoCreate is False
+		@raises: AttributeError: if the plug did not exist ( and autocreate is False )
+		@note: method is implicitly undoable if autoCreate is True, this also means that you cannot 
+		explicitly undo this operation as you do not know if undo has been queued or not
+		@note: newly created sets will automatically use partitions if one of the sets does"""
+		mp = self.getStoragePlug( dataID, self.kMessage, autoCreate = autoCreate )
+		# array plug having our sets
+		setplug = mp.getByLogicalIndex( setIndex )
+		inputplug = setplug.p_input
+		if inputplug.isNull():
+			if not autoCreate:
+				raise ValueError( "Set at %s[%i] did not exist on %r" % ( self._attrprefix + dataID, setIndex, self ) )
+			su = undo.StartUndo()			# make the following operations atomic
+			objset = nodes.createNode( dataID + "Set", "objectSet" )
+			inputplug = objset.message 
+			inputplug >> setplug
+			
+			# hook it up to the partition
+			if self.getPartition( dataID ):
+				self.setPartition( dataID, True )
+		# END create set as needed
 		
+		
+		# return actual object set
+		return inputplug.getNode()
+	
+			 
+										 
+		
+		
+	def setPartition( self, dataID, state ):
+		"""Make all sets in dataID use a partition or not
+		@param dataID: id identifying the storage plug 
+		@param state: if True, a partition will be used, if False, it will be disabled
+		@note: this method makes sure that all sets are hooked up to the partition
+		@note: method is implicitly undoable whenever it truly created a partition
+		@raises: AttributeError: if the plug did not exist ( and autocreate is False )
+		@return: if state is True, the name of the possibly created ( or existing ) partition"""
+		pass 
+		
+	def getPartition( self, dataID ):
+		"""@return: partition Node attached to the sets at dataID or None if state
+		is disabled"""
+		mp = self.getStoragePlug( dataID, self.kMessage, autoCreate = False )
+		
+		# get all sets and check them for partition connection 
+		for plug in mp:
+			iplug = plug.p_input
+			if iplug.isNull():
+				continue	# empty plugs 
+			objset = iplug.getNode()
+		# END for each connected plug
+		
+		
+		
+	
+	#} END set handling 
+	
+	# Query General 
 	def getStorageNode( self ):
 		"""@return: Node actually being used as storage"""
 		return self._node
-	#} END query	
+		
+	# END query general
 	
 
 class StorageNode( nodes.DependNode, StorageBase ):
-	"""This node can be used as pythonic ans easy-to-access value container - it could 
+	"""This node can be used as pythonic and easy-to-access value container - it could 
 	be connected to your node, and queried for values actually being queried on your node.
 	As value container, it can easily be replaced by another one, or keep different sets of information
 	@note: the storage node can only use generic attributes and recover them properly during scene reload 

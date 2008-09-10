@@ -1,9 +1,9 @@
 1
-    | addMember                               | None                |                                         
+    | addMember                               | None                |                                          
     | addMembers                              | None                |                                         
-    | annotation                              | None                |                                         
+    | annotation                              | None                | getAnnotation                                        
     | clear                                   | None                |                                         
-    | create                                  | None                |                                         
+x   | create                                  | None                |                                         
     | getIntersection                         | None                |                                         
     | getMembers                              | None                |                                         
     | getUnion                                | None                |                                         
@@ -14,4 +14,4 @@
     | removeMembers                           | None                |                                         
     | restriction                             | None                |                                         
     | setAnnotation                           | None                |                                         
-    | type                                    | None                |                                         
+    | type                                    | None                | getType                                 
