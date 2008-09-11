@@ -52,7 +52,7 @@ _mfndep = api.MFnDependencyNode()
 #### Methods 		  	####
 ##########################
 
-#{ Node Mapping 
+#{ Conversions 
 
 def nodeTypeToNodeTypeCls( nodeTypeName ):
 	""" Convert the given  node type (str) to the respective python node type class
@@ -159,7 +159,26 @@ def toApiobjOrDagPath( nodename ):
 	# END for each object name
 	return None
 	
-#} END node mapping 
+def toSelectionList( nodeList ):
+	"""Convert an iterable filled with Nodes to a selection list
+	@param nodeList: iterable filled with dg and dag nodes as well as plugs, dagpaths or mobjects or strings 
+	@return: selection list filled with objects from node list"""
+	sellist = api.MSelectionList()
+	for node in nodeList:
+		if isinstance( node, DagNode ):
+			sellist.add( node._apidagpath )
+		elif isinstance( node, DependNode ):
+			sellist.add( node._apiobj )
+		else: # probably plug or something else like an mobject or dagpath
+			sellist.add( node )
+	# END for each item in input array 
+	return sellist
+	
+def fromSelectionList( sellist ):
+	"""@return: list of Nodes and MPlugs stored in the given selection list"""
+	import iterators
+	return list( iterators.iterSelectionList( asNode=1, handlePlugs=1 ) )
+#} END conversions 
 
 
 
@@ -306,7 +325,7 @@ def createNode( nodename, nodetype, autocreateNamespace=True, renameOnClash = Tr
 
 
 
-#}
+#} END base
 
 
 def _checkedInstanceCreationDagPathSupport( apiobj_or_dagpath, clsToBeCreated, basecls ):

@@ -134,7 +134,7 @@ def iterDagNodes( *args, **kwargs ):
 						If False, MObjects will be returned - it will return each object only once ( ~10k objs/s )
 						default True
 		@param depth: 	if True nodes Mobjects will be returned as a depth first traversal of the hierarchy tree ( ~6k path/s )
-				 		if False as a post-order (breadth first) ( ¬3.5k paths/s, or slower, depending on the scene )
+				 		if False as a post-order (breadth first) ( ~3.5k paths/s, or slower, depending on the scene )
 						default True
 		@param underworld: if True traversal will include a shape's underworld (dag object parented to the shape),
 			  				if False underworld will not be traversed,
@@ -256,24 +256,145 @@ def iterGraph( nodeOrPlug, *args, **kwargs ):
 		@param asNode: if the iteration is on node level, Nodes ( wrapped MObjects ) will be returned
 						If False, MObjects will be returned
 						default False
+		@param predicate: method returninng True if passed in iteration element can be yielded
+			default: lambda x: True
 		@yield: MObject, Node or Plug depending on the configuration flags
 		@node: based on pymel"""
 	iterObj = getGraphIterator( nodeOrPlug, *args, **kwargs )
 	retrievePlugs = not iterObj.atNodeLevel( )
 	asNode = kwargs.get( "asNode", False )
+	predicate = kwargs.get( 'predicate', lambda x: True )
 	 
 	# iterates and yields MObjects
 	while not iterObj.isDone():
 		if retrievePlugs:
-			yield iterObj.thisPlug()
+			plug = iterObj.thisPlug()
+			if predicate( plug ):
+				yield plug
 		else:
 			obj = iterObj.currentItem()
 			if asNode:
-				yield nodes.Node( obj )
+				node = nodes.Node( obj ) 
+				if predicate( node ):
+					yield node
 			else:
-				yield obj
+				if predicate( obj ):
+					yield obj
 		# END if return on node level
 		iterObj.next()
 	# END of iteration 
 	
-
+def getSelectionListIterator( sellist, **kwargs ):
+	"""@return: iterator suitable to iterate given selection list - for more info see
+	L{iterSelectionList}"""
+	filtertype = kwargs.get( "filterType", api.MFn.kInvalid )
+	iterator = api.MItSelectionList( sellist, filtertype )
+	return iterator
+	
+nullplugarray = api.MPlugArray()
+nullplugarray.setLength( 1 )
+def iterSelectionList( sellist, filterType = api.MFn.kInvalid, predicate = lambda x: True, 
+					  	asNode = True, handlePlugs = True ):
+	"""Iterate the given selection list with a filter from *args
+	@param sellist: MSelectionList to iterate
+	@param filterType: MFnType id acting as simple type filter
+	@param asNode: if True, returned MObjects or DagPaths will be wrapped as node 
+	@param handlePlugs: if True, plugs can be part of the selection list and will be returned. This 
+	implicitly means that the selection list will be iterated without an iterator, and MFnType filters 
+	will be slower as it is implemented in python
+	@param predicate: method returninng True if passed in iteration element can be yielded
+	default: lambda x: True
+	@return: Node or Plug on each iteration step ( assuming filter does not prevent that
+	@todo: add components support
+	@todo: get rid of the nullplug array as it will not handle recursion properly or multithreading """
+	if handlePlugs:
+		# SELECTION LIST MODE 
+		for i in xrange( sellist.length() ):
+			# DAG PATH 
+			iterobj = None
+			try:
+				iterobj = api.MDagPath( )
+				sellist.getDagPath( i, iterobj )
+			except RuntimeError:
+				# TRY PLUG - first as the object could be returned as well if called
+				# for DependNode
+				try:
+					global nullplugarray
+					iterobj = nullplugarray[0]
+					sellist.getPlug( i, iterobj )
+					# try to access the attribute - if it is not really a plug, it will 
+					# fail and throw - for some reason python can put just the depend node into 
+					# a plug
+					iterobj.attribute()
+				except RuntimeError:
+				# TRY DG NODE
+					iterobj = api.MObject( )
+					sellist.getDependNode( i, iterobj )
+				# END its not an MObject
+			# END its not a dag node 
+			
+			# should have iterobj now 
+			if isinstance( iterobj, ( api.MPlug, api.MPlugPtr ) ):
+				# apply filter 
+				if filterType != api.MFn.kInvalid and iterobj.node().apiType() != filterType:
+					continue
+					# END apply filter type
+				if predicate( iterobj ):
+					yield iterobj
+			# END YIELD PLUG HANDLING
+			else:
+				# must be dag or dg node
+				filterobj = iterobj
+				if isinstance( iterobj, api.MDagPath ):
+					filterobj = iterobj.node()
+					
+				if filterType != api.MFn.kInvalid and filterobj.apiType() != filterType:
+					continue
+				# END filter handling
+				
+				if asNode:
+					node = nodes.Node( iterobj )
+					if predicate( node ):
+						yield node
+				else:
+					if predicate( iterobj ):
+						yield iterobj
+				# END asNode handling
+			# END yield iter object  handling 
+			
+		# END for each element 
+	else:
+		# ITERATOR MODE 
+		iterator = getSelectionListIterator( sellist, filterType = filterType )
+		predicate = kwargs.get( 'predicate', lambda x: True )
+		
+		while not iterator.isDone():
+			# try dag object
+			itemtype = iterator.itemType()
+			if itemtype == api.MItSelectionList.kDagSelectionItem:
+				path = api.MDagPath( )
+				iterator.getDagPath( path )
+				if asNode:
+					node = nodes.Node( path ) 
+					if predicate( node ):
+						yield node
+				else:
+					if predicate( path ):
+						yield path
+			elif itemtype == api.MItSelectionList.kDNselectionItem:
+				obj = api.MObject()
+				iterator.getDependNode( obj )
+				if asNode:
+					node = nodes.Node( obj )
+					if predicate( node ):
+						yield node
+				else:
+					if predicate( obj ):
+						yield obj
+			else:
+				# cannot handle the item, its animSelection item  - skip for now
+				pass
+			
+			iterator.next()
+		# END while not done
+	
