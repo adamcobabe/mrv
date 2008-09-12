@@ -478,7 +478,7 @@ class MPlug( api.MPlug, util.iDagItem ):
 		return outputs
 		
 	def getInputs( self ):
-		"""Special handler retunring the input plugs of array eleemts
+		"""Special handler returning the input plugs of array elements
 		@return: list of plugs connected to the elements of this arrayplug
 		@note: if self is not an array, a list with 1 or 0 plugs will be returned"""
 		out = []

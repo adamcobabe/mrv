@@ -143,7 +143,7 @@ if not init_done:
 
 	# overwrite dummy node bases with hand-implemented ones
 	from base import *
-	
+	from sets import *
 	# import additional classes required in this module 
 	from byronimo.maya.namespace import Namespace
 	

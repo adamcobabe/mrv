@@ -201,7 +201,7 @@ def delete( *args ):
 	mod.doIt()
 
 @undoable
-def createNode( nodename, nodetype, autocreateNamespace=True, renameOnClash = True ):
+def createNode( nodename, nodetype, autocreateNamespace=True, renameOnClash = True, forceNewLeaf=False):
 	"""Create a new node of nodetype with given nodename
 	@param nodename: like "mynode" or "namespace:mynode" or "|parent|mynode" or 
 	"|ns1:parent|ns1:ns2:parent|ns3:mynode". The name may contain any amount of parents
@@ -213,6 +213,9 @@ def createNode( nodename, nodetype, autocreateNamespace=True, renameOnClash = Tr
 	if required
 	@param renameOnClash: if True, nameclashes will automatcially be resolved by creating a unique 
 	name - this only happens if a dependency node has the same name as a dag node
+	@param forceNewLeaf: default False, if True, nodes will be created anyway if a node with the same name 
+	already exists - this will recreate the leaf portion of the given paths. Implies renameOnClash
+	If False, you will receive an already existing node if the type matches.
 	@raise RuntimeError: If nodename contains namespaces or parents that may not be created
 	@raise NameError: If name of desired node clashes as existing node has different type
 	@note: As this method is checking a lot and tries to be smart, its relatively slow ( creates ~400 nodes / s )
@@ -236,26 +239,34 @@ def createNode( nodename, nodetype, autocreateNamespace=True, renameOnClash = Tr
 		lenSubpaths += 1
 	
 	for i in xrange( start_index, lenSubpaths ):						# first token always pipe, need absolute paths
-		nodepartialname = '|'.join( subpaths[ 0 : i+1 ] )
+		nodepartialname = '|'.join( subpaths[ 0 : i+1 ] )				# full path to the node so far 
 		
 		# DAG ITEM EXISTS ?
 		######################
 		if objExists( nodepartialname ):
-			parentnode = createdNode = toApiobj( nodepartialname )	
-			
 			# could be that the node already existed, but with an incorrect type
 			if i == lenSubpaths - 1:				# in the last iteration
-				existing_node_type = uncapitalize( api.MFnDependencyNode( createdNode ).typeName() )
-				nodetypecmp = uncapitalize( nodetype )
-				if nodetypecmp != existing_node_type:
-					# allow more specialized types, but not less specialized ones 
-					if nodetypecmp not in nodeTypeTree.parent_iter( existing_node_type ):
-						msg = "node %s did already exist, its type %s is incompatible with the requested type %s" % ( nodepartialname, existing_node_type, nodetype )
-						raise NameError( msg )
-				# END nodetypes different
-			# END end of iteration handling 
-			
-			continue
+				if not forceNewLeaf:
+					parentnode = createdNode = toApiobj( nodepartialname )
+					existing_node_type = uncapitalize( api.MFnDependencyNode( createdNode ).typeName() )
+					nodetypecmp = uncapitalize( nodetype )
+					if nodetypecmp != existing_node_type:
+						# allow more specialized types, but not less specialized ones 
+						if nodetypecmp not in nodeTypeTree.parent_iter( existing_node_type ):
+							msg = "node %s did already exist, its type %s is incompatible with the requested type %s" % ( nodepartialname, existing_node_type, nodetype )
+							raise NameError( msg )
+					# END nodetypes different
+					
+					continue
+				# END force new leaf handling
+				else:
+					# just go ahead, but create a new node 
+					renameOnClash = True		# allow clashes and rename
+			# END leaf path handling
+			else:
+				# remember what we have done so far and continue 
+				parentnode = createdNode = toApiobj( nodepartialname )
+				continue
 		# END node item exists 
 		
 			

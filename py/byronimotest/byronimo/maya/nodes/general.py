@@ -122,10 +122,27 @@ class TestGeneral( unittest.TestCase ):
 		self.failUnlessRaises( NameError, nodes.createNode, "nodename", "facade", renameOnClash = False )	
 		
 		
-		# it should be find to have the same name in several dag levels though !
-		nodes.createNode( "parent|nodename", "transform" )
-		nodes.createNode( "parent|nodename|nodename", "mesh" )
-		nodes.createNode( "otherparent|nodename|nodename", "mesh" )
+		# it should be fine to have the same name in several dag levels though !
+		newmesh = nodes.createNode( "parent|nodename", "transform" )
+		newmesh1 = nodes.createNode( "parent|nodename|nodename", "mesh" )
+		newmesh2 = nodes.createNode( "otherparent|nodename|nodename", "mesh" )
+		self.failUnless( newmesh != newmesh1 )
+		self.failUnless( newmesh1 != newmesh2 )
+		
+		# FORCE NEW 
+		##############
+		oset = nodes.createNode( "objset", "objectSet", forceNewLeaf = False )
+		newoset = nodes.createNode( "objset", "objectSet", forceNewLeaf = True )
+		self.failUnless( oset != newoset )
+		
+		# would expect same set to be returned
+		sameoset = nodes.createNode( "objset", "objectSet", forceNewLeaf = False )
+		self.failUnless( sameoset == oset )
+		
+		# force new and dag paths 
+		newmesh3 = nodes.createNode( "otherparent|nodename|nodename", "mesh", forceNewLeaf = True )
+		self.failUnless( newmesh3 != newmesh2 )
+		
 		
 		
 	def test_objectExistance( self ):

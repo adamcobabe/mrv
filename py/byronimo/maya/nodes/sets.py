@@ -33,7 +33,6 @@ class ObjectSet:
 	
 	#{ Partition Handling 
 	
-	@undoable 
 	def getPartitions( self ):
 		"""@return: list of Nodes of partitions the entity is set is part of"""
 		return [ p.getNode() for p in self.partition.p_outputs ]
@@ -348,6 +347,7 @@ class Partition:
 	
 	#{ Set Membership 
 	
+	@undoable
 	def _addRemoveMember( self, objectset, mode ):
 		sets = objectset
 		if isinstance( objectset, ObjectSet ):
@@ -358,6 +358,7 @@ class Partition:
 		# END for each set to add/remove
 		
 		return self
+	
 	
 	def addMember( self, objectset ):
 		"""Add the given objectset or list of sets to the partition
@@ -377,11 +378,15 @@ class Partition:
 		@return: self allowing chained calls)"""
 		return self._addRemoveMember( objectset, ObjectSet.kReplace )
 		
+	@undoable
+	def clear( self ):
+		"""remove all members from this partition"""
+		for m in self.getMembers():
+			self.removeMember( m )
+			
 	def getMembers( self ):
 		"""@return: sets being member of this partition"""
 		return [ p.getNode() for p in self.sets.getInputs() ]
-		
-		
 		
 	#}END set membership
 	
@@ -390,5 +395,4 @@ class Partition:
 	removeSets = removeMember
 	replaceSets = replaceMember
 	getSets = getMembers
-	
 	#} END name remapping 

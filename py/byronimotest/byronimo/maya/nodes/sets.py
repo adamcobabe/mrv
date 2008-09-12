@@ -208,6 +208,8 @@ class TestSets( unittest.TestCase ):
 		self.failUnless( len( list( s.iterDifference( [ s2, s3 ] ) ) ) == s.getDifference( [ s2, s3 ] ).length() )
 		self.failUnless( s.getMembers().length() - s2.getMembers().length() - s3.getMembers().length() == sellist.length() )
 		
-		
+	def test_partitions( self ):
+		"""byronimo.maya.nodes.sets: test partition constraints"""
+		self.fail()
 		
 		

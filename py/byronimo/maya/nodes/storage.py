@@ -296,6 +296,7 @@ class StorageBase( object ):
 	creates its attributes
 	@todo: should self._node be stored as weakref ?"""
 	kValue, kMessage, kStorage = range( 3 )
+	_partitionIdAttr = "bda_storagePartition"
 	__slots__ = ( '_attrprefix', '_node' )
 	
 	class PyPickleValue( object ):
@@ -415,7 +416,8 @@ class StorageBase( object ):
 		None: return ( picklePlug , messagePlug )
 		@param autoCreate: if True, a plug with the given dataID will be created if it does not 
 		yet exist
-		@raise AttributeError: if a plug with dataID does not exist and default value is None"""
+		@raise AttributeError: if a plug with dataID does not exist and default value is None
+		@raise TypeError: if  plugtype unknown """
 		matchedplug = self.findStoragePlug( dataID )
 		if matchedplug is None:
 			if autoCreate:
@@ -495,7 +497,7 @@ class StorageBase( object ):
 			if not autoCreate:
 				raise ValueError( "Set at %s[%i] did not exist on %r" % ( self._attrprefix + dataID, setIndex, self ) )
 			su = undo.StartUndo()			# make the following operations atomic
-			objset = nodes.createNode( dataID + "Set", "objectSet" )
+			objset = nodes.createNode( dataID + "Set", "objectSet", forceNewLeaf = True )
 			inputplug = objset.message 
 			inputplug >> setplug
 			
@@ -507,33 +509,85 @@ class StorageBase( object ):
 		
 		# return actual object set
 		return inputplug.getNode()
-	
-			 
-										 
+		
+	@undoable
+	def deleteObjectSet( self, dataID, setIndex ):
+		"""Delete the object set identified by setIndex 
+		@note: the method is implicitly undoable
+		@note: use this method to delete your sets instead of manual deletion as it will automatically 
+		remove the managed partition in case the last set is being deleted
+		@note: operation is implicitly undoable"""
+		try:
+			objset = self.getObjectSet( dataID, setIndex, autoCreate = False )
+		except ValueError, AttributeError:
+			# did not exist, its fine
+			return 
+		else:
+			# if this is the last set, remove the partition as well
+			#su = undo.StartUndo()			# make the following operations atomic
+			if len( self.getSets( dataID ) ) == 1:
+				self.setPartition( dataID, False )
+				
+			nodes.delete( objset )
+		# END obj set handling 
+		
+	def getSets( self, dataID ):
+		"""@return: all object sets stored under the given dataID"""
+		mp = self.getStoragePlug( dataID, self.kMessage, autoCreate = False )
+		allnodes = [ p.getNode() for p in mp.getInputs() ]
+		return [ n for n in allnodes if isinstance( n, nodes.ObjectSet ) ]
 		
 		
+	@undoable
 	def setPartition( self, dataID, state ):
 		"""Make all sets in dataID use a partition or not
 		@param dataID: id identifying the storage plug 
 		@param state: if True, a partition will be used, if False, it will be disabled
 		@note: this method makes sure that all sets are hooked up to the partition
-		@note: method is implicitly undoable whenever it truly created a partition
 		@raises: AttributeError: if the plug did not exist ( and autocreate is False )
 		@return: if state is True, the name of the possibly created ( or existing ) partition"""
-		pass 
+		sets = self.getSets( dataID )
+		partition = self.getPartition( dataID )
+		
+		if state:
+			if partition is None:
+				# create partition
+				partition = nodes.createNode( "storagePartition", "partition", forceNewLeaf=True )
+				
+				tattr = api.MFnTypedAttribute( )
+				attr = tattr.create( self._partitionIdAttr, "pid", api.MFnData.kString )
+				partition.addAttribute( attr )
+			# END create partition 
+			
+			# make sure all sets are members of our partition
+			partition.addSets( sets )
+			return partition
+		else:
+			if partition:
+				# delete partition
+				# have to clear partition as, for some reason, or own node will be killed as well !
+				partition.clear()
+				nodes.delete( partition )
+		# END state check 
+			
 		
 	def getPartition( self, dataID ):
 		"""@return: partition Node attached to the sets at dataID or None if state
 		is disabled"""
-		mp = self.getStoragePlug( dataID, self.kMessage, autoCreate = False )
+		sets = self.getSets( dataID )
 		
-		# get all sets and check them for partition connection 
-		for plug in mp:
-			iplug = plug.p_input
-			if iplug.isNull():
-				continue	# empty plugs 
-			objset = iplug.getNode()
-		# END for each connected plug
+		# get the dominant partition
+		partitions = []
+		for s in sets:
+			partitions.extend( s.getPartitions() )
+			
+		for p in partitions:
+			if hasattr( p, self._partitionIdAttr ):
+				return p
+		# END for each partition 
+		
+		# nothing found, there is no partition yet 
+		return None
 		
 		
 		

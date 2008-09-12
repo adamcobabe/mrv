@@ -167,18 +167,65 @@ class TestStorage( unittest.TestCase ):
 		cmds.redo()
 		self.failUnless( objset.isValid() and objset.isAlive() )
 		
+		# del set 
+		snode.deleteObjectSet( did, 0 )
+		self.failUnless( not objset.isValid() and objset.isAlive() )
+		cmds.undo()
+		self.failUnless( objset.isValid() )
+		cmds.redo() 
+		self.failUnless( not objset.isValid() )
+		cmds.undo()	# undo deletion after all 
+		
 		# SIMPLE OBJSET OPERATIONS 
 		
 		# MULTIPLE SETS 
 		
 		
 		
-		# PARTITION HANDLING 
-		snode.setPartition( did, 1 )
-		self.failUnless( snode.getPartition( did ) != None )
 		
-		snode.setPartition( did, 0 )
+		# PARTITION HANDLING
+		#######################
+		partition = snode.setPartition( did, True )
+		self.failUnless( snode.getPartition( did ) is not None )
+		cmds.undo()
 		self.failUnless( snode.getPartition( did ) is None )
+		cmds.redo()	# set is available again
+		
+		# delete the single set we have, partition should be gone as well 
+		snode.deleteObjectSet( did, 0 )
+		self.failUnless( not partition.isValid() )
+		cmds.undo()
+		self.failUnless( partition.isValid() )
+		
+		# disable partition 
+		snode.setPartition( did, False )
+		self.failUnless( snode.isAlive() and snode.isValid() )		# recently it would be deleted 
+		self.failUnless( snode.getPartition( did ) is None )
+		snode.setPartition( did, True )
+		
+		# new set, check partition 
+		oset = snode.getObjectSet( did, 1, autoCreate = 1 )
+		self.failUnless( isinstance( oset, nodes.ObjectSet ) )
+		self.failUnless( len( oset.getPartitions() ) == 1 )
+		self.failUnless( oset.getPartitions()[0] == snode.getPartition( did ) )
+		
+		cmds.undo()
+		self.failUnless( len( oset.getPartitions() ) == 0 )
+		cmds.redo()
+		
+		# set is in multiple partitions, some from us, some from the user 
+		myprt = nodes.createNode( "mypartition", "partition" )
+		myprt.addSets( oset )
+		self.failUnless( myprt != snode.getPartition( did ) )
+		snode.setPartition( did, False )
+		self.failUnless( myprt.getSets( )[0] == oset )
+		self.failUnless( len( oset.getPartitions() ) == 1 )
+		
+		# undo / redo 
+		cmds.undo()
+		self.failUnless( len( oset.getPartitions() ) == 2 )
+ 		cmds.redo()
+		self.failUnless( len( oset.getPartitions() ) == 1 )
 		
 		
 		
