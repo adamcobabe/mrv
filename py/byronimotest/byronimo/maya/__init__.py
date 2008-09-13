@@ -21,9 +21,13 @@ import byronimotest as common
 import maya.cmds as cmds
 import os
 
+
+#{ Interface 
 def get_maya_file( filename ):
 	"""@return: path to specified maya ( test ) file """
 	return os.path.join( os.path.dirname( __file__ ), "ma/"+filename )
+	
+#} Interface 
 	
 	
 def get_suite( ):

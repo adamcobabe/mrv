@@ -16,7 +16,7 @@ __copyright__='(c) 2008 Sebastian Thiel'
 
 import networkx.tree as nxtree
 from collections import deque as Deque
-
+import weakref
 
 ############################
 #### Methods 		  	####
@@ -90,6 +90,72 @@ class Call( object ):
 		@note: having *args and **kwargs set makes it more versatile"""
 		return self.func( *self.args, **self.kwargs )
 		
+		
+class CallbackBase( object ):
+	"""Base class for all classes that want to provide a common callback interface
+	to supply event information to clients.
+	Usage
+	-----
+	Derive from this class and define your callbacks like :
+	eventname = CallbackBase.Event( "eventname" )
+	Call it using 
+	self.sendEvent( "eventname", [ args [ kwargs ] ] )
+	If more args are given during your call, this has to be documented 
+	
+	Users register using 
+	yourclass.eventname = callable
+	
+	and deregister using 
+	yourclass.removeEvent( eventname, callable )
+	
+	@note: using weak-references to ensure one does not keep objects alive"""
+	
+	class Event( object ):
+		"""Descriptor allowing to easily setup callbacks for classes derived from 
+		CallbackBase"""
+		def __init__( self, eventname ):
+			self.eventname = eventname + "_set"	# set attr going to keep events 
+			
+		def __set__( self, inst, eventfunc ):
+			"""Set a new event to our object"""
+			self.__get__( inst ).add( weakref.ref( eventfunc ) )
+			
+		def __get__( self, inst, cls = None ):
+			"""Always return the set itself so that one can iterate it"""
+			if inst is None:
+				raise TypeError( "The attribute %s cannot be accessed on class level" % self.eventname )
+				
+			if not hasattr( inst, self.eventname ):
+				setattr( inst, self.eventname, set() )
+			
+			return getattr( inst, self.eventname )
+	
+	
+	def removeEvent( self, eventname, eventfunc ):
+		"""remove the given event function from the event identified by eventname
+		@note: will not raise if it does not exist"""
+		try:
+			getattr( self, eventname ).remove( weakref.ref( event ) )
+		except KeyError:
+			pass 
+			
+	def sendEvent( self, eventname, *args, **kwargs ):
+		"""Send the given event to all registered event listeners
+		@note: will catch all event exceptions trown by the methods called
+		@return: False if at least one event call threw an exception, true otherwise"""
+		success = True
+		for funcref in getattr( self, eventname ):
+			try:
+				func = funcref()	# its a weak reference 
+				if func:
+					func( *args, **kwargs )
+			except Exception:
+				success = False
+				print "Error: Exception thrown by function %s during event %s" % ( func, eventname )
+		# END for each registered event
+		return success
+		
+	
 
 class Singleton(object) :
 	""" Singleton classes can be derived from this class,
