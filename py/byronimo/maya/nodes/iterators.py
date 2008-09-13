@@ -168,6 +168,7 @@ def iterDagNodes( *args, **kwargs ):
 				if predicate( dPath ):
 					yield dPath
 			iterObj.next()
+		# END while not is done  
 	# END if using dag paths 
 	else:
 		# NOTE: sets don't work here, as more than == comparison is required
@@ -184,6 +185,7 @@ def iterDagNodes( *args, **kwargs ):
 				if predicate( obj ):
 					yield obj
 			iterObj.next()
+		# END while not is done 
 	# END if using mobjects 
 	
 

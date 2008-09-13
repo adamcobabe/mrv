@@ -226,6 +226,9 @@ class ObjectSet:
 		@note: set """
 		if isinstance( objects, (tuple, list) ):
 			# MOBJECTARRAY OF SETS
+			if not objects:		# emty list, return empty mobject array
+				return api.MObjectArray( )
+				
 			if isinstance( objects[ 0 ], ObjectSet ):
 				objarray = api.MObjectArray( )
 				for setNode in objects: 

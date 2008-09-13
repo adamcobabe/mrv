@@ -469,8 +469,10 @@ class And( object ):
 	"""For use with python's filter method, simulates logical AND
 	Use: filter( And( f1,f2,fn ), sequence ) """
 	def __init__( self, *args ):
-		"""args must contain the filter methods to be AND'ed"""
-		self.functions = args
+		"""args must contain the filter methods to be AND'ed
+		To append functions after creation, simply access the 'functions' attribute 
+		directly as a list"""
+		self.functions = list( args )
 		
 	def __call__( self, *args, **kwargs ):
 		"""Called during filter function, return true if all functions return true"""
