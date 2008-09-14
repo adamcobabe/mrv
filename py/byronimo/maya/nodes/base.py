@@ -1109,6 +1109,50 @@ class DagNode( Entity, iDagItem ):
 		
 	#} END edit
 	
+	
+	#{ Hierarchy Status Information
+	def _checkHierarchyVal( self, plugName, cmpval ):
+		"""@return: cmpval if the plug value of one of the parents equals cmpval  
+		as well as the current entity"""
+		if getattr( self, plugName ).asInt() == cmpval:
+			return cmpval
+			
+		for parent in self.iterParents():
+			if getattr( parent, plugName ).asInt() == cmpval:
+				return cmpval
+				
+		return 1 - cmpval
+	
+	def _getDisplayOverrideValue( self, plugName ):
+		"""@return: the given effective display override value or None if display 
+		overrides are disabled"""
+		if self.do.ove.asInt():
+			return getattr( self.do, plugName ).asInt()
+			
+		for parent in self.iterParents():
+			if parent.do.ove.asInt():
+				return getattr( parent.do, plugName ).asInt()
+				
+		return None
+	
+	def isVisible( self ):
+		"""@return: True if this node is visible - its visible if itself and all parents are 
+		visible"""
+		return self._checkHierarchyVal( 'v', False )
+	
+	def isTemplate( self ):
+		"""@return: True if this node is templated - this is the case if itself or one of its 
+		parents are templated """
+		return self._checkHierarchyVal( 'tmp', True )
+		
+	def getDisplayOverrideValue( self, plugName ):
+		"""@return: the override display value actually identified by plugName affecting 
+		the given object ( that should be a leaf node for the result you see in the viewport. 
+		The display type in effect is always the last one set in the hierarchy 
+		returns None display overrides are disabled"""
+		return self._getDisplayOverrideValue( plugName )
+	#} 
+	
 	#{ Overridden from DependNode
 	
 	def isValid( self ):

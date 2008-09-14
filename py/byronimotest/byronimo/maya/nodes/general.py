@@ -592,8 +592,43 @@ class TestNodeBase( unittest.TestCase ):
 		self.failUnless( len( list( ( trans.iterInstances(excludeSelf=False))) ) == trans.getInstanceCount( True ) )
 		
 				
+	def test_displaySettings( self ):
+		"""byronimo.maya.nodes.base: test how display type and display overrides work hierarchically"""
+		bmaya.Scene.new( force = 1 )
+		mesh = nodes.createNode( "a1|b1|c1|d1|mesh", "mesh" )
+		mesh.tmp.setInt( 1 )
+		
+		# TEMPLATE
+		##########
+		self.failUnless( mesh.isTemplate() )
+		cmds.undo()
+		self.failUnless( not mesh.isTemplate() )
+		
+		a1 = mesh.getRoot()
+		a1.v.setInt( 0 )
+		
+		# VISIBLE
+		#########
+		self.failUnless( not mesh.isVisible( ) )
+		cmds.undo()
+		self.failUnless( mesh.isVisible( ) )
+		
+		# DRAWING OVERRIDES 
+		###################
+		a1.do.ove.setInt( 1 )
+		a1.do.ovdt.setInt( 2 )
+		self.failUnless( mesh.getDisplayOverrideValue( 'ovdt' ) == 2 )
+		cmds.undo()
+		cmds.undo()
+		self.failUnless( mesh.getDisplayOverrideValue( 'ovdt' ) == None )
+		
+		
+		
 	def test_mfncachebuilder( sself ):
-		"""byroniom.maya.nodes.base: write a generated cache using the builder function"""
+		"""byroniom.maya.nodes.base: write a generated cache using the builder function
+		should be redone for maya 8.5 perhaps ... or in fact its enough to have one for all maya versions
+		and just merge them
+		@todo: do it """
 		pass
 		#types.writeMfnDBCacheFiles( )
 		

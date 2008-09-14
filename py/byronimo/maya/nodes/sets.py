@@ -24,12 +24,20 @@ import byronimo.maya.namespace as namespace
 undo = __import__( "byronimo.maya.undo", globals(), locals(),[ 'undo' ] )
 import iterators
 
+
+#{ Exceptions 
+class ConstraintError( RuntimeError ):
+	"""Thrown if a partition does not allow objects to be added, and the addition 
+	was not forced, and failure was not ignored as well"""
+#} 
+
+
 class ObjectSet:
 	""" Extended and more convenient object set interface dealing with Nodes ( and 
 	provides the original MFnSet interface as well
 	"""                                                               
 	__metaclass__ = types.MetaClassCreatorNodes
-	kReplace, kAdd, kRemove = range( 3 )
+	kReplace, kAdd,kAddForce, kRemove = range( 4 )
 	
 	#{ Partition Handling 
 	
@@ -90,7 +98,65 @@ class ObjectSet:
 		return memberobj
 		
 	
-	def _addRemoveMember( self, member, mode ):
+	def _forceMembership( self, member, is_single_member ):
+		"""Search all sets connected to our partitions 
+		for intersecting members and remove them.
+		Finally dd the members in question to us again
+		@param member: can be selection list or MObject, MDagPath, MPlug
+		@return: self if everything is fine"""
+		for partition in self.getPartitions():
+			for otherset in partition.getSets():
+				if is_single_member:
+					otherset.removeMember( member )
+				else:
+					otherset.removeMembers( otherset.getIntersection( member, sets_are_members = True ) )
+				# END single member handling 
+			# END for each set in partition           
+		# END for each partition
+		
+		# finally add the member to our set once more - now it should work 
+		# do not risk recursion though by setting everything to ignore errors 
+		addRemoveFunc = getattr( self, "_addRemoveMember" ) 
+		if isinstance( member, api.MSelectionList ):
+			addRemoveFunc = getattr( self, "_addRemoveMembers" )
+			
+		return addRemoveFunc( member, self.kAdd, True )
+	
+	def _checkMemberAddResult( self, member, mode, ignore_failure, is_single_member ):
+		"""Check whether the given member has truly been added to our set
+		and either force membership or raise and exception
+		@param is_single_member: if True, member can safely be assumed to be a single member, 
+		this speeds up operations as we do not have to use multi-member tests"""
+		if mode in ( self.kAdd, self.kAddForce ):
+			# do we have to check the result ?
+			if mode == self.kAdd and ignore_failure:
+				return self
+				
+			# check result - member can be MObject, MDagPath, plug, or selection list 
+			numMatches = 1
+			if isinstance( member, api.MSelectionList ):
+				numMatches = member.length()
+				
+			# CHECK MEMBERS
+			not_all_members_added = True
+			if is_single_member:
+				not_all_members_added = not self.isMember( member )
+			else:
+				not_all_members_added = self.getIntersection( member, sets_are_members = True ).length() != numMatches
+				
+			if not_all_members_added:
+				if mode == self.kAddForce:
+					return self._forceMembership( member, is_single_member )
+				
+				# if we are here, we do not ignore failure, and raise  
+				raise ConstraintError( "At least some members of %r could not be added to %r due to violation of exclusivity constraint" % (member,self) )
+				
+			# END if added members are not yet available
+		# END if mode is add or forced add 
+		return self
+			
+	
+	def _addRemoveMember( self, member, mode, ignore_failure ):
 		"""Add or remove the member with undo support
 		@param mode: kRemove or kAdd"""
 		memberobj = self._toMemberObj( member )
@@ -115,11 +181,12 @@ class ObjectSet:
 		op.addDoit( doitfunc, *args )
 		op.addUndoit( undoitfunc, *args )
 		op.doIt( )
-		return self
 		
-	def _addRemoveMembers( self, members, mode ):
+		return self._checkMemberAddResult( member, mode, ignore_failure, True )
+		
+	def _addRemoveMembers( self, members, mode, ignore_failure ):
 		"""Add or remove the members to the set
-		@param mode: kRemove or kAdd"""
+		@param mode: kRemove or kAdd or kAddForce"""
 		op = undo.GenericOperation()
 		sellist = members
 		if not isinstance( sellist, api.MSelectionList ):
@@ -140,35 +207,48 @@ class ObjectSet:
 		op.addDoit( doitfunc, sellist )
 		op.addUndoit( undoitfunc, sellist )
 		op.doIt()
-		return self
+		
+		return self._checkMemberAddResult( sellist, mode, ignore_failure, False )
 	
 	@undoable
-	def addMember( self, member ):
+	def addMember( self, member, force = False, ignore_failure = False ):
 		"""Add the item to the set
 		@param member: Node, MObject, MDagPath or plug
+		@param force: if True, member ship will be forced by removing the member in question 
+		from the other set connected to our partitions
+		@param ignore_failure: if True, a failed add due to partion constraints will result in an 
+		exception, otherwise it will be silently ignored. Ignored if if force is True  
 		@todo: handle components - currently its only possible when using selection lists
 		@return: self """
-		return self._addRemoveMember( member, ObjectSet.kAdd )
+		mode = self.kAdd
+		if force:
+			mode = self.kAddForce
+		return self._addRemoveMember( member, mode, ignore_failure )
 		
 	@undoable
 	def removeMember( self, member ):
 		"""Remove the member from the set
 		@param member: member of the list, for types see L{addMember}"""
-		return self._addRemoveMember( member, ObjectSet.kRemove )
+		return self._addRemoveMember( member, ObjectSet.kRemove, True )
 	
 	@undoable
-	def addMembers( self, nodes ):
+	def addMembers( self, nodes, force = False, ignore_failure = False ):
 		"""Add items from iterable or selection list as members to this set
 		@param nodes: MSelectionList or list of Nodes and Plugs
+		@param force: see L{addMember}
+		@param ignore_failure: see L{addMember}
 		@return: self """
-		return self._addRemoveMembers( nodes, ObjectSet.kAdd )
+		mode = self.kAdd
+		if force:
+			mode = self.kAddForce
+		return self._addRemoveMembers( nodes, mode, ignore_failure )
 	
 	@undoable
 	def removeMembers( self, nodes ):
 		"""Remove items from iterable or selection list from this set
 		@param nodes: see L{addMembers}
 		@return: self """
-		return self._addRemoveMembers( nodes, ObjectSet.kRemove )
+		return self._addRemoveMembers( nodes, ObjectSet.kRemove, True )
 			
 	#} END member editing
 	
@@ -214,22 +294,28 @@ class ObjectSet:
 			
 		def __del__( self ):
 			"""Delete our own set upon deletion"""
+			# assure we release members before - otherwise they might be deleted 
+			# as well if it is empty sets !
+			mfnset = api.MFnSet( self.setobj )
+			mfnset.clear()
+			del( mfnset )
 			dgmod = api.MDGModifier()
 			dgmod.deleteNode( self.setobj )
 			dgmod.doIt()
 		
 		
-	def _toValidSetOpInput( self, objects ):
+	def _toValidSetOpInput( self, objects, sets_are_members = False ):
 		"""Method creating valid input for the union/intersection or difference methods
 		@note: it may return a temporary set that will delete itself once the wrapper object
 		is being destroyed
+		@param sets_are_members: see L{getUnion}
 		@note: set """
 		if isinstance( objects, (tuple, list) ):
 			# MOBJECTARRAY OF SETS
 			if not objects:		# emty list, return empty mobject array
 				return api.MObjectArray( )
 				
-			if isinstance( objects[ 0 ], ObjectSet ):
+			if not sets_are_members and isinstance( objects[ 0 ], ObjectSet ):
 				objarray = api.MObjectArray( )
 				for setNode in objects: 
 					objarray.append( setNode._apiobj )
@@ -242,27 +328,30 @@ class ObjectSet:
 		
 		# still here, handle a single object
 		singleobj = objects
-		if isinstance( singleobj, api.MSelectionList ):
+		if isinstance( singleobj, api.MSelectionList ):	# Selection List ?
 			return self._TmpSet( singleobj )
 			
-		if isinstance( singleobj, ObjectSet ):
+		if not sets_are_members and isinstance( singleobj, ObjectSet ):				# Single Object Set ?
 			return singleobj._apiobj
 			
-		if isinstance( singleobj, api.MObject ) and singleobj.hasFn( api.MFn.kSet ):
+		if isinstance( singleobj, api.MObject ) and singleobj.hasFn( api.MFn.kSet ):	# MObject object set ?
 			return singleobj
 			
 		# assume best for MObject arrays - usually we pass it in ourselves 
 		if isinstance( singleobj, api.MObjectArray ):
 			return singleobj
-			
+		
+		# Can be Node, MDagPath or plug or MObject ( not set )
+		return self._toValidSetOpInput( ( singleobj, ), sets_are_members = sets_are_members ) # will create a tmpset then
+		
 		raise TypeError( "Type InputObjects for set operation ( %r ) was not recognized" % objects )
 		
 	
-	def _applySetOp( self, objects, opid ):
+	def _applySetOp( self, objects, opid, **kwargs ):
 		"""Apply the set operation with the given id"""
 		# have to do it in steps to assure our temporary set will be deleted after 
 		# the operation has finished
-		obj = fobj = self._toValidSetOpInput( objects )
+		obj = fobj = self._toValidSetOpInput( objects, **kwargs )
 		outlist = api.MSelectionList()
 		if isinstance( obj, self._TmpSet ):
 			fobj = obj.setobj	# need to keep reference to _TmpSet until it was used
@@ -272,31 +361,39 @@ class ObjectSet:
 			mfnset.getUnion( fobj, outlist )
 		elif opid == "intersection":
 			mfnset.getIntersection( fobj, outlist )
+		else:
+			raise AssertionError( "Invalid Set Operation: %s" % opid )
 			
 		return outlist
 
-	def getUnion( self, objects ):
+	def getUnion( self, objects, sets_are_members = False  ):
 		"""Create a union of the given items with the members of this set
 		@param objects: an ObjectSet, an MObject of an object set, a list of ObjectSets 
-		or a list of wrapped Objects or an MSelectionList. 
+		or a list of wrapped Objects or an MSelectionList or a single wrapped object . 
 		If you have objects in a list as well as sets
 		themselves, objects must come first as the operation will fail otherwise.
+		@param sets_are_members: if True, objects can contain sets, but they should not be treated 
+		as sets to apply the set operation with, they should simply be members of this set, and 
+		thus need to be wrapped into a tmp set as well
 		@return: MSelectionList of all objects of self and objects """
-		return self._applySetOp( objects, "union" )
+		return self._applySetOp( objects, "union", sets_are_members = sets_are_members )
 		
-	def getIntersection( self, objects ):
+	def getIntersection( self, objects, sets_are_members = False  ):
 		"""As L{getUnion}, but returns the intersection ( items in common ) of this 
 		set with objects
+		@param objects: see L{getUnion}
+		@param sets_are_members: see L{getUnion}
 		@return: MSelectionList of objects being in self and in objects"""
-		return self._applySetOp( objects, "intersection" )
+		return self._applySetOp( objects, "intersection", sets_are_members = sets_are_members )
 		
-	def getDifference( self, objects ):
+	def getDifference( self, objects, sets_are_members = False  ):
 		"""@return: the result of self - objects, thus objects will be substracted from our obejcts 
-		@param objecfts: see L{getUnion}
+		@param objects: see L{getUnion}
+		@param sets_are_members: see L{getUnion}
 		@return: MSelectionList containing objects of self not being in objects list"""
 		# have to do the intersections individually and keep them 
 		intersections = []
-		obj = fobj = self._toValidSetOpInput( objects )
+		obj = fobj = self._toValidSetOpInput( objects, sets_are_members = sets_are_members )
 		outlist = api.MSelectionList()
 		if isinstance( obj, self._TmpSet ):
 			fobj = obj.setobj	# need to keep reference to _TmpSet until it was used

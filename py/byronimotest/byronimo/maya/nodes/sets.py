@@ -21,7 +21,8 @@ import byronimo.maya.nodes as nodes
 import byronimo.maya.nodes.iterators as iterators 
 import maya.cmds as cmds
 import maya.OpenMaya as api
-
+import byronimo.maya as bmaya 
+import byronimo.maya.nodes.sets as sets
 
 class TestSets( unittest.TestCase ):
 	""" Test set and partition handling """
@@ -171,6 +172,9 @@ class TestSets( unittest.TestCase ):
 		fewmembers = memberlist[:3]
 		s2.addMembers( fewmembers )
 		
+		# add 0 members
+		s2.addMembers( [] ) 
+		
 		# with set
 		sellist = s.getIntersection( s2 )
 		self.failUnless( sellist.length() == len( fewmembers ) )
@@ -210,6 +214,44 @@ class TestSets( unittest.TestCase ):
 		
 	def test_partitions( self ):
 		"""byronimo.maya.nodes.sets: test partition constraints"""
-		self.fail()
+		# one transform, two sets, one partition 
+		s1 = nodes.createNode( "s1", "objectSet" )
+		s2 = nodes.createNode( "s2", "objectSet" )
+		p = nodes.createNode( "p1", "partition" )
 		
+		s3 = nodes.createNode( "s3", "objectSet" )
+		s4 = nodes.createNode( "s4", "objectSet" )
+		t = nodes.createNode( "trans", "transform" )
+		t2 = nodes.createNode( "trans2", "transform" )
+		
+		p.addSets( [ s1, s2 ] )
+		
+		# Also adding sets
+		################
+		# Internally the check for added objects can use intersection operations 
+		# to see whether objects are actually in there - if there would not be 
+		# some notion of 'sets_are_members', it would take the members of sets as items for 
+		# intersection
+		for o1, o2 in [ (t,t2), (s3,s4) ]:
+			# SINGLE OBJECT
+			###############
+			multiobj = [ o1, o2 ]
+			s1.addMember( o1 )
+			self.failUnlessRaises( sets.ConstraintError, s2.addMember, o1 )	# failure, as errors are not ignored
+			s2.addMember( o1, ignore_failure = 1 )		# ignore failure
+			
+			# FORCE 
+			s2.addMember( o1, force = 1 )
+			self.failUnless( s2.isMember( o1 ) )
+			
+			# MULTIPLE OBJECTS
+			###################
+			self.failUnlessRaises( sets.ConstraintError, s1.addMembers, multiobj )			# fails as t is in s2
+			s1.addMembers( [ o2 ] )			# works as t2 is not in any set yet
+			self.failUnless( s1.isMember( o2 ) )
+			
+			# FORCE all objects into s1 
+			s1.addMembers( multiobj, force = 1 )
+			self.failUnless( s1.getIntersection( multiobj, sets_are_members = 1 ).length() == 2 )
+		# END for each object
 		
