@@ -16,8 +16,26 @@ __copyright__='(c) 2008 Sebastian Thiel'
 
 _this_module = __import__( "byronimo.automation.processes", globals(), locals(), ['processes'] )
 from base import ProcessBase
+import byronimo.util as util
 
 #} Interface
+
+def parseProcessesFromPackage( importBase, packageFile ):
+	"""Parse all processes from the given package's sub-modules and add them to main  
+	processes module to make them available to the workflow system
+	@param importBase: Something like: parentPackage.subpackage.mypackage, of your processes package
+	@param packageFile: the pointing to your processes package, usually __file__ of your package
+	"""
+	isProcess = lambda cls: ProcessBase in cls.mro() 
+	processes = util.getPackageClasses( importBase, packageFile, predicate = isProcess )
+	
+	global _this_module
+	for pcls in processes:
+		setattr( _this_module, pcls.__name__, pcls )
+		
+	
+	
+
 def addProcesses( *args ):
 	"""Add the given process classes to the list of known process types. They will be regeistered
 	with their name obtained by str( processCls ). 

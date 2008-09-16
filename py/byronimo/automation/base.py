@@ -79,9 +79,14 @@ def _loadWorkflowFromDotFile( dotfile ):
 			raise TypeError( "Process '%s' not found in 'processes' module" % processname )
 	
 		# create instance and add to workflow
-		processinst = processcls( wfl, *args, **kwargs )
-		edge_lut[ nodeid ] = processinst
-		wfl.add_node( processinst )
+		try: 
+			processinst = processcls( wfl, *args, **kwargs )
+		except TypeError:
+			print "Process %r could not be created as it required a different init call" % processcls
+			raise 
+		else:
+			edge_lut[ nodeid ] = processinst
+			wfl.add_node( processinst )
 		
 	# END for each node in graph
 	

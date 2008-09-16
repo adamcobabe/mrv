@@ -72,6 +72,34 @@ def copyClsMembers( sourcecls, destcls, overwritePrefix = None, forbiddenMembers
 			pass 
 	# END for each memebr in sourcecls
 
+def getPackageClasses( importBase, packageFile, predicate = lambda x: True ):
+	"""@return: all classes of modules of the given package file that additionally 
+	match given predicate
+	@param importBase: longest import base path whose submodules contain the classes to import  
+	@param packageFile: the filepath to the package, as given in your __file__ variables 
+	@param predicate: receives the class and returns True if it is a class you are looking for"""
+	from glob import glob
+	import os
+	import inspect
+
+	packageDir = os.path.dirname( packageFile )
+	
+	# get all submodules
+	basenameNoExt = lambda n: os.path.splitext( os.path.split( n )[1] )[0]
+	pymodules = glob( os.path.join( packageDir, "*.py" ) )
+	pymodules = [ basenameNoExt( m ) for m in pymodules 
+							if not os.path.basename( m ).startswith( '_' ) ]
+			
+	outclasses = []
+	classAndCustom = lambda x: inspect.isclass( x ) and predicate( x )
+	for modulename in pymodules: 
+		modobj = __import__( "%s.%s" % ( importBase, modulename ), globals(), locals(), [''] )
+		for name,obj in inspect.getmembers( modobj, predicate = classAndCustom ):
+			outclasses.append( obj )
+	# import the modules 
+	return outclasses
+	
+
 ############################
 #### Classes 		  	####
 ##########################

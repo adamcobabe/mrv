@@ -128,8 +128,8 @@ class WorkflowWrapTestProcess( processes.WorkflowProcessBase ):
 	
 	def __init__( self, workflow, wflname, **kwargs ):
 		"""Wrap the workflow with the given name"""
-		workflows = __import__( "byronimotest.byronimo.automation.workflows", globals(), locals(), ['workflows'] )
-		return super( WorkflowWrapTestProcess, self ).__init__( workflow, workflows, wflname , **kwargs )
+		wflModImportPath = "byronimotest.byronimo.automation.workflows"
+		return super( WorkflowWrapTestProcess, self ).__init__( workflow, wflModImportPath, wflname , **kwargs )
 		
 
 #} END processes 

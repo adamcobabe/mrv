@@ -351,13 +351,14 @@ class WorkflowProcessBase( ProcessBase ):
 	
 	#{ Overridden Object Methods 
 	
-	def __init__( self, workflow, workflowModule, workflowName, **kwargs ):
+	def __init__( self, workflow, workflowModulePath, workflowName, **kwargs ):
 		"""@param workflowinst: instance of the Workflow you would like to wrap
 		@param workflow: the workflow we are in ( the parent workflow )
-		@param workflowModule: module which will contain the workflow
+		@param workflowModulePath: module import path which will contain the workflow
 		@param workflowName: name of the workflow as it will exist in workflowModule 
 		@param **kwargs: all arguments required to initialize the ProcessBase"""
 		self.__wrappedwfl = None
+		workflowModule = __import__( workflowModulePath, globals(), locals(), [''] )
 		self._wflmod = workflowModule
 		self._wflname = workflowName
 		super( WorkflowProcessBase, self ).__init__( "TO BE SET", "passing on", workflow, **kwargs )

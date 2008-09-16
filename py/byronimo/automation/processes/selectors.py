@@ -29,12 +29,13 @@ class SelectorBase( PassThroughProcess ):
 		
 
 class InputPriorityBoost( SelectorBase ):
-	"""The base class for all processes, defining a common interface"""
+	"""Boost the priority value of all it's inputs to make it appear more suitable"""
 	__all__.append( "InputPriorityBoost" )
 	
 	def __init__( self, workflow, multiplier ):
-		super( InputPriorityBoost, self ).__init__( "PriorityBoost", "boosing priority", workflow )
 		self.multiplier = multiplier
+		super( InputPriorityBoost, self ).__init__( "PriorityBoost", "boosing priority by %s" % multiplier, workflow )
+		
 	
 	def canOutputTarget( self, target ):
 		"""Multiply rating of target"""
@@ -45,3 +46,16 @@ class InputPriorityBoost( SelectorBase ):
 			return 0
 		
 		return inputprocess.canOutputTarget( target ) * self.multiplier
+		
+		
+
+class BestSuitableInput( SelectorBase ):
+	"""Just a do - nothing process that is used to indicate that a good working process
+	will be used depending on the priority of its inputs. This is the normal behaviour 
+	of all process though, so there is no more work to do here ( for now )
+	@note: this class might be extended to handle clashes more smartly, but ... lets see"""
+	__all__.append( "BestSuitableInput" )
+	
+	def __init__( self, workflow ):
+		super( BestSuitableInput, self ).__init__( "BestSuitableInput", "choosing best suitable", workflow )
+	
