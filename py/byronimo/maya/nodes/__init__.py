@@ -35,7 +35,8 @@ __copyright__='(c) 2008 Sebastian Thiel'
 bmaya = __import__( "byronimo.maya", globals(), locals(), ['maya'] )
 _thismodule = __import__( "byronimo.maya.nodes", globals(), locals(), ['nodes'] )
 from byronimo.path import Path
-env =  __import__( "byronimo.maya.env", globals(), locals(), ['env'] ) 
+env =  __import__( "byronimo.maya.env", globals(), locals(), ['env'] )
+bmayautil = __import__( "byronimo.maya.util", globals(), locals(), ['util'] )
 from types import *
 from byronimo import init_modules
 import sys
@@ -49,8 +50,6 @@ def getMfnDBPath( mfnclsname ):
 	"""Generate a path to a database file containing mfn wrapping information"""
 	appversion = str( env.getAppVersion( )[0] )
 	return Path( __file__ ).p_parent.p_parent / ( "cache/mfndb/"+appversion+"/"+mfnclsname )
-
-
 
 def registerPluginDataTrackingDict( dataTypeID, trackingDict ):
 	"""Using the given dataTypeID and tracking dict, nodes.MFnPluginData can return 
@@ -67,7 +66,10 @@ def addCustomType( newcls, parentClsName=None, **kwargs ):
 	@param parentClsName: if metaclass is set, the parentclass name ( of a class existing 
 	in the nodeTypeTree ( see /maya/cache/nodeHierarchy.html )
 	Otherwise, if unset, the parentclassname will be extracted from the newcls object
-	@raise KeyError: if the parentClsName does not exist""" 
+	@param force_creation: if True, default False, the class type will be created immediately. This 
+	can be useful if you wish to use the type for comparison, possibly before it is first being 
+	queried by the system. The latter case would bind the StandinClass instead of the actual type.
+	@raise KeyError: if the parentClsName does not exist"""
 	newclsname = newcls
 	newclsobj = None
 	parentname = parentClsName
@@ -96,13 +98,14 @@ def addCustomTypeFromFile( hierarchyfile, **kwargs ):
 		derivednode
 			subnode
 		otherderivednode
+	@param force_creation: see L{addCustomType}
 	@note: all attributes of L{addCustomType} are supported
 	@note: there must be exactly one root type
 	@return: iterator providing all class names that have been added"""
 	import types
 	dagtree = bmaya._dagTreeFromTupleList( bmaya._tupleListFromFile( hierarchyfile ) )
 	types._addCustomTypeFromDagtree( _thismodule, dagtree, **kwargs )
-	return dagtree.nodes_iter()
+	return ( capitalize( nodetype ) for nodetype in dagtree.nodes_iter() )
 	
 
 def addCustomClasses( clsobjlist ):
@@ -114,6 +117,19 @@ def addCustomClasses( clsobjlist ):
 	# add the classes 
 	for cls in clsobjlist:
 		setattr( _thismodule, cls.__name__, cls )
+		
+		
+def forceClassCreation( typeNameList ):
+	"""Create the types from standin classes from the given typeName iterable.
+	The typenames must be upper case
+	@return: List of type instances ( the classes ) that have been created"""
+	outclslist = []
+	for typename in typeNameList:
+		typeCls = getattr( _thismodule, typename )
+		if isinstance( typeCls, bmayautil.StandinClass ):
+			outclslist.append( typeCls.createCls() )
+	# END for each typename
+	return outclslist
 		
 #}
 

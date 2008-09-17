@@ -18,10 +18,10 @@ __id__="$Id: configuration.py 16 2008-05-29 00:30:46Z byron $"
 __copyright__='(c) 2008 Sebastian Thiel'
 
 nodes = __import__( "byronimo.maya.nodes", globals(), locals(), ['nodes'] )
-from byronimo.maya.util import MetaClassCreator
+from byronimo.maya.util import MetaClassCreator, StandinClass
 import byronimo.maya as bmaya
 from byronimo.path import Path
-from byronimo.util import uncapitalize, PipeSeparatedFile
+from byronimo.util import uncapitalize, capitalize, PipeSeparatedFile
 import maya.OpenMaya as api
 import re
 import inspect
@@ -349,7 +349,8 @@ def init_nodeTypeToMfnClsMap( ):
 	fobj.close()
 		
 
-def _addCustomType( targetmodule, parentclsname, newclsname, metaclass=MetaClassCreatorNodes ):
+def _addCustomType( targetmodule, parentclsname, newclsname, 
+				   	metaclass=MetaClassCreatorNodes, **kwargs ):
 	""" Add a custom type to the system such that a node with the given type will 
 	automatically be wrapped with the corresponding class name
 	@param targetmodule: the module to which standin classes are supposed to be added 
@@ -360,7 +361,7 @@ def _addCustomType( targetmodule, parentclsname, newclsname, metaclass=MetaClass
 	@param metaclass: meta class object to be called to modify your type upon creation
 	It will not be called if the class already exist in targetModule. Its recommended to derive it 
 	from the metaclass given as default value.
-	@raise KeyError: if the parentclsname does not exist """
+	@raise KeyError: if the parentclsname does not exist"""
 	global nodeTypeTree	
 	
 	# add new type into the type hierarchy #
@@ -369,14 +370,18 @@ def _addCustomType( targetmodule, parentclsname, newclsname, metaclass=MetaClass
 	nodeTypeTree.add_edge( ( parentclsname, newclsname ) )
 	
 	# create wrapper ( in case newclsname does not yet exist in target module )
-	bmaya._initWrappers( targetmodule, [ newclsname ], metaclass )
+	bmaya._initWrappers( targetmodule, [ newclsname ], metaclass, **kwargs )
 	
 	
-def _addCustomTypeFromDagtree( targetModule, dagtree, metaclass=MetaClassCreatorNodes ):
+def _addCustomTypeFromDagtree( targetModule, dagtree, metaclass=MetaClassCreatorNodes, 
+							  	force_creation=False, **kwargs ):
 	"""As L{_addCustomType}, but allows to enter the type relations using a 
 	L{DAGTree} instead of individual names. Thus multiple edges can be added at once
+	@note: special care is being taken to make force_creation work - first all the standind classes 
+	are needed, then we can create them - just iterating the nodes in undefined order will not work 
+	as a parent node might not be created yet
 	@note: node names in dagtree must be uncapitalized"""
-	global nodeTypeTree	
+	global nodeTypeTree	                                                  
 	
 	# add edges - have to start at root 
 	rootnode = dagtree.get_root()
@@ -388,7 +393,18 @@ def _addCustomTypeFromDagtree( targetModule, dagtree, metaclass=MetaClassCreator
 				
 	nodeTypeTree.add_edges_from( recurseOutEdges( rootnode ) )
 	
-	bmaya._initWrappers( targetModule, dagtree.nodes_iter(), metaclass )
+	bmaya._initWrappers( targetModule, dagtree.nodes_iter(), metaclass, force_creation = False, **kwargs )
+	
+	if force_creation:
+		for nodename in dagtree.nodes_iter():
+			nodename = capitalize( nodename )
+			standininst = getattr( targetModule, nodename )
+			
+			# just to be sure 
+			if isinstance( standininst, StandinClass ):
+				standininst.createCls( )
+		# END for each node type name ( to create the acutal class for 
+	# END force_creation handling 
 
 	
 ################################

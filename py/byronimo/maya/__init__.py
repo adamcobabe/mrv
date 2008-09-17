@@ -87,7 +87,7 @@ def _tupleListFromFile( filepath ):
 	
 	return hierarchytuples
 
-def _initWrappers( module, types, metacreatorcls ):
+def _initWrappers( module, types, metacreatorcls, force_creation = False ):
 	""" Create standin classes that will create the actual class once creation is
 	requested.
 	@param module: module object from which the latter classes will be imported from 
@@ -102,8 +102,13 @@ def _initWrappers( module, types, metacreatorcls ):
 		# do not overwrite hand-made classes
 		if clsname in module.__dict__:
 			continue
-
-		module.__dict__[ clsname ] = StandinClass( clsname, metacreatorcls )
+		
+		standin = StandinClass( clsname, metacreatorcls )
+		module.__dict__[ clsname ] = standin
+		
+		if force_creation:
+			standin.createCls( )
+			
 	# END for each uitype
 
 
