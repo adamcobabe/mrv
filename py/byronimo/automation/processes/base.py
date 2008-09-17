@@ -334,7 +334,10 @@ class PassThroughProcess( ProcessBase ):
 		
 	def canOutputTarget( self, target ):
 		"""Pass-thourgh all calls by default"""
-		inputprocess = self._getSuitableProcess( target )
+		try:
+			inputprocess = self._getSuitableProcess( target )
+		except InputError:
+			return 0
 		return inputprocess.canOutputTarget( target )
 	
 	def needsUpdate( self, target ):

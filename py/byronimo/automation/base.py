@@ -38,11 +38,18 @@ def _getNodeInfo( node ):
 	kwargs = dict()
 	if node.bottomlabel:
 		for kwa in node.bottomlabel.split(','):
-			for k,v in kwa.split('='):
-				kwargs[ k ] = _toSimpleType( v )
+			k,v = tuple(kwa.split('='))
+			kwargs[ k ] = _toSimpleType( v )
+		# END for each kw value
 	# END if bottom label is set
+	
+	# convert name such that if one can write nodename(args,kwargs), without 
+	# destroing the original node name 
+	typename = node.label
+	if typename:
+		typename = typename.split( "(" )[0]
 			
-	return ( node.label, args,kwargs )
+	return ( typename, args,kwargs )
 
 def _loadWorkflowFromDotFile( dotfile ):
 	"""Create a graph from the given dotfile and create a workflow from it.

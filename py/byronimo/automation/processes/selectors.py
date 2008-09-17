@@ -48,7 +48,6 @@ class InputPriorityBoost( SelectorBase ):
 		return inputprocess.canOutputTarget( target ) * self.multiplier
 		
 		
-
 class BestSuitableInput( SelectorBase ):
 	"""Just a do - nothing process that is used to indicate that a good working process
 	will be used depending on the priority of its inputs. This is the normal behaviour 

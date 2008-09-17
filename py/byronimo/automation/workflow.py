@@ -175,7 +175,11 @@ class Workflow( DiGraph ):
 		@note: this method is for informational purposes only"""
 		uniqueout = set()
 		for p in self.nodes_iter():
-			uniqueout.update( set( p.getSupportedTargetTypes() ) )
+			try:
+				uniqueout.update( set( p.getSupportedTargetTypes() ) )
+			except Exception, e:
+				raise AssertionError( "Process %r failed when calling getSupportedTargetTypes" % p, e )
+		# END for each p in nodes iter
 		return list( uniqueout )
 			
 			
