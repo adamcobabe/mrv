@@ -91,10 +91,22 @@ def track_output_call( func ):
 #####################
 ## Classes    ######
 ###################
+
 class ProcessBase( object ):
-	"""The base class for all processes, defining a common interface"""
-	kNo, kGood, kPerfect = 0, 127, 255			# specify how good a certain target can be produced 
+	"""The base class for all processes, defining a common interface
+	
+	Inputs and Outputs of this node are statically described using plugs
+	"""
+	kNo, kGood, kPerfect = 0, 127, 255				# specify how good a certain target can be produced
+	is_state, target_state, dirty_check = ( 1,2,4 )
+	output_mask = is_state & target_state & dirty_check		# mask applied before calling inputs  
+	
 	__all__.append( "ProcessBase" )
+	
+	#{ Plug Lists
+	__input_plugs__ = []			# list of plugs defining which inputs this node supports
+	__output_plugs__ = []			# list of plugs defining which outputs this node supports
+	#}
 	
 	def __init__( self, noun, verb, workflow, allow_cache = True, provide_own_target = True ):
 		"""Initialize process with most common information
@@ -161,20 +173,33 @@ class ProcessBase( object ):
 		
 		return ( float( mro.index( comparecls ) ) / float( len( mro ) - 1 ) ) * 255 
 	
-	def getOutput( self, target, is_dry_run ):
+	def getOutput( self, target, mode ):
 		"""@return: an instance suitable for the given targetType or the handed in instance itself
 		@param target: target that should be produced by the process - this should be done 
 		as efficient as possible. target can either be abstract as it specifies a target type using 
 		a class instance, or it can be an instance exactly specifying the target. The caller must 
 		check whether the target is actually acceptable for him, but can be sure that it matches a type 
 		returned by L{getSupportedTargetTypes}
-		@param is_dry_run: if True, no change may be made , and the method is strictly read-only.
-		It should proceed as far as possible simulating the process that will actually be run, assuming 
-		success in all mutating methods. Its important to call all inputs as you would usually do
-		to follow the actually made call graph as close as possible.
-		
-		The call takes place as there is no cache for targetType. you must find out yourself
-		whether your target needs to be produced or is already available and uptodate.
+		@param mode: bit flags as follows:
+		is_state: your return value represents the current state of the process - your output will 
+				represent what actually is present. You may not alter the state of your environment, 
+				thus this operation is strictly read-only.
+				According to your output, when called you need to setup a certain state 
+				and return the results according to that state. This flag means you are requrested
+				to return everything that is right according to the state you shall create.
+				If this state is disabled, you should not return the current state, but behave 
+				according to the other ones.
+		target_state: your return value must represent the 'should' state - thus you must assure 
+				that the environment is left in a state that matches your target state - the result 
+				of that operation will be returned.
+				Usually, but not necessarily, the is_state is also requested so that the output
+				represents the complete new is_state ( the new state after you changed the environment
+				to match the target_state )
+		dirty_check: Always comes in conjunction with is_state. You are required to return the is_state
+				but raise a DirtyException if your inputs would require you to adjust the environment 
+				to deliver the target state. If the is_state if the environment is the target_state
+				as there is nothing to do for you, do not raise and simply return your output.
+		The call takes place as there is no cache for targetType.
 		@note: needs to be implemented by subclasses"""
 		raise NotImplementedError( "This method needs to be implemented by the subclass" )
 		
