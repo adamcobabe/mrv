@@ -38,6 +38,27 @@ class ComputationFailed( InputError ):
 class TargetUnreachable( InputError ):
 	"""The target can not be obtained anymore as the context of the process does not 
 	allow that anymore"""
+	
+
+class DirtyException( ValueError ):
+	"""Exception thrown when system is in dirty query mode and the process detects
+	that it is dirty.
+	
+	The exception can also contain a report that will be returned using the 
+	getReport function.
+	"""
+	def __init__( self ):
+		self.report = ''
+		
+	#{ Interface
+		
+	def getReport( ):
+		"""@return: printable report, usually a string or some object that 
+		responds to str() appropriately"""
+		return self.report
+	
+	#} END interface
+	
 #} END exceptions 
 
 
@@ -161,7 +182,10 @@ class ProcessBase( object ):
 		"""@return: true if process is dirty for the given target and needs to recompute it.
 		One must not pull any inputs from non-generators as this may trigger a computation that changes
 		the state of the environment the process in running in. One must try to decide on the prequesites
-		yourself
+		yourself, thus everything you do here is something you check as process alone without any help 
+		of other processes
+		@note: You can also return a UpdateReport that will always be True when compared with
+		and carry additional information about the reason why it needs an update
 		@note: this method is only being called because the process appears to be able to 
 		handle the targetType of target
 		@note: should not be called directly, as it is being called by the base interface 
@@ -320,7 +344,6 @@ class ProcessBase( object ):
 			
 	
 	#} END base 
-	
 	
 	
 class PassThroughProcess( ProcessBase ):

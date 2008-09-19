@@ -223,7 +223,8 @@ class CallOnDeletion( object ):
 		self.callableobj = callableobj
 		
 	def __del__( self ):
-		self.callableobj( )
+		if self.callableobj:
+			self.callableobj( )
 		
 
 class iDagItem( object ):
