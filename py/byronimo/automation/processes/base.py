@@ -16,6 +16,7 @@ __copyright__='(c) 2008 Sebastian Thiel'
 
 __all__ = [ 'InputError', 'NoSuitableInput', 'AmbiguousInput', 'ComputationFailed', 'TargetUnreachable' ]
 
+from byronimo.dgengine import NodeBase, plug
 
 #####################
 ## EXCEPTIONS ######
@@ -69,11 +70,11 @@ def track_output_call( func ):
 	"""Wraps the proecss.getOutputBase function allowing to gather plenty of information 
 	about the call, as well as error statistics"""
 	
-	def track_func( self, target, **kwargs ):
-		pdata = self._wfl._trackOutputQueryStart( self, target )
+	def track_func( self, plug, mode ):
+		pdata = self._wfl._trackOutputQueryStart( self, plug, mode )
 		
 		try:
-			result = func( self, target, **kwargs )
+			result = func( self, plug, mode )
 		except Exception,e:
 			pdata.exception = e
 			self._wfl._trackOutputQueryEnd( None )
@@ -92,7 +93,7 @@ def track_output_call( func ):
 ## Classes    ######
 ###################
 
-class ProcessBase( object ):
+class ProcessBase( NodeBase ):
 	"""The base class for all processes, defining a common interface
 	
 	Inputs and Outputs of this node are statically described using plugs
@@ -103,10 +104,6 @@ class ProcessBase( object ):
 	
 	__all__.append( "ProcessBase" )
 	
-	#{ Plug Lists
-	__input_plugs__ = []			# list of plugs defining which inputs this node supports
-	__output_plugs__ = []			# list of plugs defining which outputs this node supports
-	#}
 	
 	def __init__( self, noun, verb, workflow, allow_cache = True, provide_own_target = True ):
 		"""Initialize process with most common information
@@ -220,6 +217,18 @@ class ProcessBase( object ):
 	
 	# } END interface
 	
+	#{ Overridden from NodeBase
+	
+	def compute( self, plug, mode = None ):
+		"""Just wire the call to our output base as it will be tracked and hooked into our 
+		system"""
+		return self.getOutputBase( plug, mode )
+		
+		
+	#}
+	
+	#} END overridden from plugbase
+	
 	#{ Base 
 	# methods that drive the actual call
 	def _getSuitableProcess( self , target ):
@@ -263,14 +272,15 @@ class ProcessBase( object ):
 		# find compatible process 
 		targetProcess = self._getSuitableProcess( target )
 		
+		# TODO: update this to use plugs directly instead 
 		# trigger actual computation 
-		result = targetProcess.getOutputBase( target )
+		result = targetProcess.getOutputBase( target, None )
 		
 		return result
 		
 	
 	@track_output_call
-	def getOutputBase( self, target ):
+	def getOutputBase( self, target, mode ):
 		"""Base implementation of the output, called by L{getInput} Method. 
 		Handles caching and flow tracking before the actual implementation is called
 		This allows to create plans and analyse the flow of execution

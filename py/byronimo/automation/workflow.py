@@ -37,18 +37,19 @@ class Workflow( DiGraph ):
 	#{ Utility Classes 
 	class ProcessData( object ):
 		"""Allows to store additional information with each process called during the workflow"""
-		__slots__ = ( 'process','target', '_result', 'starttime', 'endtime','exception','index' ) 
-		def __init__( self, process, target ):
+		__slots__ = ( 'process','plug','mode', '_result', 'starttime', 'endtime','exception','index' ) 
+		def __init__( self, process, plug, mode ):
 			self.process = process
-			self.target = target
-			self._result = None				# can be weakref or actual value 
+			self.plug = plug
+			self.mode = mode
+			self._result = None					# can be weakref or actual value 
 			self.starttime = time.clock()
 			self.endtime = self.starttime
 			self.exception = None				# stores exception on error
 			self.index = 0						# index of the child - graph stores nodes unordered
 			
 		def __repr__( self ):
-			out = "%s(%r)" % ( self.process, self.target )
+			out = "%s(%r)" % ( self.process, self.plug )
 			if self.exception:
 				out += "&ERROR"
 			return out
@@ -150,7 +151,8 @@ class Workflow( DiGraph ):
 			p.prepareProcess( )
 			
 		# trigger the output
-		result = process.getOutputBase( target )
+		# TODO: put in actual call, this is just a dummy to make it run 
+		result = process.getOutputBase( target, None )
 		
 		if len( self._callgraph._call_stack ):
 			raise AssertionError( "Callstack was not empty after calculations for %r where done" % target )
@@ -222,12 +224,12 @@ class Workflow( DiGraph ):
 		"""@return: True if the current computation is a dry run"""
 		return self._dry_run
 	
-	def _trackOutputQueryStart( self, process, target ):
+	def _trackOutputQueryStart( self, process, plug, mode ):
 		"""Called by process base to indicate the start of a call of curProcess to targetProcess 
 		This method tracks the actual call path taken through the graph ( which is dependent on the 
 		dirty state of the prcoesses, allowing to walk it depth first to resolve the calls.
 		This also allows to create precise reports telling how to achieve a certain goal"""
-		pdata = Workflow.ProcessData( process, target )
+		pdata = Workflow.ProcessData( process, plug, mode )
 		# keep the call graph
 		self._callgraph.startCall( pdata )
 		return pdata			# return so that decorators can use this information
