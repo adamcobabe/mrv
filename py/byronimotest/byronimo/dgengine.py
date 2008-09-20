@@ -137,4 +137,7 @@ class TestDAGTree( unittest.TestCase ):
 		s1.inFloat.set( 2.0 )
 		self.failUnless( s3.outMult.get( 0 ) == 8 )	# 2.0 * 4
 		
+		# ITERATION
+		print iterPlugs( s3.outMult )
+		
 		

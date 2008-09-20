@@ -60,6 +60,30 @@ class PlugUnhandled( ComputeError ):
 
 
 #####################
+## Iterators  ######
+###################
+def iterPlugs( rootPlug, stopAt = lambda x = False, prune = lambda x = False, 
+			   direction = "up", visit_once = False ):
+	"""Iterator starting at rootPlug going "up"stream ( input ) or "down"stream ( output )
+	breadth first over plugs, applying filter functions as defined.
+	@param rootPlug: the plug at which to start the traversal. The root plug will not be returned
+	@param stopAt: if function returns true for given PlugShell, iteration will not proceed 
+	at that point ( possibly continuing at other spots ). Function will always be called, even 
+	if the shell would be pruned as well.
+	@param prune: if function returns true for given PlugShell, the shell will not be returned 
+	but iteration continues.
+	@direction: 
+		- "up" - upstream, in direction of inputs of plugs
+		- "down" - downstream, in direction of outputs of plugs 
+	@param visit_once: if True, plugs will only be returned once, even though they are
+	encountered several times as several noodes are connected to them in some way."""
+	visisted = set()
+	
+	
+
+
+
+#####################
 ## Classes    ######
 ###################
 
