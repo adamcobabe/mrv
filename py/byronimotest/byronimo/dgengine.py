@@ -25,7 +25,7 @@ nodegraph = DiGraph()
 A = Attribute
 
 #{ TestNodes 
-class SimpleAttrs( NodeBase ):
+class SimpleNode( NodeBase ):
 	"""Create some simple attributes"""
 	#{ Plugs 
 	outRand = plug( "outRand", A( float, 0 ) )
@@ -47,16 +47,16 @@ class SimpleAttrs( NodeBase ):
 	
 	
 	def __init__( self ):
-		super( SimpleAttrs, self ).__init__( nodegraph )
+		super( SimpleNode, self ).__init__( nodegraph )
 		
 		
 	def compute( self, plug, mode ):
 		"""Compute some values"""
-		if plug == SimpleAttrs.outFailCompute:
+		if plug == SimpleNode.outFailCompute:
 			raise ComputeFailed( "Test compute failed" )
-		elif plug == SimpleAttrs.outRand:
+		elif plug == SimpleNode.outRand:
 			return float( randint( 1, self.inFloat.get( 0 ) * 10000 ) )
-		elif plug == SimpleAttrs.outMult:
+		elif plug == SimpleNode.outMult:
 			return self.inInt.get(0) * self.inFloat.get( 0 )
 		raise PlugUnhandled( )
 
@@ -68,10 +68,10 @@ class TestDAGTree( unittest.TestCase ):
 	
 	def test_fullFeatureTest( self ):
 		"""dgengine: Test full feature set"""
-		s1 = SimpleAttrs( )
+		s1 = SimpleNode( )
 		
-		self.failUnless( SimpleAttrs.outRand.providesOutput() )
-		self.failUnless( SimpleAttrs.inFloat.providesInput() )
+		self.failUnless( SimpleNode.outRand.providesOutput() )
+		self.failUnless( SimpleNode.inFloat.providesInput() )
 		
 		# SET VALUES
 		#############
@@ -102,8 +102,8 @@ class TestDAGTree( unittest.TestCase ):
 		
 		# CONNECTIONS
 		##############
-		s2 = SimpleAttrs()
-		s3 = SimpleAttrs()
+		s2 = SimpleNode()
+		s3 = SimpleNode()
 		s1.outRand.connect( s2.inFloat )
 		s1.outRand.connect( s2.inFloat )		# works as it is already connected to what we want
 		
@@ -136,6 +136,8 @@ class TestDAGTree( unittest.TestCase ):
 		s1.inFloat.plug.attr.flags |= A.writable
 		s1.inFloat.set( 2.0 )
 		self.failUnless( s3.outMult.get( 0 ) == 8 )	# 2.0 * 4
+		
+		
 		
 		# ITERATION
 		############
@@ -182,4 +184,17 @@ class TestDAGTree( unittest.TestCase ):
 		self.failUnless( len( s3.getConnections( 0, 1 ) ) == 1 )
 		self.failUnless( len( s3.getConnections( 1, 1 ) ) == 3 )
 		
+		
+		
+		# PLUG FILTERING 
+		#################
+		intattr = A( int, 0 )
+		floatattr = A( float, 0 )
+		inplugs = SimpleNode.getInputPlugs()
+		
+		self.failUnless( len( SimpleNode.filterCompatiblePlugs( inplugs, intattr ) ) == 1 )
+		self.failUnless( len( SimpleNode.filterCompatiblePlugs( inplugs, intattr, raise_on_ambiguity=1 ) ) == 1 )
+		
+		self.failUnless( len( SimpleNode.filterCompatiblePlugs( inplugs, floatattr ) ) == 2 )
+		self.failUnlessRaises( TypeError, SimpleNode.filterCompatiblePlugs, inplugs, floatattr, raise_on_ambiguity = 1 )
 		

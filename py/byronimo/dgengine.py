@@ -92,12 +92,14 @@ def iterPlugs( rootPlug, stopAt = lambda x: False, prune = lambda x: False,
 		else:
 			reviter = ( PlugShell( node, lst[i] ) for i in range( len( lst )-1,-1,-1) )
 			stack.extendleft( reviter )
-			
+	# END addToStack local method
+	
 	def addOutputToStack( stack, lst, branch_first ):
 		if branch_first:
 			stack.extend( lst )
 		else:
 			stack.extendleft( reversed( lst[:] ) )
+	# END addOutputToStack local method 
 	
 	while stack:
 		shell = stack.pop()
@@ -196,6 +198,18 @@ class NodeBase( object ):
 		pred = lambda m: isinstance( m, plug )
 		return [ m[1] for m in inspect.getmembers( cls, predicate = pred ) if predicate( m[1] ) ]
 		
+	@classmethod
+	def getInputPlugs( cls ):
+		"""@return: list of plugs suitable as input
+		@note: convenience method"""
+		return cls.getPlugs( predicate = lambda p: p.providesInput() )
+	
+	@classmethod
+	def getOutputPlugs( cls ):
+		"""@return: list of plugs suitable to deliver output
+		@note: convenience method"""
+		return cls.getPlugs( predicate = lambda p: p.providesOutput() )
+
 	def getConnections( self, inpt, output ):
 		"""@return: Tuples of input shells defining a connection of the given type from 
 		tuple( InputNodeOuptutShell, OurNodeInputShell ) for input connections and 
@@ -223,6 +237,42 @@ class NodeBase( object ):
 		# END output handling 
 		
 		return outConnections
+		
+	@staticmethod
+	def filterCompatiblePlugs( plugs, attribute, raise_on_ambiguity = False ):
+		"""@return: sorted list of plugs suitable to deal with the given attribute.
+		Thus they could connect to it as well as get their value set.
+		List contains tuples of (rate,plug) pairs, the most suitable plug comes first.
+		Incompatible plugs will be pruned.
+		@param raise_on_ambiguity: if True, the method raises if a plug has the same
+		rating as another plug already on the output list, thus it's not clear anymore 
+		which plug should handle a request
+		@raise TypeError: if ambiguous input was found"""
+		
+		outSorted = list()
+		for plug in plugs:
+			rate = plug.attr.getConnectionAffinity( attribute )
+			if not rate: 
+				continue
+			
+			outSorted.append( ( rate, plug ) )
+		# END for each plug 
+		
+		outSorted.sort()
+		outSorted.reverse()		# high rates first 
+		 
+		if raise_on_ambiguity:
+			prev_rate = -1
+			for rate,plug in outSorted:
+				if rate == prev_rate:
+					raise TypeError( "At least two plugs delivered the same compatabliity rate" )
+				prev_rate = rate
+			# END for each compatible plug
+		# END ambiguous check
+		
+		return outSorted
+		
+		
 				
 	#} END base
 		
@@ -447,8 +497,8 @@ class Attribute( object ):
 				Plugs that affect something are automatically input plugs and will not be computed.
 				If the plug does not affect anything and this flag is False, they are seen as input plugs 
 				anyway. 
-				With that system its actually possbible to trigger your own compute method multiple times
-				by creating plugs that are input and output at the same time. 
+				The system does not allow plugs to be input and output plugs at the same time, thus your compute
+				cannot be triggered by your own compute
 	cls: if True, the plug requires classes to be set ( instances of 'type' ) , but no instances of these classes
 	uncached: if False, computed values may be cached, otherwise they will always be recomputed.
 	unconnectable: if True, the node cannot be the destination of a connection
@@ -596,7 +646,7 @@ class plug( object ):
 		
 	def providesInput( self ):
 		"""@return: True if this is an input plug that will never cause computations"""
-		return len( self._affects ) != 0 or not self.attr.flags & Attribute.computable
+		return len( self._affects ) != 0 and not self.providesOutput( )
 	#}
 	
 	
