@@ -15,6 +15,7 @@ __id__="$Id: configuration.py 50 2008-08-12 13:33:55Z byron $"
 __copyright__='(c) 2008 Sebastian Thiel'
 
 from networkx.digraph import DiGraph
+from byronimo.dgengine import PlugShell
 import time 
 import weakref
 
@@ -124,7 +125,7 @@ class Workflow( DiGraph ):
 		super( Workflow, self ).__init__( **kwargs )
 		
 		self._callgraph = None
-		self._dry_run = False
+		self._mode = False
 	
 	def __str__( self ):
 		return self.name
@@ -132,37 +133,134 @@ class Workflow( DiGraph ):
 	
 	#{ Main Interface
 	
-	def makeTarget( self, target, dry_run = False ):
-		"""Make or update the target using a process in our workflow
-		@param target: target to make - can be class or instance
-		@param dry_run: if True, the target's creation will only be simulated
+	def makeTarget( self, target ):
+		"""@param target: target to make - can be class or instance
+		@param reportType: Report to populate with information - it must be a Plan based 
+		class that can be instantiated and populated with call information.
+		A report analyses the call dependency graph generated during dg evaluation
+		and presents it.
 		@return: result when producing the target"""
+		# generate mode 
+		from byronimo.automation.processes import ProcessBase as pb
+		processmode = globalmode = pb.is_state | pb.target_state
+		shell, result = self._evaluate( target, processmode, globalmode )
+		return result
+	
+	
+	def _evaluateDirtyState( self, outputplug, processmode ):
+		"""Evaluate the given plug in process mode and return a dirty report tuple 
+		as used by L{getDirtyReport}"""
+		report = list( outputplug, None )
+		try:
+			outputplug.get( processmode )	# trigger computation, might raise 
+		except DirtyException, e:
+			report[ 1 ] = e					# remember report as well
+		
+		return tuple( report )
+		
+	
+	def getDirtyReport( self, target, mode = "single" ):
+		"""@return: list of tuple( shell, DirtyReport|None ) 
+		If a process ( shell.node ) is dirty, a dirty report will be given explaining 
+		why the process is dirty and needs an update
+		@param target: target you which to check for it's dirty state
+		@param mode: 
+		 	single - only the process assigned to evaluate target will be checked
+			graph - as single, but the whole callgraph will be checked, starting 
+					at the node finally evaluating target
+			deep - try to evaluate target, but fail if one process in the target's 
+			call history is dirty
+		"""
+		from byronimo.automation.processes import ProcessBase as pb, DirtyException
+		processmode = pb.is_state | pb.dirty_check
+		globalmode = None
+		
+		# lets make the mode clear 
+		if mode == "deep" :
+			globalmode = processmode		# input processes may apply dirty check ( and fail )
+		elif mode in ( "single", "multi" ):
+			globalmode = pb.is_state		# input process should just return the current state, no checking
+		else:
+			raise AssertionError( "invalid mode: %s" % mode )
+		
+		outreports = []
+		
+		# GET INITIAL REPORT 
+		######################
+		outputplug = self._setupProcess( target, globalmode, reset_dg = True )
+		outreports.append( self._evaluateDirtyState( outputplug, processmode ) )
+							
+							
+		# STEP THE CALLGRAPH ?
+		if mode == "multi":
+			# walk the callgraph and get dirty reports from each node 
+			self._callgraph = Workflow.CallGraph()		# reset graph for next step
+			
+			# keep caches
+			raise NotImplementedError()
+		# END if multi handling 
+		
+		return outreports
+		
+		
+	
+	def _setupProcess( self, target, globalmode, reset_dg = True ):
+		"""Setup the workflow's dg such that the returned output shell can be queried 
+		to evaluate target
+		@param reset_dg: if True, the dependency graph will be reset and cached values 
+		are being deleted. If not, several process calls with cached values are possible
+		@param globalmode: mode with which all other processes will be handling 
+		their input calls
+		"""
 		# find suitable process 
-		process = self.getTargetRating( target )[1]
-		if process is None:
-			raise ValueError( "Cannot handle target %r" % target )
+		inputshell = self.getTargetRating( target )[1]
+		if inputshell is None:
+			raise TargetError( "Cannot handle target %r" % target )
 			
 		# clear previous callgraph
 		self._callgraph = Workflow.CallGraph( )
-		self._dry_run = dry_run
+		self._mode = globalmode
 		
-		# reset all process to prep for computation 
-		for p in self.nodes_iter():
-			p.prepareProcess( )
+		# reset all process to prep for computation
+		if reset_dg:
+			for node in self.iterProcesses():
+				node.prepareProcess( )
+		# END reset dg handling
 			
-		# trigger the output
-		# TODO: put in actual call, this is just a dummy to make it run 
-		result = process.getOutputBase( target, None )
+		# get output plug that can be queried to get the target
+		outputplugs = inputshell.plug.getAffected( )
+		if not outputplugs:
+			raise TargetError( "Plug %r takes target %r as input, but does not affect an output plug" % ( inputshell, target ) )
+		
+		# we do not care about ambiguity, simply pull one
+		# QUESTION: should we warn about multiple affected plugs ?
+		inputshell.set( target, ignore_connection = True )
+		
+		return PlugShell( inputshell.node, outputplugs[0] )
+		
+	
+	def _evaluate( self, target, processmode, globalmode, reset_dg = True ):
+		"""Make or update the target using a process in our workflow
+		@param processmode: the mode with which to call the initial process 
+		@return: tuple( shell, result ) - plugshell queried to get the result 
+		"""
+		outputshell = self._setupProcess( target, globalmode, reset_dg = reset_dg )
+		######################################################
+		result = outputshell.get( processmode )
+		######################################################
 		
 		if len( self._callgraph._call_stack ):
 			raise AssertionError( "Callstack was not empty after calculations for %r where done" % target )
 		
-		return result
+		return ( outputshell, result )
 		
 		
 	def getReportInstance( self, reportType ):
 		"""Create a report instance that describes how the previous target was made 
-		@param reportType: Report to populate with information
+		@param reportType: Report to populate with information - it must be a Plan based 
+		class that can be instantiated and populated with call information.
+		A report analyses the call dependency graph generated during dg evaluation
+		and presents it.
 		@return: report instance whose getReport method can be called to retrieve it"""
 		# make the target as dry run
 		return reportType( self._callgraph )
@@ -171,6 +269,18 @@ class Workflow( DiGraph ):
 
 
 	#{ Query 
+		
+	def iterProcesses( self, predicate = lambda node: True ):
+		"""@return: generator returning all processes in this workflow
+		@param predicate: if True for node, it will be returned"""
+		nodes_seen = set()
+		for node,plug in self.nodes_iter():
+			if node in nodes_seen:
+				continue
+			nodes_seen.add( node )
+			if predicate( node ):
+				yield node
+		# END for each node 
 		
 	def getTargetSupportList( self ):
 		"""@return: list of all supported target type
@@ -188,21 +298,26 @@ class Workflow( DiGraph ):
 	def getTargetRating( self, target ):
 		"""@return: int range(0,255) indicating how well a target can be made
 		0 means not at all, 255 means perfect.
-		Return value is tuple ( rate, process ), containing the process with the 
+		Return value is tuple ( rate, PlugShell ), containing the process and plug with the 
 		highest rating or None if rate is 0
 		Walk the dependency graph such that leaf nodes have higher ratings than 
 		non-leaf nodes 
 		@note: you can use the L{processes.ProcessBase} enumeration for comparison"""
 		rescache = list()
 		best_process = None
-		for p in self.nodes_iter():
-			rate = p.canOutputTarget( target )
-			if not self.successors( p ): 		# is leaf ?
-				rate = rate * 2					# prefer leafs in the rating 
-			rescache.append( ( rate, p ) )
+		for node in self.iterProcesses( ):
+			rate, shell = node.getTargetRating( target )
+			if not rate:
+				continue 
+				
+			# is leaf nodde ? ( no output connecitons
+			if not node.getConnections( 0, 1 ):				 
+				rate = rate * 2									# prefer leafs in the rating
+				
+			rescache.append( ( rate, shell ) )
 		# END for each process 
 		
-		rescache.sort()
+		rescache.sort()							# last is most suitable 
 		if not rescache or rescache[-1][0] == 0:
 			return ( 0, None )
 			
@@ -213,8 +328,10 @@ class Workflow( DiGraph ):
 		if len( allbestpicks ) > 1: 
 			raise AssertionError( "There should only be one suitable process for %r, found %i" % ( target, len( allbestpicks ) ) )
 			
-		p = bestpick[1]
-		return ( int( p.canOutputTarget( target ) ), p )
+		
+		shell = bestpick[1]
+		# recompute rate as we might have changed it 
+		return shell.node.getTargetRating( target )
 	
 	#} END query 
 	
@@ -222,7 +339,7 @@ class Workflow( DiGraph ):
 	
 	def _isDryRun( self ):
 		"""@return: True if the current computation is a dry run"""
-		return self._dry_run
+		return self._mode
 	
 	def _trackOutputQueryStart( self, process, plug, mode ):
 		"""Called by process base to indicate the start of a call of curProcess to targetProcess 

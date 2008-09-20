@@ -1,12 +1,9 @@
 digraph test {
 ratio=1.0
 node [style=filled]
-"InputPriorityBoost" [fillcolor="#ebba66",label="InputPriorityBoost",toplabel="1.25"];
 "TestProcessi1" [fillcolor="#ebba66",label="TestProcess"];
 "TestProcessi2" [fillcolor="#ebba66",label="TestProcess"];
 "TestProcessTarget" [fillcolor="#ebba66",label="OtherTestProcess"];
+"TestProcessi1" -> "TestProcessi2" [label="TestData",headlabel="1"];
 "TestProcessi2" -> "TestProcessTarget" [label="TestData",headlabel="1"];
-"TestProcessi1" -> "InputPriorityBoost" [label="TestData",headlabel="1"];
-"InputPriorityBoost" -> "TestProcessTarget" [label="TestData",headlabel="1"];
-
 }

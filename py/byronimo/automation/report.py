@@ -86,26 +86,18 @@ class ReportBase( object ):
 class Plan( ReportBase ):
 	"""Create a plan-like text describing how the target is being made"""
 	
-	def _analyseCallgraph( self , skipUtilityProcesses ):
+	def _analyseCallgraph( self  ):
 		"""Create a list of ProcessData instances that reflects the call order"""
-		kwargs = {}
-		if skipUtilityProcesses:
-			def pruneFunc( pdata ):
-				return isinstance( pdata.process, ( processes.PassThroughProcess ) )
-			kwargs[ 'pruneIfTrue' ] = pruneFunc
-		# END skipUtilityProcesses
+		kwargs = {}		
 		kwargs[ 'reverse' ] = True
-		
 		return self._toCallList( **kwargs )
 		                                                           
 		
-	def getReport( self, headline=None, skipUtilityProcesses=True ):
+	def getReport( self, headline=None ):
 		"""@return: list of strings ( lines ) resembling a plan-like formatting 
 		of the call graph
-		@param headline: line to be given as first line 
-		@param skipUtilityProcesses: if True, utility process, those that do not do real work, 
-		will be skipped"""
-		cl = self._analyseCallgraph( skipUtilityProcesses )
+		@param headline: line to be given as first line """
+		cl = self._analyseCallgraph( )
 		
 		out = []
 		if headline:

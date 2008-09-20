@@ -55,9 +55,9 @@ class SimpleNode( NodeBase ):
 		if plug == SimpleNode.outFailCompute:
 			raise ComputeFailed( "Test compute failed" )
 		elif plug == SimpleNode.outRand:
-			return float( randint( 1, self.inFloat.get( 0 ) * 10000 ) )
+			return float( randint( 1, self.inFloat.get( ) * 10000 ) )
 		elif plug == SimpleNode.outMult:
-			return self.inInt.get(0) * self.inFloat.get( 0 )
+			return self.inInt.get( ) * self.inFloat.get( )
 		raise PlugUnhandled( )
 
 
@@ -79,24 +79,24 @@ class TestDAGTree( unittest.TestCase ):
 		self.failUnlessRaises( NotWritableError, s1.outRand.set, "that" )
 		
 		# computation failed check
-		self.failUnlessRaises( ComputeFailed, s1.outFailCompute.get, 0  )
+		self.failUnlessRaises( ComputeFailed, s1.outFailCompute.get  )
 		
 		# missing default value
-		self.failUnlessRaises( MissingDefaultValueError, s1.inInt.get, 0 )
+		self.failUnlessRaises( MissingDefaultValueError, s1.inInt.get )
 		
 		# now we set a value 
 		self.failUnlessRaises( TypeError, s1.inInt.set, "this" )	# incompatible type
 		s1.inInt.set( 5 )											# this should work though
-		self.failUnless( s1.inInt.get( 0 ) == 5 )					# should be cached 
+		self.failUnless( s1.inInt.get( ) == 5 )					# should be cached 
 		s1.inInt.clearCache()
 		
-		self.failUnlessRaises( MissingDefaultValueError, s1.inInt.get, 0 )	# cache is gone
-		self.failUnless( s1.inFloat.get( 0 ) == 2.5 )
+		self.failUnlessRaises( MissingDefaultValueError, s1.inInt.get )	# cache is gone
+		self.failUnless( s1.inFloat.get( ) == 2.5 )
 		self.failUnlessRaises( NotWritableError, s1.inFloat.set, "this" )
 		
-		myint = s1.outRand.get( 0 )		# as it is cached, the value should repeat
+		myint = s1.outRand.get( )		# as it is cached, the value should repeat
 		self.failUnless( s1.outRand.hasCache() )
-		self.failUnless( s1.outRand.get( 0 ) == myint )
+		self.failUnless( s1.outRand.get( ) == myint )
 		s1.outRand.plug.attr.flags &= Attribute.uncached
 		
 		
@@ -126,16 +126,25 @@ class TestDAGTree( unittest.TestCase ):
 		s2.inInt.connect( s3.inInt )
 		
 		# inInt does not have a default value, so computation fails unhandled 
-		self.failUnlessRaises( ComputeError, s3.outMult.get, 0 )	
+		self.failUnlessRaises( ComputeError, s3.outMult.get )	
 		
 		# set in int and it should work
 		s2.inInt.set( 4 )
-		self.failUnless( s3.outMult.get( 0 ) == 10 )	# 2.5 * 4
+		self.failUnless( s3.outMult.get( ) == 10 )	# 2.5 * 4
 		
 		# make the float writable 
 		s1.inFloat.plug.attr.flags |= A.writable
 		s1.inFloat.set( 2.0 )
-		self.failUnless( s3.outMult.get( 0 ) == 8 )	# 2.0 * 4
+		self.failUnless( s3.outMult.get( ) == 8 )	# 2.0 * 4
+		
+		
+		# DIRTY CHECKING
+		###################
+		s3.outMult.plug.attr.flags ^= A.uncached
+		self.failUnless( s3.outMult.get( ) == 8 )		# now its cached 
+		s1.inFloat.set( 3.0 )								# plug is being dirtied and cache is deleted 
+		self.failUnless( s3.outMult.get( ) == 12 )
+		
 		
 		
 		
@@ -197,4 +206,6 @@ class TestDAGTree( unittest.TestCase ):
 		
 		self.failUnless( len( SimpleNode.filterCompatiblePlugs( inplugs, floatattr ) ) == 2 )
 		self.failUnlessRaises( TypeError, SimpleNode.filterCompatiblePlugs, inplugs, floatattr, raise_on_ambiguity = 1 )
+		
+		
 		

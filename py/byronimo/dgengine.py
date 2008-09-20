@@ -2,7 +2,9 @@
 Contains a simple but yet powerful dependency graph engine allowing computations 
 to be organized more efficiently.
 
-@todo: plug-internal dirty tracking 
+@todo: not using the look-up (dict) based networkx can bring performance ( just by linking nodes directly )
+@todo: optimize plug-dirtying - as the call path is mostly predetermined, one could decide much smarter whether
+a cache has to be cleared or not ... possibly
 @newfield revision: Revision
 @newfield id: SVN Id
 """
@@ -23,7 +25,7 @@ import inspect
 #####################
 ## EXCEPTIONS ######
 ###################
-#{ Plug Exceptions 
+#{ Exceptions 
 
 class ConnectionError( Exception ):
 	"""Exception base for all plug related errors"""
@@ -64,11 +66,11 @@ class PlugUnhandled( ComputeError ):
 #####################
 ## Iterators  ######
 ###################
-def iterPlugs( rootPlug, stopAt = lambda x: False, prune = lambda x: False, 
+def iterPlugs( rootPlugShell, stopAt = lambda x: False, prune = lambda x: False, 
 			   direction = "up", visit_once = False, branch_first = False ):
-	"""Iterator starting at rootPlug going "up"stream ( input ) or "down"stream ( output )
+	"""Iterator starting at rootPlugShell going "up"stream ( input ) or "down"stream ( output )
 	breadth first over plugs, applying filter functions as defined.
-	@param rootPlug: the plug at which to start the traversal. The root plug will be returned as well
+	@param rootPlugShell: shell at which to start the traversal. The root plug will be returned as well
 	@param stopAt: if function returns true for given PlugShell, iteration will not proceed 
 	at that point ( possibly continuing at other spots ). Function will always be called, even 
 	if the shell would be pruned as well. The shell serving as stop marker will not be returned
@@ -84,7 +86,7 @@ def iterPlugs( rootPlug, stopAt = lambda x: False, prune = lambda x: False,
 	encountered several times as several noodes are connected to them in some way."""
 	visited = set()
 	stack = deque()
-	stack.append( rootPlug )
+	stack.append( rootPlugShell )
 	
 	def addToStack( node, stack, lst, branch_first ):
 		if branch_first:
@@ -309,11 +311,11 @@ class PlugShell( tuple ):
 	
 	#{ Values  
 	
-	def get( self, mode ):
-		"""@return: value of the plug"""
+	def get( self, mode = None ):
+		"""@return: value of the plug
+		@mode: optional arbitary value specifying the mode of the get attempt"""
 		if self.hasCache( ):
 			return self.getCache( )
-			
 		
 		# Output plugs compute values 
 		if self.plug.providesOutput( ):
@@ -347,12 +349,14 @@ class PlugShell( tuple ):
 		
 		
 		
-	def set( self, value ):
+	def set( self, value, ignore_connection = False ):
 		"""Set the given value to be used in our plug
+		@param ignore_connection: if True, the plug can be destination of a connection and 
+		will still get its value set - usually it would be overwritten by the value form the 
+		connection. The set value will be cleared if something upstream in it's connection chain 
+		changes.
 		@raise AssertionError: the respective attribute must be cached, otherwise 
-		the value will be lost
-		@todo: set all plugs we affect dirty by removing their cache at least
-		Alternatively we have to do dirty checking on each get which is called more often right now... """
+		the value will be lost"""
 		flags = self.plug.attr.flags
 		if not flags & Attribute.writable:
 			raise NotWritableError( "Plug %r is not writable" % repr(self) )
@@ -363,9 +367,10 @@ class PlugShell( tuple ):
 		if flags & Attribute.uncached:
 			raise AssertionError( "Writable attributes must be cached - otherwise the value will not be held" )
 		
+		# check connection 
+		if not ignore_connection and self.getInput() is not None:
+			raise NotWritableError( "Plug %r is connected to %r and thus not explicitly writable" % ( self, self.getInput() ) )
 		
-		# QUESTION: should the value be set on connected  plugs or ours ? I think not 
-		# as plugs will get values recursively anyway
 		self.setCache( value )
 		
 		
@@ -463,7 +468,13 @@ class PlugShell( tuple ):
 		if self.plug.attr.flags & Attribute.uncached:
 			return
 		
-		setattr( self.node, self._cachename(), value ) 
+		setattr( self.node, self._cachename(), value )
+		
+		# our cache changed - dirty downstream plugs - thus clear the cache
+		prune_me = lambda x: x == self
+		for shell in iterPlugs( self, direction = "down", prune = prune_me, branch_first = True ):
+			shell.clearCache()
+			
 		
 	def getCache( self ):
 		"""@return: the cached value or raise
@@ -510,9 +521,14 @@ class Attribute( object ):
 	def __init__( self, typeClass, flags, default = None ):
 		self.typecls = typeClass
 		self.flags = flags			# used for bitflags describing mode
-		self.default = default		# the default value to be returned for input attributes 
-
-
+		self.default = default
+		
+		# check default value for compatability !
+		if default is not None:
+			if self.getCompatabilityRate( default ) == 0:
+				raise TypeError( "Default value %r is not compatible with this attribute" % default )
+		# END default type check 
+		
 	def _getClassRating( self, cls, exact_type ):
 		"""@return: rating based on value being a class and compare
 		0 : value is no type
@@ -638,7 +654,14 @@ class plug( object ):
 			
 		if self not in otherplug._affectedBy:
 			otherplug._affectedBy.append( self )
-			
+		
+	def getAffected( self ):
+		"""@return: tuple containing affected plugs ( plugs that are affected by our value )"""
+		return tuple( self._affects )
+		
+	def getAffectedBy( self ):
+		"""@return: tuple containing plugs that affect us ( plugs affecting our value )"""
+		return tuple( self._affectedBy )
 		
 	def providesOutput( self ):
 		"""@return: True if this is an output plug that can trigger computations"""
@@ -647,6 +670,7 @@ class plug( object ):
 	def providesInput( self ):
 		"""@return: True if this is an input plug that will never cause computations"""
 		return len( self._affects ) != 0 and not self.providesOutput( )
+		
 	#}
 	
 	

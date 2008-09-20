@@ -19,6 +19,7 @@ import unittest
 import byronimotest as common
 import byronimo.automation.processes as processes
 from byronimo.automation.processes.plug import *
+from byronimo.dgengine import plug, Attribute as A
 
 def get_suite( ):
 	""" @return: testsuite with all tests of this package
@@ -46,57 +47,41 @@ if __name__ == '__main__':
 #{ Processes 
 
 class TestProcess( processes.ProcessBase ):
-	"""TestProcess helping to debugging the calles done 
+	"""TestProcess helping to debugging the calles done """
+	# inputs
+	inInt = 		plug( "inInt", 		A( int, A.writable, default = 4 ) )
+	inFloat = 		plug( "inFloat", 	A( float, A.writable, default = 2.5 ) )
 	
-	Supported Targets: int instance, basestring class
-	Thus it is a generator for strings, and a processor for ints"""
-	def __init__( self, workflow , name="SimpleTest"):
+	# outputs 
+	outFloat = 		plug( "outFloat", 	A( float, A.computable ) )
+	outInt = 		plug( "outInt", 	A( int, A.computable ) )
+	outFloatGen = 	plug( "outFloatGen", A( float, A.computable ) )
+	outIntGen = 	plug( "outIntGen", 	A( int, A.computable ) )
+	outText = 		plug( "outText", 	A( str, 0, default = "hello world" ) )
+	
+	# affects 
+	inInt.affects( outInt )
+	inFloat.affects( outFloat )
+	
+	
+	def __init__( self, workflow , name="TestProcess"):
 		super( TestProcess, self ).__init__( name, "testing simple", workflow )
 		
 	#{ Implementation 
 	
-	def getOutput( self, target, is_dry_run ):
-		"""@return: target is int instance: return int * 2
-					target is float instance: return float * 3, input query 
-					target is string cls, return "hello world"""
-		if isinstance( target, int ):
-			return target * 2
-		elif isinstance( target, float ):
-			return self.getInput( float ) * target 
-		elif self._isCompatibleWith( target, basestring ):
+	def evaluateState( self, plug, mode ):
+		if plug == TestProcess.outInt:
+			return self.inInt.get( ) * 2
+		if plug == TestProcess.outFloat:
+			return self.inFloat.get( ) * 2.0 
+		if plug == TestProcess.outText:
 			return "hello world"
-		elif self._isCompatibleWith( target, float ):
+		elif plug == TestProcess.outFloatGen:
 			return 3.0
-		elif self._isCompatibleWith( target, int ):
+		elif plug == TestProcess.outIntGen:
 			return 4
 		else:
 			raise AssertionError( "Incompatible target %r passed to %s - canOutputTarget method buggy ?" % ( target, self ) )			
-	
-	def getSupportedTargetTypes( self ):
-		"""@return: list target types that can be output
-		@note: targetTypes are classes, not instances"""
-		return [ int, float, basestring ]
-		
-		
-	def canOutputTarget( self, target ):
-		if isinstance( target, ( float, int ) ):
-			return processes.ProcessBase.kPerfect
-		
-		if self._isCompatibleWith( target, float ):
-			return self._getClassRating( target, float )
-		
-		if self._isCompatibleWith( target, int ):
-			return self._getClassRating( target, int )
-		
-		return self._getClassRating( target, basestring )
-		
-		
-	def needsUpdate( self, target ):
-		return True
-		
-		# generators are always dirty ( as they need to generate their value 
-		if self._getClassRating( target, basestring ):
-			return True
 		
 	#}
 
@@ -104,25 +89,31 @@ class TestProcess( processes.ProcessBase ):
 class OtherTestProcess( TestProcess ):
 	"""TestProcess helping to debugging the calles done
 	Supported Targets: unicode instances """
+	
+	# inputs 
+	inFloat = plug( "inFloat", A( float, A.writable ) )
+	inInt = plug( "inInt", A( int, A.writable ) )
+	inUni = plug( "inUnicode", A( unicode, A.writable ) )
+	
+	# outputs 
+	outString = plug( "outString", A( unicode, 0 ) )
+	
+	# affects 
+	inFloat.affects( outString )
+	inInt.affects( outString )
+	inUni.affects( outString )
+	
+	
 	def __init__( self, workflow ):
-		super( OtherTestProcess, self ).__init__( workflow, name = "OtherSimpleTest" )
-		
-	def getSupportedTargetTypes( self ):
-		"""@return: list target types that can be output
-		@note: targetTypes are classes, not instances"""
-		return [ unicode ]
+		super( OtherTestProcess, self ).__init__( workflow, name = "OtherTestProcess" )
 	
-	def canOutputTarget( self, target ):
-		if isinstance( target, unicode ):
-			return 255
-		return 0
-	
-	def getOutput( self, target, is_dry_run ):
+	def evaluateState( self, target, mode ):
 		"""@return: version of target requireing int and float instance"""
-		floatinst = self.getInput( float )
-		intinst = self.getInput( int )
+		floatinst = self.inFloat.get()
+		intinst = self.inInt.get()
+		instr = self.inUni.get()
 		
-		return target + unicode( floatinst ) + unicode( self.getInput( 10 ) ) * intinst
+		return instr + unicode( floatinst ) + unicode( 20 ) * intinst
 
 
 class WorkflowWrapTestProcess( processes.WorkflowProcessBase ):

@@ -1,9 +1,0 @@
-digraph test {
-ratio=1
-node [style=filled]
-"TestProcessi1" [fillcolor="#ebba66",label="TestProcess"];
-"TestProcessi2" [fillcolor="#ebba66",label="TestProcess"];
-"TestProcessTarget" [fillcolor="#ebba66",label="OtherTestProcess"];
-"TestProcessi1" -> "TestProcessTarget" [label="TestData",headlabel="1"];
-"TestProcessi2" -> "TestProcessTarget" [label="TestData",headlabel="1"];
-}

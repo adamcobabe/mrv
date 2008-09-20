@@ -15,6 +15,7 @@ __id__="$Id: configuration.py 50 2008-08-12 13:33:55Z byron $"
 __copyright__='(c) 2008 Sebastian Thiel'
 
 from byronimo.path import Path
+from byronimo.dgengine import PlugShell, PlugAlreadyConnected
 
 
 #{ Edit
@@ -53,7 +54,9 @@ def _getNodeInfo( node ):
 
 def _loadWorkflowFromDotFile( dotfile ):
 	"""Create a graph from the given dotfile and create a workflow from it.
-	The workflow will be fully intiialized with connected process instances
+	The workflow will be fully intiialized with connected process instances.
+	The all compatible plugs will automatically be connected for all processes 
+	connected in the dot file 
 	@return: initialized Workfflow class"""
 	import pydot
 	import processes
@@ -93,14 +96,44 @@ def _loadWorkflowFromDotFile( dotfile ):
 			raise 
 		else:
 			edge_lut[ nodeid ] = processinst
-			wfl.add_node( processinst )
 		
 	# END for each node in graph
 	
-	# ADD EDGES 
+	# ADD EDGES
+	#############
+	# create most suitable plug connections
 	for edge in dotgraph.get_edge_list():
-		wfl.add_edge( ( edge_lut[ edge.get_source() ], edge_lut[ edge.get_destination() ] ) )
-	
+		snode = edge_lut[ edge.get_source() ]
+		dnode = edge_lut[ edge.get_destination() ]
+		
+		# we simply connect all compatible outputs from source to all compatible 
+		# inputs of dnode
+		# Fail of no input could be found
+		dnodeInputPlugs = dnode.getInputPlugs( )
+		numConnections = 0
+		for iplug in snode.getOutputPlugs():
+			try: 
+				# first is best
+				rate,targetplug = snode.filterCompatiblePlugs( dnodeInputPlugs, iplug.attr, raise_on_ambiguity = 1 )[0] 
+			except (TypeError,IndexError):	# could have no compatible or is ambigous
+				continue
+			else:
+				# if a plug is already connected, try another one
+				try: 
+					sshell = PlugShell( snode, iplug ) 
+					dshell = PlugShell( dnode, targetplug )
+					sshell.connect( dshell )
+					numConnections += 1
+				except PlugAlreadyConnected:
+					# print "Connection of %s -> %s clashed - will go on trying" % ( sshell, dshell )
+					pass 
+			# END try connecting plugs 
+		# END for each output plug on snode 
+		
+		# assure we have a connection 
+		if numConnections == 0:
+			raise AssertionError( "Found no compatible connection between %s and %s in workflow %s - check your processes" % ( snode, dnode, wfl ) )
+	# END for each edge 
 	return wfl
 	
 	
