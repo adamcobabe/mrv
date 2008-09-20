@@ -138,6 +138,44 @@ class TestDAGTree( unittest.TestCase ):
 		self.failUnless( s3.outMult.get( 0 ) == 8 )	# 2.0 * 4
 		
 		# ITERATION
-		print iterPlugs( s3.outMult )
+		############
+		# breadth first by default, no pruning, UP
+		piter = iterPlugs( s3.outMult )
 		
+		self.failUnless( piter.next() == s3.outMult )
+		self.failUnless( piter.next() == s3.inFloat )
+		self.failUnless( piter.next() == s3.inInt )
+		self.failUnless( piter.next() == s1.inFloat )
+		self.failUnless( piter.next() == s2.inInt )
+		self.failUnlessRaises( StopIteration, piter.next )
+		
+		# branch_first 
+		piter = iterPlugs( s3.outMult, branch_first = True )
+		self.failUnless( piter.next() == s3.outMult )
+		self.failUnless( piter.next() == s3.inFloat )
+		self.failUnless( piter.next() == s1.inFloat )
+		self.failUnless( piter.next() == s3.inInt )
+		self.failUnless( piter.next() == s2.inInt )
+		self.failUnlessRaises( StopIteration, piter.next )
+		
+		# DOWN ITERATION
+		##################
+		
+		piter = iterPlugs( s2.inInt, direction="down", branch_first = True )
+		print s1
+		print s2
+		print s3
+		self.failUnless( piter.next() == s2.inInt )
+		self.failUnless( piter.next() == s3.inInt )
+		self.failUnless( piter.next() == s3.outMult )
+		self.failUnless( piter.next() == s2.outMult )
+		self.failUnlessRaises( StopIteration, piter.next )
+		
+		print list( iterPlugs( s2.inInt, direction="down", branch_first = False ) )
+		piter = iterPlugs( s2.inInt, direction="down", branch_first = False )
+		self.failUnless( piter.next() == s2.inInt )
+		self.failUnless( piter.next() == s3.inInt )
+		self.failUnless( piter.next() == s2.outMult )
+		self.failUnless( piter.next() == s3.outMult )
+		self.failUnlessRaises( StopIteration, piter.next )
 		

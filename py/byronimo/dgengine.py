@@ -16,7 +16,8 @@ __revision__="$Revision: 50 $"
 __id__="$Id: configuration.py 50 2008-08-12 13:33:55Z byron $"
 __copyright__='(c) 2008 Sebastian Thiel'
 
-from networkx import DiGraph, NetworkXError 
+from networkx import DiGraph, NetworkXError
+from collections import deque
 
 #####################
 ## EXCEPTIONS ######
@@ -62,25 +63,89 @@ class PlugUnhandled( ComputeError ):
 #####################
 ## Iterators  ######
 ###################
-def iterPlugs( rootPlug, stopAt = lambda x = False, prune = lambda x = False, 
-			   direction = "up", visit_once = False ):
+def iterPlugs( rootPlug, stopAt = lambda x: False, prune = lambda x: False, 
+			   direction = "up", visit_once = False, branch_first = False ):
 	"""Iterator starting at rootPlug going "up"stream ( input ) or "down"stream ( output )
 	breadth first over plugs, applying filter functions as defined.
-	@param rootPlug: the plug at which to start the traversal. The root plug will not be returned
+	@param rootPlug: the plug at which to start the traversal. The root plug will be returned as well
 	@param stopAt: if function returns true for given PlugShell, iteration will not proceed 
 	at that point ( possibly continuing at other spots ). Function will always be called, even 
-	if the shell would be pruned as well.
+	if the shell would be pruned as well. The shell serving as stop marker will not be returned
 	@param prune: if function returns true for given PlugShell, the shell will not be returned 
 	but iteration continues.
 	@direction: 
 		- "up" - upstream, in direction of inputs of plugs
 		- "down" - downstream, in direction of outputs of plugs 
 	@param visit_once: if True, plugs will only be returned once, even though they are
+	@param branch_first: if True, individual branches will be travelled first ( thuse the node 
+	will be left quickly following the datastream. 
+	If False, the plugs on the ndoe will be returned first before proceeding to the next node
 	encountered several times as several noodes are connected to them in some way."""
-	visisted = set()
+	visited = set()
+	stack = deque()
+	stack.append( rootPlug )
 	
+	def addToStack( node, stack, lst, branch_first ):
+		if branch_first:
+			stack.extend( PlugShell( node, plug ) for plug in lst )
+		else:
+			reviter = ( PlugShell( node, lst[i] ) for i in range( len( lst )-1,-1,-1) )
+			stack.extendleft( reviter )
+			
+	def addOutputToStack( stack, lst, branch_first ):
+		if branch_first:
+			stack.extend( lst )
+		else:
+			stack.extendleft( reversed( lst[:] ) )
 	
-
+	while stack:
+		shell = stack.pop()
+		if shell in visited:
+			continue
+		
+		if visit_once:
+			visited.add( shell )
+		
+		if stopAt( shell ):
+			continue
+			
+		if not prune( shell ):
+			yield shell
+			
+		if direction == 'up':
+			if shell.plug.providesOutput():			# get internal affects
+				addToStack( shell.node, stack, shell.plug._affectedBy, branch_first )
+			# END if provides output 
+			
+			if shell.plug.providesInput():
+				# get the inputplug 
+				ishell = shell.getInput( )
+				if ishell:
+					if branch_first:
+						stack.append( ishell )
+					else:
+						stack.appendleft( ishell )
+			# END if provides input 
+		# END upstream
+		else:
+			if shell.plug.providesInput():
+				# could also be connected - follow them 
+				if branch_first:
+					# fist the outputs, then the internals ( this ends up with the same effect )
+					addToStack( shell.node, stack, shell.plug._affects, branch_first )
+					addOutputToStack( stack, shell.getOutputs(), branch_first )
+				else:
+					addOutputToStack( stack, shell.getOutputs(), branch_first )
+					addToStack( shell.node, stack, shell.plug._affects, branch_first )
+					
+			# END if shell provides input
+			
+			if shell.plug.providesOutput():
+				addOutputToStack( stack, shell.getOutputs(), branch_first )
+			# END if shell provides output 
+		# END downstream
+	# END for each shell on work stack
+	
 
 
 #####################
