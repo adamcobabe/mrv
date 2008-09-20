@@ -66,8 +66,8 @@ class SimpleAttrs( NodeBase ):
 
 class TestDAGTree( unittest.TestCase ):
 	
-	def test_simpleConnection( self ):
-		"""dgengine: create some simple connections"""
+	def test_fullFeatureTest( self ):
+		"""dgengine: Test full feature set"""
 		s1 = SimpleAttrs( )
 		
 		self.failUnless( SimpleAttrs.outRand.providesOutput() )
@@ -160,22 +160,26 @@ class TestDAGTree( unittest.TestCase ):
 		
 		# DOWN ITERATION
 		##################
-		
 		piter = iterPlugs( s2.inInt, direction="down", branch_first = True )
-		print s1
-		print s2
-		print s3
+		
 		self.failUnless( piter.next() == s2.inInt )
 		self.failUnless( piter.next() == s3.inInt )
 		self.failUnless( piter.next() == s3.outMult )
 		self.failUnless( piter.next() == s2.outMult )
 		self.failUnlessRaises( StopIteration, piter.next )
 		
-		print list( iterPlugs( s2.inInt, direction="down", branch_first = False ) )
 		piter = iterPlugs( s2.inInt, direction="down", branch_first = False )
+		
 		self.failUnless( piter.next() == s2.inInt )
 		self.failUnless( piter.next() == s3.inInt )
 		self.failUnless( piter.next() == s2.outMult )
 		self.failUnless( piter.next() == s3.outMult )
 		self.failUnlessRaises( StopIteration, piter.next )
+		
+		# NODE BASED CONNECTION QUERY 
+		##############################
+		self.failUnless( len( s3.getConnections( 1, 0 ) ) == 2 )
+		self.failUnless( len( s3.getConnections( 0, 1 ) ) == 1 )
+		self.failUnless( len( s3.getConnections( 1, 1 ) ) == 3 )
+		
 		

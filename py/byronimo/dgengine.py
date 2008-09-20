@@ -18,6 +18,7 @@ __copyright__='(c) 2008 Sebastian Thiel'
 
 from networkx import DiGraph, NetworkXError
 from collections import deque
+import inspect
 
 #####################
 ## EXCEPTIONS ######
@@ -181,7 +182,49 @@ class NodeBase( object ):
 		@note: to be implemented by superclass """
 		raise NotImplementedError( "To be implemented by subclass" )
 		
-	#} END interface 
+	#} END interface
+	
+	#{ Base
+	def plugsToShells( self, plugs ):
+		"""@return: list of shells made from plugs and our node"""
+		return [ PlugShell( self, plug ) for plug in plugs ]
+		
+	@classmethod
+	def getPlugs( cls, predicate = lambda x: True ):
+		"""@return: list of static plugs as defined on this node
+		@param predicate: return static plug only if predicate is true"""
+		pred = lambda m: isinstance( m, plug )
+		return [ m[1] for m in inspect.getmembers( cls, predicate = pred ) if predicate( m[1] ) ]
+		
+	def getConnections( self, inpt, output ):
+		"""@return: Tuples of input shells defining a connection of the given type from 
+		tuple( InputNodeOuptutShell, OurNodeInputShell ) for input connections and 
+		tuple( OurNodeOuptutShell, OutputNodeInputShell )
+		@param inpt: include input connections to this node
+		@param output: include output connections ( from this node to others )"""
+		outConnections = list()
+		plugs = self.getPlugs()
+		
+		# HANDLE INPUT 
+		if inpt:
+			shells = self.plugsToShells( ( p for p in plugs if p.providesInput() ) )
+			for shell in shells:
+				ishell = shell.getInput( )
+				if ishell:
+					outConnections.append( ( ishell, shell ) )
+			# END for each shell in this node's shells
+		# END input handling 
+			
+		# HANDLE OUTPUT 
+		if output:
+			shells = self.plugsToShells( ( p for p in plugs if p.providesOutput() ) )
+			for shell in shells:
+				outConnections.extend( ( ( shell, oshell ) for oshell in shell.getOutputs() ) )
+		# END output handling 
+		
+		return outConnections
+				
+	#} END base
 		
 
 class PlugShell( tuple ):
