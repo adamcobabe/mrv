@@ -16,7 +16,7 @@ __revision__="$Revision: 50 $"
 __id__="$Id: configuration.py 50 2008-08-12 13:33:55Z byron $"
 __copyright__='(c) 2008 Sebastian Thiel'
 
-from networkx import DiGraph 
+from networkx import DiGraph, NetworkXError 
 
 #####################
 ## EXCEPTIONS ######
@@ -85,7 +85,8 @@ class NodeBase( object ):
 	def compute( self, plug, mode ):
 		"""Called whenever a plug needs computation as the value its value is not 
 		cached or marked dirty ( as one of the inputs changed )
-		@param plug: the static plug instance that requested which requested the computation
+		@param plug: the static plug instance that requested which requested the computation.
+		It is the instance you defined on the class
 		@param mode: the mode of operation. Its completely up to the superclasses how that 
 		attribute is going to be used
 		@note: to be implemented by superclass """
@@ -109,25 +110,24 @@ class PlugShell( tuple ):
 	#{ Object Overrides 
 	
 	def __new__( cls, *args ):
-		return tuple.__new__( cls, *args )
+		return tuple.__new__( cls, args )
 	
 	def __init__( self, *args ):
 		"""initialize the shell with a node and a plug"""
 		self.node, self.plug = args
-		self._cache = None
 		
 	def __repr__ ( self ):
-		return "%s.%s" % ( self.node, self, plug )
+		return "%s.%s" % ( self.node, self.plug )
 		
 	def __str__( self ):
-		return str( self.plug )
+		return repr( self )
 		
 	#} END object overrides 
 	
 	
 	#{ Values  
 	
-	def getValue( self, mode ):
+	def get( self, mode ):
 		"""@return: value of the plug"""
 		if self.hasCache( ):
 			return self.getCache( )
@@ -136,23 +136,19 @@ class PlugShell( tuple ):
 		# Output plugs compute values 
 		if self.plug.providesOutput( ):
 			
-			# readable check 
-			if not self.plug.attr.flags & Attribute.readable:
-				raise NotReadableError(  "Plug %r is not readable and has no cache" )
-			
 			# otherwise compute the value
 			try: 
 				result = self.node.compute( self.plug, mode )
 			except ComputeError,e:
 				raise 			
 			except Exception,e:		# except all - this is an unknown excetion
-				raise ComputeError( "Computation of %r" % self, str( e ),e )
+				raise ComputeError( "Computation of %r failed with an unhandled exception" % repr( self ), str( e ),e )
 				
 			# try to cache computed values 
 			self.setCache( result )
 			return result
 		# END plug provides output
-		else:
+		elif self.plug.providesInput( ):	# has to be separately checked 
 			# check for connection
 			inputshell = self.getInput()
 			if not inputshell:
@@ -160,27 +156,29 @@ class PlugShell( tuple ):
 				if self.plug.attr.default is not None:
 					return self.plug.attr.default
 				else:
-					raise MissingDefaultValueError( "Plug %r has no default value and is not connected - no value can be provided" % self )
+					raise MissingDefaultValueError( "Plug %r has no default value and is not connected - no value can be provided" % repr( self ) )
 			# END if we have no input 
 			
 			# query the connected plug for the value
-			return inputshell.getValue( mode )
+			return inputshell.get( mode )
 		# END plug provides input 
 		
 		
 		
-	def setValue( self, value ):
+	def set( self, value ):
 		"""Set the given value to be used in our plug
 		@raise AssertionError: the respective attribute must be cached, otherwise 
-		the value will be lost"""
+		the value will be lost
+		@todo: set all plugs we affect dirty by removing their cache at least
+		Alternatively we have to do dirty checking on each get which is called more often right now... """
 		flags = self.plug.attr.flags
 		if not flags & Attribute.writable:
-			raise NotWritableError( "Plug %r is not writable" % self )
+			raise NotWritableError( "Plug %r is not writable" % repr(self) )
 		
-		if not self.plug.providesOutput( ):
-			raise NotWritableError( "Plug %r is not writable as it provides an output itself" % self ) 
+		if self.plug.providesOutput( ):
+			raise NotWritableError( "Plug %r is not writable as it provides an output itself" % repr(self) ) 
 							
-		if not flags & Attribute.cached:
+		if flags & Attribute.uncached:
 			raise AssertionError( "Writable attributes must be cached - otherwise the value will not be held" )
 		
 		
@@ -203,24 +201,24 @@ class PlugShell( tuple ):
 		"""Connect this plug to otherplug such that otherplug is an input plug for our output
 		@param force: if False, existing connections to otherplug will not be broken, but an exception is raised
 		if True, existing connection may be broken
-		@return otherplug: on success, allows chained connections 
+		@return self: on success, allows chained connections 
 		@raise PlugAlreadyConnected: if otherplug is connected and force is False
 		@raise PlugIncompatible: if otherplug does not appear to be compatible to this one"""
 		if not isinstance( otherplug, PlugShell ):
-			raise AssertionError( "Invalid Type given to connect: %r" % otherplug )
+			raise AssertionError( "Invalid Type given to connect: %r" % repr( otherplug ) )
 		
 		# check compatability 
 		if self.plug.attr.getConnectionAffinity( otherplug.plug.attr ) == 0:
-			return PlugIncompatible( "Cannot connect %r to %r as they are incompatible" % ( self, otherplug ) )
+			raise PlugIncompatible( "Cannot connect %r to %r as they are incompatible" % ( repr( self ), repr( otherplug ) ) )
 		
 		
 		oinput = otherplug.getInput( )
 		if oinput is not None:
 			if oinput == self:
-				return 
+				return self 
 				
 			if not force:
-				raise PlugAlreadyConnected( "Cannot connect %r to %r as it is already connected" % ( self, otherplug ) )
+				raise PlugAlreadyConnected( "Cannot connect %r to %r as it is already connected" % ( repr( self ), repr( otherplug ) ) )
 				
 			# break existing one
 			oinput.disconnect( otherplug )
@@ -228,94 +226,128 @@ class PlugShell( tuple ):
 		
 		# connect us 
 		self.node.graph.add_edge( self, v = otherplug )
+		return self
 		
 	
 	def disconnect( self, otherplug ):
 		"""Remove the connection to otherplug if we are connected to it.
 		@note: does not raise if no connection is present"""
 		if not isinstance( otherplug, PlugShell ):
-			raise AssertionError( "Invalid Type given to connect: %r" % otherplug )
+			raise AssertionError( "Invalid Type given to connect: %r" % repr( otherplug ) )
 			
 		self.node.graph.delete_edge( self, v = otherplug )
 	
 	def getInput( self ):
-		"""@return: a list of connected plugs
+		"""@return: the connected input plug or None if there is no such connection
 		@param predicate: plug will only be returned if predicate is true for it
 		@note: input plugs have on plug at most, output plugs can have more than one 
 		connected plug"""
-		self.node.graph.predecessors( self ) 
+		try:
+			pred = self.node.graph.predecessors( self )
+			if pred:
+				return pred[0]
+		except NetworkXError:
+			pass		
+		
+		return None
 		
 	def getOutputs( self, predicate = lambda x : True ):
 		"""@return: a list of plugs being the destination of the connection
 		@param predicate: plug will only be returned if predicate is true for it - shells will be passed in """
-		outlist = []
-		for shell in self.node.graph.successors( self ):
-			if predicate( shell ):
-				outlist.append( shell )
-		return outlist
+		try:
+			return [ s for s in self.node.graph.successors( self ) if predicate( s ) ]
+		except NetworkXError:
+			return list()
 		
 	#} END connections
 
 	
-	#{Caching 
+	#{Caching
+	def _cachename( self ):
+		return self.plug._name + "_c"
+		
 	def hasCache( self ):
 		"""@return: True if currently store a cached value"""
-		return self._cache != None
+		return hasattr( self.node, self._cachename() )
 		
 	def setCache( self, value ):
 		"""Set the given value to be stored in our cache
 		@raise: TypeError if the value is not compatible to our defined type"""
-		# attr compatability 
-		if self.plug.attr.getCompatabilityRate( value ):
-			raise TypeError( "Plug %r cannot hold value %r as it is not compatible" % ( self, value ) )
+		# attr compatability - always run this as we want to be warned if the compute 
+		# method returns a value that does not match
+		if self.plug.attr.getCompatabilityRate( value ) == 0:
+			raise TypeError( "Plug %r cannot hold value %r as it is not compatible" % ( repr( self ), repr( value ) ) )
 			
-		self._cache = value
+		if self.plug.attr.flags & Attribute.uncached:
+			return
+		
+		setattr( self.node, self._cachename(), value ) 
 		
 	def getCache( self ):
 		"""@return: the cached value or raise
 		@raise: ValueError"""
-		if self._cache:
-			return self._cache
+		if self.hasCache():
+			return getattr( self.node, self._cachename() )
 		
-		raise ValueError( "Plug %r did not have a cached value" % self )
+		raise ValueError( "Plug %r did not have a cached value" % repr( self ) )
 		
 	def clearCache( self ):
 		"""Empty the cache of our plug"""
-		self._cache = None
-	#} 
+		if self.hasCache():
+			del( self.node.__dict__[ self._cachename() ] )
+			
+	#} END caching
 	
 	
 
 class Attribute( object ):
 	"""Simple class defining the type of a plug and several flags that 
 	affect it
-	Additionally it can determine how well suited another attribute is"""
+	Additionally it can determine how well suited another attribute is
+	
+	Flags
+	-----
+	exact_type: if True, derived classes of our typecls are not considered to be a valid type
+	writable: if True, the attribute's plug can be written to
+	computable: Nodes are automatically computable if they are affected by another plug.
+				If this is not the case, they are marked input only and are not computed.
+				If this flag is true, even unaffeted plugs are computable.
+				Plugs that affect something are automatically input plugs and will not be computed.
+				If the plug does not affect anything and this flag is False, they are seen as input plugs 
+				anyway. 
+				With that system its actually possbible to trigger your own compute method multiple times
+				by creating plugs that are input and output at the same time. 
+	cls: if True, the plug requires classes to be set ( instances of 'type' ) , but no instances of these classes
+	uncached: if False, computed values may be cached, otherwise they will always be recomputed.
+	unconnectable: if True, the node cannot be the destination of a connection
+	"""
 	kNo, kGood, kPerfect = 0, 127, 255				# specify how good attributes fit together
-	exact_type, writable, readable, instance, cached, connectable = ( 1, 2, 4, 8, 16, 32 )
+	exact_type, writable, computable, cls, uncached, unconnectable = ( 1, 2, 4, 8, 16, 32 )
 	__slots__ = ( 'typecls', 'flags', 'default' )
 	
 	def __init__( self, typeClass, flags, default = None ):
-		self.typecls = None
-		self.flags = 0				# used for bitflags describing mode
+		self.typecls = typeClass
+		self.flags = flags			# used for bitflags describing mode
 		self.default = default		# the default value to be returned for input attributes 
 
 
-	def _getClassRating( self, value, exact_type ):
+	def _getClassRating( self, cls, exact_type ):
 		"""@return: rating based on value being a class and compare
 		0 : value is no type
 		255: value matches comparecls, or linearly less if is just part of the mro of value"""
-		if not isinstance( value, type ):
+		if not isinstance( cls, type ):
 			return 0
 			
-		mro = value.mro()
+		mro = self.typecls.mro()
 		mro.reverse()
-		if not self.typecls in mro:
+		
+		if not cls in mro:
 			return 0
 			
 		if len( mro ) == 1:
 			return self.kPerfect
 		
-		rate = ( float( mro.index( self.typecls ) ) / float( len( mro ) - 1 ) ) * self.kPerfect
+		rate = ( float( mro.index( cls ) ) / float( len( mro ) - 1 ) ) * self.kPerfect
 		
 		if exact_type and rate != self.kPerfect:		# exact type check
 			return 0
@@ -329,14 +361,11 @@ class Attribute( object ):
 		otherplug. an affinity of 0 mean connection is not possible, 255 mean the connection 
 		is perfectly suited.
 		The connection is a directed one from self -> otherplug"""
-		if not otherattr.flags & self.connectable:		# destination must be connectable
+		if otherattr.flags & self.unconnectable:		# destination must be connectable
 			return 0
 			
-		if not self.flags & self.readable:				# we need to be readable 
-			return 0
-			
-		# see whether our instance flags match
-		if self.flags & self.instance != otherattr.flags & self.instance:
+		# see whether our class flags match
+		if self.flags & self.cls != otherattr.flags & self.cls:
 			return 0
 			
 		# finally check how good our types match 
@@ -348,16 +377,16 @@ class Attribute( object ):
 		"""@return: value between 0 and 255, 0 means no compatability, 255 a perfect match
 		if larger than 0, the plug can hold the value ( assumed the flags are set correctly )"""
 		if isinstance( value, type ):
-			# do we need an instance ?
-			if self.flags & self.instance:
+			# do we need a class ?
+			if not self.flags & self.cls:
 				return 0		# its a class 
 			
 			# check compatability
 			return self._getClassRating( value, self.flags & self.exact_type )
 		# END is class type
 		else:
-			if self.flags & self.instance:
-				return self._getClassRating( value.__class__ )
+			if not self.flags & self.cls:
+				return self._getClassRating( value.__class__, self.flags & self.exact_type )
 		# END is instance type 
 		
 		return 0
@@ -384,17 +413,18 @@ class plug( object ):
 	@note: class is lowercase as it is used as descriptor ( acting more like a function )
 	"""
 	kNo,kGood,kPerfect = ( 0, 127, 255 )
-	__slots__ = ( '__name', 'attr', 'affected' )
+	__slots__ = ( '_name', 'attr', '_affects', '_affectedBy' )
 	
 	#{ Overridden object methods 
 	def __init__( self, name, attribute ):
 		"""Intialize the plug with a distinctive name"""
-		self.__name = name
+		self._name = name
 		self.attr = attribute
-		self.affected = list()			# list of plugs that are affected by us
+		self._affects = list()			# list of plugs that are affected by us
+		self._affectedBy = list()		# keeps record of all plugs that affect us
 		
 	def __str__( self ):
-		return self.__name
+		return self._name
 		
 	#}
 	
@@ -402,15 +432,17 @@ class plug( object ):
 	def __get__( self, obj, cls=None ):
 		"""A value has been requested - return our plugshell that brings together
 		both, the object and the static plug"""
-		if cls != None:
-			raise AssertionError( "Class-plugs cannot be handled - get needs to be called through instance" )
+		# in class mode we return ourselves for access
+		if obj is not None:	
+			return PlugShell( obj, self )
 			
-		return PlugShell( obj, self )
+		# class attributes just return the descriptor itself for direct access
+		return self
 		
 	
 	def __set__( self, obj, value ):
-		"""Just call the setValue method directly"""
-		PlugShell( obj, self ).setValue( value )
+		"""Just call the set method directly"""
+		PlugShell( obj, self ).set( value )
 		
 	#}
 	
@@ -419,16 +451,20 @@ class plug( object ):
 	def affects( self, otherplug ):
 		"""Set an affects relation ship between this plug and otherplug, saying 
 		that this plug affects otherplug."""
-		if otherplug not in self.affected:
-			self.affected.append( otherplug )
+		if otherplug not in self._affects:
+			self._affects.append( otherplug )
+			
+		if self not in otherplug._affectedBy:
+			otherplug._affectedBy.append( self )
+			
 		
 	def providesOutput( self ):
 		"""@return: True if this is an output plug that can trigger computations"""
-		return len( self.affected ) == 0
+		return len( self._affectedBy ) != 0 or self.attr.flags & Attribute.computable
 		
 	def providesInput( self ):
 		"""@return: True if this is an input plug that will never cause computations"""
-		return not self.providesOutput( )
+		return len( self._affects ) != 0 or not self.attr.flags & Attribute.computable
 	#}
 	
 	
