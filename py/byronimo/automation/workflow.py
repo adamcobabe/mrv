@@ -287,9 +287,9 @@ class Workflow( Graph ):
 		"""@return: list of all supported target type
 		@note: this method is for informational purposes only"""
 		uniqueout = set()
-		for p in self.nodes_iter():
+		for node in self.iterNodes():
 			try:
-				uniqueout.update( set( p.getSupportedTargetTypes() ) )
+				uniqueout.update( set( node.getSupportedTargetTypes() ) )
 			except Exception, e:
 				raise AssertionError( "Process %r failed when calling getSupportedTargetTypes" % p, e )
 		# END for each p in nodes iter

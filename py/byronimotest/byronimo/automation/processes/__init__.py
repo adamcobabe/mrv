@@ -51,7 +51,7 @@ class TestProcess( processes.ProcessBase ):
 	# inputs
 	inInt = 		plug( "inInt", 		A( int, A.writable, default = 4 ) )
 	inFloat = 		plug( "inFloat", 	A( float, A.writable, default = 2.5 ) )
-	
+	inText = 		plug( "inText", 	A( str, A.writable, default = "hello world" ) )
 	# outputs 
 	outFloat = 		plug( "outFloat", 	A( float, A.computable ) )
 	outInt = 		plug( "outInt", 	A( int, A.computable ) )
@@ -62,6 +62,7 @@ class TestProcess( processes.ProcessBase ):
 	# affects 
 	inInt.affects( outInt )
 	inFloat.affects( outFloat )
+	inText.affects( outText )
 	
 	
 	def __init__( self, workflow , name="TestProcess"):

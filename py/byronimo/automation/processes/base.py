@@ -122,21 +122,20 @@ class ProcessBase( NodeBase ):
 			targettype = target
 		
 		outplugs = self.getInputPlugs( )
-		attr = Attribute( targettype, 0 )		
+		attr = Attribute( targettype, 0 )
 		plugrating = self.filterCompatiblePlugs( outplugs, attr, raise_on_ambiguity = 1 )
 		
 		if not plugrating:		#	 no plug ?
 			return ( 0 , None )
 			
 		rate, plug = plugrating[0] 
-		return ( rate, self.toShell( plug ) )
+		return ( int(rate), self.toShell( plug ) )
 		
 		
 	def getSupportedTargetTypes( self ):
 		"""@return: list target types that can be output
 		@note: targetTypes are classes, not instances"""
-		outputplugs = self.getPlugs( predicate = lambda p: p.providesOutput() )
-		return [ p.attr.typecls for p in outputplugs ]
+		return [ p.attr.typecls for p in self.getInputPlugs() ]
 	
 	#} END query 
 

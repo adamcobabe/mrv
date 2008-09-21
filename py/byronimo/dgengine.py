@@ -620,6 +620,8 @@ class NodeBase( object ):
 
 class StandinPlugShell( _PlugShell ):
 	"""PlugShell passing on connections the plug it is actually connected with"""
+	
+	
 
 class GraphNodeBase( NodeBase ):
 	"""A node wrapping a graph, allowing it to be nested within the node 
@@ -854,7 +856,8 @@ class plug( object ):
 		
 	def providesInput( self ):
 		"""@return: True if this is an input plug that will never cause computations"""
-		return len( self._affects ) != 0 and not self.providesOutput( )
+		#return len( self._affects ) != 0 and not self.providesOutput( )
+		return not self.providesOutput() # previous version did not recognize storage plugs as input
 		
 	#}
 	

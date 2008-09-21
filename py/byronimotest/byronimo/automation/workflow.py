@@ -29,34 +29,28 @@ class TestWorkflow( unittest.TestCase ):
 		scwfl = workflows.simpleconnection
 		self.failUnless( isinstance( scwfl, Workflow ) )
 		
+		
 		# contents
 		self.failUnless( len( list( scwfl.iterNodes() ) ) == 2 )
-		self.failUnless( len( scwfl.edges() ) == 1 )
 		
 		p1 = scwfl.nodes()[0]
 		p2 = scwfl.nodes()[1]
 		
-		# CONNECTION 
-		self.failUnless( len( scwfl.out_edges( p1 ) ) == 1 )
-		self.failUnless( scwfl.out_edges( p1 )[0][1]  == p2 )
-		self.failUnless( len( scwfl.in_edges( p2 ) ) == 1 )
-		self.failUnless( scwfl.in_edges( p2 )[0][0] == p1 )
-		
-		self.failUnless( scwfl.successors( p1 )[0] == p2 )
-		self.failUnless( scwfl.predecessors( p2 )[0] == p1 )
+		# CONNECTION
+		# tested in dgengine test
 		
 		
 		# QUERY TARGETS
 		##################
-		# assure list is pruned, otherwise it would be 4 
+		# assure list is pruned, otherwise it would be 4
 		self.failUnless( len( scwfl.getTargetSupportList( ) ) == 3 )
 		
 		# both are the same and produce the same rating
 		self.failUnless( scwfl.getTargetRating( 5 )[0] == 255 )
-		self.failUnless( scwfl.getTargetRating( str )[0] == 127 )
-		self.failUnless( scwfl.getTargetRating( basestring )[0] == 255 )	 
+		self.failUnless( scwfl.getTargetRating( str )[0] == 255 )
+		self.failUnless( scwfl.getTargetRating( basestring )[0] == 127 )	 
 		
-		self.failUnless( scwfl.getTargetRating( unicode )[0] == 127 )
+		self.failUnless( scwfl.getTargetRating( unicode )[0] == 0 )
 		self.failUnless( scwfl.getTargetRating( dict )[1] == None )
 		
 		self.failUnless( scwfl.getTargetRating( float )[0] == 255 )
@@ -68,29 +62,19 @@ class TestWorkflow( unittest.TestCase ):
 		res = scwfl.makeTarget( 5 )
 		self.failUnless( res == 10 )
 		
-		res = scwfl.makeTarget( unicode, dry_run = False )
+		res = scwfl.makeTarget( "someInput" )
 		self.failUnless( res == "hello world" )
 		
-		res = scwfl.makeTarget( int, dry_run = False )
-		self.failUnless( res == 4 )
+		res = scwfl.makeTarget( 4 )
+		self.failUnless( res == 8 )
 		
-		res = scwfl.makeTarget( float, dry_run = False )
-		self.failUnless( res == 3.0 )
+		res = scwfl.makeTarget( 2.0 )
+		self.failUnless( res == 4.0 )
 		
-		res = scwfl.makeTarget( 2.0, dry_run = False )
-		self.failUnless( res == 6.0 )
+		res = scwfl.makeTarget( 2.5 )
+		self.failUnless( res ==5.0 )
 		
 		self.failUnlessRaises( ValueError, scwfl.makeTarget, dict )
-		
-		
-		# GET TWO INPUTS 
-		##################
-		ambwfl = workflows.multiinputambiguous
-		self.failUnlessRaises( AmbiguousInput, ambwfl.makeTarget, unicode( "this" ) )
-		
-		miwfl = workflows.multiinput
-		res = miwfl.makeTarget( unicode( "this" ) )
-		self.failUnless( res == "this3.020202020" )
 		
 	
 	def test_callgraph( self ):
@@ -101,6 +85,8 @@ class TestWorkflow( unittest.TestCase ):
 		####################
 		# target resolved by the actual node - no input needed 
 		res = scwfl.makeTarget( 5 )		# computes in-node
+		from byronimo.automation.report import Plan
+		
 		cg = scwfl._callgraph
 		self.failUnless( len( cg.nodes() ) == 1 )
 		self.failUnless( len( cg.edges() ) == 0 )
@@ -109,13 +95,16 @@ class TestWorkflow( unittest.TestCase ):
 		# INPUT REQUIRED  - multiple nodes 
 		###############################
 		res = scwfl.makeTarget( 2.0 )
+		
 		cg = scwfl._callgraph
-		self.failUnless( len( cg.nodes() ) == 2 )
-		self.failUnless( len( cg.edges() ) == 1 )
+		self.failUnless( len( cg.nodes() ) == 1 )
+		self.failUnless( len( cg.edges() ) == 0 )
 		
 		miwfl = workflows.multiinput
 		res = miwfl.makeTarget( unicode( "this" ) )
 		cg = miwfl._callgraph
-		self.failUnless( len( cg.nodes() ) == 7 )
-		self.failUnless( len( cg.edges() ) == 6 )
+		
+		
+		self.failUnless( len( cg.nodes() ) == 5 )
+		self.failUnless( len( cg.edges() ) == 4 )
 		

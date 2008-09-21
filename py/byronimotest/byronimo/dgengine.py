@@ -207,5 +207,11 @@ class TestDAGTree( unittest.TestCase ):
 		self.failUnless( len( SimpleNode.filterCompatiblePlugs( inplugs, floatattr ) ) == 2 )
 		self.failUnlessRaises( TypeError, SimpleNode.filterCompatiblePlugs, inplugs, floatattr, raise_on_ambiguity = 1 )
 		
+	def test_copy( self ):
+		"""dgengine: copy the graph"""
+		# test shallow copy 
+		global nodegraph
+		cpy = nodegraph.copy()
 		
+		self.failUnless( len( cpy._nodes ) == len( nodegraph._nodes ) )
 		
