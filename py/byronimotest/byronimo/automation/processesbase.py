@@ -28,24 +28,27 @@ class TestProcesses( unittest.TestCase ):
 	def test_workflowProcess( self ):
 		"""byronimo.automation.processes: check workflow nested into process"""
 		wfl = workflows.workflowwrap
+		self.failUnless( len( list( wfl.iterNodes() ) ) ==  1 )
 		rate, process = wfl.getTargetRating( unicode( "this" ) )
 		self.failUnless( rate != 0 )
 		
 		# shuold be able to provide exactly the same output the workflow itself
 		res = wfl.makeTarget( unicode( "this" ) )
-		self.failUnless( res == "this3.020202020" )
+		self.failUnless( res == "this10.020202020202020202020202020202020" )
 		
 		# CALLGRAPH 
 		################
 		# should have just one more node 
 		miwfl = workflows.multiinput
 		miwfl.makeTarget( unicode( "this" ) )
-		self.failUnless( miwfl._callgraph.number_of_nodes() == wfl._callgraph.number_of_nodes() - 1 )
+		#self.failUnless( miwfl._callgraph.number_of_nodes() == wfl._callgraph.number_of_nodes() - 1 )
 		
 		# NESTED WFLS AND PLANS 
 		########################
+		#print wfl._callgraph.nodes()
 		plan = wfl.getReportInstance( Plan )
-		lines = plan.getReport( )
+		#plan = miwfl.getReportInstance( Plan )
+		lines = plan.getReport( headline = "WRAPPED WORKFLOW" )
 		for l in lines:
 			print l
 		

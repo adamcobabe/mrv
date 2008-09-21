@@ -22,6 +22,7 @@ from networkx import DiGraph, NetworkXError
 from collections import deque
 import inspect
 import weakref
+import itertools 
 
 #####################
 ## EXCEPTIONS ######
@@ -534,6 +535,17 @@ class NodeBase( object ):
 		@param nodeInstance: if not None but instance of NodeBase, the returned list 
 		will contain plugshells for nodeInstance instead of static plugs"""
 		pred = lambda m: isinstance( m, plug )
+		
+		# BUG: it appears python can also pass in other derived classes instead 
+		# of our own one if called through self - it appears python still has some value
+		# of a previous call stored
+		# thus we only test for base class 
+		# if nodeInstance and not isinstance( nodeInstance, cls ):
+		if nodeInstance and not isinstance( nodeInstance, NodeBase ):
+			msg = "getPlugs: Passed in nodeInstance had invalid type: was %r, should be %r" % ( type( nodeInstance ), cls )
+			raise AssertionError( msg )
+		# END sanity check
+		
 		pluggen = ( m[1] for m in inspect.getmembers( cls, predicate = pred ) if predicate( m[1] ) )
 		if not nodeInstance:
 			return list( pluggen )
@@ -617,66 +629,199 @@ class NodeBase( object ):
 		return outSorted
 	#} END base
 	
-
-class StandinPlugShell( _PlugShell ):
-	"""PlugShell passing on connections the plug it is actually connected with"""
 	
 	
+class _FacadeShellMeta( type ):
+	"""Metaclass building the method wrappers for the _FacadeShell class - not 
+	all methods should be overridden, just the ones important to use"""
+	
+	@staticmethod
+	def getUnfacadeMethod( funcname ):
+		def unfacadeMethod( self, *args, **kwargs ):
+			return getattr( self._toShell(), funcname )( *args, **kwargs )
+			
+		unfacadeMethod.__name__ = funcname
+		return unfacadeMethod
+		
+	def __new__( metacls, name, bases, clsdict ):
+		unfacadelist = clsdict.pop( '__unfacade__' )
+		newcls = type.__new__( metacls, name, bases, clsdict )
+		
+		# create the wrapper functions for the methods that should wire to the 
+		# original shell, thus we unfacade them
+		for funcname in unfacadelist:
+			setattr( newcls, funcname, metacls.getUnfacadeMethod( funcname ) )
+		# END for each unfacade method name 
+		return newcls
+		
 
-class GraphNodeBase( NodeBase ):
+class _FacadePlugShell( _PlugShell ):
+	"""All connections from and to the FacadeNode must actually start and end there.
+	Iteration over internal plugShells is not allowed.
+	Thus we override only the methods that matter and assure that the call is handed 
+	to the acutal plugShell
+	"""
+	# list all methods that should not be a facade to our facade node 
+	__unfacade__ = [ 'get', 'set', 'hasCache', 'setCache', 'getCache', 'clearCache' ]
+	__metaclass__ = _FacadeShellMeta
+	
+	def _toShell( self ):
+		"""@return: convert ourselves to the real shell actually behind this facade plug"""
+		return self.node._realShell( self.plug )
+		
+	
+	
+	
+class FacadeNodeBase( NodeBase ):
+	"""Node having no own plugs, but retrieves them by querying other other nodes
+	and claiming its his own ones.
+	
+	Using a non-default shell it is possibly to guide all calls through to the 
+	virtual PlugShell.
+	
+	Derived classes must override _getPlugShells which will be queried when 
+	plugs or plugshells are requested. This node will cache the result and do 
+	everything required to integrate itself. 
+	
+	It lies in the nature of this class that the plugs are dependent on a specific instance 
+	of this node, thus classmethods of NodeBase have been overridden with instance versions 
+	of it.	
+	
+	@note: this class could also be used for facades Container nodes that provide 
+	an interface to their internal nodes"""
+	shellcls = _FacadePlugShell		# overriden from NodeBase
+	
+	
+	#{ Overridden Object Methods
+	
+	def __init__( self, graph, *args, **kwargs ):
+		""" Initialize the instance
+		@param graph: graph this node is part of"""
+		NodeBase.__init__( self, graph, *args, **kwargs )
+	
+	#} END overridden methods 
+	
+	#{ Internal Methods 
+	def _realShell( self, virtualplug ):
+		"""Calls _toRealShell with virtualplug and then all plugs we find in the direcft
+		affects relationships. Afterall, all we need is a node owning one of the affected plugs, 
+		then we know the node of the original plug"""
+		node = None
+		try:
+			node = self._getNodeByPlug( virtualplug )
+		except ValueError:
+			# try all that are internally connected
+			allaffected = itertools.chain( iter( virtualplug._affectedBy ), iter( virtualplug._affects ) )
+			for plug in allaffected:
+				try:
+					node = self._getNodeByPlug( plug )
+				except ValueError:
+					pass
+			# END for each affected plug 
+		# END get real node for virtual plug 
+		
+		# get the actual shell
+		if node:
+			return node.toShell( virtualplug )
+			
+		# no node ?
+		raise AssertionError( "%r did not find matching node for plug %r" % ( self, virtualplug ) )
+			
+	#} END internal methods 
+	
+	
+	#{ NodeBase Methods
+	def _getNodeByPlug( self, virtualplug ):
+		"""Called when the facade class encounters a virtual plug that needs to be 
+		converted to its real shell, thus the (node,plug) pair that originally owns the plug.
+		Thus the method shall return a node owning the virtualplug. 
+		It will only be called once a facade shell is supposed to be altered, see 
+		L{_FacadePlugShell}
+		@raise ValueError: if the virtualplug is unknown.
+		@note: iterPlugs may actually traverse the plug-internal affects relations and 
+		possibly return a shell to a client that your derived class has never seen before.
+		You should take that into consideration and raise L{ValueError} if you do not know 
+		the plug"""
+		raise NotImplementedError( "_toRealShell needs to be implemented by the subclass" )
+	                                  
+	#} end nodebase methods
+
+class GraphNodeBase( FacadeNodeBase ):
 	"""A node wrapping a graph, allowing it to be nested within the node 
 	All inputs and outputs on this node are purely virtual, thus they internally connect
 	to the wrapped graph.
+	
+	Internally it keeps a plug -> node association based on what it returns  
+	in getPlugs - currently it never delete them.
 	"""
-	
-	shellcls = StandinPlugShell		# overriden from NodeBase
-	
-	#{ Overridden Object Methods 
+	#{ Overridden Object Methods
 	
 	def __init__( self, graph, wrappedGraph, *args, **kwargs ):
 		""" Initialize the instance
 		@param graph: graph this node is part of 
 		@param wrappedGraph: graph we are wrapping"""
 		self.wgraph = wrappedGraph
-		NodeBase.__init__( self, graph, *args, **kwargs )
+		self._plugmap = dict()		# plug -> node 
+		
+		FacadeNodeBase.__init__( self, graph, *args, **kwargs )
 	
-	#} END overridden methods 
+	#} END overridden methods               
 	
-	#{ NodeBase Methods
+	#{ Base Methods
 	
 	def _iterNodes( self ):
-		"""@return: generator for nodes in our graph - derived classes could override this"""
-		# predicate = lambda node: not node.getConnections( 0, 1 ) 
+		"""@return: generator for nodes in our graph
+		@note: derived classes could override this to just return a filtered view on 
+		their nodes"""
 		return self.wgraph.iterNodes( )
+		
+	#} END base
+	
+	#{ NodeBase Methods 
+	
+	def _getNodeByPlug( self, virtualplug ):
+		"""@return: node matching virtual plug according to our cache"""
+		try:
+			return self._plugmap[ virtualplug ]
+		except KeyError:
+			raise ValueError
 	
 	def getPlugs( self, **kwargs ):
 		"""@return: all plugs on leaf node basees
 		@note: must be called through an instance, the baseclass version is a class method !"""
 		outlist = list()
+		hasInstance = kwargs.get( 'nodeInstance', None ) is not None
+
 		for node in self._iterNodes():
-			outlist.extend( node.getPlugs( **kwargs ) )
+			plugresult = node.getPlugs( **kwargs )
+			outlist.extend( plugresult )
+			
+			# update our lookup map
+			if hasInstance:
+				for shell in plugresult:
+					self._plugmap[ shell.plug ] = node
+			else:
+				for plug in plugresult:
+					self._plugmap[ plug ] = node 
+			# END update lut map
+		# END for node in nodes 
+			
 		return outlist
-	
+
 	def getInputPlugs( self ):
 		"""@return: list of plugs suitable as input
 		@note: convenience method
 		@note: must be called through an instance, the baseclass version is a class method !"""
 		return self.getPlugs( predicate = lambda p: p.providesInput() )
-	
+
 	def getOutputPlugs( self ):
 		"""@return: list of plugs suitable to deliver output
 		@note: convenience method
 		@note: must be called through an instance, the baseclass version is a class method !"""
 		return self.getPlugs( predicate = lambda p: p.providesOutput() )
 		
-	def getConnections( self, *args ):
-		"""@return: connections of our workflow's leaf node - we act like a supernode"""
-		outcons = list()
-		for node in self._iterNodes( ):
-			outcons.extend( node.getConnections( *args ) )
-		return outcons
-	                                  
-	#} end nodebase methods
+	
+	#} end NodeBase methods
 		
 	
 

@@ -281,7 +281,7 @@ class MetaClassCreatorNodes( MetaClassCreator ):
 		#####################
 		# Functions from mfn should be wrapped on demand to the respective classes as they 
 		# should be generated only when used
-		# Wrap the existing __getattr__ method in an own one linking mfn methods if possibly
+		# Wrap the existing __getattr__ method in an own one linking mfn methods if possible
 		mfncls = newcls.__dict__.get( metacls.mfnclsattr, None )
 		if mfncls:
 			metacls._wrapLazyGetAttr( newcls )

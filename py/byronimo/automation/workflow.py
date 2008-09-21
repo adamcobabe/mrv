@@ -50,7 +50,7 @@ class Workflow( Graph ):
 			self.index = 0						# index of the child - graph stores nodes unordered
 			
 		def __repr__( self ):
-			out = "%s(%r)" % ( self.process, self.plug )
+			out = "%s.%s" % ( self.process, self.plug )
 			if self.exception:
 				out += "&ERROR"
 			return out
@@ -348,6 +348,7 @@ class Workflow( Graph ):
 		dirty state of the prcoesses, allowing to walk it depth first to resolve the calls.
 		This also allows to create precise reports telling how to achieve a certain goal"""
 		pdata = Workflow.ProcessData( process, plug, mode )
+		print "TRACKING DATA: %r" % ( pdata )
 		# keep the call graph
 		self._callgraph.startCall( pdata )
 		return pdata			# return so that decorators can use this information

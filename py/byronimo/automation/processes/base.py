@@ -227,8 +227,6 @@ class WorkflowProcessBase( GraphNodeBase, ProcessBase ):
 	
 	Workflows are standin nodes - they can connect anything their wrapped nodes can connect
 	@note: to prevent dependency issues, the workflow instance will be bound on first use
-	@note: unfortunately we have the NodeBase two times in our base classes as we cannot 
-	specify virtual bases
 	"""
 	__all__.append( "WorkflowProcessBase" )
 	
@@ -240,27 +238,30 @@ class WorkflowProcessBase( GraphNodeBase, ProcessBase ):
 		@param workflowModulePath: module import path which will contain the workflow
 		@param workflowName: name of the workflow as it will exist in workflowModule 
 		@param **kwargs: all arguments required to initialize the ProcessBase"""
-		self._wflmod  = __import__( workflowModulePath, globals(), locals(), [''] )
-		self._wrappedwfl = self._getWrappedWfl( self._wflmod, workflowName )
+		wflmod  = __import__( workflowModulePath, globals(), locals(), [''] )
+		wrappedwfl = self._createWrappedWfl( wflmod, workflowName )
 		
+		# NOTE: baseclass stores wrapped wfl for us
 		# init bases
-		GraphNodeBase.__init__( self, workflow, self._wrappedwfl, **kwargs )
+		GraphNodeBase.__init__( self, workflow, wrappedwfl, **kwargs )
 		ProcessBase.__init__( self, "TO BE SET", "passing on", workflow, **kwargs )
 		
 		# override name
-		self.noun = self._wrappedwfl.name
+		self.noun = wrappedwfl.name
 		
 	def __getattr__( self , attr ):
 		"""@return: attribute on the wrapped workflow
 		# @note: this is a conenience method for us, its not used by the framework """
 		try:
-			return getattr( self._wrappedwfl, attr )
+			return getattr( self.wgraph, attr )
 		except AttributeError:
 			return super( WorkflowProcessBase, self ).__getattribute__( attr )
 
-	def _getWrappedWfl( self, wflmod, wflname ):
-		"""@return: our wrapped workflow instance"""
-		# create our own workflow with own processes
+	def _createWrappedWfl( self, wflmod, wflname ):
+		"""@return: our wrapped workflow instance
+		@note: as we modify the graph with our 'virtual' connections, we copy it
+		and create a new one. Workflows are global elements that should not be changed by someone
+		to stop working for anotherone"""
 		try:
 			return getattr( wflmod, wflname ).copy()		# return our own dg copy of it
 		except AttributeError:
@@ -268,21 +269,38 @@ class WorkflowProcessBase( GraphNodeBase, ProcessBase ):
 			try:
 				wfl = wflmod.createWorkflow( wflname )
 				setattr( wflmod, wflname, wfl )
-				return wfl
+				return wfl.copy()					# always copy it - we change connections 
 			except AttributeError:
 				raise AssertionError( "Workflow module %r reuqires createWorkflow method to be implemented for nested workflows to work" % wflmod )
 		# END try to copy or create workflow 
 		
 	#} END overridden methods 
 	
-	#{ NodeBase Methods
 	
-	def _iterLeafNodes( self ):
+	#{ ProcessBase Methods
+	def prepareProcess( self ):
+		"""As we have different callgraphs, but want proper reports, just swap in the 
+		callgraph of our own workflow to allow it to be maintained correctly when the nodes 
+		of the wrapped graph evaluate.
+		@note: this requires that we get called after the callgraph has bene initialized"""
+		if self.graph._callgraph.number_of_nodes():
+			raise AssertionError( "Callgraph of parent workflow %r was not empty" % self.graph )
+		
+		self.wgraph._callgraph = self.graph._callgraph
+		
+		# prepare base !
+		ProcessBase.prepareProcess( self )
+	
+	#} END processbase methods
+	
+	#{ GraphNodeBase Methods
+	
+	def _iterNodes( self ):
 		"""@return: generator for nodes that have no output connections and thus are leaf nodes"""
 		predicate = lambda node: not node.getConnections( 0, 1 ) 
-		return self._getWrappedWfl().iterNodes( predicate = predicate )
+		return self.wgraph.iterNodes( predicate = predicate )
 	    
-	#} end nodebase methods
+	#} end graphnodebase methods
 	
 	
 	
