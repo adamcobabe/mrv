@@ -250,14 +250,14 @@ class WorkflowProcessBase( GraphNodeBase, ProcessBase ):
 		
 		# override name
 		self.noun = self._wrappedwfl.name
-		# 
-	# def __getattr__( self , attr ):
-		# """@return: attribute on the wrapped workflow
+		
+	def __getattr__( self , attr ):
+		"""@return: attribute on the wrapped workflow
 		# @note: this is a conenience method for us, its not used by the framework """
-		# try:
-			# return getattr( self._wrappedwfl, attr )
-		# except AttributeError:
-			# return super( WorkflowProcessBase, self ).__getattribute__( attr )
+		try:
+			return getattr( self._wrappedwfl, attr )
+		except AttributeError:
+			return super( WorkflowProcessBase, self ).__getattribute__( attr )
 
 	def _getWrappedWfl( self, wflmod, wflname ):
 		"""@return: our wrapped workflow instance"""
