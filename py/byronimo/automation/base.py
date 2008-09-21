@@ -15,7 +15,7 @@ __id__="$Id: configuration.py 50 2008-08-12 13:33:55Z byron $"
 __copyright__='(c) 2008 Sebastian Thiel'
 
 from byronimo.path import Path
-from byronimo.dgengine import PlugShell, PlugAlreadyConnected
+from byronimo.dgengine import PlugAlreadyConnected
 
 
 #{ Edit
@@ -52,7 +52,7 @@ def _getNodeInfo( node ):
 			
 	return ( typename, args,kwargs )
 
-def _loadWorkflowFromDotFile( dotfile ):
+def loadWorkflowFromDotFile( dotfile ):
 	"""Create a graph from the given dotfile and create a workflow from it.
 	The workflow will be fully intiialized with connected process instances.
 	The all compatible plugs will automatically be connected for all processes 
@@ -70,6 +70,7 @@ def _loadWorkflowFromDotFile( dotfile ):
 	# use the filename as name
 	edge_lut = {}									# string -> processinst
 	wfl = Workflow( name=dotfile.p_namebase )
+	
 	
 	for node in dotgraph.get_node_list():
 		
@@ -96,12 +97,14 @@ def _loadWorkflowFromDotFile( dotfile ):
 			raise 
 		else:
 			edge_lut[ nodeid ] = processinst
+			wfl.addNode( processinst )			# add node to graph, initially without connections
 		
 	# END for each node in graph
 	
 	# ADD EDGES
 	#############
 	# create most suitable plug connections
+	print "SETTING UP %s" % wfl
 	for edge in dotgraph.get_edge_list():
 		snode = edge_lut[ edge.get_source() ]
 		dnode = edge_lut[ edge.get_destination() ]
@@ -120,8 +123,8 @@ def _loadWorkflowFromDotFile( dotfile ):
 			else:
 				# if a plug is already connected, try another one
 				try: 
-					sshell = PlugShell( snode, iplug ) 
-					dshell = PlugShell( dnode, targetplug )
+					sshell = snode.toShell( iplug ) 
+					dshell = dnode.toShell( targetplug )
 					sshell.connect( dshell )
 					numConnections += 1
 				except PlugAlreadyConnected:
@@ -138,11 +141,21 @@ def _loadWorkflowFromDotFile( dotfile ):
 	
 	
 def addWorkflowsFromDotFiles( module, dotfiles ):
-	"""Create workflows from a list of dot-files and add them to the module"""
+	"""Create workflows from a list of dot-files and add them to the module
+	@return: list of workflow instances created from the given files"""
+	outwfls = list()
 	for dotfile in dotfiles:
-		wflinst = _loadWorkflowFromDotFile( dotfile )
-		setattr( module, str( wflinst ) , wflinst )
-
+		wflname = dotfile.p_namebase
+		# it can be that a previous nested workflow already created the workflow 
+		# in which case we do not want to recreate it
+		if hasattr( module, wflname ):
+			continue 
+			
+		wflinst = loadWorkflowFromDotFile( dotfile )
+		setattr( module, wflname , wflinst )
+		outwfls.append( wflinst )
+		
+	return outwfls
 	
 #} END interface 
 

@@ -21,7 +21,7 @@ from networkx import DiGraph
 from byronimo.dgengine import *
 from random import randint
 
-nodegraph = DiGraph()
+nodegraph = Graph()
 A = Attribute
 
 #{ TestNodes 

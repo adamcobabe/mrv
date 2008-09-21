@@ -15,7 +15,7 @@ __id__="$Id: configuration.py 50 2008-08-12 13:33:55Z byron $"
 __copyright__='(c) 2008 Sebastian Thiel'
 
 from networkx.digraph import DiGraph
-from byronimo.dgengine import PlugShell
+from byronimo.dgengine import Graph
 import time 
 import weakref
 
@@ -31,7 +31,7 @@ class TargetError( ValueError ):
 ## CLASSES    ######
 ###################	
 
-class Workflow( DiGraph ):
+class Workflow( Graph ):
 	"""Implements a workflow as connected processes
 	@note: if you have to access the processes directly, use the DiGraph methods"""
 
@@ -126,10 +126,22 @@ class Workflow( DiGraph ):
 		
 		self._callgraph = None
 		self._mode = False
+		
 	
 	def __str__( self ):
 		return self.name
-	#} 
+		
+		
+	def copy( self ):
+		"""Copy this instance and return it
+		@note: the callgraph will not be copied but is None
+		"""
+		cpy = super( Workflow, self ).copy( )
+		cpy._mode = self._mode
+		
+		return cpy
+		
+	#} # END overridden methods 
 	
 	#{ Main Interface
 	
@@ -143,6 +155,7 @@ class Workflow( DiGraph ):
 		# generate mode 
 		from byronimo.automation.processes import ProcessBase as pb
 		processmode = globalmode = pb.is_state | pb.target_state
+		
 		shell, result = self._evaluate( target, processmode, globalmode )
 		return result
 	
@@ -223,7 +236,7 @@ class Workflow( DiGraph ):
 		
 		# reset all process to prep for computation
 		if reset_dg:
-			for node in self.iterProcesses():
+			for node in self.iterNodes():
 				node.prepareProcess( )
 		# END reset dg handling
 			
@@ -236,7 +249,7 @@ class Workflow( DiGraph ):
 		# QUESTION: should we warn about multiple affected plugs ?
 		inputshell.set( target, ignore_connection = True )
 		
-		return PlugShell( inputshell.node, outputplugs[0] )
+		return inputshell.node.toShell( outputplugs[0] )
 		
 	
 	def _evaluate( self, target, processmode, globalmode, reset_dg = True ):
@@ -266,21 +279,9 @@ class Workflow( DiGraph ):
 		return reportType( self._callgraph )
 	
 	#} END main interface
-
-
+	
+	
 	#{ Query 
-		
-	def iterProcesses( self, predicate = lambda node: True ):
-		"""@return: generator returning all processes in this workflow
-		@param predicate: if True for node, it will be returned"""
-		nodes_seen = set()
-		for node,plug in self.nodes_iter():
-			if node in nodes_seen:
-				continue
-			nodes_seen.add( node )
-			if predicate( node ):
-				yield node
-		# END for each node 
 		
 	def getTargetSupportList( self ):
 		"""@return: list of all supported target type
@@ -305,7 +306,7 @@ class Workflow( DiGraph ):
 		@note: you can use the L{processes.ProcessBase} enumeration for comparison"""
 		rescache = list()
 		best_process = None
-		for node in self.iterProcesses( ):
+		for node in self.iterNodes( ):
 			rate, shell = node.getTargetRating( target )
 			if not rate:
 				continue 

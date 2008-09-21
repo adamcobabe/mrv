@@ -1,6 +1,9 @@
 """B{byronimo.automation.workflows}
 Keeps all workflows specific to maya  
 
+@note: L{createWorkflow} method must be supported in a module keeping workflows
+@todo: it would be better to have the createWorkflow method in some sort of workflowManager, 
+for now that appears like overkill though
 @newfield revision: Revision
 @newfield id: SVN Id
 """
@@ -21,6 +24,19 @@ import pydot
 import processes
 
 
+
+#{ Interface 
+def createWorkflow( workflowName ):
+	"""Create the workflow matching the given name - its up to the module how it 
+	achieves that. The easiest implementation is to load the workflow from a file
+	@note: without an interface method to create a workflow, nested workflows could not 
+	resolve their dependencies as they require the workflows they wrap to be existing. To achieve
+	that, they call this function to do so on demand"""
+	import byronimo.automation.base as common
+	return common.loadWorkflowFromDotFile( Path( __file__ ).p_parent / workflowName + ".dot" )
+
+#} END interface 
+
 #{ Initialization
 
 
@@ -31,6 +47,8 @@ if 'init_done' not in locals():
 # SYSTEM INITIALIZATIONs
 if not init_done:
 	import byronimo.automation.base as common
+	
+	# load all workflows at once 
 	common.addWorkflowsFromDotFiles( _this_module, Path( __file__ ).p_parent.glob( "*.dot" ) )
 
 #} END initialization

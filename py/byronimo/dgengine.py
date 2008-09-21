@@ -21,6 +21,7 @@ __copyright__='(c) 2008 Sebastian Thiel'
 from networkx import DiGraph, NetworkXError
 from collections import deque
 import inspect
+import weakref
 
 #####################
 ## EXCEPTIONS ######
@@ -90,9 +91,9 @@ def iterPlugs( rootPlugShell, stopAt = lambda x: False, prune = lambda x: False,
 	
 	def addToStack( node, stack, lst, branch_first ):
 		if branch_first:
-			stack.extend( PlugShell( node, plug ) for plug in lst )
+			stack.extend( node.toShell( plug ) for plug in lst )
 		else:
-			reviter = ( PlugShell( node, lst[i] ) for i in range( len( lst )-1,-1,-1) )
+			reviter = ( node.toShell( lst[i] ) for i in range( len( lst )-1,-1,-1) )
 			stack.extendleft( reviter )
 	# END addToStack local method
 	
@@ -157,129 +158,9 @@ def iterPlugs( rootPlugShell, stopAt = lambda x: False, prune = lambda x: False,
 ## Classes    ######
 ###################
 
-
-class NodeBase( object ):
-	"""Base class that provides support for plugs to the superclass.
-	It will create some simple tracking attriubtes required for the plug system 
-	to work"""
-	__slots__ = 'graph'
-	
-	def __init__( self, digraph, *args, **kwargs ):
-		"""We require a directed graph to track the connectivity between the plugs.
-		It must be supplied by the super class and should be as global as required to 
-		connecte the NodeBases together properly.
-		@note: we are super() compatible, and assure our base is initialized correctly"""
-		if not isinstance( digraph, DiGraph ):
-			raise TypeError( "A DiGrpah instance is required as input, got %r" % digraph )
-			
-		self.graph = digraph
-
-	
-	#{ Interface
-	def compute( self, plug, mode ):
-		"""Called whenever a plug needs computation as the value its value is not 
-		cached or marked dirty ( as one of the inputs changed )
-		@param plug: the static plug instance that requested which requested the computation.
-		It is the instance you defined on the class
-		@param mode: the mode of operation. Its completely up to the superclasses how that 
-		attribute is going to be used
-		@note: to be implemented by superclass """
-		raise NotImplementedError( "To be implemented by subclass" )
-		
-	#} END interface
-	
-	#{ Base
-	def plugsToShells( self, plugs ):
-		"""@return: list of shells made from plugs and our node"""
-		return [ PlugShell( self, plug ) for plug in plugs ]
-		
-	@classmethod
-	def getPlugs( cls, predicate = lambda x: True ):
-		"""@return: list of static plugs as defined on this node
-		@param predicate: return static plug only if predicate is true"""
-		pred = lambda m: isinstance( m, plug )
-		return [ m[1] for m in inspect.getmembers( cls, predicate = pred ) if predicate( m[1] ) ]
-		
-	@classmethod
-	def getInputPlugs( cls ):
-		"""@return: list of plugs suitable as input
-		@note: convenience method"""
-		return cls.getPlugs( predicate = lambda p: p.providesInput() )
-	
-	@classmethod
-	def getOutputPlugs( cls ):
-		"""@return: list of plugs suitable to deliver output
-		@note: convenience method"""
-		return cls.getPlugs( predicate = lambda p: p.providesOutput() )
-
-	def getConnections( self, inpt, output ):
-		"""@return: Tuples of input shells defining a connection of the given type from 
-		tuple( InputNodeOuptutShell, OurNodeInputShell ) for input connections and 
-		tuple( OurNodeOuptutShell, OutputNodeInputShell )
-		@param inpt: include input connections to this node
-		@param output: include output connections ( from this node to others )"""
-		outConnections = list()
-		plugs = self.getPlugs()
-		
-		# HANDLE INPUT 
-		if inpt:
-			shells = self.plugsToShells( ( p for p in plugs if p.providesInput() ) )
-			for shell in shells:
-				ishell = shell.getInput( )
-				if ishell:
-					outConnections.append( ( ishell, shell ) )
-			# END for each shell in this node's shells
-		# END input handling 
-			
-		# HANDLE OUTPUT 
-		if output:
-			shells = self.plugsToShells( ( p for p in plugs if p.providesOutput() ) )
-			for shell in shells:
-				outConnections.extend( ( ( shell, oshell ) for oshell in shell.getOutputs() ) )
-		# END output handling 
-		
-		return outConnections
-		
-	@staticmethod
-	def filterCompatiblePlugs( plugs, attribute, raise_on_ambiguity = False ):
-		"""@return: sorted list of plugs suitable to deal with the given attribute.
-		Thus they could connect to it as well as get their value set.
-		List contains tuples of (rate,plug) pairs, the most suitable plug comes first.
-		Incompatible plugs will be pruned.
-		@param raise_on_ambiguity: if True, the method raises if a plug has the same
-		rating as another plug already on the output list, thus it's not clear anymore 
-		which plug should handle a request
-		@raise TypeError: if ambiguous input was found"""
-		
-		outSorted = list()
-		for plug in plugs:
-			rate = plug.attr.getConnectionAffinity( attribute )
-			if not rate: 
-				continue
-			
-			outSorted.append( ( rate, plug ) )
-		# END for each plug 
-		
-		outSorted.sort()
-		outSorted.reverse()		# high rates first 
-		 
-		if raise_on_ambiguity:
-			prev_rate = -1
-			for rate,plug in outSorted:
-				if rate == prev_rate:
-					raise TypeError( "At least two plugs delivered the same compatabliity rate" )
-				prev_rate = rate
-			# END for each compatible plug
-		# END ambiguous check
-		
-		return outSorted
-		
-		
-				
-	#} END base
 		
 
-class PlugShell( tuple ):
+class _PlugShell( tuple ):
 	"""Handles per-node-instance plug connection setup and storage. As plugs are 
 	descriptors and thus an instance of the class, per-node-instance information needs
 	special treatment.
@@ -289,7 +170,9 @@ class PlugShell( tuple ):
 	
 	This allows plugs to be connected, and information to flow through the dependency graph.
 	Plugs never act alone since they always belong to a parent node that will be asked for 
-	value computations if the value is not yet cached.."""
+	value computations if the value is not yet cached.
+	@note: Do not instantiate this class youself, it must be created by the node as different 
+	node types can use different versions of this shell"""
 	
 	#{ Object Overrides 
 	
@@ -384,67 +267,38 @@ class PlugShell( tuple ):
 	
 	#{ Connections 
 	
-	def connect( self, otherplug, force = False ):
+	def connect( self, otherplug, **kwargs ):
 		"""Connect this plug to otherplug such that otherplug is an input plug for our output
 		@param force: if False, existing connections to otherplug will not be broken, but an exception is raised
 		if True, existing connection may be broken
 		@return self: on success, allows chained connections 
 		@raise PlugAlreadyConnected: if otherplug is connected and force is False
 		@raise PlugIncompatible: if otherplug does not appear to be compatible to this one"""
-		if not isinstance( otherplug, PlugShell ):
+		if not isinstance( otherplug, _PlugShell ):
 			raise AssertionError( "Invalid Type given to connect: %r" % repr( otherplug ) )
 		
-		# check compatability 
-		if self.plug.attr.getConnectionAffinity( otherplug.plug.attr ) == 0:
-			raise PlugIncompatible( "Cannot connect %r to %r as they are incompatible" % ( repr( self ), repr( otherplug ) ) )
-		
-		
-		oinput = otherplug.getInput( )
-		if oinput is not None:
-			if oinput == self:
-				return self 
-				
-			if not force:
-				raise PlugAlreadyConnected( "Cannot connect %r to %r as it is already connected" % ( repr( self ), repr( otherplug ) ) )
-				
-			# break existing one
-			oinput.disconnect( otherplug )
-		# END otherplug already connected
-		
-		# connect us 
-		self.node.graph.add_edge( self, v = otherplug )
-		return self
+		return self.node.graph.connect( self, otherplug, **kwargs )
 		
 	
 	def disconnect( self, otherplug ):
 		"""Remove the connection to otherplug if we are connected to it.
 		@note: does not raise if no connection is present"""
-		if not isinstance( otherplug, PlugShell ):
+		if not isinstance( otherplug, _PlugShell ):
 			raise AssertionError( "Invalid Type given to connect: %r" % repr( otherplug ) )
 			
-		self.node.graph.delete_edge( self, v = otherplug )
+		return self.node.graph.disconnect( self, otherplug )
 	
 	def getInput( self ):
 		"""@return: the connected input plug or None if there is no such connection
 		@param predicate: plug will only be returned if predicate is true for it
 		@note: input plugs have on plug at most, output plugs can have more than one 
 		connected plug"""
-		try:
-			pred = self.node.graph.predecessors( self )
-			if pred:
-				return pred[0]
-		except NetworkXError:
-			pass		
+		return self.node.graph.getInput( self )
 		
-		return None
-		
-	def getOutputs( self, predicate = lambda x : True ):
+	def getOutputs( self, **kwargs ):
 		"""@return: a list of plugs being the destination of the connection
 		@param predicate: plug will only be returned if predicate is true for it - shells will be passed in """
-		try:
-			return [ s for s in self.node.graph.successors( self ) if predicate( s ) ]
-		except NetworkXError:
-			return list()
+		return self.node.graph.getOutputs( self, **kwargs )
 		
 	#} END connections
 
@@ -491,6 +345,337 @@ class PlugShell( tuple ):
 			
 	#} END caching
 	
+	
+	
+class Graph( DiGraph ):
+	"""Holds the nodes and their connections
+	
+	Nodes are kept in a separate list whereas the plug connections are kept 
+	in the underlying DiGraph"""
+	
+	#{ Overridden Object Methods
+	def __init__( self, **kwargs ):
+		"""initialize the DiGraph and add some additional attributes"""
+		super( Graph, self ).__init__( **kwargs )
+		self._nodes = set()			# our processes from which we can make connections
+		
+	#} END object methods 
+	
+	
+	def copy( self ):
+		"""Copy this instance and return it
+		@note: its only a shallow copy, all nodes will remain the same, but can 
+		have different connections in the copied graph"""
+		cpy = super( Graph, self ).copy( )
+		cpy._nodes = self._nodes.copy()
+		
+		return cpy
+		
+	
+	#{ Node Handling 
+	def addNode( self, node ):
+		"""Add a new node instance to the graph"""
+		if not isinstance( node, NodeBase ):
+			raise TypeError( "Node %r must be of type NodeBase" % node )
+			
+		self._nodes.add( node )
+		
+	def removeNode( self, node ):
+		"""Remove the given node from the graph ( if it exists in it )"""
+		try:
+			self._nodes.remove( node )
+		except KeyError:
+			pass 
+			
+	#} END node handling
+	
+	#{ Query 
+	
+	def hasNode( self , node ):
+		"""@return: True if the node is in this graph, false otherwise"""
+		return node in self._nodes
+	
+	def iterNodes( self, predicate = lambda node: True ):
+		"""@return: generator returning all nodes in this graph
+		@param predicate: if True for node, it will be returned
+		@note: there is no particular order"""
+		for node in self._nodes:
+			if predicate( node ):
+				yield node
+		# END for each node 
+		
+	def iterConnectedNodes( self, predicate = lambda node: True ):
+		"""@return: generator returning all nodes that are connected in this graph
+		@param predicate: if True for node, it will be returned"""
+		# iterate digraph keeping the plugs only ( and thus connected nodes )
+		nodes_seen = set()
+		for node,plug in self.nodes_iter():
+			if node in nodes_seen:
+				continue
+			nodes_seen.add( node )
+			if predicate( node ):
+				yield node
+		# END for each node 
+	#} END query
+	
+	#{ Connecitons 
+	def connect( self, sourceplug, destinationplug, force = False ):
+		"""Connect this plug to destinationplug such that destinationplug is an input plug for our output
+		@param sourceplug: PlugShell being source of the connection 
+		@param destinationplug: PlugShell being destination of the connection 
+		@param force: if False, existing connections to destinationplug will not be broken, but an exception is raised
+		if True, existing connection may be broken
+		@return self: on success, allows chained connections 
+		@raise PlugAlreadyConnected: if destinationplug is connected and force is False
+		@raise PlugIncompatible: if destinationplug does not appear to be compatible to this one"""
+		# assure both nodes are known to the graph
+		self._nodes.add( sourceplug.node )
+		self._nodes.add( destinationplug.node )
+		
+		# check compatability 
+		if sourceplug.plug.attr.getConnectionAffinity( destinationplug.plug.attr ) == 0:
+			raise PlugIncompatible( "Cannot connect %r to %r as they are incompatible" % ( repr( sourceplug ), repr( destinationplug ) ) )
+		
+		
+		oinput = destinationplug.getInput( )
+		if oinput is not None:
+			if oinput == sourceplug:
+				return sourceplug 
+				
+			if not force:
+				raise PlugAlreadyConnected( "Cannot connect %r to %r as it is already connected" % ( repr( sourceplug ), repr( destinationplug ) ) )
+				
+			# break existing one
+			oinput.disconnect( destinationplug )
+		# END destinationplug already connected
+		
+		# connect us
+		print "Connected %r -> %r" % ( repr(sourceplug), repr(destinationplug) )
+		self.add_edge( sourceplug, v = destinationplug )
+		return sourceplug
+		
+	
+	def disconnect( self, sourceplug, destinationplug ):
+		"""Remove the connection between sourceplug to destinationplug if they are connected
+		@note: does not raise if no connection is present"""
+		self.delete_edge( sourceplug, v = destinationplug )
+	
+	def getInput( self, plugshell ):
+		"""@return: the connected input plug of plugshell or None if there is no such connection
+		@param predicate: plug will only be returned if predicate is true for it
+		@note: input plugs have on plug at most, output plugs can have more than one 
+		connected plug"""
+		try:
+			pred = self.predecessors( plugshell )
+			if pred:
+				return pred[0]
+		except NetworkXError:
+			pass		
+		
+		return None
+		
+	def getOutputs( self, plugshell, predicate = lambda x : True ):
+		"""@return: a list of plugs being the destination of the connection to plugshell 
+		@param predicate: plug will only be returned if predicate is true for it - shells will be passed in """
+		try:
+			return [ s for s in self.successors( plugshell ) if predicate( s ) ]
+		except NetworkXError:
+			return list()
+		
+	#} END connections
+	
+	
+
+class NodeBase( object ):
+	"""Base class that provides support for plugs to the superclass.
+	It will create some simple tracking attriubtes required for the plug system 
+	to work"""
+	__slots__ = 'graph'
+	shellcls = _PlugShell					# class used to instantiate new shells 
+	
+	def __init__( self, graph, *args, **kwargs ):
+		"""We require a directed graph to track the connectivity between the plugs.
+		It must be supplied by the super class and should be as global as required to 
+		connecte the NodeBases together properly.
+		@note: we are super() compatible, and assure our base is initialized correctly"""
+		if not isinstance( graph, Graph ):
+			raise TypeError( "A Graph instance is required as input, got %r" % graph )
+			
+		self.graph = weakref.proxy( graph )		# assure that we do not prevent the workflow from being deleted
+
+	
+	#{ Interface
+	def compute( self, plug, mode ):
+		"""Called whenever a plug needs computation as the value its value is not 
+		cached or marked dirty ( as one of the inputs changed )
+		@param plug: the static plug instance that requested which requested the computation.
+		It is the instance you defined on the class
+		@param mode: the mode of operation. Its completely up to the superclasses how that 
+		attribute is going to be used
+		@note: to be implemented by superclass """
+		raise NotImplementedError( "To be implemented by subclass" )
+		
+	#} END interface
+	
+	#{ Base
+	def toShells( self, plugs ):
+		"""@return: list of shells made from plugs and our node"""
+		return [ self.shellcls( self, plug ) for plug in plugs ]
+		
+	def toShell( self, plug ):
+		"""@return: a plugshell as suitable to for this class"""
+		return self.shellcls( self, plug )
+		
+	@classmethod
+	def getPlugs( cls, predicate = lambda x: True, nodeInstance = None ):
+		"""@return: list of static plugs as defined on this node, or PlugShells of nodeInstance
+		if it is given 
+		@param predicate: return static plug only if predicate is true
+		@param nodeInstance: if not None but instance of NodeBase, the returned list 
+		will contain plugshells for nodeInstance instead of static plugs"""
+		pred = lambda m: isinstance( m, plug )
+		pluggen = ( m[1] for m in inspect.getmembers( cls, predicate = pred ) if predicate( m[1] ) )
+		if not nodeInstance:
+			return list( pluggen )
+		
+		# otherwise return the shells right away 
+		return [ nodeInstance.toShell( p ) for p in pluggen ]
+		
+		
+	@classmethod
+	def getInputPlugs( cls, **kwargs ):
+		"""@return: list of plugs suitable as input
+		@note: convenience method"""
+		return cls.getPlugs( predicate = lambda p: p.providesInput(), **kwargs )
+	
+	@classmethod
+	def getOutputPlugs( cls, **kwargs ):
+		"""@return: list of plugs suitable to deliver output
+		@note: convenience method"""
+		return cls.getPlugs( predicate = lambda p: p.providesOutput(), **kwargs )
+
+	def getConnections( self, inpt, output ):
+		"""@return: Tuples of input shells defining a connection of the given type from 
+		tuple( InputNodeOuptutShell, OurNodeInputShell ) for input connections and 
+		tuple( OurNodeOuptutShell, OutputNodeInputShell )
+		@param inpt: include input connections to this node
+		@param output: include output connections ( from this node to others )"""
+		outConnections = list()
+		plugs = self.getPlugs()
+		
+		# HANDLE INPUT 
+		if inpt:
+			shells = self.toShells( ( p for p in plugs if p.providesInput() ) )
+			for shell in shells:
+				ishell = shell.getInput( )
+				if ishell:
+					outConnections.append( ( ishell, shell ) )
+			# END for each shell in this node's shells
+		# END input handling 
+			
+		# HANDLE OUTPUT 
+		if output:
+			shells = self.toShells( ( p for p in plugs if p.providesOutput() ) )
+			for shell in shells:
+				outConnections.extend( ( ( shell, oshell ) for oshell in shell.getOutputs() ) )
+		# END output handling 
+		
+		return outConnections
+		
+	@staticmethod
+	def filterCompatiblePlugs( plugs, attribute, raise_on_ambiguity = False ):
+		"""@return: sorted list of plugs suitable to deal with the given attribute.
+		Thus they could connect to it as well as get their value set.
+		List contains tuples of (rate,plug) pairs, the most suitable plug comes first.
+		Incompatible plugs will be pruned.
+		@param raise_on_ambiguity: if True, the method raises if a plug has the same
+		rating as another plug already on the output list, thus it's not clear anymore 
+		which plug should handle a request
+		@raise TypeError: if ambiguous input was found"""
+		
+		outSorted = list()
+		for plug in plugs:
+			rate = plug.attr.getConnectionAffinity( attribute )
+			if not rate: 
+				continue
+			
+			outSorted.append( ( rate, plug ) )
+		# END for each plug 
+		
+		outSorted.sort()
+		outSorted.reverse()		# high rates first 
+		 
+		if raise_on_ambiguity:
+			prev_rate = -1
+			for rate,plug in outSorted:
+				if rate == prev_rate:
+					raise TypeError( "At least two plugs delivered the same compatabliity rate" )
+				prev_rate = rate
+			# END for each compatible plug
+		# END ambiguous check
+		
+		return outSorted
+	#} END base
+	
+
+class StandinPlugShell( _PlugShell ):
+	"""PlugShell passing on connections the plug it is actually connected with"""
+
+class GraphNodeBase( NodeBase ):
+	"""A node wrapping a graph, allowing it to be nested within the node 
+	All inputs and outputs on this node are purely virtual, thus they internally connect
+	to the wrapped graph.
+	"""
+	
+	shellcls = StandinPlugShell		# overriden from NodeBase
+	
+	#{ Overridden Object Methods 
+	
+	def __init__( self, graph, wrappedGraph, *args, **kwargs ):
+		""" Initialize the instance
+		@param graph: graph this node is part of 
+		@param wrappedGraph: graph we are wrapping"""
+		self.wgraph = wrappedGraph
+		NodeBase.__init__( self, graph, *args, **kwargs )
+	
+	#} END overridden methods 
+	
+	#{ NodeBase Methods
+	
+	def _iterNodes( self ):
+		"""@return: generator for nodes in our graph - derived classes could override this"""
+		# predicate = lambda node: not node.getConnections( 0, 1 ) 
+		return self.wgraph.iterNodes( )
+	
+	def getPlugs( self, **kwargs ):
+		"""@return: all plugs on leaf node basees
+		@note: must be called through an instance, the baseclass version is a class method !"""
+		outlist = list()
+		for node in self._iterNodes():
+			outlist.extend( node.getPlugs( **kwargs ) )
+		return outlist
+	
+	def getInputPlugs( self ):
+		"""@return: list of plugs suitable as input
+		@note: convenience method
+		@note: must be called through an instance, the baseclass version is a class method !"""
+		return self.getPlugs( predicate = lambda p: p.providesInput() )
+	
+	def getOutputPlugs( self ):
+		"""@return: list of plugs suitable to deliver output
+		@note: convenience method
+		@note: must be called through an instance, the baseclass version is a class method !"""
+		return self.getPlugs( predicate = lambda p: p.providesOutput() )
+		
+	def getConnections( self, *args ):
+		"""@return: connections of our workflow's leaf node - we act like a supernode"""
+		outcons = list()
+		for node in self._iterNodes( ):
+			outcons.extend( node.getConnections( *args ) )
+		return outcons
+	                                  
+	#} end nodebase methods
+		
 	
 
 class Attribute( object ):
@@ -632,7 +817,7 @@ class plug( object ):
 		both, the object and the static plug"""
 		# in class mode we return ourselves for access
 		if obj is not None:	
-			return PlugShell( obj, self )
+			return obj.toShell( self )
 			
 		# class attributes just return the descriptor itself for direct access
 		return self
@@ -640,7 +825,7 @@ class plug( object ):
 	
 	def __set__( self, obj, value ):
 		"""Just call the set method directly"""
-		PlugShell( obj, self ).set( value )
+		obj.toShell( self ).set( value )
 		
 	#}
 	

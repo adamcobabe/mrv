@@ -19,12 +19,20 @@ import unittest
 _this_module = __import__( "byronimotest.byronimo.automation.workflows", globals(), locals(), ['workflows'] )
 import byronimotest.byronimo.automation.processes as processes # assure procs are initialized
 import byronimotest as common
+import byronimo.automation.base as wflbase
 from byronimo.path import Path
+
+#{ Interface 
+def createWorkflow( workflowName ):
+	"""Create the workflow matching the given name """
+	return wflbase.loadWorkflowFromDotFile( Path( __file__ ).p_parent / workflowName + ".dot" )
+# END interface	
+
 
 #{ Initialize
 def init_loadWorkflows( ):
-	import byronimo.automation.base as wflbase
 	wflbase.addWorkflowsFromDotFiles( _this_module, Path( __file__ ).p_parent.glob( "*.dot" ) )  
+
 
 # load all the test workflows 
 init_loadWorkflows( )

@@ -29,6 +29,7 @@ class TestProcesses( unittest.TestCase ):
 		"""byronimo.automation.processes: check workflow nested into process"""
 		wfl = workflows.workflowwrap
 		rate, process = wfl.getTargetRating( unicode( "this" ) )
+		self.failUnless( rate != 0 )
 		
 		# shuold be able to provide exactly the same output the workflow itself
 		res = wfl.makeTarget( unicode( "this" ) )

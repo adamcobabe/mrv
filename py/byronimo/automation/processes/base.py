@@ -17,9 +17,9 @@ __copyright__='(c) 2008 Sebastian Thiel'
 __all__ = list()
 
 from byronimo.dgengine import NodeBase
+from byronimo.dgengine import GraphNodeBase
 from byronimo.dgengine import plug
 from byronimo.dgengine import Attribute
-from byronimo.dgengine import PlugShell
 
 
 #####################
@@ -129,7 +129,7 @@ class ProcessBase( NodeBase ):
 			return ( 0 , None )
 			
 		rate, plug = plugrating[0] 
-		return ( rate, PlugShell( self, plug ) )
+		return ( rate, self.toShell( plug ) )
 		
 		
 	def getSupportedTargetTypes( self ):
@@ -168,7 +168,7 @@ class ProcessBase( NodeBase ):
 				as there is nothing to do for you, do not raise and simply return your output.
 		The call takes place as there is no cache for plugType.
 		@note: needs to be implemented by subclasses"""
-		raise NotImplementedError( "This method needs to be implemented by the subclass" )
+		raise NotImplementedError( "This process method needs to be implemented by the subclass" )
 		
 
 	# } END interface
@@ -193,8 +193,8 @@ class ProcessBase( NodeBase ):
 		@param plug: plug to evaluate
 		@param mode: the mode of the valuation
 		@return: result of the computation"""
-		finalmode = self.getWorkflow()._mode	# use global mode 
 		wfl = self.getWorkflow()
+		finalmode = wfl._mode			# use global mode 
 		
 		# if we are root, we take the mode given by the caller though 
 		if wfl._callgraph.getCallRoot().process == self:
@@ -210,8 +210,8 @@ class ProcessBase( NodeBase ):
 		It must be used to clear the own state and reset the instance such that 
 		it can get repeatable results"""
 		# clear all our plugs caches 
-		for plug in self.getPlugs():
-			PlugShell( self, plug ).clearCache()
+		for shell in self.getPlugs( nodeInstance = self ):
+			shell.clearCache( )
 		
 	def getWorkflow( self ):
 		"""@return: the workflow instance we are connected with. Its used to query global data"""
@@ -220,12 +220,17 @@ class ProcessBase( NodeBase ):
 	#} END base 
 	
 	
-class WorkflowProcessBase( ProcessBase ):
+class WorkflowProcessBase( GraphNodeBase, ProcessBase ):
 	"""A process wrapping a workflow, allowing workflows to be nested
 	Derive from this class and initialize it with the workflow you would like to have wrapped
 	The process works by transmitting relevant calls to its underlying workflow, allowing 
-	nestedWorkflow -> thisworkflow.node.plug connections 
-	@note: to prevent dependency issues, the workflow instance will be bound on first use"""
+	nodeInsideNestedWorkflow -> thisworkflow.node.plug connections 
+	
+	Workflows are standin nodes - they can connect anything their wrapped nodes can connect
+	@note: to prevent dependency issues, the workflow instance will be bound on first use
+	@note: unfortunately we have the NodeBase two times in our base classes as we cannot 
+	specify virtual bases
+	"""
 	__all__.append( "WorkflowProcessBase" )
 	
 	#{ Overridden Object Methods 
@@ -236,20 +241,39 @@ class WorkflowProcessBase( ProcessBase ):
 		@param workflowModulePath: module import path which will contain the workflow
 		@param workflowName: name of the workflow as it will exist in workflowModule 
 		@param **kwargs: all arguments required to initialize the ProcessBase"""
-		self.__wrappedwfl = None
-		workflowModule = __import__( workflowModulePath, globals(), locals(), [''] )
-		self._wflmod = workflowModule
-		self._wflname = workflowName
-		super( WorkflowProcessBase, self ).__init__( "TO BE SET", "passing on", workflow, **kwargs )
-			
-	def __getattr__( self , attr ):
-		"""@return: attribute on the wrapped workflow
-		@note: this is a conenience method for us, its not used by the framework """
-		try:
-			return getattr( self._getWrappedWfl(), attr )
-		except AttributeError:
-			return super( WorkflowProcessBase, self ).__getattribute__( attr )
+		self._wflmod  = __import__( workflowModulePath, globals(), locals(), [''] )
+		self._wrappedwfl = self._getWrappedWfl( self._wflmod, workflowName )
+		
+		# init bases
+		GraphNodeBase.__init__( self, workflow, self._wrappedwfl, **kwargs )
+		ProcessBase.__init__( self, "TO BE SET", "passing on", workflow, **kwargs )
+		
+		# override name
+		self.noun = self._wrappedwfl.name
+		# 
+	# def __getattr__( self , attr ):
+		# """@return: attribute on the wrapped workflow
+		# @note: this is a conenience method for us, its not used by the framework """
+		# try:
+			# return getattr( self._wrappedwfl, attr )
+		# except AttributeError:
+			# return super( WorkflowProcessBase, self ).__getattribute__( attr )
 
+	def _getWrappedWfl( self, wflmod, wflname ):
+		"""@return: our wrapped workflow instance"""
+		# create our own workflow with own processes
+		try:
+			return getattr( wflmod, wflname ).copy()		# return our own dg copy of it
+		except AttributeError:
+			# try to trigger creation of workflow and add it to the module
+			try:
+				wfl = wflmod.createWorkflow( wflname )
+				setattr( wflmod, wflname, wfl )
+				return wfl
+			except AttributeError:
+				raise AssertionError( "Workflow module %r reuqires createWorkflow method to be implemented for nested workflows to work" % wflmod )
+		# END try to copy or create workflow 
+		
 	#} END overridden methods 
 	
 	#{ NodeBase Methods
@@ -257,50 +281,12 @@ class WorkflowProcessBase( ProcessBase ):
 	def _iterLeafNodes( self ):
 		"""@return: generator for nodes that have no output connections and thus are leaf nodes"""
 		predicate = lambda node: not node.getConnections( 0, 1 ) 
-		return self._getWrappedWfl().iterProcesses( predicate = predicate )
-	
-	def getPlugs( self, predicate = lambda x: True ):
-		"""@return: all plugs on leaf node processes""" 
-		pass 
-	
+		return self._getWrappedWfl().iterNodes( predicate = predicate )
+	    
 	#} end nodebase methods
 	
 	
-	#{ ProcessBase Methods
-	def _getWrappedWfl( self ):
-		"""@return: our wrapped workflow instance
-		@note: Assures that the workflow instance is bound, it will be bound 
-		as required """
-		if not self.__wrappedwfl:
-			self.__wrappedwfl = getattr( self._wflmod, self._wflname )
-			self.noun = self.__wrappedwfl.name
-			
-		return self.__wrappedwfl
-		
 	
 		
-	def evaluateState( self, plug, mode ):
-		"""Ask our workflow instead """
-		result = self._getWrappedWfl().makePlug( plug, dry_run = mode )
-		
-		# UPDATE CALLGRAPH
-		wgraph = self.__wrappedwfl._callgraph
-		owngraph = self.getWorkflow()._callgraph 
-		
-		# add all edges and connect our graph by simulating an input call
-		owngraph.add_edges_from( wgraph.edges_iter() )
-		owngraph.startCall( wgraph.getCallRoot() )
-		owngraph.endCall( result )
-		
-		return result
-		
-		
-	def getTargetRating( self, target ):
-		"""Ask our workflow"""
-		return self.getWorkflow().getTargetRating( target )[0]
 	
-	
-	
-	#} END processbase methods 
-		
 	

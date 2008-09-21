@@ -30,7 +30,7 @@ class TestWorkflow( unittest.TestCase ):
 		self.failUnless( isinstance( scwfl, Workflow ) )
 		
 		# contents
-		self.failUnless( len( scwfl.nodes() ) == 2 )
+		self.failUnless( len( list( scwfl.iterNodes() ) ) == 2 )
 		self.failUnless( len( scwfl.edges() ) == 1 )
 		
 		p1 = scwfl.nodes()[0]
@@ -65,7 +65,7 @@ class TestWorkflow( unittest.TestCase ):
 		# Target Creation 
 		#################
 		# generators are always dirty, everyting else depends on something
-		res = scwfl.makeTarget( 5, dry_run = False )
+		res = scwfl.makeTarget( 5 )
 		self.failUnless( res == 10 )
 		
 		res = scwfl.makeTarget( unicode, dry_run = False )
@@ -100,7 +100,7 @@ class TestWorkflow( unittest.TestCase ):
 		# ONE NODE ONLY
 		####################
 		# target resolved by the actual node - no input needed 
-		res = scwfl.makeTarget( 5, dry_run = False )		# computes in-node
+		res = scwfl.makeTarget( 5 )		# computes in-node
 		cg = scwfl._callgraph
 		self.failUnless( len( cg.nodes() ) == 1 )
 		self.failUnless( len( cg.edges() ) == 0 )
@@ -108,7 +108,7 @@ class TestWorkflow( unittest.TestCase ):
 		
 		# INPUT REQUIRED  - multiple nodes 
 		###############################
-		res = scwfl.makeTarget( 2.0, dry_run = False )		# computes in-node
+		res = scwfl.makeTarget( 2.0 )
 		cg = scwfl._callgraph
 		self.failUnless( len( cg.nodes() ) == 2 )
 		self.failUnless( len( cg.edges() ) == 1 )
