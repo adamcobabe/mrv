@@ -124,7 +124,14 @@ class WorkflowWrapTestProcess( processes.WorkflowProcessBase ):
 		wflModImportPath = "byronimotest.byronimo.automation.workflows"
 		return super( WorkflowWrapTestProcess, self ).__init__( workflow, wflModImportPath, wflname , **kwargs )
 		
-
+	
+	#{ iDuplicatable Interface 
+	def createInstance( self ):
+		"""Create a copy of self and return it"""
+		return self.__class__( self.graph, None, wflInstance = self.wgraph )
+		
+	#} END iDuplicatable
+	
 #} END processes 
 
 

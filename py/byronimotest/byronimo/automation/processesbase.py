@@ -39,8 +39,8 @@ class TestProcesses( unittest.TestCase ):
 		# CALLGRAPH 
 		################
 		# should have just one more node 
-		miwfl = workflows.multiinput
-		miwfl.makeTarget( unicode( "this" ) )
+		#miwfl = workflows.multiinput
+		#miwfl.makeTarget( unicode( "this" ) )
 		#self.failUnless( miwfl._callgraph.number_of_nodes() == wfl._callgraph.number_of_nodes() - 1 )
 		
 		# NESTED WFLS AND PLANS 

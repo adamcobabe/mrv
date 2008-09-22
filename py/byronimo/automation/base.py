@@ -97,7 +97,6 @@ def loadWorkflowFromDotFile( dotfile ):
 			raise 
 		else:
 			edge_lut[ nodeid ] = processinst
-			wfl.addNode( processinst )			# add node to graph, initially without connections
 		
 	# END for each node in graph
 	

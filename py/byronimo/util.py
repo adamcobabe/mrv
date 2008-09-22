@@ -104,6 +104,52 @@ def getPackageClasses( importBase, packageFile, predicate = lambda x: True ):
 #### Classes 		  	####
 ##########################
 
+class iDuplicatable( object ):
+	"""Simple interface allowing any class to be properly duplicated"""
+	#{ Interface 
+	
+	def createInstance( self, *args, **kwargs ):
+		"""Create and Initialize an instance of self.__class__( ... ) based on your own data
+		@return: new instance of self
+		@note: using self.__class__ instead of an explicit class allows derived 
+		classes that do not have anything to duplicate just to use your implementeation"""
+		raise NotImplementedError( "Implement like self.__class__( yourInitArgs )" )
+		
+	def copyFrom( self, other, *args, **kwargs ):
+		"""Copy the data from other into self as good as possible
+		Only copy the data that is unique to your specific class - the data of other 
+		classes will be taken care of by them !"""
+		raise NotImplementedError( "Copy all data you know from other into self" )
+		
+	# END interface
+	
+	def duplicate( self, *args, **kwargs ):
+		"""Implements a c-style copy constructor by creating a new instance of self
+		and applying the copy from methods from base to all classes implementing the copyfrom 
+		method. Thus we will call the method directly on the class
+		@param *args,**kwargs : passed to copyFrom and createInstance method to give additional directions""" 
+		instance = self.createInstance( *args, **kwargs )
+		
+		if not ( instance.__class__ is self.__class__ ):
+			msg = "Duplicate must have same class as self, was %s, should be %s" % ( instance.__class__, self.__class__ )
+			raise AssertionError( msg )
+			
+		mrorev = instance.__class__.mro()
+		mrorev.reverse()
+		
+		# APPLY COPY CONSTRUCTORS !
+		for base in mrorev:
+			if base is iDuplicatable:
+				continue
+				
+			try:
+				base.__dict__[ 'copyFrom' ]( instance, self, *args, **kwargs )
+			except KeyError:
+				pass 
+		# END for each base 
+		
+	
+
 class Call( object ):
 	"""Call object encapsulating any code, thus providing a simple facade for it
 	@note: derive from it if a more complex call is required""" 

@@ -24,19 +24,6 @@ import pydot
 import processes
 
 
-
-#{ Interface 
-def createWorkflow( workflowName ):
-	"""Create the workflow matching the given name - its up to the module how it 
-	achieves that. The easiest implementation is to load the workflow from a file
-	@note: without an interface method to create a workflow, nested workflows could not 
-	resolve their dependencies as they require the workflows they wrap to be existing. To achieve
-	that, they call this function to do so on demand"""
-	import byronimo.automation.base as common
-	return common.loadWorkflowFromDotFile( Path( __file__ ).p_parent / workflowName + ".dot" )
-
-#} END interface 
-
 #{ Initialization
 
 

@@ -20,7 +20,8 @@ from byronimo.dgengine import NodeBase
 from byronimo.dgengine import GraphNodeBase
 from byronimo.dgengine import plug
 from byronimo.dgengine import Attribute
-
+import byronimo.automation.base as wflbase
+from byronimo.path import Path
 
 #####################
 ## EXCEPTIONS ######
@@ -103,6 +104,20 @@ class ProcessBase( NodeBase ):
 	def __str__( self ):
 		"""@return: just the process noun"""
 		return self.noun
+	
+	
+	#{ iDuplicatable Interface 
+	def createInstance( self ):
+		"""Create a copy of self and return it"""
+		return self.__class__( self.noun, self.verb, self.workflow )
+		
+	def copyFrom( self, other ):
+		"""Just take the graph from other, but do not ( never ) duplicate it"""
+		self.noun = other.noun
+		self.verb = other.ver 
+		
+	#} END iDuplicatable
+	
 
 	#{ Query
 	
@@ -232,14 +247,19 @@ class WorkflowProcessBase( GraphNodeBase, ProcessBase ):
 	
 	#{ Overridden Object Methods 
 	
-	def __init__( self, workflow, workflowModulePath, workflowName, **kwargs ):
+	def __init__( self, workflow, workflowModulePath, workflowName, wflInstance=None, **kwargs ):
 		"""@param workflowinst: instance of the Workflow you would like to wrap
 		@param workflow: the workflow we are in ( the parent workflow )
 		@param workflowModulePath: module import path which will contain the workflow
 		@param workflowName: name of the workflow as it will exist in workflowModule 
+		@param wflInstance: if given, this instance will be used instead of creating
+		a new workflow. Used by copy constructor.
 		@param **kwargs: all arguments required to initialize the ProcessBase"""
-		wflmod  = __import__( workflowModulePath, globals(), locals(), [''] )
-		wrappedwfl = self._createWrappedWfl( wflmod, workflowName )
+		
+		wrappedwfl = wflInstance
+		if not wrappedwfl:
+			wflmod  = __import__( workflowModulePath, globals(), locals(), [''] )
+			wrappedwfl = self._createWrappedWfl( wflmod, workflowName )
 		
 		# NOTE: baseclass stores wrapped wfl for us
 		# init bases
@@ -249,28 +269,32 @@ class WorkflowProcessBase( GraphNodeBase, ProcessBase ):
 		# override name
 		self.noun = wrappedwfl.name
 		
-	def __getattr__( self , attr ):
-		"""@return: attribute on the wrapped workflow
-		# @note: this is a conenience method for us, its not used by the framework """
-		try:
-			return getattr( self.wgraph, attr )
-		except AttributeError:
-			return super( WorkflowProcessBase, self ).__getattribute__( attr )
-
+		
+	#{ iDuplicatable Interface
+	
+	def createInstance( self ):
+		"""Create a copy of self and return it - required due to our very special constructor"""
+		return self.__class__( self.graph, None, None, wflInstance = self.wgraph  )
+		
+	# } END iDuplicatable
+			 
+			 
 	def _createWrappedWfl( self, wflmod, wflname ):
 		"""@return: our wrapped workflow instance
 		@note: as we modify the graph with our 'virtual' connections, we copy it
 		and create a new one. Workflows are global elements that should not be changed by someone
-		to stop working for anotherone"""
+		to stop working for anotherone
+		@todo: for now, we do not duplicate them  - have to implement and test proper duplication, no time now ... """
 		try:
-			return getattr( wflmod, wflname ).copy()		# return our own dg copy of it
+			return getattr( wflmod, wflname )
 		except AttributeError:
 			# try to trigger creation of workflow and add it to the module
 			try:
-				wfl = wflmod.createWorkflow( wflname )
+				wfl = wflbase.loadWorkflowFromDotFile( Path( wflmod.__file__ ).p_parent / wflname + ".dot" )
 				setattr( wflmod, wflname, wfl )
-				return wfl.copy()					# always copy it - we change connections 
+				return wfl
 			except AttributeError:
+				raise
 				raise AssertionError( "Workflow module %r reuqires createWorkflow method to be implemented for nested workflows to work" % wflmod )
 		# END try to copy or create workflow 
 		
@@ -288,8 +312,11 @@ class WorkflowProcessBase( GraphNodeBase, ProcessBase ):
 		
 		self.wgraph._callgraph = self.graph._callgraph
 		
-		# prepare base !
-		ProcessBase.prepareProcess( self )
+		# Prepare all our wrapped nodes
+		for node in self.wgraph.iterNodes():
+			node.prepareProcess( )
+			
+		# ProcessBase.prepareProcess( self )
 	
 	#} END processbase methods
 	

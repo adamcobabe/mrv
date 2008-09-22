@@ -22,7 +22,9 @@ from networkx import DiGraph, NetworkXError
 from collections import deque
 import inspect
 import weakref
-import itertools 
+import itertools
+import copy
+from byronimo.util import iDuplicatable
 
 #####################
 ## EXCEPTIONS ######
@@ -189,7 +191,7 @@ class _PlugShell( tuple ):
 		
 	def __str__( self ):
 		return repr( self )
-		
+	
 	#} END object overrides 
 	
 	
@@ -348,7 +350,7 @@ class _PlugShell( tuple ):
 	
 	
 	
-class Graph( DiGraph ):
+class Graph( DiGraph, iDuplicatable ):
 	"""Holds the nodes and their connections
 	
 	Nodes are kept in a separate list whereas the plug connections are kept 
@@ -360,19 +362,46 @@ class Graph( DiGraph ):
 		super( Graph, self ).__init__( **kwargs )
 		self._nodes = set()			# our processes from which we can make connections
 		
+	def __del__( self ):
+		"""Clear our graph"""
+		self.clear()				# clear connections 
+		for node in self._nodes:            
+			self.removeNode( node )
+		
 	#} END object methods 
 	
-	
-	def copy( self ):
-		"""Copy this instance and return it
-		@note: its only a shallow copy, all nodes will remain the same, but can 
-		have different connections in the copied graph"""
-		cpy = super( Graph, self ).copy( )
-		cpy._nodes = self._nodes.copy()
 		
-		return cpy
+	#{ iDuplicatable Interface 
+	def createInstance( self ):
+		"""Create a copy of self and return it"""
+		return self.__class__( )
 		
+	def copyFrom( self, other ):
+		"""Duplicate all data from other graph into this one, create a duplicate 
+		of the nodes as well"""
+		def copyshell( shell, nodemap ):
+			return shell.__class__( nodemap[ shell.node ], shell.plug )
+		
+		# copy nodes first
+		nodemap = dict()
+		for node in other.iterNodes():
+			nodecpy = node.duplicate()		# copy node
+			other.removeNode( nodecpy )
+			
+			self._nodes.add( nodecpy )
+			nodemap[ node ] = nodecpy
+		# END for each node 
+		
+		# COPY CONNECTIONS 
+		for sshell,eshell in other.edges_iter():
+			cstart = copyshell( sshell, nodemap )
+			cend = copyshell( eshell, nodemap )
+			self.add_edge( cstart, v = cend )
+			
+		
+	# END iDuplicatable
 	
+		
 	#{ Node Handling 
 	def addNode( self, node ):
 		"""Add a new node instance to the graph"""
@@ -384,6 +413,10 @@ class Graph( DiGraph ):
 	def removeNode( self, node ):
 		"""Remove the given node from the graph ( if it exists in it )"""
 		try:
+			# remove connections 
+			for sshell, eshell in node.getConnections( 1, 1 ):
+				self.disconnect( sshell, eshell )
+				
 			self._nodes.remove( node )
 		except KeyError:
 			pass 
@@ -487,13 +520,14 @@ class Graph( DiGraph ):
 	
 	
 
-class NodeBase( object ):
+class NodeBase( iDuplicatable ):
 	"""Base class that provides support for plugs to the superclass.
 	It will create some simple tracking attriubtes required for the plug system 
 	to work"""
 	__slots__ = 'graph'
 	shellcls = _PlugShell					# class used to instantiate new shells 
 	
+	#{ Overridden from Object
 	def __init__( self, graph, *args, **kwargs ):
 		"""We require a directed graph to track the connectivity between the plugs.
 		It must be supplied by the super class and should be as global as required to 
@@ -501,9 +535,27 @@ class NodeBase( object ):
 		@note: we are super() compatible, and assure our base is initialized correctly"""
 		if not isinstance( graph, Graph ):
 			raise TypeError( "A Graph instance is required as input, got %r" % graph )
-			
+		
 		self.graph = weakref.proxy( graph )		# assure that we do not prevent the workflow from being deleted
+		self.graph.addNode( self )					# make us part of the graph
 
+	def __del__( self ):
+		"""Remove ourselves from the graph and delete our connections"""
+		self.graph.removeNode( self )
+		
+	#} Overridden from Object
+	
+	#{ iDuplicatable Interface 
+	def createInstance( self ):
+		"""Create a copy of self and return it
+		@note: override by subclass  - the __init__ methods shuld do the rest"""
+		return self.__class__( self.graph )
+		
+	def copyFrom( self, other ):
+		"""Just take the graph from other, but do not ( never ) duplicate it"""
+		self.graph = other.graph
+		
+	#} END iDuplicatable
 	
 	#{ Interface
 	def compute( self, plug, mode ):
@@ -764,8 +816,23 @@ class GraphNodeBase( FacadeNodeBase ):
 		self._plugmap = dict()		# plug -> node 
 		
 		FacadeNodeBase.__init__( self, graph, *args, **kwargs )
+	 
+		
+	#} END overridden methods
 	
-	#} END overridden methods               
+	#{ iDuplicatable Interface 
+	def createInstance( self ):
+		"""Create a copy of self and return it"""
+		return self.__class__( self.graph, self.wrappedGraph )
+		
+	def copyFrom( self, other ):
+		"""Create a duplicate of the wrapped graph so that we have our unique one"""
+		self.wgraph = other.wgraph
+		# like that we know everything the original instance knows about virtual plugs ! Correct !
+		self._plugmap = other._plugmap.copy()	# shallow copy 
+		
+		
+	# } END iDuplicatable
 	
 	#{ Base Methods
 	
@@ -787,7 +854,7 @@ class GraphNodeBase( FacadeNodeBase ):
 			raise ValueError
 	
 	def getPlugs( self, **kwargs ):
-		"""@return: all plugs on leaf node basees
+		"""@return: all plugs on nodes we wrap
 		@note: must be called through an instance, the baseclass version is a class method !"""
 		outlist = list()
 		hasInstance = kwargs.get( 'nodeInstance', None ) is not None

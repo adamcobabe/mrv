@@ -131,17 +131,19 @@ class Workflow( Graph ):
 	def __str__( self ):
 		return self.name
 		
+	#} # END overridden methods
+	
+	#{ iDuplicatable Interface
+	
+	def copyFrom( self, other ):
+		"""Only mode is required """
+		self._mode = other._mode
+		# shallow copy callgraph
+		self._callgraph = other._callgraph
 		
-	def copy( self ):
-		"""Copy this instance and return it
-		@note: the callgraph will not be copied but is None
-		"""
-		cpy = super( Workflow, self ).copy( )
-		cpy._mode = self._mode
-		
-		return cpy
-		
-	#} # END overridden methods 
+	#} END iDuplicatable	
+	
+
 	
 	#{ Main Interface
 	
@@ -348,7 +350,7 @@ class Workflow( Graph ):
 		dirty state of the prcoesses, allowing to walk it depth first to resolve the calls.
 		This also allows to create precise reports telling how to achieve a certain goal"""
 		pdata = Workflow.ProcessData( process, plug, mode )
-		print "TRACKING DATA: %r" % ( pdata )
+		
 		# keep the call graph
 		self._callgraph.startCall( pdata )
 		return pdata			# return so that decorators can use this information
