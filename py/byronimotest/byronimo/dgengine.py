@@ -21,7 +21,7 @@ from networkx import DiGraph
 from byronimo.dgengine import *
 from random import randint
 
-nodegraph = Graph()
+graph = Graph()
 A = Attribute
 
 #{ TestNodes 
@@ -47,7 +47,7 @@ class SimpleNode( NodeBase ):
 	
 	
 	def __init__( self ):
-		super( SimpleNode, self ).__init__( nodegraph )
+		super( SimpleNode, self ).__init__( )
 		
 		
 	def compute( self, plug, mode ):
@@ -68,8 +68,9 @@ class TestDAGTree( unittest.TestCase ):
 	
 	def test_fullFeatureTest( self ):
 		"""dgengine: Test full feature set"""
-		global nodegraph
+		global graph
 		s1 = SimpleNode( )
+		graph.addNode( s1 )
 		
 		self.failUnless( SimpleNode.outRand.providesOutput() )
 		self.failUnless( SimpleNode.inFloat.providesInput() )
@@ -77,11 +78,12 @@ class TestDAGTree( unittest.TestCase ):
 		# ADD / REMOVE 
 		#################
 		addrem = SimpleNode()
-		self.failUnless( nodegraph.hasNode( addrem ) )
-		nodegraph.removeNode( addrem )
-		self.failUnless( not nodegraph.hasNode( addrem ) )
-		nodegraph.addNode( addrem )
-		self.failUnless( nodegraph.hasNode( addrem ) )
+		graph.addNode( addrem )
+		self.failUnless( graph.hasNode( addrem ) )
+		graph.removeNode( addrem )
+		self.failUnless( not graph.hasNode( addrem ) )
+		graph.addNode( addrem )
+		self.failUnless( graph.hasNode( addrem ) )
 		
 		# del node - it should handle itself 
 		del( addrem )
@@ -117,8 +119,11 @@ class TestDAGTree( unittest.TestCase ):
 		##############
 		s2 = SimpleNode()
 		s3 = SimpleNode()
+		graph.addNode( s2 )
+		graph.addNode( s3 )
 		s1.outRand.connect( s2.inFloat )
 		s1.outRand.connect( s2.inFloat )		# works as it is already connected to what we want
+		
 		
 		# check its really connected
 		self.failUnless( s2.inFloat.getInput( ) == s1.outRand )
@@ -164,7 +169,7 @@ class TestDAGTree( unittest.TestCase ):
 		# ITERATION
 		############
 		# breadth first by default, no pruning, UP
-		piter = iterPlugs( s3.outMult )
+		piter = iterShells( s3.outMult )
 		
 		self.failUnless( piter.next() == s3.outMult )
 		self.failUnless( piter.next() == s3.inFloat )
@@ -174,7 +179,7 @@ class TestDAGTree( unittest.TestCase ):
 		self.failUnlessRaises( StopIteration, piter.next )
 		
 		# branch_first 
-		piter = iterPlugs( s3.outMult, branch_first = True )
+		piter = iterShells( s3.outMult, branch_first = True )
 		self.failUnless( piter.next() == s3.outMult )
 		self.failUnless( piter.next() == s3.inFloat )
 		self.failUnless( piter.next() == s1.inFloat )
@@ -184,7 +189,7 @@ class TestDAGTree( unittest.TestCase ):
 		
 		# DOWN ITERATION
 		##################
-		piter = iterPlugs( s2.inInt, direction="down", branch_first = True )
+		piter = iterShells( s2.inInt, direction="down", branch_first = True )
 		
 		self.failUnless( piter.next() == s2.inInt )
 		self.failUnless( piter.next() == s3.inInt )
@@ -192,7 +197,7 @@ class TestDAGTree( unittest.TestCase ):
 		self.failUnless( piter.next() == s2.outMult )
 		self.failUnlessRaises( StopIteration, piter.next )
 		
-		piter = iterPlugs( s2.inInt, direction="down", branch_first = False )
+		piter = s2.inInt.iterShells( direction="down", branch_first = False )
 		
 		self.failUnless( piter.next() == s2.inInt )
 		self.failUnless( piter.next() == s3.inInt )
@@ -206,6 +211,15 @@ class TestDAGTree( unittest.TestCase ):
 		self.failUnless( len( s3.getConnections( 0, 1 ) ) == 1 )
 		self.failUnless( len( s3.getConnections( 1, 1 ) ) == 3 )
 		
+		# iterconnectednodes 
+		self.failUnless( len( list( graph.iterConnectedNodes() ) ) == 3 )
+		
+		# remove nodes and check connections 
+		graph.removeNode( s3 )
+		graph.removeNode( s2 )
+		graph.removeNode( s1 )
+		self.failUnless( len( list( graph.iterConnectedNodes() ) ) == 0 )
+		# len( s1.outMult
 		
 		
 		# PLUG FILTERING 
@@ -223,8 +237,8 @@ class TestDAGTree( unittest.TestCase ):
 	def test_copy( self ):
 		"""dgengine: copy the graph"""
 		# test shallow copy 
-		global nodegraph
-		cpy = nodegraph.copy()
+		global graph
+		cpy = graph.copy()
 		
-		self.failUnless( len( cpy._nodes ) == len( nodegraph._nodes ) )
+		self.failUnless( len( cpy._nodes ) == len( graph._nodes ) )
 		

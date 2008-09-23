@@ -64,8 +64,8 @@ class TestProcess( processes.ProcessBase ):
 	inText.affects( outText )
 	
 	
-	def __init__( self, workflow , name="TestProcess"):
-		super( TestProcess, self ).__init__( name, "testing simple", workflow )
+	def __init__( self, name="TestProcess"):
+		super( TestProcess, self ).__init__( name, "testing simple" )
 		
 	#{ Implementation 
 	
@@ -104,8 +104,8 @@ class OtherTestProcess( TestProcess ):
 	inUni.affects( outString )
 	
 	
-	def __init__( self, workflow ):
-		super( OtherTestProcess, self ).__init__( workflow, name = "OtherTestProcess" )
+	def __init__( self ):
+		super( OtherTestProcess, self ).__init__( name = "OtherTestProcess" )
 	
 	def evaluateState( self, target, mode ):
 		"""@return: version of target requireing int and float instance"""
@@ -118,10 +118,10 @@ class OtherTestProcess( TestProcess ):
 
 class WorkflowWrapTestProcess( processes.WorkflowProcessBase ):
 	
-	def __init__( self, workflow, wflname, **kwargs ):
+	def __init__( self, wflname, **kwargs ):
 		"""Wrap the workflow with the given name"""
 		wflModImportPath = "byronimotest.byronimo.automation.workflows"
-		return super( WorkflowWrapTestProcess, self ).__init__( workflow, wflModImportPath, wflname , **kwargs )
+		return super( WorkflowWrapTestProcess, self ).__init__( wflModImportPath, wflname , **kwargs )
 		
 	
 	#{ iDuplicatable Interface 

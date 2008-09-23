@@ -91,12 +91,13 @@ def loadWorkflowFromDotFile( dotfile ):
 	
 		# create instance and add to workflow
 		try: 
-			processinst = processcls( wfl, *args, **kwargs )
+			processinst = processcls( *args, **kwargs )
 		except TypeError:
 			print "Process %r could not be created as it required a different init call" % processcls
 			raise 
 		else:
 			edge_lut[ nodeid ] = processinst
+			wfl.addNode( processinst )
 		
 	# END for each node in graph
 	

@@ -70,7 +70,7 @@ class PlugUnhandled( ComputeError ):
 #####################
 ## Iterators  ######
 ###################
-def iterPlugs( rootPlugShell, stopAt = lambda x: False, prune = lambda x: False, 
+def iterShells( rootPlugShell, stopAt = lambda x: False, prune = lambda x: False, 
 			   direction = "up", visit_once = False, branch_first = False ):
 	"""Iterator starting at rootPlugShell going "up"stream ( input ) or "down"stream ( output )
 	breadth first over plugs, applying filter functions as defined.
@@ -303,6 +303,13 @@ class _PlugShell( tuple ):
 		@param predicate: plug will only be returned if predicate is true for it - shells will be passed in """
 		return self.node.graph.getOutputs( self, **kwargs )
 		
+	def iterShells( self, **kwargs ):
+		"""Iterate plugs and their connections starting at this plug
+		@return: generator for plug shells
+		@note: supports all options of L{iterShells}, this method allows syntax like:
+		node.outAttribute.iterShells( )"""
+		return iterShells( self, **kwargs )
+		
 	#} END connections
 
 	
@@ -329,7 +336,7 @@ class _PlugShell( tuple ):
 		
 		# our cache changed - dirty downstream plugs - thus clear the cache
 		prune_me = lambda x: x == self
-		for shell in iterPlugs( self, direction = "down", prune = prune_me, branch_first = True ):
+		for shell in iterShells( self, direction = "down", prune = prune_me, branch_first = True ):
 			shell.clearCache()
 			
 		
@@ -405,11 +412,26 @@ class Graph( DiGraph, iDuplicatable ):
 		
 	#{ Node Handling 
 	def addNode( self, node ):
-		"""Add a new node instance to the graph"""
+		"""Add a new node instance to the graph
+		@note: node membership is exclusive, thus node instances 
+		can only be in one graph at a time
+		@return: self, for chained calls"""
 		if not isinstance( node, NodeBase ):
 			raise TypeError( "Node %r must be of type NodeBase" % node )
 			
-		self._nodes.add( node )
+		# assure we do not remove ( and kill connections ) and re-add to ourselves 
+		if node in self._nodes:
+			return self
+			
+		# remove node from existing graph
+		if node.graph is not None:
+			node.graph.removeNode( node )
+			
+			
+		self._nodes.add( node )		# assure the node knows us
+		node.graph = weakref.proxy( self )
+		
+		return self		# assure we have the graph set 
 		
 	def removeNode( self, node ):
 		"""Remove the given node from the graph ( if it exists in it )"""
@@ -418,6 +440,8 @@ class Graph( DiGraph, iDuplicatable ):
 			for sshell, eshell in node.getConnections( 1, 1 ):
 				self.disconnect( sshell, eshell )
 				
+			# assure the node does not call us anymore 
+			node.graph = None
 			self._nodes.remove( node )
 		except KeyError:
 			pass 
@@ -440,7 +464,9 @@ class Graph( DiGraph, iDuplicatable ):
 		# END for each node 
 		
 	def iterConnectedNodes( self, predicate = lambda node: True ):
-		"""@return: generator returning all nodes that are connected in this graph
+		"""@return: generator returning all nodes that are connected in this graph, 
+		in no particular order.
+		For an ordered itereration, use L{iterShells}
 		@param predicate: if True for node, it will be returned"""
 		# iterate digraph keeping the plugs only ( and thus connected nodes )
 		nodes_seen = set()
@@ -529,16 +555,12 @@ class NodeBase( iDuplicatable ):
 	shellcls = _PlugShell					# class used to instantiate new shells 
 	
 	#{ Overridden from Object
-	def __init__( self, graph, *args, **kwargs ):
+	def __init__( self, *args, **kwargs ):
 		"""We require a directed graph to track the connectivity between the plugs.
 		It must be supplied by the super class and should be as global as required to 
 		connecte the NodeBases together properly.
 		@note: we are super() compatible, and assure our base is initialized correctly"""
-		if not isinstance( graph, Graph ):
-			raise TypeError( "A Graph instance is required as input, got %r" % graph )
-		
-		self.graph = weakref.proxy( graph )		# assure that we do not prevent the workflow from being deleted
-		self.graph.addNode( self )					# make us part of the graph
+		self.graph = None
 
 	def __del__( self ):
 		"""Remove ourselves from the graph and delete our connections"""
@@ -546,7 +568,7 @@ class NodeBase( iDuplicatable ):
 		# is currently being deleted
 		try:
 			self.graph.removeNode( self )
-		except ReferenceError:
+		except (AttributeError,ReferenceError):		# .graph could be None
 			pass 
 		
 	#} Overridden from Object
@@ -555,11 +577,12 @@ class NodeBase( iDuplicatable ):
 	def createInstance( self ):
 		"""Create a copy of self and return it
 		@note: override by subclass  - the __init__ methods shuld do the rest"""
-		return self.__class__( self.graph )
+		return self.__class__( )
 		
 	def copyFrom( self, other ):
 		"""Just take the graph from other, but do not ( never ) duplicate it"""
-		self.graph = other.graph
+		if other.graph:		# add ourselves to the graph of the other node 
+			other.graph.addNode( self )
 		
 	#} END iDuplicatable
 	
@@ -685,6 +708,7 @@ class NodeBase( iDuplicatable ):
 		# END ambiguous check
 		
 		return outSorted
+		
 	#} END base
 	
 	
@@ -750,15 +774,6 @@ class FacadeNodeBase( NodeBase ):
 	shellcls = _FacadePlugShell		# overriden from NodeBase
 	
 	
-	#{ Overridden Object Methods
-	
-	def __init__( self, graph, *args, **kwargs ):
-		""" Initialize the instance
-		@param graph: graph this node is part of"""
-		NodeBase.__init__( self, graph, *args, **kwargs )
-	
-	#} END overridden methods 
-	
 	#{ Internal Methods 
 	def _realShell( self, virtualplug ):
 		"""Calls _toRealShell with virtualplug and then all plugs we find in the direcft
@@ -796,7 +811,7 @@ class FacadeNodeBase( NodeBase ):
 		It will only be called once a facade shell is supposed to be altered, see 
 		L{_FacadePlugShell}
 		@raise ValueError: if the virtualplug is unknown.
-		@note: iterPlugs may actually traverse the plug-internal affects relations and 
+		@note: iterShells may actually traverse the plug-internal affects relations and 
 		possibly return a shell to a client that your derived class has never seen before.
 		You should take that into consideration and raise L{ValueError} if you do not know 
 		the plug"""
@@ -814,14 +829,13 @@ class GraphNodeBase( FacadeNodeBase ):
 	"""
 	#{ Overridden Object Methods
 	
-	def __init__( self, graph, wrappedGraph, *args, **kwargs ):
+	def __init__( self, wrappedGraph, *args, **kwargs ):
 		""" Initialize the instance
-		@param graph: graph this node is part of 
 		@param wrappedGraph: graph we are wrapping"""
 		self.wgraph = wrappedGraph
 		self._plugmap = dict()		# plug -> node 
 		
-		FacadeNodeBase.__init__( self, graph, *args, **kwargs )
+		FacadeNodeBase.__init__( self, *args, **kwargs )
 	 
 		
 	#} END overridden methods
@@ -829,7 +843,7 @@ class GraphNodeBase( FacadeNodeBase ):
 	#{ iDuplicatable Interface 
 	def createInstance( self ):
 		"""Create a copy of self and return it"""
-		return self.__class__( self.graph, self.wrappedGraph )
+		return self.__class__( self.wrappedGraph )
 		
 	def copyFrom( self, other ):
 		"""Create a duplicate of the wrapped graph so that we have our unique one"""
