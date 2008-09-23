@@ -364,9 +364,10 @@ class Graph( DiGraph, iDuplicatable ):
 		
 	def __del__( self ):
 		"""Clear our graph"""
-		self.clear()				# clear connections 
-		for node in self._nodes:            
-			self.removeNode( node )
+		self.clear()				# clear connections
+		
+		# NOTE : nodes will remove themselves once they are not referenced anymore
+		self._nodes.clear()
 		
 	#} END object methods 
 	
@@ -541,7 +542,12 @@ class NodeBase( iDuplicatable ):
 
 	def __del__( self ):
 		"""Remove ourselves from the graph and delete our connections"""
-		self.graph.removeNode( self )
+		# check if item does still exist - this is not the case if the graph 
+		# is currently being deleted
+		try:
+			self.graph.removeNode( self )
+		except ReferenceError:
+			pass 
 		
 	#} Overridden from Object
 	

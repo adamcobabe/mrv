@@ -18,7 +18,6 @@ __copyright__='(c) 2008 Sebastian Thiel'
 import unittest
 import byronimotest as common
 import byronimo.automation.processes as processes
-from byronimo.automation.processes.plug import *
 from byronimo.dgengine import plug, Attribute as A
 
 def get_suite( ):

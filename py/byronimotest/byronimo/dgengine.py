@@ -68,10 +68,23 @@ class TestDAGTree( unittest.TestCase ):
 	
 	def test_fullFeatureTest( self ):
 		"""dgengine: Test full feature set"""
+		global nodegraph
 		s1 = SimpleNode( )
 		
 		self.failUnless( SimpleNode.outRand.providesOutput() )
 		self.failUnless( SimpleNode.inFloat.providesInput() )
+		
+		# ADD / REMOVE 
+		#################
+		addrem = SimpleNode()
+		self.failUnless( nodegraph.hasNode( addrem ) )
+		nodegraph.removeNode( addrem )
+		self.failUnless( not nodegraph.hasNode( addrem ) )
+		nodegraph.addNode( addrem )
+		self.failUnless( nodegraph.hasNode( addrem ) )
+		
+		# del node - it should handle itself 
+		del( addrem )
 		
 		# SET VALUES
 		#############
