@@ -133,17 +133,28 @@ class ProcessBase( NodeBase ):
 		@raise TypeError: if the result is ambiguous"""
 		# query our ouput plugs for a compatible attr
 		targettype = target.__class__
+		mode = 0
 		if isinstance( target, type ):
 			targettype = target
+			mode = Attribute.cls
 		
 		outplugs = self.getInputPlugs( )
-		attr = Attribute( targettype, 0 )
-		plugrating = self.filterCompatiblePlugs( outplugs, attr, raise_on_ambiguity = 1 )
+		
+		attr = Attribute( targettype, mode )
+		plugrating = self.filterCompatiblePlugs( outplugs, attr, raise_on_ambiguity = 1, attr_affinity = 1 )
 		
 		if not plugrating:		#	 no plug ?
 			return ( 0 , None )
 			
-		rate, plug = plugrating[0] 
+		# remove all non-writable plugs - they can never be targets 
+		writablePlugs = []
+		for rpt in plugrating:				# rate,plug tuple 
+			if not rpt[1].attr.flags & Attribute.writable:
+				continue			# need to set the attribute
+			writablePlugs.append( rpt )
+		# END writable only filter s
+		
+		rate, plug = writablePlugs[0] 
 		return ( int(rate), self.toShell( plug ) )
 		
 		
@@ -310,7 +321,7 @@ class WorkflowProcessBase( GraphNodeBase, ProcessBase ):
 		if self.graph._callgraph.number_of_nodes():
 			raise AssertionError( "Callgraph of parent workflow %r was not empty" % self.graph )
 		
-		self.wgraph._callgraph = self.graph._callgraph
+		self.wgraph._callgraph = self.graph._callgraph	# assure wrapped workflow takes our callgraph
 		
 		# Prepare all our wrapped nodes
 		for node in self.wgraph.iterNodes():

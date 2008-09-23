@@ -308,13 +308,14 @@ class Workflow( Graph ):
 		@note: you can use the L{processes.ProcessBase} enumeration for comparison"""
 		rescache = list()
 		best_process = None
+		
 		for node in self.iterNodes( ):
 			rate, shell = node.getTargetRating( target )
 			if not rate:
 				continue 
 				
-			# is leaf nodde ? ( no output connecitons
-			if not node.getConnections( 0, 1 ):				 
+			# is leaf node ? ( no output connections )		
+			if not node.getConnections( 0, 1 ):
 				rate = rate * 2									# prefer leafs in the rating
 				
 			rescache.append( ( rate, shell ) )

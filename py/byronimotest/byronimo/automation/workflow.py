@@ -43,17 +43,17 @@ class TestWorkflow( unittest.TestCase ):
 		# QUERY TARGETS
 		##################
 		# assure list is pruned, otherwise it would be 4
-		self.failUnless( len( scwfl.getTargetSupportList( ) ) == 3 )
+		self.failUnless( len( scwfl.getTargetSupportList( ) ) == 5 )
 		
 		# both are the same and produce the same rating
 		self.failUnless( scwfl.getTargetRating( 5 )[0] == 255 )
-		self.failUnless( scwfl.getTargetRating( str )[0] == 255 )
-		self.failUnless( scwfl.getTargetRating( basestring )[0] == 127 )	 
+		self.failUnless( scwfl.getTargetRating( "this" )[0] == 255 )
+		# self.failUnless( scwfl.getTargetRating( basestring )[0] == 127 ) # cannot work as we need instance	 
 		
 		self.failUnless( scwfl.getTargetRating( unicode )[0] == 0 )
 		self.failUnless( scwfl.getTargetRating( dict )[1] == None )
 		
-		self.failUnless( scwfl.getTargetRating( float )[0] == 255 )
+		self.failUnless( scwfl.getTargetRating( float(2.3) )[0] == 255 )
 		
 		
 		# Target Creation 

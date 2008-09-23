@@ -67,7 +67,6 @@ class ReportBase( object ):
 				out.append( ( node, nextNode ) )
 			return out
 		# END getPredecessors
-		print self._callgraph.getCallRoot()
 		calllist = getPredecessors( self._callgraph.getCallRoot(), None, reverse, pruneIfTrue )
 		if not reverse:
 			calllist.reverse() 	# actually brings it in the right order, starting at root 

@@ -21,6 +21,7 @@ __copyright__='(c) 2008 Sebastian Thiel'
 import unittest
 import workflows
 from byronimo.automation.report import Plan
+import processes 
 
 class TestProcesses( unittest.TestCase ):
 	"""Test workflow class"""
@@ -38,17 +39,41 @@ class TestProcesses( unittest.TestCase ):
 		
 		# CALLGRAPH 
 		################
-		# should have just one more node 
-		#miwfl = workflows.multiinput
-		#miwfl.makeTarget( unicode( "this" ) )
-		#self.failUnless( miwfl._callgraph.number_of_nodes() == wfl._callgraph.number_of_nodes() - 1 )
+		# nested nodes are containers that do not show as they do not do anything
+		# they are just containers after all and should yield the same result if 
+		# compared to the unwrapped workflow 
+		miwfl = workflows.multiinput
+		miwfl.makeTarget( unicode( "this" ) )
+		self.failUnless( miwfl._callgraph.number_of_nodes() == wfl._callgraph.number_of_nodes() )
 		
 		# NESTED WFLS AND PLANS 
 		########################
 		#print wfl._callgraph.nodes()
 		plan = wfl.getReportInstance( Plan )
-		#plan = miwfl.getReportInstance( Plan )
 		lines = plan.getReport( headline = "WRAPPED WORKFLOW" )
+			
+			
+		# MULTI-NESTED WORKFLOW
+		########################
+		# Two wrapped workflows combined 
+		mwfl = workflows.multiWorkflow
+		
+		# we cannot get different nodes than workflow wrappers, even if we 
+		# traverse the connections 
+		lastnode = list( mwfl.iterNodes() )[1]
+		
+		for shell in lastnode.outChain.iterShells( direction="up" ):
+			self.failUnless( isinstance( shell.node, processes.WorkflowWrapTestProcess ) )
+		
+		res = mwfl.makeTarget( object )[0]		# target only
+		self.failUnless( res == 35 )			# it went through many nodes
+		
+		# must be less nodes  - its just one workflow
+		self.failUnless( miwfl.makeTarget( object )[0] < res )		
+		
+		# report 
+		plan = mwfl.getReportInstance( Plan )
+		lines = plan.getReport( headline = "MULTI WRAPPED WORKFLOW" )
 		for l in lines:
 			print l
 		

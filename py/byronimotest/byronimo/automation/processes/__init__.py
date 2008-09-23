@@ -51,21 +51,28 @@ class TestProcess( processes.ProcessBase ):
 	inInt = 		plug( "inInt", 		A( int, A.writable, default = 4 ) )
 	inFloat = 		plug( "inFloat", 	A( float, A.writable, default = 2.5 ) )
 	inText = 		plug( "inText", 	A( str, A.writable, default = "hello world" ) )
+	inChain = 		plug( "inChain", 	A( list, 0, default = [5] ) )			# just connectable, will be pulled s
+	inObj = 		plug( "inObj", 		A( object, A.cls|A.exact_type|A.writable ) )	# just connectable, not writable
+	
 	# outputs 
 	outFloat = 		plug( "outFloat", 	A( float, A.computable ) )
 	outInt = 		plug( "outInt", 	A( int, A.computable ) )
 	outFloatGen = 	plug( "outFloatGen", A( float, A.computable ) )
 	outIntGen = 	plug( "outIntGen", 	A( int, A.computable ) )
 	outText = 		plug( "outText", 	A( str, 0, default = "hello world" ) )
+	outChain = 		plug( "outChain", 	A( list, 0 ) )
 	
 	# affects 
 	inInt.affects( outInt )
 	inFloat.affects( outFloat )
 	inText.affects( outText )
 	
+	inObj.affects( outChain )
+	inChain.affects( outChain )
+	
 	
 	def __init__( self, name="TestProcess"):
-		super( TestProcess, self ).__init__( name, "testing simple" )
+		super( TestProcess, self ).__init__( name, "computes" )
 		
 	#{ Implementation 
 	
@@ -80,6 +87,8 @@ class TestProcess( processes.ProcessBase ):
 			return 3.0
 		elif plug == TestProcess.outIntGen:
 			return 4
+		elif plug == TestProcess.outChain:
+			return [ self.inChain.get()[0] + 10 ]
 		else:
 			raise AssertionError( "Incompatible target %r passed to %s - canOutputTarget method buggy ?" % ( target, self ) )			
 		
@@ -87,7 +96,7 @@ class TestProcess( processes.ProcessBase ):
 
 
 class OtherTestProcess( TestProcess ):
-	"""TestProcess helping to debugging the calles done
+	"""TestProcess helping to debugging the calls done
 	Supported Targets: unicode instances """
 	
 	# inputs 
@@ -107,13 +116,17 @@ class OtherTestProcess( TestProcess ):
 	def __init__( self ):
 		super( OtherTestProcess, self ).__init__( name = "OtherTestProcess" )
 	
-	def evaluateState( self, target, mode ):
-		"""@return: version of target requireing int and float instance"""
-		floatinst = self.inFloat.get()
-		intinst = self.inInt.get()
-		instr = self.inUni.get()
-		
-		return instr + unicode( floatinst ) + unicode( 20 ) * intinst
+	def evaluateState( self, plug, mode ):
+		"""@return: version of plug requireing int and float instance"""
+		if plug == OtherTestProcess.outString:
+			floatinst = self.inFloat.get()
+			intinst = self.inInt.get()
+			instr = self.inUni.get()
+			
+			return instr + unicode( floatinst ) + unicode( 20 ) * intinst
+			
+		# let super handle it
+		return super( OtherTestProcess, self ).evaluateState( plug, mode )
 
 
 class WorkflowWrapTestProcess( processes.WorkflowProcessBase ):

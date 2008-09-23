@@ -202,10 +202,8 @@ class _PlugShell( tuple ):
 		@mode: optional arbitary value specifying the mode of the get attempt"""
 		if self.hasCache( ):
 			return self.getCache( )
-		
 		# Output plugs compute values 
 		if self.plug.providesOutput( ):
-			
 			# otherwise compute the value
 			try: 
 				result = self.node.compute( self.plug, mode )
@@ -394,7 +392,6 @@ class Graph( DiGraph, iDuplicatable ):
 		nodemap = dict()
 		for node in other.iterNodes():
 			nodecpy = node.duplicate()		# copy node
-			other.removeNode( nodecpy )
 			
 			self._nodes.add( nodecpy )
 			nodemap[ node ] = nodecpy
@@ -655,7 +652,6 @@ class NodeBase( iDuplicatable ):
 		@param output: include output connections ( from this node to others )"""
 		outConnections = list()
 		plugs = self.getPlugs()
-		
 		# HANDLE INPUT 
 		if inpt:
 			shells = self.toShells( ( p for p in plugs if p.providesInput() ) )
@@ -676,19 +672,27 @@ class NodeBase( iDuplicatable ):
 		return outConnections
 		
 	@staticmethod
-	def filterCompatiblePlugs( plugs, attribute, raise_on_ambiguity = False ):
-		"""@return: sorted list of plugs suitable to deal with the given attribute.
+	def filterCompatiblePlugs( plugs, attribute, raise_on_ambiguity = False, attr_affinity = False ):
+		"""@return: sorted list of (rate,plug) tuples suitable to deal with the given attribute.
 		Thus they could connect to it as well as get their value set.
-		List contains tuples of (rate,plug) pairs, the most suitable plug comes first.
+		Most suitable plug comes first.
 		Incompatible plugs will be pruned.
 		@param raise_on_ambiguity: if True, the method raises if a plug has the same
 		rating as another plug already on the output list, thus it's not clear anymore 
 		which plug should handle a request
+		@param attr_affinity: if True, it will not check connection affinity, but attribute 
+		affinity only. It checks how compatible the attributes of the plugs are, disregarding 
+		whether they can be connected or not
 		@raise TypeError: if ambiguous input was found"""
-		
+		                                                      
 		outSorted = list()
 		for plug in plugs:
-			rate = plug.attr.getConnectionAffinity( attribute )
+			if attr_affinity:
+				rate = plug.attr.getAffinity( attribute )
+			else:
+				rate = plug.attr.getConnectionAffinity( attribute )
+			# END which affinity type 
+			
 			if not rate: 
 				continue
 			
@@ -702,7 +706,7 @@ class NodeBase( iDuplicatable ):
 			prev_rate = -1
 			for rate,plug in outSorted:
 				if rate == prev_rate:
-					raise TypeError( "At least two plugs delivered the same compatabliity rate" )
+					raise TypeError( "At least two plugs delivered the same compatabliity rate ( plug involved is %s )" % plug )
 				prev_rate = rate
 			# END for each compatible plug
 		# END ambiguous check
@@ -747,6 +751,7 @@ class _FacadePlugShell( _PlugShell ):
 	__unfacade__ = [ 'get', 'set', 'hasCache', 'setCache', 'getCache', 'clearCache' ]
 	__metaclass__ = _FacadeShellMeta
 	
+	
 	def _toShell( self ):
 		"""@return: convert ourselves to the real shell actually behind this facade plug"""
 		return self.node._realShell( self.plug )
@@ -785,7 +790,10 @@ class FacadeNodeBase( NodeBase ):
 		except ValueError:
 			# try all that are internally connected
 			allaffected = itertools.chain( iter( virtualplug._affectedBy ), iter( virtualplug._affects ) )
-			for plug in allaffected:
+			
+			# best suited comes first 
+			ratedPlugs = self.filterCompatiblePlugs( allaffected, virtualplug.attr, attr_affinity = True )
+			for rate,plug in ratedPlugs:
 				try:
 					node = self._getNodeByPlug( plug )
 				except ValueError:
@@ -793,7 +801,8 @@ class FacadeNodeBase( NodeBase ):
 			# END for each affected plug 
 		# END get real node for virtual plug 
 		
-		# get the actual shell
+		# get the actual shell, we use whatever overidden method, to assure 
+		# the shell can indeed handle itself. 
 		if node:
 			return node.toShell( virtualplug )
 			
@@ -801,6 +810,20 @@ class FacadeNodeBase( NodeBase ):
 		raise AssertionError( "%r did not find matching node for plug %r" % ( self, virtualplug ) )
 			
 	#} END internal methods 
+	
+	#{ Object Overridden Methods 
+	def __getattr__( self, attr ):
+		"""@return: shell on attr made from our plugs - we do not have real ones, so we 
+		need to call getPlugs and find it by name
+		@note: to make this work, you should always name the plug names equal to their 
+		class attribute"""
+		for shell in self.getPlugs( nodeInstance=self ):
+			if shell.plug._name == attr:
+				return shell
+			
+		raise AttributeError( "Attribute %s does not exist on %s" % (attr,self) )
+		
+	#} END Object Overridden Methods 
 	
 	
 	#{ NodeBase Methods
@@ -817,6 +840,28 @@ class FacadeNodeBase( NodeBase ):
 		the plug"""
 		raise NotImplementedError( "_toRealShell needs to be implemented by the subclass" )
 	                                  
+	def _getPlugsImpl( self, **kwargs ):
+		"""Implement this as if it was your getPlugs method - it will be called by the 
+		base - your result needs processing before it can be returned"""
+		raise NotImplementedError( "Needs to be implemented in SubClass" )
+							
+	def getPlugs( self, **kwargs ):
+		"""Calls the  _getPlugsImpl method to ask you to actuallly return your 
+		possibly virtual plugs or shells.
+		The methods makes the shell work with the facade"""
+		yourResult = self._getPlugsImpl( **kwargs )
+		
+		finalres = list()
+		for item in yourResult:
+			if isinstance( item, _PlugShell ):
+				# swap our node in - discard their shell, it will be recreated later 
+				item = self.shellcls( self, item.plug )
+			
+			finalres.append( item )
+		# END for each item in result 
+		
+		return finalres
+		
 	#} end nodebase methods
 
 class GraphNodeBase( FacadeNodeBase ):
@@ -873,13 +918,18 @@ class GraphNodeBase( FacadeNodeBase ):
 		except KeyError:
 			raise ValueError
 	
-	def getPlugs( self, **kwargs ):
+	def _getPlugsImpl( self, **kwargs ):
 		"""@return: all plugs on nodes we wrap
-		@note: must be called through an instance, the baseclass version is a class method !"""
+		@note: must be called through an instance, the baseclass version is a class method ! """
 		outlist = list()
 		hasInstance = kwargs.get( 'nodeInstance', None ) is not None
 
 		for node in self._iterNodes():
+			# swap in the given node if nodeInstance is requested - this afects 
+			# the type of shells returned ( potentially )
+			if hasInstance:
+				kwargs[ 'nodeInstance' ] = node
+				
 			plugresult = node.getPlugs( **kwargs )
 			outlist.extend( plugresult )
 			
@@ -892,8 +942,9 @@ class GraphNodeBase( FacadeNodeBase ):
 					self._plugmap[ plug ] = node 
 			# END update lut map
 		# END for node in nodes 
-			
+		
 		return outlist
+		
 
 	def getInputPlugs( self ):
 		"""@return: list of plugs suitable as input
@@ -972,6 +1023,16 @@ class Attribute( object ):
 		return rate 
 
 	#{ Interface 
+	def getAffinity( self, otherattr ):
+		"""@return: rating from 0 to 255 defining how good the attribtues match 
+		each other in general.
+		@note: for checking connections, use L{getConnectionAffinity}"""
+		# see whether our class flags match
+		if self.flags & self.cls != otherattr.flags & self.cls:
+			return 0
+			
+		# finally check how good our types match 
+		return self._getClassRating( otherattr.typecls, otherattr.flags & self.exact_type )
 	
 	def getConnectionAffinity( self, otherattr ):
 		"""@return: rating from 0 to 255 defining the quality of the connection to 
@@ -981,12 +1042,7 @@ class Attribute( object ):
 		if otherattr.flags & self.unconnectable:		# destination must be connectable
 			return 0
 			
-		# see whether our class flags match
-		if self.flags & self.cls != otherattr.flags & self.cls:
-			return 0
-			
-		# finally check how good our types match 
-		return self._getClassRating( otherattr.typecls, otherattr.flags & self.exact_type )
+		return self.getAffinity( otherattr )
 		
 		
 		
