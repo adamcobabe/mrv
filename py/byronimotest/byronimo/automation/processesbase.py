@@ -61,7 +61,6 @@ class TestProcesses( unittest.TestCase ):
 		# we cannot get different nodes than workflow wrappers, even if we 
 		# traverse the connections 
 		lastnode = list( mwfl.iterNodes() )[1]
-		
 		for shell in lastnode.outChain.iterShells( direction="up" ):
 			self.failUnless( isinstance( shell.node, processes.WorkflowWrapTestProcess ) )
 		

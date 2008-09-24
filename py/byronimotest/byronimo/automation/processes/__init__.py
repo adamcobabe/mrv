@@ -71,9 +71,19 @@ class TestProcess( processes.ProcessBase ):
 	inChain.affects( outChain )
 	
 	
-	def __init__( self, name="TestProcess"):
-		super( TestProcess, self ).__init__( name, "computes" )
+	def __init__( self, id ):
+		super( TestProcess, self ).__init__( id, "TestProcess", "computes" )
 		
+	
+	
+	#{ iDuplicatable Interface 
+	def createInstance( self, *args, **kwargs ):
+		"""Create a copy of self and return it"""
+		return self.__class__( self.id )
+		
+	#} END iDuplicatable
+		
+	
 	#{ Implementation 
 	
 	def evaluateState( self, plug, mode ):
@@ -113,8 +123,16 @@ class OtherTestProcess( TestProcess ):
 	inUni.affects( outString )
 	
 	
-	def __init__( self ):
-		super( OtherTestProcess, self ).__init__( name = "OtherTestProcess" )
+	def __init__( self, id ):
+		super( OtherTestProcess, self ).__init__(id)
+		self.noun = "OtherTestProcess"
+	
+	#{ iDuplicatable Interface 
+	def createInstance( self, *args, **kwargs ):
+		"""Create a copy of self and return it"""
+		return self.__class__( self.id )
+		
+	#} END iDuplicatable
 	
 	def evaluateState( self, plug, mode ):
 		"""@return: version of plug requireing int and float instance"""
@@ -131,16 +149,16 @@ class OtherTestProcess( TestProcess ):
 
 class WorkflowWrapTestProcess( processes.WorkflowProcessBase ):
 	
-	def __init__( self, wflname, **kwargs ):
+	def __init__( self, id, wflname, **kwargs ):
 		"""Wrap the workflow with the given name"""
 		wflModImportPath = "byronimotest.byronimo.automation.workflows"
-		return super( WorkflowWrapTestProcess, self ).__init__( wflModImportPath, wflname , **kwargs )
+		return super( WorkflowWrapTestProcess, self ).__init__( id, wflModImportPath, wflname , **kwargs )
 		
 	
 	#{ iDuplicatable Interface 
-	def createInstance( self ):
+	def createInstance( self, *args, **kwargs ):
 		"""Create a copy of self and return it"""
-		return self.__class__( self.graph, None, wflInstance = self.wgraph )
+		return self.__class__( self.id, None, wflInstance = self.wgraph )
 		
 	#} END iDuplicatable
 	

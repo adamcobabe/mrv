@@ -46,9 +46,12 @@ class SimpleNode( NodeBase ):
 	#}
 	
 	
-	def __init__( self ):
+	def __init__( self , name ):
 		super( SimpleNode, self ).__init__( )
+		self.name = name
 		
+	def __str__( self ):
+		return self.name 
 		
 	def compute( self, plug, mode ):
 		"""Compute some values"""
@@ -69,7 +72,7 @@ class TestDAGTree( unittest.TestCase ):
 	def test_fullFeatureTest( self ):
 		"""dgengine: Test full feature set"""
 		global graph
-		s1 = SimpleNode( )
+		s1 = SimpleNode( "s1" )
 		graph.addNode( s1 )
 		
 		self.failUnless( SimpleNode.outRand.providesOutput() )
@@ -77,7 +80,7 @@ class TestDAGTree( unittest.TestCase ):
 		
 		# ADD / REMOVE 
 		#################
-		addrem = SimpleNode()
+		addrem = SimpleNode( "addrem" )
 		graph.addNode( addrem )
 		self.failUnless( graph.hasNode( addrem ) )
 		graph.removeNode( addrem )
@@ -85,8 +88,15 @@ class TestDAGTree( unittest.TestCase ):
 		graph.addNode( addrem )
 		self.failUnless( graph.hasNode( addrem ) )
 		
-		# del node - it should handle itself 
+		# del node - it will stay in the graph thoguh 
 		del( addrem )
+		self.failUnless( len( list( graph.iterNodes() ) ) == 2 )
+		# get the node back and remove it properly 
+		addrem = list( graph.iterNodes() )[1]
+		graph.removeNode( addrem )
+		del( addrem )
+		self.failUnless( len( list( graph.iterNodes() ) ) == 1 )
+		self.failUnless( len( list( graph.iterConnectedNodes() ) ) == 0 )
 		
 		# SET VALUES
 		#############
@@ -117,8 +127,8 @@ class TestDAGTree( unittest.TestCase ):
 		
 		# CONNECTIONS
 		##############
-		s2 = SimpleNode()
-		s3 = SimpleNode()
+		s2 = SimpleNode( "s2" )
+		s3 = SimpleNode( "s3" )
 		graph.addNode( s2 )
 		graph.addNode( s3 )
 		s1.outRand.connect( s2.inFloat )
@@ -218,6 +228,8 @@ class TestDAGTree( unittest.TestCase ):
 		graph.removeNode( s3 )
 		graph.removeNode( s2 )
 		graph.removeNode( s1 )
+		self.failUnless( len( list( graph.iterNodes() ) ) == 0 )
+		for n in graph.iterConnectedNodes(): print str(n)
 		self.failUnless( len( list( graph.iterConnectedNodes() ) ) == 0 )
 		# len( s1.outMult
 		

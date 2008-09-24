@@ -1,9 +1,9 @@
 digraph test {
 ratio=1.0
 node [style=filled]
-"TestProcessi1" [fillcolor="#ebba66",label="TestProcess"];
-"TestProcessi2" [fillcolor="#ebba66",label="TestProcess"];
-"TestProcessTarget" [fillcolor="#ebba66",label="OtherTestProcess"];
-"TestProcessi1" -> "TestProcessi2" [label="TestData",headlabel="1"];
-"TestProcessi2" -> "TestProcessTarget" [label="TestData",headlabel="1"];
+"A_TestProcess" [fillcolor="#ebba66",label="TestProcess"];
+"A_B_TestProcess" [fillcolor="#ebba66",label="TestProcess"];
+"A_B_C_TestProcessTarget" [fillcolor="#ebba66",label="OtherTestProcess"];
+"A_TestProcess" -> "A_B_TestProcess" [label="TestData",headlabel="1"];
+"A_B_TestProcess" -> "A_B_C_TestProcessTarget" [label="TestData",headlabel="1"];
 }

@@ -91,11 +91,12 @@ class ProcessBase( NodeBase ):
 	__all__.append( "ProcessBase" )
 	
 	
-	def __init__( self, noun, verb ):
+	def __init__( self, id, noun, verb ):
 		"""Initialize process with most common information
 		@param noun: noun describing the process, ( i.e. "Process" )
 		@param verb: verb describing the process, ( i.e. "processing" )
 		@param workflow: workflow this instance of part of """
+		self.id = id				# id of process it has in the graph it originated from
 		self.noun = noun			# used in plans
 		self.verb = verb			# used in plans
 		
@@ -103,18 +104,18 @@ class ProcessBase( NodeBase ):
 		
 	def __str__( self ):
 		"""@return: just the process noun"""
-		return self.noun
+		return self.id
 	
 	
 	#{ iDuplicatable Interface 
-	def createInstance( self ):
+	def createInstance( self, *args, **kwargs ):
 		"""Create a copy of self and return it"""
-		return self.__class__( self.noun, self.verb )
+		return self.__class__( self.id, self.noun, self.verb )
 		
-	def copyFrom( self, other ):
+	def copyFrom( self, other, *args, **kwargs ):
 		"""Just take the graph from other, but do not ( never ) duplicate it"""
 		self.noun = other.noun
-		self.verb = other.ver 
+		self.verb = other.verb
 		
 	#} END iDuplicatable
 	
@@ -258,7 +259,7 @@ class WorkflowProcessBase( GraphNodeBase, ProcessBase ):
 	
 	#{ Overridden Object Methods 
 	
-	def __init__( self, workflowModulePath, workflowName, wflInstance=None, **kwargs ):
+	def __init__( self, id, workflowModulePath, workflowName, wflInstance=None, **kwargs ):
 		"""@param workflowinst: instance of the Workflow you would like to wrap
 		@param workflow: the workflow we are in ( the parent workflow )
 		@param workflowModulePath: module import path which will contain the workflow
@@ -275,7 +276,7 @@ class WorkflowProcessBase( GraphNodeBase, ProcessBase ):
 		# NOTE: baseclass stores wrapped wfl for us
 		# init bases
 		GraphNodeBase.__init__( self, wrappedwfl, **kwargs )
-		ProcessBase.__init__( self, "TO BE SET", "passing on", **kwargs )
+		ProcessBase.__init__( self, id, "TO BE SET", "passing on", **kwargs )
 		
 		# override name
 		self.noun = wrappedwfl.name
@@ -283,9 +284,9 @@ class WorkflowProcessBase( GraphNodeBase, ProcessBase ):
 		
 	#{ iDuplicatable Interface
 	
-	def createInstance( self ):
+	def createInstance( self, *args, **kwargs ):
 		"""Create a copy of self and return it - required due to our very special constructor"""
-		return self.__class__( None, None, wflInstance = self.wgraph  )
+		return self.__class__( self.id, None, None, wflInstance = self.wgraph  )
 		
 	# } END iDuplicatable
 			 

@@ -1,7 +1,7 @@
 digraph MultiWorkflowWrap {
 ratio=1
 node [style=filled]
-"WrappedWorkflow" [ fillcolor="#ebba66",label="WorkflowWrapTestProcess",toplabel="multiinput" ];
-"WrappedWorkflow2" [ fillcolor="#ebba66",label="WorkflowWrapTestProcess",toplabel="multiinput" ];
-"WrappedWorkflow" -> "WrappedWorkflow2"
+"A_WrappedWorkflow" [ fillcolor="#ebba66",label="WorkflowWrapTestProcess",toplabel="multiinput" ];
+"A_B_WrappedWorkflow" [ fillcolor="#ebba66",label="WorkflowWrapTestProcess",toplabel="multiinput" ];
+"A_WrappedWorkflow" -> "A_B_WrappedWorkflow"
 }

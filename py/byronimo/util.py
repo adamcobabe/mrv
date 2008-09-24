@@ -112,13 +112,15 @@ class iDuplicatable( object ):
 		"""Create and Initialize an instance of self.__class__( ... ) based on your own data
 		@return: new instance of self
 		@note: using self.__class__ instead of an explicit class allows derived 
-		classes that do not have anything to duplicate just to use your implementeation"""
+		classes that do not have anything to duplicate just to use your implementeation
+		@note: you must support *args and **kwargs if one of your iDuplicate bases does"""
 		raise NotImplementedError( "Implement like self.__class__( yourInitArgs )" )
 		
 	def copyFrom( self, other, *args, **kwargs ):
 		"""Copy the data from other into self as good as possible
 		Only copy the data that is unique to your specific class - the data of other 
-		classes will be taken care of by them !"""
+		classes will be taken care of by them !
+		@note: you must support *args and **kwargs if one of your iDuplicate bases does"""
 		raise NotImplementedError( "Copy all data you know from other into self" )
 		
 	# END interface
@@ -127,27 +129,44 @@ class iDuplicatable( object ):
 		"""Implements a c-style copy constructor by creating a new instance of self
 		and applying the copy from methods from base to all classes implementing the copyfrom 
 		method. Thus we will call the method directly on the class
-		@param *args,**kwargs : passed to copyFrom and createInstance method to give additional directions""" 
-		instance = self.createInstance( *args, **kwargs )
+		@param *args,**kwargs : passed to copyFrom and createInstance method to give additional directions"""
+		try:
+			createInstFunc = getattr( self, 'createInstance' ) 
+			instance = createInstFunc( *args, **kwargs )
+		except TypeError,e: 		#	 could be the derived class does not support the args ( although it should
+			#raise
+			raise AssertionError( "The subclass method %s must support *args and or **kwargs if the superclass does, error: %s" % ( createInstFunc, e ) )
 		
+		
+		# Sanity Check 
 		if not ( instance.__class__ is self.__class__ ):
 			msg = "Duplicate must have same class as self, was %s, should be %s" % ( instance.__class__, self.__class__ )
 			raise AssertionError( msg )
 			
+			
+		# Get reversed mro, starting at lowest base
 		mrorev = instance.__class__.mro()
 		mrorev.reverse()
 		
 		# APPLY COPY CONSTRUCTORS !
+		##############################
 		for base in mrorev:
 			if base is iDuplicatable:
 				continue
-				
+			
+			# must get the actual method directly from the base ! Getattr respects the mro ( of course )
+			# and possibly looks at the base's superclass methods of the same name
 			try:
-				base.__dict__[ 'copyFrom' ]( instance, self, *args, **kwargs )
+				copyFromFunc = base.__dict__[ 'copyFrom' ] 
+				copyFromFunc( instance, self, *args, **kwargs )
 			except KeyError:
 				pass 
+			except TypeError,e: 		#	 could be the derived class does not support the args ( although it shold
+				raise AssertionError( "The subclass method %s.%s must support *args and or **kwargs if the superclass does, error: %s" % (base, copyFromFunc,e) )
 		# END for each base 
 		
+		# return the result !
+		return instance
 	
 
 class Call( object ):
@@ -225,7 +244,7 @@ class CallbackBase( object ):
 					func( *args, **kwargs )
 			except Exception:
 				success = False
-				print "Error: Exception thrown by function %s during event %s" % ( func, eventname )
+				#print "Error: Exception thrown by function %s during event %s" % ( func, eventname )
 		# END for each registered event
 		return success
 		

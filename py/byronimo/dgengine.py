@@ -388,14 +388,19 @@ class Graph( DiGraph, iDuplicatable ):
 		def copyshell( shell, nodemap ):
 			return shell.__class__( nodemap[ shell.node ], shell.plug )
 		
+		# copy name ( networkx )
+		self.name = other.name
+		
 		# copy nodes first
 		nodemap = dict()
 		for node in other.iterNodes():
-			nodecpy = node.duplicate()		# copy node
-			
-			self._nodes.add( nodecpy )
+			nodecpy = node.duplicate( add_to_graph = False )		# copy node
 			nodemap[ node ] = nodecpy
-		# END for each node 
+		# END for each node
+		
+		# add all nodemap values as nodes ( now that iteration is done
+		for duplnode in nodemap.itervalues():
+			self.addNode( duplnode )
 		
 		# COPY CONNECTIONS 
 		for sshell,eshell in other.edges_iter():
@@ -548,7 +553,7 @@ class NodeBase( iDuplicatable ):
 	"""Base class that provides support for plugs to the superclass.
 	It will create some simple tracking attriubtes required for the plug system 
 	to work"""
-	__slots__ = 'graph'
+	__slots__ = ('graph','shellcls')		# may have a per instance shell class if required 
 	shellcls = _PlugShell					# class used to instantiate new shells 
 	
 	#{ Overridden from Object
@@ -564,7 +569,8 @@ class NodeBase( iDuplicatable ):
 		# check if item does still exist - this is not the case if the graph 
 		# is currently being deleted
 		try:
-			self.graph.removeNode( self )
+			#self.graph.removeNode( self )		# TODO: take back in and make it work ! Problems with facade nodes
+			pass
 		except (AttributeError,ReferenceError):		# .graph could be None
 			pass 
 		
@@ -576,9 +582,11 @@ class NodeBase( iDuplicatable ):
 		@note: override by subclass  - the __init__ methods shuld do the rest"""
 		return self.__class__( )
 		
-	def copyFrom( self, other ):
-		"""Just take the graph from other, but do not ( never ) duplicate it"""
-		if other.graph:		# add ourselves to the graph of the other node 
+	def copyFrom( self, other, add_to_graph = True ):
+		"""Just take the graph from other, but do not ( never ) duplicate it
+		@param: add to graph: if true, the new node instance will be added to the 
+		graph of """
+		if add_to_graph and other.graph:		# add ourselves to the graph of the other node 
 			other.graph.addNode( self )
 		
 	#} END iDuplicatable
@@ -716,13 +724,12 @@ class NodeBase( iDuplicatable ):
 	#} END base
 	
 	
-	
 class _FacadeShellMeta( type ):
 	"""Metaclass building the method wrappers for the _FacadeShell class - not 
 	all methods should be overridden, just the ones important to use"""
 	
-	@staticmethod
-	def getUnfacadeMethod( funcname ):
+	@classmethod
+	def getUnfacadeMethod( cls,funcname ):
 		def unfacadeMethod( self, *args, **kwargs ):
 			return getattr( self._toShell(), funcname )( *args, **kwargs )
 			
@@ -730,7 +737,7 @@ class _FacadeShellMeta( type ):
 		return unfacadeMethod
 		
 	def __new__( metacls, name, bases, clsdict ):
-		unfacadelist = clsdict.pop( '__unfacade__' )
+		unfacadelist = clsdict.get( '__unfacade__' )
 		newcls = type.__new__( metacls, name, bases, clsdict )
 		
 		# create the wrapper functions for the methods that should wire to the 
@@ -740,6 +747,23 @@ class _FacadeShellMeta( type ):
 		# END for each unfacade method name 
 		return newcls
 		
+		
+class _FacadeInOutMeta( _FacadeShellMeta ):
+	"""Metaclass wrapping all unfacade attributes on the plugshell trying 
+	to get an input connection """
+	
+
+	@classmethod
+	def getUnfacadeMethod( cls,funcname ):
+		"""@return: wrapper method for funcname """
+		def unfacadeMethod( self, *args, **kwargs ):
+			"""Wrap the actual call by obtaininng a possibly special shell, and making 
+			the call there """
+			return getattr( self._getInputShell( ), funcname )( *args, **kwargs )
+			
+		unfacadeMethod.__name__ = funcname
+		return unfacadeMethod
+	
 
 class _FacadePlugShell( _PlugShell ):
 	"""All connections from and to the FacadeNode must actually start and end there.
@@ -751,14 +775,78 @@ class _FacadePlugShell( _PlugShell ):
 	__unfacade__ = [ 'get', 'set', 'hasCache', 'setCache', 'getCache', 'clearCache' ]
 	__metaclass__ = _FacadeShellMeta
 	
-	
 	def _toShell( self ):
 		"""@return: convert ourselves to the real shell actually behind this facade plug"""
 		return self.node._realShell( self.plug )
 		
+class _FacadeInToOutShellCreator( _PlugShell ):
+	"""This callable class, when called, will create a FacadePlugShell using the 
+	actual facade node, not the one given as input. This allows it to have the 
+	facade system handle the plugshell, or simply satisfy the original request"""
 	
+	__unfacade__ = _FacadePlugShell.__unfacade__
+	__metaclass__ = _FacadeInOutMeta
 	
+	def __init__( self, *args ):
+		"""Initialize this instance - we can be in creator mode or in shell mode.
+		ShellMode: we behave like a shell but apply customizations, true if 4 args ( node, plug, facadenode,origshellcls )  
+		CreatorMode: we only create shells of our type in ShellMode, true if 2 args )
+		@param arg[-2]: our facadenode parent managing the node we are customizing, must always be set on before last arg 
+		@param origshellcls[-1]: the shell class used on the manipulated node before we , must always be set as last arg"""
+		# get the last arguments - they are supposed to be ours
+		myargs = list( args )	 # cannot pop tuple
+		self.origshellcls = myargs.pop( )
+		self.facadenode = myargs.pop( )
+		
+		if myargs:				# SHELL MODE 	- init base
+			super( _FacadeInToOutShellCreator, self ).__init__( *myargs ) 
+		
+	def __call__( self, *args ):
+		"""This equals a constructor call to the shell class on the wrapped node.
+		We actually try a reverse mapping for all calls should be attempted to be handled
+		by the facade node. If that works, its good, if not, we swap in the original 
+		class creator and undo our modification, as this wrapped node has no 
+		relation to the world of the facade node.
+		This applies to everything but connection handling
+		@note: the shells we create are default ones with some extra handlers 
+		for exceptions"""
+		myargs = list( args )		# tuple cannot be adjusted
+		myargs.append( self.facadenode )
+		myargs.append( self.origshellcls )
+		return self.__class__( *myargs )
 	
+	#{ Helpers 	
+	@staticmethod
+	def _rmShellInstanceOverride( wrappednode ):
+		"""No, we cannot remove the shells as we would remove it for all plugs at once.
+		Once installed, we have to keep them on the instance"""
+		return
+		if isinstance( wrappednode.shellcls, _FacadeInToOutShellCreator ):
+			print "REMOVED SHARADE SHELL on: %s" % wrappednode 
+			del( wrappednode.shellcls )
+			
+	def _getInputShell( self ):
+		"""Helper calling a function on the original shell"""
+		# get input using default shell !
+		facadeNodeShell = _PlugShell( self.facadenode, self.plug )
+		inputShell = facadeNodeShell.getInput( )
+		
+		# if we have an input shell, use it 
+		if inputShell:
+			print "BACK TRACK: '%s' <- '%s'" % ( repr( inputShell ), repr( facadeNodeShell ) )
+			return inputShell
+			
+		# no 'outside world' inputShell found, use the internal handler instead 
+		# finally try original shell and remove ourselves - in this spot we cannot 
+		# do anyhthing. If this changes ( by a connection ), we will be swapped back in 
+		# anyway - its an optimization here to let the graph learn
+		_FacadeInToOutShellCreator._rmShellInstanceOverride( self.node )
+		return self.origshellcls( self.node, self.plug )
+	
+	# } END helpers 
+	
+		
+		
 class FacadeNodeBase( NodeBase ):
 	"""Node having no own plugs, but retrieves them by querying other other nodes
 	and claiming its his own ones.
@@ -772,7 +860,17 @@ class FacadeNodeBase( NodeBase ):
 	
 	It lies in the nature of this class that the plugs are dependent on a specific instance 
 	of this node, thus classmethods of NodeBase have been overridden with instance versions 
-	of it.	
+	of it.
+	
+	The facade node keeps a plug map allowing it to map plug-shells it got from 
+	you back to the original shell respectively. If the map has been missed, 
+	your node will be asked for information.
+
+	@note: facades are intrusive for the nodes they are facading - thus the nodes 
+	returned by L{_getNodeByPlug} will be altered. Namely the instance will get a 
+	shellcls override to allow our shells to be used instead. Thus you should have 
+	your own instance of the node - otherwise things might stop working for others
+	using the graph.
 	
 	@note: this class could also be used for facades Container nodes that provide 
 	an interface to their internal nodes"""
@@ -781,37 +879,42 @@ class FacadeNodeBase( NodeBase ):
 	
 	#{ Internal Methods 
 	def _realShell( self, virtualplug ):
-		"""Calls _toRealShell with virtualplug and then all plugs we find in the direcft
-		affects relationships. Afterall, all we need is a node owning one of the affected plugs, 
-		then we know the node of the original plug"""
+		"""Called to get the real internal shell for a plug that has been 
+		triggered on the facade node, thus the flow is 
+		outside -> inside """
 		node = None
+		# try to get the actual internal shell by checking the cache
 		try:
-			node = self._getNodeByPlug( virtualplug )
-		except ValueError:
-			# try all that are internally connected
-			allaffected = itertools.chain( iter( virtualplug._affectedBy ), iter( virtualplug._affects ) )
-			
-			# best suited comes first 
-			ratedPlugs = self.filterCompatiblePlugs( allaffected, virtualplug.attr, attr_affinity = True )
-			for rate,plug in ratedPlugs:
-				try:
-					node = self._getNodeByPlug( plug )
-				except ValueError:
-					pass
-			# END for each affected plug 
+			internalnode = self._plugToNodeCache[ virtualplug ]
+		except KeyError:
+			# try to get the node from the parent class 
+			internalnode = self._getNodeByPlug( virtualplug )
 		# END get real node for virtual plug 
 		
 		# get the actual shell, we use whatever overidden method, to assure 
 		# the shell can indeed handle itself. 
-		if node:
-			return node.toShell( virtualplug )
-			
-		# no node ?
-		raise AssertionError( "%r did not find matching node for plug %r" % ( self, virtualplug ) )
+		if internalnode:
+			# if node uses one of our node-wrappers, we remove it as it is obviously 
+			# the wrong choice here - we are being called because someone wants a shell 
+			# from the outside world into the facaded world. If we would keep the 
+			# special wrappers, the call would possibly try to get out again although it is an 
+			# output attribute
+			_FacadeInToOutShellCreator._rmShellInstanceOverride( internalnode )			
+			return internalnode.toShell( virtualplug )
+		# END we had an internal node 
+		
+		# no node ? - raise - it might be cought - plug cannot be associated with wrapped node 
+		raise ValueError( "%r did not find matching node for plug %r" % ( self, virtualplug ) )
 			
 	#} END internal methods 
 	
-	#{ Object Overridden Methods 
+	#{ Object Overridden Methods
+	def __init__( self, *args, **kwargs ):
+		""" Initialize the instance"""
+		self._plugToNodeCache = dict()		# plug -> node cache
+		NodeBase.__init__( self, *args, **kwargs )
+		
+	
 	def __getattr__( self, attr ):
 		"""@return: shell on attr made from our plugs - we do not have real ones, so we 
 		need to call getPlugs and find it by name
@@ -826,7 +929,22 @@ class FacadeNodeBase( NodeBase ):
 	#} END Object Overridden Methods 
 	
 	
-	#{ NodeBase Methods
+	
+	#{ iDuplicatable Interface 
+		
+	def copyFrom( self, other ):
+		"""Create a duplicate of the wrapped graph so that we have our unique one"""
+		# As we do not know how the supernode handles this, we just keep our cache 
+		# clear and thus ask the supernode everytime we need the original node, refilling 
+		# the cache that way
+		# like that we know everything the original instance knows about virtual plugs ! Correct !
+		# as we are currently even in the same graph, this is correct
+		# self._plugToNodeCache = other._plugToNodeCache.copy()	# shallow copy 
+	# } END iDuplicatable
+	
+	
+	
+	#{ To be Subclass-Implemented
 	def _getNodeByPlug( self, virtualplug ):
 		"""Called when the facade class encounters a virtual plug that needs to be 
 		converted to its real shell, thus the (node,plug) pair that originally owns the plug.
@@ -840,26 +958,54 @@ class FacadeNodeBase( NodeBase ):
 		the plug"""
 		raise NotImplementedError( "_toRealShell needs to be implemented by the subclass" )
 	                                  
-	def _getPlugsImpl( self, **kwargs ):
+	def _getNodePlugs( self, **kwargs ):
 		"""Implement this as if it was your getPlugs method - it will be called by the 
-		base - your result needs processing before it can be returned"""
+		base - your result needs processing before it can be returned
+		@return: list( tuple( node, plug ) ) or list( tuple( node, shell ) )
+		if you have an existing node that the plug or shell  you gave is from, 
+		return it in the tuple, otherwise set it None.
+		The node will be altered slightly to allow input of your facade to be reached
+		from the inside """
 		raise NotImplementedError( "Needs to be implemented in SubClass" )
-							
+	# END to be subclass implemented 
+						
+	
+	#{ Nodebase Methods 
 	def getPlugs( self, **kwargs ):
-		"""Calls the  _getPlugsImpl method to ask you to actuallly return your 
+		"""Calls the  _getNodePlugs method to ask you to actuallly return your 
 		possibly virtual plugs or shells.
-		The methods makes the shell work with the facade"""
-		yourResult = self._getPlugsImpl( **kwargs )
+		The methods makes the shell work with the facade
+		Here we also update our plugToNodeCache"""
+		yourResult = self._getNodePlugs( **kwargs )
 		
 		finalres = list()
-		for item in yourResult:
+		for orignode, item in yourResult:			# item == (plug | shell)
+			virtualplug = item						# used for cache
+			
 			if isinstance( item, _PlugShell ):
-				# swap our node in - discard their shell, it will be recreated later 
+				# swap our node in - discard their shell, it will be recreated later
+				orignode = item.node
+				virtualplug = item.plug			
 				item = self.shellcls( self, item.plug )
+			# END shell handling 
+			
+			# adjust the original node instances shell
+			if orignode:
+				if not isinstance( orignode.shellcls, _FacadeInToOutShellCreator ):
+					classShellCls = orignode.shellcls
+					orignode.shellcls = _FacadeInToOutShellCreator( self, classShellCls )
+				# END if we have to swap in our facadeInToOutShell
+				
+				# update our node cache
+				self._plugToNodeCache[ virtualplug ] = orignode
+				
+			# END orig node manipulation and cache update
 			
 			finalres.append( item )
 		# END for each item in result 
 		
+		# the final result has everything nicely put back together, but 
+		# it has been altered as well
 		return finalres
 		
 	#} end nodebase methods
@@ -877,8 +1023,8 @@ class GraphNodeBase( FacadeNodeBase ):
 	def __init__( self, wrappedGraph, *args, **kwargs ):
 		""" Initialize the instance
 		@param wrappedGraph: graph we are wrapping"""
-		self.wgraph = wrappedGraph
-		self._plugmap = dict()		# plug -> node 
+		self.wgraph = wrappedGraph.duplicate( )			# TODO: duplicate the graph  - we will alter it 
+		self._plugToNodeCache = dict()		# plug -> node 
 		
 		FacadeNodeBase.__init__( self, *args, **kwargs )
 	 
@@ -888,13 +1034,11 @@ class GraphNodeBase( FacadeNodeBase ):
 	#{ iDuplicatable Interface 
 	def createInstance( self ):
 		"""Create a copy of self and return it"""
-		return self.__class__( self.wrappedGraph )
+		return self.__class__( self.wrappedGraph )	# graph will be duplicated in the constructor
 		
 	def copyFrom( self, other ):
 		"""Create a duplicate of the wrapped graph so that we have our unique one"""
-		self.wgraph = other.wgraph
-		# like that we know everything the original instance knows about virtual plugs ! Correct !
-		self._plugmap = other._plugmap.copy()	# shallow copy 
+		# Graph was already dupicated and set  
 		
 		
 	# } END iDuplicatable
@@ -913,14 +1057,10 @@ class GraphNodeBase( FacadeNodeBase ):
 	
 	def _getNodeByPlug( self, virtualplug ):
 		"""@return: node matching virtual plug according to our cache"""
-		try:
-			return self._plugmap[ virtualplug ]
-		except KeyError:
-			raise ValueError
+		raise NotImplementedError( )
 	
-	def _getPlugsImpl( self, **kwargs ):
-		"""@return: all plugs on nodes we wrap
-		@note: must be called through an instance, the baseclass version is a class method ! """
+	def _getNodePlugs( self, **kwargs ):
+		"""@return: all plugs on nodes we wrap ( as node,item tuple )"""
 		outlist = list()
 		hasInstance = kwargs.get( 'nodeInstance', None ) is not None
 
@@ -931,18 +1071,11 @@ class GraphNodeBase( FacadeNodeBase ):
 				kwargs[ 'nodeInstance' ] = node
 				
 			plugresult = node.getPlugs( **kwargs )
-			outlist.extend( plugresult )
-			
-			# update our lookup map
-			if hasInstance:
-				for shell in plugresult:
-					self._plugmap[ shell.plug ] = node
-			else:
-				for plug in plugresult:
-					self._plugmap[ plug ] = node 
+			outlist.extend( ( (node,item) for item in plugresult ) )
 			# END update lut map
 		# END for node in nodes 
 		
+		# the rest of the nitty gritty details, the base class will deal 
 		return outlist
 		
 

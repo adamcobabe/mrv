@@ -31,9 +31,9 @@ def _toSimpleType( stringtype ):
 
 def _getNodeInfo( node ):
 	"""@return: ( nodename, args, kwargs ) - all arguments have been parsed"""
-	args = []
+	args = [ node.get_name().strip('"') ]
 	if node.toplabel:
-		args = [ _toSimpleType( a ) for a in node.toplabel.split(',') ]
+		args.extend( [ _toSimpleType( a ) for a in node.toplabel.split(',') ] )
 	# END if args are set
 		
 	kwargs = dict()
