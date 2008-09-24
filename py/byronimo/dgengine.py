@@ -123,7 +123,7 @@ def iterShells( rootPlugShell, stopAt = lambda x: False, prune = lambda x: False
 			
 		if direction == 'up':
 			if shell.plug.providesOutput():			# get internal affects
-				addToStack( shell.node, stack, shell.plug._affectedBy, branch_first )
+				addToStack( shell.node, stack, shell.plug.getAffectedBy(), branch_first )
 			# END if provides output 
 			
 			if shell.plug.providesInput():
@@ -141,11 +141,11 @@ def iterShells( rootPlugShell, stopAt = lambda x: False, prune = lambda x: False
 				# could also be connected - follow them 
 				if branch_first:
 					# fist the outputs, then the internals ( this ends up with the same effect )
-					addToStack( shell.node, stack, shell.plug._affects, branch_first )
+					addToStack( shell.node, stack, shell.plug.getAffected(), branch_first )
 					addOutputToStack( stack, shell.getOutputs(), branch_first )
 				else:
 					addOutputToStack( stack, shell.getOutputs(), branch_first )
-					addToStack( shell.node, stack, shell.plug._affects, branch_first )
+					addToStack( shell.node, stack, shell.plug.getAffected(), branch_first )
 					
 			# END if shell provides input
 			
@@ -569,8 +569,7 @@ class NodeBase( iDuplicatable ):
 		# check if item does still exist - this is not the case if the graph 
 		# is currently being deleted
 		try:
-			#self.graph.removeNode( self )		# TODO: take back in and make it work ! Problems with facade nodes
-			pass
+			self.graph.removeNode( self )		# TODO: take back in and make it work ! Problems with facade nodes
 		except (AttributeError,ReferenceError):		# .graph could be None
 			pass 
 		
@@ -894,11 +893,10 @@ class FacadeNodeBase( NodeBase ):
 		# get the actual shell, we use whatever overidden method, to assure 
 		# the shell can indeed handle itself. 
 		if internalnode:
-			# if node uses one of our node-wrappers, we remove it as it is obviously 
-			# the wrong choice here - we are being called because someone wants a shell 
-			# from the outside world into the facaded world. If we would keep the 
-			# special wrappers, the call would possibly try to get out again although it is an 
-			# output attribute
+			# Keep the our wrapper on the node - we must assure that it works 
+			# for all plugs that are still to come.
+			# We could optimize it though by removing it from all nodes that 
+			# have no facaded plug at all
 			_FacadeInToOutShellCreator._rmShellInstanceOverride( internalnode )			
 			return internalnode.toShell( virtualplug )
 		# END we had an internal node 
@@ -996,7 +994,10 @@ class FacadeNodeBase( NodeBase ):
 					orignode.shellcls = _FacadeInToOutShellCreator( self, classShellCls )
 				# END if we have to swap in our facadeInToOutShell
 				
-				# update our node cache
+				# update our node cache - check for ambivalency 
+				if self._plugToNodeCache.has_key( virtualplug ) and self._plugToNodeCache[ virtualplug ] != orignode:
+					raise AssertionError( 'Ambivalent VirtualPlug %s->%s, already stored as "->%s' % ( virtualplug, self._plugToNodeCache[ virtualplug ] , orignode ) )
+					
 				self._plugToNodeCache[ virtualplug ] = orignode
 				
 			# END orig node manipulation and cache update
@@ -1014,17 +1015,13 @@ class GraphNodeBase( FacadeNodeBase ):
 	"""A node wrapping a graph, allowing it to be nested within the node 
 	All inputs and outputs on this node are purely virtual, thus they internally connect
 	to the wrapped graph.
-	
-	Internally it keeps a plug -> node association based on what it returns  
-	in getPlugs - currently it never delete them.
 	"""
 	#{ Overridden Object Methods
 	
 	def __init__( self, wrappedGraph, *args, **kwargs ):
 		""" Initialize the instance
 		@param wrappedGraph: graph we are wrapping"""
-		self.wgraph = wrappedGraph.duplicate( )			# TODO: duplicate the graph  - we will alter it 
-		self._plugToNodeCache = dict()		# plug -> node 
+		self.wgraph = wrappedGraph.duplicate( )
 		
 		FacadeNodeBase.__init__( self, *args, **kwargs )
 	 
@@ -1273,7 +1270,7 @@ class plug( object ):
 		
 	def providesOutput( self ):
 		"""@return: True if this is an output plug that can trigger computations"""
-		return len( self._affectedBy ) != 0 or self.attr.flags & Attribute.computable
+		return len( self.getAffectedBy() ) != 0 or self.attr.flags & Attribute.computable
 		
 	def providesInput( self ):
 		"""@return: True if this is an input plug that will never cause computations"""

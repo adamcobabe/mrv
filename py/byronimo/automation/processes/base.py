@@ -278,6 +278,10 @@ class WorkflowProcessBase( GraphNodeBase, ProcessBase ):
 		GraphNodeBase.__init__( self, wrappedwfl, **kwargs )
 		ProcessBase.__init__( self, id, "TO BE SET", "passing on", **kwargs )
 		
+		# adjust the ids of wrapped graph nodes with the name of their graph
+		for node in self.wgraph.iterNodes():
+			node.id = "%s.%s" % ( id, node.id )
+		
 		# override name
 		self.noun = wrappedwfl.name
 		

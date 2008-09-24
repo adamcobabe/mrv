@@ -65,7 +65,7 @@ class TestProcesses( unittest.TestCase ):
 			self.failUnless( isinstance( shell.node, processes.WorkflowWrapTestProcess ) )
 		
 		res = mwfl.makeTarget( object )[0]		# target only
-		self.failUnless( res == 35 )			# it went through many nodes
+		self.failUnless( res == 45 )			# it went through many nodes
 		
 		# must be less nodes  - its just one workflow
 		self.failUnless( miwfl.makeTarget( object )[0] < res )		

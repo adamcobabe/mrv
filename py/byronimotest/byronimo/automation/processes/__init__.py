@@ -98,6 +98,7 @@ class TestProcess( processes.ProcessBase ):
 		elif plug == TestProcess.outIntGen:
 			return 4
 		elif plug == TestProcess.outChain:
+			print "COMPUTE %s.%s" % ( self, plug )
 			return [ self.inChain.get()[0] + 10 ]
 		else:
 			raise AssertionError( "Incompatible target %r passed to %s - canOutputTarget method buggy ?" % ( target, self ) )			
