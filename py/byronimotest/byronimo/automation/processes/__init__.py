@@ -113,7 +113,7 @@ class OtherTestProcess( TestProcess ):
 	# inputs 
 	inFloat = plug( "inFloat", A( float, A.writable ) )
 	inInt = plug( "inInt", A( int, A.writable ) )
-	inUni = plug( "inUnicode", A( unicode, A.writable ) )
+	inUni = plug( "inUni", A( unicode, A.writable ) )
 	
 	# outputs 
 	outString = plug( "outString", A( unicode, 0 ) )

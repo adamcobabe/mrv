@@ -260,7 +260,7 @@ class Attribute( object ):
 		
 		return 0
 
-	#}
+	#} END interface 
 
 
 
@@ -268,12 +268,30 @@ class iPlug( object ):
 	"""Defines an interface allowing to compare compatabilies according to types.
 	
 	Plugs can either be input plugs or output plugs - output plugs affect no other 
-	plug on a node, but are affected by 0 or more plugs 
+	plug on a node, but are affected by 0 or more plugs .
+	
+	By convention, a plug has a name - that name must also be the name of the 
+	member attribute that stores the plag. Plugs, possibly different instances of it, 
+	need to be re-retrieved on freshly duplicated nodes to allow graph duplication to 
+	be done properly
 	"""
 	kNo,kGood,kPerfect = ( 0, 127, 255 )
 	
-	#{ Interface 
+	#{ Base Implementation 
+	def __str__( self ):
+		return self.getName()
 	
+	#} END base implementation  
+	
+	#{ Utility
+
+	#} END utility 
+	
+	#{ Interface 
+	def getName( self ):
+		"""@return: name of the plug ( the name that identifies it on the node"""
+		raise NotImplementedError( "Implement this in subclass" )
+		
 	def affects( self, otherplug ):
 		"""Set an affects relation ship between this plug and otherplug, saying 
 		that this plug affects otherplug."""
@@ -326,11 +344,8 @@ class plug( iPlug ):
 		self.attr = attribute
 		self._affects = list()			# list of plugs that are affected by us
 		self._affectedBy = list()		# keeps record of all plugs that affect us
-		
-	def __str__( self ):
-		return self._name
-		
-	#}
+	
+	#} END object overridden methods 
 	
 	#{ Value access 
 	def __get__( self, obj, cls=None ):
@@ -350,9 +365,13 @@ class plug( iPlug ):
 		# raise AssertionError( "To set this value, use the node.plug.set( value ) syntax" )
 		# obj.toShell( self ).set( value )
 		
-	#} # value access
+	#} value access
 	
-	#{ Interface 
+	#{ Interface
+	
+	def getName( self ):
+		"""@return: name of plug"""
+		return self._name
 	
 	def affects( self, otherplug ):
 		"""Set an affects relation ship between this plug and otherplug, saying 
@@ -410,6 +429,8 @@ class _PlugShell( tuple ):
 			return self[0]
 		if attr == 'plug':
 			return self[1]
+			
+		# let it raise the typical error
 		return super( _PlugShell, self ).__getattribute__( attr )
 		
 	def __repr__ ( self ):
@@ -539,7 +560,7 @@ class _PlugShell( tuple ):
 	
 	#{Caching
 	def _cachename( self ):
-		return self.plug._name + "_c"
+		return self.plug.getName() + "_c"
 		
 	def hasCache( self ):
 		"""@return: True if currently store a cached value"""
@@ -578,6 +599,13 @@ class _PlugShell( tuple ):
 			del( self.node.__dict__[ self._cachename() ] )
 			
 	#} END caching
+	
+	
+	#{ Name Overrides
+	__rshift__ = lambda self,other: self.connect( other, force=True )
+	__gt__ = lambda self,other: self.connect( other, force=False )
+	
+	#} END name overrides 
 	
 	
 	
@@ -619,8 +647,13 @@ class Graph( DiGraph, iDuplicatable ):
 	def copyFrom( self, other ):
 		"""Duplicate all data from other graph into this one, create a duplicate 
 		of the nodes as well"""
+		print "COPY %r" % self 
 		def copyshell( shell, nodemap ):
-			return shell.__class__( nodemap[ shell.node ], shell.plug )
+			nodecpy = nodemap[ shell.node ]
+			
+			# nodecpy - just get the shell of the given name directly - getattr always creates
+			# shells as it is equal to node.plugname
+			return getattr( nodecpy, shell.plug.getName() )
 		
 		# copy name ( networkx )
 		self.name = other.name
@@ -643,7 +676,9 @@ class Graph( DiGraph, iDuplicatable ):
 			# copy procedures
 			cstart = copyshell( sshell, nodemap )
 			cend = copyshell( eshell, nodemap )
-			self.add_edge( cstart, v = cend )
+			
+			cstart.connect( cend )
+		# END for each edge( startshell, endshell )
 			
 		
 	# END iDuplicatable
@@ -724,49 +759,49 @@ class Graph( DiGraph, iDuplicatable ):
 	#} END query
 	
 	#{ Connecitons 
-	def connect( self, sourceplug, destinationplug, force = False ):
-		"""Connect this plug to destinationplug such that destinationplug is an input plug for our output
-		@param sourceplug: PlugShell being source of the connection 
-		@param destinationplug: PlugShell being destination of the connection 
-		@param force: if False, existing connections to destinationplug will not be broken, but an exception is raised
+	def connect( self, sourceshell, destinationshell, force = False ):
+		"""Connect this plug to destinationshell such that destinationshell is an input plug for our output
+		@param sourceshell: PlugShell being source of the connection 
+		@param destinationshell: PlugShell being destination of the connection 
+		@param force: if False, existing connections to destinationshell will not be broken, but an exception is raised
 		if True, existing connection may be broken
 		@return self: on success, allows chained connections 
-		@raise PlugAlreadyConnected: if destinationplug is connected and force is False
-		@raise PlugIncompatible: if destinationplug does not appear to be compatible to this one"""
+		@raise PlugAlreadyConnected: if destinationshell is connected and force is False
+		@raise PlugIncompatible: if destinationshell does not appear to be compatible to this one"""
 		# assure both nodes are known to the graph
-		self._nodes.add( sourceplug.node )
-		self._nodes.add( destinationplug.node )
+		self._nodes.add( sourceshell.node )
+		self._nodes.add( destinationshell.node )
 		
 		# check compatability 
-		if sourceplug.plug.attr.getConnectionAffinity( destinationplug.plug.attr ) == 0:
-			raise PlugIncompatible( "Cannot connect %r to %r as they are incompatible" % ( repr( sourceplug ), repr( destinationplug ) ) )
+		if sourceshell.plug.attr.getConnectionAffinity( destinationshell.plug.attr ) == 0:
+			raise PlugIncompatible( "Cannot connect %r to %r as they are incompatible" % ( repr( sourceshell ), repr( destinationshell ) ) )
 		
 		
-		oinput = destinationplug.getInput( )
+		oinput = destinationshell.getInput( )
 		if oinput is not None:
-			if oinput == sourceplug:
-				return sourceplug 
+			if oinput == sourceshell:
+				return sourceshell 
 				
 			if not force:
-				raise PlugAlreadyConnected( "Cannot connect %r to %r as it is already connected" % ( repr( sourceplug ), repr( destinationplug ) ) )
+				raise PlugAlreadyConnected( "Cannot connect %r to %r as it is already connected" % ( repr( sourceshell ), repr( destinationshell ) ) )
 				
 			# break existing one
-			oinput.disconnect( destinationplug )
-		# END destinationplug already connected
+			oinput.disconnect( destinationshell )
+		# END destinationshell already connected
 		
 		# connect us
-		print "Connected %r -> %r" % ( repr(sourceplug), repr(destinationplug) )
-		self.add_edge( sourceplug, v = destinationplug )
-		return sourceplug
+		print "CON: %r -> %r" % ( repr(sourceshell), repr(destinationshell) )
+		self.add_edge( sourceshell, v = destinationshell )
+		return sourceshell
 		
 	
-	def disconnect( self, sourceplug, destinationplug ):
-		"""Remove the connection between sourceplug to destinationplug if they are connected
+	def disconnect( self, sourceshell, destinationshell ):
+		"""Remove the connection between sourceshell to destinationshell if they are connected
 		@note: does not raise if no connection is present"""
-		self.delete_edge( sourceplug, v = destinationplug )
+		self.delete_edge( sourceshell, v = destinationshell )
 		
 		# also, delete the plugshells if they are not connnected elsewhere 
-		for shell in sourceplug,destinationplug:
+		for shell in sourceshell,destinationshell:
 			if len( self.neighbors( shell ) ) == 0:
 				self.delete_node( shell )
 	
@@ -805,15 +840,21 @@ class _NodeBaseCheckMeta( type ):
 		
 		# EVERY PLUG NAME MUST MATCH WITH THE ACTUAL NAME IN THE CLASS
 		membersdict = inspect.getmembers( newcls )		# do not filter, as getPlugs could be overridden
-		for plug in newcls.getPlugs( ):
-			for name,member in membersdict:
-				if member == plug and plug._name != name:
-					raise AssertionError( "Plug %r is named %s, but must be named %s as in its class %s" % ( plug, plug._name, name, newcls ) )
-				# END if member nanme is wrong 
-			# END for each class member
-			
-			# ignore plugs we possibly did not find in the physical class 
-		# END for each plug in class 
+		try:
+			for plug in newcls.getPlugs( ):
+				for name,member in membersdict:
+					if member == plug and plug.getName() != name:
+						raise AssertionError( "Plug %r is named %s, but must be named %s as in its class %s" % ( plug, plug.getName(), name, newcls ) )
+					# END if member nanme is wrong 
+				# END for each class member
+				
+				# ignore plugs we possibly did not find in the physical class 
+			# END for each plug in class
+		except TypeError:
+			# it can be that a subclass overrides this method and makes it an instance method
+			# this is valid - the rest of the dgengine always accesses this method 
+			# through instance - so we have to handle it
+			pass 
 			
 		return newcls
 			
@@ -848,7 +889,7 @@ class NodeBase( iDuplicatable ):
 	#} Overridden from Object
 	
 	#{ iDuplicatable Interface 
-	def createInstance( self ):
+	def createInstance( self, *args, **kwargs ):
 		"""Create a copy of self and return it
 		@note: override by subclass  - the __init__ methods shuld do the rest"""
 		return self.__class__( )

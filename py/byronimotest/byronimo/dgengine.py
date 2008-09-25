@@ -21,7 +21,6 @@ from networkx import DiGraph
 from byronimo.dgengine import *
 from random import randint
 
-graph = Graph()
 A = Attribute
 
 #{ TestNodes 
@@ -42,8 +41,15 @@ class SimpleNode( NodeBase ):
 	inInt.affects( outMult )
 	inFloat.affects( outMult )
 	
-	#inFloat.affects( 
 	#}
+	
+		
+	#{ iDuplicatable Interface 
+	def createInstance( self, *args, **kwargs ):
+		"""Create a copy of self and return it
+		@note: override by subclass  - the __init__ methods shuld do the rest"""
+		return self.__class__( self.name )
+	#} END iDuplicatable
 	
 	
 	def __init__( self , name ):
@@ -67,11 +73,11 @@ class SimpleNode( NodeBase ):
 #}
 
 
-class TestDAGTree( unittest.TestCase ):
+class TestDGEngine( unittest.TestCase ):
 	
 	def test_fullFeatureTest( self ):
 		"""dgengine: Test full feature set"""
-		global graph
+		graph = Graph()
 		s1 = SimpleNode( "s1" )
 		graph.addNode( s1 )
 		
@@ -255,9 +261,21 @@ class TestDAGTree( unittest.TestCase ):
 	def test_duplication( self ):
 		"""dgengine: duplicate a graph"""
 		# test shallow copy 
-		global graph
+		graph = Graph()
+		s1 = SimpleNode( "s1" )
+		s2 = SimpleNode( "s2" )
+		s3 = SimpleNode( "s3" )
 		
-		print graph._nodes
+		graph.addNode( s1 )
+		graph.addNode( s2 )
+		graph.addNode( s3 )
 		
-		self.fail()
+		s1.outRand > s2.inFloat
+		s2.outMult > s3.inFloat
+		
+		g2 = graph.duplicate( )
+		
+		self.failUnless( len( list( graph.iterNodes() ) ) == len( list( g2.iterNodes() ) ) )
+		self.failUnless( len( list( graph.iterConnectedNodes() ) ) == len( list( g2.iterConnectedNodes() ) ) )
+		
 		

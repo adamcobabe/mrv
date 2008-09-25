@@ -116,6 +116,14 @@ class _OIShell( _PlugShell ):
 			
 		super( _OIShell, self ).__init__( *args )
 	
+	
+	def __repr__ ( self ):
+		"""Cut away our name in the possible ioplug ( printing an unnecessary long name then )"""
+		plugname = str( self.plug )
+		nodename = str( self.node )
+		plugname = plugname.replace( nodename+'.', "" )
+		return "%s.%s" % ( nodename, plugname )
+	
 	def _toIShell( self ):
 		"""@return: convert ourselves to the real shell actually behind this facade plug"""
 		return self.plug.inode.toShell( self.plug )
@@ -241,7 +249,7 @@ class FacadeNodeBase( NodeBase ):
 		@note: to make this work, you should always name the plug names equal to their 
 		class attribute"""
 		for plug in self.getPlugs( ):
-			if plug._name == attr:
+			if plug.getName() == attr:
 				return self.toShell( plug )
 			
 		raise AttributeError( "Attribute %s does not exist on %s" % (attr,self) )
@@ -321,19 +329,20 @@ class FacadeNodeBase( NodeBase ):
 			if not predicate( ioplug ):
 				continue 
 			finalres.append( ioplug )
-			# END shell handling 
 			
 			
 			# MODIFY NODE INSTANCE
-			###############################
+			##################################################
 			# Allowing us to get callbacks once the node is used inside of the internal 
 			# structures
+			
 			# WRAP VIRTUAL PLUG to the node 
 			################################
-			setattr( orignode, ioplug.getINodeAttrName( ), ioplug )
+			setattr( orignode, ioplug.iplug.getName(), ioplug )
 			
 			
-			# ADD FACADE SHELL CLASS 
+			# ADD FACADE SHELL CLASS
+			############################
 			if not isinstance( orignode.shellcls, _IOShell ):
 				classShellCls = orignode.shellcls
 				orignode.shellcls = _IOShell( self, classShellCls )
@@ -459,23 +468,16 @@ class IOFacadePlug( tuple , iPlug ):
 		# still here ? try to return a value on the original plug 
 		return getattr( self.iplug, attr )
 		
-	def __str__( self ):
-		return "FP(%s.%s)" % (self.inode, self.iplug)
-	
 	#} END object overridden methods
 	
 	
-	#{ Interface
-	
-	def getINodeAttrName( self ):
-		"""@return: name of attribute that stores our instance on our inode"""
-		pred = lambda m: m == self.iplug
-		for attrname,member in inspect.getmembers( self.inode.__class__, predicate = pred ):
-			return attrname
-		raise AssertionError( "Could not find own plug %r in members of %s" % ( repr( self.iplug ), self.inode ) )
-	#} END interface
-	
 	#{ iPlug Interface 
+	
+	def getName( self ):
+		"""@return: name of (internal) plug - must be a unique key, unique enough
+		to allow connections to several nodes of the same type"""
+		return "FP(%s.%s)" % ( self.inode, self.iplug )
+		
 	
 	def _getAffectedList( self, direction, pruneplugfunc ):
 		"""@return: list of all ioplugs looking in direction, if 
