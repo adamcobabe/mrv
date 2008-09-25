@@ -55,7 +55,7 @@ class TestProcesses( unittest.TestCase ):
 			
 		# MULTI-NESTED WORKFLOW
 		########################
-		# Two wrapped workflows combined 
+		# Two wrapped workflows combined
 		mwfl = workflows.multiWorkflow
 		
 		# iterate it - nodes should be facaded and you should not get inside 

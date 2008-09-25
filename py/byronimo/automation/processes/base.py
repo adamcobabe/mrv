@@ -22,6 +22,7 @@ from byronimo.dgengine import plug
 from byronimo.dgengine import Attribute
 import byronimo.automation.base as wflbase
 from byronimo.path import Path
+from byronimo.util import Or
 
 #####################
 ## EXCEPTIONS ######
@@ -236,8 +237,8 @@ class ProcessBase( NodeBase ):
 		It must be used to clear the own state and reset the instance such that 
 		it can get repeatable results"""
 		# clear all our plugs caches 
-		for shell in self.getPlugs( nodeInstance = self ):
-			shell.clearCache( )
+		for plug in self.getPlugs( ):
+			self.toShell( plug ).clearCache( )
 		
 	def getWorkflow( self ):
 		"""@return: the workflow instance we are connected with. Its used to query global data"""
@@ -339,9 +340,10 @@ class WorkflowProcessBase( GraphNodeBase, ProcessBase ):
 	#{ GraphNodeBase Methods
 	
 	def _iterNodes( self ):
-		"""@return: generator for nodes that have no output connections and thus are leaf nodes"""
-		predicate = lambda node: not node.getConnections( 0, 1 ) 
-		return self.wgraph.iterNodes( predicate = predicate )
+		"""@return: generator for nodes that have no output connections or no input connections """
+		noOutput = lambda node: not node.getConnections( 0, 1 )
+		noInput = lambda node: not node.getConnections( 1, 0 )
+		return self.wgraph.iterNodes( predicate = Or( noInput, noOutput ) ) 
 	    
 	#} end graphnodebase methods
 	

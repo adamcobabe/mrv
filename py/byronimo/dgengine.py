@@ -70,6 +70,7 @@ class PlugUnhandled( ComputeError ):
 #####################
 ## Iterators  ######
 ###################
+#{ Iterators 
 def iterShells( rootPlugShell, stopAt = lambda x: False, prune = lambda x: False, 
 			   direction = "up", visit_once = False, branch_first = False ):
 	"""Iterator starting at rootPlugShell going "up"stream ( input ) or "down"stream ( output )
@@ -122,39 +123,33 @@ def iterShells( rootPlugShell, stopAt = lambda x: False, prune = lambda x: False
 			yield shell
 			
 		if direction == 'up':
-			if shell.plug.providesOutput():			# get internal affects
-				addToStack( shell.node, stack, shell.plug.getAffectedBy(), branch_first )
+			# I-N-O 
+			addToStack( shell.node, stack, shell.plug.getAffectedBy(), branch_first )
 			# END if provides output 
 			
-			if shell.plug.providesInput():
-				# get the inputplug 
-				ishell = shell.getInput( )
-				if ishell:
-					if branch_first:
-						stack.append( ishell )
-					else:
-						stack.appendleft( ishell )
-			# END if provides input 
+			# O<-I
+			ishell = shell.getInput( )
+			if ishell:
+				if branch_first:
+					stack.append( ishell )
+				else:
+					stack.appendleft( ishell )
+			# END has input connection 
 		# END upstream
 		else:
-			if shell.plug.providesInput():
-				# could also be connected - follow them 
-				if branch_first:
-					# fist the outputs, then the internals ( this ends up with the same effect )
-					addToStack( shell.node, stack, shell.plug.getAffected(), branch_first )
-					addOutputToStack( stack, shell.getOutputs(), branch_first )
-				else:
-					addOutputToStack( stack, shell.getOutputs(), branch_first )
-					addToStack( shell.node, stack, shell.plug.getAffected(), branch_first )
-					
-			# END if shell provides input
-			
-			if shell.plug.providesOutput():
+			# I-N-O and I->O
+			# could also be connected - follow them 
+			if branch_first:
+				# fist the outputs, then the internals ( this ends up with the same effect )
+				addToStack( shell.node, stack, shell.plug.getAffected(), branch_first )
 				addOutputToStack( stack, shell.getOutputs(), branch_first )
-			# END if shell provides output 
+			else:
+				addOutputToStack( stack, shell.getOutputs(), branch_first )
+				addToStack( shell.node, stack, shell.plug.getAffected(), branch_first )
 		# END downstream
 	# END for each shell on work stack
-	
+
+#} END iterators 
 
 
 #####################
@@ -181,10 +176,14 @@ class _PlugShell( tuple ):
 	
 	def __new__( cls, *args ):
 		return tuple.__new__( cls, args )
-	
-	def __init__( self, *args ):
-		"""initialize the shell with a node and a plug"""
-		self.node, self.plug = args
+		
+	def __getattr__( self, attr ):
+		"""Allow easy attribute access while staying memory efficient"""
+		if attr == 'node':
+			return self[0]
+		if attr == 'plug':
+			return self[1]
+		return super( _PlugShell, self ).__getattribute__( attr )
 		
 	def __repr__ ( self ):
 		return "%s.%s" % ( self.node, self.plug )
@@ -404,6 +403,9 @@ class Graph( DiGraph, iDuplicatable ):
 		
 		# COPY CONNECTIONS 
 		for sshell,eshell in other.edges_iter():
+			# make fresh connections through shells - we do not know what kind of 
+			# plugs they use, so they could be special and thus need special 
+			# copy procedures
 			cstart = copyshell( sshell, nodemap )
 			cend = copyshell( eshell, nodemap )
 			self.add_edge( cstart, v = cend )
@@ -619,40 +621,25 @@ class NodeBase( iDuplicatable ):
 		return self.shellcls( self, plug )
 		
 	@classmethod
-	def getPlugs( self, predicate = lambda x: True, nodeInstance = None ):
-		"""@return: list of static plugs as defined on this node, or PlugShells of nodeInstance
-		if it is given 
-		@param predicate: return static plug only if predicate is true
-		@param nodeInstance: if not None but instance of NodeBase, the returned list 
-		will contain plugshells for nodeInstance instead of static plugs"""
+	def getPlugs( cls, predicate = lambda x: True ):
+		"""@return: list of static plugs as defined on this node
+		@param predicate: return static plug only if predicate is true"""
 		pred = lambda m: isinstance( m, plug )
 		
-		# BUG: it appears python can also pass in other derived classes instead 
-		# of our own one if called through self - it appears python still has some value
-		# of a previous call stored
-		# thus we only test for base class 
-		# if nodeInstance and not isinstance( nodeInstance, self ):
-		if nodeInstance and not isinstance( nodeInstance, NodeBase ):
-			msg = "getPlugs: Passed in nodeInstance had invalid type: was %r, should be %r" % ( type( nodeInstance ), self.__class__ )
-			raise AssertionError( msg )
 		# END sanity check
-		pluggen = ( m[1] for m in inspect.getmembers( self, predicate = pred ) if predicate( m[1] ) )
-		if not nodeInstance:
-			return list( pluggen )
-		
-		# otherwise return the shells right away 
-		return [ nodeInstance.toShell( p ) for p in pluggen ]
+		pluggen = ( m[1] for m in inspect.getmembers( cls, predicate = pred ) if predicate( m[1] ) )
+		return list( pluggen )
 		
 	@classmethod	
-	def getInputPlugs( self, **kwargs ):
+	def getInputPlugs( cls, **kwargs ):
 		"""@return: list of plugs suitable as input
 		@note: convenience method"""
-		return self.getPlugs( predicate = lambda p: p.providesInput(), **kwargs )
+		return cls.getPlugs( predicate = lambda p: p.providesInput(), **kwargs )
 	@classmethod
-	def getOutputPlugs( self, **kwargs ):
+	def getOutputPlugs( cls, **kwargs ):
 		"""@return: list of plugs suitable to deliver output
 		@note: convenience method"""
-		return self.getPlugs( predicate = lambda p: p.providesOutput(), **kwargs )
+		return cls.getPlugs( predicate = lambda p: p.providesOutput(), **kwargs )
 
 	def getConnections( self, inpt, output ):
 		"""@return: Tuples of input shells defining a connection of the given type from 
@@ -831,7 +818,42 @@ class Attribute( object ):
 	#}
 
 
-class plug( object ):
+
+class iPlug( object ):
+	"""Defines an interface allowing to compare compatabilies according to types.
+	
+	Plugs can either be input plugs or output plugs - output plugs affect no other 
+	plug on a node, but are affected by 0 or more plugs 
+	"""
+	kNo,kGood,kPerfect = ( 0, 127, 255 )
+	
+	#{ Interface 
+	
+	def affects( self, otherplug ):
+		"""Set an affects relation ship between this plug and otherplug, saying 
+		that this plug affects otherplug."""
+		raise NotImplementedError( "Implement this in subclass" )
+		
+	def getAffected( self ):
+		"""@return: tuple containing affected plugs ( plugs that are affected by our value )"""
+		raise NotImplementedError( "Implement this in subclass" )
+		
+	def getAffectedBy( self ):
+		"""@return: tuple containing plugs that affect us ( plugs affecting our value )"""
+		raise NotImplementedError( "Implement this in subclass" )
+		
+	def providesOutput( self ):
+		"""@return: True if this is an output plug that can trigger computations"""
+		raise NotImplementedError( "Implement this in subclass" )
+		
+	def providesInput( self ):
+		"""@return: True if this is an input plug that will never cause computations"""
+		raise NotImplementedError( "Implement this in subclass" )
+		
+	#}
+	
+
+class plug( iPlug ):
 	"""Defines an interface allowing to compare compatabilies according to types.
 	
 	Plugs are implemented as descriptors, thus they will be defined on node class 
@@ -877,10 +899,10 @@ class plug( object ):
 		return self
 		
 	
-	def __set__( self, obj, value ):
-		"""Just return the shell - the user has to call .set himself - otherwise
-		we would have behaviour that cannot be recreated with instance attributes"""
-		raise AssertionError( "To set this value, use the node.plug.set( value ) syntax" )
+	#def __set__( self, obj, value ):
+		"""We do not use a set method, allowing to override our descriptor through 
+		actual plug instances in the instance dict. Once deleted, we shine through again"""
+		# raise AssertionError( "To set this value, use the node.plug.set( value ) syntax" )
 		# obj.toShell( self ).set( value )
 		
 	#}
