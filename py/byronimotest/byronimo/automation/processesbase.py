@@ -58,6 +58,20 @@ class TestProcesses( unittest.TestCase ):
 		# Two wrapped workflows combined 
 		mwfl = workflows.multiWorkflow
 		
+		# iterate it - nodes should be facaded and you should not get inside 
+		wnode2 = mwfl.getNodes()[-1]
+		print "ITERATIING FROM %s upstream" % repr( wnode2.outChain )
+		lastshell = None
+		for shell in wnode2.outChain.iterShells( direction = "up" ):
+			print shell
+			lastshell = shell
+		print "\n"
+		
+		# travel downstream again
+		for shell in lastshell.iterShells( direction = "down" ):
+			print shell 
+		print "\n"
+		
 		# we cannot get different nodes than workflow wrappers, even if we 
 		# traverse the connections 
 		lastnode = list( mwfl.iterNodes() )[1]
@@ -65,6 +79,7 @@ class TestProcesses( unittest.TestCase ):
 			self.failUnless( isinstance( shell.node, processes.WorkflowWrapTestProcess ) )
 		
 		res = mwfl.makeTarget( object )[0]		# target only
+		print "MultiWorkflow Result = %i" % res
 		self.failUnless( res == 45 )			# it went through many nodes
 		
 		# must be less nodes  - its just one workflow

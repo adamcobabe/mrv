@@ -17,7 +17,7 @@ __copyright__='(c) 2008 Sebastian Thiel'
 __all__ = list()
 
 from byronimo.dgengine import NodeBase
-from byronimo.dgengine import GraphNodeBase
+from byronimo.dgfacadeengine import GraphNodeBase
 from byronimo.dgengine import plug
 from byronimo.dgengine import Attribute
 import byronimo.automation.base as wflbase
