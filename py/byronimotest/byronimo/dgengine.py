@@ -34,7 +34,7 @@ class SimpleNode( NodeBase ):
 	inInt = plug( "inInt", A( int, A.writable ) )
 	inFloat = plug( "inFloat", A( float, 0, default = 2.5 ) )
 	inFloatNoDef = plug( "inFloatNoDef", A( float, 0 ) )
-	outFailCompute = plug( "outFail", A( str, A.computable ) )
+	outFailCompute = plug( "outFailCompute", A( str, A.computable ) )
 	
 	inFloat.affects( outRand )
 	inFloatNoDef.affects( outRand )
@@ -134,6 +134,11 @@ class TestDAGTree( unittest.TestCase ):
 		s1.outRand.connect( s2.inFloat )
 		s1.outRand.connect( s2.inFloat )		# works as it is already connected to what we want
 		
+		# disconnect 
+		s1.outRand.disconnect( s2.inFloat )
+		self.failUnless( len( s1.outRand.getOutputs() ) == 0 and not s2.inFloat.getInput() )
+		
+		s1.outRand.connect( s2.inFloat )
 		
 		# check its really connected
 		self.failUnless( s2.inFloat.getInput( ) == s1.outRand )
@@ -146,6 +151,7 @@ class TestDAGTree( unittest.TestCase ):
 		s3.outRand.connect( s2.inFloat, force = 1 )
 		self.failUnless( s2.inFloat.getInput( ) == s3.outRand )
 		self.failUnless( len( s1.outRand.getOutputs() ) == 0 )
+		
 		
 		
 		# MULTI CONNECT 
@@ -224,15 +230,15 @@ class TestDAGTree( unittest.TestCase ):
 		# iterconnectednodes 
 		self.failUnless( len( list( graph.iterConnectedNodes() ) ) == 3 )
 		
+		graph.writeDot( "/usr/tmp/PreRemove.dot" )
 		# remove nodes and check connections 
 		graph.removeNode( s3 )
 		graph.removeNode( s2 )
 		graph.removeNode( s1 )
-		self.failUnless( len( list( graph.iterNodes() ) ) == 0 )
-		for n in graph.iterConnectedNodes(): print str(n)
-		self.failUnless( len( list( graph.iterConnectedNodes() ) ) == 0 )
-		# len( s1.outMult
 		
+		self.failUnless( len( graph._nodes ) == 0 )
+		self.failUnless( len( list( graph.iterNodes() ) ) == 0 )
+		self.failUnless( len( list( graph.iterConnectedNodes() ) ) == 0 )
 		
 		# PLUG FILTERING 
 		#################
@@ -246,11 +252,12 @@ class TestDAGTree( unittest.TestCase ):
 		self.failUnless( len( SimpleNode.filterCompatiblePlugs( inplugs, floatattr ) ) == 2 )
 		self.failUnlessRaises( TypeError, SimpleNode.filterCompatiblePlugs, inplugs, floatattr, raise_on_ambiguity = 1 )
 		
-	def test_copy( self ):
-		"""dgengine: copy the graph"""
+	def test_duplication( self ):
+		"""dgengine: duplicate a graph"""
 		# test shallow copy 
 		global graph
-		cpy = graph.copy()
 		
-		self.failUnless( len( cpy._nodes ) == len( graph._nodes ) )
+		print graph._nodes
+		
+		self.fail()
 		

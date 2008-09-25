@@ -30,7 +30,7 @@ from byronimo.util import iDuplicatable
 ## EXCEPTIONS ######
 ###################
 #{ Exceptions 
-
+                                                          
 class ConnectionError( Exception ):
 	"""Exception base for all plug related errors"""
 
@@ -156,7 +156,234 @@ def iterShells( rootPlugShell, stopAt = lambda x: False, prune = lambda x: False
 ## Classes    ######
 ###################
 
+
+#{ END Plugs and Attributes
+
+class Attribute( object ):
+	"""Simple class defining the type of a plug and several flags that 
+	affect it
+	Additionally it can determine how well suited another attribute is
+	
+	Flags
+	-----
+	exact_type: if True, derived classes of our typecls are not considered to be a valid type
+	writable: if True, the attribute's plug can be written to
+	computable: Nodes are automatically computable if they are affected by another plug.
+				If this is not the case, they are marked input only and are not computed.
+				If this flag is true, even unaffeted plugs are computable.
+				Plugs that affect something are automatically input plugs and will not be computed.
+				If the plug does not affect anything and this flag is False, they are seen as input plugs 
+				anyway. 
+				The system does not allow plugs to be input and output plugs at the same time, thus your compute
+				cannot be triggered by your own compute
+	cls: if True, the plug requires classes to be set ( instances of 'type' ) , but no instances of these classes
+	uncached: if False, computed values may be cached, otherwise they will always be recomputed.
+	unconnectable: if True, the node cannot be the destination of a connection
+	"""
+	kNo, kGood, kPerfect = 0, 127, 255				# specify how good attributes fit together
+	exact_type, writable, computable, cls, uncached, unconnectable = ( 1, 2, 4, 8, 16, 32 )
+	__slots__ = ( 'typecls', 'flags', 'default' )
+	
+	def __init__( self, typeClass, flags, default = None ):
+		self.typecls = typeClass
+		self.flags = flags			# used for bitflags describing mode
+		self.default = default
 		
+		# check default value for compatability !
+		if default is not None:
+			if self.getCompatabilityRate( default ) == 0:
+				raise TypeError( "Default value %r is not compatible with this attribute" % default )
+		# END default type check 
+		
+	def _getClassRating( self, cls, exact_type ):
+		"""@return: rating based on value being a class and compare
+		0 : value is no type
+		255: value matches comparecls, or linearly less if is just part of the mro of value"""
+		if not isinstance( cls, type ):
+			return 0
+			
+		mro = self.typecls.mro()
+		mro.reverse()
+		
+		if not cls in mro:
+			return 0
+			
+		if len( mro ) == 1:
+			return self.kPerfect
+		
+		rate = ( float( mro.index( cls ) ) / float( len( mro ) - 1 ) ) * self.kPerfect
+		
+		if exact_type and rate != self.kPerfect:		# exact type check
+			return 0
+			
+		return rate 
+
+	#{ Interface 
+	def getAffinity( self, otherattr ):
+		"""@return: rating from 0 to 255 defining how good the attribtues match 
+		each other in general.
+		@note: for checking connections, use L{getConnectionAffinity}"""
+		# see whether our class flags match
+		if self.flags & self.cls != otherattr.flags & self.cls:
+			return 0
+			
+		# finally check how good our types match 
+		return self._getClassRating( otherattr.typecls, otherattr.flags & self.exact_type )
+	
+	def getConnectionAffinity( self, otherattr ):
+		"""@return: rating from 0 to 255 defining the quality of the connection to 
+		otherplug. an affinity of 0 mean connection is not possible, 255 mean the connection 
+		is perfectly suited.
+		The connection is a directed one from self -> otherplug"""
+		if otherattr.flags & self.unconnectable:		# destination must be connectable
+			return 0
+			
+		return self.getAffinity( otherattr )
+		
+		
+		
+	def getCompatabilityRate( self, value ):
+		"""@return: value between 0 and 255, 0 means no compatability, 255 a perfect match
+		if larger than 0, the plug can hold the value ( assumed the flags are set correctly )"""
+		if isinstance( value, type ):
+			# do we need a class ?
+			if not self.flags & self.cls:
+				return 0		# its a class 
+			
+			# check compatability
+			return self._getClassRating( value, self.flags & self.exact_type )
+		# END is class type
+		else:
+			if not self.flags & self.cls:
+				return self._getClassRating( value.__class__, self.flags & self.exact_type )
+		# END is instance type 
+		
+		return 0
+
+	#}
+
+
+
+class iPlug( object ):
+	"""Defines an interface allowing to compare compatabilies according to types.
+	
+	Plugs can either be input plugs or output plugs - output plugs affect no other 
+	plug on a node, but are affected by 0 or more plugs 
+	"""
+	kNo,kGood,kPerfect = ( 0, 127, 255 )
+	
+	#{ Interface 
+	
+	def affects( self, otherplug ):
+		"""Set an affects relation ship between this plug and otherplug, saying 
+		that this plug affects otherplug."""
+		raise NotImplementedError( "Implement this in subclass" )
+		
+	def getAffected( self ):
+		"""@return: tuple containing affected plugs ( plugs that are affected by our value )"""
+		raise NotImplementedError( "Implement this in subclass" )
+		
+	def getAffectedBy( self ):
+		"""@return: tuple containing plugs that affect us ( plugs affecting our value )"""
+		raise NotImplementedError( "Implement this in subclass" )
+		
+	def providesOutput( self ):
+		"""@return: True if this is an output plug that can trigger computations"""
+		raise NotImplementedError( "Implement this in subclass" )
+		
+	def providesInput( self ):
+		"""@return: True if this is an input plug that will never cause computations"""
+		raise NotImplementedError( "Implement this in subclass" )
+		
+	#}
+	
+
+class plug( iPlug ):
+	"""Defines an interface allowing to compare compatabilies according to types.
+	
+	Plugs are implemented as descriptors, thus they will be defined on node class 
+	level, and all static information will remain static
+	
+	As descriptors, they are defined statically on the class, and some additional information 
+	such as connectivity, is stored on the respective class instance. These special methods 
+	are handled using L{NodeBase} class
+	
+	Plugs are implemented as descriptors as all type information can be kept per class, 
+	whereas only connection information changes per node instance.
+	
+	Plugs can either be input plugs or output plugs - output plugs affect no other 
+	plug on a node, but are affected by 0 or more plugs 
+	
+	@note: class is lowercase as it is used as descriptor ( acting more like a function )
+	"""
+	kNo,kGood,kPerfect = ( 0, 127, 255 )
+	__slots__ = ( '_name', 'attr', '_affects', '_affectedBy' )
+	
+	#{ Overridden object methods 
+	def __init__( self, name, attribute ):
+		"""Intialize the plug with a distinctive name"""
+		self._name = name
+		self.attr = attribute
+		self._affects = list()			# list of plugs that are affected by us
+		self._affectedBy = list()		# keeps record of all plugs that affect us
+		
+	def __str__( self ):
+		return self._name
+		
+	#}
+	
+	#{ Value access 
+	def __get__( self, obj, cls=None ):
+		"""A value has been requested - return our plugshell that brings together
+		both, the object and the static plug"""
+		# in class mode we return ourselves for access
+		if obj is not None:	
+			return obj.toShell( self )
+			
+		# class attributes just return the descriptor itself for direct access
+		return self
+		
+	
+	#def __set__( self, obj, value ):
+		"""We do not use a set method, allowing to override our descriptor through 
+		actual plug instances in the instance dict. Once deleted, we shine through again"""
+		# raise AssertionError( "To set this value, use the node.plug.set( value ) syntax" )
+		# obj.toShell( self ).set( value )
+		
+	#} # value access
+	
+	#{ Interface 
+	
+	def affects( self, otherplug ):
+		"""Set an affects relation ship between this plug and otherplug, saying 
+		that this plug affects otherplug."""
+		if otherplug not in self._affects:
+			self._affects.append( otherplug )
+			
+		if self not in otherplug._affectedBy:
+			otherplug._affectedBy.append( self )
+		
+	def getAffected( self ):
+		"""@return: tuple containing affected plugs ( plugs that are affected by our value )"""
+		return tuple( self._affects )
+		
+	def getAffectedBy( self ):
+		"""@return: tuple containing plugs that affect us ( plugs affecting our value )"""
+		return tuple( self._affectedBy )
+		
+	def providesOutput( self ):
+		"""@return: True if this is an output plug that can trigger computations"""
+		return bool( len( self.getAffectedBy() ) != 0 or self.attr.flags & Attribute.computable )
+		
+	def providesInput( self ):
+		"""@return: True if this is an input plug that will never cause computations"""
+		#return len( self._affects ) != 0 and not self.providesOutput( )
+		return not self.providesOutput() # previous version did not recognize storage plugs as input
+		
+	#} END interface 
+	
+#} END plugs and attributes
+
 
 class _PlugShell( tuple ):
 	"""Handles per-node-instance plug connection setup and storage. As plugs are 
@@ -375,6 +602,14 @@ class Graph( DiGraph, iDuplicatable ):
 		
 	#} END object methods 
 	
+	#{ Debugging
+	def writeDot( self , fileOrPath  ):
+		"""Write the connections in self to the given file object or path
+		@todo: remove if no longer needed"""
+		import networkx.drawing.nx_pydot as dotio
+		dotio.write_dot( self, fileOrPath )
+		
+	#} END debugging 
 		
 	#{ iDuplicatable Interface 
 	def createInstance( self ):
@@ -529,6 +764,11 @@ class Graph( DiGraph, iDuplicatable ):
 		"""Remove the connection between sourceplug to destinationplug if they are connected
 		@note: does not raise if no connection is present"""
 		self.delete_edge( sourceplug, v = destinationplug )
+		
+		# also, delete the plugshells if they are not connnected elsewhere 
+		for shell in sourceplug,destinationplug:
+			if len( self.neighbors( shell ) ) == 0:
+				self.delete_node( shell )
 	
 	def getInput( self, plugshell ):
 		"""@return: the connected input plug of plugshell or None if there is no such connection
@@ -555,6 +795,30 @@ class Graph( DiGraph, iDuplicatable ):
 	#} END connections
 	
 	
+class _NodeBaseCheckMeta( type ):
+	"""Class checking the consistency of the nodebase class before it is being created"""
+	def __new__( metacls, name, bases, clsdict ):
+		"""Check:
+			- every plugname must correspond to a node member name
+		"""
+		newcls = type.__new__( metacls, name, bases, clsdict )
+		
+		# EVERY PLUG NAME MUST MATCH WITH THE ACTUAL NAME IN THE CLASS
+		membersdict = inspect.getmembers( newcls )		# do not filter, as getPlugs could be overridden
+		for plug in newcls.getPlugs( ):
+			for name,member in membersdict:
+				if member == plug and plug._name != name:
+					raise AssertionError( "Plug %r is named %s, but must be named %s as in its class %s" % ( plug, plug._name, name, newcls ) )
+				# END if member nanme is wrong 
+			# END for each class member
+			
+			# ignore plugs we possibly did not find in the physical class 
+		# END for each plug in class 
+			
+		return newcls
+			
+		
+		
 
 class NodeBase( iDuplicatable ):
 	"""Base class that provides support for plugs to the superclass.
@@ -562,6 +826,7 @@ class NodeBase( iDuplicatable ):
 	to work"""
 	__slots__ = ('graph','shellcls')		# may have a per instance shell class if required 
 	shellcls = _PlugShell					# class used to instantiate new shells 
+	__metaclass__ = _NodeBaseCheckMeta		# check the class before its being created 
 	
 	#{ Overridden from Object
 	def __init__( self, *args, **kwargs ):
@@ -576,8 +841,7 @@ class NodeBase( iDuplicatable ):
 		# check if item does still exist - this is not the case if the graph 
 		# is currently being deleted
 		try:
-			#self.graph.removeNode( self )		# TODO: take back in and make it work ! Problems with facade nodes
-			pass 
+			self.graph.removeNode( self )		# TODO: take back in and make it work ! Problems with facade nodes
 		except (AttributeError,ReferenceError):		# .graph could be None
 			pass 
 		
@@ -703,7 +967,7 @@ class NodeBase( iDuplicatable ):
 			prev_rate = -1
 			for rate,plug in outSorted:
 				if rate == prev_rate:
-					raise TypeError( "At least two plugs delivered the same compatabliity rate ( plug involved is %s )" % plug )
+					raise TypeError( "At least two plugs delivered the same compatabliity rate ( plug involved is %s )" % str(plug) )
 				prev_rate = rate
 			# END for each compatible plug
 		# END ambiguous check
@@ -713,228 +977,5 @@ class NodeBase( iDuplicatable ):
 	#} END base
 	
 
-
-class Attribute( object ):
-	"""Simple class defining the type of a plug and several flags that 
-	affect it
-	Additionally it can determine how well suited another attribute is
-	
-	Flags
-	-----
-	exact_type: if True, derived classes of our typecls are not considered to be a valid type
-	writable: if True, the attribute's plug can be written to
-	computable: Nodes are automatically computable if they are affected by another plug.
-				If this is not the case, they are marked input only and are not computed.
-				If this flag is true, even unaffeted plugs are computable.
-				Plugs that affect something are automatically input plugs and will not be computed.
-				If the plug does not affect anything and this flag is False, they are seen as input plugs 
-				anyway. 
-				The system does not allow plugs to be input and output plugs at the same time, thus your compute
-				cannot be triggered by your own compute
-	cls: if True, the plug requires classes to be set ( instances of 'type' ) , but no instances of these classes
-	uncached: if False, computed values may be cached, otherwise they will always be recomputed.
-	unconnectable: if True, the node cannot be the destination of a connection
-	"""
-	kNo, kGood, kPerfect = 0, 127, 255				# specify how good attributes fit together
-	exact_type, writable, computable, cls, uncached, unconnectable = ( 1, 2, 4, 8, 16, 32 )
-	__slots__ = ( 'typecls', 'flags', 'default' )
-	
-	def __init__( self, typeClass, flags, default = None ):
-		self.typecls = typeClass
-		self.flags = flags			# used for bitflags describing mode
-		self.default = default
-		
-		# check default value for compatability !
-		if default is not None:
-			if self.getCompatabilityRate( default ) == 0:
-				raise TypeError( "Default value %r is not compatible with this attribute" % default )
-		# END default type check 
-		
-	def _getClassRating( self, cls, exact_type ):
-		"""@return: rating based on value being a class and compare
-		0 : value is no type
-		255: value matches comparecls, or linearly less if is just part of the mro of value"""
-		if not isinstance( cls, type ):
-			return 0
-			
-		mro = self.typecls.mro()
-		mro.reverse()
-		
-		if not cls in mro:
-			return 0
-			
-		if len( mro ) == 1:
-			return self.kPerfect
-		
-		rate = ( float( mro.index( cls ) ) / float( len( mro ) - 1 ) ) * self.kPerfect
-		
-		if exact_type and rate != self.kPerfect:		# exact type check
-			return 0
-			
-		return rate 
-
-	#{ Interface 
-	def getAffinity( self, otherattr ):
-		"""@return: rating from 0 to 255 defining how good the attribtues match 
-		each other in general.
-		@note: for checking connections, use L{getConnectionAffinity}"""
-		# see whether our class flags match
-		if self.flags & self.cls != otherattr.flags & self.cls:
-			return 0
-			
-		# finally check how good our types match 
-		return self._getClassRating( otherattr.typecls, otherattr.flags & self.exact_type )
-	
-	def getConnectionAffinity( self, otherattr ):
-		"""@return: rating from 0 to 255 defining the quality of the connection to 
-		otherplug. an affinity of 0 mean connection is not possible, 255 mean the connection 
-		is perfectly suited.
-		The connection is a directed one from self -> otherplug"""
-		if otherattr.flags & self.unconnectable:		# destination must be connectable
-			return 0
-			
-		return self.getAffinity( otherattr )
-		
-		
-		
-	def getCompatabilityRate( self, value ):
-		"""@return: value between 0 and 255, 0 means no compatability, 255 a perfect match
-		if larger than 0, the plug can hold the value ( assumed the flags are set correctly )"""
-		if isinstance( value, type ):
-			# do we need a class ?
-			if not self.flags & self.cls:
-				return 0		# its a class 
-			
-			# check compatability
-			return self._getClassRating( value, self.flags & self.exact_type )
-		# END is class type
-		else:
-			if not self.flags & self.cls:
-				return self._getClassRating( value.__class__, self.flags & self.exact_type )
-		# END is instance type 
-		
-		return 0
-
-	#}
-
-
-
-class iPlug( object ):
-	"""Defines an interface allowing to compare compatabilies according to types.
-	
-	Plugs can either be input plugs or output plugs - output plugs affect no other 
-	plug on a node, but are affected by 0 or more plugs 
-	"""
-	kNo,kGood,kPerfect = ( 0, 127, 255 )
-	
-	#{ Interface 
-	
-	def affects( self, otherplug ):
-		"""Set an affects relation ship between this plug and otherplug, saying 
-		that this plug affects otherplug."""
-		raise NotImplementedError( "Implement this in subclass" )
-		
-	def getAffected( self ):
-		"""@return: tuple containing affected plugs ( plugs that are affected by our value )"""
-		raise NotImplementedError( "Implement this in subclass" )
-		
-	def getAffectedBy( self ):
-		"""@return: tuple containing plugs that affect us ( plugs affecting our value )"""
-		raise NotImplementedError( "Implement this in subclass" )
-		
-	def providesOutput( self ):
-		"""@return: True if this is an output plug that can trigger computations"""
-		raise NotImplementedError( "Implement this in subclass" )
-		
-	def providesInput( self ):
-		"""@return: True if this is an input plug that will never cause computations"""
-		raise NotImplementedError( "Implement this in subclass" )
-		
-	#}
-	
-
-class plug( iPlug ):
-	"""Defines an interface allowing to compare compatabilies according to types.
-	
-	Plugs are implemented as descriptors, thus they will be defined on node class 
-	level, and all static information will remain static
-	
-	As descriptors, they are defined statically on the class, and some additional information 
-	such as connectivity, is stored on the respective class instance. These special methods 
-	are handled using L{NodeBase} class
-	
-	Plugs are implemented as descriptors as all type information can be kept per class, 
-	whereas only connection information changes per node instance.
-	
-	Plugs can either be input plugs or output plugs - output plugs affect no other 
-	plug on a node, but are affected by 0 or more plugs 
-	
-	@note: class is lowercase as it is used as descriptor ( acting more like a function )
-	"""
-	kNo,kGood,kPerfect = ( 0, 127, 255 )
-	__slots__ = ( '_name', 'attr', '_affects', '_affectedBy' )
-	
-	#{ Overridden object methods 
-	def __init__( self, name, attribute ):
-		"""Intialize the plug with a distinctive name"""
-		self._name = name
-		self.attr = attribute
-		self._affects = list()			# list of plugs that are affected by us
-		self._affectedBy = list()		# keeps record of all plugs that affect us
-		
-	def __str__( self ):
-		return self._name
-		
-	#}
-	
-	#{ Value access 
-	def __get__( self, obj, cls=None ):
-		"""A value has been requested - return our plugshell that brings together
-		both, the object and the static plug"""
-		# in class mode we return ourselves for access
-		if obj is not None:	
-			return obj.toShell( self )
-			
-		# class attributes just return the descriptor itself for direct access
-		return self
-		
-	
-	#def __set__( self, obj, value ):
-		"""We do not use a set method, allowing to override our descriptor through 
-		actual plug instances in the instance dict. Once deleted, we shine through again"""
-		# raise AssertionError( "To set this value, use the node.plug.set( value ) syntax" )
-		# obj.toShell( self ).set( value )
-		
-	#}
-	
-	#{ Interface 
-	
-	def affects( self, otherplug ):
-		"""Set an affects relation ship between this plug and otherplug, saying 
-		that this plug affects otherplug."""
-		if otherplug not in self._affects:
-			self._affects.append( otherplug )
-			
-		if self not in otherplug._affectedBy:
-			otherplug._affectedBy.append( self )
-		
-	def getAffected( self ):
-		"""@return: tuple containing affected plugs ( plugs that are affected by our value )"""
-		return tuple( self._affects )
-		
-	def getAffectedBy( self ):
-		"""@return: tuple containing plugs that affect us ( plugs affecting our value )"""
-		return tuple( self._affectedBy )
-		
-	def providesOutput( self ):
-		"""@return: True if this is an output plug that can trigger computations"""
-		return len( self.getAffectedBy() ) != 0 or self.attr.flags & Attribute.computable
-		
-	def providesInput( self ):
-		"""@return: True if this is an input plug that will never cause computations"""
-		#return len( self._affects ) != 0 and not self.providesOutput( )
-		return not self.providesOutput() # previous version did not recognize storage plugs as input
-		
-	#}
 	
 

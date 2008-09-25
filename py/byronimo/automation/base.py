@@ -73,7 +73,6 @@ def loadWorkflowFromDotFile( dotfile ):
 	
 	
 	for node in dotgraph.get_node_list():
-		
 		# can have initializers
 		nodeid = node.get_name().strip( '"' )
 		processname,args,kwargs = _getNodeInfo( node ) 
@@ -112,13 +111,21 @@ def loadWorkflowFromDotFile( dotfile ):
 		# we simply connect all compatible outputs from source to all compatible 
 		# inputs of dnode
 		# Fail of no input could be found
+		#print "ALL PLUGS "
+		#for p in dnode.getPlugs(): print p
 		dnodeInputPlugs = dnode.getInputPlugs( )
+		#for p in dnodeInputPlugs: print "%s.providesOutput = %i, affected by %s" % ( p, p.providesOutput(), p.getAffectedBy() )
+		
+		#print "SOURCE PLUGS PLUGS"
+		#for p in snode.getPlugs(): print "%s.providesOutput = %i, affected by %s" % ( p, p.providesOutput(), p.getAffectedBy() )
+		
 		numConnections = 0
 		for iplug in snode.getOutputPlugs():
+			#print "IPLUG: %s" % str(iplug)
 			try: 
 				# first is best
 				rate,targetplug = snode.filterCompatiblePlugs( dnodeInputPlugs, iplug.attr, raise_on_ambiguity = 1 )[0] 
-			except (TypeError,IndexError):	# could have no compatible or is ambigous
+			except ( TypeError,IndexError ):	# could have no compatible or is ambigous
 				continue
 			else:
 				# if a plug is already connected, try another one

@@ -108,3 +108,7 @@ class TestWorkflow( unittest.TestCase ):
 		self.failUnless( len( cg.nodes() ) == 5 )
 		self.failUnless( len( cg.edges() ) == 4 )
 		
+	def test_workflowfacades( self ):
+		"""byronimo.automation.workflow:  test facades of workflows"""
+		wfl = workflows.multiWorkflow
+		

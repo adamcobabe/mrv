@@ -345,6 +345,20 @@ class WorkflowProcessBase( GraphNodeBase, ProcessBase ):
 		noInput = lambda node: not node.getConnections( 1, 0 )
 		return self.wgraph.iterNodes( predicate = Or( noInput, noOutput ) ) 
 	    
+	def _getNodePlugs( self ):
+		"""Override the base method, filtering it's output so that only unconnected plugs
+		will be returned"""
+		finalres = list()
+		for node, plug in super( WorkflowProcessBase, self )._getNodePlugs( ):
+			shell = node.toShell( plug ) 
+			if not shell.getInput() and not shell.getOutputs( ):
+				finalres.append( ( node , plug ) )
+				#print "KEPT %s.%s" % ( node, str( plug ) )
+			#else:
+				#print "REMOVED %s.%s" % ( node, str( plug ) ) 
+		# END for each node,plug pair
+		return finalres
+		
 	#} end graphnodebase methods
 	
 	
