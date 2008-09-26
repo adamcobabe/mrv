@@ -18,7 +18,7 @@ __revision__="$Revision: 50 $"
 __id__="$Id: configuration.py 50 2008-08-12 13:33:55Z byron $"
 __copyright__='(c) 2008 Sebastian Thiel'
 
-from networkx import DiGraph, NetworkXError
+from networkx import DiGraph, NetworkXError, XDiGraph
 from collections import deque
 import inspect
 import weakref
@@ -635,7 +635,59 @@ class Graph( DiGraph, iDuplicatable ):
 		"""Write the connections in self to the given file object or path
 		@todo: remove if no longer needed"""
 		import networkx.drawing.nx_pydot as dotio
-		dotio.write_dot( self, fileOrPath )
+		
+		# associate every plugshell with its node create a more native look
+		writegraph = XDiGraph()
+		# but we do not use it as the edge attrs cannot be assigned anymore - dict has no unique keys
+		# writegraph.allow_multiedges()	 
+		
+		graphattrs = { "style" : "filled" }
+		nodeattrs = dict()
+		edgeattrs = dict()
+		
+		# EXTRACT DATA 
+		for node in self.iterNodes():
+			nodeattrs[ node ] = { "color" : "#ebba66", "width" : "4", "height" : "2", "fontsize" : "22" }
+			writegraph.add_node( node )
+			# for shell in node.toShells( node.getPlugs() ):
+				# edge = ( shell, node )
+				# edgeattrs[ edge ] = { "color" : "#bbbbbb" }
+				# nodeattrs[ shell ] = { "color" : "#bbbbbb" }
+				# 
+				# writegraph.add_edge( edge )
+			# END for each shell in node 
+		# END for each node in graph 
+		
+		# now all the connections - just transfer them 
+		for sshell,eshell in self.edges_iter():
+			edge = (sshell,eshell)
+			writegraph.add_edge( edge )
+			#edgeattrs[ edge ] = { "label" : "%s -> %s" % ( sshell, eshell ) }
+			#edgeattrs[ edge ] = { "headlabel" : str(eshell.plug), "taillabel" : str(sshell.plug), 
+			#						"label" : "%s->%s" % (sshell.plug,eshell.plug)}
+									
+			#nodeattrs[ eshell ][ "color" ] = "#000000"	# change color
+			#nodeattrs[ sshell ][ "color" ] = "#000000"
+			#edgeattrs[ (eshell,eshell.node) ][ "color" ] = "#000000"	# change color
+			
+			node_to_shell = (sshell.node,sshell)
+			writegraph.add_edge( node_to_shell )
+			edgeattrs[ node_to_shell ] = { "color" : "#000000" }	# change color
+			
+			nodeattrs[ sshell ] = { "color" : "#000000", "label" : sshell.plug }	# change color
+			nodeattrs[ eshell ] = { "color" : "#000000", "label" : eshell.plug }	# change color
+			
+			shell_to_node = (eshell,eshell.node)
+			writegraph.add_edge( shell_to_node )
+			edgeattrs[ shell_to_node ] = { "color" : "#000000" }	# change color
+		# END for each edge in graph
+		
+		# WRITE DOT FILE 
+		fh = dotio._get_fh( fileOrPath ,'w' ) 
+		P = dotio.to_pydot( writegraph, graph_attr=graphattrs, node_attr=nodeattrs, edge_attr=edgeattrs )
+		P.set( "ratio", "1" )
+ 		fh.write( P.to_string( ) ) 
+ 		fh.flush( ) # might be a user filehandle so leave open (but flush) 
 		
 	#} END debugging 
 		

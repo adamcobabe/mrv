@@ -143,6 +143,13 @@ def loadWorkflowFromDotFile( dotfile ):
 		# assure we have a connection 
 		if numConnections == 0:
 			raise AssertionError( "Found no compatible connection between %s and %s in workflow %s - check your processes" % ( snode, dnode, wfl ) )
+			
+	# DEBUG - write workflow 
+	import tempfile
+	path = "%s/%s.postcreate.dot" % ( tempfile.gettempdir(), wfl )
+	wfl.writeDot( path )
+	print "Wrote DOT to: %s" % path
+	
 	# END for each edge 
 	return wfl
 	
