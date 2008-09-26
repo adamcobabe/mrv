@@ -102,7 +102,7 @@ class _OIShell( _PlugShell ):
 	Iteration over internal plugShells is not allowed.
 	Thus we override only the methods that matter and assure that the call is handed 
 	to the acutal internal plugshell.
-	We know everything we require as we have been fed with an IOPlugShell
+	We know everything we require as we have been fed with an IOShell
 	"""
 	# list all methods that should not be a facade to our facade node 
 	__unfacade__ = [ 'get', 'set', 'hasCache', 'setCache', 'getCache', 'clearCache' ]
@@ -130,7 +130,7 @@ class _OIShell( _PlugShell ):
 		
 		
 class _IOShell( _PlugShell ):
-	"""This callable class, when called, will create a IOFacadePlugShell using the 
+	"""This callable class, when called, will create a IOShell using the 
 	actual facade node, not the one given as input. This allows it to have the 
 	facade system handle the plugshell, or simply satisfy the original request"""
 	
@@ -157,9 +157,12 @@ class _IOShell( _PlugShell ):
 			# attribute 
 			self.ioplug = None							# keep it for later comparison at least 
 			if isinstance( myargs[1], IOFacadePlug ):
+				print "STORED IO PLUG to: %s " % str( myargs[1] )
 				self.ioplug = myargs[1]
 				myargs[1] = self.ioplug.iplug		# this is the internal plug on the internal node 
-			# END ioplug checking 
+			# END ioplug checking
+			else:
+				print "myargs[0:2]: %s, %s" % (myargs[0], myargs[1] )
 			
 			super( _IOShell, self ).__init__( *myargs )
 		# END if shell mode 
@@ -177,7 +180,7 @@ class _IOShell( _PlugShell ):
 		myargs.append( self.facadenode )
 		myargs.append( self.origshellcls )
 		return self.__class__( *myargs )
-	
+		
 	#{ Helpers 	
 	def _getInputShell( self ):
 		"""Helper calling a function on the original shell if we have that information"""
@@ -321,6 +324,7 @@ class FacadeNodeBase( NodeBase ):
 			return IOFacadePlug( node, plug )
 		# END to facade plug helper
 		
+		print "START PROCESSING" * 8
 		finalres = list()
 		for orignode, plug in yourResult:			
 			ioplug = toFacadePlug( orignode, plug )
@@ -336,19 +340,56 @@ class FacadeNodeBase( NodeBase ):
 			# Allowing us to get callbacks once the node is used inside of the internal 
 			# structures
 			
-			# WRAP VIRTUAL PLUG to the node 
-			################################
-			setattr( orignode, ioplug.iplug.getName(), ioplug )
-			
-			
 			# ADD FACADE SHELL CLASS
 			############################
 			if not isinstance( orignode.shellcls, _IOShell ):
 				classShellCls = orignode.shellcls
+				print "SETTING SHELLCLS on %s" % orignode
 				orignode.shellcls = _IOShell( self, classShellCls )
-				# END if we have to swap in our facadeIOShell
+				# END for each shell to reconnect 
+			# END if we have to swap in our facadeIOShell
+			
+			# WRAP VIRTUAL PLUG to the node 
+			################################
+			
+			# have to set it as shell 
+			origplugname = ioplug.iplug.getName()
+			# print orignode.__dict__[ origplugname ]
+			if isinstance( getattr( orignode, origplugname ), IOFacadePlug ):
+				print "PLUG %s on %s was FACADED ALREADY" % ( origplugname, orignode )
+				continue
+			# END if plug already set ( as shell )
+			
+			print "FACADING PLUG: %s on %s " % ( ioplug.iplug.getName(), orignode )
+			facadeshell = orignode.toShell( ioplug.iplug )
+			setattr( orignode, origplugname, ioplug )
+			
+			
+			
+			
+			# UPDATE CONNECTIONS ( per plug, not per node )
+			######################
+			# update all connections with the new shells - they are required when 
+			# walking the affects tree, as existing ones will be taken instead of
+			# our new shell then.
+			all_shell_cons = facadeshell.getConnections( 1, 1 )	 # now we get old shells
+			
+			# disconnect and reconnect with new
+			for sshell,eshell in all_shell_cons:
+				print "UPDATING CONNECTION: %r -> %r" % (sshell,eshell)
+				if isinstance( sshell, _IOShell ) and isinstance( eshell, _IOShell ):
+					continue			# never operate twice on one connection 
+					
+				sshell.disconnect( eshell )
+				newstartshell = getattr( sshell.node, sshell.plug.getName() ) # this already creates a shell
+				newendshell = getattr( eshell.node, eshell.plug.getName() )	
+				print "NEW START SHELL = %s(%s)" % ( repr( newstartshell ), type( newstartshell ) )
+				print "NEW END SHELL = %s(%s)" % ( repr( newendshell ), type( newendshell ) )
+				newstartshell.connect( newendshell )
+			# END for each edge to update 
 		# END for each item in result 
 		
+		print "END PROCESSING" * 8
 		# the final result has everything nicely put back together, but 
 		# it has been altered as well
 		return finalres
@@ -411,15 +452,6 @@ class GraphNodeBase( FacadeNodeBase ):
 	
 	#} end NodeBase methods
 		
-	def getInputPlugs( self, **kwargs ):
-		"""@return: list of plugs suitable as input
-		@note: convenience method"""
-		return self.getPlugs( predicate = lambda p: p.providesInput(), **kwargs )
-		
-	def getOutputPlugs( self, **kwargs ):
-		"""@return: list of plugs suitable to deliver output
-		@note: convenience method"""
-		return self.getPlugs( predicate = lambda p: p.providesOutput(), **kwargs )
 #} END nodes
 
 
@@ -459,14 +491,26 @@ class IOFacadePlug( tuple , iPlug ):
 		""" Allow easy attribute access 
 		inode: the internal node 
 		iplug: the internal plug 
+		
+		Besides, this plug is at the position of an instance attribute, but is supposed
+		to act like the plug descriptor that it hides on class level. The class descriptor 
+		returns a shell.
+		Thus we must:
+			- Act as IOFacade returning additional information
+			- Act as original plug for attribute access
+			- Act as shell of our node
+		This will work as long as the method names are unique 
 		"""
 		if attr == 'inode':
 			return self[0]()
 		if attr == 'iplug':
 			return self[1]()
 		
-		# still here ? try to return a value on the original plug 
-		return getattr( self.iplug, attr )
+		# still here ? try to return a value on the original plug
+		try:
+			return getattr( self.iplug, attr )
+		except AttributeError:
+			return getattr( self.inode.toShell( self.iplug ), attr )
 		
 	#} END object overridden methods
 	
@@ -479,12 +523,22 @@ class IOFacadePlug( tuple , iPlug ):
 		return "FP(%s.%s)" % ( self.inode, self.iplug )
 		
 	
-	def _getAffectedList( self, direction, pruneplugfunc ):
+	def _getAffectedList( self, direction, pruneshellfunc ):
 		"""@return: list of all ioplugs looking in direction, if 
 		plugtestfunc returns 1 for the plug in the shell being walked"""
-		these = lambda shell: not isinstance( shell, _IOShell ) or shell.ioplug is None or pruneplugfunc( shell.plug ) 
+		these = lambda shell: shell is self or not isinstance( shell, _IOShell ) or shell.ioplug is None or pruneshellfunc( shell )
 		iterShells = self.inode.toShell( self.iplug ).iterShells( direction=direction, prune = these )
-		return [ shell.ioplug for shell in iterShells ]
+		outlist = [ shell.ioplug for shell in iterShells ]
+		
+		#print "AFFECTED LIST: %s on %s" % ( direction, self )
+		#print outlist
+		# print "ITERSHELL LIST %s " % direction
+		# #print getattr( list( self.inode.toShell( self.iplug ).iterShells( direction=direction ) )[-1].node, 'shellcls' )
+		# print list( self.inode.toShell( self.iplug ).iterShells( direction=direction ) )[-1]
+		# for o in outlist: print o
+		# print "DONE WITH OUTLIST"
+		# print "DONE"
+		return outlist
 	
 	def affects( self, otherplug ):
 		"""Affects relationships will be set on the original plug only"""
@@ -494,12 +548,12 @@ class IOFacadePlug( tuple , iPlug ):
 		"""Walk the internal affects using an internal plugshell
 		@note: only output plugs can be affected - this is a rule followed throughout the system
 		@return: tuple containing affected plugs ( plugs that are affected by our value )"""
-		return self._getAffectedList( "down",  lambda plug: not plug.providesOutput() )
+		return self._getAffectedList( "down",  lambda shell: not shell.plug.providesOutput() )
 		
 	def getAffectedBy( self ):
 		"""Walk the graph upwards and return all input plugs that are being facaded 
 		@return: tuple containing plugs that affect us ( plugs affecting our value )"""
-		return self._getAffectedList( "up",  lambda plug: not plug.providesInput() )
+		return self._getAffectedList( "up",  lambda shell: not shell.plug.providesInput() )
 		
 	def providesOutput( self ):
 		"""@return: True if this is an output plug that can trigger computations

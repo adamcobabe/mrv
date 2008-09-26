@@ -93,7 +93,7 @@ def loadWorkflowFromDotFile( dotfile ):
 			processinst = processcls( *args, **kwargs )
 		except TypeError:
 			print "Process %r could not be created as it required a different init call" % processcls
-			raise 
+			raise
 		else:
 			edge_lut[ nodeid ] = processinst
 			wfl.addNode( processinst )
@@ -107,21 +107,22 @@ def loadWorkflowFromDotFile( dotfile ):
 	for edge in dotgraph.get_edge_list():
 		snode = edge_lut[ edge.get_source() ]
 		dnode = edge_lut[ edge.get_destination() ]
-		
+		#print "EDGE = " % ( snode, dnode )
 		# we simply connect all compatible outputs from source to all compatible 
 		# inputs of dnode
 		# Fail of no input could be found
-		#print "ALL PLUGS "
-		#for p in dnode.getPlugs(): print p
+		print "ALL PLUGS "
+		for p in dnode.getPlugs(): print "plug"; print type( p ); print repr( p )
+		print  "done printing all plugs"
 		dnodeInputPlugs = dnode.getInputPlugs( )
-		#for p in dnodeInputPlugs: print "%s.providesOutput = %i, affected by %s" % ( p, p.providesOutput(), p.getAffectedBy() )
+		# for p in dnodeInputPlugs: print "%s.providesOutput = %i, affected by %s" % ( p, p.providesOutput(), p.getAffectedBy() )
 		
 		#print "SOURCE PLUGS PLUGS"
 		#for p in snode.getPlugs(): print "%s.providesOutput = %i, affected by %s" % ( p, p.providesOutput(), p.getAffectedBy() )
 		
 		numConnections = 0
 		for iplug in snode.getOutputPlugs():
-			#print "IPLUG: %s" % str(iplug)
+			print "IPLUG: %s" % str(iplug)
 			try: 
 				# first is best
 				rate,targetplug = snode.filterCompatiblePlugs( dnodeInputPlugs, iplug.attr, raise_on_ambiguity = 1 )[0] 

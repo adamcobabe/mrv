@@ -105,7 +105,7 @@ class TestProcess( processes.ProcessBase ):
 		
 	#}
 
-
+	
 class OtherTestProcess( TestProcess ):
 	"""TestProcess helping to debugging the calls done
 	Supported Targets: unicode instances """

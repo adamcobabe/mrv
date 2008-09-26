@@ -286,9 +286,27 @@ class iPlug( object ):
 	
 	#} END base implementation  
 	
-	#{ Utility
-
-	#} END utility 
+		
+	#{ Value access 
+	def __get__( self, obj, cls=None ):
+		"""A value has been requested - return our plugshell that brings together
+		both, the object and the static plug"""
+		# in class mode we return ourselves for access
+		if obj is not None:
+			return obj.toShell( self )
+			
+		# class attributes just return the descriptor itself for direct access
+		return self
+		
+	
+	#def __set__( self, obj, value ):
+		"""We do not use a set method, allowing to override our descriptor through 
+		actual plug instances in the instance dict. Once deleted, we shine through again"""
+		# raise AssertionError( "To set this value, use the node.plug.set( value ) syntax" )
+		# obj.toShell( self ).set( value )
+		
+	#} value access
+	
 	
 	#{ Interface 
 	def getName( self ):
@@ -349,27 +367,7 @@ class plug( iPlug ):
 		self._affectedBy = list()		# keeps record of all plugs that affect us
 	
 	#} END object overridden methods 
-	
-	#{ Value access 
-	def __get__( self, obj, cls=None ):
-		"""A value has been requested - return our plugshell that brings together
-		both, the object and the static plug"""
-		# in class mode we return ourselves for access
-		if obj is not None:	
-			return obj.toShell( self )
-			
-		# class attributes just return the descriptor itself for direct access
-		return self
-		
-	
-	#def __set__( self, obj, value ):
-		"""We do not use a set method, allowing to override our descriptor through 
-		actual plug instances in the instance dict. Once deleted, we shine through again"""
-		# raise AssertionError( "To set this value, use the node.plug.set( value ) syntax" )
-		# obj.toShell( self ).set( value )
-		
-	#} value access
-	
+
 	#{ Interface
 	
 	def getName( self ):
@@ -546,17 +544,38 @@ class _PlugShell( tuple ):
 			
 		return self.node.graph.disconnect( self, otherplug )
 	
-	def getInput( self ):
+	def getInput( self, predicate = lambda shell: True ):
 		"""@return: the connected input plug or None if there is no such connection
 		@param predicate: plug will only be returned if predicate is true for it
 		@note: input plugs have on plug at most, output plugs can have more than one 
 		connected plug"""
-		return self.node.graph.getInput( self )
+		sourceshell = self.node.graph.getInput( self )
+		if sourceshell and predicate( sourceshell ):
+			return sourceshell
+		return None
 		
-	def getOutputs( self, **kwargs ):
+	def getOutputs( self, predicate = lambda shell: True ):
 		"""@return: a list of plugs being the destination of the connection
 		@param predicate: plug will only be returned if predicate is true for it - shells will be passed in """
-		return self.node.graph.getOutputs( self, **kwargs )
+		return self.node.graph.getOutputs( self, predicate = predicate )
+		
+	def getConnections( self, inpt, output, predicate = lambda shell: True ):
+		"""@return: get all input and or output connections from this shell 
+		or to this shell as edges ( sourceshell, destinationshell )
+		@param predicate: return true for each destination shell that you can except in the 
+		returned edge or the sourceshell where your shell is the destination.
+		@note: Use this method to get edges read for connection/disconnection"""
+		outcons = list()
+		if inpt:
+			sourceshell = self.getInput( predicate = predicate )
+			if sourceshell: 
+				outcons.append( ( sourceshell, self ) )
+		# END input connection handling 
+			
+		if output:
+			outcons.extend( ( self, oshell ) for oshell in self.getOutputs( predicate = predicate ) )
+			
+		return outcons
 		
 	def iterShells( self, **kwargs ):
 		"""Iterate plugs and their connections starting at this plug
@@ -842,7 +861,6 @@ class Graph( DiGraph, iDuplicatable ):
 		self.add_edge( sourceshell, v = destinationshell )
 		return sourceshell
 		
-	
 	def disconnect( self, sourceshell, destinationshell ):
 		"""Remove the connection between sourceshell to destinationshell if they are connected
 		@note: does not raise if no connection is present"""
@@ -890,7 +908,7 @@ class _NodeBaseCheckMeta( type ):
 		# set the name according to its slot name in the parent class
 		membersdict = inspect.getmembers( newcls )		# do not filter, as getPlugs could be overridden
 		try:
-			for plug in newcls.getPlugs( ):
+			for plug in newcls.getPlugsStatic( ):
 				for name,member in membersdict:
 					if member == plug and plug.getName() != name:	
 						# try to set it
@@ -936,7 +954,8 @@ class NodeBase( iDuplicatable ):
 		# check if item does still exist - this is not the case if the graph 
 		# is currently being deleted
 		try:
-			self.graph.removeNode( self )		# TODO: take back in and make it work ! Problems with facade nodes
+			#self.graph.removeNode( self )		# TODO: take back in and make it work ! Problems with facade nodes
+			pass 
 		except (AttributeError,ReferenceError):		# .graph could be None
 			pass 
 		
@@ -971,34 +990,62 @@ class NodeBase( iDuplicatable ):
 	#} END interface
 	
 	#{ Base
-	def toShells( self, plugs ):
+	def toShells( self, plugs ):                                                          
 		"""@return: list of shells made from plugs and our node"""
-		return [ self.shellcls( self, plug ) for plug in plugs ]
+		# may not use it as generator as it binds variables ( of course ! )
+		outlist = list()
+		for plug in plugs:
+			outlist.append( self.toShell( plug ) )
+		return outlist
 		
 	def toShell( self, plug ):
 		"""@return: a plugshell as suitable to for this class"""
-		return self.shellcls( self, plug )
-		
+		return getattr( self, 'shellcls' )( self, plug )		# prevent cls variable to be bound !
+
 	@classmethod
-	def getPlugs( cls, predicate = lambda x: True ):
-		"""@return: list of static plugs as defined on this node
+	def getPlugsStatic( cls, predicate = lambda x: True ):
+		"""@return: list of static plugs as defined on this node - they are class members
 		@param predicate: return static plug only if predicate is true"""
 		pred = lambda m: isinstance( m, plug )
 		
 		# END sanity check
 		pluggen = ( m[1] for m in inspect.getmembers( cls, predicate = pred ) if predicate( m[1] ) )
 		return list( pluggen )
+	
+	def getPlugs( self, predicate = lambda x: True ):
+		"""@return: list of dynamic plugs as defined on this node - they are usually retrieved 
+		on class level, but may be overridden on instance level
+		@param predicate: return static plug only if predicate is true"""
+		# the getmembers function appears to be ... buggy with my classes
+		# use special handling to assure he gets all the instance members AND the class members
+		# In ipython tests this worked as expected - get the dicts individually
+		all_dict_holders = itertools.chain( ( self, ), self.__class__.mro() )
+		all_dicts = ( instance.__dict__ for instance in all_dict_holders )
+		pluggen = ( v for d in all_dicts for v in d.itervalues() if isinstance( v, plug ) and predicate( v ) )
 		
-	@classmethod	
-	def getInputPlugs( cls, **kwargs ):
+		return list( pluggen )
+	
+	@classmethod
+	def getInputPlugsStatic( cls, **kwargs ):
+		"""@return: list of static plugs suitable as input
+		@note: convenience method"""
+		return cls.getPlugsStatic( predicate = lambda p: p.providesInput(), **kwargs )
+	
+	def getInputPlugs( self, **kwargs ):
 		"""@return: list of plugs suitable as input
 		@note: convenience method"""
-		return cls.getPlugs( predicate = lambda p: p.providesInput(), **kwargs )
+		return self.getPlugs( predicate = lambda p: p.providesInput(), **kwargs )
+	
 	@classmethod
-	def getOutputPlugs( cls, **kwargs ):
+	def getOutputPlugsStatic( cls, **kwargs ):
+		"""@return: list of static plugs suitable to deliver output
+		@note: convenience method"""
+		return cls.getPlugsStatic( predicate = lambda p: p.providesOutput(), **kwargs )
+
+	def getOutputPlugs( self, **kwargs ):
 		"""@return: list of plugs suitable to deliver output
 		@note: convenience method"""
-		return cls.getPlugs( predicate = lambda p: p.providesOutput(), **kwargs )
+		return self.getPlugs( predicate = lambda p: p.providesOutput(), **kwargs )
 
 	def getConnections( self, inpt, output ):
 		"""@return: Tuples of input shells defining a connection of the given type from 

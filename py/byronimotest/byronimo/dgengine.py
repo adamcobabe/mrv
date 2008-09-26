@@ -233,6 +233,17 @@ class TestDGEngine( unittest.TestCase ):
 		self.failUnless( len( s3.getConnections( 0, 1 ) ) == 1 )
 		self.failUnless( len( s3.getConnections( 1, 1 ) ) == 3 )
 		
+		# SHELL BASED CONNECTION QUERY 
+		###################################
+		iedges = s3.inInt.getConnections( 1, 0 )
+		self.failUnless( len( iedges ) == 1 )
+		self.failUnless( iedges[0][0] == s2.inInt and iedges[0][1] == s3.inInt )
+		
+		oedges = s2.inInt.getConnections( 0, 1 )
+		self.failUnless( len( oedges ) == 1 )
+		self.failUnless( oedges[0][0] == s2.inInt and oedges[0][1] == s3.inInt )
+		
+		
 		# iterconnectednodes 
 		self.failUnless( len( list( graph.iterConnectedNodes() ) ) == 3 )
 		
@@ -250,7 +261,7 @@ class TestDGEngine( unittest.TestCase ):
 		#################
 		intattr = A( int, 0 )
 		floatattr = A( float, 0 )
-		inplugs = SimpleNode.getInputPlugs()
+		inplugs = SimpleNode.getInputPlugsStatic()
 		
 		self.failUnless( len( SimpleNode.filterCompatiblePlugs( inplugs, intattr ) ) == 1 )
 		self.failUnless( len( SimpleNode.filterCompatiblePlugs( inplugs, intattr, raise_on_ambiguity=1 ) ) == 1 )
