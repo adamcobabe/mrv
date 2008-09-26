@@ -76,7 +76,16 @@ class TestDGFacadeEngine( unittest.TestCase ):
 		og = Graph( )				# other graph
 		gn = GraphNodeBase( g )		# node wrapping the graph
 		
-		for p in gn.getPlugs(): print "%s: Provides Input: %i, output: %i" % ( p , p.providesInput(), p.providesOutput() )
-		# for p in gn.getInputPlugs(): print p
+		#for p in gn.getPlugs(): print "%s: Provides Input: %i, output: %i" % ( p , p.providesInput(), p.providesOutput() )
+		ip = gn.getInputPlugs()
+		print "INPUT PLUGS      " * 6
+		for i in ip: 
+			print i
+			for a in i.getAffected( ):
+				print "--------> affectts %s" % str( a )
 		
-	
+		
+		op = gn.getOutputPlugs()
+		print "OUTPUT PLUGS     " * 6
+		for o in op: print o
+		

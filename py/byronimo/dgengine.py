@@ -94,6 +94,8 @@ def iterShells( rootPlugShell, stopAt = lambda x: False, prune = lambda x: False
 	stack.append( rootPlugShell )
 	
 	def addToStack( node, stack, lst, branch_first ):
+		if len( lst ):
+			print "1__adding to stack %s(%s)" % (lst[0],type(node.shellcls))
 		if branch_first:
 			stack.extend( node.toShell( plug ) for plug in lst )
 		else:
@@ -102,6 +104,8 @@ def iterShells( rootPlugShell, stopAt = lambda x: False, prune = lambda x: False
 	# END addToStack local method
 	
 	def addOutputToStack( stack, lst, branch_first ):
+		if len( lst ):
+			print "2__adding OUTPUT to stack %s(%s)" % (str(lst),type(lst))
 		if branch_first:
 			stack.extend( lst )
 		else:
@@ -120,8 +124,10 @@ def iterShells( rootPlugShell, stopAt = lambda x: False, prune = lambda x: False
 			continue
 			
 		if not prune( shell ):
+			print "--> YIELD %s" % repr( shell )
 			yield shell
-			
+		
+		print "ITERATE %s: %r" % ( direction, repr( shell ) )
 		if direction == 'up':
 			# I-N-O 
 			addToStack( shell.node, stack, shell.plug.getAffectedBy(), branch_first )
@@ -129,6 +135,7 @@ def iterShells( rootPlugShell, stopAt = lambda x: False, prune = lambda x: False
 			
 			# O<-I
 			ishell = shell.getInput( )
+			print "ISHELL: %r" % repr(ishell)
 			if ishell:
 				if branch_first:
 					stack.append( ishell )
@@ -287,27 +294,6 @@ class iPlug( object ):
 	#} END base implementation  
 	
 		
-	#{ Value access 
-	def __get__( self, obj, cls=None ):
-		"""A value has been requested - return our plugshell that brings together
-		both, the object and the static plug"""
-		# in class mode we return ourselves for access
-		if obj is not None:
-			return obj.toShell( self )
-			
-		# class attributes just return the descriptor itself for direct access
-		return self
-		
-	
-	#def __set__( self, obj, value ):
-		"""We do not use a set method, allowing to override our descriptor through 
-		actual plug instances in the instance dict. Once deleted, we shine through again"""
-		# raise AssertionError( "To set this value, use the node.plug.set( value ) syntax" )
-		# obj.toShell( self ).set( value )
-		
-	#} value access
-	
-	
 	#{ Interface 
 	def getName( self ):
 		"""@return: name of the plug ( the name that identifies it on the node"""
@@ -367,6 +353,27 @@ class plug( iPlug ):
 		self._affectedBy = list()		# keeps record of all plugs that affect us
 	
 	#} END object overridden methods 
+
+	#{ Value access 
+	
+	def __get__( self, obj, cls=None ):
+		"""A value has been requested - return our plugshell that brings together
+		both, the object and the static plug"""
+		# in class mode we return ourselves for access
+		if obj is not None:
+			return obj.toShell( self )
+			
+		# class attributes just return the descriptor itself for direct access
+		return self
+		
+	
+	#def __set__( self, obj, value ):
+		"""We do not use a set method, allowing to override our descriptor through 
+		actual plug instances in the instance dict. Once deleted, we shine through again"""
+		# raise AssertionError( "To set this value, use the node.plug.set( value ) syntax" )
+		# obj.toShell( self ).set( value )
+		
+	#} value access
 
 	#{ Interface
 	
@@ -1005,7 +1012,11 @@ class NodeBase( iDuplicatable ):
 	@classmethod
 	def getPlugsStatic( cls, predicate = lambda x: True ):
 		"""@return: list of static plugs as defined on this node - they are class members
-		@param predicate: return static plug only if predicate is true"""
+		@param predicate: return static plug only if predicate is true
+		@note: Use this method only if you do not have an instance - there are nodes 
+		that actually have no static plug information, but will dynamically generate them.
+		For this to work, they need an instance - thus the getPlugs method is an instance 
+		method and is meant to be the most commonly used one."""
 		pred = lambda m: isinstance( m, plug )
 		
 		# END sanity check

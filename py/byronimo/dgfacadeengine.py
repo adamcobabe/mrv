@@ -93,7 +93,7 @@ class _IOShellMeta( _OIShellMeta ):
 	def createFacadeMethod( cls, funcname ):
 		"""Call the main shell's function"""
 		def facadeMethod( self, *args, **kwargs ):
-			return getattr( self.origshellcls( self.node, self.plug ), funcname )( *args, **kwargs )
+			return getattr( self._getOriginalShell( ), funcname )( *args, **kwargs )
 		return facadeMethod
 		
 
@@ -102,11 +102,15 @@ class _OIShell( _PlugShell ):
 	Iteration over internal plugShells is not allowed.
 	Thus we override only the methods that matter and assure that the call is handed 
 	to the acutal internal plugshell.
-	We know everything we require as we have been fed with an IOShell
+	We know everything we require as we have been fed with an IOPlug
+	
+		- .node = facacde node 
+		- .plug = ioplug containing inode and iplug ( internal node and internal plug )
+			 - The internal node allows us to hand in calls to the native internal shell
 	"""
 	# list all methods that should not be a facade to our facade node 
 	__unfacade__ = [ 'get', 'set', 'hasCache', 'setCache', 'getCache', 'clearCache' ]
-	__facade__ = [ 'connect', 'disconnect', 'getInput', 'getOutputs', 'iterShells' ]
+	__facade__ = [ 'connect','disconnect','getInput','getConnections','getOutputs','iterShells' ]
 	__metaclass__ = _OIShellMeta
 	
 	def __init__( self, *args ):
@@ -126,7 +130,8 @@ class _OIShell( _PlugShell ):
 	
 	def _toIShell( self ):
 		"""@return: convert ourselves to the real shell actually behind this facade plug"""
-		return self.plug.inode.toShell( self.plug )
+		# must return original shell, otherwise call would be handed out again
+		return self.plug.inode.shellcls.origshellcls( self.plug.inode, self.plug.iplug )
 		
 		
 class _IOShell( _PlugShell ):
@@ -142,65 +147,85 @@ class _IOShell( _PlugShell ):
 		"""Initialize this instance - we can be in creator mode or in shell mode.
 		ShellMode: we behave like a shell but apply customizations, true if 3 args ( node, plug, origshellcls )  
 		CreatorMode: we only create shells of our type in ShellMode, true if 2 args )
-		@param origshellcls[-1]: the shell class used on the manipulated node before we , must always be set as last arg
-		@param facadenode[-2]: the facadenode we are connected to 
+		@param origshellcls[0]: the shell class used on the manipulated node before we , must always be set as last arg
+		@param facadenode[1]: the facadenode we are connected to 
 		@todo: optimize by creating the unfacade methods exactly as we need them and bind the respective instance 
 		methods - currently this is solved with a simple if conditiion.
 		"""
-		# get the last arguments - they are supposed to be ours
-		myargs = list( args )	 # cannot pop tuple
-		self.origshellcls = myargs.pop( )
-		self.facadenode = myargs.pop( )
-		
-		if myargs:				# SHELL MODE 	- init base
-			# if we are supposed to be initialized with an ioPlug, keep it in a separate 
-			# attribute 
-			self.ioplug = None							# keep it for later comparison at least 
-			if isinstance( myargs[1], IOFacadePlug ):
-				print "STORED IO PLUG to: %s " % str( myargs[1] )
-				self.ioplug = myargs[1]
-				myargs[1] = self.ioplug.iplug		# this is the internal plug on the internal node 
-			# END ioplug checking
-			else:
-				print "myargs[0:2]: %s, %s" % (myargs[0], myargs[1] )
-			
-			super( _IOShell, self ).__init__( *myargs )
-		# END if shell mode 
+		# find whether we are in shell mode or in class mode - depending on the
+		# types of the args
+		# CLASS MODE 
+		if hasattr( args[0], '__call__' ) or isinstance( args[0], type ):
+			self.origshellcls = args[0]
+			self.facadenode = args[1]
+			self.iomap = dict() 							# plugname -> ioplug
+			super( _IOShell, self ).__init__(  )			# initialize empty
+		# END class mode
+		else:
+			# we do not do anything special in shell mode ( at least value-wise
+			super( _IOShell, self ).__init__( *args )	# init base 
+		# END INSTANCE ( SHELL ) MODE 
 		
 	def __call__( self, *args ):
 		"""This equals a constructor call to the shell class on the wrapped node.
-		We actually try a reverse mapping for all calls should be attempted to be handled
-		by the facade node. If that works, its good, if not, we swap in the original 
-		class creator and undo our modification, as this wrapped node has no 
-		relation to the world of the facade node.
+		Simply return an ordinary shell at its base, but we catch some callbacks 
 		This applies to everything but connection handling
 		@note: the shells we create are default ones with some extra handlers 
 		for exceptions"""
-		myargs = list( args )				# tuple cannot be adjusted
-		myargs.append( self.facadenode )
-		myargs.append( self.origshellcls )
-		return self.__class__( *myargs )
+		return self.__class__( *args )
 		
 	#{ Helpers 	
+	
+	def _getIOPlug( self ):
+		"""@return: ioplug suitable for this shell or None"""
+		try:
+			# cannot use weak references, don't want to use strong references 
+			# ioplugname = self.node.shellcls.iomap[ self.plug.getName() ]	# don't want to use strong - but have to for now 
+			# ioplug = getattr( self.node.shellcls.facadenode, ioplugname ) # expensive call without cache !
+			return self.node.shellcls.iomap[ self.plug.getName() ]
+			# print "FOUND IOPLUG %r for %s" % ( ioplug, self.plug.getName() )
+		except KeyError:
+			# plug not on facadenode - this is fine as we get always called
+			pass 
+		#except AttributeError:
+		# TODO: take that back in once we use weak references or proper ids again ... lets see
+		#	# facade node does not know an io plug - assure we do not try again
+		#	del( self.node.shellcls[ self.plug.getName() ] )
+			
+		return None
+	
+	def _getOriginalShell( self ):
+		"""@return: instance of the original shell class that was replaced by our instance"""
+		return self.node.shellcls.origshellcls( self.node, self.plug )
+	
 	def _getInputShell( self ):
 		"""Helper calling a function on the original shell if we have that information"""
-		if self.ioplug is None:
-			# just return the internal shell ( that will actually do the job ) 
-			return self.origshellcls( self.node, self.plug )	
+		if not isinstance( self.node.shellcls, _IOShell ):
+			raise AssertionError( "Shellclass of %s must be _IOShell, but is %s" % ( self.node, type( self.node.shellcls ) ) )
 		
-		
+		# get the ioplug on our node  
+		ioplug = self._getIOPlug( )
+		print "GETTING IOSHELL FOR: %r "  % repr( self )
+		if not ioplug:
+			# plug not on facadenode, just ignore and return the original shell 
+			return self._getOriginalShell( )
+			
 		# Use the facade node shell type - it will not handle connections
-		facadeNodeShell = self.facadenode.toShell( self.ioplug )
+		facadeNodeShell = self.node.shellcls.facadenode.toShell( ioplug )
 		inputShell = facadeNodeShell.getInput( )
 		
 		# if we have an input shell, use it 
 		if inputShell:
 			print "BACK TRACK: '%s' <- '%s'" % ( repr( inputShell ), repr( facadeNodeShell ) )
 			return inputShell
-			
+	
+		# END ioplug handling 
+		
 		# no 'outside world' inputShell found, use the internal handler instead
 		# Always use the stored class - using self.node.toShell would create our shell again !
-		return self.origshellcls( self.node, self.plug )
+		return self._getOriginalShell( )
+			
+		# END outside world connection handling 
 	
 	# } END helpers 
 	
@@ -311,6 +336,7 @@ class FacadeNodeBase( NodeBase ):
 		actual nodes and plugs or shells.
 		We prepare the returne value to assure we are being called in certain occasion, 
 		which actually glues outside and inside worlds together """
+		print "getplugs" * 10
 		yourResult = self._getNodePlugs( )
 		
 		# check args - currently only predicate is supported
@@ -324,7 +350,7 @@ class FacadeNodeBase( NodeBase ):
 			return IOFacadePlug( node, plug )
 		# END to facade plug helper
 		
-		print "START PROCESSING" * 8
+		# print "START PROCESSING" * 8
 		finalres = list()
 		for orignode, plug in yourResult:			
 			ioplug = toFacadePlug( orignode, plug )
@@ -345,51 +371,49 @@ class FacadeNodeBase( NodeBase ):
 			if not isinstance( orignode.shellcls, _IOShell ):
 				classShellCls = orignode.shellcls
 				print "SETTING SHELLCLS on %s" % orignode
-				orignode.shellcls = _IOShell( self, classShellCls )
+				orignode.shellcls = _IOShell( classShellCls, self )
 				# END for each shell to reconnect 
 			# END if we have to swap in our facadeIOShell
 			
-			# WRAP VIRTUAL PLUG to the node 
-			################################
-			
-			# have to set it as shell 
-			origplugname = ioplug.iplug.getName()
-			# print orignode.__dict__[ origplugname ]
-			if isinstance( getattr( orignode, origplugname ), IOFacadePlug ):
-				print "PLUG %s on %s was FACADED ALREADY" % ( origplugname, orignode )
-				continue
-			# END if plug already set ( as shell )
 			
 			print "FACADING PLUG: %s on %s " % ( ioplug.iplug.getName(), orignode )
-			facadeshell = orignode.toShell( ioplug.iplug )
-			setattr( orignode, origplugname, ioplug )
-			
-			
+			# update facade shell class ( inst ) cache so that it can map our internal 
+			# plug to the io plug on the outside node 
+			# cannot create weakref to tuple type unfortunately - use name instead 
+			orignode.shellcls.iomap[ ioplug.iplug.getName() ] = ioplug	 
 			
 			
 			# UPDATE CONNECTIONS ( per plug, not per node )
-			######################
+			##########################
 			# update all connections with the new shells - they are required when 
 			# walking the affects tree, as existing ones will be taken instead of
 			# our new shell then.
-			all_shell_cons = facadeshell.getConnections( 1, 1 )	 # now we get old shells
+			facadeshell = orignode.toShell( ioplug.iplug )
+			all_shell_cons = facadeshell.getConnections( 1, 1 )	 				# now we get old shells
+			
 			
 			# disconnect and reconnect with new
-			for sshell,eshell in all_shell_cons:
-				print "UPDATING CONNECTION: %r -> %r" % (sshell,eshell)
-				if isinstance( sshell, _IOShell ) and isinstance( eshell, _IOShell ):
-					continue			# never operate twice on one connection 
-					
-				sshell.disconnect( eshell )
-				newstartshell = getattr( sshell.node, sshell.plug.getName() ) # this already creates a shell
-				newendshell = getattr( eshell.node, eshell.plug.getName() )	
-				print "NEW START SHELL = %s(%s)" % ( repr( newstartshell ), type( newstartshell ) )
-				print "NEW END SHELL = %s(%s)" % ( repr( newendshell ), type( newendshell ) )
-				newstartshell.connect( newendshell )
+			for edge in all_shell_cons:
+				nedge = list( ( None, None ) )
+				created_shell = False
+				
+				for i,shell in enumerate( edge ):
+					nedge[ i ] = shell
+					if not isinstance( shell, _IOShell ):
+						nedge[ i ] = shell.node.toShell( shell.plug )
+						created_shell = True
+				# END for each shell in edge 
+				
+				if created_shell:
+					print "UPDATING CONNECTION: %r -> %r" % ( edge[0],edge[1] )
+					edge[0].disconnect( edge[1] )
+					print "WITH %r -> %r" % ( nedge[0],nedge[1] )
+					nedge[0].connect( nedge[1] )
+				# END new shell needs connection
 			# END for each edge to update 
-		# END for each item in result 
+		# END for each orignode,plug in result 
 		
-		print "END PROCESSING" * 8
+		# print "END PROCESSING" * 8
 		# the final result has everything nicely put back together, but 
 		# it has been altered as well
 		return finalres
@@ -467,11 +491,6 @@ class IOFacadePlug( tuple , iPlug ):
 	
 	Its a tuple as it will be more memory efficient that way. Additionally one 
 	automatically has a proper hash and comparison if the same objects come together
-	
-	@note: it would be more efficient memory wise to store the per node attributes 
-	( like the facade node ) on node level in the overridden IO shellcls instead of 
-	on per plug level, this offers the most flexibility and will provide us a perfect 
-	key as well.
 	"""
 	
 	#{ Object Overridden Methods
@@ -492,13 +511,9 @@ class IOFacadePlug( tuple , iPlug ):
 		inode: the internal node 
 		iplug: the internal plug 
 		
-		Besides, this plug is at the position of an instance attribute, but is supposed
-		to act like the plug descriptor that it hides on class level. The class descriptor 
-		returns a shell.
 		Thus we must:
 			- Act as IOFacade returning additional information
 			- Act as original plug for attribute access
-			- Act as shell of our node
 		This will work as long as the method names are unique 
 		"""
 		if attr == 'inode':
@@ -507,37 +522,26 @@ class IOFacadePlug( tuple , iPlug ):
 			return self[1]()
 		
 		# still here ? try to return a value on the original plug
-		try:
-			return getattr( self.iplug, attr )
-		except AttributeError:
-			return getattr( self.inode.toShell( self.iplug ), attr )
+		return getattr( self.iplug, attr )
 		
 	#} END object overridden methods
 	
-	
+		
 	#{ iPlug Interface 
 	
 	def getName( self ):
 		"""@return: name of (internal) plug - must be a unique key, unique enough
 		to allow connections to several nodes of the same type"""
-		return "FP(%s.%s)" % ( self.inode, self.iplug )
+		return "FP_%s_%s" % ( self.inode, self.iplug )
 		
 	
-	def _getAffectedList( self, direction, pruneshellfunc ):
+	def _getAffectedList( self, direction ):
 		"""@return: list of all ioplugs looking in direction, if 
-		plugtestfunc returns 1 for the plug in the shell being walked"""
-		these = lambda shell: shell is self or not isinstance( shell, _IOShell ) or shell.ioplug is None or pruneshellfunc( shell )
+		plugtestfunc says: False, do not prune the given shell"""
+		these = lambda shell: shell.plug is self.iplug or not isinstance( shell, _IOShell ) or shell._getIOPlug() is None   
 		iterShells = self.inode.toShell( self.iplug ).iterShells( direction=direction, prune = these )
-		outlist = [ shell.ioplug for shell in iterShells ]
+		outlist = [ shell._getIOPlug() for shell in iterShells ]
 		
-		#print "AFFECTED LIST: %s on %s" % ( direction, self )
-		#print outlist
-		# print "ITERSHELL LIST %s " % direction
-		# #print getattr( list( self.inode.toShell( self.iplug ).iterShells( direction=direction ) )[-1].node, 'shellcls' )
-		# print list( self.inode.toShell( self.iplug ).iterShells( direction=direction ) )[-1]
-		# for o in outlist: print o
-		# print "DONE WITH OUTLIST"
-		# print "DONE"
 		return outlist
 	
 	def affects( self, otherplug ):
@@ -548,12 +552,12 @@ class IOFacadePlug( tuple , iPlug ):
 		"""Walk the internal affects using an internal plugshell
 		@note: only output plugs can be affected - this is a rule followed throughout the system
 		@return: tuple containing affected plugs ( plugs that are affected by our value )"""
-		return self._getAffectedList( "down",  lambda shell: not shell.plug.providesOutput() )
+		return self._getAffectedList( "down" )
 		
 	def getAffectedBy( self ):
 		"""Walk the graph upwards and return all input plugs that are being facaded 
 		@return: tuple containing plugs that affect us ( plugs affecting our value )"""
-		return self._getAffectedList( "up",  lambda shell: not shell.plug.providesInput() )
+		return self._getAffectedList( "up" )
 		
 	def providesOutput( self ):
 		"""@return: True if this is an output plug that can trigger computations
