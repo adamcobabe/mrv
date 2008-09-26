@@ -274,6 +274,9 @@ class iPlug( object ):
 	member attribute that stores the plag. Plugs, possibly different instances of it, 
 	need to be re-retrieved on freshly duplicated nodes to allow graph duplication to 
 	be done properly
+	
+	@note: if your plug class supports the L{setName} method, a metaclass will 
+	adjust the name of your plug to match the name it has in the parent class 
 	"""
 	kNo,kGood,kPerfect = ( 0, 127, 255 )
 	
@@ -338,9 +341,9 @@ class plug( iPlug ):
 	__slots__ = ( '_name', 'attr', '_affects', '_affectedBy' )
 	
 	#{ Overridden object methods 
-	def __init__( self, name, attribute ):
+	def __init__( self, attribute ):
 		"""Intialize the plug with a distinctive name"""
-		self._name = name
+		self._name = None
 		self.attr = attribute
 		self._affects = list()			# list of plugs that are affected by us
 		self._affectedBy = list()		# keeps record of all plugs that affect us
@@ -372,6 +375,13 @@ class plug( iPlug ):
 	def getName( self ):
 		"""@return: name of plug"""
 		return self._name
+		
+	def setName( self, name ):
+		"""Set the name of this plug - can be set only once"""
+		if not self._name:
+			self._name = name
+		else:
+			raise ValueError( "The name of the plug can only be set once" )
 	
 	def affects( self, otherplug ):
 		"""Set an affects relation ship between this plug and otherplug, saying 
@@ -649,26 +659,12 @@ class Graph( DiGraph, iDuplicatable ):
 		for node in self.iterNodes():
 			nodeattrs[ node ] = { "color" : "#ebba66", "width" : "4", "height" : "2", "fontsize" : "22" }
 			writegraph.add_node( node )
-			# for shell in node.toShells( node.getPlugs() ):
-				# edge = ( shell, node )
-				# edgeattrs[ edge ] = { "color" : "#bbbbbb" }
-				# nodeattrs[ shell ] = { "color" : "#bbbbbb" }
-				# 
-				# writegraph.add_edge( edge )
-			# END for each shell in node 
 		# END for each node in graph 
 		
 		# now all the connections - just transfer them 
 		for sshell,eshell in self.edges_iter():
 			edge = (sshell,eshell)
 			writegraph.add_edge( edge )
-			#edgeattrs[ edge ] = { "label" : "%s -> %s" % ( sshell, eshell ) }
-			#edgeattrs[ edge ] = { "headlabel" : str(eshell.plug), "taillabel" : str(sshell.plug), 
-			#						"label" : "%s->%s" % (sshell.plug,eshell.plug)}
-									
-			#nodeattrs[ eshell ][ "color" ] = "#000000"	# change color
-			#nodeattrs[ sshell ][ "color" ] = "#000000"
-			#edgeattrs[ (eshell,eshell.node) ][ "color" ] = "#000000"	# change color
 			
 			node_to_shell = (sshell.node,sshell)
 			writegraph.add_edge( node_to_shell )
@@ -891,12 +887,18 @@ class _NodeBaseCheckMeta( type ):
 		newcls = type.__new__( metacls, name, bases, clsdict )
 		
 		# EVERY PLUG NAME MUST MATCH WITH THE ACTUAL NAME IN THE CLASS
+		# set the name according to its slot name in the parent class
 		membersdict = inspect.getmembers( newcls )		# do not filter, as getPlugs could be overridden
 		try:
 			for plug in newcls.getPlugs( ):
 				for name,member in membersdict:
-					if member == plug and plug.getName() != name:
-						raise AssertionError( "Plug %r is named %s, but must be named %s as in its class %s" % ( plug, plug.getName(), name, newcls ) )
+					if member == plug and plug.getName() != name:	
+						# try to set it
+						if hasattr( plug, 'setName' ):
+							plug.setName( name )
+						else:
+							raise AssertionError( "Plug %r is named %s, but must be named %s as in its class %s" % ( plug, plug.getName(), name, newcls ) )
+						# END setName special handling 
 					# END if member nanme is wrong 
 				# END for each class member
 				

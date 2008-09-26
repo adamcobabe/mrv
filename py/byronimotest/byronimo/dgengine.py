@@ -27,13 +27,13 @@ A = Attribute
 class SimpleNode( NodeBase ):
 	"""Create some simple attributes"""
 	#{ Plugs 
-	outRand = plug( "outRand", A( float, 0 ) )
-	outMult = plug( "outMult", A( float, A.uncached ) )
+	outRand = plug( A( float, 0 ) )
+	outMult = plug( A( float, A.uncached ) )
 	
-	inInt = plug( "inInt", A( int, A.writable ) )
-	inFloat = plug( "inFloat", A( float, 0, default = 2.5 ) )
-	inFloatNoDef = plug( "inFloatNoDef", A( float, 0 ) )
-	outFailCompute = plug( "outFailCompute", A( str, A.computable ) )
+	inInt = plug( A( int, A.writable ) )
+	inFloat = plug( A( float, 0, default = 2.5 ) )
+	inFloatNoDef = plug( A( float, 0 ) )
+	outFailCompute = plug( A( str, A.computable ) )
 	
 	inFloat.affects( outRand )
 	inFloatNoDef.affects( outRand )
@@ -41,7 +41,7 @@ class SimpleNode( NodeBase ):
 	inInt.affects( outMult )
 	inFloat.affects( outMult )
 	
-	#}
+	#} END plugs 
 	
 		
 	#{ iDuplicatable Interface 

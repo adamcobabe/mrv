@@ -48,19 +48,19 @@ if __name__ == '__main__':
 class TestProcess( processes.ProcessBase ):
 	"""TestProcess helping to debugging the calles done """
 	# inputs
-	inInt = 		plug( "inInt", 		A( int, A.writable, default = 4 ) )
-	inFloat = 		plug( "inFloat", 	A( float, A.writable, default = 2.5 ) )
-	inText = 		plug( "inText", 	A( str, A.writable, default = "hello world" ) )
-	inChain = 		plug( "inChain", 	A( list, 0, default = [5] ) )			# just connectable, will be pulled s
-	inObj = 		plug( "inObj", 		A( object, A.cls|A.exact_type|A.writable ) )	# just connectable, not writable
+	inInt = 		plug( A( int, A.writable, default = 4 ) )
+	inFloat = 		plug( A( float, A.writable, default = 2.5 ) )
+	inText = 		plug( A( str, A.writable, default = "hello world" ) )
+	inChain = 		plug( A( list, 0, default = [5] ) )			# just connectable, will be pulled s
+	inObj = 		plug( A( object, A.cls|A.exact_type|A.writable ) )	# just connectable, not writable
 	
 	# outputs 
-	outFloat = 		plug( "outFloat", 	A( float, A.computable ) )
-	outInt = 		plug( "outInt", 	A( int, A.computable ) )
-	outFloatGen = 	plug( "outFloatGen", A( float, A.computable ) )
-	outIntGen = 	plug( "outIntGen", 	A( int, A.computable ) )
-	outText = 		plug( "outText", 	A( str, 0, default = "hello world" ) )
-	outChain = 		plug( "outChain", 	A( list, 0 ) )
+	outFloat = 		plug( A( float, A.computable ) )
+	outInt = 		plug( A( int, A.computable ) )
+	outFloatGen = 	plug( A( float, A.computable ) )
+	outIntGen = 	plug( A( int, A.computable ) )
+	outText = 		plug( A( str, 0, default = "hello world" ) )
+	outChain = 		plug( A( list, 0 ) )
 	
 	# affects 
 	inInt.affects( outInt )
@@ -111,12 +111,12 @@ class OtherTestProcess( TestProcess ):
 	Supported Targets: unicode instances """
 	
 	# inputs 
-	inFloat = plug( "inFloat", A( float, A.writable ) )
-	inInt = plug( "inInt", A( int, A.writable ) )
-	inUni = plug( "inUni", A( unicode, A.writable ) )
+	inFloat = plug( A( float, A.writable ) )
+	inInt = plug( A( int, A.writable ) )
+	inUni = plug( A( unicode, A.writable ) )
 	
 	# outputs 
-	outString = plug( "outString", A( unicode, 0 ) )
+	outString = plug( A( unicode, 0 ) )
 	
 	# affects 
 	inFloat.affects( outString )
