@@ -36,7 +36,7 @@ class _OIShellMeta( type ):
 	@classmethod
 	def createUnfacadeMethod( cls, funcname ):
 		def unfacadeMethod( self, *args, **kwargs ):
-			print "OIShell: unfacade %s.%s" % ( repr(self), funcname )
+			# print "OIShell: unfacade %s.%s" % ( repr(self), funcname )
 			return getattr( self._toIShell(), funcname )( *args, **kwargs )
 		return unfacadeMethod
 	
@@ -89,13 +89,13 @@ class _IOShellMeta( _OIShellMeta ):
 		if funcname == "get":						# drection to input 
 			def unfacadeMethod( self, *args, **kwargs ):
 				"""apply to the input shell"""
-				print "IOShell INPUT: unfacade %s.%s" % ( repr(self), funcname )
+				#print "IOShell INPUT: unfacade %s.%s" % ( repr(self), funcname )
 				return getattr( self._getShells( "input" )[0], funcname )( *args, **kwargs ) 
 			method = unfacadeMethod	
 		else:										# direction to output 
 			def unfacadeMethod( self, *args, **kwargs ):
 				"""Clear caches of all output plugs as well"""
-				print "IOShell OUTPUT: unfacade %s.%s" % ( repr(self), funcname )
+				#print "IOShell OUTPUT: unfacade %s.%s" % ( repr(self), funcname )
 				for shell in self._getShells( "output" ):
 					getattr( shell, funcname )( *args, **kwargs )
 			# END unfacade method
@@ -107,7 +107,7 @@ class _IOShellMeta( _OIShellMeta ):
 	def createFacadeMethod( cls, funcname ):
 		"""Call the main shell's function"""
 		def facadeMethod( self, *args, **kwargs ):
-			print "IOShell: Facade: %s, shell: %s" % ( funcname, repr( self._getOriginalShell( ) ) )
+			# print "IOShell: Facade: %s, shell: %s" % ( funcname, repr( self._getOriginalShell( ) ) )
 			return getattr( self._getOriginalShell( ), funcname )( *args, **kwargs )
 		return facadeMethod
 		
@@ -228,26 +228,6 @@ class _IOShell( _PlugShell ):
 	def _getTopFacadeNodeShell( self ):
 		"""Recursive method to find the first facade parent having an OI shell
 		@return: topmost facade node shell or None if we are not a managed plug"""
-		# get the oiplug on our node  
-		oiplug = self._getoiplug( )
-		if not oiplug:
-			return None
-		# END if there is no cached oiplug 
-		
-		# Use the facade node shell type - we need to try to get connections now, 
-		# either inputs or outputs on our facade node. In case it is facaded 
-		# as well, we just use a default shell that will definetly handle connections 
-		# the way we expect it
-		facadeNodeShell = self.node.shellcls.facadenode.toShell( oiplug )
-		
-		# NESTED FACADE NODES SPECIAL CASE !
-		######################################
-		# If a facade node is nested inside of another facade node, it will put
-		# it's IO shell above our OI shell. Walk it up until we have the parent 
-		# node with a OI shell - this one will be used instead 
-		if facadeNodeShell.__class__ is _IOShell:
-			return facadeNodeShell._getTopFacadeNodeShell( )
-		# END nested facade node special handling
 		
 		# otherwise we have found the topmost parent
 		return facadeNodeShell
@@ -266,35 +246,82 @@ class _IOShell( _PlugShell ):
 		
 		# GET FACADE SHELL
 		####################
-		facadeNodeShell = self._getTopFacadeNodeShell( )
-		if not facadeNodeShell:
+		# get the oiplug on our node  
+		oiplug = self._getoiplug( )
+		if not oiplug:
 			# plug not on facadenode, just ignore and return the original shell 
 			return [ self._getOriginalShell( ) ]
+		# END if there is no cached oiplug 
+
+
+		# Use the facade node shell type - we need to try to get connections now, 
+		# either inputs or outputs on our facade node. In case it is facaded 
+		# as well, we just use a default shell that will definetly handle connections 
+		# the way we expect it
+		facadeNodeShell = self.node.shellcls.facadenode.toShell( oiplug )
 		
 		
+		# NESTED FACADE NODES SPECIAL CASE !
+		######################################
+		# If a facade node is nested inside of another facade node, it will put
+		# it's IO shell above our OI shell. 
+		# IOShells do not return connections - get a normal shell then 
+		connectionShell = facadeNodeShell
+		if facadeNodeShell.__class__ is _IOShell:	
+			connectionShell = _PlugShell( facadeNodeShell.node, facadeNodeShell.plug )
+		# END nested facade node special handling
+		
+		
+		outShells = list()
 		if shelltype == "input":
-			inputShell = facadeNodeShell.getInput( )
 			
-			# if we have an input shell, use it 
+			# HIGHER LEVEL INPUT SHELLS 
+			############################
+			# if we are nested, use an imput connection of our parent as they 
+			# override lower level connections
+			if not connectionShell is facadeNodeShell:
+				aboveLevelInputShells = facadeNodeShell._getShells( shelltype )
+				
+				# this is either the real input shell, or the original shell of the toplevel
+				# By convention, we return the facadeshell that is connected to the input 
+				# in rval[1]
+				# The method that calls us only uses array index [0], which is the shell it needs !
+				# We just use the length as internal flag !
+				if len( aboveLevelInputShells ) == 2:		# top level orverride !
+					return aboveLevelInputShells
+					
+			# END aquire TL Input 
+			
+			# still here means no toplevel override 
+			# TRY OUR LEVEL INPUT  
+			inputShell = connectionShell.getInput( )
+			
 			if inputShell:
-				# print "BACK TRACK: '%s' <- '%s'" % ( repr( inputShell ), repr( facadeNodeShell ) )
-				return [ inputShell ]
+				# FLAGGED RETURN VALUE : this indicates to our callers that 
+				# we have found a good input on our level and want to use it.
+				# if the caller is the metaclass wrapper, it will only use the outshell[0]
+				# anyways and not bother 
+				outShells.append( inputShell )
+				outShells.append( self )			
 			else:
-				# no 'outside world' inputShell found, use the internal handler instead
-				# Always use the stored class - using self.node.toShell would create our shell again !
-				#print "NO OUTSIDE INPUT, returning orig shell"
-				origshell = self._getOriginalShell( )
-				return [ self._getOriginalShell( ) ]
-		# END oiplug handling 
+				outShells.append( self._getOriginalShell( ) )
+			
+		# END outside INPUT shell handling
 		else:
-			#print "PROVIDING OUTPUT SHELLS for: %s" % ( repr( facadeNodeShell ) )
-			outshells = facadeNodeShell.getOutputs( )
-			outshells.append( self._getOriginalShell( ) )
-			return outshells
-		# END outside shell handling 
+			outShells.extend( connectionShell.getOutputs( ) )
+			
+			# ADD 'INSIDE' ORIGINAL SHELL
+			# always allow our 'inside' level to get informed as well
+			outShells.append( self._getOriginalShell( ) )
+			
+			# NESTED SHELL SPECIAL CASE
+			##############################
+			# query the IO Parent Shell for the shells on its level and add them
+			if not connectionShell is facadeNodeShell:
+				outShells.extend( facadeNodeShell._getShells( shelltype ) )
+		# END outside OUTPUT shell handling 
 		
-		
-		raise AssertionError( "Should never have reached this point!" )	
+		return outShells	
 	
 	# } END helpers 
 	

@@ -194,12 +194,13 @@ class TestDGFacadeEngine( unittest.TestCase ):
 		self.failUnless( len( sg2outAdd.plug.getAffectedBy( ) ) == 4 )
 		
 		# SIMPLE COMPUTATION
-		print "COMPUTATION           " * 5
-		print sg2outAdd.get( )
-		#sg1inFloat.set( 10.0 )
-		#print sg2outAdd.get( )
-		#sg2inFloat.set( 10.0 )
-		#print sg2outAdd.get( )
+		######################
+		self.failUnless( sg2outAdd.get( ) == 8 )		# 2 * 2 * 2 = 2simpleNodes * 2graphnodes * 2sgn
+		
+		# DIRTYING - set the input cache 
+		sg1inFloat.set( 10.0 )
+		self.failUnless( sg2outAdd.get( ) == 18 )
+		
 		
 		
 		
