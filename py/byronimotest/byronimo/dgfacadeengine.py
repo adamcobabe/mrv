@@ -76,16 +76,27 @@ class TestDGFacadeEngine( unittest.TestCase ):
 		og = Graph( )				# other graph
 		gn = GraphNodeBase( g )		# node wrapping the graph
 		
-		#for p in gn.getPlugs(): print "%s: Provides Input: %i, output: %i" % ( p , p.providesInput(), p.providesOutput() )
-		ip = gn.getInputPlugs()
-		print "INPUT PLUGS      " * 6
-		for i in ip: 
-			print i
-			for a in i.getAffected( ):
-				print "--------> affectts %s" % str( a )
+		self.failUnless( len( gn.getInputPlugs() ) == 2 )		# does not consider connections  
+		self.failUnless( len( gn.getOutputPlugs() ) == 2 )		# does not consider connections 
 		
 		
-		op = gn.getOutputPlugs()
-		print "OUTPUT PLUGS     " * 6
-		for o in op: print o
+		# GET ATTR 
+		###########
+		self.failUnlessRaises( AttributeError, getattr, gn, "inFloat" )
+		
+		# ATTR AFFECTS
+		###############
+		affected = gn._FP_s1_inFloat.plug.getAffected()
+		self.failUnless( len( affected ) == 2 )
+		
+		affectedby = affected[-1].getAffectedBy()
+		self.failUnless( len( affectedby ) == 2 )
+		
+		
+		# GET VALUE 
+		
+		# CLEAR CACHE 
+		
+		# SET VALUE 
+		
 		

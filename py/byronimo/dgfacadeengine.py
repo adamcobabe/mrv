@@ -83,11 +83,21 @@ class _IOShellMeta( _OIShellMeta ):
 	@classmethod
 	def createUnfacadeMethod( cls,funcname ):
 		"""@return: wrapper method for funcname """
-		def unfacadeMethod( self, *args, **kwargs ):
-			"""Wrap the actual call by obtaininng a possibly special shell, and making 
-			the call there """
-			return getattr( self._getInputShell( ), funcname )( *args, **kwargs )
-		return unfacadeMethod
+		method = None
+		if funcname == "clearCache":
+			def unfacadeMethod( self, *args, **kwargs ):
+				"""Clear caches of all output plugs as well"""
+				for shell in self._getShells( "output" ):
+					getattr( shell, funcname )( *args, **kwargs )
+			# END unfacade method 
+			method = unfacadeMethod	
+		else:
+			def unfacadeMethod( self, *args, **kwargs ):
+				"""apply to the input shell"""
+				return getattr( self._getShells( "input" )[0], funcname )( *args, **kwargs )
+			method = unfacadeMethod
+		# END funk type handling 
+		return method
 	
 	@classmethod
 	def createFacadeMethod( cls, funcname ):
@@ -109,14 +119,20 @@ class _OIShell( _PlugShell ):
 			 - The internal node allows us to hand in calls to the native internal shell
 	"""
 	# list all methods that should not be a facade to our facade node 
-	__unfacade__ = [ 'get', 'set', 'hasCache', 'setCache', 'getCache', 'clearCache' ]
-	__facade__ = [ 'connect','disconnect','getInput','getConnections','getOutputs','iterShells' ]
+	__unfacade__ = [ 'get', 'clearCache' ]
+	
+	# keep this list uptodate - otherwise a default shell will be used for the missing 
+	# function
+	# TODO: parse the plugshell class itself to get the functions automatically 
+	__facade__ = [ 'setCache', 'getCache', 'hasCache','set', 'connect','disconnect','getInput',
+					'getOutputs','iterShells','getConnections' ]
+	
 	__metaclass__ = _OIShellMeta
 	
 	def __init__( self, *args ):
 		"""Sanity checking"""
-		if not isinstance( args[1], IOFacadePlug ):
-			raise AssertionError( "Invalid PlugType: Need %r, got %r" % ( IOFacadePlug, args[1].__class__ ) )
+		if not isinstance( args[1], OIFacadePlug ):
+			raise AssertionError( "Invalid PlugType: Need %r, got %r" % ( OIFacadePlug, args[1].__class__ ) )
 			
 		super( _OIShell, self ).__init__( *args )
 	
@@ -198,8 +214,11 @@ class _IOShell( _PlugShell ):
 		"""@return: instance of the original shell class that was replaced by our instance"""
 		return self.node.shellcls.origshellcls( self.node, self.plug )
 	
-	def _getInputShell( self ):
-		"""Helper calling a function on the original shell if we have that information"""
+	def _getShells( self, shelltype ):
+		"""@return: list of ( outside ) shells, depending on the shelltype and availability.
+		If no outside shell is avaiable, return the actual shell only
+		@param shelltype: "input" - outside input shell
+							"output" - output shells, and the default shell"""
 		if not isinstance( self.node.shellcls, _IOShell ):
 			raise AssertionError( "Shellclass of %s must be _IOShell, but is %s" % ( self.node, type( self.node.shellcls ) ) )
 		
@@ -208,24 +227,32 @@ class _IOShell( _PlugShell ):
 		print "GETTING IOSHELL FOR: %r "  % repr( self )
 		if not ioplug:
 			# plug not on facadenode, just ignore and return the original shell 
-			return self._getOriginalShell( )
+			return [ self._getOriginalShell( ) ]
 			
 		# Use the facade node shell type - it will not handle connections
 		facadeNodeShell = self.node.shellcls.facadenode.toShell( ioplug )
-		inputShell = facadeNodeShell.getInput( )
 		
-		# if we have an input shell, use it 
-		if inputShell:
-			print "BACK TRACK: '%s' <- '%s'" % ( repr( inputShell ), repr( facadeNodeShell ) )
-			return inputShell
-	
-		# END ioplug handling 
-		
-		# no 'outside world' inputShell found, use the internal handler instead
-		# Always use the stored class - using self.node.toShell would create our shell again !
-		return self._getOriginalShell( )
+		if shelltype == "input":
+			inputShell = facadeNodeShell.getInput( )
 			
-		# END outside world connection handling 
+			# if we have an input shell, use it 
+			if inputShell:
+				print "BACK TRACK: '%s' <- '%s'" % ( repr( inputShell ), repr( facadeNodeShell ) )
+				return inputShell
+			else:
+				# no 'outside world' inputShell found, use the internal handler instead
+				# Always use the stored class - using self.node.toShell would create our shell again !
+				return [ self._getOriginalShell( ) ]
+		# END ioplug handling 
+		else:
+			outshells = facadeNodeShell.getOutputs()
+			outshells.append( self._getOriginalShell() )
+			return outshells
+			
+		# END outside shell handling 
+		
+		
+		raise AssertionError( "Should never have reached this point!" )	
 	
 	# } END helpers 
 	
@@ -276,11 +303,27 @@ class FacadeNodeBase( NodeBase ):
 		need to call getPlugs and find it by name
 		@note: to make this work, you should always name the plug names equal to their 
 		class attribute"""
+		check_ambigious = not attr.startswith( OIFacadePlug._fp_prefix )	# non long names are not garantueed to be unique
+		
+		candidates = list()
 		for plug in self.getPlugs( ):
-			if plug.getName() == attr:
-				return self.toShell( plug )
+			if plug.getName() == attr or plug.iplug.getName() == attr:
+				shell = self.toShell( plug )
+				if not check_ambigious:
+					return shell
+				candidates.append( shell )
+			# END if plugname matches
+		# END for each of our plugs 
+		
+		if not candidates:
+			raise AttributeError( "Attribute %s does not exist on %s" % (attr,self) )
 			
-		raise AttributeError( "Attribute %s does not exist on %s" % (attr,self) )
+		if len( candidates ) == 1:
+			return candidates[0]
+		
+		# must be more ... 
+		raise AttributeError( "More than one plug with the local name %s exist on %s - use the long name, i.e. %snode_attr" % ( attr, self, OIFacadePlug._fp_prefix ) )
+		
 		
 	#} END Object Overridden Methods 
 	
@@ -345,9 +388,9 @@ class FacadeNodeBase( NodeBase ):
 			raise AssertionError( "Unhandled arguments found  - update this method: %s" % kwargs.keys() )
 		
 		def toFacadePlug( node, plug ):
-			if isinstance( plug, IOFacadePlug ):
+			if isinstance( plug, OIFacadePlug ):
 				return plug
-			return IOFacadePlug( node, plug )
+			return OIFacadePlug( node, plug )
 		# END to facade plug helper
 		
 		# print "START PROCESSING" * 8
@@ -480,7 +523,7 @@ class GraphNodeBase( FacadeNodeBase ):
 
 
 #{ Plugs
-class IOFacadePlug( tuple , iPlug ):
+class OIFacadePlug( tuple , iPlug ):
 	"""Facade Plugs are meant to be stored on instance level overriding the respective 
 	class level plug descriptor.
 	If used directly, it will facade the internal affects relationships and just return 
@@ -492,6 +535,7 @@ class IOFacadePlug( tuple , iPlug ):
 	Its a tuple as it will be more memory efficient that way. Additionally one 
 	automatically has a proper hash and comparison if the same objects come together
 	"""
+	_fp_prefix = "_FP_"
 	
 	#{ Object Overridden Methods
 	                           
@@ -532,14 +576,14 @@ class IOFacadePlug( tuple , iPlug ):
 	def getName( self ):
 		"""@return: name of (internal) plug - must be a unique key, unique enough
 		to allow connections to several nodes of the same type"""
-		return "FP_%s_%s" % ( self.inode, self.iplug )
+		return "%s%s_%s" % ( self._fp_prefix, self.inode, self.iplug )
 		
 	
 	def _getAffectedList( self, direction ):
 		"""@return: list of all ioplugs looking in direction, if 
 		plugtestfunc says: False, do not prune the given shell"""
 		these = lambda shell: shell.plug is self.iplug or not isinstance( shell, _IOShell ) or shell._getIOPlug() is None   
-		iterShells = self.inode.toShell( self.iplug ).iterShells( direction=direction, prune = these )
+		iterShells = self.inode.toShell( self.iplug ).iterShells( direction=direction, prune = these, visit_once=True )
 		outlist = [ shell._getIOPlug() for shell in iterShells ]
 		
 		return outlist
@@ -560,18 +604,12 @@ class IOFacadePlug( tuple , iPlug ):
 		return self._getAffectedList( "up" )
 		
 	def providesOutput( self ):
-		"""@return: True if this is an output plug that can trigger computations
-		@note: this should be the same implementation as the one of the wrapped plug - unfortunately
-		that is not fully possible, lets just hope that the logic does not change 
-		@todo: revise """
-		return bool( len( self.getAffectedBy() ) != 0 or self.attr.flags & Attribute.computable )
+		"""@return: True if this is an output plug that can trigger computations """
+		return self.iplug.providesOutput( )
 		
 	def providesInput( self ):
-		"""@return: True if this is an input plug that will never cause computations
-		@note: this should actually be the same implementation as the one of the wrapped 
-		plug - but we are incompatible class wise - update this once the base changes !
-		@todo: revise """
-		return not self.providesOutput( )
+		"""@return: True if this is an input plug that will never cause computations"""
+		return self.iplug.providesInput( )
 		
 	#}
 	

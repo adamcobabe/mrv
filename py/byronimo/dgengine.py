@@ -94,8 +94,6 @@ def iterShells( rootPlugShell, stopAt = lambda x: False, prune = lambda x: False
 	stack.append( rootPlugShell )
 	
 	def addToStack( node, stack, lst, branch_first ):
-		if len( lst ):
-			print "1__adding to stack %s(%s)" % (lst[0],type(node.shellcls))
 		if branch_first:
 			stack.extend( node.toShell( plug ) for plug in lst )
 		else:
@@ -104,8 +102,6 @@ def iterShells( rootPlugShell, stopAt = lambda x: False, prune = lambda x: False
 	# END addToStack local method
 	
 	def addOutputToStack( stack, lst, branch_first ):
-		if len( lst ):
-			print "2__adding OUTPUT to stack %s(%s)" % (str(lst),type(lst))
 		if branch_first:
 			stack.extend( lst )
 		else:
@@ -124,10 +120,8 @@ def iterShells( rootPlugShell, stopAt = lambda x: False, prune = lambda x: False
 			continue
 			
 		if not prune( shell ):
-			print "--> YIELD %s" % repr( shell )
 			yield shell
 		
-		print "ITERATE %s: %r" % ( direction, repr( shell ) )
 		if direction == 'up':
 			# I-N-O 
 			addToStack( shell.node, stack, shell.plug.getAffectedBy(), branch_first )
@@ -135,7 +129,6 @@ def iterShells( rootPlugShell, stopAt = lambda x: False, prune = lambda x: False
 			
 			# O<-I
 			ishell = shell.getInput( )
-			print "ISHELL: %r" % repr(ishell)
 			if ishell:
 				if branch_first:
 					stack.append( ishell )
@@ -616,9 +609,7 @@ class _PlugShell( tuple ):
 		setattr( self.node, self._cachename(), value )
 		
 		# our cache changed - dirty downstream plugs - thus clear the cache
-		prune_me = lambda x: x == self
-		for shell in iterShells( self, direction = "down", prune = prune_me, branch_first = True ):
-			shell.clearCache()
+		self.clearCache( propagate = True )
 			
 		
 	def getCache( self ):
@@ -629,11 +620,19 @@ class _PlugShell( tuple ):
 		
 		raise ValueError( "Plug %r did not have a cached value" % repr( self ) )
 		
-	def clearCache( self ):
-		"""Empty the cache of our plug"""
-		if self.hasCache():
-			del( self.node.__dict__[ self._cachename() ] )
-			
+	def clearCache( self, propagate = False ):
+		"""Empty the cache of our plug
+		@param propagate: if True, the caches of output plugs will also be cleared, 
+		which effectively forces them to re-evaluate. The own cache will not be cleared.
+		If False, only the own cache will be cleared"""
+		if not propagate:
+			if self.hasCache():
+				del( self.node.__dict__[ self._cachename() ] )
+		else:
+			# our cache changed - dirty downstream plugs - thus clear the cache
+			prune_me = lambda x: x == self
+			for shell in self.iterShells( direction = "down", prune = prune_me, branch_first = True, visit_once = True ):
+				shell.clearCache( propagate = False )
 	#} END caching
 	
 	
