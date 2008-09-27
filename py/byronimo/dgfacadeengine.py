@@ -113,10 +113,10 @@ class _OIShell( _PlugShell ):
 	Iteration over internal plugShells is not allowed.
 	Thus we override only the methods that matter and assure that the call is handed 
 	to the acutal internal plugshell.
-	We know everything we require as we have been fed with an IOPlug
+	We know everything we require as we have been fed with an oiplug
 	
 		- .node = facacde node 
-		- .plug = ioplug containing inode and iplug ( internal node and internal plug )
+		- .plug = oiplug containing inode and iplug ( internal node and internal plug )
 			 - The internal node allows us to hand in calls to the native internal shell
 	"""
 	# list all methods that should not be a facade to our facade node 
@@ -133,13 +133,13 @@ class _OIShell( _PlugShell ):
 	def __init__( self, *args ):
 		"""Sanity checking"""
 		if not isinstance( args[1], OIFacadePlug ):
-			raise AssertionError( "Invalid PlugType: Need %r, got %r" % ( OIFacadePlug, args[1].__class__ ) )
+			raise AssertionError( "Invalid PlugType: Need %r, got %r (%s)" % ( OIFacadePlug, args[1].__class__ , args[1]) )
 			
 		super( _OIShell, self ).__init__( *args )
 	
 	
 	def __repr__ ( self ):
-		"""Cut away our name in the possible ioplug ( printing an unnecessary long name then )"""
+		"""Cut away our name in the possible oiplug ( printing an unnecessary long name then )"""
 		plugname = str( self.plug )
 		nodename = str( self.node )
 		plugname = plugname.replace( nodename+'.', "" )
@@ -182,7 +182,7 @@ class _IOShell( _PlugShell ):
 		if hasattr( args[0], '__call__' ) or isinstance( args[0], type ):
 			self.origshellcls = args[0]
 			self.facadenode = args[1]
-			self.iomap = dict() 							# plugname -> ioplug
+			self.iomap = dict() 							# plugname -> oiplug
 			super( _IOShell, self ).__init__(  )			# initialize empty
 		# END class mode
 		else:
@@ -200,12 +200,12 @@ class _IOShell( _PlugShell ):
 		
 	#{ Helpers 	
 	
-	def _getIOPlug( self ):
-		"""@return: ioplug suitable for this shell or None"""
+	def _getoiplug( self ):
+		"""@return: oiplug suitable for this shell or None"""
 		try:
 			# cannot use weak references, don't want to use strong references 
-			# ioplugname = self.node.shellcls.iomap[ self.plug.getName() ]	# don't want to use strong - but have to for now 
-			# ioplug = getattr( self.node.shellcls.facadenode, ioplugname ) # expensive call without cache !
+			# oiplugname = self.node.shellcls.iomap[ self.plug.getName() ]	# don't want to use strong - but have to for now 
+			# oiplug = getattr( self.node.shellcls.facadenode, oiplugname ) # expensive call without cache !
 			return self.node.shellcls.iomap[ self.plug.getName() ]
 		except KeyError:
 			# plug not on facadenode - this is fine as we get always called
@@ -229,16 +229,16 @@ class _IOShell( _PlugShell ):
 		if not isinstance( self.node.shellcls, _IOShell ):
 			raise AssertionError( "Shellclass of %s must be _IOShell, but is %s" % ( self.node, type( self.node.shellcls ) ) )
 		
-		# get the ioplug on our node  
-		ioplug = self._getIOPlug( )
-		if not ioplug:
+		# get the oiplug on our node  
+		oiplug = self._getoiplug( )
+		if not oiplug:
 			# plug not on facadenode, just ignore and return the original shell 
 			return [ self._getOriginalShell( ) ]
-		# END if there is no cached ioplug 
+		# END if there is no cached oiplug 
 		
 		
 		# Use the facade node shell type - it will not handle connections
-		facadeNodeShell = self.node.shellcls.facadenode.toShell( ioplug )
+		facadeNodeShell = self.node.shellcls.facadenode.toShell( oiplug )
 		#print "GOT FACADESHELL %s FOR %s check" % ( repr( facadeNodeShell ), shelltype )
 		if shelltype == "input":
 			inputShell = facadeNodeShell.getInput( )
@@ -253,7 +253,7 @@ class _IOShell( _PlugShell ):
 				#print "NO OUTSIDE INPUT, returning orig shell"
 				origshell = self._getOriginalShell( )
 				return [ self._getOriginalShell( ) ]
-		# END ioplug handling 
+		# END oiplug handling 
 		else:
 			#print "PROVIDING OUTPUT SHELLS for: %s" % ( repr( facadeNodeShell ) )
 			outshells = facadeNodeShell.getOutputs( )
@@ -340,7 +340,7 @@ class FacadeNodeBase( NodeBase ):
 	
 	#{ iDuplicatable Interface 
 		
-	def copyFrom( self, other ):
+	def copyFrom( self, other, **kwargs ):
 		"""Actually, it does nothing because our plugs are linked to the internal 
 		nodes in a quite complex way. The good thing is that this is just a cache that 
 		will be updated once someone queries connections again.
@@ -397,19 +397,20 @@ class FacadeNodeBase( NodeBase ):
 			raise AssertionError( "Unhandled arguments found  - update this method: %s" % kwargs.keys() )
 		
 		def toFacadePlug( node, plug ):
-			if isinstance( plug, OIFacadePlug ):
+			if isinstance( plug, OIFacadePlug )\
+			and self is plug.inode.shellcls.facadenode: 		# we can wrap other facade nodes as well
 				return plug
 			return OIFacadePlug( node, plug )
 		# END to facade plug helper
 		
 		finalres = list()
 		for orignode, plug in yourResult:			
-			ioplug = toFacadePlug( orignode, plug )
+			oiplug = toFacadePlug( orignode, plug )
 			
 			# drop it ? 
-			if not predicate( ioplug ):
+			if not predicate( oiplug ):
 				continue 
-			finalres.append( ioplug )
+			finalres.append( oiplug )
 			
 			
 			# MODIFY NODE INSTANCE
@@ -419,9 +420,11 @@ class FacadeNodeBase( NodeBase ):
 			
 			# ADD FACADE SHELL CLASS
 			############################
+			# This can also handle facaded facade nodes, as they have the type
+			# of _IOShell as shellcls, but no instance 
 			if not isinstance( orignode.shellcls, _IOShell ):
 				classShellCls = orignode.shellcls
-				print "SETTING SHELLCLS on %s" % orignode
+				print "%s: SETTING SHELLCLS on %s" %  ( self, orignode )
 				orignode.shellcls = _IOShell( classShellCls, self )
 				# END for each shell to reconnect 
 			# END if we have to swap in our facadeIOShell
@@ -430,7 +433,7 @@ class FacadeNodeBase( NodeBase ):
 			# update facade shell class ( inst ) cache so that it can map our internal 
 			# plug to the io plug on the outside node 
 			# cannot create weakref to tuple type unfortunately - use name instead 
-			orignode.shellcls.iomap[ ioplug.iplug.getName() ] = ioplug	 
+			orignode.shellcls.iomap[ oiplug.iplug.getName() ] = oiplug	 
 			
 			
 			# UPDATE CONNECTIONS ( per plug, not per node )
@@ -438,7 +441,7 @@ class FacadeNodeBase( NodeBase ):
 			# update all connections with the new shells - they are required when 
 			# walking the affects tree, as existing ones will be taken instead of
 			# our new shell then.
-			facadeshell = orignode.toShell( ioplug.iplug )
+			facadeshell = orignode.toShell( oiplug.iplug )
 			all_shell_cons = facadeshell.getConnections( 1, 1 )	 				# now we get old shells
 			
 			
@@ -486,13 +489,9 @@ class GraphNodeBase( FacadeNodeBase ):
 	#} END overridden methods
 	
 	#{ iDuplicatable Interface 
-	def createInstance( self ):
+	def createInstance( self , **kwargs ):
 		"""Create a copy of self and return it"""
-		return self.__class__( self.wrappedGraph )	# graph will be duplicated in the constructor
-		
-	def copyFrom( self, other ):
-		"""Create a duplicate of the wrapped graph so that we have our unique one"""
-		# Graph was already dupicated and set  
+		return self.__class__( self.wgraph )	# graph will be duplicated in the constructor
 		
 		
 	# } END iDuplicatable
@@ -552,7 +551,8 @@ class OIFacadePlug( tuple , iPlug ):
 		if len( args ) != count:
 			raise AssertionError( "Invalid Argument count, should be %i, was %i" % ( count, len( args ) ) )
 		
-		return tuple.__new__( cls, ( weakref.ref( arg ) for arg in args ) )
+		#return tuple.__new__( cls, ( weakref.ref( arg ) for arg in args ) )
+		return tuple.__new__( cls,  args )		# NOTE: have to use string refs for recursive facade plugs
 	
 	
 	def __getattr__( self, attr ):
@@ -566,9 +566,9 @@ class OIFacadePlug( tuple , iPlug ):
 		This will work as long as the method names are unique 
 		"""
 		if attr == 'inode':
-			return self[0]()
+			return self[0]
 		if attr == 'iplug':
-			return self[1]()
+			return self[1]
 		
 		# still here ? try to return a value on the original plug
 		return getattr( self.iplug, attr )
@@ -585,11 +585,11 @@ class OIFacadePlug( tuple , iPlug ):
 		
 	
 	def _getAffectedList( self, direction ):
-		"""@return: list of all ioplugs looking in direction, if 
+		"""@return: list of all oiplugs looking in direction, if 
 		plugtestfunc says: False, do not prune the given shell"""
-		these = lambda shell: shell.plug is self.iplug or not isinstance( shell, _IOShell ) or shell._getIOPlug() is None   
+		these = lambda shell: shell.plug is self.iplug or not isinstance( shell, _IOShell ) or shell._getoiplug() is None   
 		iterShells = self.inode.toShell( self.iplug ).iterShells( direction=direction, prune = these, visit_once=True )
-		outlist = [ shell._getIOPlug() for shell in iterShells ]
+		outlist = [ shell._getoiplug() for shell in iterShells ]
 		
 		return outlist
 	

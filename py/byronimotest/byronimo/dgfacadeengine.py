@@ -137,6 +137,11 @@ class TestDGFacadeEngine( unittest.TestCase ):
 		gn1s1ifloat.set( 20.0 )
 		self.failUnless( not gn1s2outAdd.hasCache() )
 		
+		# ITERATION
+		###############
+		# One should never get inside
+		for shell in gn1s1ifloat.iterShells( direction = "down" ):
+			self.failUnless( isinstance( shell.node, GraphNodeBase ) )
 		
 		# MULTI-GRAPHNODE CONNECTIONS
 		#############################
@@ -150,15 +155,31 @@ class TestDGFacadeEngine( unittest.TestCase ):
 		
 		gn1s2oadd.connect( gn2._FP_s1_inFloat )
 		
+		# ITERATION
+		###############
+		# One should never get inside
+		for shell in gn1._FP_s1_inFloat.iterShells( direction = "down" ):
+			self.failUnless( isinstance( shell.node, GraphNodeBase ) )
+		
 		# simple comutation - expect 4 computations !        
 		self.failUnless( gn2s2oadd.get() == 4 )
 		
 		# change offset - it must propagate so g2s2 reevalutates
 		gn1s1ifloat.set( 10.0 )
-		self.failUnless( gn1s1ifloat.getCache() == 10.0 ) 
+		self.failUnless( gn1s1ifloat.getCache() == 10.0 )
 		self.failUnless( gn2s2oadd.get() == 14 )
-		
 		
 		# SUPER GRAPHNODE CONTAINING OTHER GRAPH NODES !!!
 		###################################################
+		sog = Graph()
+		sgn1 = GraphNodeBase( og )
+		sgn2 = GraphNodeBase( og )
+		
+		sog.addNode( sgn1 )
+		sog.addNode( sgn2 )
+		
+		for p in sgn1.getPlugs(): print p
+		
+		
+		
 		
