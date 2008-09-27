@@ -39,16 +39,12 @@ class SimpleIONode( NodeBase ):
 	def createInstance( self, *args, **kwargs ):
 		"""Create a copy of self and return it
 		@note: override by subclass  - the __init__ methods shuld do the rest"""
-		return self.__class__( self.name )
+		return self.__class__( self.getID() )
 	#} END iDuplicatable
 	
 	
 	def __init__( self , name ):
-		super( SimpleIONode, self ).__init__( )
-		self.name = name
-		
-	def __str__( self ):
-		return self.name 
+		super( SimpleIONode, self ).__init__( id = name )
 		
 	def compute( self, plug, mode ):
 		"""Compute some values"""
@@ -79,7 +75,7 @@ class TestDGFacadeEngine( unittest.TestCase ):
 		
 		# wrap it
 		og = Graph( )				# other graph
-		gn1 = GraphNodeBase( g )		# node wrapping the graph
+		gn1 = GraphNodeBase( g, id="GN_1" )		# node wrapping the graph
 		og.addNode( gn1 )
 		
 		self.failUnless( len( gn1.getInputPlugs() ) == 2 )		# does not consider connections  
@@ -147,7 +143,7 @@ class TestDGFacadeEngine( unittest.TestCase ):
 		#############################
 		# AND ALL THE ADDITIONAL TESTS
 		
-		gn2 = GraphNodeBase( g )
+		gn2 = GraphNodeBase( g, id="GN_2" )
 		og.addNode( gn2 )
 		gn1s1ifloat.set( 0.0 )				# no offset 
 		gn1s2oadd = gn1._FP_s2_outAdd
@@ -172,8 +168,8 @@ class TestDGFacadeEngine( unittest.TestCase ):
 		# SUPER GRAPHNODE CONTAINING OTHER GRAPH NODES !!!
 		###################################################
 		sog = Graph()
-		sgn1 = GraphNodeBase( og )
-		sgn2 = GraphNodeBase( og )
+		sgn1 = GraphNodeBase( og, id="SGN_1" )
+		sgn2 = GraphNodeBase( og, id="SGN_2" )
 		
 		sog.addNode( sgn1 )
 		sog.addNode( sgn2 )

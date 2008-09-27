@@ -946,8 +946,14 @@ class _NodeBaseCheckMeta( type ):
 class NodeBase( iDuplicatable ):
 	"""Base class that provides support for plugs to the superclass.
 	It will create some simple tracking attriubtes required for the plug system 
-	to work"""
-	__slots__ = ('graph','shellcls')		# may have a per instance shell class if required 
+	to work
+	
+	Nodes can compute values of their plugs if these do not have a cache.
+	
+	Nodes are identified by an ID - the default graph implementation though will 
+	be okay with just having instances.
+	It is also being used for string representations of this node"""
+	__slots__ = ('graph','shellcls','id')		# may have a per instance shell class if required 
 	shellcls = _PlugShell					# class used to instantiate new shells 
 	__metaclass__ = _NodeBaseCheckMeta		# check the class before its being created 
 	
@@ -956,8 +962,15 @@ class NodeBase( iDuplicatable ):
 		"""We require a directed graph to track the connectivity between the plugs.
 		It must be supplied by the super class and should be as global as required to 
 		connecte the NodeBases together properly.
+		@param id: id of the instance, or None if it is not required 
 		@note: we are super() compatible, and assure our base is initialized correctly"""
 		self.graph = None
+		self.id = None
+		
+		# set id 
+		newid = kwargs.get( 'id', None )
+		if newid:
+			self.setID( newid )
 
 	def __del__( self ):
 		"""Remove ourselves from the graph and delete our connections"""
@@ -969,24 +982,31 @@ class NodeBase( iDuplicatable ):
 		except (AttributeError,ReferenceError):		# .graph could be None
 			pass 
 		
+	def __str__( self ):
+		"""Use our id as string or the default implementation"""
+		if self.id is not None:
+			return str( self.id )
+		
+		return super( NodeBase, self ).__str__( )
 	#} Overridden from Object
 	
 	#{ iDuplicatable Interface 
 	def createInstance( self, *args, **kwargs ):
 		"""Create a copy of self and return it
 		@note: override by subclass  - the __init__ methods shuld do the rest"""
-		return self.__class__( )
+		return self.__class__( id = self.id )
 		
 	def copyFrom( self, other, add_to_graph = True ):
 		"""Just take the graph from other, but do not ( never ) duplicate it
 		@param: add to graph: if true, the new node instance will be added to the 
 		graph of """
+		self.setID( other.getID() )				# id copying would create equally named clones for now 
 		if add_to_graph and other.graph:		# add ourselves to the graph of the other node 
 			other.graph.addNode( self )
 		
 	#} END iDuplicatable
 	
-	#{ Interface
+	#{ Base Interface
 	def compute( self, plug, mode ):
 		"""Called whenever a plug needs computation as the value its value is not 
 		cached or marked dirty ( as one of the inputs changed )
@@ -997,7 +1017,21 @@ class NodeBase( iDuplicatable ):
 		@note: to be implemented by superclass """
 		raise NotImplementedError( "To be implemented by subclass" )
 		
-	#} END interface
+	#} END base interface
+	
+	#{ ID Handling 
+	def setID( self, newID ):
+		"""Set id of this node to newiD
+		@return: previously assigned id"""
+		curid = self.id
+		self.id = newID
+		return curid
+		
+	def getID( self ):
+		"""@return: ID of this instance"""
+		return self.id
+	
+	#} END id handling 
 	
 	#{ Base
 	def toShells( self, plugs ):                                                          

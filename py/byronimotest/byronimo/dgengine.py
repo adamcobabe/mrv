@@ -48,16 +48,11 @@ class SimpleNode( NodeBase ):
 	def createInstance( self, *args, **kwargs ):
 		"""Create a copy of self and return it
 		@note: override by subclass  - the __init__ methods shuld do the rest"""
-		return self.__class__( self.name )
+		return self.__class__( self.getID() )
 	#} END iDuplicatable
 	
-	
 	def __init__( self , name ):
-		super( SimpleNode, self ).__init__( )
-		self.name = name
-		
-	def __str__( self ):
-		return self.name 
+		super( SimpleNode, self ).__init__( id = name )
 		
 	def compute( self, plug, mode ):
 		"""Compute some values"""

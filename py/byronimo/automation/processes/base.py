@@ -97,16 +97,11 @@ class ProcessBase( NodeBase ):
 		@param noun: noun describing the process, ( i.e. "Process" )
 		@param verb: verb describing the process, ( i.e. "processing" )
 		@param workflow: workflow this instance of part of """
-		self.id = id				# id of process it has in the graph it originated from
 		self.noun = noun			# used in plans
 		self.verb = verb			# used in plans
 		
-		NodeBase.__init__( self )		# init last - need our info first !
+		NodeBase.__init__( self, id = id )		# init last - need our info first !
 		
-	def __str__( self ):
-		"""@return: just the process noun"""
-		return self.id
-	
 	
 	#{ iDuplicatable Interface 
 	def createInstance( self, *args, **kwargs ):
@@ -281,7 +276,7 @@ class WorkflowProcessBase( GraphNodeBase, ProcessBase ):
 		
 		# adjust the ids of wrapped graph nodes with the name of their graph
 		for node in self.wgraph.iterNodes():
-			node.id = "%s.%s" % ( id, node.id )
+			node.setID( "%s.%s" % ( id, node.getID() ) )
 		
 		# override name
 		self.noun = wrappedwfl.name

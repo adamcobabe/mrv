@@ -129,9 +129,9 @@ class OtherTestProcess( TestProcess ):
 		self.noun = "OtherTestProcess"
 	
 	#{ iDuplicatable Interface 
-	def createInstance( self, *args, **kwargs ):
-		"""Create a copy of self and return it"""
-		return self.__class__( self.id )
+	#def createInstance( self, *args, **kwargs ):
+	#	"""Create a copy of self and return it"""
+	#	return self.__class__( self.id )
 		
 	#} END iDuplicatable
 	
