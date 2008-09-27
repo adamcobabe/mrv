@@ -721,7 +721,6 @@ class Graph( DiGraph, iDuplicatable ):
 	def copyFrom( self, other ):
 		"""Duplicate all data from other graph into this one, create a duplicate 
 		of the nodes as well"""
-		print "COPY %r" % self 
 		def copyshell( shell, nodemap ):
 			nodecpy = nodemap[ shell.node ]
 			
@@ -867,7 +866,7 @@ class Graph( DiGraph, iDuplicatable ):
 		# END destinationshell already connected
 		
 		# connect us
-		print "CON: %r -> %r" % ( repr(sourceshell), repr(destinationshell) )
+		# print "CON: %r -> %r" % ( repr(sourceshell), repr(destinationshell) )
 		self.add_edge( sourceshell, v = destinationshell )
 		return sourceshell
 		
@@ -999,7 +998,10 @@ class NodeBase( iDuplicatable ):
 	def copyFrom( self, other, add_to_graph = True ):
 		"""Just take the graph from other, but do not ( never ) duplicate it
 		@param: add to graph: if true, the new node instance will be added to the 
-		graph of """
+		graph of 
+		@note: default implementation does not copy plug caches ( which are stored in 
+		the node dict - this is because a reevaluate is usually required on the 
+		duplicated node"""
 		self.setID( other.getID() )				# id copying would create equally named clones for now 
 		if add_to_graph and other.graph:		# add ourselves to the graph of the other node 
 			other.graph.addNode( self )

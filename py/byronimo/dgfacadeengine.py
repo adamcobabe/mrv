@@ -36,6 +36,7 @@ class _OIShellMeta( type ):
 	@classmethod
 	def createUnfacadeMethod( cls, funcname ):
 		def unfacadeMethod( self, *args, **kwargs ):
+			print "OIShell: unfacade %s.%s" % ( repr(self), funcname )
 			return getattr( self._toIShell(), funcname )( *args, **kwargs )
 		return unfacadeMethod
 	
@@ -88,11 +89,13 @@ class _IOShellMeta( _OIShellMeta ):
 		if funcname == "get":						# drection to input 
 			def unfacadeMethod( self, *args, **kwargs ):
 				"""apply to the input shell"""
+				print "IOShell INPUT: unfacade %s.%s" % ( repr(self), funcname )
 				return getattr( self._getShells( "input" )[0], funcname )( *args, **kwargs ) 
 			method = unfacadeMethod	
 		else:										# direction to output 
 			def unfacadeMethod( self, *args, **kwargs ):
 				"""Clear caches of all output plugs as well"""
+				print "IOShell OUTPUT: unfacade %s.%s" % ( repr(self), funcname )
 				for shell in self._getShells( "output" ):
 					getattr( shell, funcname )( *args, **kwargs )
 			# END unfacade method
@@ -104,6 +107,7 @@ class _IOShellMeta( _OIShellMeta ):
 	def createFacadeMethod( cls, funcname ):
 		"""Call the main shell's function"""
 		def facadeMethod( self, *args, **kwargs ):
+			print "IOShell: Facade: %s, shell: %s" % ( funcname, repr( self._getOriginalShell( ) ) )
 			return getattr( self._getOriginalShell( ), funcname )( *args, **kwargs )
 		return facadeMethod
 		
@@ -203,9 +207,9 @@ class _IOShell( _PlugShell ):
 	def _getoiplug( self ):
 		"""@return: oiplug suitable for this shell or None"""
 		try:
-			# cannot use weak references, don't want to use strong references 
-			# oiplugname = self.node.shellcls.iomap[ self.plug.getName() ]	# don't want to use strong - but have to for now 
-			# oiplug = getattr( self.node.shellcls.facadenode, oiplugname ) # expensive call without cache !
+			# cannot use weak references, don't want to use strong references
+			#print self.plug.getName()
+			#print self.node.shellcls.iomap[ self.plug.getName() ]
 			return self.node.shellcls.iomap[ self.plug.getName() ]
 		except KeyError:
 			# plug not on facadenode - this is fine as we get always called
@@ -221,25 +225,53 @@ class _IOShell( _PlugShell ):
 		"""@return: instance of the original shell class that was replaced by our instance"""
 		return self.node.shellcls.origshellcls( self.node, self.plug )
 	
+	def _getTopFacadeNodeShell( self ):
+		"""Recursive method to find the first facade parent having an OI shell
+		@return: topmost facade node shell or None if we are not a managed plug"""
+		# get the oiplug on our node  
+		oiplug = self._getoiplug( )
+		if not oiplug:
+			return None
+		# END if there is no cached oiplug 
+		
+		# Use the facade node shell type - we need to try to get connections now, 
+		# either inputs or outputs on our facade node. In case it is facaded 
+		# as well, we just use a default shell that will definetly handle connections 
+		# the way we expect it
+		facadeNodeShell = self.node.shellcls.facadenode.toShell( oiplug )
+		
+		# NESTED FACADE NODES SPECIAL CASE !
+		######################################
+		# If a facade node is nested inside of another facade node, it will put
+		# it's IO shell above our OI shell. Walk it up until we have the parent 
+		# node with a OI shell - this one will be used instead 
+		if facadeNodeShell.__class__ is _IOShell:
+			return facadeNodeShell._getTopFacadeNodeShell( )
+		# END nested facade node special handling
+		
+		# otherwise we have found the topmost parent
+		return facadeNodeShell
+		
+		
 	def _getShells( self, shelltype ):
 		"""@return: list of ( outside ) shells, depending on the shelltype and availability.
 		If no outside shell is avaiable, return the actual shell only
+		As facade nodes can be nested, we have to check each level of nesting 
+		for connections into the outside world - if available, we use these, otherwise
+		we stay 'inside'
 		@param shelltype: "input" - outside input shell
 							"output" - output shells, and the default shell"""
 		if not isinstance( self.node.shellcls, _IOShell ):
 			raise AssertionError( "Shellclass of %s must be _IOShell, but is %s" % ( self.node, type( self.node.shellcls ) ) )
 		
-		# get the oiplug on our node  
-		oiplug = self._getoiplug( )
-		if not oiplug:
+		# GET FACADE SHELL
+		####################
+		facadeNodeShell = self._getTopFacadeNodeShell( )
+		if not facadeNodeShell:
 			# plug not on facadenode, just ignore and return the original shell 
 			return [ self._getOriginalShell( ) ]
-		# END if there is no cached oiplug 
 		
 		
-		# Use the facade node shell type - it will not handle connections
-		facadeNodeShell = self.node.shellcls.facadenode.toShell( oiplug )
-		#print "GOT FACADESHELL %s FOR %s check" % ( repr( facadeNodeShell ), shelltype )
 		if shelltype == "input":
 			inputShell = facadeNodeShell.getInput( )
 			
@@ -452,13 +484,18 @@ class FacadeNodeBase( NodeBase ):
 				
 				for i,shell in enumerate( edge ):
 					nedge[ i ] = shell
-					if not isinstance( shell, _IOShell ):
+					# its enough to just have an io shell here, it just assures
+					# our callbacks
+					# edges are always ordered start->end - we could be any of these
+					# thus we have to check before 
+					if shell == facadeshell and not isinstance( shell, _IOShell ) :
 						nedge[ i ] = shell.node.toShell( shell.plug )
 						created_shell = True
 				# END for each shell in edge 
 				
 				if created_shell:
-					print "UPDATING CONNECTION: %r -> %r" % ( edge[0],edge[1] )
+					#print "UPDATING CONNECTION: %r -> %r" % ( edge[0],edge[1] )
+					#print "WITH %s -> %s" % ( repr( nedge[0] ), repr( nedge[1] ) )
 					edge[0].disconnect( edge[1] )
 					nedge[0].connect( nedge[1] )
 				# END new shell needs connection

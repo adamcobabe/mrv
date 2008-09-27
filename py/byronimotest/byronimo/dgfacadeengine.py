@@ -174,8 +174,32 @@ class TestDGFacadeEngine( unittest.TestCase ):
 		sog.addNode( sgn1 )
 		sog.addNode( sgn2 )
 		
-		for p in sgn1.getPlugs(): print p
+		# SIMPLE CONNECTION
+		####################
+		sgn1._FP_GN_2__FP_s2_outAdd > sgn2._FP_GN_1__FP_s1_inFloat
 		
+		# ITERATION
+		###############
+		# One should never get inside
+		for shell in gn1s1ifloat.iterShells( direction = "down" ):
+			self.failUnless( isinstance( shell.node, GraphNodeBase ) )
+		
+		sg1inFloat = sgn1._FP_GN_1__FP_s1_inFloat
+		sg2inFloat = sgn2._FP_GN_1__FP_s1_inFloat
+		sg2outAdd = sgn2._FP_GN_2__FP_s2_outAdd
+		
+		# AFFECTS 
+		################
+		self.failUnless( len( sg1inFloat.plug.getAffected( ) ) == 7 )
+		self.failUnless( len( sg2outAdd.plug.getAffectedBy( ) ) == 4 )
+		
+		# SIMPLE COMPUTATION
+		print "COMPUTATION           " * 5
+		print sg2outAdd.get( )
+		#sg1inFloat.set( 10.0 )
+		#print sg2outAdd.get( )
+		#sg2inFloat.set( 10.0 )
+		#print sg2outAdd.get( )
 		
 		
 		
