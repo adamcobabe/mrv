@@ -43,6 +43,7 @@ class _OIShellMeta( type ):
 	def createFacadeMethod( cls, funcname ):
 		"""in our case, connections just are handled by our own OI plug, staying 
 		in the main graph"""
+		return []
 		return None
 	
 	@classmethod
@@ -53,7 +54,7 @@ class _OIShellMeta( type ):
 		else:
 			method = cls.createFacadeMethod( funcname )
 		
-		if method: # could be none if we do not overwrite the method 	
+		if method: # could be none if we do not overwrite the method
 			method.__name__ = funcname
 			
 		return method
@@ -84,17 +85,17 @@ class _IOShellMeta( _OIShellMeta ):
 	def createUnfacadeMethod( cls,funcname ):
 		"""@return: wrapper method for funcname """
 		method = None
-		if funcname == "clearCache":
+		if funcname == "get":						# drection to input 
+			def unfacadeMethod( self, *args, **kwargs ):
+				"""apply to the input shell"""
+				return getattr( self._getShells( "input" )[0], funcname )( *args, **kwargs ) 
+			method = unfacadeMethod	
+		else:										# direction to output 
 			def unfacadeMethod( self, *args, **kwargs ):
 				"""Clear caches of all output plugs as well"""
 				for shell in self._getShells( "output" ):
 					getattr( shell, funcname )( *args, **kwargs )
-			# END unfacade method 
-			method = unfacadeMethod	
-		else:
-			def unfacadeMethod( self, *args, **kwargs ):
-				"""apply to the input shell"""
-				return getattr( self._getShells( "input" )[0], funcname )( *args, **kwargs )
+			# END unfacade method
 			method = unfacadeMethod
 		# END funk type handling 
 		return method
@@ -119,13 +120,13 @@ class _OIShell( _PlugShell ):
 			 - The internal node allows us to hand in calls to the native internal shell
 	"""
 	# list all methods that should not be a facade to our facade node 
-	__unfacade__ = [ 'get', 'clearCache' ]
+	__unfacade__ = [ 'set', 'get', 'clearCache', 'hasCache','setCache', 'getCache' ]
 	
 	# keep this list uptodate - otherwise a default shell will be used for the missing 
 	# function
 	# TODO: parse the plugshell class itself to get the functions automatically 
-	__facade__ = [ 'setCache', 'getCache', 'hasCache','set', 'connect','disconnect','getInput',
-					'getOutputs','iterShells','getConnections' ]
+	__facade__ = [ 'connect','disconnect','getInput', 'getOutputs','getConnections',
+					'iterShells' ]
 	
 	__metaclass__ = _OIShellMeta
 	
@@ -155,8 +156,15 @@ class _IOShell( _PlugShell ):
 	actual facade node, not the one given as input. This allows it to have the 
 	facade system handle the plugshell, or simply satisfy the original request"""
 	
-	__unfacade__ = _OIShell.__unfacade__
-	__facade__ = _OIShell.__facade__
+	__unfacade__ = [  'get', 'clearCache' ]
+	
+	# keep this list uptodate - otherwise a default shell will be used for the missing 
+	# function
+	# TODO: parse the plugshell class itself to get the functions automatically 
+	__facade__ = [ 'set','hasCache','setCache', 'getCache', 
+					'connect','disconnect','getInput','getConnections','getOutputs',
+					'iterShells' ]
+	
 	__metaclass__ = _IOShellMeta
 	
 	def __init__( self, *args ):
@@ -199,7 +207,6 @@ class _IOShell( _PlugShell ):
 			# ioplugname = self.node.shellcls.iomap[ self.plug.getName() ]	# don't want to use strong - but have to for now 
 			# ioplug = getattr( self.node.shellcls.facadenode, ioplugname ) # expensive call without cache !
 			return self.node.shellcls.iomap[ self.plug.getName() ]
-			# print "FOUND IOPLUG %r for %s" % ( ioplug, self.plug.getName() )
 		except KeyError:
 			# plug not on facadenode - this is fine as we get always called
 			pass 
@@ -224,11 +231,12 @@ class _IOShell( _PlugShell ):
 		
 		# get the ioplug on our node  
 		ioplug = self._getIOPlug( )
-		print "GETTING IOSHELL FOR: %r "  % repr( self )
 		if not ioplug:
 			# plug not on facadenode, just ignore and return the original shell 
 			return [ self._getOriginalShell( ) ]
-			
+		# END if there is no cached ioplug 
+		
+		
 		# Use the facade node shell type - it will not handle connections
 		facadeNodeShell = self.node.shellcls.facadenode.toShell( ioplug )
 		
@@ -238,17 +246,17 @@ class _IOShell( _PlugShell ):
 			# if we have an input shell, use it 
 			if inputShell:
 				print "BACK TRACK: '%s' <- '%s'" % ( repr( inputShell ), repr( facadeNodeShell ) )
-				return inputShell
+				return [ inputShell ]
 			else:
 				# no 'outside world' inputShell found, use the internal handler instead
 				# Always use the stored class - using self.node.toShell would create our shell again !
+				origshell = self._getOriginalShell( )
 				return [ self._getOriginalShell( ) ]
 		# END ioplug handling 
 		else:
 			outshells = facadeNodeShell.getOutputs()
 			outshells.append( self._getOriginalShell() )
 			return outshells
-			
 		# END outside shell handling 
 		
 		
@@ -379,7 +387,6 @@ class FacadeNodeBase( NodeBase ):
 		actual nodes and plugs or shells.
 		We prepare the returne value to assure we are being called in certain occasion, 
 		which actually glues outside and inside worlds together """
-		print "getplugs" * 10
 		yourResult = self._getNodePlugs( )
 		
 		# check args - currently only predicate is supported
@@ -393,7 +400,6 @@ class FacadeNodeBase( NodeBase ):
 			return OIFacadePlug( node, plug )
 		# END to facade plug helper
 		
-		# print "START PROCESSING" * 8
 		finalres = list()
 		for orignode, plug in yourResult:			
 			ioplug = toFacadePlug( orignode, plug )
@@ -419,7 +425,6 @@ class FacadeNodeBase( NodeBase ):
 			# END if we have to swap in our facadeIOShell
 			
 			
-			print "FACADING PLUG: %s on %s " % ( ioplug.iplug.getName(), orignode )
 			# update facade shell class ( inst ) cache so that it can map our internal 
 			# plug to the io plug on the outside node 
 			# cannot create weakref to tuple type unfortunately - use name instead 
@@ -450,13 +455,11 @@ class FacadeNodeBase( NodeBase ):
 				if created_shell:
 					print "UPDATING CONNECTION: %r -> %r" % ( edge[0],edge[1] )
 					edge[0].disconnect( edge[1] )
-					print "WITH %r -> %r" % ( nedge[0],nedge[1] )
 					nedge[0].connect( nedge[1] )
 				# END new shell needs connection
 			# END for each edge to update 
 		# END for each orignode,plug in result 
 		
-		# print "END PROCESSING" * 8
 		# the final result has everything nicely put back together, but 
 		# it has been altered as well
 		return finalres

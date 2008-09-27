@@ -140,6 +140,9 @@ class TestDGEngine( unittest.TestCase ):
 		s1.outRand.connect( s2.inFloat )
 		s1.outRand.connect( s2.inFloat )		# works as it is already connected to what we want
 		
+		# fail set due to connection 
+		self.failUnlessRaises( NotWritableError, s2.inFloat.set, 2.0 ) 
+		
 		# disconnect 
 		s1.outRand.disconnect( s2.inFloat )
 		self.failUnless( len( s1.outRand.getOutputs() ) == 0 and not s2.inFloat.getInput() )

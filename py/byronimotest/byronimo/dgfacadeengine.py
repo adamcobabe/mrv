@@ -29,7 +29,7 @@ class SimpleIONode( NodeBase ):
 	#{ Plugs 
 	outAdd = plug( A( float, A.uncached ) )
 	
-	inFloat = plug( A( float, 0, default = 0.0 ) )
+	inFloat = plug( A( float, A.writable, default = 0.0 ) )
 	
 	#} END plugs 
 	inFloat.affects( outAdd )
@@ -53,7 +53,7 @@ class SimpleIONode( NodeBase ):
 	def compute( self, plug, mode ):
 		"""Compute some values"""
 		if plug == SimpleIONode.outAdd:
-			return self.inFloat.get() + 10
+			return self.inFloat.get() + 1
 		raise PlugUnhandled( )
 
 
@@ -72,31 +72,80 @@ class TestDGFacadeEngine( unittest.TestCase ):
 		
 		s1.outAdd > s2.inFloat
 		
+		# EVALUATION CHECK
+		# run through two evals
+		self.failUnless( s2.outAdd.get( ) == 2 )
+		
+		
 		# wrap it
 		og = Graph( )				# other graph
-		gn = GraphNodeBase( g )		# node wrapping the graph
+		gn1 = GraphNodeBase( g )		# node wrapping the graph
+		og.addNode( gn1 )
 		
-		self.failUnless( len( gn.getInputPlugs() ) == 2 )		# does not consider connections  
-		self.failUnless( len( gn.getOutputPlugs() ) == 2 )		# does not consider connections 
+		self.failUnless( len( gn1.getInputPlugs() ) == 2 )		# does not consider connections  
+		self.failUnless( len( gn1.getOutputPlugs() ) == 2 )		# does not consider connections 
 		
 		
 		# GET ATTR 
 		###########
-		self.failUnlessRaises( AttributeError, getattr, gn, "inFloat" )
+		self.failUnlessRaises( AttributeError, getattr, gn1, "inFloat" )
 		
 		# ATTR AFFECTS
 		###############
-		affected = gn._FP_s1_inFloat.plug.getAffected()
+		affected = gn1._FP_s1_inFloat.plug.getAffected()
 		self.failUnless( len( affected ) == 2 )
 		
 		affectedby = affected[-1].getAffectedBy()
 		self.failUnless( len( affectedby ) == 2 )
 		
 		
-		# GET VALUE 
+		# GET VALUE
+		##############
+		# same result as in std mode !
+		origres = s2.outAdd.get()
+		fres = gn1._FP_s2_outAdd.get()
+		self.failUnless( fres == origres )
 		
-		# CLEAR CACHE 
+		# CLEAR CACHE
+		# adjust input value inside - it should affect outside world as well
+		s1ifloat = s1.inFloat
+		s1ifloat.set( 10.0 )
+		self.failUnless( s1ifloat.hasCache() and s1ifloat.getCache() == 10.0 )
 		
-		# SET VALUE 
+		# as its a copy, we have to set the value there as well
+		# fail due to connection
+		self.failUnlessRaises( NotWritableError, gn1._FP_s2_inFloat.set, 10.0 )
+		gn1s1ifloat = gn1._FP_s1_inFloat
+		gn1s2outAdd = gn1._FP_s2_outAdd
 		
+		gn1s1ifloat.set( 10.0 )
+		self.failUnless( gn1s1ifloat.hasCache() and gn1s1ifloat.getCache() == 10.0 )
+		self.failUnless( s2.outAdd.get() == gn1s2outAdd.get() )
+		
+		
+		# SET VALUE AND CACHE DIRTYING
+		################################
+		SimpleIONode.outAdd.attr.flags = 0  	 # default is cached now for all 
+		# assure its working - pull to have a cache  
+		self.failUnless( s2.outAdd.get() == gn1._FP_s2_outAdd.get() )
+		self.failUnless( s2.outAdd.hasCache() and gn1s2outAdd.hasCache() )
+		
+		# adjust input to clear the caches
+		s1.inFloat.set( 20.0 )
+		self.failUnless( not s2.outAdd.hasCache() )
+		
+		gn1s1ifloat.set( 20.0 )
+		self.failUnless( not gn1s2outAdd.hasCache() )
+		
+		
+		# MULTI-GRAPHNODE CONNECTIONS
+		#############################
+		# AND ALL THE ADDITIONAL TESTS
+		
+		#gn2 = GraphNodeBase( g )
+		
+		
+		
+		# SUPER GRAPHNODE CONTAINING OTHER GRAPH NODES !!!
+		###################################################
 		
