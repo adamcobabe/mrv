@@ -523,26 +523,26 @@ class _PlugShell( tuple ):
 	
 	#{ Connections 
 	
-	def connect( self, otherplug, **kwargs ):
-		"""Connect this plug to otherplug such that otherplug is an input plug for our output
-		@param force: if False, existing connections to otherplug will not be broken, but an exception is raised
+	def connect( self, otherplugshell, **kwargs ):
+		"""Connect this plug to otherplugshell such that otherplugshell is an input plug for our output
+		@param force: if False, existing connections to otherplugshell will not be broken, but an exception is raised
 		if True, existing connection may be broken
 		@return self: on success, allows chained connections 
-		@raise PlugAlreadyConnected: if otherplug is connected and force is False
-		@raise PlugIncompatible: if otherplug does not appear to be compatible to this one"""
-		if not isinstance( otherplug, _PlugShell ):
-			raise AssertionError( "Invalid Type given to connect: %r" % repr( otherplug ) )
+		@raise PlugAlreadyConnected: if otherplugshell is connected and force is False
+		@raise PlugIncompatible: if otherplugshell does not appear to be compatible to this one"""
+		if not isinstance( otherplugshell, _PlugShell ):
+			raise AssertionError( "Invalid Type given to connect: %r" % repr( otherplugshell ) )
 		
-		return self.node.graph.connect( self, otherplug, **kwargs )
+		return self.node.graph.connect( self, otherplugshell, **kwargs )
 		
 	
-	def disconnect( self, otherplug ):
-		"""Remove the connection to otherplug if we are connected to it.
+	def disconnect( self, otherplugshell ):
+		"""Remove the connection to otherplugshell if we are connected to it.
 		@note: does not raise if no connection is present"""
-		if not isinstance( otherplug, _PlugShell ):
-			raise AssertionError( "Invalid Type given to connect: %r" % repr( otherplug ) )
+		if not isinstance( otherplugshell, _PlugShell ):
+			raise AssertionError( "Invalid Type given to connect: %r" % repr( otherplugshell ) )
 			
-		return self.node.graph.disconnect( self, otherplug )
+		return self.node.graph.disconnect( self, otherplugshell )
 	
 	def getInput( self, predicate = lambda shell: True ):
 		"""@return: the connected input plug or None if there is no such connection
@@ -606,11 +606,10 @@ class _PlugShell( tuple ):
 		if self.plug.attr.flags & Attribute.uncached:
 			return
 		
-		setattr( self.node, self._cachename(), value )
-		
 		# our cache changed - dirty downstream plugs - thus clear the cache
-		self.clearCache( propagate = True )
-			
+		# NOTE: this clears our own cache by deleting it, but we re-set it 
+		self.clearCache( clear_affected = True )
+		setattr( self.node, self._cachename(), value )
 		
 	def getCache( self ):
 		"""@return: the cached value or raise
@@ -620,19 +619,21 @@ class _PlugShell( tuple ):
 		
 		raise ValueError( "Plug %r did not have a cached value" % repr( self ) )
 		
-	def clearCache( self, propagate = False ):
+	def clearCache( self, clear_affected = False ):
 		"""Empty the cache of our plug
-		@param propagate: if True, the caches of output plugs will also be cleared, 
-		which effectively forces them to re-evaluate. The own cache will not be cleared.
-		If False, only the own cache will be cleared"""
-		if not propagate:
-			if self.hasCache():
-				del( self.node.__dict__[ self._cachename() ] )
-		else:
+		@param clear_affected: if True, the caches of our affected plugs ( connections
+		or affects relations ) will also be cleared
+		This operation is recursive, and needs to be as different shells on different nodes
+		might do things differently.
+		Propagation will happen even if we do not have a cache to clear ourselves """
+		if self.hasCache():
+			del( self.node.__dict__[ self._cachename() ] )
+		
+		if clear_affected:
 			# our cache changed - dirty downstream plugs - thus clear the cache
-			prune_me = lambda x: x == self
-			for shell in self.iterShells( direction = "down", prune = prune_me, branch_first = True, visit_once = True ):
-				shell.clearCache( propagate = False )
+			all_shells = itertools.chain( self.node.toShells( self.plug.getAffected() ), self.getOutputs() )
+			for shell in all_shells:
+				shell.clearCache( clear_affected = True )
 	#} END caching
 	
 	
@@ -842,6 +843,9 @@ class Graph( DiGraph, iDuplicatable ):
 		@raise PlugAlreadyConnected: if destinationshell is connected and force is False
 		@raise PlugIncompatible: if destinationshell does not appear to be compatible to this one"""
 		# assure both nodes are known to the graph
+		if not sourceshell.node.graph is destinationshell.node.graph:
+			raise AssertionError( "You cannot connect nodes from different graphs" )
+			
 		self._nodes.add( sourceshell.node )
 		self._nodes.add( destinationshell.node )
 		

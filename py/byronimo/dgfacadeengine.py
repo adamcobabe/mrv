@@ -239,23 +239,25 @@ class _IOShell( _PlugShell ):
 		
 		# Use the facade node shell type - it will not handle connections
 		facadeNodeShell = self.node.shellcls.facadenode.toShell( ioplug )
-		
+		#print "GOT FACADESHELL %s FOR %s check" % ( repr( facadeNodeShell ), shelltype )
 		if shelltype == "input":
 			inputShell = facadeNodeShell.getInput( )
 			
 			# if we have an input shell, use it 
 			if inputShell:
-				print "BACK TRACK: '%s' <- '%s'" % ( repr( inputShell ), repr( facadeNodeShell ) )
+				# print "BACK TRACK: '%s' <- '%s'" % ( repr( inputShell ), repr( facadeNodeShell ) )
 				return [ inputShell ]
 			else:
 				# no 'outside world' inputShell found, use the internal handler instead
 				# Always use the stored class - using self.node.toShell would create our shell again !
+				#print "NO OUTSIDE INPUT, returning orig shell"
 				origshell = self._getOriginalShell( )
 				return [ self._getOriginalShell( ) ]
 		# END ioplug handling 
 		else:
-			outshells = facadeNodeShell.getOutputs()
-			outshells.append( self._getOriginalShell() )
+			#print "PROVIDING OUTPUT SHELLS for: %s" % ( repr( facadeNodeShell ) )
+			outshells = facadeNodeShell.getOutputs( )
+			outshells.append( self._getOriginalShell( ) )
 			return outshells
 		# END outside shell handling 
 		

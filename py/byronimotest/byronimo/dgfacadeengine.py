@@ -125,7 +125,7 @@ class TestDGFacadeEngine( unittest.TestCase ):
 		
 		# SET VALUE AND CACHE DIRTYING
 		################################
-		SimpleIONode.outAdd.attr.flags = 0  	 # default is cached now for all 
+		SimpleIONode.outAdd.attr.flags = 0  	 # enable caching now for all SimpleNodes 
 		# assure its working - pull to have a cache  
 		self.failUnless( s2.outAdd.get() == gn1._FP_s2_outAdd.get() )
 		self.failUnless( s2.outAdd.hasCache() and gn1s2outAdd.hasCache() )
@@ -142,8 +142,21 @@ class TestDGFacadeEngine( unittest.TestCase ):
 		#############################
 		# AND ALL THE ADDITIONAL TESTS
 		
-		#gn2 = GraphNodeBase( g )
+		gn2 = GraphNodeBase( g )
+		og.addNode( gn2 )
+		gn1s1ifloat.set( 0.0 )				# no offset 
+		gn1s2oadd = gn1._FP_s2_outAdd
+		gn2s2oadd = gn2._FP_s2_outAdd
 		
+		gn1s2oadd.connect( gn2._FP_s1_inFloat )
+		
+		# simple comutation - expect 4 computations !        
+		self.failUnless( gn2s2oadd.get() == 4 )
+		
+		# change offset - it must propagate so g2s2 reevalutates
+		gn1s1ifloat.set( 10.0 )
+		self.failUnless( gn1s1ifloat.getCache() == 10.0 ) 
+		self.failUnless( gn2s2oadd.get() == 14 )
 		
 		
 		# SUPER GRAPHNODE CONTAINING OTHER GRAPH NODES !!!
