@@ -166,7 +166,10 @@ class Attribute( object ):
 	
 	Flags
 	-----
-	exact_type: if True, derived classes of our typecls are not considered to be a valid type
+	exact_type: if True, derived classes of our typecls are not considered to be a valid type.
+	i.e: basestring could be stored in a str attr if exact type is false - its less than we need, but 
+	still something.
+	Putting a str into a basestring attribute will always work though, as it would be more than we need
 	writable: if True, the attribute's plug can be written to
 	computable: Nodes are automatically computable if they are affected by another plug.
 				If this is not the case, they are marked input only and are not computed.
@@ -179,19 +182,29 @@ class Attribute( object ):
 	cls: if True, the plug requires classes to be set ( instances of 'type' ) , but no instances of these classes
 	uncached: if False, computed values may be cached, otherwise they will always be recomputed.
 	unconnectable: if True, the node cannot be the destination of a connection
+	check_passing_values: check each value as it flows through a connection - usually compatability is only checked
+	on connection and once values are set, but not if they flow through an existing connection
+	
+	Default Values
+	--------------
+	Although default values can be simple primitives are classes, a callable is specifically supported.
+	It allows you to get a callback whenever a default value is required. 
+	The same result could be achieved by connected the plug in question, but dynamic defaults are a quick 
+	way to achive that.
+	Your returned value will be type-checked against the required type if check_passing_values is st
 	"""
 	kNo, kGood, kPerfect = 0, 127, 255				# specify how good attributes fit together
-	exact_type, writable, computable, cls, uncached, unconnectable = ( 1, 2, 4, 8, 16, 32 )
-	__slots__ = ( 'typecls', 'flags', 'default' )
+	exact_type, writable, computable, cls, uncached, unconnectable,check_passing_values = ( 1, 2, 4, 8, 16, 32, 64 )
+	__slots__ = ( 'typecls', 'flags', '_default' )
 	
 	def __init__( self, typeClass, flags, default = None ):
 		self.typecls = typeClass
 		self.flags = flags			# used for bitflags describing mode
-		self.default = default
+		self._default = default
 		
 		# check default value for compatability !
 		if default is not None:
-			if self.getCompatabilityRate( default ) == 0:
+			if not hasattr( default, '__call__' ) and self.getCompatabilityRate( default ) == 0:
 				raise TypeError( "Default value %r is not compatible with this attribute" % default )
 		# END default type check 
 		
@@ -206,7 +219,12 @@ class Attribute( object ):
 		mro.reverse()
 		
 		if not cls in mro:
+			# if we are in the classes mr, then we can perfectly store the class 
+			# as it is more than we need
+			if self.typecls in cls.mro():
+				return self.kPerfect
 			return 0
+		# END simple mro checking 
 			
 		if len( mro ) == 1:
 			return self.kPerfect
@@ -219,9 +237,11 @@ class Attribute( object ):
 		return rate 
 
 	#{ Interface 
+	
 	def getAffinity( self, otherattr ):
 		"""@return: rating from 0 to 255 defining how good the attribtues match 
-		each other in general.
+		each other in general - how good can we store values of otherattr ?
+		Thus this comparison is directed
 		@note: for checking connections, use L{getConnectionAffinity}"""
 		# see whether our class flags match
 		if self.flags & self.cls != otherattr.flags & self.cls:
@@ -230,17 +250,16 @@ class Attribute( object ):
 		# finally check how good our types match 
 		return self._getClassRating( otherattr.typecls, otherattr.flags & self.exact_type )
 	
-	def getConnectionAffinity( self, otherattr ):
+	def getConnectionAffinity( self, destinationattr ):
 		"""@return: rating from 0 to 255 defining the quality of the connection to 
 		otherplug. an affinity of 0 mean connection is not possible, 255 mean the connection 
 		is perfectly suited.
 		The connection is a directed one from self -> otherplug"""
-		if otherattr.flags & self.unconnectable:		# destination must be connectable
+		if destinationattr.flags & self.unconnectable:		# destination must be connectable
 			return 0
 			
-		return self.getAffinity( otherattr )
-		
-		
+		# how good can the destination attr deal with us ?
+		return destinationattr.getAffinity( self )
 		
 	def getCompatabilityRate( self, value ):
 		"""@return: value between 0 and 255, 0 means no compatability, 255 a perfect match
@@ -259,6 +278,27 @@ class Attribute( object ):
 		# END is instance type 
 		
 		return 0
+
+	def getDefault( self ):
+		"""@return: default value stored for this attribute, or raise
+		@note: handles dynamic defaults, so you should not directly access the default member variable
+		@raise MissingDefaultValueError: if attribute does not have a default value
+		@raise TypeError: if value returned by dynamic attribute has incorrect type"""
+		if self._default is None:
+			raise MissingDefaultValueError( "Attribute %r has no default value" % self )
+		
+		# DYNAMIC ATTRIBUTES
+		######################
+		if hasattr( self._default, '__call__' ):
+			default = self._default()
+			if self.flags & self.check_passing_values and self.getCompatabilityRate( default ) == 0:
+				raise TypeError( "Dynamic default value had incorrect type: %s" % type( default ) )
+			return default
+		# END dynamic default handling 
+		
+		# normal static default
+		return self._default
+			
 
 	#} END interface 
 
@@ -457,6 +497,7 @@ class _PlugShell( tuple ):
 		@mode: optional arbitary value specifying the mode of the get attempt"""
 		if self.hasCache( ):
 			return self.getCache( )
+			
 		# Output plugs compute values 
 		if self.plug.providesOutput( ):
 			# otherwise compute the value
@@ -476,15 +517,22 @@ class _PlugShell( tuple ):
 			inputshell = self.getInput()
 			if not inputshell:
 				# check for default value
-				if self.plug.attr.default is not None:
-					return self.plug.attr.default
-				else:
-					raise MissingDefaultValueError( "Plug %r has no default value and is not connected - no value can be provided" % repr( self ) )
+				try:
+					return self.plug.attr.getDefault()
+				except ( TypeError, MissingDefaultValueError ),e:
+					raise MissingDefaultValueError( "Plug %r failed to getrieve its default value and is not connected" % repr( self ), e )
 			# END if we have no input 
 			
 			# query the connected plug for the value
-			return inputshell.get( mode )
-		# END plug provides input 
+			value = inputshell.get( mode )
+			if self.plug.attr.flags & Attribute.check_passing_values:
+				if not self.plug.attr.getCompatabilityRate( value ):
+					raise TypeError( "Value coming from input %s is not compatible with %s" % ( str( inputshell ), str( self ) ) )
+				
+			return value 
+		# END plug provides input
+		
+		raise AssertionError( "Plug %s did not provide any output or input!" % repr( self ) )
 		
 		
 		
@@ -1125,26 +1173,51 @@ class NodeBase( iDuplicatable ):
 		return outConnections
 		
 	@staticmethod
-	def filterCompatiblePlugs( plugs, attribute, raise_on_ambiguity = False, attr_affinity = False ):
+	def filterCompatiblePlugs( plugs, attrOrValue, raise_on_ambiguity = False, attr_affinity = False,
+							  	attr_as_source=True ):
 		"""@return: sorted list of (rate,plug) tuples suitable to deal with the given attribute.
 		Thus they could connect to it as well as get their value set.
 		Most suitable plug comes first.
 		Incompatible plugs will be pruned.
+		@param attrOrValue: either an attribute or the value you would like to set to the 
+		attr at the plug in question.
 		@param raise_on_ambiguity: if True, the method raises if a plug has the same
 		rating as another plug already on the output list, thus it's not clear anymore 
 		which plug should handle a request
 		@param attr_affinity: if True, it will not check connection affinity, but attribute 
 		affinity only. It checks how compatible the attributes of the plugs are, disregarding 
 		whether they can be connected or not
+		Only valid if attrOrValue is an attribute
+		@param attr_as_source: if True, attrOrValue will be treated as the source of a connection or 
+		each plug would need to take its values.
+		if False, attrOrValue is the destination of a connection and it needs to take values of the given plugs
+		or they would connect to it. Only used if attrOrValue is an attribute.
 		@raise TypeError: if ambiguous input was found"""
-		                                                      
+		                  
+		attribute = None
+		value = attrOrValue
+		if isinstance( attrOrValue, Attribute ):
+			attribute = attrOrValue
+		
 		outSorted = list()
 		for plug in plugs:
-			if attr_affinity:
-				rate = plug.attr.getAffinity( attribute )
+			
+			if attribute:
+				sourceattr = attribute
+				destinationattr = plug.attr
+				if not attr_as_source:
+					destinationattr = attribute
+					sourceattr = plug.attr
+					
+				if attr_affinity:
+					rate = destinationattr.getAffinity( sourceattr )	# how good can dest store source ?
+				else:
+					rate = sourceattr.getConnectionAffinity( destinationattr )
+				# END which affinity type 
+			# END attribute rating
 			else:
-				rate = plug.attr.getConnectionAffinity( attribute )
-			# END which affinity type 
+				rate = plug.attr.getCompatabilityRate( value )
+			# END value rating 
 			
 			if not rate: 
 				continue
@@ -1170,7 +1243,6 @@ class NodeBase( iDuplicatable ):
 			# END for each rate in ratemap
 			if report:
 				report = "Ambiguous plugs found\n" + report
-				print report
 				raise TypeError( report  )
 		# END ambiguous check
 		

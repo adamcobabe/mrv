@@ -20,6 +20,7 @@ from byronimo.dgengine import NodeBase
 from byronimo.dgfacadeengine import GraphNodeBase
 from byronimo.dgengine import plug
 from byronimo.dgengine import Attribute
+
 import byronimo.automation.base as wflbase
 from byronimo.path import Path
 from byronimo.util import Or
@@ -36,8 +37,8 @@ class DirtyException( ValueError ):
 	The exception can also contain a report that will be returned using the 
 	getReport function.
 	"""
-	def __init__( self ):
-		self.report = ''
+	def __init__( self, report = '' ):
+		self.report = report
 		
 	#{ Interface
 		
@@ -129,16 +130,8 @@ class ProcessBase( NodeBase ):
 		@param target: instance or class of target to check for compatability
 		@raise TypeError: if the result is ambiguous"""
 		# query our ouput plugs for a compatible attr
-		targettype = target.__class__
-		mode = 0
-		if isinstance( target, type ):
-			targettype = target
-			mode = Attribute.cls
-		
-		outplugs = self.getInputPlugs( )
-		
-		attr = Attribute( targettype, mode )
-		plugrating = self.filterCompatiblePlugs( outplugs, attr, raise_on_ambiguity = 1, attr_affinity = 1 )
+		inplugs = self.getInputPlugs( )
+		plugrating = self.filterCompatiblePlugs( inplugs, target, raise_on_ambiguity = 1 )
 		
 		if not plugrating:		#	 no plug ?
 			return ( 0 , None )
@@ -185,7 +178,7 @@ class ProcessBase( NodeBase ):
 				to return everything that is right according to the state you shall create.
 				If this state is disabled, you should not return the current state, but behave 
 				according to the other ones.
-		plug_state: your return value must represent the 'should' state - thus you must assure 
+		target_state: your return value must represent the 'should' state - thus you must assure 
 				that the environment is left in a state that matches your plug state - the result 
 				of that operation will be returned.
 				Usually, but not necessarily, the is_state is also requested so that the output
@@ -196,8 +189,9 @@ class ProcessBase( NodeBase ):
 				to deliver the plug state. If the is_state if the environment is the plug_state
 				as there is nothing to do for you, do not raise and simply return your output.
 		The call takes place as there is no cache for plugType.
-		@note: needs to be implemented by subclasses"""
-		raise NotImplementedError( "This process method needs to be implemented by the subclass" )
+		@note: needs to be implemented by subclasses, but subclasses can just call their 
+		superclass for all unhandled plugs resulting in consistent error messages"""
+		raise PlugUnhandled( "Plug %s.%s cannot be handled - check your implementation" % ( self, str( plug ) ) )
 		
 
 	# } END interface
@@ -211,7 +205,6 @@ class ProcessBase( NodeBase ):
 		
 	#}# END overridden from NodeBase
 	
-	#} END overridden from plugbase
 	
 	#{ Base 
 	# methods that drive the actual call

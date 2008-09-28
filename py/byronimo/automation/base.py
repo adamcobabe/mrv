@@ -107,32 +107,24 @@ def loadWorkflowFromDotFile( dotfile ):
 	for edge in dotgraph.get_edge_list():
 		snode = edge_lut[ edge.get_source() ]
 		dnode = edge_lut[ edge.get_destination() ]
-		#print "EDGE = " % ( snode, dnode )
-		# we simply connect all compatible outputs from source to all compatible 
-		# inputs of dnode
-		# Fail of no input could be found
-		#print "ALL PLUGS "
-		#for p in dnode.getPlugs(): print "plug"; print type( p ); print repr( p )
-		#print  "done printing all plugs"
-		dnodeInputPlugs = dnode.getInputPlugs( )
-		# for p in dnodeInputPlugs: print "%s.providesOutput = %i, affected by %s" % ( p, p.providesOutput(), p.getAffectedBy() )
-		
-		#print "SOURCE PLUGS PLUGS"
-		#for p in snode.getPlugs(): print "%s.providesOutput = %i, affected by %s" % ( p, p.providesOutput(), p.getAffectedBy() )
+		destplugs = dnode.getInputPlugs( )
 		
 		numConnections = 0
-		for iplug in snode.getOutputPlugs():
+		for sourceplug in snode.getOutputPlugs():
+			print "CHEKCING %s" % sourceplug
 			try: 
 				# first is best
-				rate,targetplug = snode.filterCompatiblePlugs( dnodeInputPlugs, iplug.attr, raise_on_ambiguity = 1 )[0] 
+				rate,targetplug = snode.filterCompatiblePlugs( destplugs, sourceplug.attr, raise_on_ambiguity = 0, attr_affinity = False, attr_as_source = True )[0] 
 			except ( TypeError,IndexError ),e:	# could have no compatible or is ambigous
+				print e.args		# debug 
 				continue
 			else:
 				# if a plug is already connected, try another one
 				try: 
-					sshell = snode.toShell( iplug ) 
+					sshell = snode.toShell( sourceplug ) 
 					dshell = dnode.toShell( targetplug )
 					sshell.connect( dshell )
+					
 					numConnections += 1
 				except PlugAlreadyConnected:
 					# print "Connection of %s -> %s clashed - will go on trying" % ( sshell, dshell )
