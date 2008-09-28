@@ -144,14 +144,21 @@ class ProcessBase( NodeBase ):
 			return ( 0 , None )
 			
 		# remove all non-writable plugs - they can never be targets 
-		writablePlugs = []
-		for rpt in plugrating:				# rate,plug tuple 
-			if not rpt[1].attr.flags & Attribute.writable:
+		writableRatedPlugs = []
+		for rate,plug in plugrating:				# rate,plug tuple 
+			if not  plug.attr.flags & Attribute.writable:
 				continue			# need to set the attribute
-			writablePlugs.append( rpt )
+				
+			# connected plugs are an option, but prefer the ones being open
+			if self.toShell( plug ).getInput():
+				rate /= 2.0
+				
+			writableRatedPlugs.append( (rate,plug) )
 		# END writable only filter s
 		
-		rate, plug = writablePlugs[0] 
+		writableRatedPlugs.sort()		# high comes last
+		
+		rate, plug = writableRatedPlugs[-1] 
 		return ( int(rate), self.toShell( plug ) )
 		
 		
@@ -229,11 +236,9 @@ class ProcessBase( NodeBase ):
 	def prepareProcess( self ):
 		"""Will be called on all processes of the workflow once before a target is 
 		actually being queried by someone
-		It must be used to clear the own state and reset the instance such that 
-		it can get repeatable results"""
-		# clear all our plugs caches 
-		for plug in self.getPlugs( ):
-			self.toShell( plug ).clearCache( )
+		It should be used to do whatever you think is required to work as process.
+		This uauslly is a special case for most preocesses"""
+		pass 
 		
 	def getWorkflow( self ):
 		"""@return: the workflow instance we are connected with. Its used to query global data"""
@@ -325,7 +330,7 @@ class WorkflowProcessBase( GraphNodeBase, ProcessBase ):
 		self.wgraph._callgraph = self.graph._callgraph	# assure wrapped workflow takes our callgraph
 		
 		# Prepare all our wrapped nodes
-		for node in self.wgraph.iterNodes():
+		for node in self.wgraph.iterNodes( ):
 			node.prepareProcess( )
 			
 		# ProcessBase.prepareProcess( self )

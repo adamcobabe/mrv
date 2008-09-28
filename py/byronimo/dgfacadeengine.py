@@ -579,6 +579,11 @@ class GraphNodeBase( FacadeNodeBase ):
 	"""A node wrapping a graph, allowing it to be nested within the node 
 	All inputs and outputs on this node are purely virtual, thus they internally connect
 	to the wrapped graph.
+	
+	@todo: tests deletion of graphnodes and see whether they are being garbage collected.
+	It should work with the new collector as it can handle cyclic references - these 
+	strong cycles we have a lot in this structure. Weakrefs will not work for nested
+	facade nodes as they are tuples not allowing weak refs.
 	"""
 	#{ Overridden Object Methods
 	

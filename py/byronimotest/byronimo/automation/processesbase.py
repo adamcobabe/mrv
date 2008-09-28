@@ -30,7 +30,6 @@ class TestProcesses( unittest.TestCase ):
 	def test_workflowProcess( self ):
 		"""byronimo.automation.processes: check workflow nested into process"""
 		wfl = workflows.workflowwrap
-		
 		workflows.multiinput.writeDot("/usr/tmp/mygraph.dot" )
 		
 		self.failUnless( len( list( wfl.iterNodes() ) ) ==  1 )
@@ -39,7 +38,7 @@ class TestProcesses( unittest.TestCase ):
 		
 		# shuold be able to provide exactly the same output the workflow itself
 		res = wfl.makeTarget( unicode( "this" ) )
-		self.failUnless( res == "this10.020202020202020202020202020202020" )
+		self.failUnless( res == "this3.020202020202020202020202020202020" )
 		
 		# CALLGRAPH 
 		################
@@ -62,36 +61,34 @@ class TestProcesses( unittest.TestCase ):
 		# Two wrapped workflows combined
 		mwfl = workflows.multiWorkflow
 		
-		# iterate it - nodes should be facaded and you should not get inside 
+		# iterate it - nodes should be facaded and you should not get inside
+		# we cannot get different nodes than workflow wrappers, even if we 
+		# traverse the connections
 		wnode2 = mwfl.getNodes()[-1]
-		print "ITERATIING FROM %s upstream" % repr( wnode2.outChain )
 		lastshell = None
 		for shell in wnode2.outChain.iterShells( direction = "up" ):
-			print shell
+			self.failUnless( isinstance( shell.node, processes.WorkflowWrapTestProcess ) )
 			lastshell = shell
-		print "\n"
 		
-		# travel downstream again
 		for shell in lastshell.iterShells( direction = "down" ):
-			print shell 
-		print "\n"
-		
-		# we cannot get different nodes than workflow wrappers, even if we 
-		# traverse the connections 
-		lastnode = list( mwfl.iterNodes() )[1]
-		for shell in lastnode.outChain.iterShells( direction="up" ):
 			self.failUnless( isinstance( shell.node, processes.WorkflowWrapTestProcess ) )
 		
-		res = mwfl.makeTarget( object )[0]		# target only
-		print "MultiWorkflow Result = %i" % res
-		self.failUnless( res == 45 )			# it went through many nodes
 		
-		# must be less nodes  - its just one workflow
-		self.failUnless( miwfl.makeTarget( object )[0] < res )		
+		res = mwfl.makeTarget( object )[0]		# target only
+		self.failUnless( res == 65 )			# it went through 6 nodes 
+		
+		# compute the value directly using the plug as the workflow 
+		# cannot determine which input is the suitable one
+		#self.failUnless( miwfl.makeTarget( object )[0] < res )
+		self.failUnlessRaises( AssertionError, miwfl.makeTarget, object )
+		mires = miwfl.getNodes()[-1].outChain.get( )
+		
+		self.failUnless( mires[0] < res )		# must be 3 nodes only, thus its smaller at least
 		
 		# report 
 		plan = mwfl.getReportInstance( Plan )
 		lines = plan.getReport( headline = "MULTI WRAPPED WORKFLOW" )
+		self.failUnless( len( lines ) == 7 )
 		for l in lines:
 			print l
 		

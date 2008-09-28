@@ -866,7 +866,7 @@ class Graph( DiGraph, iDuplicatable ):
 		# END destinationshell already connected
 		
 		# connect us
-		# print "CON: %r -> %r" % ( repr(sourceshell), repr(destinationshell) )
+		print "CON: %r -> %r" % ( repr(sourceshell), repr(destinationshell) )
 		self.add_edge( sourceshell, v = destinationshell )
 		return sourceshell
 		
@@ -1156,12 +1156,22 @@ class NodeBase( iDuplicatable ):
 		outSorted.reverse()		# high rates first 
 		 
 		if raise_on_ambiguity:
-			prev_rate = -1
+			ratemap = dict()
 			for rate,plug in outSorted:
-				if rate == prev_rate:
-					raise TypeError( "At least two plugs delivered the same compatabliity rate ( plug involved is %s )" % str(plug) )
-				prev_rate = rate
+				ratemap.setdefault( rate, list() ).append( plug )
 			# END for each compatible plug
+			report = ""
+			for rate, pluglist in ratemap.iteritems( ):
+				if len( pluglist ) > 1:
+					report += "Rate: %i :" % rate
+					for plug in pluglist:
+						report += "\n%s" % plug
+				# END if ambiguous plugs 
+			# END for each rate in ratemap
+			if report:
+				report = "Ambiguous plugs found\n" + report
+				print report
+				raise TypeError( report  )
 		# END ambiguous check
 		
 		return outSorted

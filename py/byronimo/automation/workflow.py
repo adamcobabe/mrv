@@ -202,7 +202,7 @@ class Workflow( Graph ):
 		
 		# GET INITIAL REPORT 
 		######################
-		outputplug = self._setupProcess( target, globalmode, reset_dg = True )
+		outputplug = self._setupProcess( target, globalmode )
 		outreports.append( self._evaluateDirtyState( outputplug, processmode ) )
 							
 							
@@ -219,11 +219,9 @@ class Workflow( Graph ):
 		
 		
 	
-	def _setupProcess( self, target, globalmode, reset_dg = True ):
+	def _setupProcess( self, target, globalmode ):
 		"""Setup the workflow's dg such that the returned output shell can be queried 
 		to evaluate target
-		@param reset_dg: if True, the dependency graph will be reset and cached values 
-		are being deleted. If not, several process calls with cached values are possible
 		@param globalmode: mode with which all other processes will be handling 
 		their input calls
 		"""
@@ -236,10 +234,9 @@ class Workflow( Graph ):
 		self._callgraph = Workflow.CallGraph( )
 		self._mode = globalmode
 		
-		# reset all process to prep for computation
-		if reset_dg:
-			for node in self.iterNodes():
-				node.prepareProcess( )
+		# prepare all processes
+		for node in self.iterNodes( ):
+			node.prepareProcess( )
 		# END reset dg handling
 			
 		# get output plug that can be queried to get the target
@@ -254,12 +251,12 @@ class Workflow( Graph ):
 		return inputshell.node.toShell( outputplugs[0] )
 		
 	
-	def _evaluate( self, target, processmode, globalmode, reset_dg = True ):
+	def _evaluate( self, target, processmode, globalmode ):
 		"""Make or update the target using a process in our workflow
 		@param processmode: the mode with which to call the initial process 
 		@return: tuple( shell, result ) - plugshell queried to get the result 
 		"""
-		outputshell = self._setupProcess( target, globalmode, reset_dg = reset_dg )
+		outputshell = self._setupProcess( target, globalmode )
 		######################################################
 		result = outputshell.get( processmode )
 		######################################################
@@ -330,7 +327,7 @@ class Workflow( Graph ):
 		# check if we have several best picks - raise if so
 		allbestpicks = [ pick for pick in rescache if pick[0] == bestpick[0] ]
 		if len( allbestpicks ) > 1: 
-			raise AssertionError( "There should only be one suitable process for %r, found %i" % ( target, len( allbestpicks ) ) )
+			raise AssertionError( "There should only be one suitable process for %r, found %i (%s)" % ( target, len( allbestpicks ), allbestpicks ) )
 			
 		
 		shell = bestpick[1]

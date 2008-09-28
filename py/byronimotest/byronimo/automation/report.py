@@ -31,6 +31,6 @@ class TestReport( unittest.TestCase ):
 		res = miwfl.makeTarget( unicode( "this" ) )
 		plan = miwfl.getReportInstance( Plan )
 		r = plan.getReport( headline = "unicode workflow test" )
-		self.failUnless( len( r ) == 6 )
+		self.failUnless( len( r ) == 5 )
 		for l in r:
 			print l

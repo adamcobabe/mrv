@@ -104,9 +104,8 @@ class TestWorkflow( unittest.TestCase ):
 		res = miwfl.makeTarget( unicode( "this" ) )
 		cg = miwfl._callgraph
 		
-		
-		self.failUnless( len( cg.nodes() ) == 5 )
-		self.failUnless( len( cg.edges() ) == 4 )
+		self.failUnless( len( cg.nodes() ) == 4 )
+		self.failUnless( len( cg.edges() ) == 3 )
 		
 	def test_workflowfacades( self ):
 		"""byronimo.automation.workflow:  test facades of workflows"""

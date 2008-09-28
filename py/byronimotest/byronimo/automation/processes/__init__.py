@@ -55,10 +55,10 @@ class TestProcess( processes.ProcessBase ):
 	inObj = 		plug( A( object, A.cls|A.exact_type|A.writable ) )	# just connectable, not writable
 	
 	# outputs 
-	outFloat = 		plug( A( float, A.computable ) )
-	outInt = 		plug( A( int, A.computable ) )
-	outFloatGen = 	plug( A( float, A.computable ) )
-	outIntGen = 	plug( A( int, A.computable ) )
+	outFloat = 		plug( A( float, A.computable|A.uncached ) )
+	outInt = 		plug( A( int, A.computable|A.uncached ) )
+	outFloatGen = 	plug( A( float, A.computable|A.uncached ) )
+	outIntGen = 	plug( A( int, A.computable|A.uncached ) )
 	outText = 		plug( A( str, 0, default = "hello world" ) )
 	outChain = 		plug( A( list, 0 ) )
 	
@@ -98,7 +98,6 @@ class TestProcess( processes.ProcessBase ):
 		elif plug == TestProcess.outIntGen:
 			return 4
 		elif plug == TestProcess.outChain:
-			print "COMPUTE %s.%s" % ( self, plug )
 			return [ self.inChain.get()[0] + 10 ]
 		else:
 			raise AssertionError( "Incompatible target %r passed to %s - canOutputTarget method buggy ?" % ( target, self ) )			
@@ -106,7 +105,7 @@ class TestProcess( processes.ProcessBase ):
 	#}
 
 	
-class OtherTestProcess( TestProcess ):
+class OtherTestProcess( processes.ProcessBase ):
 	"""TestProcess helping to debugging the calls done
 	Supported Targets: unicode instances """
 	
@@ -114,24 +113,25 @@ class OtherTestProcess( TestProcess ):
 	inFloat = plug( A( float, A.writable ) )
 	inInt = plug( A( int, A.writable ) )
 	inUni = plug( A( unicode, A.writable ) )
+	inChain = 		plug( A( list, 0, default = [5] ) )
 	
 	# outputs 
 	outString = plug( A( unicode, 0 ) )
+	outChain = 		plug( A( list, 0 ) )
 	
 	# affects 
 	inFloat.affects( outString )
 	inInt.affects( outString )
 	inUni.affects( outString )
-	
+	inChain.affects( outChain )
 	
 	def __init__( self, id ):
-		super( OtherTestProcess, self ).__init__(id)
-		self.noun = "OtherTestProcess"
+		super( OtherTestProcess, self ).__init__( id, "OtherTestProcess", "computes" )
 	
 	#{ iDuplicatable Interface 
-	#def createInstance( self, *args, **kwargs ):
-	#	"""Create a copy of self and return it"""
-	#	return self.__class__( self.id )
+	def createInstance( self, *args, **kwargs ):
+		"""Create a copy of self and return it"""
+		return self.__class__( self.id )
 		
 	#} END iDuplicatable
 	
@@ -141,9 +141,10 @@ class OtherTestProcess( TestProcess ):
 			floatinst = self.inFloat.get()
 			intinst = self.inInt.get()
 			instr = self.inUni.get()
-			
+		
 			return instr + unicode( floatinst ) + unicode( 20 ) * intinst
-			
+		elif plug == OtherTestProcess.outChain:
+			return [ self.inChain.get()[0] + 10 ]	
 		# let super handle it
 		return super( OtherTestProcess, self ).evaluateState( plug, mode )
 
