@@ -359,11 +359,15 @@ class FacadeNodeBase( NodeBase ):
 	@note: this class could also be used for facades Container nodes that provide 
 	an interface to their internal nodes"""
 	shellcls = _OIShell		# overriden from NodeBase 
-	
+	__slots__ = ('caching','_cachedOIPlugs' ) 	# caching mode flag, cached plug names
 	
 	#{ Object Overridden Methods
 	def __init__( self, *args, **kwargs ):
-		""" Initialize the instance"""
+		""" Initialize the instance
+		@param caching: if True, default True, the virtual plugs gotten from the subclass
+		will be cached until the cache is cleared """
+		self.caching_enabled = kwargs.get( 'caching', True )
+		self._cachedOIPlugs = list()							# simple list of names 
 		NodeBase.__init__( self, *args, **kwargs )
 		
 	
@@ -448,12 +452,29 @@ class FacadeNodeBase( NodeBase ):
 		actual nodes and plugs or shells.
 		We prepare the returne value to assure we are being called in certain occasion, 
 		which actually glues outside and inside worlds together """
-		yourResult = self._getNodePlugs( )
-		
 		# check args - currently only predicate is supported
 		predicate = kwargs.pop( 'predicate', lambda x: True )
+		
 		if kwargs:		# still args that we do not know ?
 			raise AssertionError( "Unhandled arguments found  - update this method: %s" % kwargs.keys() )
+			
+		
+		# HAND OUT CACHE 
+		#################
+		if self._cachedOIPlugs:
+			outresult = list()               
+			for oiplug in self._cachedOIPlugs:
+				if predicate( oiplug ):
+					outresult.append( oiplug )
+			# END for each cached plug
+			return outresult
+		# END for each cached plug
+			
+			
+		# GATHER PLUGS FROM SUBCLASS
+		##############################
+		yourResult = self._getNodePlugs( )
+		
 		
 		def toFacadePlug( node, plug ):
 			if isinstance( plug, OIFacadePlug )\
@@ -462,14 +483,16 @@ class FacadeNodeBase( NodeBase ):
 			return OIFacadePlug( node, plug )
 		# END to facade plug helper
 		
+		# PROCESS RETURNED PLUGS 
 		finalres = list()
 		for orignode, plug in yourResult:			
 			oiplug = toFacadePlug( orignode, plug )
 			
-			# drop it ? 
-			if not predicate( oiplug ):
-				continue 
-			finalres.append( oiplug )
+			
+			# Cache all plugs, ignoring the predicate
+			if self.caching_enabled:
+				self._cachedOIPlugs.append( oiplug )
+			# END cache update 
 			
 			
 			# MODIFY NODE INSTANCE
@@ -500,9 +523,8 @@ class FacadeNodeBase( NodeBase ):
 			# update all connections with the new shells - they are required when 
 			# walking the affects tree, as existing ones will be taken instead of
 			# our new shell then.
-			facadeshell = orignode.toShell( oiplug.iplug )
-			all_shell_cons = facadeshell.getConnections( 1, 1 )	 				# now we get old shells
-			
+			internalshell = orignode.toShell( oiplug.iplug )
+			all_shell_cons = internalshell.getConnections( 1, 1 )	 				# now we get old shells
 			
 			# disconnect and reconnect with new
 			for edge in all_shell_cons:
@@ -515,24 +537,42 @@ class FacadeNodeBase( NodeBase ):
 					# our callbacks
 					# edges are always ordered start->end - we could be any of these
 					# thus we have to check before 
-					if shell == facadeshell and not isinstance( shell, _IOShell ) :
+					if shell == internalshell and not isinstance( shell, _IOShell ) :
 						nedge[ i ] = shell.node.toShell( shell.plug )
 						created_shell = True
 				# END for each shell in edge 
 				
 				if created_shell:
 					#print "UPDATING CONNECTION: %r -> %r" % ( edge[0],edge[1] )
-					#print "WITH %s -> %s" % ( repr( nedge[0] ), repr( nedge[1] ) )
+					#print "WITH %s -> %s" % ( type( nedge[0] ), type( nedge[1] ) )
 					edge[0].disconnect( edge[1] )
 					nedge[0].connect( nedge[1] )
 				# END new shell needs connection
 			# END for each edge to update 
+			
+			
+			# ONLY AFTER EVERYTHING HAS BEEN UPDATED, WE MAY DROP IT
+			##########################################################
+			if not predicate( oiplug ):
+				continue 
+				
+			finalres.append( oiplug )
+			
 		# END for each orignode,plug in result 
+		
 		
 		# the final result has everything nicely put back together, but 
 		# it has been altered as well
 		return finalres
 		
+	def clearCache( self ):
+		"""if a cache has been build as caching is enabled, this method clears
+		the cache forcing it to be updated on the next demand
+		@note: this could be more efficient by just deleting plugs that are 
+		not required anymore, but probably this method can expect the whole 
+		cache to be deleted right away ... so its fine"""
+		self._cachedOIPlugs.clear()
+	
 	#} end nodebase methods
 
 class GraphNodeBase( FacadeNodeBase ):
@@ -651,7 +691,8 @@ class OIFacadePlug( tuple , iPlug ):
 	def _getAffectedList( self, direction ):
 		"""@return: list of all oiplugs looking in direction, if 
 		plugtestfunc says: False, do not prune the given shell"""
-		these = lambda shell: shell.plug is self.iplug or not isinstance( shell, _IOShell ) or shell._getoiplug() is None   
+		these = lambda shell: shell.plug is self.iplug or not isinstance( shell, _IOShell ) or shell._getoiplug() is None
+		
 		iterShells = self.inode.toShell( self.iplug ).iterShells( direction=direction, prune = these, visit_once=True )
 		outlist = [ shell._getoiplug() for shell in iterShells ]
 		

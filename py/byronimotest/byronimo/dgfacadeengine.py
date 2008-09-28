@@ -154,7 +154,7 @@ class TestDGFacadeEngine( unittest.TestCase ):
 		# ITERATION
 		###############
 		# One should never get inside
-		for shell in gn1._FP_s1_inFloat.iterShells( direction = "down" ):
+		for shell in gn1._FP_s1_inFloat.iterShells( direction = "down", visit_once=True ):
 			self.failUnless( isinstance( shell.node, GraphNodeBase ) )
 		
 		# simple comutation - expect 4 computations !        
@@ -178,15 +178,17 @@ class TestDGFacadeEngine( unittest.TestCase ):
 		####################
 		sgn1._FP_GN_2__FP_s2_outAdd > sgn2._FP_GN_1__FP_s1_inFloat
 		
-		# ITERATION
-		###############
-		# One should never get inside
-		for shell in gn1s1ifloat.iterShells( direction = "down" ):
-			self.failUnless( isinstance( shell.node, GraphNodeBase ) )
-		
 		sg1inFloat = sgn1._FP_GN_1__FP_s1_inFloat
 		sg2inFloat = sgn2._FP_GN_1__FP_s1_inFloat
 		sg2outAdd = sgn2._FP_GN_2__FP_s2_outAdd
+		
+		
+		# ITERATION
+		###############
+		# One should never get inside
+		for shell in sg1inFloat.iterShells( direction = "down", visit_once=True ):
+			self.failUnless( isinstance( shell.node, GraphNodeBase ) )
+		
 		
 		# AFFECTS 
 		################
@@ -196,10 +198,13 @@ class TestDGFacadeEngine( unittest.TestCase ):
 		# SIMPLE COMPUTATION
 		######################
 		self.failUnless( sg2outAdd.get( ) == 8 )		# 2 * 2 * 2 = 2simpleNodes * 2graphnodes * 2sgn
-		
+		self.failUnless( sg2outAdd.get( ) == 8 )		# its cached now
 		# DIRTYING - set the input cache 
 		sg1inFloat.set( 10.0 )
 		self.failUnless( sg2outAdd.get( ) == 18 )
+		self.failUnless( sg2outAdd.get( ) == 18 )		# its cached now
+		
+		
 		
 		
 		
