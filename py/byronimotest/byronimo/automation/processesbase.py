@@ -28,7 +28,7 @@ class TestProcesses( unittest.TestCase ):
 	"""Test workflow class"""
 	
 	def test_workflowProcess( self ):
-		"""byronimo.automation.processes: check workflow nested into process"""
+		"""byronimo.automation.process: check workflow nested into process"""
 		wfl = workflows.workflowwrap
 		workflows.multiinput.writeDot("/usr/tmp/mygraph.dot" )
 		

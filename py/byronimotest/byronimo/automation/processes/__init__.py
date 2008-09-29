@@ -17,6 +17,7 @@ __copyright__='(c) 2008 Sebastian Thiel'
 
 import unittest
 import byronimotest as common
+import byronimo.automation.process as process
 import byronimo.automation.processes as processes
 from byronimo.dgengine import plug, Attribute as A
 
@@ -45,7 +46,7 @@ if __name__ == '__main__':
 	
 #{ Processes 
 
-class TestProcess( processes.ProcessBase ):
+class TestProcess( process.ProcessBase ):
 	"""TestProcess helping to debugging the calles done """
 	# inputs
 	inInt = 		plug( A( int, 0, default = 4 ) )
@@ -95,7 +96,7 @@ class TestProcess( processes.ProcessBase ):
 	#}
 
 	
-class OtherTestProcess( processes.ProcessBase ):
+class OtherTestProcess( process.ProcessBase ):
 	"""TestProcess helping to debugging the calls done
 	Supported Targets: unicode instances """
 	
@@ -133,7 +134,7 @@ class OtherTestProcess( processes.ProcessBase ):
 		return super( OtherTestProcess, self ).evaluateState( plug, mode )
 
 
-class WorkflowWrapTestProcess( processes.WorkflowProcessBase ):
+class WorkflowWrapTestProcess( process.WorkflowProcessBase ):
 	workflowModulePath = "byronimotest.byronimo.automation.workflows"
 	
 	def __init__( self, id, wflname, **kwargs ):

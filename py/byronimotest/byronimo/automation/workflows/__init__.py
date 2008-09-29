@@ -16,7 +16,7 @@ __id__="$Id: __init__.py 22 2008-07-16 20:41:16Z byron $"
 __copyright__='(c) 2008 Sebastian Thiel'
 
 import unittest
-import byronimotest.byronimo.automation.processes as processes # assure procs are initialized
+import byronimotest.byronimo.automation.processes as process # assure procs are initialized
 import byronimotest as common
 import byronimo.automation.base as wflbase
 from byronimo.path import Path
@@ -31,7 +31,7 @@ def createWorkflow( workflowName ):
 #{ Initialize
 def init_loadWorkflows( ):
 	_this_module = __import__( "byronimotest.byronimo.automation.workflows", globals(), locals(), ['workflows'] )
-	wflbase.addWorkflowsFromDotFiles( _this_module, Path( __file__ ).p_parent.glob( "*.dot" ) )  
+	wflbase.addWorkflowsFromDotFiles( _this_module, Path( __file__ ).p_parent.glob( "*.dot" ) )
 
 
 # load all the test workflows 

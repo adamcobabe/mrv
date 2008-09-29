@@ -19,7 +19,7 @@ __copyright__='(c) 2008 Sebastian Thiel'
 import unittest
 import workflows
 from byronimo.automation.workflow import Workflow
-from byronimo.automation.processes import *
+from byronimo.automation.process import *
 
 class TestWorkflow( unittest.TestCase ):
 	"""Test workflow class"""
