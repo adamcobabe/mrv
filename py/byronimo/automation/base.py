@@ -119,6 +119,8 @@ def loadWorkflowFromDotFile( dotfile ):
 				continue
 			else:
 				# if a plug is already connected, try another one
+				blockedDestinationShells = list()
+				numplugconnections = 0
 				for rate,targetplug in targetcandidates: 
 					try: 
 						sshell = snode.toShell( sourceplug ) 
@@ -126,11 +128,38 @@ def loadWorkflowFromDotFile( dotfile ):
 						sshell.connect( dshell )
 						
 						numConnections += 1
+						numplugconnections += 1
 					except PlugAlreadyConnected:
-						pass 
+						# remember the connected d-shell - we might disconnect it later
+						blockedDestinationShells.append( dnode.toShell( targetplug ) )
 					else:
-						break		# just use one connection - possibly several are possible
+						pass 			# allow several connections ( if no other claims one ... )
 				# END for each candidate 
+				
+				# if we have no connecitons, and one node already connected has at least two from 
+				# the same plug disconnect the node in question
+				# Dont do anything if we are connected or have less than 2 blocked
+				if numplugconnections > 0 or len( blockedDestinationShells ) < 2:
+					continue
+				
+				# count connections by sourceshell 
+				sourcemap = dict()			# source->list( edge( s->d  ) ... )
+				for shell in blockedDestinationShells:
+					inshell = dshell.getInput()
+					sourcemap.setdefault( inshell, list() ).append( ( inshell,dshell ) )
+				
+				# find multiple edges 
+				for sourceshell, edgelist in sourcemap.iteritems():
+					if len( edgelist ) < 2:
+						continue
+					sshell = snode.toShell( sourceplug )
+					dshell = edgelist[-1][1]				# take the last edge as it possibly has lowest connection priority
+					sshell.connect( dshell, force = 1 )	# connect breaking existing ones
+					
+					numConnections += 1
+					break
+				# END for each sourceshell record
+						
 			# END try connecting plugs 
 		# END for each output plug on snode 
 		

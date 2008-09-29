@@ -415,19 +415,6 @@ class FacadeNodeBase( NodeBase ):
 	
 	
 	#{ To be Subclass-Implemented
-	# not used anymore ... not for now at least !
-	#def _getNodeByPlug( self, virtualplug ):
-		"""Called when the facade class encounters a virtual plug that needs to be 
-		converted to its real shell, thus the (node,plug) pair that originally owns the plug.
-		Thus the method shall return a node owning the virtualplug. 
-		It will only be called once a facade shell is supposed to be altered, see 
-		L{_OIShell}
-		@raise ValueError: if the virtualplug is unknown.
-		@note: iterShells may actually traverse the plug-internal affects relations and 
-		possibly return a shell to a client that your derived class has never seen before.
-		You should take that into consideration and raise L{ValueError} if you do not know 
-		the plug"""
-		#  raise NotImplementedError( "_toRealShell needs to be implemented by the subclass" )
 	                                  
 	def _getNodePlugs( self ):
 		"""Implement this as if it was your getPlugs method - it will be called by the 

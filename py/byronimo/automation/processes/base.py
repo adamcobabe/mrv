@@ -304,8 +304,11 @@ class WorkflowProcessBase( GraphNodeBase, ProcessBase ):
 		ProcessBase.__init__( self, id, **kwargs )
 		
 		# adjust the ids of wrapped graph nodes with the name of their graph
-		for node in self.wgraph.iterNodes():
-			node.setID( "%s.%s" % ( id, node.getID() ) )
+		# NO: if this is done, some recurisve facades have issues with their attribute 
+		# names - although this could possibly be solved, renaming the nodes is in 
+		# fact not required
+		#for node in self.wgraph.iterNodes():
+		#	node.setID( "%s.%s" % ( id, node.getID() ) )
 		
 		# override name - per instance in our case 
 		self.noun = wrappedwfl.name
