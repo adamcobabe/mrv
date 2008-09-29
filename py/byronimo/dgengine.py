@@ -170,7 +170,10 @@ class Attribute( object ):
 	i.e: basestring could be stored in a str attr if exact type is false - its less than we need, but 
 	still something.
 	Putting a str into a basestring attribute will always work though, as it would be more than we need
-	writable: if True, the attribute's plug can be written to
+	readonly: if True, the attribute's plug cannot be written to. Read-only attributes can be used
+	as storage that the user can read, but not write.
+	You can write read-only plugs by directly setting its cache - this of course - is only 
+	for the node itself, but will never be done by the framework
 	computable: Nodes are automatically computable if they are affected by another plug.
 				If this is not the case, they are marked input only and are not computed.
 				If this flag is true, even unaffeted plugs are computable.
@@ -194,7 +197,7 @@ class Attribute( object ):
 	Your returned value will be type-checked against the required type if check_passing_values is st
 	"""
 	kNo, kGood, kPerfect = 0, 127, 255				# specify how good attributes fit together
-	exact_type, writable, computable, cls, uncached, unconnectable,check_passing_values = ( 1, 2, 4, 8, 16, 32, 64 )
+	exact_type, readonly, computable, cls, uncached, unconnectable,check_passing_values = ( 1, 2, 4, 8, 16, 32, 64 )
 	__slots__ = ( 'typecls', 'flags', '_default' )
 	
 	def __init__( self, typeClass, flags, default = None ):
@@ -545,7 +548,7 @@ class _PlugShell( tuple ):
 		@raise AssertionError: the respective attribute must be cached, otherwise 
 		the value will be lost"""
 		flags = self.plug.attr.flags
-		if not flags & Attribute.writable:
+		if flags & Attribute.readonly:
 			raise NotWritableError( "Plug %r is not writable" % repr(self) )
 		
 		if self.plug.providesOutput( ):
@@ -1238,7 +1241,7 @@ class NodeBase( iDuplicatable ):
 				if len( pluglist ) > 1:
 					report += "Rate: %i :" % rate
 					for plug in pluglist:
-						report += "\n%s" % plug
+						report += "\n%s" % str(plug)
 				# END if ambiguous plugs 
 			# END for each rate in ratemap
 			if report:

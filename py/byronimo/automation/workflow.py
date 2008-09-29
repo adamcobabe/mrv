@@ -307,7 +307,15 @@ class Workflow( Graph ):
 		best_process = None
 		
 		for node in self.iterNodes( ):
-			rate, shell = node.getTargetRating( target )
+			try:
+				rate, shell = node.getTargetRating( target )
+			except TypeError,e: 
+				# could be that there is a node having ambigous plugs, but we are not 
+				# going to take it anyway
+				print e.args
+				continue
+			# END try-except TypeError
+			
 			if not rate:
 				continue 
 				

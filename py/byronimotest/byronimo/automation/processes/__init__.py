@@ -48,11 +48,11 @@ if __name__ == '__main__':
 class TestProcess( processes.ProcessBase ):
 	"""TestProcess helping to debugging the calles done """
 	# inputs
-	inInt = 		plug( A( int, A.writable, default = 4 ) )
-	inFloat = 		plug( A( float, A.writable, default = 2.5 ) )
-	inText = 		plug( A( str, A.writable, default = "hello world" ) )
+	inInt = 		plug( A( int, 0, default = 4 ) )
+	inFloat = 		plug( A( float, 0, default = 2.5 ) )
+	inText = 		plug( A( str, 0, default = "hello world" ) )
 	inChain = 		plug( A( list, 0, default = [5] ) )			# just connectable, will be pulled s
-	inObj = 		plug( A( object, A.cls|A.exact_type|A.writable ) )	# just connectable, not writable
+	inObj = 		plug( A( object, A.cls|A.exact_type ) )	# just connectable
 	
 	# outputs 
 	outFloat = 		plug( A( float, A.computable|A.uncached ) )
@@ -100,9 +100,9 @@ class OtherTestProcess( processes.ProcessBase ):
 	Supported Targets: unicode instances """
 	
 	# inputs 
-	inFloat = plug( A( float, A.writable ) )
-	inInt = plug( A( int, A.writable ) )
-	inUni = plug( A( unicode, A.writable ) )
+	inFloat = plug( A( float, 0 ) )
+	inInt = plug( A( int, 0 ) )
+	inUni = plug( A( unicode, 0 ) )
 	inChain = 		plug( A( list, 0, default = [5] ) )
 	
 	# outputs 

@@ -30,8 +30,8 @@ class SimpleNode( NodeBase ):
 	outRand = plug( A( float, 0 ) )
 	outMult = plug( A( float, A.uncached ) )
 	
-	inInt = plug( A( int, A.writable ) )
-	inFloat = plug( A( float, 0, default = 2.5 ) )
+	inInt = plug( A( int, 0 ) )
+	inFloat = plug( A( float, A.readonly, default = 2.5 ) )
 	inFloatNoDef = plug( A( float, 0 ) )
 	outFailCompute = plug( A( str, A.computable ) )
 	
@@ -171,7 +171,7 @@ class TestDGEngine( unittest.TestCase ):
 		self.failUnless( s3.outMult.get( ) == 10 )	# 2.5 * 4
 		
 		# make the float writable 
-		s1.inFloat.plug.attr.flags |= A.writable
+		s1.inFloat.plug.attr.flags ^= A.readonly		# disable readonly bit
 		s1.inFloat.set( 2.0 )
 		self.failUnless( s3.outMult.get( ) == 8 )	# 2.0 * 4
 		

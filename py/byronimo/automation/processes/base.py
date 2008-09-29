@@ -139,7 +139,7 @@ class ProcessBase( NodeBase ):
 		# remove all non-writable plugs - they can never be targets 
 		writableRatedPlugs = []
 		for rate,plug in plugrating:				# rate,plug tuple 
-			if not  plug.attr.flags & Attribute.writable:
+			if plug.attr.flags & Attribute.readonly:
 				continue			# need to set the attribute
 				
 			# connected plugs are an option, but prefer the ones being open

@@ -29,7 +29,7 @@ class SimpleIONode( NodeBase ):
 	#{ Plugs 
 	outAdd = plug( A( float, A.uncached ) )
 	
-	inFloat = plug( A( float, A.writable, default = 0.0 ) )
+	inFloat = plug( A( float, 0, default = 0.0 ) )
 	
 	#} END plugs 
 	inFloat.affects( outAdd )
