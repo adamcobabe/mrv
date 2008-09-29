@@ -15,7 +15,7 @@ __id__="$Id: configuration.py 50 2008-08-12 13:33:55Z byron $"
 __copyright__='(c) 2008 Sebastian Thiel'
 
 _this_module = __import__( "byronimo.automation.processes", globals(), locals(), ['processes'] )
-from base import ProcessBase
+from byronimo.automation.process import ProcessBase
 import byronimo.util as util
 
 #} Interface
@@ -57,8 +57,10 @@ if 'init_done' not in locals():
 	
 # SYSTEM INITIALIZATION
 if not init_done:
-	# import everything into the processes module 
-	from base import *
+	pass 
+	# import everything into the processes module
+	# currently there is nothing 
+	# from base import *
 #} END initialization
 
 

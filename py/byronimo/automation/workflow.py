@@ -22,10 +22,31 @@ import weakref
 #####################
 ## EXCEPTIONS ######
 ###################
+#{ Exceptions
 class TargetError( ValueError ):
 	"""Thrown if target is now supported by the workflow ( and thus cannot be made )"""
 	
 
+class DirtyException( ValueError ):
+	"""Exception thrown when system is in dirty query mode and the process detects
+	that it is dirty.
+	
+	The exception can also contain a report that will be returned using the 
+	getReport function.
+	"""
+	def __init__( self, report = '' ):
+		self.report = report
+		
+	#{ Interface
+		
+	def getReport( ):
+		"""@return: printable report, usually a string or some object that 
+		responds to str() appropriately"""
+		return self.report
+	
+	#} END interface
+	
+#} END exceptions 
 
 #####################
 ## CLASSES    ######
@@ -155,7 +176,8 @@ class Workflow( Graph ):
 		and presents it.
 		@return: result when producing the target"""
 		# generate mode 
-		from byronimo.automation.processes import ProcessBase as pb
+		import process
+		pb = process.ProcessBase
 		processmode = globalmode = pb.is_state | pb.target_state
 		
 		shell, result = self._evaluate( target, processmode, globalmode )
@@ -186,7 +208,8 @@ class Workflow( Graph ):
 			deep - try to evaluate target, but fail if one process in the target's 
 			call history is dirty
 		"""
-		from byronimo.automation.processes import ProcessBase as pb, DirtyException
+		import process
+		pb = process.ProcessBase
 		processmode = pb.is_state | pb.dirty_check
 		globalmode = None
 		

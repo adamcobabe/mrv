@@ -1,4 +1,4 @@
-"""B{byronimo.automation.processes.base}
+"""B{byronimo.automation.process}
 Contains base class and common methods for all processes  
 
 @newfield revision: Revision
@@ -24,32 +24,6 @@ from byronimo.dgengine import Attribute
 import byronimo.automation.base as wflbase
 from byronimo.path import Path
 from byronimo.util import Or
-
-#####################
-## EXCEPTIONS ######
-###################
-#{ Exceptions 
-
-class DirtyException( ValueError ):
-	"""Exception thrown when system is in dirty query mode and the process detects
-	that it is dirty.
-	
-	The exception can also contain a report that will be returned using the 
-	getReport function.
-	"""
-	def __init__( self, report = '' ):
-		self.report = report
-		
-	#{ Interface
-		
-	def getReport( ):
-		"""@return: printable report, usually a string or some object that 
-		responds to str() appropriately"""
-		return self.report
-	
-	#} END interface
-	
-#} END exceptions 
 
 
 #####################

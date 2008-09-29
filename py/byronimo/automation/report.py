@@ -20,7 +20,6 @@ __copyright__='(c) 2008 Sebastian Thiel'
 ###################	
 
 import networkx.search as search
-import processes
 
 class ReportBase( object ):
 	"""Provides main interface for all reports as well as the basic implementation"""

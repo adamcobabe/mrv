@@ -21,7 +21,7 @@ __copyright__='(c) 2008 Sebastian Thiel'
 from byronimo.path import Path
 _this_module = __import__( "byronimo.automation.workflows", globals(), locals(), ['workflows'] )
 import pydot
-import processes
+import byronimo.automation.processes
 
 
 #{ Initialization
