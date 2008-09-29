@@ -510,7 +510,11 @@ class _PlugShell( tuple ):
 				raise 			
 			except Exception,e:		# except all - this is an unknown excetion
 				raise ComputeError( "Computation of %r failed with an unhandled exception" % repr( self ), str( e ),e )
-				
+			
+			if result is None:
+				raise AssertionError( "Plug %s returned None - check your node implementation" % ( str( self ) ) )
+			# END result check
+			
 			# try to cache computed values 
 			self.setCache( result )
 			return result
