@@ -72,9 +72,7 @@ class TestWorkflow( unittest.TestCase ):
 		
 		res = scwfl.makeTarget( 2.5 )
 		self.failUnless( res ==5.0 )
-		
-		self.failUnlessRaises( ValueError, scwfl.makeTarget, dict )
-		
+
 	
 	def test_callgraph( self ):
 		"""byronimo.automation.workflow: assure callgraph can be generated properly"""

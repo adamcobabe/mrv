@@ -70,19 +70,9 @@ class TestProcess( processes.ProcessBase ):
 	inObj.affects( outChain )
 	inChain.affects( outChain )
 	
+	noun = "TestProcess"
+	verb = "computes"
 	
-	def __init__( self, id ):
-		super( TestProcess, self ).__init__( id, "TestProcess", "computes" )
-		
-	
-	
-	#{ iDuplicatable Interface 
-	def createInstance( self, *args, **kwargs ):
-		"""Create a copy of self and return it"""
-		return self.__class__( self.id )
-		
-	#} END iDuplicatable
-		
 	
 	#{ Implementation 
 	
@@ -125,15 +115,9 @@ class OtherTestProcess( processes.ProcessBase ):
 	inUni.affects( outString )
 	inChain.affects( outChain )
 	
-	def __init__( self, id ):
-		super( OtherTestProcess, self ).__init__( id, "OtherTestProcess", "computes" )
+	noun = "OtherTestProcess"
+	verb = "computes"
 	
-	#{ iDuplicatable Interface 
-	def createInstance( self, *args, **kwargs ):
-		"""Create a copy of self and return it"""
-		return self.__class__( self.id )
-		
-	#} END iDuplicatable
 	
 	def evaluateState( self, plug, mode ):
 		"""@return: version of plug requireing int and float instance"""

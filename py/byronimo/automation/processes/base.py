@@ -90,29 +90,29 @@ class ProcessBase( NodeBase ):
 	kNo, kGood, kPerfect = 0, 127, 255				# specify how good a certain target can be produced
 	is_state, target_state, dirty_check = ( 1,2,4 )
 	
+	noun = "Noun ProcessBase,redefine in subclass"	# used in reports 
+	verb = "Verb ProcessBase,redefine in subclass" # used in reports 
+	
 	__all__.append( "ProcessBase" )
 	
 	
-	def __init__( self, id, noun, verb ):
+	def __init__( self, id, *args, **kwargs ):
 		"""Initialize process with most common information
 		@param noun: noun describing the process, ( i.e. "Process" )
 		@param verb: verb describing the process, ( i.e. "processing" )
 		@param workflow: workflow this instance of part of """
-		self.noun = noun			# used in plans
-		self.verb = verb			# used in plans
-		
 		NodeBase.__init__( self, id = id )		# init last - need our info first !
 		
 	
 	#{ iDuplicatable Interface 
 	def createInstance( self, *args, **kwargs ):
 		"""Create a copy of self and return it"""
-		return self.__class__( self.id, self.noun, self.verb )
+		return self.__class__( self.id )
 		
 	def copyFrom( self, other, *args, **kwargs ):
-		"""Just take the graph from other, but do not ( never ) duplicate it"""
-		self.noun = other.noun
-		self.verb = other.verb
+		""" Does nothing """
+		# noun and verb is coming from the class anyway, it has been created
+		# during instance creation 
 		
 	#} END iDuplicatable
 	
@@ -243,6 +243,34 @@ class ProcessBase( NodeBase ):
 	#} END base 
 	
 	
+class ArgProcessBase( ProcessBase ):
+	"""Baseclass for all processes taking arguments. It will store them allowing 
+	it to be properly duplicated"""
+	__all__.append( "ArgProcessBase" )
+	__slots__ = ( 'args','kwargs' )
+
+	
+	def __init__( self, id, *args, **kwargs ):
+		"""Store args and kwargs for later duplicateion"""
+		self.args = args
+		self.kwargs = kwargs 
+		super( ArgProcessBase, self ).__init__( id, *args, **kwargs )
+		
+	#{ iDuplicatable Interface
+	
+	def createInstance( self, *args, **kwargs ):
+		"""Create a copy of self and return it"""
+		return self.__class__( self.id, *self.args, **self.kwargs )
+		
+	def copyFrom( self, other, *args, **kwargs ):
+		"""Note: we have already given our args to the class during instance creation, 
+		thus we do not copy args again"""
+		pass 
+		
+	#} END iDuplicatable
+	
+	
+	
 class WorkflowProcessBase( GraphNodeBase, ProcessBase ):
 	"""A process wrapping a workflow, allowing workflows to be nested
 	Derive from this class and initialize it with the workflow you would like to have wrapped
@@ -273,14 +301,15 @@ class WorkflowProcessBase( GraphNodeBase, ProcessBase ):
 		# NOTE: baseclass stores wrapped wfl for us
 		# init bases
 		GraphNodeBase.__init__( self, wrappedwfl, **kwargs )
-		ProcessBase.__init__( self, id, "TO BE SET", "passing on", **kwargs )
+		ProcessBase.__init__( self, id, **kwargs )
 		
 		# adjust the ids of wrapped graph nodes with the name of their graph
 		for node in self.wgraph.iterNodes():
 			node.setID( "%s.%s" % ( id, node.getID() ) )
 		
-		# override name
+		# override name - per instance in our case 
 		self.noun = wrappedwfl.name
+		self.verb = "internally computing"
 		
 		
 	#{ iDuplicatable Interface
