@@ -147,8 +147,11 @@ class ProcessBase( NodeBase ):
 				rate /= 2.0
 				
 			writableRatedPlugs.append( (rate,plug) )
-		# END writable only filter s
+		# END writable only filters
 		
+		if not writableRatedPlugs:
+			return ( 0, None )
+			
 		writableRatedPlugs.sort()		# high comes last
 		
 		rate, plug = writableRatedPlugs[-1] 

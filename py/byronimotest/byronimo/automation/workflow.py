@@ -49,9 +49,8 @@ class TestWorkflow( unittest.TestCase ):
 		self.failUnless( scwfl.getTargetRating( 5 )[0] == 255 )
 		self.failUnless( scwfl.getTargetRating( "this" )[0] == 255 )
 		# self.failUnless( scwfl.getTargetRating( basestring )[0] == 127 ) # cannot work as we need instance	 
-		
-		self.failUnless( scwfl.getTargetRating( unicode )[0] == 0 )
-		self.failUnless( scwfl.getTargetRating( dict )[1] == None )
+		self.failUnless( scwfl.getTargetRating( unicode )[0] == 255 ) # its more than we need, thus perfect
+		self.failUnless( scwfl.getTargetRating( dict )[0] == 255 )	 # have accept-all object input 
 		
 		self.failUnless( scwfl.getTargetRating( float(2.3) )[0] == 255 )
 		

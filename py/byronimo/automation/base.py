@@ -111,24 +111,26 @@ def loadWorkflowFromDotFile( dotfile ):
 		
 		numConnections = 0
 		for sourceplug in snode.getOutputPlugs():
-			print "CHEKCING %s" % sourceplug
 			try: 
 				# first is best
-				rate,targetplug = snode.filterCompatiblePlugs( destplugs, sourceplug.attr, raise_on_ambiguity = 0, attr_affinity = False, attr_as_source = True )[0] 
+				targetcandidates = snode.filterCompatiblePlugs( destplugs, sourceplug.attr, raise_on_ambiguity = 0, attr_affinity = False, attr_as_source = True ) 
 			except ( TypeError,IndexError ),e:	# could have no compatible or is ambigous
 				print e.args		# debug 
 				continue
 			else:
 				# if a plug is already connected, try another one
-				try: 
-					sshell = snode.toShell( sourceplug ) 
-					dshell = dnode.toShell( targetplug )
-					sshell.connect( dshell )
-					
-					numConnections += 1
-				except PlugAlreadyConnected:
-					# print "Connection of %s -> %s clashed - will go on trying" % ( sshell, dshell )
-					pass 
+				for rate,targetplug in targetcandidates: 
+					try: 
+						sshell = snode.toShell( sourceplug ) 
+						dshell = dnode.toShell( targetplug )
+						sshell.connect( dshell )
+						
+						numConnections += 1
+					except PlugAlreadyConnected:
+						pass 
+					else:
+						break		# just use one connection - possibly several are possible
+				# END for each candidate 
 			# END try connecting plugs 
 		# END for each output plug on snode 
 		
