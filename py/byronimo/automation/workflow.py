@@ -16,6 +16,7 @@ __copyright__='(c) 2008 Sebastian Thiel'
 
 from networkx.digraph import DiGraph
 from byronimo.dgengine import Graph
+from byronimo.dgengine import ComputeError
 import time 
 import weakref
 
@@ -27,7 +28,7 @@ class TargetError( ValueError ):
 	"""Thrown if target is now supported by the workflow ( and thus cannot be made )"""
 	
 
-class DirtyException( ValueError ):
+class DirtyException( ComputeError ):
 	"""Exception thrown when system is in dirty query mode and the process detects
 	that it is dirty.
 	
@@ -187,7 +188,7 @@ class Workflow( Graph ):
 	def _evaluateDirtyState( self, outputplug, processmode ):
 		"""Evaluate the given plug in process mode and return a dirty report tuple 
 		as used by L{getDirtyReport}"""
-		report = list( outputplug, None )
+		report = list( ( outputplug, None ) )
 		try:
 			outputplug.get( processmode )	# trigger computation, might raise 
 		except DirtyException, e:
@@ -262,16 +263,45 @@ class Workflow( Graph ):
 			node.prepareProcess( )
 		# END reset dg handling
 			
-		# get output plug that can be queried to get the target
-		outputplugs = inputshell.plug.getAffected( )
-		if not outputplugs:
-			raise TargetError( "Plug %r takes target %r as input, but does not affect an output plug" % ( inputshell, target ) )
+			
+		# OUTPUT SHELL HANDLING 
+		#########################
+		# Find a shell that we can query to trigger the graph to evaluate
+		# get output plug that can be queried to get the target - follow the flow
+		# of the graph downstream and get the first compatible plug that would 
+		# return the same type that we put in 
+		# NOTE: require an unconnected output plug by convention !
+		these = lambda shell: not shell.plug.providesOutput() or shell.getOutputs( )
+		allAffectedNodes = ( shell.node for shell in inputshell.iterShells( direction = "down", visit_once = 1, prune = these ) )
+		outputshell = None
+		
+		# use first compatible node in the chain - 
+		for node in allAffectedNodes:
+			try:
+				shell = node.getTargetRating( target, check_input_plugs = False )[1]		# this is the plug
+			except TypeError:		# ambiguous inputs
+				continue
+				
+			if shell:
+				outputshell = shell
+				break
+		# END for each affected node 
+		
+		if not outputshell:
+			# try to use just the affected ones - that would be the best we have 
+			print "WARNING:Did not find output plug delivering our target type - fallback to simple affected checks on node"
+			outplugs = inputshell.plug.getAffected()
+			
+			if not outplugs:
+				raise TargetError( "Plug %r takes target %r as input, but does not affect an output plug that would take the same target type" % ( str( inputshell ), target ) )
+			
+			outputshell = inputshell.node.toShell( outplugs[0] )
+		# END retrieve output shell handling 
 		
 		# we do not care about ambiguity, simply pull one
 		# QUESTION: should we warn about multiple affected plugs ?
 		inputshell.set( target, ignore_connection = True )
-		
-		return inputshell.node.toShell( outputplugs[0] )
+		return outputshell
 		
 	
 	def _evaluate( self, target, processmode, globalmode ):
@@ -280,6 +310,7 @@ class Workflow( Graph ):
 		@return: tuple( shell, result ) - plugshell queried to get the result 
 		"""
 		outputshell = self._setupProcess( target, globalmode )
+		print str( outputshell )
 		######################################################
 		result = outputshell.get( processmode )
 		######################################################
@@ -335,7 +366,6 @@ class Workflow( Graph ):
 			except TypeError,e: 
 				# could be that there is a node having ambigous plugs, but we are not 
 				# going to take it anyway
-				print e.args
 				continue
 			# END try-except TypeError
 			

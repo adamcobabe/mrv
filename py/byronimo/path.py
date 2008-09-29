@@ -136,6 +136,9 @@ class Path(_base):
 			other = other._expandvars( )
 		return unicode.__cmp__( unicode( self._expandvars() ), unicode( other ) ) == 0
 	
+	def __ne__( self, other ):
+		return not self.__eq__( other )
+		
 	#} END Special Python methods
 	
 	def _expandvars( self ):

@@ -93,7 +93,7 @@ class ProcessBase( NodeBase ):
 
 	#{ Query
 	
-	def getTargetRating( self, target ):
+	def getTargetRating( self, target, check_input_plugs = True ):
 		"""@return: tuple( int, PlugShell )
 		int between 0 and 255 - 255 means target matches perfectly, 0 
 		means complete incompatability. Any inbetweens indicate the target can be 
@@ -102,10 +102,17 @@ class ProcessBase( NodeBase ):
 		input attribute that can take target as input. In process terms this means 
 		that at least one output plug exists that produces the target.
 		@param target: instance or class of target to check for compatability
+		@param check_input_plugs: if True, input plugs will be checked for compatability of target, 
+		otherwise the output plugs 
 		@raise TypeError: if the result is ambiguous"""
 		# query our ouput plugs for a compatible attr
-		inplugs = self.getInputPlugs( )
-		plugrating = self.filterCompatiblePlugs( inplugs, target, raise_on_ambiguity = 1, attr_as_source=False )
+		targetplugs = None
+		if check_input_plugs:
+			targetplugs = self.getInputPlugs( )
+		else:
+			targetplugs = self.getOutputPlugs( )
+			
+		plugrating = self.filterCompatiblePlugs( targetplugs, target, raise_on_ambiguity = 1, attr_as_source=False )
 		
 		if not plugrating:		#	 no plug ?
 			return ( 0 , None )

@@ -26,7 +26,7 @@ def parseProcessesFromPackage( importBase, packageFile ):
 	@param importBase: Something like: parentPackage.subpackage.mypackage, of your processes package
 	@param packageFile: the pointing to your processes package, usually __file__ of your package
 	"""
-	isProcess = lambda cls: ProcessBase in cls.mro() 
+	isProcess = lambda cls: hasattr( cls, 'mro' ) and ProcessBase in cls.mro() 
 	processes = util.getPackageClasses( importBase, packageFile, predicate = isProcess )
 	
 	global _this_module
