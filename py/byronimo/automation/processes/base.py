@@ -131,7 +131,7 @@ class ProcessBase( NodeBase ):
 		@raise TypeError: if the result is ambiguous"""
 		# query our ouput plugs for a compatible attr
 		inplugs = self.getInputPlugs( )
-		plugrating = self.filterCompatiblePlugs( inplugs, target, raise_on_ambiguity = 1 )
+		plugrating = self.filterCompatiblePlugs( inplugs, target, raise_on_ambiguity = 1, attr_as_source=False )
 		
 		if not plugrating:		#	 no plug ?
 			return ( 0 , None )
@@ -281,22 +281,22 @@ class WorkflowProcessBase( GraphNodeBase, ProcessBase ):
 	@note: to prevent dependency issues, the workflow instance will be bound on first use
 	"""
 	__all__.append( "WorkflowProcessBase" )
+	workflowName = "name of the workflow as it will exist in workflowModule"
+	workflowModulePath = "module import path which will contain the workflow"
 	
 	#{ Overridden Object Methods 
 	
-	def __init__( self, id, workflowModulePath, workflowName, wflInstance=None, **kwargs ):
-		"""@param workflowinst: instance of the Workflow you would like to wrap
-		@param workflow: the workflow we are in ( the parent workflow )
-		@param workflowModulePath: module import path which will contain the workflow
-		@param workflowName: name of the workflow as it will exist in workflowModule 
+	def __init__( self, id, wflInstance=None, **kwargs ):
+		""" Will take all important configuration variables from its class variables 
+		- you should override these with your subclass 
 		@param wflInstance: if given, this instance will be used instead of creating
 		a new workflow. Used by copy constructor.
 		@param **kwargs: all arguments required to initialize the ProcessBase"""
 		
 		wrappedwfl = wflInstance
 		if not wrappedwfl:
-			wflmod  = __import__( workflowModulePath, globals(), locals(), [''] )
-			wrappedwfl = self._createWrappedWfl( wflmod, workflowName )
+			wflmod  = __import__( self.workflowModulePath, globals(), locals(), [''] )
+			wrappedwfl = self._createWrappedWfl( wflmod, self.workflowName )
 		
 		# NOTE: baseclass stores wrapped wfl for us
 		# init bases
@@ -316,7 +316,7 @@ class WorkflowProcessBase( GraphNodeBase, ProcessBase ):
 	
 	def createInstance( self, *args, **kwargs ):
 		"""Create a copy of self and return it - required due to our very special constructor"""
-		return self.__class__( self.id, None, None, wflInstance = self.wgraph  )
+		return self.__class__( self.id, wflInstance = self.wgraph )
 		
 	# } END iDuplicatable
 			 

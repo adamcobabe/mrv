@@ -48,9 +48,9 @@ class TestWorkflow( unittest.TestCase ):
 		# both are the same and produce the same rating
 		self.failUnless( scwfl.getTargetRating( 5 )[0] == 255 )
 		self.failUnless( scwfl.getTargetRating( "this" )[0] == 255 )
-		# self.failUnless( scwfl.getTargetRating( basestring )[0] == 127 ) # cannot work as we need instance	 
-		self.failUnless( scwfl.getTargetRating( unicode )[0] == 255 ) # its more than we need, thus perfect
-		self.failUnless( scwfl.getTargetRating( dict )[0] == 255 )	 # have accept-all object input 
+		# self.failUnless( scwfl.getTargetRating( basestring )[0] == 127 ) # cannot work as we need instance
+		self.failUnless( scwfl.getTargetRating( unicode("this") )[0] == 0 ) # cannot be handled, as its too high for us
+		self.failUnless( scwfl.getTargetRating( {} )[0] == 0 )	 			# cannot be handled 
 		
 		self.failUnless( scwfl.getTargetRating( float(2.3) )[0] == 255 )
 		

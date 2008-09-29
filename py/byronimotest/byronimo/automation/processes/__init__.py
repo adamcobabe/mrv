@@ -134,17 +134,18 @@ class OtherTestProcess( processes.ProcessBase ):
 
 
 class WorkflowWrapTestProcess( processes.WorkflowProcessBase ):
+	workflowModulePath = "byronimotest.byronimo.automation.workflows"
 	
 	def __init__( self, id, wflname, **kwargs ):
 		"""Wrap the workflow with the given name"""
-		wflModImportPath = "byronimotest.byronimo.automation.workflows"
-		return super( WorkflowWrapTestProcess, self ).__init__( id, wflModImportPath, wflname , **kwargs )
+		self.workflowName = wflname
+		return super( WorkflowWrapTestProcess, self ).__init__( id, **kwargs )
 		
 	
 	#{ iDuplicatable Interface 
 	def createInstance( self, *args, **kwargs ):
 		"""Create a copy of self and return it"""
-		return self.__class__( self.id, None, wflInstance = self.wgraph )
+		return self.__class__( self.id, self.workflowName, wflInstance = self.wgraph )
 		
 	#} END iDuplicatable
 	
