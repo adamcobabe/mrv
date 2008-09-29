@@ -221,7 +221,7 @@ class Attribute( object ):
 		if not cls in mro:
 			# if we are in the classes mr, then we can perfectly store the class 
 			# as it is more than we need
-			if self.typecls in cls.mro():
+			if not exact_type and self.typecls in cls.mro():
 				return self.kPerfect
 			return 0
 		# END simple mro checking 
@@ -248,7 +248,7 @@ class Attribute( object ):
 			return 0
 			
 		# finally check how good our types match 
-		return self._getClassRating( otherattr.typecls, otherattr.flags & self.exact_type )
+		return self._getClassRating( otherattr.typecls, self.flags & self.exact_type )
 	
 	def getConnectionAffinity( self, destinationattr ):
 		"""@return: rating from 0 to 255 defining the quality of the connection to 
