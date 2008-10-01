@@ -134,6 +134,9 @@ class Path(_base):
 		the comparison yields the results we would expect"""
 		if isinstance( other, Path ):
 			other = other._expandvars( )
+		
+		return unicode( self._expandvars() ) == unicode( other )
+		return str( self._expandvars() ).__eq__( str( other ) )
 		return unicode.__cmp__( unicode( self._expandvars() ), unicode( other ) ) == 0
 	
 	def __ne__( self, other ):
