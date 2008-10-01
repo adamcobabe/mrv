@@ -31,47 +31,6 @@ class ReportBase( object ):
 			
 	#} END overridden Methods 
 	
-	#{ Base Methods 
-	def _toCallList( self, reverse = True, pruneIfTrue = lambda x: False ):
-		"""@return: flattened version of graph as list of ProcessData edges in call order , having
-		the root as last element of the list
-		@param pruneIfTrue: Function taking ProcessData to return true if the node
-		should be pruned from the result
-		@param reverse: if true, the calllist will be properly reversed ( taking childre into account """
-		
-		def getPredecessors( node, nextNode, reverse, pruneIfTrue ):
-			out = []
-			
-			# invert the callorder - each predecessor list defines the getInput calls
-			# a process has made - to properly reporoduce that, the call order needs to be 
-			# inverted as well 
-			predlist = self._callgraph.predecessors( node )
-			lenpredlist = len( predlist ) - 1
-			if not reverse:
-				lenpredlist *= -1 	# will keep the right, non reversed order
-				
-			predlist = [ ( lenpredlist - p.index, p ) for p in predlist ]	 
-			predlist.sort()
-			
-			prednextnode = node
-			pruneThisNode = pruneIfTrue( node )
-			if pruneThisNode:
-				prednextnode = nextNode
-				
-			# enumerate the other way round, as the call list needs to be inverted
-			for i,pred in predlist:
-				out.extend( getPredecessors( pred, prednextnode, reverse, pruneIfTrue ) )
-					
-			if not pruneThisNode:
-				out.append( ( node, nextNode ) )
-			return out
-		# END getPredecessors
-		calllist = getPredecessors( self._callgraph.getCallRoot(), None, reverse, pruneIfTrue )
-		if not reverse:
-			calllist.reverse() 	# actually brings it in the right order, starting at root 
-		return calllist
-	#}
-	
 	#{ Report Methods
 	
 	def getReport( self ):
@@ -88,7 +47,7 @@ class Plan( ReportBase ):
 		"""Create a list of ProcessData instances that reflects the call order"""
 		kwargs = {}		
 		kwargs[ 'reverse' ] = True
-		return self._toCallList( **kwargs )
+		return self._callgraph.toCallList( **kwargs )
 		                                                           
 		
 	def getReport( self, headline=None ):

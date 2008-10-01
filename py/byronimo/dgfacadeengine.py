@@ -558,7 +558,7 @@ class FacadeNodeBase( NodeBase ):
 		@note: this could be more efficient by just deleting plugs that are 
 		not required anymore, but probably this method can expect the whole 
 		cache to be deleted right away ... so its fine"""
-		self._cachedOIPlugs.clear()
+		self._cachedOIPlugs = list()
 	
 	#} end nodebase methods
 

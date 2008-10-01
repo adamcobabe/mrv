@@ -40,7 +40,7 @@ class DirtyException( ComputeError ):
 		
 	#{ Interface
 		
-	def getReport( ):
+	def getReport( self ):
 		"""@return: printable report, usually a string or some object that 
 		responds to str() appropriately"""
 		return self.report
@@ -137,6 +137,45 @@ class Workflow( Graph ):
 			"""@return: root at which the call started"""
 			return self._root
 			
+		def toCallList( self, reverse = True, pruneIfTrue = lambda x: False ):
+			"""@return: flattened version of graph as list of ProcessData edges in call order , having
+			the root as last element of the list
+			@param pruneIfTrue: Function taking ProcessData to return true if the node
+			should be pruned from the result
+			@param reverse: if true, the calllist will be properly reversed ( taking childre into account """
+			
+			def getPredecessors( node, nextNode, reverse, pruneIfTrue ):
+				out = []
+				
+				# invert the callorder - each predecessor list defines the getInput calls
+				# a process has made - to properly reporoduce that, the call order needs to be 
+				# inverted as well 
+				predlist = self.predecessors( node )
+				lenpredlist = len( predlist ) - 1
+				if not reverse:
+					lenpredlist *= -1 	# will keep the right, non reversed order
+					
+				predlist = [ ( lenpredlist - p.index, p ) for p in predlist ]	 
+				predlist.sort()
+				
+				prednextnode = node
+				pruneThisNode = pruneIfTrue( node )
+				if pruneThisNode:
+					prednextnode = nextNode
+					
+				# enumerate the other way round, as the call list needs to be inverted
+				for i,pred in predlist:
+					out.extend( getPredecessors( pred, prednextnode, reverse, pruneIfTrue ) )
+						
+				if not pruneThisNode:
+					out.append( ( node, nextNode ) )
+				return out
+			# END getPredecessors
+			calllist = getPredecessors( self.getCallRoot(), None, reverse, pruneIfTrue )
+			if not reverse:
+				calllist.reverse() 	# actually brings it in the right order, starting at root 
+			return calllist
+			
 	#} END utility classes
 	
 	
@@ -190,9 +229,13 @@ class Workflow( Graph ):
 		as used by L{getDirtyReport}"""
 		report = list( ( outputplug, None ) )
 		try:
+			outputplug.clearCache() 		# assure it eavaluates
 			outputplug.get( processmode )	# trigger computation, might raise 
 		except DirtyException, e:
 			report[ 1 ] = e					# remember report as well
+		except Exception, e:
+			# Renember normal errors , put them into a dirty report
+			report[ 1 ] = DirtyException( report = str( e ) )					 
 		
 		return tuple( report )
 		
@@ -204,8 +247,9 @@ class Workflow( Graph ):
 		@param target: target you which to check for it's dirty state
 		@param mode: 
 		 	single - only the process assigned to evaluate target will be checked
-			graph - as single, but the whole callgraph will be checked, starting 
-					at the node finally evaluating target
+			multi - as single, but the whole callgraph will be checked, starting 
+					at the first node, stepping down the callgraph. This gives a per
+					node dirty report.
 			deep - try to evaluate target, but fail if one process in the target's 
 			call history is dirty
 		"""
@@ -232,13 +276,14 @@ class Workflow( Graph ):
 							
 		# STEP THE CALLGRAPH ?
 		if mode == "multi":
-			# walk the callgraph and get dirty reports from each node 
-			self._callgraph = Workflow.CallGraph()		# reset graph for next step
-			
-			# keep caches
-			raise NotImplementedError()
+			# walk the callgraph and get dirty reports from each node
+			calllist = self._callgraph.toCallList( reverse = False )	
+			for s_pdata,d_pdata in calllist:
+				if d_pdata is None:					# the root node ( we already called it ) has no destination 
+					continue
+				outreports.append( self._evaluateDirtyState( d_pdata.process.toShell( d_pdata.plug ), processmode ) )
+			# END for each s_pdata, d_pdata 
 		# END if multi handling 
-		
 		return outreports
 		
 		

@@ -848,6 +848,12 @@ class Graph( DiGraph, iDuplicatable ):
 		except KeyError:
 			pass 
 			
+	def clearCache( self ):
+		"""Clear the cache of all nodes in the graph - this forces the graph 
+		to reevaluate on the next request"""
+		for node in self._nodes:
+			node.clearCache()
+		
 	#} END node handling
 	
 	#{ Query 
@@ -1102,6 +1108,12 @@ class NodeBase( iDuplicatable ):
 	def toShell( self, plug ):
 		"""@return: a plugshell as suitable to for this class"""
 		return getattr( self, 'shellcls' )( self, plug )		# prevent cls variable to be bound !
+		
+	def clearCache( self ):
+		"""Clear the cache of all plugs on this node - this basically forces it 
+		to recompute the next time an output plug is being queried"""
+		for plug in self.getPlugs( ):
+			self.toShell( plug ).clearCache( )
 
 	@classmethod
 	def getPlugsStatic( cls, predicate = lambda x: True ):
