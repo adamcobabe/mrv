@@ -187,11 +187,13 @@ class ObjectSet:
 	def _addRemoveMembers( self, members, mode, ignore_failure ):
 		"""Add or remove the members to the set
 		@param mode: kRemove or kAdd or kAddForce"""
-		op = undo.GenericOperation()
 		sellist = members
 		if not isinstance( sellist, api.MSelectionList ):
 			sellist = nodes.toSelectionList( sellist )
-		
+			
+		if not sellist.length():
+			return self
+				
 		# prepare operation
 		mfninst = self._mfncls( self._apiobj )
 		doitfunc = mfninst.addMembers
@@ -203,7 +205,7 @@ class ObjectSet:
 			undoitfunc = doitfunc
 			doitfunc = tmp
 			
-			
+		op = undo.GenericOperation()	
 		op.addDoit( doitfunc, sellist )
 		op.addUndoit( undoitfunc, sellist )
 		op.doIt()
