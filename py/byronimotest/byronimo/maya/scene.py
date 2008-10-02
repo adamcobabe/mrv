@@ -103,7 +103,14 @@ class TestSceneRunner( unittest.TestCase ):
 			mayafile = tmppath / filename
 			Scene.save( mayafile , force=1 )
 			self.failUnless( mayafile.exists() )
+			
+		# must work for untitled files as well
+		Scene.new( force = 1 )
+		Scene.save( tmppath / files[-1], force = 1 )
+		
 		shutil.rmtree( tmppath )	# cleanup	
+		
+	
 		
 	def tearDown( self ):
 		""" Cleanup """

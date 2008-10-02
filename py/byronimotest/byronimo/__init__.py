@@ -43,7 +43,7 @@ def run( **runner_args ):
 	return run_generic( self, **runner_args )
 		
 	
-def main( args ):
+def main( *args ):
 	""" Run the tests if called with the start script """
 	run( verbosity = 2 )
 

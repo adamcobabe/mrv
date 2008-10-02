@@ -33,7 +33,7 @@ def run( **runner_args ):
 	return testrunner.run( get_suite() )
 	
 	
-def main( args ):
+def main( *args ):
 	""" Run the tests if called with the start script """
 	run( verbosity = 2 )
 	

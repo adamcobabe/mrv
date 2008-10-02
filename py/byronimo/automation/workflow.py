@@ -355,7 +355,6 @@ class Workflow( Graph ):
 		@return: tuple( shell, result ) - plugshell queried to get the result 
 		"""
 		outputshell = self._setupProcess( target, globalmode )
-		print str( outputshell )
 		######################################################
 		result = outputshell.get( processmode )
 		######################################################
