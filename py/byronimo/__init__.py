@@ -40,6 +40,7 @@ def init_modules( filepath, moduleprefix, recurse=False ):
 	@note: in this moment, all submodules will be 'pulled' in"""
 	moduledir = Path( filepath  ).p_parent
 	moduleitems = moduledir.listdir( )
+	moduleitems.sort()					# assure we have the same order on every system
 	
 	if not moduleprefix.endswith( "." ):
 		moduleprefix += "."
@@ -53,7 +54,6 @@ def init_modules( filepath, moduleprefix, recurse=False ):
 				continue
 				
 			packageinitfile = path / "__init__.py"
-			print packageinitfile
 			if not packageinitfile.exists():
 				continue
 				
@@ -69,6 +69,7 @@ def init_modules( filepath, moduleprefix, recurse=False ):
 			continue
 		
 		fullModuleName = moduleprefix + modulename
+		print fullModuleName
 		module = __import__( fullModuleName , globals(), locals(), [ modulename ] )
 		
 		# call init 
