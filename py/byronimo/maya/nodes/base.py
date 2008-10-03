@@ -551,10 +551,13 @@ class DependNode( Node ):
 		if not renameOnClash:
 			exists = False
 			
-			if isinstance( self, DagNode ):	# dagnode: check existing children under parent 
-				testforobject = self.getParent().getFullChildName( newname )	# append our name to the path
-				if objExists( testforobject ):
-					raise RuntimeError( "Object %s did already exist" % testforobject )                            
+			if isinstance( self, DagNode ):	# dagnode: check existing children under parent
+				parent = self.getParent()
+				if parent:
+					testforobject = parent.getFullChildName( newname )	# append our name to the path
+					if objExists( testforobject ):
+						raise RuntimeError( "Object %s did already exist" % testforobject )
+				# END if we have a parent 
 			else:
 				exists = objExists( newname )	# depnode: check if object exists
 				
