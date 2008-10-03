@@ -69,7 +69,6 @@ def init_modules( filepath, moduleprefix, recurse=False ):
 			continue
 		
 		fullModuleName = moduleprefix + modulename
-		print fullModuleName
 		module = __import__( fullModuleName , globals(), locals(), [ modulename ] )
 		
 		# call init 
