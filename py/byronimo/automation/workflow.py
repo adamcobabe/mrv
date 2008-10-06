@@ -320,6 +320,8 @@ class Workflow( Graph ):
 		allAffectedNodes = ( shell.node for shell in inputshell.iterShells( direction = "down", visit_once = 1, prune = these ) )
 		outputshell = None
 		
+		# AFFECTED NODES 
+		##################
 		# use last compatible node in the chain - 
 		for node in allAffectedNodes:
 			try:
@@ -330,11 +332,11 @@ class Workflow( Graph ):
 			if shell:
 				outputshell = shell
 				break
-		# END for each affected node 
+		# END for each affected node try to get a valid shell 
 		
+		# AFFECTED PLUGS HANDLING
 		if not outputshell:
 			# try to use just the affected ones - that would be the best we have 
-			print "WARNING:Did not find output plug delivering our target type - fallback to simple affected checks on node"
 			outplugs = inputshell.plug.getAffected()
 			
 			if not outplugs:
@@ -343,17 +345,24 @@ class Workflow( Graph ):
 			is_valid_shell = lambda shell: not these( shell ) and shell.plug.attr.getCompatabilityRate( target )   
 			for plug in outplugs:
 				shell = inputshell.node.toShell( plug )
+				
 				if is_valid_shell( shell ):
+					print "WARNING:Did not find output plug delivering our target type - fallback to simple affected checks on node"
 					outputshell = shell
 					break
 				# END valid shell check 
-				
-			outputshell = shell
-		# END retrieve output shell handling 
+			# END for each plug in node output plugs 
+		# END try to get output shell by checking affects of current node  
+		
+		# still no shell ?
+		if not outputshell:
+			raise TypeError( "Target %s cannot be handled by this workflow (%s) as a computable output cannot be found" % ( target, self ) ) 
 		
 		# we do not care about ambiguity, simply pull one
 		# QUESTION: should we warn about multiple affected plugs ?
+		print "SETTING %s" % str( inputshell )
 		inputshell.set( target, ignore_connection = True )
+		print "WILL QUERY: %s" % str( outputshell )
 		return outputshell
 		
 	

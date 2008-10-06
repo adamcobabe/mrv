@@ -56,7 +56,7 @@ class SimpleIONode( NodeBase ):
 class TestDGFacadeEngine( unittest.TestCase ):
 	
 	def test_graphFacadeNode( self ):
-		"""dgengine: Simple Facade test"""
+		"""dgengine: graphFacadeNodes: full facade test """
 		
 		# create simple graph facade
 		g = Graph( )
@@ -205,7 +205,16 @@ class TestDGFacadeEngine( unittest.TestCase ):
 		self.failUnless( sg2outAdd.get( ) == 18 )		# its cached now
 		
 		
+		# PLUG OVERRIDES 
+		##################
+		# internal plugs can be explicitly set, the cache will be used on evaluation
+		# even if a connection is coming in from the ( outside ) facade node
+		sg2outAdd > sg1inFloat
+		sg1inFloat.set( 20.0 )
+		self.failUnless( sg2outAdd.get( ) == 28 )	# if it didnt work, we would go into recursion
 		
+		sg2inFloat.clearCache( clear_affected = True )		# make it sg1 dirty - now its connected with sg2 
+		self.failUnless( sg1inFloat.get() == 0.0 )				
 		
 		
 		

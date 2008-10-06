@@ -336,7 +336,7 @@ class WorkflowProcessBase( GraphNodeBase, ProcessBase ):
 		if self.graph._callgraph.number_of_nodes():
 			raise AssertionError( "Callgraph of parent workflow %r was not empty" % self.graph )
 		
-		self.wgraph._callgraph = self.graph._callgraph	# assure wrapped workflow takes our callgraph
+		self.wgraph.copyFrom( self.graph )					# copies required attributes 
 		
 		# Prepare all our wrapped nodes
 		for node in self.wgraph.iterNodes( ):

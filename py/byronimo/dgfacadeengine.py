@@ -90,6 +90,17 @@ class _IOShellMeta( _OIShellMeta ):
 			def unfacadeMethod( self, *args, **kwargs ):
 				"""apply to the input shell"""
 				#print "IOShell INPUT: unfacade %s.%s" % ( repr(self), funcname )
+				# behave like the base implementation and check the internal shell 
+				# for caches first - if it exists, we use it.
+				# It would have been cleared if it is affecfted by another plug being set, 
+				# thus its either still cached or somenone set the cache.
+				# if there is no cache, just trace the connections upwards.
+				# This means for get we specifiaclly override the normal "original last" 
+				# behaviour to allow greater flexibility 
+				oshell = self._getOriginalShell( )
+				if oshell.hasCache():
+					return oshell.getCache()
+					
 				return getattr( self._getShells( "input" )[0], funcname )( *args, **kwargs ) 
 			method = unfacadeMethod	
 		else:										# direction to output 

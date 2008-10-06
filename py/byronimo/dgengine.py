@@ -687,21 +687,32 @@ class _PlugShell( tuple ):
 		
 		raise ValueError( "Plug %r did not have a cached value" % repr( self ) )
 		
-	def clearCache( self, clear_affected = False ):
+	def clearCache( self, clear_affected = False, cleared_shells_set = None ):
 		"""Empty the cache of our plug
 		@param clear_affected: if True, the caches of our affected plugs ( connections
 		or affects relations ) will also be cleared
 		This operation is recursive, and needs to be as different shells on different nodes
 		might do things differently.
+		@param cleared_shells_set: if set, it can be used to track which plugs have already been dirtied to 
+		prevent recursive loops
 		Propagation will happen even if we do not have a cache to clear ourselves """
 		if self.hasCache():
 			del( self.node.__dict__[ self._cachename() ] )
 		
 		if clear_affected:
 			# our cache changed - dirty downstream plugs - thus clear the cache
+			if not cleared_shells_set:		# initialize our tracking list 
+				cleared_shells_set = set()
+				
+			if self in cleared_shells_set:
+				return 
+			
+			cleared_shells_set.add( self )	# assure we do not come here twice 
+			
 			all_shells = itertools.chain( self.node.toShells( self.plug.getAffected() ), self.getOutputs() )
 			for shell in all_shells:
-				shell.clearCache( clear_affected = True )
+				shell.clearCache( clear_affected = True, cleared_shells_set = cleared_shells_set )
+			# END for each shell in all_shells to clear 
 	#} END caching
 	
 	
