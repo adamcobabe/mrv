@@ -315,12 +315,12 @@ class Workflow( Graph ):
 		# get output plug that can be queried to get the target - follow the flow
 		# of the graph downstream and get the first compatible plug that would 
 		# return the same type that we put in 
-		# NOTE: require an unconnected output plug by convention !
+		# NOTE: requires an unconnected output plug by convention !
 		these = lambda shell: not shell.plug.providesOutput() or shell.getOutputs( )
 		allAffectedNodes = ( shell.node for shell in inputshell.iterShells( direction = "down", visit_once = 1, prune = these ) )
 		outputshell = None
 		
-		# use first compatible node in the chain - 
+		# use last compatible node in the chain - 
 		for node in allAffectedNodes:
 			try:
 				shell = node.getTargetRating( target, check_input_plugs = False )[1]		# this is the plug
@@ -340,7 +340,15 @@ class Workflow( Graph ):
 			if not outplugs:
 				raise TargetError( "Plug %r takes target %r as input, but does not affect an output plug that would take the same target type" % ( str( inputshell ), target ) )
 			
-			outputshell = inputshell.node.toShell( outplugs[0] )
+			is_valid_shell = lambda shell: not these( shell ) and shell.plug.attr.getCompatabilityRate( target )   
+			for plug in outplugs:
+				shell = inputshell.node.toShell( plug )
+				if is_valid_shell( shell ):
+					outputshell = shell
+					break
+				# END valid shell check 
+				
+			outputshell = shell
 		# END retrieve output shell handling 
 		
 		# we do not care about ambiguity, simply pull one
@@ -358,7 +366,7 @@ class Workflow( Graph ):
 		######################################################
 		result = outputshell.get( processmode )
 		######################################################
-		
+	
 		if len( self._callgraph._call_stack ):
 			raise AssertionError( "Callstack was not empty after calculations for %r where done" % target )
 		

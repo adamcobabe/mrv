@@ -171,7 +171,10 @@ def loadWorkflowFromDotFile( dotfile ):
 	import tempfile
 	path = "%s/%s.postcreate.dot" % ( tempfile.gettempdir(), wfl )
 	wfl.writeDot( path )
-	print "Wrote DOT to: %s" % path
+	msg = "Wrote DOT to: %s" % path
+	print "-" * len( msg )
+	print msg
+	print "-" * len( msg )
 	
 	# END for each edge 
 	return wfl
