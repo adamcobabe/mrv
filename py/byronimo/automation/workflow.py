@@ -325,8 +325,9 @@ class Workflow( Graph ):
 		# use last compatible node in the chain - 
 		for node in allAffectedNodes:
 			try:
-				shell = node.getTargetRating( target, check_input_plugs = False )[1]		# this is the plug
-			except TypeError:		# ambiguous inputs
+				shell = node.getTargetRating( target, check_input_plugs = False, raise_on_ambiguity = 0 )[1] # 1 == plug
+			except TypeError,e:		# ambiguous outputs
+				print str( e )
 				continue
 				
 			if shell:
@@ -356,7 +357,7 @@ class Workflow( Graph ):
 		
 		# still no shell ?
 		if not outputshell:
-			raise TypeError( "Target %s cannot be handled by this workflow (%s) as a computable output cannot be found" % ( target, self ) ) 
+			raise TypeError( "Target %s cannot be handled by this workflow (%s) as a computable output for %s cannot be found" % ( target, self, str( inputshell ) ) ) 
 		
 		# we do not care about ambiguity, simply pull one
 		# QUESTION: should we warn about multiple affected plugs ?

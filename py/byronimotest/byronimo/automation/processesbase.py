@@ -38,8 +38,9 @@ class TestProcesses( unittest.TestCase ):
 		
 		# shuold be able to provide exactly the same output the workflow itself
 		res = wfl.makeTarget( unicode( "this" ) )
-		self.failUnless( res == "this3.020202020202020202020202020202020" )
-		
+		print res
+		self.failUnless( res == "this10.020202020202020202020202020202020" )
+		                                                      
 		# CALLGRAPH 
 		################
 		# nested nodes are containers that do not show as they do not do anything
@@ -74,7 +75,7 @@ class TestProcesses( unittest.TestCase ):
 			self.failUnless( isinstance( shell.node, processes.WorkflowWrapTestProcess ) )
 		
 		
-		res = mwfl.makeTarget( object )[0]		# target only
+		res = mwfl.makeTarget( list( (5,) ) )[0]		# target only
 		self.failUnless( res == 65 )			# it went through 6 nodes 
 		
 		# compute the value directly using the plug as the workflow 

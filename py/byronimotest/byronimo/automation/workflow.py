@@ -59,19 +59,19 @@ class TestWorkflow( unittest.TestCase ):
 		#################
 		# generators are always dirty, everyting else depends on something
 		res = scwfl.makeTarget( 5 )
-		self.failUnless( res == 10 )
+		self.failUnless( res == 20 )
 		
 		res = scwfl.makeTarget( "someInput" )
 		self.failUnless( res == "hello world" )
 		
 		res = scwfl.makeTarget( 4 )
-		self.failUnless( res == 8 )
+		self.failUnless( res == 16 )
 		
 		res = scwfl.makeTarget( 2.0 )
-		self.failUnless( res == 4.0 )
+		self.failUnless( res == 8.0 )
 		
 		res = scwfl.makeTarget( 2.5 )
-		self.failUnless( res ==5.0 )
+		self.failUnless( res == 10.0 )
 
 	
 	def test_callgraph( self ):
@@ -85,8 +85,8 @@ class TestWorkflow( unittest.TestCase ):
 		from byronimo.automation.report import Plan
 		
 		cg = scwfl._callgraph
-		self.failUnless( len( cg.nodes() ) == 1 )
-		self.failUnless( len( cg.edges() ) == 0 )
+		self.failUnless( len( cg.nodes() ) == 2 )
+		self.failUnless( len( cg.edges() ) == 1 )
 		
 		
 		# INPUT REQUIRED  - multiple nodes 
@@ -94,15 +94,15 @@ class TestWorkflow( unittest.TestCase ):
 		res = scwfl.makeTarget( 2.0 )
 		
 		cg = scwfl._callgraph
-		self.failUnless( len( cg.nodes() ) == 1 )
-		self.failUnless( len( cg.edges() ) == 0 )
+		self.failUnless( len( cg.nodes() ) == 2 )
+		self.failUnless( len( cg.edges() ) == 1 )
 		
 		miwfl = workflows.multiinput
 		res = miwfl.makeTarget( unicode( "this" ) )
 		cg = miwfl._callgraph
 		
-		self.failUnless( len( cg.nodes() ) == 4 )
-		self.failUnless( len( cg.edges() ) == 3 )
+		self.failUnless( len( cg.nodes() ) == 5 )
+		self.failUnless( len( cg.edges() ) == 4 )
 		
 	def test_workflowfacades( self ):
 		"""byronimo.automation.workflow:  test facades of workflows"""

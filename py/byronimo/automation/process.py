@@ -93,7 +93,7 @@ class ProcessBase( NodeBase ):
 
 	#{ Query
 	
-	def getTargetRating( self, target, check_input_plugs = True ):
+	def getTargetRating( self, target, check_input_plugs = True, **kwargs ):
 		"""@return: tuple( int, PlugShell )
 		int between 0 and 255 - 255 means target matches perfectly, 0 
 		means complete incompatability. Any inbetweens indicate the target can be 
@@ -104,7 +104,7 @@ class ProcessBase( NodeBase ):
 		@param target: instance or class of target to check for compatability
 		@param check_input_plugs: if True, input plugs will be checked for compatability of target, 
 		otherwise the output plugs 
-		@raise TypeError: if the result is ambiguous"""
+		@raise TypeError: if the result is ambiguous and raise_on_ambiguity = 1"""
 		# query our ouput plugs for a compatible attr
 		targetplugs = None
 		if check_input_plugs:
@@ -112,7 +112,7 @@ class ProcessBase( NodeBase ):
 		else:
 			targetplugs = self.getOutputPlugs( )
 			
-		plugrating = self.filterCompatiblePlugs( targetplugs, target, raise_on_ambiguity = 1, attr_as_source=False )
+		plugrating = self.filterCompatiblePlugs( targetplugs, target, attr_as_source=False , **kwargs )
 		
 		if not plugrating:		#	 no plug ?
 			return ( 0 , None )
@@ -362,16 +362,17 @@ class WorkflowProcessBase( GraphNodeBase, ProcessBase ):
 		will be returned"""
 		outset = super( WorkflowProcessBase, self )._getNodePlugs( )
 		
-		if self.exclude_connected_plugs
+		if self.exclude_connected_plugs:
 			finalset = set()
 			for node, plug in outset:
 				shell = node.toShell( plug ) 
-				if not shell.isConnected()
+				if not shell.isConnected():
 					finalset.add( ( node , plug ) )
 				# END if shell is unconnected
 			# END for each node,plug pair
 			
 			outset = finalset
+			self._addIncludeNodePlugs( outset )		# assure we never filter include plugs 
 		# END exclude connected plugs 
 		
 		return outset

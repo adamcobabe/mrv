@@ -58,8 +58,6 @@ class TestProcess( process.ProcessBase ):
 	# outputs 
 	outFloat = 		plug( A( float, A.computable|A.uncached ) )
 	outInt = 		plug( A( int, A.computable|A.uncached ) )
-	outFloatGen = 	plug( A( float, A.computable|A.uncached ) )
-	outIntGen = 	plug( A( int, A.computable|A.uncached ) )
 	outText = 		plug( A( str, 0, default = "hello world" ) )
 	outChain = 		plug( A( list, 0 ) )
 	
@@ -84,10 +82,6 @@ class TestProcess( process.ProcessBase ):
 			return self.inFloat.get( ) * 2.0 
 		if plug == TestProcess.outText:
 			return "hello world"
-		elif plug == TestProcess.outFloatGen:
-			return 3.0
-		elif plug == TestProcess.outIntGen:
-			return 4
 		elif plug == TestProcess.outChain:
 			return [ self.inChain.get()[0] + 10 ]
 		else:
