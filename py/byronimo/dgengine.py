@@ -250,8 +250,21 @@ class Attribute( object ):
 		if self.flags & self.cls != otherattr.flags & self.cls:
 			return 0
 			
+		# DEFAULT VALUE CHECK
+		#######################
+		# see whether we destination can handle our default value - if not 
+		# just go for a class comparison
+		rate = self.kNo
+		try:
+			defvalue = otherattr.getDefault()
+			rate = self.getCompatabilityRate( defvalue )
+		except (MissingDefaultValueError,TypeError):
+			rate = self._getClassRating( otherattr.typecls, self.flags & self.exact_type )
 		# finally check how good our types match 
-		return self._getClassRating( otherattr.typecls, self.flags & self.exact_type )
+		
+		return rate
+		
+		
 	
 	def getConnectionAffinity( self, destinationattr ):
 		"""@return: rating from 0 to 255 defining the quality of the connection to 
