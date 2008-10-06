@@ -587,8 +587,14 @@ class GraphNodeBase( FacadeNodeBase ):
 	#{ Configuration 
 	allow_auto_plugs = True					# if True, plugs can be found automatically by iterating nodes on the graph and using their plugs
 	ignore_failed_includes = False			# if True, node will not raise if a plug to be included cannot be found
-	include_plugs = list()					# list of node.plug strings ( like "node.inName" ) defining the plugs you would like to specifically include on the facade
-	exclude_plugs = list()					# list of node.plug strings ( like "node.plugName" ) defining plugs you do not want on the facade node 
+	
+	# list of node.plug strings ( like "node.inName" ) and/or node names ( like "node" )
+	# defining the plugs you  would like to specifically include on the facade
+	# If just a name is given, the node name is assumed and all plugs on that node will be included 
+	include = list()					
+	
+	# same as include, but matching nodes/plugs will be excluded 
+	exclude = list()					 
 	#}END configuration
 	
 	#{ Overridden Object Methods
@@ -624,13 +630,24 @@ class GraphNodeBase( FacadeNodeBase ):
 	#{ NodeBase Methods
 	
 	def _addIncludeNodePlugs( self, outset ):
-		"""Add the plugs defined in include_plugs to the given output list"""
+		"""Add the plugs defined in include to the given output list"""
 		missingplugs = list()
 		nodes = self.wgraph.getNodes()
 		nodenames = [ str( node ) for node in nodes ]
 		
-		for nodeplugname in self.include_plugs:
-			nodename, plugname = tuple( nodeplugname.split( "." ) )
+		for nodeplugname in self.include:
+			nodename = plugname = None
+			
+			# INCLUDE WHOLE NODE HANDLING 
+			##############################
+			if nodeplugname.find( '.' ) == -1 :
+				nodename = nodeplugname
+			else:
+				nodename, plugname = tuple( nodeplugname.split( "." ) )
+			# END wholenode check 
+			
+			# FIND NODE INSTANCE
+			######################
 			try:
 				index = nodenames.index( nodename )
 				node = nodes[ index ]
@@ -638,16 +655,22 @@ class GraphNodeBase( FacadeNodeBase ):
 				missingplugs.append( nodeplugname )
 				continue
 
-			
-			# find matching plugs 
-			try:
-				plug = getattr( node, plugname ).plug
-			except AttributeError:
-				missingplugs.append( nodeplugname )
+
+			# ADD INCLUDE PLUGS 
+			###################
+			if not plugname:
+				outset.update( ( (node,plug) for plug in node.getPlugs() ) )
 			else:
-				# finally append the located plug
-				outset.add( ( node , plug ) )
-				continue
+				# find matching plugs 
+				try:
+					plug = getattr( node, plugname ).plug
+				except AttributeError:
+					missingplugs.append( nodeplugname )
+				else:
+					# finally append the located plug
+					outset.add( ( node , plug ) )
+					continue
+			# END whole node handling 
 		# END for each nodeplug name
 		
 		if not self.ignore_failed_includes and missingplugs:
@@ -656,14 +679,21 @@ class GraphNodeBase( FacadeNodeBase ):
 		
 	def _removeExcludedPlugs( self, outset ):
 		"""remove the plugs from our exclude list and modify the outset"""
-		if not self.exclude_plugs:
+		if not self.exclude:
 			return 
 		
 		excludepairs = set()
-		excludeNameTuples = [ tuple( plugname.split( "." ) ) for plugname in self.exclude_plugs ]
+		excludeNameTuples = [ tuple( plugname.split( "." ) ) for plugname in self.exclude ]
 		for node,plug in outset:
-			for nodename,plugname in excludeNameTuples:
-				if nodename == str( node ) and plugname == plug.getName():
+			for nodeplugname  in self.exclude:
+				
+				nodename = plugname = None
+				if nodeplugname.find( '.' ) == -1:			# node mode 
+					nodename = nodeplugname
+				else:
+					nodename,plugname = nodeplugname.split( '.' ) # node plug mode  
+				
+				if nodename == str( node ) and ( not plugname or plugname == plug.getName() ):
 					excludepairs.add( ( node,plug ) )
 			# END for each nodename.plugname to exclude 
 		# END for each node,plug pair

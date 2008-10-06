@@ -233,7 +233,7 @@ class TestDGFacadeEngine( unittest.TestCase ):
 		# INCLUDE / EXCLUDE PARAMETERS
 		class Gnode( GraphNodeBase ):
 			caching_enabled = False
-			include_plugs = [ "node.doesnotexist" ] 
+			include = [ "node.doesnotexist" ] 
 			
 		
 		g = Graph( )
@@ -262,17 +262,26 @@ class TestDGFacadeEngine( unittest.TestCase ):
 		gn.getPlugs()
 		
 		# explicit include, no auto includes 
-		gn.include_plugs = [ "s1.outAdd" ]
+		gn.include = [ "s1.outAdd" ]
 		gn.allow_auto_plugs = False
 		
 		# just include should be left 
 		self.failUnless( len( gn.getPlugs() ) == 1 )
 		
+		# TEST PLUG EXCLUDE 
+		####################
+		gn.exclude = gn.include
+		self.failUnless( len( gn.getPlugs( ) ) == 0 )
+		gn.exclude = tuple()
 		
-		gn.exclude_plugs = gn.include_plugs
+		# test whole node include
+		gn.include = [ "s1" ]
+		self.failUnless( len( gn.getPlugs() ) == 4 )
 		
-		# TEST EXCLUDE 
-		################
+		
+		# TEST NODE EXCLUDE 
+		###############
+		gn.exclude = gn.include
 		self.failUnless( len( gn.getPlugs( ) ) == 0 )
 		
 		
