@@ -265,6 +265,10 @@ class WorkflowProcessBase( GraphNodeBase, ProcessBase ):
 	workflowName = "name of the workflow as it will exist in workflowModule"
 	workflowModulePath = "module import path which will contain the workflow"
 	
+	#{ Configuration 
+	exclude_connected_plugs = True				# if true, all plugs that are connected will be pruned 
+	#} 
+	
 	#{ Overridden Object Methods 
 	
 	def __init__( self, id, wflInstance=None, **kwargs ):
@@ -321,7 +325,6 @@ class WorkflowProcessBase( GraphNodeBase, ProcessBase ):
 				return wfl
 			except AttributeError:
 				raise
-				raise AssertionError( "Workflow module %r reuqires createWorkflow method to be implemented for nested workflows to work" % wflmod )
 		# END try to copy or create workflow 
 		
 	#} END overridden methods 
@@ -357,16 +360,21 @@ class WorkflowProcessBase( GraphNodeBase, ProcessBase ):
 	def _getNodePlugs( self ):
 		"""Override the base method, filtering it's output so that only unconnected plugs
 		will be returned"""
-		finalres = list()
-		for node, plug in super( WorkflowProcessBase, self )._getNodePlugs( ):
-			shell = node.toShell( plug ) 
-			if not shell.getInput() and not shell.getOutputs( ):
-				finalres.append( ( node , plug ) )
-				#print "KEPT %s.%s" % ( node, str( plug ) )
-			#else:
-				#print "REMOVED %s.%s" % ( node, str( plug ) ) 
-		# END for each node,plug pair
-		return finalres
+		outset = super( WorkflowProcessBase, self )._getNodePlugs( )
+		
+		if self.exclude_connected_plugs
+			finalset = set()
+			for node, plug in outset:
+				shell = node.toShell( plug ) 
+				if not shell.isConnected()
+					finalset.add( ( node , plug ) )
+				# END if shell is unconnected
+			# END for each node,plug pair
+			
+			outset = finalset
+		# END exclude connected plugs 
+		
+		return outset
 		
 	#} end graphnodebase methods
 	

@@ -165,7 +165,7 @@ def loadWorkflowFromDotFile( dotfile ):
 		
 		# assure we have a connection 
 		if numConnections == 0:
-			raise AssertionError( "Found no compatible connection between %s and %s in workflow %s - check your processes" % ( snode, dnode, wfl ) )
+			raise AssertionError( "Found no compatible connection from %s to %s in workflow %s - check your processes" % ( snode, dnode, wfl ) )
 			
 	# DEBUG - write workflow 
 	import tempfile

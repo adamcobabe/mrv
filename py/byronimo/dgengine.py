@@ -645,6 +645,10 @@ class _PlugShell( tuple ):
 			
 		return outcons
 		
+	def isConnected( self ):
+		"""@return: True, if the shell is connected as source or as destination of a connection"""
+		return self.getInput() or self.getOutputs()
+		
 	def iterShells( self, **kwargs ):
 		"""Iterate plugs and their connections starting at this plug
 		@return: generator for plug shells

@@ -52,6 +52,16 @@ class SimpleIONode( NodeBase ):
 			return self.inFloat.get() + 1
 		raise PlugUnhandled( )
 
+class LessSimpleIONode( SimpleIONode ):
+	"""more attributes added"""
+	#{ Plugs 
+	outBool = plug( A( bool, A.uncached ) )
+	
+	inBool = plug( A( bool, 0, default = False ) )
+	
+	#} END plugs 
+	inBool.affects( outBool )
+
 
 class TestDGFacadeEngine( unittest.TestCase ):
 	
@@ -214,7 +224,55 @@ class TestDGFacadeEngine( unittest.TestCase ):
 		self.failUnless( sg2outAdd.get( ) == 28 )	# if it didnt work, we would go into recursion
 		
 		sg2inFloat.clearCache( clear_affected = True )		# make it sg1 dirty - now its connected with sg2 
-		self.failUnless( sg1inFloat.get() == 0.0 )				
+		self.failUnless( sg1inFloat.get() == 0.0 )
 		
+		
+	def test_graphNodeIncludeExclude( self ):
+		"""dgending: graphnode configuration"""
+		
+		# INCLUDE / EXCLUDE PARAMETERS
+		class Gnode( GraphNodeBase ):
+			caching_enabled = False
+			include_plugs = [ "node.doesnotexist" ] 
+			
+		
+		g = Graph( )
+		s1 = LessSimpleIONode( "s1" )
+		s2 = LessSimpleIONode( "s2" )
+		
+		g.addNode( s1 )
+		g.addNode( s2 )
+		
+		s1.outBool > s2.inBool
+		
+		# wrap it
+		og = Graph( )				# other graph
+		gn = Gnode( g, id="GNode" )		# node wrapping the graph
+		og.addNode( gn )
+		
+		
+		# TEST INCLUDE
+		###################
+		# should not find include plug 
+		self.failUnlessRaises( AssertionError, gn.getPlugs )
+		
+		gn.ignore_failed_includes = True
+		
+		# now it should work
+		gn.getPlugs()
+		
+		# explicit include, no auto includes 
+		gn.include_plugs = [ "s1.outAdd" ]
+		gn.allow_auto_plugs = False
+		
+		# just include should be left 
+		self.failUnless( len( gn.getPlugs() ) == 1 )
+		
+		
+		gn.exclude_plugs = gn.include_plugs
+		
+		# TEST EXCLUDE 
+		################
+		self.failUnless( len( gn.getPlugs( ) ) == 0 )
 		
 		

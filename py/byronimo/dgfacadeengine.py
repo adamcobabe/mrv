@@ -372,12 +372,13 @@ class FacadeNodeBase( NodeBase ):
 	shellcls = _OIShell		# overriden from NodeBase 
 	__slots__ = ('caching','_cachedOIPlugs' ) 	# caching mode flag, cached plug names
 	
+	#{ Configuration
+	caching_enabled = True						# if true, the facade may cache plugs once queried
+	#} END configuration
+	
 	#{ Object Overridden Methods
 	def __init__( self, *args, **kwargs ):
-		""" Initialize the instance
-		@param caching: if True, default True, the virtual plugs gotten from the subclass
-		will be cached until the cache is cleared """
-		self.caching_enabled = kwargs.get( 'caching', True )
+		""" Initialize the instance"""
 		self._cachedOIPlugs = list()							# simple list of names 
 		NodeBase.__init__( self, *args, **kwargs )
 		
@@ -583,6 +584,13 @@ class GraphNodeBase( FacadeNodeBase ):
 	strong cycles we have a lot in this structure. Weakrefs will not work for nested
 	facade nodes as they are tuples not allowing weak refs.
 	"""
+	#{ Configuration 
+	allow_auto_plugs = True					# if True, plugs can be found automatically by iterating nodes on the graph and using their plugs
+	ignore_failed_includes = False			# if True, node will not raise if a plug to be included cannot be found
+	include_plugs = list()					# list of node.plug strings ( like "node.inName" ) defining the plugs you would like to specifically include on the facade
+	exclude_plugs = list()					# list of node.plug strings ( like "node.plugName" ) defining plugs you do not want on the facade node 
+	#}END configuration
+	
 	#{ Overridden Object Methods
 	
 	def __init__( self, wrappedGraph, *args, **kwargs ):
@@ -613,20 +621,76 @@ class GraphNodeBase( FacadeNodeBase ):
 		
 	#} END base
 	
-	#{ NodeBase Methods 
+	#{ NodeBase Methods
+	
+	def _addIncludeNodePlugs( self, outset ):
+		"""Add the plugs defined in include_plugs to the given output list"""
+		missingplugs = list()
+		nodes = self.wgraph.getNodes()
+		nodenames = [ str( node ) for node in nodes ]
+		
+		for nodeplugname in self.include_plugs:
+			nodename, plugname = tuple( nodeplugname.split( "." ) )
+			try:
+				index = nodenames.index( nodename )
+				node = nodes[ index ]
+			except ValueError:
+				missingplugs.append( nodeplugname )
+				continue
+
+			
+			# find matching plugs 
+			try:
+				plug = getattr( node, plugname ).plug
+			except AttributeError:
+				missingplugs.append( nodeplugname )
+			else:
+				# finally append the located plug
+				outset.add( ( node , plug ) )
+				continue
+		# END for each nodeplug name
+		
+		if not self.ignore_failed_includes and missingplugs:
+			msg = "%s: Could not find following include plugs: %s" % ( self, ",".join( missingplugs ) ) 
+			raise AssertionError( msg )
+		
+	def _removeExcludedPlugs( self, outset ):
+		"""remove the plugs from our exclude list and modify the outset"""
+		if not self.exclude_plugs:
+			return 
+		
+		excludepairs = set()
+		excludeNameTuples = [ tuple( plugname.split( "." ) ) for plugname in self.exclude_plugs ]
+		for node,plug in outset:
+			for nodename,plugname in excludeNameTuples:
+				if nodename == str( node ) and plugname == plug.getName():
+					excludepairs.add( ( node,plug ) )
+			# END for each nodename.plugname to exclude 
+		# END for each node,plug pair
+		
+		# substract our pairs accordingly to modify the set
+		outset -= excludepairs
 	
 	def _getNodePlugs( self ):
 		"""@return: all plugs on nodes we wrap ( as node,plug tuple )"""
-		outlist = list()
-
-		for node in self._iterNodes():
-			plugresult = node.getPlugs(  )
-			outlist.extend( ( (node,plug) for plug in plugresult ) )
-			# END update lut map
-		# END for node in nodes 
+		outset = set()
+		
+		# get the included plugs 
+		self._addIncludeNodePlugs( outset )
+		
+		if self.allow_auto_plugs:
+			for node in self._iterNodes():
+				plugresult = node.getPlugs(  )
+				outset.update( set( ( (node,plug) for plug in plugresult ) ) )
+				# END update lut map
+			# END for node in nodes
+		# END allow auto plugs 
+		
+		# remove excluded plugs 
+		self._removeExcludedPlugs( outset )
 		
 		# the rest of the nitty gritty details, the base class will deal 
-		return outlist
+		return outset
 	
 	#} end NodeBase methods
 		
