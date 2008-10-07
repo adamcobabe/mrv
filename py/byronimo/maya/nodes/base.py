@@ -163,6 +163,9 @@ def toSelectionList( nodeList ):
 	"""Convert an iterable filled with Nodes to a selection list
 	@param nodeList: iterable filled with dg and dag nodes as well as plugs, dagpaths or mobjects or strings 
 	@return: selection list filled with objects from node list"""
+	if isinstance( nodeList, api.MSelectionList ):		# sanity check 
+		return nodeList
+		
 	sellist = api.MSelectionList()
 	for node in nodeList:
 		if isinstance( node, DagNode ):
