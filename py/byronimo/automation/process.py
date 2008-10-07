@@ -20,8 +20,8 @@ from byronimo.dgengine import NodeBase
 from byronimo.dgfacadeengine import GraphNodeBase
 from byronimo.dgengine import plug
 from byronimo.dgengine import Attribute
-
 import byronimo.automation.base as wflbase
+
 from byronimo.path import Path
 from byronimo.util import Or
 
@@ -262,11 +262,12 @@ class WorkflowProcessBase( GraphNodeBase, ProcessBase ):
 	@note: to prevent dependency issues, the workflow instance will be bound on first use
 	"""
 	__all__.append( "WorkflowProcessBase" )
-	workflowName = "name of the workflow as it will exist in workflowModule"
-	workflowModulePath = "module import path which will contain the workflow"
+	workflowFile = "name of the workflow dot file ( incl. extension )"
+	workflowdirectory = "directory containing workflows to load "
 	
 	#{ Configuration 
-	exclude_connected_plugs = True				# if true, all plugs that are connected will be pruned 
+	exclude_connected_plugs = True				# if true, all plugs that are connected will be pruned
+	duplicate_wrapped_graph = False			# we load our copies directly and thus have a copy
 	#} 
 	
 	#{ Overridden Object Methods 
@@ -280,8 +281,7 @@ class WorkflowProcessBase( GraphNodeBase, ProcessBase ):
 		
 		wrappedwfl = wflInstance
 		if not wrappedwfl:
-			wflmod  = __import__( self.workflowModulePath, globals(), locals(), [''] )
-			wrappedwfl = self._createWrappedWfl( wflmod, self.workflowName )
+			wrappedwfl = self._createWrappedWfl( self.workflowdirectory, self.workflowFile )
 		
 		# NOTE: baseclass stores wrapped wfl for us
 		# init bases
@@ -309,23 +309,12 @@ class WorkflowProcessBase( GraphNodeBase, ProcessBase ):
 	# } END iDuplicatable
 			 
 			 
-	def _createWrappedWfl( self, wflmod, wflname ):
-		"""@return: our wrapped workflow instance
-		@note: as we modify the graph with our 'virtual' connections, we copy it
-		and create a new one. Workflows are global elements that should not be changed by someone
-		to stop working for anotherone
-		@todo: for now, we do not duplicate them  - have to implement and test proper duplication, no time now ... """
-		try:
-			return getattr( wflmod, wflname )
-		except AttributeError:
-			# try to trigger creation of workflow and add it to the module
-			try:
-				wfl = wflbase.loadWorkflowFromDotFile( Path( wflmod.__file__ ).p_parent / wflname + ".dot" )
-				setattr( wflmod, wflname, wfl )
-				return wfl
-			except AttributeError:
-				raise
-		# END try to copy or create workflow 
+	def _createWrappedWfl( self, wfldir, wflname ):
+		"""@return: our wrapped workflow instance as created by a method loading a workflow 
+		from a file"""
+		wfl = wflbase.loadWorkflowFromDotFile( Path( wfldir ) / wflname )
+		return wfl
+	# END try to copy or create workflow 
 		
 	#} END overridden methods 
 	

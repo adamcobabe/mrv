@@ -585,6 +585,7 @@ class GraphNodeBase( FacadeNodeBase ):
 	facade nodes as they are tuples not allowing weak refs.
 	"""
 	#{ Configuration 
+	duplicate_wrapped_graph	 = True			# an independent copy of the wrapped graph usually is required - duplication assures that ( or the caller )
 	allow_auto_plugs = True					# if True, plugs can be found automatically by iterating nodes on the graph and using their plugs
 	ignore_failed_includes = False			# if True, node will not raise if a plug to be included cannot be found
 	
@@ -602,7 +603,9 @@ class GraphNodeBase( FacadeNodeBase ):
 	def __init__( self, wrappedGraph, *args, **kwargs ):
 		""" Initialize the instance
 		@param wrappedGraph: graph we are wrapping"""
-		self.wgraph = wrappedGraph.duplicate( )
+		self.wgraph = wrappedGraph
+		if self.duplicate_wrapped_graph:
+			self.wgraph = self.wgraph.duplicate( )
 		
 		FacadeNodeBase.__init__( self, *args, **kwargs )
 	 

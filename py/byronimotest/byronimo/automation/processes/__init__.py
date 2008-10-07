@@ -20,6 +20,7 @@ import byronimotest as common
 import byronimo.automation.process as process
 import byronimo.automation.processes as processes
 from byronimo.dgengine import plug, Attribute as A
+from byronimo.path import Path
 
 def get_suite( ):
 	""" @return: testsuite with all tests of this package
@@ -129,11 +130,11 @@ class OtherTestProcess( process.ProcessBase ):
 
 
 class WorkflowWrapTestProcess( process.WorkflowProcessBase ):
-	workflowModulePath = "byronimotest.byronimo.automation.workflows"
+	workflowdirectory = Path( __file__ ).p_parent.p_parent / "workflows"
 	
 	def __init__( self, id, wflname, **kwargs ):
 		"""Wrap the workflow with the given name"""
-		self.workflowName = wflname
+		self.workflowFile = wflname + ".dot"
 		return super( WorkflowWrapTestProcess, self ).__init__( id, **kwargs )
 		
 	

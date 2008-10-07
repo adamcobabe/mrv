@@ -16,7 +16,7 @@ __copyright__='(c) 2008 Sebastian Thiel'
 
 from byronimo.path import Path
 from byronimo.dgengine import PlugAlreadyConnected
-
+from byronimo.dgfacadeengine import GraphNodeBase
 
 #{ Edit
 
@@ -57,7 +57,8 @@ def loadWorkflowFromDotFile( dotfile ):
 	The workflow will be fully intiialized with connected process instances.
 	The all compatible plugs will automatically be connected for all processes 
 	connected in the dot file 
-	@return: initialized Workfflow class"""
+	@return: List of initialized workflow classes - as they can be nested, the 
+	creation of one workflow can actually create several of them"""
 	import pydot
 	import processes
 	from workflow import Workflow
@@ -72,6 +73,7 @@ def loadWorkflowFromDotFile( dotfile ):
 	wfl = Workflow( name=dotfile.p_namebase )
 	
 	
+	print "LOADING %s FROM FILE %s" % (wfl,dotfile)
 	for node in dotgraph.get_node_list():
 		# can have initializers
 		nodeid = node.get_name().strip( '"' )
@@ -97,13 +99,12 @@ def loadWorkflowFromDotFile( dotfile ):
 		else:
 			edge_lut[ nodeid ] = processinst
 			wfl.addNode( processinst )
-		
 	# END for each node in graph
+	
 	
 	# ADD EDGES
 	#############
 	# create most suitable plug connections
-	print "SETTING UP %s" % wfl
 	for edge in dotgraph.get_edge_list():
 		snode = edge_lut[ edge.get_source() ]
 		dnode = edge_lut[ edge.get_destination() ]
