@@ -130,11 +130,11 @@ class OtherTestProcess( process.ProcessBase ):
 
 
 class WorkflowWrapTestProcess( process.WorkflowProcessBase ):
-	workflowdirectory = Path( __file__ ).p_parent.p_parent / "workflows"
+	workflow_directory = Path( __file__ ).p_parent.p_parent / "workflows"
 	
 	def __init__( self, id, wflname, **kwargs ):
 		"""Wrap the workflow with the given name"""
-		self.workflowFile = wflname + ".dot"
+		self.workflow_file = wflname + ".dot"
 		return super( WorkflowWrapTestProcess, self ).__init__( id, **kwargs )
 		
 	

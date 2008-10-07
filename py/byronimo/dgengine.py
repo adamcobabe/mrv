@@ -1141,7 +1141,7 @@ class NodeBase( iDuplicatable ):
 		"""Clear the cache of all plugs on this node - this basically forces it 
 		to recompute the next time an output plug is being queried"""
 		for plug in self.getPlugs( ):
-			self.toShell( plug ).clearCache( )
+			self.toShell( plug ).clearCache( clear_affected = False )
 
 	@classmethod
 	def getPlugsStatic( cls, predicate = lambda x: True ):

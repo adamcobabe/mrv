@@ -564,7 +564,7 @@ class FacadeNodeBase( NodeBase ):
 		# it has been altered as well
 		return finalres
 		
-	def clearCache( self ):
+	def clearPlugCache( self ):
 		"""if a cache has been build as caching is enabled, this method clears
 		the cache forcing it to be updated on the next demand
 		@note: this could be more efficient by just deleting plugs that are 

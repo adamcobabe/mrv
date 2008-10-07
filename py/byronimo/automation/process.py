@@ -262,8 +262,8 @@ class WorkflowProcessBase( GraphNodeBase, ProcessBase ):
 	@note: to prevent dependency issues, the workflow instance will be bound on first use
 	"""
 	__all__.append( "WorkflowProcessBase" )
-	workflowFile = "name of the workflow dot file ( incl. extension )"
-	workflowdirectory = "directory containing workflows to load "
+	workflow_file = "name of the workflow dot file ( incl. extension )"
+	workflow_directory = "directory containing workflows to load "
 	
 	#{ Configuration 
 	exclude_connected_plugs = True				# if true, all plugs that are connected will be pruned
@@ -281,7 +281,7 @@ class WorkflowProcessBase( GraphNodeBase, ProcessBase ):
 		
 		wrappedwfl = wflInstance
 		if not wrappedwfl:
-			wrappedwfl = self._createWrappedWfl( self.workflowdirectory, self.workflowFile )
+			wrappedwfl = self._createWrappedWfl( self.workflow_directory, self.workflow_file )
 		
 		# NOTE: baseclass stores wrapped wfl for us
 		# init bases
