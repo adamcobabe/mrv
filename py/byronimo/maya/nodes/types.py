@@ -112,7 +112,7 @@ class MetaClassCreatorNodes( MetaClassCreator ):
 		# bound to class, self will be attached on class instantiation
 		if rvalfunc:	# wrap rval function around
 			# INITIALIZED DAG NODES WITH DAG PATH !
-			if mfncls is api.MFnDagNode:			# yes, we duplicate code here to keep it fast !!
+			if api.MFnDagNode in mfncls.mro():			# yes, we duplicate code here to keep it fast !!
 				def wrapMfnFunc( self, *args, **kwargs ):
 					mfninst = mfncls( self._apidagpath )
 					return rvalfunc( getattr( mfninst, mfnfuncname )( *args, **kwargs ) )
@@ -123,7 +123,7 @@ class MetaClassCreatorNodes( MetaClassCreator ):
 					return rvalfunc( getattr( mfninst, mfnfuncname )( *args, **kwargs ) )
 				newfunc = wrapMfnFunc
 		else:
-			if mfncls is api.MFnDagNode:			# yes, we duplicate code here to keep it fast !!
+			if api.MFnDagNode in mfncls.mro():			# yes, we duplicate code here to keep it fast !!
 				def wrapMfnFunc( self, *args, **kwargs ):
 					mfninst = mfncls( self._apidagpath )
 					return getattr( mfninst, mfnfuncname )( *args, **kwargs )
