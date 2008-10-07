@@ -20,12 +20,20 @@ import byronimo.maya as bmaya
 import byronimotest as common
 import maya.cmds as cmds
 import os
-
+import tempfile
 
 #{ Interface 
 def get_maya_file( filename ):
 	"""@return: path to specified maya ( test ) file """
 	return os.path.join( os.path.dirname( __file__ ), "ma/"+filename )
+	
+	
+def _saveTempFile( filename ):
+	"""save the current scene as given filename in a temp directory, print path"""
+	filepath = tempfile.gettempdir( ) + "/" + filename
+	savedfile = bmaya.Scene.save( filepath )
+	print "SAVED TMP FILE TO: %s" % savedfile
+	return savedfile
 	
 #} Interface 
 	
