@@ -495,7 +495,15 @@ class Node( object ):
 	def __ne__( self, other ):
 		return not Node.__eq__( self, other )
 	
-	#}
+	#} END overridden methods 
+	
+	#{ Interface 
+	def getApiObject( self ):
+		"""@return: the highest qualified api object of the actual superclass, 
+		usually either MObject or MDagPath"""
+		raise NotImplementedError( "To be implemented in subclass" )
+	
+	#} END interface 
 	
 
 class DependNode( Node ):
@@ -671,6 +679,7 @@ class DependNode( Node ):
 		"""@return: the MObject attached to this Node"""
 		return self._apiobj
 		
+	getApiObject = getObject		# overridden from Node
 	#}END general query 
 	
 	#{ Edit Methods 
@@ -1262,6 +1271,7 @@ class DagNode( Entity, iDagItem ):
 		"""@return: the DagPath attached to this Node"""
 		return DagPath( self._apidagpath )
 		
+	getApiObject = getDagPath		# overridden from Node
 	#}END general query 
 	
 	#{ Iterators 
