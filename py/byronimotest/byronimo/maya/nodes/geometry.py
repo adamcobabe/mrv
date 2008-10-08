@@ -91,6 +91,7 @@ class TestGeometry( unittest.TestCase ):
 			
 			for setnode, component in setcomps:
 				self.failUnless( not component.isEmpty() )
+				
 				if setnode == sg1:
 					pass 
 				if setnode == sg2:
