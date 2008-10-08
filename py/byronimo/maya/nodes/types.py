@@ -263,7 +263,10 @@ class MetaClassCreatorNodes( MetaClassCreator ):
 		else:
 			mfncls = clsdict[ metacls.mfnclsattr ]
 			
-		clsdict[ metacls.mfnclsattr ] = mfncls			# we have at least a None mfn
+		# do not store any mfn if there is none set - this would override mfns of 
+		# base classes although the super class is compatible to it
+		if mfncls:
+			clsdict[ metacls.mfnclsattr ] = mfncls			# we have at least a None mfn
 		clsdict[ metacls.apiobjattr ] = None			# always have an api obj
 		
 		
