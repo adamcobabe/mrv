@@ -21,7 +21,7 @@ import maya.cmds as cmds
 import byronimo.util as util
 from byronimo.util import capitalize,uncapitalize
 import networkx.exception as networkxexc
-
+import os
 
 #{ Return Value Conversion
 def noneToList( res ):
@@ -99,6 +99,7 @@ def pythonToMel(arg):
 #### Classes		  	####
 ##########################
 	
+#{ Utitliy Classes
 class Mel(util.Singleton):
 	"""This class is a necessity for calling mel scripts from python. It allows scripts to be called
 	in a cleaner fashion, by automatically formatting python arguments into a string 
@@ -163,33 +164,111 @@ class Mel(util.Singleton):
 	error = staticmethod( lambda *args: Mel._melprint( "error", *args ) )
 	trace = staticmethod( lambda *args: Mel._melprint( "trace", *args ) )
 	info = staticmethod( lambda *args: Mel._melprint( "print", *args ) )
-				 
-
-
-class StandinClass( object ):
-	""" Simple Function Object allowing to embed the name of the type as well as
-	the metaclass object supposed to create the actual class. It mus be able to completely 
-	create the given class.
-	@note: Use it at placeholder for classes that are to be created on first call, without 
-	vasting large amounts of memory if one wants to precreate them."""
-	def __init__( self, classname, classcreator=type ):
-		self.clsname = classname
-		self.classcreator = classcreator
-		self._createdClass = None
-		
-	def createCls( self ):
-		""" Create the class of type self.clsname using our classcreator - can only be called once !
-		@return : the newly created class"""
-		if self._createdClass is None:
-			self._createdClass = self.classcreator( self.clsname, tuple(), {} )
+	
+	
+ 
+class OptionVarDict( util.Singleton ):
+	"""	 A singleton dictionary-like class for accessing and modifying optionVars.
+	@note: Idea and base Implementation from PyMel, modified by byronimo to fix some issues 
+	"""
+	class OptionVarList(tuple):
+		def __new__( cls, key, val ):
+			"""modify constructor to work with tuple"""
+			newinstpreinit = tuple.__new__( cls, val )
+			newinstpreinit.key = key
+			return newinstpreinit
 			
-		return self._createdClass
+		def appendVar( self, val ):
+			""" values appended to the OptionVarList with this method will be added to the Maya optionVar at the key denoted by self.key.
+			"""
+			val = OptionVarDict._checkType( val )
+			if isinstance( val, basestring):
+				return cmds.optionVar( stringValueAppend=[self.key,unicode(val)] )
+			if isinstance( val, (bool,int) ):
+				return cmds.optionVar( intValueAppend=[self.key,int(val)] )
+			if isinstance( val, float):
+				return cmds.optionVar( floatValueAppend=[self.key,val] )
+			
+	
+	def __contains__(self, key):
+		return cmds.optionVar( exists=key )
+			
+	def __getitem__(self,key):
+		val = cmds.optionVar( q=key )
+		if isinstance(val, list):
+			val = self.OptionVarList( key, val )
+		return val
 		
-	def __call__( self, *args, **kwargs ):
-		newcls = self.createCls( )
-		return newcls( *args, **kwargs )
+	def __setitem__(self,key,val):
+		if isinstance( val, basestring):
+			return cmds.optionVar( stringValue=[key,unicode(val)] )
+		if isinstance( val, (int,bool)):
+			return cmds.optionVar( intValue=[key,int(val)] )
+		if isinstance( val, float):
+			return cmds.optionVar( floatValue=[key,val] )
+			
+		if isinstance( val, (list,tuple) ):
+			if len(val) == 0:
+				return cmds.optionVar( clearArray=key )
+				
+			if isinstance( val[0], basestring):
+				cmds.optionVar( stringValue=[key,unicode(val[0])] ) # force to this datatype
+				for elem in val[1:]:
+					cmds.optionVar( stringValueAppend=[key,unicode(elem)] )
+				return
+				
+			if isinstance( val[0], (int,bool)):
+				cmds.optionVar(	 intValue=[key,int(val[0])] ) # force to this datatype
+				for elem in val[1:]:
+					cmds.optionVar( intValueAppend=[key,int(elem)] )
+				return
+				
+			if isinstance( val[0], float):
+				cmds.optionVar( floatValue=[key,val[0]] ) # force to this datatype
+				for elem in val[1:]:
+					cmds.optionVar( floatValueAppend=[key,float(elem)] )
+				return
 
+		raise TypeError, 'unsupported datatype: strings, ints, float, lists, and their subclasses are supported'			
 
+	def __delitem__( self, key ):
+		"""Delete the optionvar identified by key"""
+		cmds.optionVar( rm = str( key ) )
+		
+	def keys(self):
+		return cmds.optionVar( list=True )
+		
+	def iterkeys( self ):
+		"""@return: iterator to option var names"""
+		return iter( self.keys() )
+		
+	def itervalues( self ):
+		"""@return: iterator to optionvar values"""
+		for key in self.iterkeys():
+			yield self[ key ]
+
+	def iteritems( self ):
+		"""@return: iterators to tuple of key,value pairs"""
+		for key in self.iterkeys():
+			yield ( key, self[ key ] )
+			
+	def get(self, key, default=None):
+		if self.has_key(key):
+			return self[key]
+		else:
+			return default
+		
+	def has_key(self, key):
+		return cmds.optionVar( exists=key )
+
+	def pop(self, key):
+		val = self[ key ]
+		del( self[ key ] )
+		return val
+		
+
+# use it as singleton
+optionvars = OptionVarDict()
 
 class CallbackBase( object ):
 	""" Base type taking over the management part when wrapping maya messages into an 
@@ -288,7 +367,39 @@ class CallbackBase( object ):
 		if len( cbdict ) == 0:
 			mid = self._middict[ cbgroup ]
 			om.MSceneMessage.removeCallback( mid )
+		
+
+
+#} END utility classes
+				 
+
+
+class StandinClass( object ):
+	""" Simple Function Object allowing to embed the name of the type as well as
+	the metaclass object supposed to create the actual class. It mus be able to completely 
+	create the given class.
+	@note: Use it at placeholder for classes that are to be created on first call, without 
+	vasting large amounts of memory if one wants to precreate them."""
+	def __init__( self, classname, classcreator=type ):
+		self.clsname = classname
+		self.classcreator = classcreator
+		self._createdClass = None
+		
+	def createCls( self ):
+		""" Create the class of type self.clsname using our classcreator - can only be called once !
+		@return : the newly created class"""
+		if self._createdClass is None:
+			self._createdClass = self.classcreator( self.clsname, tuple(), {} )
 			
+		return self._createdClass
+		
+	def __call__( self, *args, **kwargs ):
+		newcls = self.createCls( )
+		return newcls( *args, **kwargs )
+
+
+	
+
 
 class MetaClassCreator( type ):
 	""" Builds the base hierarchy for the given classname based on our
