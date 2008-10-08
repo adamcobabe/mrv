@@ -100,6 +100,7 @@ def pythonToMel(arg):
 ##########################
 	
 #{ Utitliy Classes
+
 class Mel(util.Singleton):
 	"""This class is a necessity for calling mel scripts from python. It allows scripts to be called
 	in a cleaner fashion, by automatically formatting python arguments into a string 
@@ -369,6 +370,17 @@ class CallbackBase( object ):
 			om.MSceneMessage.removeCallback( mid )
 		
 
+class MuteUndo( object ):
+	"""Instantiate this class to disable the maya undo queue - on deletion, the 
+	previous state will be restored
+	@note: useful if you want to save the undo overhead involved in an operation, 
+	but assure that the previous state is always being reset"""
+	def __init__( self ):
+		self.prevstate = cmds.undoInfo( q=1, st=1 )
+		cmds.undoInfo( swf = 0 )
+
+	def __del__( self ):
+		cmds.undoInfo( swf = self.prevstate )
 
 #} END utility classes
 				 

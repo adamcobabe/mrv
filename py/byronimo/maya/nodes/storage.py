@@ -405,6 +405,16 @@ class StorageBase( object ):
 		# END for each elemnt ( in search for mathching dataID )
 		return None
 		
+	def getDataIDs( self ):
+		"""@return: list of all dataids available in the storage node"""
+		outids = list()
+		for compoundplug in self._node.dta:
+			did = compoundplug.id.asString( )
+			if did:
+				outids.append( did )
+		# END for each compound plug element 
+		return outids
+		
 	def getStoragePlug( self, dataID, plugType = None, autoCreate=False ):
 		"""@return: plug of the given type, either as tuple of two plugs or the plug 
 		specified by plugType

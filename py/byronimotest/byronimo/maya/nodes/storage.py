@@ -69,7 +69,6 @@ class TestStorage( unittest.TestCase ):
 			#################
 			# ascii and binary ( including reference test )
 			filepath = tmpdir / ( "storagetest" + filetype )
-			print "testing %s" % filepath
 			bmaya.Scene.save( filepath )
 		
 			# reload 
@@ -98,7 +97,6 @@ class TestStorage( unittest.TestCase ):
 			filewithrefpath = tmpdir / ( "refstoragetest" + filetype )
 			bmaya.Scene.save( filewithrefpath )
 			bmaya.Scene.open( filewithrefpath, force = True )
-			print "referencetestfile: %s " % filewithrefpath
 			
 			# check test value and the newly written one 
 			refstoragenode = nodes.Node( "referenced:storage" )
@@ -107,6 +105,7 @@ class TestStorage( unittest.TestCase ):
 			checkTestValue( self, pyval )
 			sval = pyval[ 'refchange' ]
 			self.failUnless( sval == "changed in reference" )
+			
 		# END for each filetype 
 		
 	
@@ -148,6 +147,10 @@ class TestStorage( unittest.TestCase ):
 			self.failUnless( persp.message >= nextplug )
 		self.failUnless( len( conarray ) == 10 )
 		self.failUnless( len( persp.message.p_outputs ) == 10 )
+		
+		# list ids 
+		self.failUnless( len( snode.getDataIDs() ) == 3 )
+		
 		
 	def test_storageSetHandling( self ):
 		"""byronimo.maya.nodes.storage: test built-in sethandling"""
