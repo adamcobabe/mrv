@@ -20,7 +20,6 @@ import base as nodes
 import types
 import maya.OpenMaya as api
 import maya.cmds as cmds
-import byronimo.maya.namespace as namespace
 undo = __import__( "byronimo.maya.undo", globals(), locals(),[ 'undo' ] )
 import iterators
 

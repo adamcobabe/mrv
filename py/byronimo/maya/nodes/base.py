@@ -506,7 +506,7 @@ class Node( object ):
 	#} END interface 
 	
 
-class DependNode( Node ):
+class DependNode:
 	""" Implements access to dependency nodes 
 	
 	Depdency Nodes are manipulated using an MObjectHandle which is safest to go with, 
@@ -688,12 +688,12 @@ class DependNode( Node ):
 	#}
 	
 	
-class Entity( DependNode ):
+class Entity:
 	"""Common base for dagnodes and paritions"""
 	__metaclass__ = nodes.MetaClassCreatorNodes
 
 
-class DagNode( Entity, iDagItem ):
+class DagNode( iDagItem ):
 	""" Implements access to DAG nodes """
 	__metaclass__ = nodes.MetaClassCreatorNodes
 	_sep = "|"
@@ -1330,7 +1330,7 @@ class Attribute( api.MObject ):
 		attributeobj = args[0]
 		
 		
-		newinst = _createInstByPredicate( attributeobj, cls, Attribute, lambda x: x.endswith( "Attribute" ) )
+		newinst = _createInstByPredicate( attributeobj, cls, cls, lambda x: x.endswith( "Attribute" ) )
 		
 		if not newinst:
 			mfnattr = api.MFnAttribute( attributeobj )
@@ -1357,10 +1357,36 @@ class Data( api.MObject ):
 		attributeobj = args[0]
 		
 		
-		newinst = _createInstByPredicate( attributeobj, cls, Data, lambda x: x.endswith( "Data" ) )
+		newinst = _createInstByPredicate( attributeobj, cls, cls, lambda x: x.endswith( "Data" ) )
 		
 		if not newinst:
 			raise ValueError( "Data api object typed '%s' could not be wrapped into any function set" % attributeobj.apiTypeStr() )
+			
+		return newinst
+		# END for each known attr type
+		 
+
+class Component( api.MObject ):
+	"""Represents a shape component - its derivates can be used to handle component lists
+	to be used in object sets and shading engines """
+	
+	__metaclass__ = nodes.MetaClassCreatorNodes
+	
+	def __new__ ( cls, *args, **kwargs ):
+		"""return an data class of the respective type for given MObject
+		@param args: arg[0] is data's MObject to be wrapped
+		@note: this area must be optimized for speed"""
+		
+		if not args:
+			raise ValueError( "First argument must specify the maya node name or api object to be wrapped" )
+			
+		attributeobj = args[0]
+		
+		
+		newinst = _createInstByPredicate( attributeobj, cls, cls, lambda x: x.endswith( "Component" ) )
+		
+		if not newinst:
+			raise ValueError( "Component api object typed '%s' could not be wrapped into any component function set" % attributeobj.apiTypeStr() )
 			
 		return newinst
 		# END for each known attr type
@@ -1541,11 +1567,6 @@ class Transform:
 	"""Precreated class to allow isinstance checking against their types 
 	@note: bases determined by metaclass """
 	__metaclass__ = nodes.MetaClassCreatorNodes 
-
-class Shape:
-	"""Precreated class to allow isinstance checking against their types
-	@note: bases determined by metaclass"""
-	__metaclass__ = nodes.MetaClassCreatorNodes
 
 
 #} END foreward created types
