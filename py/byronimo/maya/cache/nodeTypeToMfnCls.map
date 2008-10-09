@@ -3,6 +3,7 @@ dependNode			|	MFnDependencyNode
 dagNode				| 	MFnDagNode
 transform			| 	MFnTransform
 mesh				| 	MFnMesh
+subdiv				|	MFnSubd
 camera				| 	MFnCamera
 objectSet			| 	MFnSet
 partion				| 	MFnPartition

@@ -473,7 +473,7 @@ class StorageBase( object ):
 		# initialize data if required
 		# if the data is null, we do not get a kNullObject, but an exception - fair enough ...
 		try:
-			plugindata = valplug.asMObject()	 
+			plugindata = valplug.asData()	 
 		except RuntimeError:
 			# set value
 			plugindataobj = api.MFnPluginData( ).create( PyPickleData.kPluginDataId )

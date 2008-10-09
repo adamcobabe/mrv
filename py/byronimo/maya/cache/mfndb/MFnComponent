@@ -5,4 +5,4 @@
     | isEmpty                                 | None                |                                         
     | isEqual                                 | None                |                                         
     | setComplete                             | None                |                                         
-    | type                                    | None                | getType                                        
+x   | type                                    | None                |                                         

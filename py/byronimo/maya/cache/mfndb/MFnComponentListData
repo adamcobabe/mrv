@@ -1,8 +1,8 @@
 1
     | add                                     | None                |                                         
     | clear                                   | None                |                                         
-    | create                                  | None                |                                         
+x   | create                                  | None                |                                         
     | has                                     | None                |                                         
-    | length                                  | None                |                                         
+    | length                                  | None                | getLength                                         
     | remove                                  | None                |                                         
-    | type                                    | None                |                                         
+    | type                                    | None                | getType                                    

@@ -1390,7 +1390,26 @@ class Component( api.MObject ):
 			
 		return newinst
 		# END for each known attr type
-		 
+	
+
+class DoubleIndexedComponent:
+	"""Fixes some functions that would not work usually """
+	__metaclass__ = nodes.MetaClassCreatorNodes
+	
+	def getType( self ):
+		return api.MFn.kDoubleIndexedComponent
+	type = getType
+	
+	
+class ComponentListData:
+	"""Improves the default wrap by adding some required methods to deal with
+	component lists"""
+	__metaclass__ = nodes.MetaClassCreatorNodes
+	
+	def __getitem__( self, index ):
+		"""@return: the item at the given index"""
+		return self._mfncls( self._apiobj )[ index ]
+
 	
 class PluginData: 
 	"""Wraps plugin data as received by a plug. If plugin's registered their data

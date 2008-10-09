@@ -199,7 +199,7 @@ class TestDataBase( unittest.TestCase ):
 		matelm = matplug[0]
 		self.failUnless( not matelm.isNull() )
 		
-		matdata = matelm.asMObject( )
+		matdata = matelm.asData( )
 		self.failUnless( isinstance( matdata, nodes.MatrixData ) )
 		mmatrix = matdata.matrix( )
 		self.failUnless( isinstance( mmatrix, api.MMatrix ) )

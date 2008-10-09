@@ -601,9 +601,12 @@ class MPlug( api.MPlug, util.iDagItem ):
 		return api.MPlug._api_node( self )
 	
 	def asMObject( *args, **kwargs ):
+		"""@return: the data api object"""
+		return api.MPlug._api_asMObject( *args, **kwargs )
+		
+	def asData( *args, **kwargs ):
 		"""@return: our data Mobject wrapped in L{Data}"""
 		return nodes.Data( api.MPlug._api_asMObject( *args, **kwargs ) )
-		
 	#} END query
 	
 	

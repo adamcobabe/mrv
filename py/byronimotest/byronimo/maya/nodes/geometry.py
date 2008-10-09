@@ -32,10 +32,26 @@ class TestGeometry( unittest.TestCase ):
 		bmaya.Scene.open( common.get_maya_file( "shadertest.ma" ), force = 1 )
 		
 		# these are all shapes
-		p1 = nodes.Node( "p1" )		# one shader 
-		p2 = nodes.Node( "p2" ) 	# 3 shaders, third has two faces
+		p1 = nodes.Node( "|p1trans|p1" )		# one shader
+		p1i = nodes.Node( "|p1transinst|p1" )		# one shader, instanced 
+		p2 = nodes.Node( "|p2trans|p2" ) 	# 3 shaders, third has two faces
+		p2i = nodes.Node( "|p2transinst|p2" ) 	# 3 shaders, third has two faces, instanced
 		s1 = nodes.Node( "s1" )		# subdivision surface 
 		n1 = nodes.Node( "n1" )		# nurbs with one shader
+		
+		noncomplist = ( p1, p1i, s1, n1 )
+		complist = ( p1, p1i, p2, p2i, )
+		
+		# deformed surface 
+		pd = nodes.Node( "|pdtrans|pd" )
+		pdi = nodes.Node( "|pdtransinst|pd" )		# instance of pd	
+		nd = nodes.Node( "nd" ) 					# deformed nurbs 
+		sd = nodes.Node( "sd" )						# deformed subdee
+		
+		# dont use an instance as no deformer sets are returned
+		# don't use subdees as we cannot support components there, api limitation
+		deformedlist = ( pd, nd )				
+		
 		
 		# the shading groups 
 		sg1 = nodes.Node( "sg1" )
@@ -47,10 +63,9 @@ class TestGeometry( unittest.TestCase ):
 		set2 = nodes.Node( "set2" )
 		
 		
-		
 		# TEST OBJECT ASSIGNMENTS
-		# simple assignments 
-		for obj in ( p1, s1, n1 ):
+		# simple assignments
+		for obj in noncomplist:
 			# shaders - object assignment method 
 			setfilter = nodes.Shape.fSetsRenderable
 			sets = obj.getConnectedSets( setFilter = setfilter )
@@ -59,14 +74,24 @@ class TestGeometry( unittest.TestCase ):
 			# TEST OBJECT SET ASSIGNMENTS
 			setfilter = nodes.Shape.fSetsObject
 			sets = obj.getConnectedSets( setFilter = setfilter )
-			
 			self.failUnless( len( sets ) == 2 and sets[0] == set1 and sets[1] == set2 )
 		# END assignmnet query
+		
+		
+		# SHOULD NOT GET COMPONENT SETS
+		######################################
+		# if queried with connectedSets
+		for obj in noncomplist:
+			sets = obj.getConnectedSets( nodes.Shape.fSets )
+			for s in sets:
+				self.failUnless( s in ( sg1, set1, set2 ) )
+		# END non-component lists check 
 			
+		
 		
 		# TEST COMPONENT ASSIGNMENT QUERY 
 		# SHADERS - components method
-		for obj in ( p1, p2 ):
+		for obj in complist:
 			
 			# OBJECT SET MEMBERSHIP
 			# even this method can retrieve membership to default object sets
@@ -93,12 +118,30 @@ class TestGeometry( unittest.TestCase ):
 				self.failUnless( not component.isEmpty() )
 				
 				if setnode == sg1:
-					pass 
+					self.failUnless( component.getElement( 0 ) == 0 ) 
 				if setnode == sg2:
-					pass 
-				if setnode == sg2:
-					pass
+					self.failUnless( component.getElement( 0 ) == 1 )
+				if setnode == sg3:
+					self.failUnless( component.getElement( 0 ) == 2 )
+					self.failUnless( component.getElement( 1 ) == 3 )
+					self.failUnless( component.getElementCount( ) == 2 )
 			# END for each setcomponent 
-			
 		# END for each object 
+		
+		
+		# TEST DEFORMER CONNECTIONS 
+		#############################
+		for dm in deformedlist:
+			setcomps = dm.getComponentAssignments( setFilter = nodes.Shape.fSetsDeformer )
+			
+			for setobj,component in setcomps:
+				if component:
+					self.failUnless( not component.isEmpty() )
+					#print type( component ) 
+					#print "compinfo: numitems = %i, type = %i" % ( component.getElementCount(), component.type() )
+			# END for each component
+			
+			self.failUnless( len( setcomps ) == 3 )
+		# END for each deformed surface 
+		
 		
