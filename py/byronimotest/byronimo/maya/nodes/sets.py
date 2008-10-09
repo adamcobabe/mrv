@@ -281,10 +281,9 @@ class TestSets( unittest.TestCase ):
 			if comp.isNull(): 
 				continue
 			
-			print comp.apiTypeStr()
 			self.failUnless( setnode.isMember( p1, component = comp ) )
 			# remove the components 
-			setnode.removeMember( p1, component = comp )
+			p1.removeFrom( setnode, component = comp )
 			
 			self.failUnless( not setnode.isMember( p1, component = comp ) )
 			
@@ -297,21 +296,22 @@ class TestSets( unittest.TestCase ):
 		# create a component with 3 faces 
 		f3 = nodes.createComponent( nodes.SingleIndexedComponent, api.MFn.kMeshPolygonComponent )
 		for i in range( 3 ): f3.addElement( i )
-		
+		f6 = nodes.createComponent( nodes.SingleIndexedComponent, api.MFn.kMeshPolygonComponent )
+		for i in range( 3,6 ): f6.addElement( i )
 		
 		# FORCE OVERWRITING EXISITNG FACE ASSIGNMNETS
 		###############################################
-		for sg in ( sg1, sg2 ):
+		for sg,comp in zip( ( sg1, sg2 ), ( f3,f6 ) ):
 			self.failUnlessRaises( nodes.ConstraintError, sg.addMember, s1, component = f3 )
 			
 			# force it
-			sg.addMember( s1, component = f3, force = 1 )
-			self.failUnless( sg.isMember( s1, component = f3 ) )
+			s1.addTo( sg, component = comp, force = 1 )
+			self.failUnless( s1.isMemberOf( sg, component = comp ) )
 		# END for each shading engine 
 		
 		# FORCE WITH OBJECT ASSIGNMENTS 
 		###############################
+		# TODO 
 		
-		common._saveTempFile( "setcomponents.ma" )
 		
 		

@@ -70,7 +70,7 @@ class Shape:
 	fSets = SetFilter( api.MFn.kSet, False, 0 )			 		# all set types 
 	#} END type filters 
 	
-	#{ Interface
+	#{ Sets Interface
 	
 	def _parseSetConnections( self, allow_compoents ):
 		"""Manually parses the set connections from self
@@ -196,7 +196,8 @@ class Shape:
 		# END for each set/component pair
 		return outlist
 		
-	#}
+	#} END set interface 
+
 
 
 class Mesh:

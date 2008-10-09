@@ -462,9 +462,13 @@ class ObjectSet:
 
 class ShadingEngine:
 	"""Provides specialized methods able to deal better with shaders
-	than the default implementation."""
+	than the default implementation.
+	@todo: Force exclusivity must be a little more elaborate - this could be overwritten
+	and reimplemented to take care of the details"""
 	
 	__metaclass__ = types.MetaClassCreatorNodes
+	
+	
 	
 class Partition:
 	"""Deal with common set <-> partition interactions"""

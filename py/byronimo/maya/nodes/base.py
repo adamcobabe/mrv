@@ -1336,6 +1336,28 @@ class DagNode( iDagItem ):
 	
 	#}
 	
+		
+	#{ Sets Utilities 
+	def isMemberOf( self, setnode, component = api.MObject() ):
+		"""@return: True if self is part of setnode
+		@note: method is undoable 
+		@see: L{ObjectSet}"""
+		return setnode.isMember( self, component = component )
+		
+	def addTo( self, setnode, component = api.MObject, **kwargs ):
+		"""Add ourselves to the given set
+		@note: method is undoable 
+		@see: L{ObjectSet}"""
+		return setnode.addMember( self, component = component, **kwargs )
+	
+	def removeFrom( self, setnode, component = api.MObject ):
+		"""remove ourselves to the given set
+		@note: method is undoable 
+		@see: L{ObjectSet}"""
+		return setnode.removeMember( self, component = component )
+	
+	#} END sets utilities 
+	
 	
 	#{ Name Remapping 
 	name = getName
