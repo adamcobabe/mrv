@@ -97,7 +97,7 @@ class ObjectSet:
 		return memberobj
 		
 	
-	def _forceMembership( self, member, is_single_member ):
+	def _forceMembership( self, member, component, is_single_member ):
 		"""Search all sets connected to our partitions 
 		for intersecting members and remove them.
 		Finally dd the members in question to us again
@@ -106,7 +106,7 @@ class ObjectSet:
 		for partition in self.getPartitions():
 			for otherset in partition.getSets():
 				if is_single_member:
-					otherset.removeMember( member )
+					otherset.removeMember( member, component = component )
 				else:
 					otherset.removeMembers( otherset.getIntersection( member, sets_are_members = True ) )
 				# END single member handling 
@@ -117,11 +117,12 @@ class ObjectSet:
 		# do not risk recursion though by setting everything to ignore errors 
 		addRemoveFunc = getattr( self, "_addRemoveMember" ) 
 		if isinstance( member, api.MSelectionList ):
-			addRemoveFunc = getattr( self, "_addRemoveMembers" )
+			return self._addRemoveMembers( member, self.kAdd, True )
+		else:
+			return self._addRemoveMember( member, component, self.kAdd, True )
 			
-		return addRemoveFunc( member, self.kAdd, True )
 	
-	def _checkMemberAddResult( self, member, mode, ignore_failure, is_single_member ):
+	def _checkMemberAddResult( self, member, component, mode, ignore_failure, is_single_member ):
 		"""Check whether the given member has truly been added to our set
 		and either force membership or raise and exception
 		@param is_single_member: if True, member can safely be assumed to be a single member, 
@@ -139,13 +140,13 @@ class ObjectSet:
 			# CHECK MEMBERS
 			not_all_members_added = True
 			if is_single_member:
-				not_all_members_added = not self.isMember( member )
+				not_all_members_added = not self.isMember( member, component = component )
 			else:
 				not_all_members_added = self.getIntersection( member, sets_are_members = True ).length() != numMatches
 				
 			if not_all_members_added:
 				if mode == self.kAddForce:
-					return self._forceMembership( member, is_single_member )
+					return self._forceMembership( member, component, is_single_member )
 				
 				# if we are here, we do not ignore failure, and raise  
 				raise ConstraintError( "At least some members of %r could not be added to %r due to violation of exclusivity constraint" % (member,self) )
@@ -155,7 +156,7 @@ class ObjectSet:
 		return self
 			
 	
-	def _addRemoveMember( self, member, mode, ignore_failure ):
+	def _addRemoveMember( self, member, component, mode, ignore_failure ):
 		"""Add or remove the member with undo support
 		@param mode: kRemove or kAdd"""
 		memberobj = self._toMemberObj( member )
@@ -168,7 +169,10 @@ class ObjectSet:
 		# for dag paths, append empty component mobjects
 		args = [ memberobj ]
 		if isinstance( memberobj, api.MDagPath ):	# add component ( default None )
-			args.append( api.MObject() )
+			if component is  None:
+				component = api.MObject()		# use null object 
+			args.append( component )
+		# END component handling 
 		
 		# swap functions if we remove the node
 		if mode == ObjectSet.kRemove:
@@ -181,7 +185,7 @@ class ObjectSet:
 		op.addUndoit( undoitfunc, *args )
 		op.doIt( )
 		
-		return self._checkMemberAddResult( member, mode, ignore_failure, True )
+		return self._checkMemberAddResult( member, component, mode, ignore_failure, True )
 		
 	def _addRemoveMembers( self, members, mode, ignore_failure ):
 		"""Add or remove the members to the set
@@ -209,28 +213,31 @@ class ObjectSet:
 		op.addUndoit( undoitfunc, sellist )
 		op.doIt()
 		
-		return self._checkMemberAddResult( sellist, mode, ignore_failure, False )
+		return self._checkMemberAddResult( sellist, None, mode, ignore_failure, False )
 	
 	@undoable
-	def addMember( self, member, force = False, ignore_failure = False ):
+	def addMember( self, member, component = None, force = False, ignore_failure = False ):
 		"""Add the item to the set
 		@param member: Node, MObject, MDagPath or plug
 		@param force: if True, member ship will be forced by removing the member in question 
 		from the other set connected to our partitions
 		@param ignore_failure: if True, a failed add due to partion constraints will result in an 
-		exception, otherwise it will be silently ignored. Ignored if if force is True  
+		exception, otherwise it will be silently ignored. Ignored if if force is True
+		@param compoent: if member is a dagnode, you can specify a component instance 
+		of type component instance ( Single|Double|TripleIndexComponent )
 		@todo: handle components - currently its only possible when using selection lists
 		@return: self """
 		mode = self.kAdd
 		if force:
 			mode = self.kAddForce
-		return self._addRemoveMember( member, mode, ignore_failure )
+		return self._addRemoveMember( member, component, mode, ignore_failure )		
+		
 		
 	@undoable
-	def removeMember( self, member ):
+	def removeMember( self, member, component = None ):
 		"""Remove the member from the set
 		@param member: member of the list, for types see L{addMember}"""
-		return self._addRemoveMember( member, ObjectSet.kRemove, True )
+		return self._addRemoveMember( member, component, ObjectSet.kRemove, True )
 	
 	@undoable
 	def addMembers( self, nodes, force = False, ignore_failure = False ):
@@ -272,11 +279,20 @@ class ObjectSet:
 		@note: if 'handlePlugs' is False, the iteration using a filter type will be faster"""
 		return iterators.iterSelectionList( self.getMembers( ), **kwargs ) 
 	
-	def isMember( self, obj ):
+	def isMember( self, obj, component = None ):
 		"""@return: True if obj is a member of this set
+		@param component is given, the component must be fully part of the set 
+		for the object ( dagNode ) to be considered part of the set
 		@note: all keywords of L{iterators.iterSelectionList} are supported"""
+		if component is not None:
+			return self._mfncls( self._apiobj ).isMember( self._toMemberObj( obj ), component )
+		
 		return self._mfncls( self._apiobj ).isMember( self._toMemberObj( obj ) )
 	
+	def __contains__( self, obj ):
+		"""@return: True if the given obj is member of this set"""
+		return self.isMember( obj )
+		
 	#} END member query 
 	
 	

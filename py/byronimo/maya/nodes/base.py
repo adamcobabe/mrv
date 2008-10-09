@@ -159,9 +159,11 @@ def toApiobjOrDagPath( nodename ):
 	# END for each object name
 	return None
 	
-def toSelectionList( nodeList ):
+def toSelectionList( nodeList, mergeWithExisting = False ):
 	"""Convert an iterable filled with Nodes to a selection list
-	@param nodeList: iterable filled with dg and dag nodes as well as plugs, dagpaths or mobjects or strings 
+	@param nodeList: iterable filled with dg and dag nodes as well as plugs, dagpaths or mobjects or strings
+	@param mergeWithExistsing: if true, the selection list will not allow dupliacates , but adding objects
+	also takes ( much )  longer, depending on the size of the list
 	@return: selection list filled with objects from node list"""
 	if isinstance( nodeList, api.MSelectionList ):		# sanity check 
 		return nodeList
@@ -169,10 +171,12 @@ def toSelectionList( nodeList ):
 	sellist = api.MSelectionList()
 	for node in nodeList:
 		if isinstance( node, DagNode ):
-			sellist.add( node._apidagpath )
+			sellist.add( node._apidagpath, api.MObject(), mergeWithExisting )
 		elif isinstance( node, DependNode ):
-			sellist.add( node._apiobj )
-		else: # probably plug or something else like an mobject or dagpath
+			sellist.add( node._apiobj, mergeWithExisting )
+		else: # probably plug or something else like an mobject or dagpath 
+			# cannot properly apply our flag here without intensive checking
+			# TODO: probably put in the instance checks !
 			sellist.add( node )
 	# END for each item in input array 
 	return sellist
@@ -364,7 +368,7 @@ def _checkedInstanceCreationDagPathSupport( apiobj_or_dagpath, clsToBeCreated, b
 		api.MFnDagNode( apiobj ).getPath( dagpath )
 	
 	if dagpath:
-		object.__setattr__( clsinstance, '_apidagpath', DagPath( dagpath ) )	# add some convenience to it 
+		object.__setattr__( clsinstance, '_apidagpath', DagPath( dagpath ) )	# add some convenience to it
 		
 	return clsinstance
 
@@ -1268,10 +1272,15 @@ class DagNode( iDagItem ):
 	
 	#{ General Query  
 	def getDagPath( self ):
-		"""@return: the DagPath attached to this Node"""
+		"""@return: the DagPath attached to this Node
+		@note: the dag path is wrapped and does not work with all maya api functions, 
+		use L{getApiObject} instead """
 		return DagPath( self._apidagpath )
 		
-	getApiObject = getDagPath		# overridden from Node
+		
+	def getApiObject( self ):
+		"""@return: our unmodified dag path"""
+		return self._apidagpath
 	#}END general query 
 	
 	#{ Iterators 

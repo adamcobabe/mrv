@@ -141,7 +141,7 @@ class Shape:
 	def getComponentAssignments( self, setFilter = fSetsRenderable ):
 		"""@return: list of tuples( objectSetNode, Component ) defininmg shader 
 		assignments on per component basis.
-		If a shader is assigned to the whole object, the component would be None, otherwise
+		If a shader is assigned to the whole object, the component would be a null object, otherwise
 		it is an instance of a wrapped IndexedComponent class
 		@param setFilter: see L{getConnectedSets}
 		@note: the sets order will be the order of connections of the respective component list 
@@ -157,8 +157,9 @@ class Shape:
 		#########################
 		# cannot handle components for subdees - return them empty
 		if self._apiobj.apiType() == api.MFn.kSubdiv:
+			print "WARNING: components are not supported for Subdivision surfaces due to m8.5 api limitation"
 			sets = self.getConnectedSets( setFilter = setFilter )
-			return [ ( setnode, None ) for setnode in sets ]
+			return [ ( setnode, api.MObject() ) for setnode in sets ]
 		# END subdee handling 
 		
 		sets = components = None 
@@ -187,10 +188,9 @@ class Shape:
 				continue
 			
 			setobj = base.Node( api.MObject( setobj ) )								# copy obj to get memory to python
-			if compobj.isNull():
-				compobj = None
-			else:
-				compobj = base.Component( api.MObject( compobj ) )	  
+			compobj = api.MObject( compobj )											# make it ours 
+			if not compobj.isNull():
+				compobj = base.Component( compobj )	  
 				
 			outlist.append( ( setobj, compobj ) ) 
 		# END for each set/component pair

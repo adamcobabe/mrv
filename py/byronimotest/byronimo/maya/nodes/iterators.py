@@ -86,6 +86,65 @@ class TestGeneral( unittest.TestCase ):
 		dagiter = iterDagNodes( api.MFn.kMesh,api.MFn.kNurbsSurface, asNode=1 )
 		self.failUnless( len( list( dagiter ) ) == 2 )
 		
+		
+	def test_iterSelectionList( self ):
+		"""byronimo.maya.nodes.iterators: Iterate selection lists"""
+		bmaya.Scene.open( common.get_maya_file( "perComponentAssignments.ma" ), force = 1 )
+		
+		p1 = nodes.Node( "|p1trans|p1" )
+		p1i = nodes.Node( "|p1transinst|p1" )
+		objs = [ p1, p1i ]
+		
+		
+		# COMPONENTS 
+		###############
+		# get components and put them onto a selection list
+		sellist = api.MSelectionList()
+		for obj  in objs:
+			setsandcomps = obj.getComponentAssignments( setFilter = nodes.Shape.fSetsRenderable )
+			for setnode,comp in setsandcomps:
+				if comp:
+					sellist.add( obj.getApiObject(), comp, True )
+				sellist.add( obj.getApiObject(), api.MObject(), True )
+			# for component assignment 
+		# for obj in objs
+		
+		seliter = iterSelectionList( sellist, asNode=1, handleComponents=1 )
+		slist = list( seliter )
+		
+		print len( slist )	
+		numassignments = 10
+		self.failUnless(  len( slist ) == numassignments )
+		for node,component in slist:
+			self.failUnless( isinstance( component, ( nodes.Component, api.MObject ) ) )
+		
+		
+		# NO COMPONENT SUPPORT
+		#########################
+		# it will just return the objects without components then 
+		seliter = iterSelectionList( sellist, asNode=1, handleComponents=0 )
+		slist = list( seliter )
+		print len( slist )
+		self.failUnless(  len( slist ) == numassignments )
+		
+		for node in slist:
+			self.failUnless( not isinstance( node, tuple ) )
+		
+		
+		# PLUGS 
+		############# 
+		sellist.add( p1.o )
+		sellist.add( p1i.i )
+		
+		seliter = iterSelectionList( sellist, asNode=1, handleComponents=1, handlePlugs=1 )
+		slist = list( seliter )
+		print len( slist )
+		
+		pcount = 0
+		for node, component in slist:
+			pcount += isinstance( component, (api.MPlug, api.MPlugPtr) )
+		self.failUnless( pcount == 2 )
+		
 	
 	def test_dggraph( self ):
 		"""byronimo.maya.nodes.iterators: simple dg graph iteration"""

@@ -296,27 +296,39 @@ def getSelectionListIterator( sellist, **kwargs ):
 nullplugarray = api.MPlugArray()
 nullplugarray.setLength( 1 )
 def iterSelectionList( sellist, filterType = api.MFn.kInvalid, predicate = lambda x: True, 
-					  	asNode = True, handlePlugs = True ):
+					  	asNode = True, handlePlugs = True, handleComponents = False ):
 	"""Iterate the given selection list with a filter from *args
 	@param sellist: MSelectionList to iterate
 	@param filterType: MFnType id acting as simple type filter
-	@param asNode: if True, returned MObjects or DagPaths will be wrapped as node 
+	@param asNode: if True, returned MObjects or DagPaths will be wrapped as node, compoents will be 
+	wrapped as Component objects
 	@param handlePlugs: if True, plugs can be part of the selection list and will be returned. This 
 	implicitly means that the selection list will be iterated without an iterator, and MFnType filters 
-	will be slower as it is implemented in python
+	will be slower as it is implemented in python. If components are enabled, the tuple returned will be
+	( Node, Plug ), asNode will be respected as well 
 	@param predicate: method returninng True if passed in iteration element can be yielded
 	default: lambda x: True
-	@return: Node or Plug on each iteration step ( assuming filter does not prevent that
-	@todo: add components support
+	@param handleComponents: if True, possibly selected components of dagNodes will be returned 
+	as well - see docs for return value, see handlePlugs 
+	The predicate will receive the node as well as the component in a tuple ( same as return value ) 
+	@return: Node or Plug on each iteration step ( assuming filter does not prevent that )
+	If handleComponents is True, for each Object, a tuple will be returned as tuple( node, component ) where
+	component is NullObject ( MObject ) if the whole object is on the list 
 	@todo: get rid of the nullplug array as it will not handle recursion properly or multithreading """
 	if handlePlugs:
 		# SELECTION LIST MODE 
 		for i in xrange( sellist.length() ):
 			# DAG PATH 
 			iterobj = None
+			component = None
 			try:
 				iterobj = api.MDagPath( )
-				sellist.getDagPath( i, iterobj )
+				if handleComponents:
+					component = api.MObject()
+					sellist.getDagPath( i, iterobj, component )
+				else:
+					sellist.getDagPath( i, iterobj )
+					
 			except RuntimeError:
 				# TRY PLUG - first as the object could be returned as well if called
 				# for DependNode
@@ -341,8 +353,17 @@ def iterSelectionList( sellist, filterType = api.MFn.kInvalid, predicate = lambd
 				if filterType != api.MFn.kInvalid and iterobj.node().apiType() != filterType:
 					continue
 					# END apply filter type
-				if predicate( iterobj ):
-					yield iterobj
+					
+				rval = iterobj
+				if handleComponents:
+					if asNode:
+						rval = ( iterobj.getNode(), iterobj )
+					else:
+						rval = ( iterobj.getNodeApiObj(), iterobj )
+				# END handle components
+				
+				if predicate( rval ):
+					yield rval
 			# END YIELD PLUG HANDLING
 			else:
 				# must be dag or dg node
@@ -356,8 +377,17 @@ def iterSelectionList( sellist, filterType = api.MFn.kInvalid, predicate = lambd
 				
 				if asNode:
 					node = nodes.Node( iterobj )
-					if predicate( node ):
-						yield node
+					if handleComponents:
+						if not component.isNull():
+							component = nodes.Component( component )
+						rval = ( node, component )
+						if predicate( rval ):
+							yield rval
+					# END as node with components 
+					else:
+						if predicate( node ):
+							yield node
+					# END asnode without components 
 				else:
 					if predicate( iterobj ):
 						yield iterobj
@@ -372,14 +402,27 @@ def iterSelectionList( sellist, filterType = api.MFn.kInvalid, predicate = lambd
 		
 		while not iterator.isDone():
 			# try dag object
-			itemtype = iterator.itemType()
+			itemtype = iterator.itemType( )
 			if itemtype == api.MItSelectionList.kDagSelectionItem:
 				path = api.MDagPath( )
-				iterator.getDagPath( path )
+				if handleComponents:
+					component = api.MObject( )
+					sellist.getDagPath( i, iterobj, component )
+				else:
+					iterator.getDagPath( path )
+					
 				if asNode:
-					node = nodes.Node( path ) 
-					if predicate( node ):
-						yield node
+					node = nodes.Node( path )
+					if handleComponents:
+						if not component.isNull():
+							component = nodes.Component( component )
+						rval = ( node, component )
+						if predicate( rval ):
+							yield rval
+					else:
+						 
+						if predicate( node ):
+							yield node
 				else:
 					if predicate( path ):
 						yield path

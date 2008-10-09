@@ -139,6 +139,10 @@ class TestSets( unittest.TestCase ):
 		s.removeMembers( sellist )
 		self.failUnless( s.getMembers().length() == 0 )
 		
+	def test_memberHandlingComps( self ):
+		"""byronimo.maya.nodes.sets: member handling with components"""
+		self.fail()
+		
 	def test_setOperations( self ):
 		"""byroniom.maya.nodes.sets: unions, intersections, difference, overloaded ops"""
 		memberlist = self._getMemberList( )
