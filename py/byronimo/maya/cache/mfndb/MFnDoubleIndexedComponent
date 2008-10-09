@@ -6,4 +6,4 @@
     | getElement                              | None                |                                         
     | getElements                             | None                |                                         
     | setCompleteData                         | None                |                                         
-    | type                                    | None                |                                         
+    | type                                    | None                | getType                                        

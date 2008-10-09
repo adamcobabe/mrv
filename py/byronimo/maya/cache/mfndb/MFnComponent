@@ -1,8 +1,8 @@
 1
-    | componentType                           | None                |                                         
-    | elementCount                            | None                |                                         
+    | componentType                           | None                | getComponentType                                        
+    | elementCount                            | None                | getElementCount                                         
     | isComplete                              | None                |                                         
     | isEmpty                                 | None                |                                         
     | isEqual                                 | None                |                                         
     | setComplete                             | None                |                                         
-    | type                                    | None                |                                         
+    | type                                    | None                | getType                                        

@@ -49,7 +49,7 @@ if not hasattr( sys,"_dataTypeIdToTrackingDictMap" ):
 def getMfnDBPath( mfnclsname ):
 	"""Generate a path to a database file containing mfn wrapping information"""
 	appversion = str( env.getAppVersion( )[0] )
-	return Path( __file__ ).p_parent.p_parent / ( "cache/mfndb/"+appversion+"/"+mfnclsname )
+	return Path( __file__ ).p_parent.p_parent / ( "cache/mfndb/"+ mfnclsname )
 
 def registerPluginDataTrackingDict( dataTypeID, trackingDict ):
 	"""Using the given dataTypeID and tracking dict, nodes.MFnPluginData can return 

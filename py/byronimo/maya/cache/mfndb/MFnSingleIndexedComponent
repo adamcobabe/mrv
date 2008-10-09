@@ -2,8 +2,8 @@
     | addElement                              | None                |                                         
     | addElements                             | None                |                                         
     | create                                  | None                |                                         
-    | element                                 | None                |                                         
+    | element                                 | None                | getElement                                        
     | getCompleteData                         | None                |                                         
     | getElements                             | None                |                                         
     | setCompleteData                         | None                |                                         
-    | type                                    | None                |                                         
+    | type                                    | None                | getType                                        
