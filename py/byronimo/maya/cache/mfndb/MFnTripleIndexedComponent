@@ -1,7 +1,7 @@
 1
     | addElement                              | None                |                                         
     | addElements                             | None                |                                         
-    | create                                  | None                |                                         
+    | create                                  | Component                |                                         
     | getCompleteData                         | None                |                                         
     | getElement                              | None                |                                         
     | getElements                             | None                |                                         

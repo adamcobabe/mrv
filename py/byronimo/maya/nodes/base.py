@@ -162,7 +162,7 @@ def toApiobjOrDagPath( nodename ):
 def toSelectionList( nodeList, mergeWithExisting = False ):
 	"""Convert an iterable filled with Nodes to a selection list
 	@param nodeList: iterable filled with dg and dag nodes as well as plugs, dagpaths or mobjects or strings
-	@param mergeWithExistsing: if true, the selection list will not allow dupliacates , but adding objects
+	@param mergeWithExisting: if true, the selection list will not allow dupliacates , but adding objects
 	also takes ( much )  longer, depending on the size of the list
 	@return: selection list filled with objects from node list"""
 	if isinstance( nodeList, api.MSelectionList ):		# sanity check 
@@ -180,11 +180,27 @@ def toSelectionList( nodeList, mergeWithExisting = False ):
 			sellist.add( node )
 	# END for each item in input array 
 	return sellist
+
+def toComponentSelectionList( nodeCompList, mergeWithExisting = False ):
+	"""As above, but only works on DagNodes having components - the components 
+	can be a nullObject though to add the whole object after all.
+	@param nodeCompList: list of tuple( DagNode, Component ), Component can be
+	filled component or null MObject"""
+	if isinstance( nodeList, api.MSelectionList ):		# sanity check 
+		return nodeList
 	
-def fromSelectionList( sellist ):
-	"""@return: list of Nodes and MPlugs stored in the given selection list"""
+	sellist = api.MSelectionList()
+	for node, component in nodeCompList:
+		sellist.add( node._apidagpath, component, mergeWithExisting )
+	
+	return sellist
+		
+
+def fromSelectionList( sellist, handlePlugs=1, **kwargs ):
+	"""@return: list of Nodes and MPlugs stored in the given selection list
+	@param **kwargs: passed to selectionListIterator"""
 	import iterators
-	return list( iterators.iterSelectionList( asNode=1, handlePlugs=1 ) )
+	return list( iterators.iterSelectionList( asNode=1, handlePlugs=1, **kwargs ) )
 #} END conversions 
 
 
@@ -341,7 +357,12 @@ def createNode( nodename, nodetype, autocreateNamespace=True, renameOnClash = Tr
 
 
 
-
+def createComponent( componentcls, apitype ):
+		"""@return: a wrapped instance of a component of the given component class 
+		@param componentcls: Single|Double|TripleIndexedComponent
+		@param apitype: api.MFn.type of component you wish to create"""
+		return Component( componentcls._mfncls( ).create( apitype ) )
+	
 
 #} END base
 
@@ -1321,6 +1342,10 @@ class DagNode( iDagItem ):
 	#} END name remapping 
 	
 	
+#} END base ( classes )
+
+#{ Additional Classes 
+	
 class Attribute( api.MObject ):
 	"""Represents an attribute in general - this is the base class
 	Use this general class to create attribute wraps - it will return 
@@ -1375,41 +1400,7 @@ class Data( api.MObject ):
 		# END for each known attr type
 		 
 
-class Component( api.MObject ):
-	"""Represents a shape component - its derivates can be used to handle component lists
-	to be used in object sets and shading engines """
-	
-	__metaclass__ = nodes.MetaClassCreatorNodes
-	
-	def __new__ ( cls, *args, **kwargs ):
-		"""return an data class of the respective type for given MObject
-		@param args: arg[0] is data's MObject to be wrapped
-		@note: this area must be optimized for speed"""
-		
-		if not args:
-			raise ValueError( "First argument must specify the maya node name or api object to be wrapped" )
-			
-		attributeobj = args[0]
-		
-		
-		newinst = _createInstByPredicate( attributeobj, cls, cls, lambda x: x.endswith( "Component" ) )
-		
-		if not newinst:
-			raise ValueError( "Component api object typed '%s' could not be wrapped into any component function set" % attributeobj.apiTypeStr() )
-			
-		return newinst
-		# END for each known attr type
-	
 
-class DoubleIndexedComponent:
-	"""Fixes some functions that would not work usually """
-	__metaclass__ = nodes.MetaClassCreatorNodes
-	
-	def getType( self ):
-		return api.MFn.kDoubleIndexedComponent
-	type = getType
-	
-	
 class ComponentListData:
 	"""Improves the default wrap by adding some required methods to deal with
 	component lists"""
@@ -1449,9 +1440,43 @@ class PluginData:
 				raise RuntimeError( "Could not find data associated with plugin data pointer at %r" % dataptrkey )
 			
 			
+class Component( api.MObject ):
+	"""Represents a shape component - its derivates can be used to handle component lists
+	to be used in object sets and shading engines """
+	
+	__metaclass__ = nodes.MetaClassCreatorNodes
+	
+	def __new__ ( cls, *args, **kwargs ):
+		"""return an data class of the respective type for given MObject
+		@param args: arg[0] is data's MObject to be wrapped
+		@note: this area must be optimized for speed"""
+		
+		if not args:
+			raise ValueError( "First argument must specify the maya node name or api object to be wrapped" )
+			
+		attributeobj = args[0]
+		
+		
+		newinst = _createInstByPredicate( attributeobj, cls, cls, lambda x: x.endswith( "Component" ) )
+		
+		if not newinst:
+			raise ValueError( "Component api object typed '%s' could not be wrapped into any component function set" % attributeobj.apiTypeStr() )
+			
+		return newinst
+		# END for each known attr type
+	
+
+class DoubleIndexedComponent:
+	"""Fixes some functions that would not work usually """
+	__metaclass__ = nodes.MetaClassCreatorNodes
 	
 	
-#} END base ( classes )
+	def getType( self ):
+		return api.MFn.kDoubleIndexedComponent
+	type = getType
+	
+
+#} END additional classes 
 
 		
 #{ Basic Types 

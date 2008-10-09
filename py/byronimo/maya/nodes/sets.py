@@ -169,8 +169,6 @@ class ObjectSet:
 		# for dag paths, append empty component mobjects
 		args = [ memberobj ]
 		if isinstance( memberobj, api.MDagPath ):	# add component ( default None )
-			if component is  None:
-				component = api.MObject()		# use null object 
 			args.append( component )
 		# END component handling 
 		
@@ -216,7 +214,7 @@ class ObjectSet:
 		return self._checkMemberAddResult( sellist, None, mode, ignore_failure, False )
 	
 	@undoable
-	def addMember( self, member, component = None, force = False, ignore_failure = False ):
+	def addMember( self, member, component = api.MObject(), force = False, ignore_failure = False ):
 		"""Add the item to the set
 		@param member: Node, MObject, MDagPath or plug
 		@param force: if True, member ship will be forced by removing the member in question 
@@ -234,7 +232,7 @@ class ObjectSet:
 		
 		
 	@undoable
-	def removeMember( self, member, component = None ):
+	def removeMember( self, member, component = api.MObject()  ):
 		"""Remove the member from the set
 		@param member: member of the list, for types see L{addMember}"""
 		return self._addRemoveMember( member, component, ObjectSet.kRemove, True )
@@ -276,17 +274,19 @@ class ObjectSet:
 	def iterMembers( self, **kwargs ):
 		"""Iterate members of this set
 		@note: All keywords of iterMembers are supported
-		@note: if 'handlePlugs' is False, the iteration using a filter type will be faster"""
+		@note: if 'handlePlugs' is False, the iteration using a filter type will be faster
+		@note: handleComponents will allow component iteration - see the iterator documentation"""
 		return iterators.iterSelectionList( self.getMembers( ), **kwargs ) 
 	
-	def isMember( self, obj, component = None ):
+	def isMember( self, obj, component = api.MObject() ):
 		"""@return: True if obj is a member of this set
 		@param component is given, the component must be fully part of the set 
 		for the object ( dagNode ) to be considered part of the set
-		@note: all keywords of L{iterators.iterSelectionList} are supported"""
-		if component is not None:
+		@note: all keywords of L{iterators.iterSelectionList} are supported
+		@note: ismember does not appear to be working properly with component assignments.
+		It returns true for components that are not actually in the givne shading group"""
+		if not component.isNull():
 			return self._mfncls( self._apiobj ).isMember( self._toMemberObj( obj ), component )
-		
 		return self._mfncls( self._apiobj ).isMember( self._toMemberObj( obj ) )
 	
 	def __contains__( self, obj ):
@@ -457,6 +457,14 @@ class ObjectSet:
 	__sub__ = getDifference
 	__and__ = getIntersection
 	#} END operators
+	
+	
+
+class ShadingEngine:
+	"""Provides specialized methods able to deal better with shaders
+	than the default implementation."""
+	
+	__metaclass__ = types.MetaClassCreatorNodes
 	
 class Partition:
 	"""Deal with common set <-> partition interactions"""

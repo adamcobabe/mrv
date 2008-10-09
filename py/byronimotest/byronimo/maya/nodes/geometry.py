@@ -101,7 +101,6 @@ class TestGeometry( unittest.TestCase ):
 			
 			# but the components must be 0, and it must have our sets 
 			for setnode, comp in sets:
-				print type( comp )
 				self.failUnless( comp.isNull() )
 				self.failUnless( setnode in ( set1, set2 ) )
 			

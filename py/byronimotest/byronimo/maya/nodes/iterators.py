@@ -112,7 +112,6 @@ class TestGeneral( unittest.TestCase ):
 		seliter = iterSelectionList( sellist, asNode=1, handleComponents=1 )
 		slist = list( seliter )
 		
-		print len( slist )	
 		numassignments = 10
 		self.failUnless(  len( slist ) == numassignments )
 		for node,component in slist:
@@ -124,7 +123,6 @@ class TestGeneral( unittest.TestCase ):
 		# it will just return the objects without components then 
 		seliter = iterSelectionList( sellist, asNode=1, handleComponents=0 )
 		slist = list( seliter )
-		print len( slist )
 		self.failUnless(  len( slist ) == numassignments )
 		
 		for node in slist:
@@ -138,7 +136,6 @@ class TestGeneral( unittest.TestCase ):
 		
 		seliter = iterSelectionList( sellist, asNode=1, handleComponents=1, handlePlugs=1 )
 		slist = list( seliter )
-		print len( slist )
 		
 		pcount = 0
 		for node, component in slist:

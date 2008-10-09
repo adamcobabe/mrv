@@ -21,6 +21,7 @@ import byronimo.maya.nodes as nodes
 import byronimo.maya.nodes.iterators as iterators 
 import maya.cmds as cmds
 import maya.OpenMaya as api
+import byronimotest.byronimo.maya as common
 import byronimo.maya as bmaya 
 import byronimo.maya.nodes.sets as sets
 
@@ -139,10 +140,7 @@ class TestSets( unittest.TestCase ):
 		s.removeMembers( sellist )
 		self.failUnless( s.getMembers().length() == 0 )
 		
-	def test_memberHandlingComps( self ):
-		"""byronimo.maya.nodes.sets: member handling with components"""
-		self.fail()
-		
+
 	def test_setOperations( self ):
 		"""byroniom.maya.nodes.sets: unions, intersections, difference, overloaded ops"""
 		memberlist = self._getMemberList( )
@@ -258,4 +256,62 @@ class TestSets( unittest.TestCase ):
 			s1.addMembers( multiobj, force = 1 )
 			self.failUnless( s1.getIntersection( multiobj, sets_are_members = 1 ).length() == 2 )
 		# END for each object
+	
+		
+	def test_z_memberHandlingComps( self ):
+		"""byronimo.maya.nodes.sets: member handling with components - needs to run last"""
+		bmaya.Scene.open( common.get_maya_file( "perComponentAssignments.ma" ), force = 1 )
+		p1 = nodes.Node( "|p1trans|p1" )
+		s1 = nodes.Node( "s1" )					# sphere with face shader assignments 
+		s2 = nodes.Node( "s2" )					# sphere with one object assignment 
+		
+		# shading engines 
+		sg1 = nodes.Node( "sg1" )	
+		sg2 = nodes.Node( "sg2" )
+		
+		
+		# REMOVE AND SET FACE ASSIGNMENTS 
+		####################################
+		# get all sets assignments 
+		setcomps = p1.getComponentAssignments( setFilter = nodes.Shape.fSetsRenderable )
+		
+		for setnode, comp in setcomps:
+			# NOTE: must be member in the beginning, but the isMember method does not 
+			# work properly with components
+			if comp.isNull(): 
+				continue
+			
+			print comp.apiTypeStr()
+			self.failUnless( setnode.isMember( p1, component = comp ) )
+			# remove the components 
+			setnode.removeMember( p1, component = comp )
+			
+			self.failUnless( not setnode.isMember( p1, component = comp ) )
+			
+			# add member again 
+			setnode.addMember( p1, component = comp, ignore_failure = False )
+			
+			self.failUnless( setnode.isMember( p1, component = comp ) )
+		# END for each set component assignment 
+		
+		# create a component with 3 faces 
+		f3 = nodes.createComponent( nodes.SingleIndexedComponent, api.MFn.kMeshPolygonComponent )
+		for i in range( 3 ): f3.addElement( i )
+		
+		
+		# FORCE OVERWRITING EXISITNG FACE ASSIGNMNETS
+		###############################################
+		for sg in ( sg1, sg2 ):
+			self.failUnlessRaises( nodes.ConstraintError, sg.addMember, s1, component = f3 )
+			
+			# force it
+			sg.addMember( s1, component = f3, force = 1 )
+			self.failUnless( sg.isMember( s1, component = f3 ) )
+		# END for each shading engine 
+		
+		# FORCE WITH OBJECT ASSIGNMENTS 
+		###############################
+		
+		common._saveTempFile( "setcomponents.ma" )
+		
 		
