@@ -271,12 +271,12 @@ class ObjectSet:
 		self._mfncls( self._apiobj ).getMembers( sellist, flatten )
 		return sellist
 		
-	def iterMembers( self, **kwargs ):
+	def iterMembers( self, *args, **kwargs ):
 		"""Iterate members of this set
 		@note: All keywords of iterMembers are supported
 		@note: if 'handlePlugs' is False, the iteration using a filter type will be faster
 		@note: handleComponents will allow component iteration - see the iterator documentation"""
-		return iterators.iterSelectionList( self.getMembers( ), **kwargs ) 
+		return iterators.iterSelectionList( self.getMembers( ), *args, **kwargs ) 
 	
 	def isMember( self, obj, component = api.MObject() ):
 		"""@return: True if obj is a member of this set

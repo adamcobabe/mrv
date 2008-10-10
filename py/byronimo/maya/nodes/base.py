@@ -222,6 +222,13 @@ def delete( *args ):
 	for node in args:
 		mod.deleteNode( node._apiobj )
 	mod.doIt()
+	
+def select( nodelist ):
+	"""Select the nodes on the given nodelist ( list(Node,...) or MSelectionList ) in maya
+	Components are only supported if a selection list is given though
+	@todo: implementation"""
+	raise NotImplementedError()
+	
 
 @undoable
 def createNode( nodename, nodetype, autocreateNamespace=True, renameOnClash = True, forceNewLeaf=False):
@@ -532,6 +539,10 @@ class Node( object ):
 		"""@return: list of all function set classes this node supports, most derived 
 		function set comes first"""
 		return [ cls._mfncls for cls in self.__class__.mro() if hasattr( cls, '_mfncls' ) ]
+		
+	def getApiType( self ):
+		"""@return: the MFn Type id of the wrapped object"""
+		return self.getApiObject().apiType()
 	#} END interface 
 	
 
@@ -1297,15 +1308,13 @@ class DagNode( iDagItem ):
 	
 	#{ General Query  
 	def getDagPath( self ):
-		"""@return: the DagPath attached to this Node
-		@note: the dag path is wrapped and does not work with all maya api functions, 
-		use L{getApiObject} instead """
-		return DagPath( self._apidagpath )
-		
+		"""@return: the DagPath attached to this Node"""
+		return self._apidagpath
 		
 	def getApiObject( self ):
-		"""@return: our unmodified dag path"""
-		return self._apidagpath
+		"""@return: our dag path as this is our api object - the object defining this node"""
+		return self.getDagPath()
+		
 	#}END general query 
 	
 	#{ Iterators 
