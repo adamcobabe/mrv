@@ -1,4 +1,10 @@
 1
+    | MFnRenderLayer_inCurrentRenderLayer     | None                |                                         
+    | MFnRenderLayer_inLayer                  | None                |                                         
+    | MFnRenderLayer_isPlugAdjusted           | None                |                                         
+    | MFnRenderLayer_layerChildren            | None                |                                         
+    | MFnRenderLayer_listMembers              | None                |                                         
+    | delete_MFnRenderLayer                   | None                |                                         
     | inCurrentRenderLayer                    | None                |                                         
     | inLayer                                 | None                |                                         
     | isPlugAdjusted                          | None                |                                         

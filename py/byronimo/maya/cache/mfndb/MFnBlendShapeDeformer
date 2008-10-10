@@ -1,17 +1,33 @@
 1
+    | MFnBlendShapeDeformer_addBaseObject     | None                |                                         
+    | MFnBlendShapeDeformer_addTarget         | None                |                                         
+    | MFnBlendShapeDeformer_create            | None                |                                         
+    | MFnBlendShapeDeformer_envelope          | None                |                                         
+    | MFnBlendShapeDeformer_getBaseObjects    | None                |                                         
+    | MFnBlendShapeDeformer_getTargets        | None                |                                         
+    | MFnBlendShapeDeformer_numWeights        | None                |                                         
+    | MFnBlendShapeDeformer_origin            | None                |                                         
+    | MFnBlendShapeDeformer_removeTarget      | None                |                                         
+    | MFnBlendShapeDeformer_setEnvelope       | None                |                                         
+    | MFnBlendShapeDeformer_setOrigin         | None                |                                         
+    | MFnBlendShapeDeformer_setWeight         | None                |                                         
+    | MFnBlendShapeDeformer_targetItemIndexList| None                |                                         
+    | MFnBlendShapeDeformer_weight            | None                |                                         
+    | MFnBlendShapeDeformer_weightIndexList   | None                |                                         
     | addBaseObject                           | None                |                                         
     | addTarget                               | None                |                                         
 x   | create                                  | None                |                                         
-    | envelope                                | None                | getEnvelope                                         
+    | delete_MFnBlendShapeDeformer            | None                |                                         
+    | envelope                                | None                | getEnvelope                             
     | getBaseObjects                          | None                |                                         
     | getTargets                              | None                |                                         
-    | numWeights                              | None                | getNumWeights                                         
-    | origin                                  | None                | getOrigin                                       
+    | numWeights                              | None                | getNumWeights                           
+    | origin                                  | None                | getOrigin                               
     | removeTarget                            | None                |                                         
     | setEnvelope                             | None                |                                         
     | setOrigin                               | None                |                                         
     | setWeight                               | None                |                                         
-    | targetItemIndexList                     | None                | getTargetItemIndexList                                         
-    | type                                    | None                | getType                                        
-    | weight                                  | None                | getWeight                                        
-    | weightIndexList                         | None                | getWeightIndexList                                         
+    | targetItemIndexList                     | None                | getTargetItemIndexList                  
+    | type                                    | None                | getType                                 
+    | weight                                  | None                | getWeight                               
+    | weightIndexList                         | None                | getWeightIndexList                      

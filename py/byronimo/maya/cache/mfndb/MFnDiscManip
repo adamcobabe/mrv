@@ -1,9 +1,19 @@
 1
+    | MFnDiscManip_angleIndex                 | None                |                                         
+    | MFnDiscManip_axisIndex                  | None                |                                         
+    | MFnDiscManip_centerIndex                | None                |                                         
+    | MFnDiscManip_connectToAnglePlug         | None                |                                         
+    | MFnDiscManip_create                     | None                |                                         
+    | MFnDiscManip_setAngle                   | None                |                                         
+    | MFnDiscManip_setCenterPoint             | None                |                                         
+    | MFnDiscManip_setNormal                  | None                |                                         
+    | MFnDiscManip_setRadius                  | None                |                                         
     | angleIndex                              | None                |                                         
     | axisIndex                               | None                |                                         
     | centerIndex                             | None                |                                         
     | connectToAnglePlug                      | None                |                                         
     | create                                  | None                |                                         
+    | delete_MFnDiscManip                     | None                |                                         
     | setAngle                                | None                |                                         
     | setCenterPoint                          | None                |                                         
     | setNormal                               | None                |                                         

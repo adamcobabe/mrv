@@ -1,7 +1,17 @@
 1
+    | MFnEnumAttribute_addField               | None                |                                         
+    | MFnEnumAttribute_create                 | None                |                                         
+    | MFnEnumAttribute_defaultValue           | None                |                                         
+    | MFnEnumAttribute_fieldIndex             | None                |                                         
+    | MFnEnumAttribute_fieldName              | None                |                                         
+    | MFnEnumAttribute_getDefault             | None                |                                         
+    | MFnEnumAttribute_getMax                 | None                |                                         
+    | MFnEnumAttribute_getMin                 | None                |                                         
+    | MFnEnumAttribute_setDefault             | None                |                                         
     | addField                                | None                |                                         
     | create                                  | Attribute           |                                         
     | defaultValue                            | None                |                                         
+    | delete_MFnEnumAttribute                 | None                |                                         
     | fieldIndex                              | None                | getFieldIndex                           
     | fieldName                               | None                | getFieldName                            
     | getDefault                              | None                |                                         

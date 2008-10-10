@@ -1,4 +1,84 @@
 1
+    | MFnNurbsSurface_area                    | None                |                                         
+    | MFnNurbsSurface_assignUV                | None                |                                         
+    | MFnNurbsSurface_assignUVs               | None                |                                         
+    | MFnNurbsSurface_boundaryType            | None                |                                         
+    | MFnNurbsSurface_clearUVs                | None                |                                         
+    | MFnNurbsSurface_closestPoint            | None                |                                         
+    | MFnNurbsSurface_copy                    | None                |                                         
+    | MFnNurbsSurface_create                  | None                |                                         
+    | MFnNurbsSurface_cv                      | None                |                                         
+    | MFnNurbsSurface_cvsInU                  | None                |                                         
+    | MFnNurbsSurface_cvsInV                  | None                |                                         
+    | MFnNurbsSurface_degreeU                 | None                |                                         
+    | MFnNurbsSurface_degreeV                 | None                |                                         
+    | MFnNurbsSurface_distanceToPoint         | None                |                                         
+    | MFnNurbsSurface_edge                    | None                |                                         
+    | MFnNurbsSurface_formInU                 | None                |                                         
+    | MFnNurbsSurface_formInV                 | None                |                                         
+    | MFnNurbsSurface_getAssignedUVs          | None                |                                         
+    | MFnNurbsSurface_getCV                   | None                |                                         
+    | MFnNurbsSurface_getCVs                  | None                |                                         
+    | MFnNurbsSurface_getDerivativesAtParm    | None                |                                         
+    | MFnNurbsSurface_getKnotDomain           | None                |                                         
+    | MFnNurbsSurface_getKnotsInU             | None                |                                         
+    | MFnNurbsSurface_getKnotsInV             | None                |                                         
+    | MFnNurbsSurface_getParamAtPoint         | None                |                                         
+    | MFnNurbsSurface_getPatchUV              | None                |                                         
+    | MFnNurbsSurface_getPatchUVid            | None                |                                         
+    | MFnNurbsSurface_getPatchUVs             | None                |                                         
+    | MFnNurbsSurface_getPointAtParam         | None                |                                         
+    | MFnNurbsSurface_getTangents             | None                |                                         
+    | MFnNurbsSurface_getTrimBoundaries       | None                |                                         
+    | MFnNurbsSurface_getUV                   | None                |                                         
+    | MFnNurbsSurface_getUVs                  | None                |                                         
+    | MFnNurbsSurface_hasHistoryOnCreate      | None                |                                         
+    | MFnNurbsSurface_intersect               | None                |                                         
+    | MFnNurbsSurface_isBezier                | None                |                                         
+    | MFnNurbsSurface_isFlipNorm              | None                |                                         
+    | MFnNurbsSurface_isFoldedOnBispan        | None                |                                         
+    | MFnNurbsSurface_isKnotU                 | None                |                                         
+    | MFnNurbsSurface_isKnotV                 | None                |                                         
+    | MFnNurbsSurface_isParamOnSurface        | None                |                                         
+    | MFnNurbsSurface_isPointInTrimmedRegion  | None                |                                         
+    | MFnNurbsSurface_isPointOnSurface        | None                |                                         
+    | MFnNurbsSurface_isTrimmedSurface        | None                |                                         
+    | MFnNurbsSurface_isUniform               | None                |                                         
+    | MFnNurbsSurface_knotInU                 | None                |                                         
+    | MFnNurbsSurface_knotInV                 | None                |                                         
+    | MFnNurbsSurface_normal                  | None                |                                         
+    | MFnNurbsSurface_numBoundaries           | None                |                                         
+    | MFnNurbsSurface_numCVsInU               | None                |                                         
+    | MFnNurbsSurface_numCVsInV               | None                |                                         
+    | MFnNurbsSurface_numEdges                | None                |                                         
+    | MFnNurbsSurface_numKnotsInU             | None                |                                         
+    | MFnNurbsSurface_numKnotsInV             | None                |                                         
+    | MFnNurbsSurface_numNonZeroSpansInU      | None                |                                         
+    | MFnNurbsSurface_numNonZeroSpansInV      | None                |                                         
+    | MFnNurbsSurface_numPatches              | None                |                                         
+    | MFnNurbsSurface_numPatchesInU           | None                |                                         
+    | MFnNurbsSurface_numPatchesInV           | None                |                                         
+    | MFnNurbsSurface_numRegions              | None                |                                         
+    | MFnNurbsSurface_numSpansInU             | None                |                                         
+    | MFnNurbsSurface_numSpansInV             | None                |                                         
+    | MFnNurbsSurface_numUVs                  | None                |                                         
+    | MFnNurbsSurface_projectCurve            | None                |                                         
+    | MFnNurbsSurface_removeKnotInU           | None                |                                         
+    | MFnNurbsSurface_removeKnotInV           | None                |                                         
+    | MFnNurbsSurface_removeOneKnotInU        | None                |                                         
+    | MFnNurbsSurface_removeOneKnotInV        | None                |                                         
+    | MFnNurbsSurface_setCV                   | None                |                                         
+    | MFnNurbsSurface_setCVs                  | None                |                                         
+    | MFnNurbsSurface_setKnotInU              | None                |                                         
+    | MFnNurbsSurface_setKnotInV              | None                |                                         
+    | MFnNurbsSurface_setKnotsInU             | None                |                                         
+    | MFnNurbsSurface_setKnotsInV             | None                |                                         
+    | MFnNurbsSurface_setUV                   | None                |                                         
+    | MFnNurbsSurface_setUVs                  | None                |                                         
+    | MFnNurbsSurface_tesselate               | None                |                                         
+    | MFnNurbsSurface_trim                    | None                |                                         
+    | MFnNurbsSurface_trimWithBoundaries      | None                |                                         
+    | MFnNurbsSurface_updateSurface           | None                |                                         
     | area                                    | None                |                                         
     | assignUV                                | None                |                                         
     | assignUVs                               | None                |                                         
@@ -12,6 +92,7 @@
     | cvsInV                                  | None                |                                         
     | degreeU                                 | None                |                                         
     | degreeV                                 | None                |                                         
+    | delete_MFnNurbsSurface                  | None                |                                         
     | distanceToPoint                         | None                |                                         
     | edge                                    | None                |                                         
     | formInU                                 | None                |                                         

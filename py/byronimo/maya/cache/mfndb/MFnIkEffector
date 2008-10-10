@@ -1,3 +1,5 @@
 1
+    | MFnIkEffector_create                    | None                |                                         
     | create                                  | None                |                                         
+    | delete_MFnIkEffector                    | None                |                                         
     | type                                    | None                |                                         

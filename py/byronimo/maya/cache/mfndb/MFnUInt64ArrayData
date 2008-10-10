@@ -1,7 +1,13 @@
 1
+    | MFnUInt64ArrayData_array                | None                |                                         
+    | MFnUInt64ArrayData_copyTo               | None                |                                         
+    | MFnUInt64ArrayData_create               | None                |                                         
+    | MFnUInt64ArrayData_length               | None                |                                         
+    | MFnUInt64ArrayData_set                  | None                |                                         
     | array                                   | None                |                                         
     | copyTo                                  | None                |                                         
     | create                                  | None                |                                         
+    | delete_MFnUInt64ArrayData               | None                |                                         
     | length                                  | None                |                                         
     | set                                     | None                |                                         
     | type                                    | None                |                                         

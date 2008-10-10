@@ -1,4 +1,81 @@
 1
+    | MFnSubd_collapse                        | None                |                                         
+    | MFnSubd_convertToNurbs                  | None                |                                         
+    | MFnSubd_copy                            | None                |                                         
+    | MFnSubd_creasesClearAll                 | None                |                                         
+    | MFnSubd_creasesGetAll                   | None                |                                         
+    | MFnSubd_creasesSetAll                   | None                |                                         
+    | MFnSubd_createBaseMesh                  | None                |                                         
+    | MFnSubd_edgeAdjacentPolygon             | None                |                                         
+    | MFnSubd_edgeBetween                     | None                |                                         
+    | MFnSubd_edgeChildren                    | None                |                                         
+    | MFnSubd_edgeCount                       | None                |                                         
+    | MFnSubd_edgeCreaseRelevant              | None                |                                         
+    | MFnSubd_edgeIsBoundary                  | None                |                                         
+    | MFnSubd_edgeIsCreased                   | None                |                                         
+    | MFnSubd_edgeIsValid                     | None                |                                         
+    | MFnSubd_edgeSetCrease                   | None                |                                         
+    | MFnSubd_edgeVertices                    | None                |                                         
+    | MFnSubd_editsPending                    | None                |                                         
+    | MFnSubd_editsUpdateAll                  | None                |                                         
+    | MFnSubd_evaluateNormal                  | None                |                                         
+    | MFnSubd_evaluatePosition                | None                |                                         
+    | MFnSubd_evaluatePositionAndNormal       | None                |                                         
+    | MFnSubd_getConnectedSetsAndMembers      | None                |                                         
+    | MFnSubd_getConnectedShaders             | None                |                                         
+    | MFnSubd_getCubicSpline                  | None                |                                         
+    | MFnSubd_levelFullySubdivideTo           | None                |                                         
+    | MFnSubd_levelMaxAllowed                 | None                |                                         
+    | MFnSubd_levelMaxCurrent                 | None                |                                         
+    | MFnSubd_polygonBaseMeshAdd              | None                |                                         
+    | MFnSubd_polygonBaseMeshAddWithUVs       | None                |                                         
+    | MFnSubd_polygonChildren                 | None                |                                         
+    | MFnSubd_polygonCount                    | None                |                                         
+    | MFnSubd_polygonCountMaxWithGivenBaseMesh| None                |                                         
+    | MFnSubd_polygonEdgeCount                | None                |                                         
+    | MFnSubd_polygonEdges                    | None                |                                         
+    | MFnSubd_polygonGetCenterUV              | None                |                                         
+    | MFnSubd_polygonGetVertexUVs             | None                |                                         
+    | MFnSubd_polygonHasChildren              | None                |                                         
+    | MFnSubd_polygonHasVertexUVs             | None                |                                         
+    | MFnSubd_polygonIsValid                  | None                |                                         
+    | MFnSubd_polygonSetUseUVs                | None                |                                         
+    | MFnSubd_polygonSetVertexUVs             | None                |                                         
+    | MFnSubd_polygonSubdivide                | None                |                                         
+    | MFnSubd_polygonVertexCount              | None                |                                         
+    | MFnSubd_polygonVertices                 | None                |                                         
+    | MFnSubd_tesselate                       | None                |                                         
+    | MFnSubd_tessellateViaNurbs              | None                |                                         
+    | MFnSubd_updateAllEditsAndCreases        | None                |                                         
+    | MFnSubd_updateSubdSurface               | None                |                                         
+    | MFnSubd_vertexAdjacentVertices          | None                |                                         
+    | MFnSubd_vertexBaseIndexFromVertexId     | None                |                                         
+    | MFnSubd_vertexBaseMeshAdd               | None                |                                         
+    | MFnSubd_vertexBaseMeshAddWithIndex      | None                |                                         
+    | MFnSubd_vertexBaseMeshGet               | None                |                                         
+    | MFnSubd_vertexBaseMeshGetWithId         | None                |                                         
+    | MFnSubd_vertexBaseMeshSet               | None                |                                         
+    | MFnSubd_vertexBaseMeshSetWithId         | None                |                                         
+    | MFnSubd_vertexChildren                  | None                |                                         
+    | MFnSubd_vertexCount                     | None                |                                         
+    | MFnSubd_vertexCreaseRelevant            | None                |                                         
+    | MFnSubd_vertexEditGet                   | None                |                                         
+    | MFnSubd_vertexEditSet                   | None                |                                         
+    | MFnSubd_vertexEditsClearAllNonBase      | None                |                                         
+    | MFnSubd_vertexEditsGetAllNonBase        | None                |                                         
+    | MFnSubd_vertexEditsSetAllNonBase        | None                |                                         
+    | MFnSubd_vertexIdFromBaseVertexIndex     | None                |                                         
+    | MFnSubd_vertexIncidentEdges             | None                |                                         
+    | MFnSubd_vertexIncidentPolygons          | None                |                                         
+    | MFnSubd_vertexIsBoundary                | None                |                                         
+    | MFnSubd_vertexIsCreased                 | None                |                                         
+    | MFnSubd_vertexIsValid                   | None                |                                         
+    | MFnSubd_vertexNormal                    | None                |                                         
+    | MFnSubd_vertexPositionGet               | None                |                                         
+    | MFnSubd_vertexPositionGetNoEdit         | None                |                                         
+    | MFnSubd_vertexPositionSet               | None                |                                         
+    | MFnSubd_vertexSetCrease                 | None                |                                         
+    | MFnSubd_vertexValence                   | None                |                                         
     | collapse                                | None                |                                         
     | convertToNurbs                          | None                |                                         
     | copy                                    | None                |                                         
@@ -6,6 +83,7 @@
     | creasesGetAll                           | None                |                                         
     | creasesSetAll                           | None                |                                         
     | createBaseMesh                          | None                |                                         
+    | delete_MFnSubd                          | None                |                                         
     | edgeAdjacentPolygon                     | None                |                                         
     | edgeBetween                             | None                |                                         
     | edgeChildren                            | None                |                                         

@@ -1,6 +1,12 @@
 1
+    | MFnKeyframeDeltaMove_currentTime        | None                |                                         
+    | MFnKeyframeDeltaMove_currentValue       | None                |                                         
+    | MFnKeyframeDeltaMove_previousIndex      | None                |                                         
+    | MFnKeyframeDeltaMove_previousTime       | None                |                                         
+    | MFnKeyframeDeltaMove_previousValue      | None                |                                         
     | currentTime                             | None                |                                         
     | currentValue                            | None                |                                         
+    | delete_MFnKeyframeDeltaMove             | None                |                                         
     | keyIndex                                | None                |                                         
     | previousIndex                           | None                |                                         
     | previousTime                            | None                |                                         

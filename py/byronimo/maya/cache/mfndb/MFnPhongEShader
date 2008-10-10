@@ -1,5 +1,13 @@
 1
+    | MFnPhongEShader_create                  | None                |                                         
+    | MFnPhongEShader_highlightSize           | None                |                                         
+    | MFnPhongEShader_roughness               | None                |                                         
+    | MFnPhongEShader_setHighlightSize        | None                |                                         
+    | MFnPhongEShader_setRoughness            | None                |                                         
+    | MFnPhongEShader_setWhiteness            | None                |                                         
+    | MFnPhongEShader_whiteness               | None                |                                         
     | create                                  | None                |                                         
+    | delete_MFnPhongEShader                  | None                |                                         
     | highlightSize                           | None                |                                         
     | roughness                               | None                |                                         
     | setHighlightSize                        | None                |                                         

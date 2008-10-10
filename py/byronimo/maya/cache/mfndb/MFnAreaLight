@@ -1,3 +1,5 @@
 1
+    | MFnAreaLight_create                     | None                |                                         
     | create                                  | None                |                                         
+    | delete_MFnAreaLight                     | None                |                                         
     | type                                    | None                |                                         

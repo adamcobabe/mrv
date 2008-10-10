@@ -1,8 +1,22 @@
 1
+    | MFnVolumeLight_arc                      | None                |                                         
+    | MFnVolumeLight_colorRamp                | None                |                                         
+    | MFnVolumeLight_coneEndRadius            | None                |                                         
+    | MFnVolumeLight_create                   | None                |                                         
+    | MFnVolumeLight_emitAmbient              | None                |                                         
+    | MFnVolumeLight_lightShape               | None                |                                         
+    | MFnVolumeLight_penumbraRamp             | None                |                                         
+    | MFnVolumeLight_setArc                   | None                |                                         
+    | MFnVolumeLight_setConeEndRadius         | None                |                                         
+    | MFnVolumeLight_setEmitAmbient           | None                |                                         
+    | MFnVolumeLight_setLightShape            | None                |                                         
+    | MFnVolumeLight_setVolumeLightDirection  | None                |                                         
+    | MFnVolumeLight_volumeLightDirection     | None                |                                         
     | arc                                     | None                |                                         
     | colorRamp                               | None                |                                         
     | coneEndRadius                           | None                |                                         
     | create                                  | None                |                                         
+    | delete_MFnVolumeLight                   | None                |                                         
     | emitAmbient                             | None                |                                         
     | lightShape                              | None                |                                         
     | penumbraRamp                            | None                |                                         

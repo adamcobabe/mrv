@@ -1,6 +1,46 @@
 1
+    | MFnTransform_clearRestPosition          | None                |                                         
+    | MFnTransform_create                     | None                |                                         
+    | MFnTransform_enableLimit                | None                |                                         
+    | MFnTransform_getRotation                | None                |                                         
+    | MFnTransform_getRotationQuaternion      | None                |                                         
+    | MFnTransform_getScale                   | None                |                                         
+    | MFnTransform_getShear                   | None                |                                         
+    | MFnTransform_getTranslation             | None                |                                         
+    | MFnTransform_isLimited                  | None                |                                         
+    | MFnTransform_limitValue                 | None                |                                         
+    | MFnTransform_resetFromRestPosition      | None                |                                         
+    | MFnTransform_restPosition               | None                |                                         
+    | MFnTransform_rotateBy                   | None                |                                         
+    | MFnTransform_rotateByQuaternion         | None                |                                         
+    | MFnTransform_rotateOrientation          | None                |                                         
+    | MFnTransform_rotatePivot                | None                |                                         
+    | MFnTransform_rotatePivotTranslation     | None                |                                         
+    | MFnTransform_rotationOrder              | None                |                                         
+    | MFnTransform_scaleBy                    | None                |                                         
+    | MFnTransform_scalePivot                 | None                |                                         
+    | MFnTransform_scalePivotTranslation      | None                |                                         
+    | MFnTransform_set                        | None                |                                         
+    | MFnTransform_setLimit                   | None                |                                         
+    | MFnTransform_setRestPosition            | None                |                                         
+    | MFnTransform_setRotateOrientation       | None                |                                         
+    | MFnTransform_setRotatePivot             | None                |                                         
+    | MFnTransform_setRotatePivotTranslation  | None                |                                         
+    | MFnTransform_setRotation                | None                |                                         
+    | MFnTransform_setRotationOrder           | None                |                                         
+    | MFnTransform_setRotationQuaternion      | None                |                                         
+    | MFnTransform_setScale                   | None                |                                         
+    | MFnTransform_setScalePivot              | None                |                                         
+    | MFnTransform_setScalePivotTranslation   | None                |                                         
+    | MFnTransform_setShear                   | None                |                                         
+    | MFnTransform_setTranslation             | None                |                                         
+    | MFnTransform_shearBy                    | None                |                                         
+    | MFnTransform_transformation             | None                |                                         
+    | MFnTransform_translateBy                | None                |                                         
+    | MFnTransform_translation                | None                |                                         
     | clearRestPosition                       | None                |                                         
     | create                                  | None                |                                         
+    | delete_MFnTransform                     | None                |                                         
     | enableLimit                             | None                |                                         
     | getRotation                             | None                |                                         
     | getRotationQuaternion                   | None                |                                         

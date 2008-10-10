@@ -1,9 +1,52 @@
 1
+    | MFnAnimCurve_addKey                     | None                |                                         
+    | MFnAnimCurve_addKeyframe                | None                |                                         
+    | MFnAnimCurve_addKeys                    | None                |                                         
+    | MFnAnimCurve_animCurveType              | None                |                                         
+    | MFnAnimCurve_create                     | None                |                                         
+    | MFnAnimCurve_evaluate                   | None                |                                         
+    | MFnAnimCurve_find                       | None                |                                         
+    | MFnAnimCurve_findClosest                | None                |                                         
+    | MFnAnimCurve_getTangent                 | None                |                                         
+    | MFnAnimCurve_inTangentType              | None                |                                         
+    | MFnAnimCurve_isBreakdown                | None                |                                         
+    | MFnAnimCurve_isStatic                   | None                |                                         
+    | MFnAnimCurve_isTimeInput                | None                |                                         
+    | MFnAnimCurve_isUnitlessInput            | None                |                                         
+    | MFnAnimCurve_isWeighted                 | None                |                                         
+    | MFnAnimCurve_numKeyframes               | None                |                                         
+    | MFnAnimCurve_numKeys                    | None                |                                         
+    | MFnAnimCurve_outTangentType             | None                |                                         
+    | MFnAnimCurve_postInfinityType           | None                |                                         
+    | MFnAnimCurve_preInfinityType            | None                |                                         
+    | MFnAnimCurve_remove                     | None                |                                         
+    | MFnAnimCurve_setAngle                   | None                |                                         
+    | MFnAnimCurve_setInTangentType           | None                |                                         
+    | MFnAnimCurve_setIsBreakdown             | None                |                                         
+    | MFnAnimCurve_setIsWeighted              | None                |                                         
+    | MFnAnimCurve_setOutTangentType          | None                |                                         
+    | MFnAnimCurve_setPostInfinityType        | None                |                                         
+    | MFnAnimCurve_setPreInfinityType         | None                |                                         
+    | MFnAnimCurve_setTangent                 | None                |                                         
+    | MFnAnimCurve_setTangentsLocked          | None                |                                         
+    | MFnAnimCurve_setTime                    | None                |                                         
+    | MFnAnimCurve_setUnitlessInput           | None                |                                         
+    | MFnAnimCurve_setValue                   | None                |                                         
+    | MFnAnimCurve_setWeight                  | None                |                                         
+    | MFnAnimCurve_setWeightsLocked           | None                |                                         
+    | MFnAnimCurve_tangentsLocked             | None                |                                         
+    | MFnAnimCurve_time                       | None                |                                         
+    | MFnAnimCurve_timedAnimCurveTypeForPlug  | None                |                                         
+    | MFnAnimCurve_unitlessAnimCurveTypeForPlug| None                |                                         
+    | MFnAnimCurve_unitlessInput              | None                |                                         
+    | MFnAnimCurve_value                      | None                |                                         
+    | MFnAnimCurve_weightsLocked              | None                |                                         
     | addKey                                  | None                |                                         
     | addKeyframe                             | None                |                                         
     | addKeys                                 | None                |                                         
     | animCurveType                           | None                |                                         
     | create                                  | None                |                                         
+    | delete_MFnAnimCurve                     | None                |                                         
     | evaluate                                | None                |                                         
     | find                                    | None                |                                         
     | findClosest                             | None                |                                         

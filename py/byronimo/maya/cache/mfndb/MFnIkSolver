@@ -1,4 +1,9 @@
 1
+    | MFnIkSolver_maxIterations               | None                |                                         
+    | MFnIkSolver_setMaxIterations            | None                |                                         
+    | MFnIkSolver_setTolerance                | None                |                                         
+    | MFnIkSolver_tolerance                   | None                |                                         
+    | delete_MFnIkSolver                      | None                |                                         
     | maxIterations                           | None                |                                         
     | setMaxIterations                        | None                |                                         
     | setTolerance                            | None                |                                         

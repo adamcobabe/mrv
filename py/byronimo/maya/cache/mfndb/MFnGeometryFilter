@@ -1,15 +1,29 @@
 1
-    | deformerSet                             | Node                | getDeformerSet                                        
-    | envelope                                | None                | getEnvelope                                        
+    | MFnGeometryFilter_deformerSet           | None                |                                         
+    | MFnGeometryFilter_envelope              | None                |                                         
+    | MFnGeometryFilter_getInputGeometry      | None                |                                         
+    | MFnGeometryFilter_getOutputGeometry     | None                |                                         
+    | MFnGeometryFilter_getPathAtIndex        | None                |                                         
+    | MFnGeometryFilter_groupIdAtIndex        | None                |                                         
+    | MFnGeometryFilter_indexForGroupId       | None                |                                         
+    | MFnGeometryFilter_indexForOutputConnection| None                |                                         
+    | MFnGeometryFilter_indexForOutputShape   | None                |                                         
+    | MFnGeometryFilter_inputShapeAtIndex     | None                |                                         
+    | MFnGeometryFilter_numOutputConnections  | None                |                                         
+    | MFnGeometryFilter_outputShapeAtIndex    | None                |                                         
+    | MFnGeometryFilter_setEnvelope           | None                |                                         
+    | deformerSet                             | Node                | getDeformerSet                          
+    | delete_MFnGeometryFilter                | None                |                                         
+    | envelope                                | None                | getEnvelope                             
     | getInputGeometry                        | None                |                                         
     | getOutputGeometry                       | None                |                                         
-    | getPathAtIndex                          | None                |                                          
-    | groupIdAtIndex                          | None                | getGroupIdAtIndex                                         
-    | indexForGroupId                         | None                | getIndexForGroupId                                         
-    | indexForOutputConnection                | None                | getIndexForOutputConnection                                        
-    | indexForOutputShape                     | None                | getIndexForOutputShape                                         
-    | inputShapeAtIndex                       | Node                | getInputShapeAtIndex                                         
-    | numOutputConnections                    | None                | getNumOutputConnections                                        
-    | outputShapeAtIndex                      | None                | getOutputShapeAtIndex                                         
+    | getPathAtIndex                          | None                |                                         
+    | groupIdAtIndex                          | None                | getGroupIdAtIndex                       
+    | indexForGroupId                         | None                | getIndexForGroupId                      
+    | indexForOutputConnection                | None                | getIndexForOutputConnection             
+    | indexForOutputShape                     | None                | getIndexForOutputShape                  
+    | inputShapeAtIndex                       | Node                | getInputShapeAtIndex                    
+    | numOutputConnections                    | None                | getNumOutputConnections                 
+    | outputShapeAtIndex                      | None                | getOutputShapeAtIndex                   
     | setEnvelope                             | None                |                                         
-    | type                                    | None                | getType                                        
+    | type                                    | None                | getType                                 

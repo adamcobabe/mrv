@@ -1,6 +1,11 @@
 1
+    | MFnTypedAttribute_attrType              | None                |                                         
+    | MFnTypedAttribute_create                | None                |                                         
+    | MFnTypedAttribute_getDefault            | None                |                                         
+    | MFnTypedAttribute_setDefault            | None                |                                         
     | attrType                                | None                | getAttrType                             
     | create                                  | Attribute           |                                         
+    | delete_MFnTypedAttribute                | None                |                                         
     | getDefault                              | None                |                                         
     | setDefault                              | None                |                                         
     | type                                    | None                | getType                                 

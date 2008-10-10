@@ -1,5 +1,9 @@
 1
+    | MFnPhongShader_cosPower                 | None                |                                         
+    | MFnPhongShader_create                   | None                |                                         
+    | MFnPhongShader_setCosPower              | None                |                                         
     | cosPower                                | None                |                                         
     | create                                  | None                |                                         
+    | delete_MFnPhongShader                   | None                |                                         
     | setCosPower                             | None                |                                         
     | type                                    | None                |                                         

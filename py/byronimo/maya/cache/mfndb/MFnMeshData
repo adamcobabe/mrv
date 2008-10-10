@@ -1,3 +1,5 @@
 1
+    | MFnMeshData_create                      | None                |                                         
     | create                                  | None                |                                         
+    | delete_MFnMeshData                      | None                |                                         
     | type                                    | None                |                                         

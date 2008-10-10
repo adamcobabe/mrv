@@ -1,4 +1,9 @@
 1
+    | MFnKeyframeDeltaAddRemove_deltaType     | None                |                                         
+    | MFnKeyframeDeltaAddRemove_replacedValue | None                |                                         
+    | MFnKeyframeDeltaAddRemove_time          | None                |                                         
+    | MFnKeyframeDeltaAddRemove_value         | None                |                                         
+    | delete_MFnKeyframeDeltaAddRemove        | None                |                                         
     | deltaType                               | None                |                                         
     | keyIndex                                | None                |                                         
     | replacedValue                           | None                |                                         

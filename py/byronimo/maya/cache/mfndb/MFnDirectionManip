@@ -1,6 +1,16 @@
 1
+    | MFnDirectionManip_connectToDirectionPlug| None                |                                         
+    | MFnDirectionManip_create                | None                |                                         
+    | MFnDirectionManip_directionIndex        | None                |                                         
+    | MFnDirectionManip_endPointIndex         | None                |                                         
+    | MFnDirectionManip_setDirection          | None                |                                         
+    | MFnDirectionManip_setDrawStart          | None                |                                         
+    | MFnDirectionManip_setNormalizeDirection | None                |                                         
+    | MFnDirectionManip_setStartPoint         | None                |                                         
+    | MFnDirectionManip_startPointIndex       | None                |                                         
     | connectToDirectionPlug                  | None                |                                         
     | create                                  | None                |                                         
+    | delete_MFnDirectionManip                | None                |                                         
     | directionIndex                          | None                |                                         
     | endPointIndex                           | None                |                                         
     | setDirection                            | None                |                                         

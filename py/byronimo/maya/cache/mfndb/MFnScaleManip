@@ -1,7 +1,19 @@
 1
+    | MFnScaleManip_connectToScaleCenterPlug  | None                |                                         
+    | MFnScaleManip_connectToScalePlug        | None                |                                         
+    | MFnScaleManip_create                    | None                |                                         
+    | MFnScaleManip_displayWithNode           | None                |                                         
+    | MFnScaleManip_isSnapModeOn              | None                |                                         
+    | MFnScaleManip_scaleCenterIndex          | None                |                                         
+    | MFnScaleManip_scaleIndex                | None                |                                         
+    | MFnScaleManip_setInitialScale           | None                |                                         
+    | MFnScaleManip_setSnapIncrement          | None                |                                         
+    | MFnScaleManip_setSnapMode               | None                |                                         
+    | MFnScaleManip_snapIncrement             | None                |                                         
     | connectToScaleCenterPlug                | None                |                                         
     | connectToScalePlug                      | None                |                                         
     | create                                  | None                |                                         
+    | delete_MFnScaleManip                    | None                |                                         
     | displayWithNode                         | None                |                                         
     | isSnapModeOn                            | None                |                                         
     | scaleCenterIndex                        | None                |                                         

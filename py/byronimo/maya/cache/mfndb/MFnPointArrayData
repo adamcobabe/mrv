@@ -1,7 +1,13 @@
 1
+    | MFnPointArrayData_array                 | None                |                                         
+    | MFnPointArrayData_copyTo                | None                |                                         
+    | MFnPointArrayData_create                | None                |                                         
+    | MFnPointArrayData_length                | None                |                                         
+    | MFnPointArrayData_set                   | None                |                                         
     | array                                   | None                |                                         
     | copyTo                                  | None                |                                         
     | create                                  | None                |                                         
+    | delete_MFnPointArrayData                | None                |                                         
     | length                                  | None                |                                         
     | set                                     | None                |                                         
     | type                                    | None                |                                         

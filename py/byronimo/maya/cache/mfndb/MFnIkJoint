@@ -1,5 +1,44 @@
 1
+    | MFnIkJoint_create                       | None                |                                         
+    | MFnIkJoint_getDegreesOfFreedom          | None                |                                         
+    | MFnIkJoint_getOrientation               | None                |                                         
+    | MFnIkJoint_getPreferedAngle             | None                |                                         
+    | MFnIkJoint_getScaleOrientation          | None                |                                         
+    | MFnIkJoint_getSegmentScale              | None                |                                         
+    | MFnIkJoint_getStiffness                 | None                |                                         
+    | MFnIkJoint_hikJointName                 | None                |                                         
+    | MFnIkJoint_maxRotateDampXRange          | None                |                                         
+    | MFnIkJoint_maxRotateDampXStrength       | None                |                                         
+    | MFnIkJoint_maxRotateDampYRange          | None                |                                         
+    | MFnIkJoint_maxRotateDampYStrength       | None                |                                         
+    | MFnIkJoint_maxRotateDampZRange          | None                |                                         
+    | MFnIkJoint_maxRotateDampZStrength       | None                |                                         
+    | MFnIkJoint_minRotateDampXRange          | None                |                                         
+    | MFnIkJoint_minRotateDampXStrength       | None                |                                         
+    | MFnIkJoint_minRotateDampYRange          | None                |                                         
+    | MFnIkJoint_minRotateDampYStrength       | None                |                                         
+    | MFnIkJoint_minRotateDampZRange          | None                |                                         
+    | MFnIkJoint_minRotateDampZStrength       | None                |                                         
+    | MFnIkJoint_setDegreesOfFreedom          | None                |                                         
+    | MFnIkJoint_setMaxRotateDampXRange       | None                |                                         
+    | MFnIkJoint_setMaxRotateDampXStrength    | None                |                                         
+    | MFnIkJoint_setMaxRotateDampYRange       | None                |                                         
+    | MFnIkJoint_setMaxRotateDampYStrength    | None                |                                         
+    | MFnIkJoint_setMaxRotateDampZRange       | None                |                                         
+    | MFnIkJoint_setMaxRotateDampZStrength    | None                |                                         
+    | MFnIkJoint_setMinRotateDampXRange       | None                |                                         
+    | MFnIkJoint_setMinRotateDampXStrength    | None                |                                         
+    | MFnIkJoint_setMinRotateDampYRange       | None                |                                         
+    | MFnIkJoint_setMinRotateDampYStrength    | None                |                                         
+    | MFnIkJoint_setMinRotateDampZRange       | None                |                                         
+    | MFnIkJoint_setMinRotateDampZStrength    | None                |                                         
+    | MFnIkJoint_setOrientation               | None                |                                         
+    | MFnIkJoint_setPreferedAngle             | None                |                                         
+    | MFnIkJoint_setScaleOrientation          | None                |                                         
+    | MFnIkJoint_setSegmentScale              | None                |                                         
+    | MFnIkJoint_setStiffness                 | None                |                                         
     | create                                  | None                |                                         
+    | delete_MFnIkJoint                       | None                |                                         
     | getDegreesOfFreedom                     | None                |                                         
     | getOrientation                          | None                |                                         
     | getPreferedAngle                        | None                |                                         

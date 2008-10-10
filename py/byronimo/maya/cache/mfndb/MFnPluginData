@@ -1,6 +1,11 @@
 1
+    | MFnPluginData_constData                 | None                |                                         
+    | MFnPluginData_create                    | None                |                                         
+    | MFnPluginData_data                      | None                |                                         
+    | MFnPluginData_typeId                    | None                |                                         
     | constData                               | None                |                                         
     | create                                  | None                |                                         
     | data                                    | None                | getData                                 
+    | delete_MFnPluginData                    | None                |                                         
     | type                                    | None                | getType                                 
     | typeId                                  | None                | getTypeId                               

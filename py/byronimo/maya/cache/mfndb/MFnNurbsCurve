@@ -1,4 +1,41 @@
 1
+    | MFnNurbsCurve_area                      | None                |                                         
+    | MFnNurbsCurve_closestPoint              | None                |                                         
+    | MFnNurbsCurve_copy                      | None                |                                         
+    | MFnNurbsCurve_create                    | None                |                                         
+    | MFnNurbsCurve_createWithEditPoints      | None                |                                         
+    | MFnNurbsCurve_cv                        | None                |                                         
+    | MFnNurbsCurve_cvs                       | None                |                                         
+    | MFnNurbsCurve_degree                    | None                |                                         
+    | MFnNurbsCurve_distanceToPoint           | None                |                                         
+    | MFnNurbsCurve_findParamFromLength       | None                |                                         
+    | MFnNurbsCurve_form                      | None                |                                         
+    | MFnNurbsCurve_getCV                     | None                |                                         
+    | MFnNurbsCurve_getCVs                    | None                |                                         
+    | MFnNurbsCurve_getDerivativesAtParm      | None                |                                         
+    | MFnNurbsCurve_getKnotDomain             | None                |                                         
+    | MFnNurbsCurve_getKnots                  | None                |                                         
+    | MFnNurbsCurve_getParamAtPoint           | None                |                                         
+    | MFnNurbsCurve_getPointAtParam           | None                |                                         
+    | MFnNurbsCurve_hasHistoryOnCreate        | None                |                                         
+    | MFnNurbsCurve_isParamOnCurve            | None                |                                         
+    | MFnNurbsCurve_isPlanar                  | None                |                                         
+    | MFnNurbsCurve_isPointOnCurve            | None                |                                         
+    | MFnNurbsCurve_knot                      | None                |                                         
+    | MFnNurbsCurve_length                    | None                |                                         
+    | MFnNurbsCurve_makeMultipleEndKnots      | None                |                                         
+    | MFnNurbsCurve_normal                    | None                |                                         
+    | MFnNurbsCurve_numCVs                    | None                |                                         
+    | MFnNurbsCurve_numKnots                  | None                |                                         
+    | MFnNurbsCurve_numSpans                  | None                |                                         
+    | MFnNurbsCurve_removeKnot                | None                |                                         
+    | MFnNurbsCurve_reverse                   | None                |                                         
+    | MFnNurbsCurve_setCV                     | None                |                                         
+    | MFnNurbsCurve_setCVs                    | None                |                                         
+    | MFnNurbsCurve_setKnot                   | None                |                                         
+    | MFnNurbsCurve_setKnots                  | None                |                                         
+    | MFnNurbsCurve_tangent                   | None                |                                         
+    | MFnNurbsCurve_updateCurve               | None                |                                         
     | area                                    | None                |                                         
     | closestPoint                            | None                |                                         
     | copy                                    | None                |                                         
@@ -7,6 +44,7 @@
     | cv                                      | None                |                                         
     | cvs                                     | None                |                                         
     | degree                                  | None                |                                         
+    | delete_MFnNurbsCurve                    | None                |                                         
     | distanceToPoint                         | None                |                                         
     | findParamFromLength                     | None                |                                         
     | form                                    | None                |                                         

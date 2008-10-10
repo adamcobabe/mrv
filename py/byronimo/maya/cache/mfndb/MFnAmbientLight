@@ -1,7 +1,15 @@
 1
+    | MFnAmbientLight_ambientShade            | None                |                                         
+    | MFnAmbientLight_castSoftShadows         | None                |                                         
+    | MFnAmbientLight_create                  | None                |                                         
+    | MFnAmbientLight_setAmbientShade         | None                |                                         
+    | MFnAmbientLight_setCastSoftShadows      | None                |                                         
+    | MFnAmbientLight_setShadowRadius         | None                |                                         
+    | MFnAmbientLight_shadowRadius            | None                |                                         
     | ambientShade                            | None                |                                         
     | castSoftShadows                         | None                |                                         
     | create                                  | None                |                                         
+    | delete_MFnAmbientLight                  | None                |                                         
     | setAmbientShade                         | None                |                                         
     | setCastSoftShadows                      | None                |                                         
     | setShadowRadius                         | None                |                                         

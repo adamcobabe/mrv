@@ -1,9 +1,20 @@
 1
+    | MFnPointOnCurveManip_connectToCurvePlug | None                |                                         
+    | MFnPointOnCurveManip_connectToParamPlug | None                |                                         
+    | MFnPointOnCurveManip_create             | None                |                                         
+    | MFnPointOnCurveManip_curveIndex         | None                |                                         
+    | MFnPointOnCurveManip_curvePoint         | None                |                                         
+    | MFnPointOnCurveManip_isDrawCurveOn      | None                |                                         
+    | MFnPointOnCurveManip_paramIndex         | None                |                                         
+    | MFnPointOnCurveManip_parameter          | None                |                                         
+    | MFnPointOnCurveManip_setDrawCurve       | None                |                                         
+    | MFnPointOnCurveManip_setParameter       | None                |                                         
     | connectToCurvePlug                      | None                |                                         
     | connectToParamPlug                      | None                |                                         
     | create                                  | None                |                                         
     | curveIndex                              | None                |                                         
     | curvePoint                              | None                |                                         
+    | delete_MFnPointOnCurveManip             | None                |                                         
     | isDrawCurveOn                           | None                |                                         
     | paramIndex                              | None                |                                         
     | parameter                               | None                |                                         

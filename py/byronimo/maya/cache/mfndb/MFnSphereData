@@ -1,5 +1,9 @@
 1
+    | MFnSphereData_create                    | None                |                                         
+    | MFnSphereData_radius                    | None                |                                         
+    | MFnSphereData_setRadius                 | None                |                                         
     | create                                  | None                |                                         
+    | delete_MFnSphereData                    | None                |                                         
     | radius                                  | None                |                                         
     | setRadius                               | None                |                                         
     | type                                    | None                |                                         

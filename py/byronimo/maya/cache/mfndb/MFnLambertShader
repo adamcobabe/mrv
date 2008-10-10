@@ -1,7 +1,31 @@
 1
+    | MFnLambertShader_ambientColor           | None                |                                         
+    | MFnLambertShader_color                  | None                |                                         
+    | MFnLambertShader_create                 | None                |                                         
+    | MFnLambertShader_diffuseCoeff           | None                |                                         
+    | MFnLambertShader_glowIntensity          | None                |                                         
+    | MFnLambertShader_hideSource             | None                |                                         
+    | MFnLambertShader_incandescence          | None                |                                         
+    | MFnLambertShader_refractedRayDepthLimit | None                |                                         
+    | MFnLambertShader_refractiveIndex        | None                |                                         
+    | MFnLambertShader_rtRefractedColor       | None                |                                         
+    | MFnLambertShader_setAmbientColor        | None                |                                         
+    | MFnLambertShader_setColor               | None                |                                         
+    | MFnLambertShader_setDiffuseCoeff        | None                |                                         
+    | MFnLambertShader_setGlowIntensity       | None                |                                         
+    | MFnLambertShader_setHideSource          | None                |                                         
+    | MFnLambertShader_setIncandescence       | None                |                                         
+    | MFnLambertShader_setRefractedRayDepthLimit| None                |                                         
+    | MFnLambertShader_setRefractiveIndex     | None                |                                         
+    | MFnLambertShader_setRtRefractedColor    | None                |                                         
+    | MFnLambertShader_setTranslucenceCoeff   | None                |                                         
+    | MFnLambertShader_setTransparency        | None                |                                         
+    | MFnLambertShader_translucenceCoeff      | None                |                                         
+    | MFnLambertShader_transparency           | None                |                                         
     | ambientColor                            | None                |                                         
     | color                                   | None                |                                         
     | create                                  | None                |                                         
+    | delete_MFnLambertShader                 | None                |                                         
     | diffuseCoeff                            | None                |                                         
     | glowIntensity                           | None                |                                         
     | hideSource                              | None                |                                         

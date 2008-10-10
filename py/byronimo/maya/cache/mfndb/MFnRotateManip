@@ -1,7 +1,21 @@
 1
+    | MFnRotateManip_connectToRotationCenterPlug| None                |                                         
+    | MFnRotateManip_connectToRotationPlug    | None                |                                         
+    | MFnRotateManip_create                   | None                |                                         
+    | MFnRotateManip_displayWithNode          | None                |                                         
+    | MFnRotateManip_isSnapModeOn             | None                |                                         
+    | MFnRotateManip_rotateMode               | None                |                                         
+    | MFnRotateManip_rotationCenterIndex      | None                |                                         
+    | MFnRotateManip_rotationIndex            | None                |                                         
+    | MFnRotateManip_setInitialRotation       | None                |                                         
+    | MFnRotateManip_setRotateMode            | None                |                                         
+    | MFnRotateManip_setSnapIncrement         | None                |                                         
+    | MFnRotateManip_setSnapMode              | None                |                                         
+    | MFnRotateManip_snapIncrement            | None                |                                         
     | connectToRotationCenterPlug             | None                |                                         
     | connectToRotationPlug                   | None                |                                         
     | create                                  | None                |                                         
+    | delete_MFnRotateManip                   | None                |                                         
     | displayWithNode                         | None                |                                         
     | isSnapModeOn                            | None                |                                         
     | rotateMode                              | None                |                                         

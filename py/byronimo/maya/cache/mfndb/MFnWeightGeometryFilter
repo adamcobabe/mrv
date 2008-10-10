@@ -1,6 +1,11 @@
 1
+    | MFnWeightGeometryFilter_getWeightPlugStrings| None                |                                         
+    | MFnWeightGeometryFilter_getWeights      | None                |                                         
+    | MFnWeightGeometryFilter_setWeight       | None                |                                         
+    | MFnWeightGeometryFilter_weightPlugStrings| None                |                                         
+    | delete_MFnWeightGeometryFilter          | None                |                                         
     | getWeightPlugStrings                    | None                |                                         
     | getWeights                              | None                |                                         
     | setWeight                               | None                |                                         
-    | type                                    | None                | getType                                         
-    | weightPlugStrings                       | None                | getWeightPlugStrings                                         
+    | type                                    | None                | getType                                 
+    | weightPlugStrings                       | None                | getWeightPlugStrings                    

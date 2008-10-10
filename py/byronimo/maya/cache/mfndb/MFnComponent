@@ -1,5 +1,12 @@
 1
+    | MFnComponent_componentType              | None                |                                         
+    | MFnComponent_elementCount               | None                |                                         
+    | MFnComponent_isComplete                 | None                |                                         
+    | MFnComponent_isEmpty                    | None                |                                         
+    | MFnComponent_isEqual                    | None                |                                         
+    | MFnComponent_setComplete                | None                |                                         
     | componentType                           | None                | getComponentType                        
+    | delete_MFnComponent                     | None                |                                         
     | elementCount                            | None                | getElementCount                         
     | isComplete                              | None                |                                         
     | isEmpty                                 | None                |                                         

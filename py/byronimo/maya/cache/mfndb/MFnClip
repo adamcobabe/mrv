@@ -1,6 +1,37 @@
 1
+    | MFnClip_createInstancedClip             | None                |                                         
+    | MFnClip_createSourceClip                | None                |                                         
+    | MFnClip_getAbsolute                     | None                |                                         
+    | MFnClip_getAbsoluteChannelSettings      | None                |                                         
+    | MFnClip_getCycle                        | None                |                                         
+    | MFnClip_getEnabled                      | None                |                                         
+    | MFnClip_getMemberAnimCurves             | None                |                                         
+    | MFnClip_getPostCycle                    | None                |                                         
+    | MFnClip_getPreCycle                     | None                |                                         
+    | MFnClip_getScale                        | None                |                                         
+    | MFnClip_getSourceDuration               | None                |                                         
+    | MFnClip_getSourceStart                  | None                |                                         
+    | MFnClip_getStartFrame                   | None                |                                         
+    | MFnClip_getTrack                        | None                |                                         
+    | MFnClip_getWeight                       | None                |                                         
+    | MFnClip_isInstancedClip                 | None                |                                         
+    | MFnClip_isPose                          | None                |                                         
+    | MFnClip_setAbsolute                     | None                |                                         
+    | MFnClip_setAbsoluteChannelSettings      | None                |                                         
+    | MFnClip_setCycle                        | None                |                                         
+    | MFnClip_setEnabled                      | None                |                                         
+    | MFnClip_setPoseClip                     | None                |                                         
+    | MFnClip_setPostCycle                    | None                |                                         
+    | MFnClip_setPreCycle                     | None                |                                         
+    | MFnClip_setScale                        | None                |                                         
+    | MFnClip_setSourceData                   | None                |                                         
+    | MFnClip_setStartFrame                   | None                |                                         
+    | MFnClip_setTrack                        | None                |                                         
+    | MFnClip_setWeight                       | None                |                                         
+    | MFnClip_sourceClip                      | None                |                                         
     | createInstancedClip                     | None                |                                         
     | createSourceClip                        | None                |                                         
+    | delete_MFnClip                          | None                |                                         
     | getAbsolute                             | None                |                                         
     | getAbsoluteChannelSettings              | None                |                                         
     | getCycle                                | None                |                                         

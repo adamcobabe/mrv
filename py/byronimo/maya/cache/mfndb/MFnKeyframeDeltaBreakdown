@@ -1,4 +1,7 @@
 1
+    | MFnKeyframeDeltaBreakdown_isBreakdown   | None                |                                         
+    | MFnKeyframeDeltaBreakdown_wasBreakdown  | None                |                                         
+    | delete_MFnKeyframeDeltaBreakdown        | None                |                                         
     | isBreakdown                             | None                |                                         
     | type                                    | None                |                                         
     | wasBreakdown                            | None                |                                         

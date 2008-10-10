@@ -1,5 +1,22 @@
 1
+    | MFnIkHandle_create                      | None                |                                         
+    | MFnIkHandle_getEffector                 | None                |                                         
+    | MFnIkHandle_getStartJoint               | None                |                                         
+    | MFnIkHandle_poWeight                    | None                |                                         
+    | MFnIkHandle_priority                    | None                |                                         
+    | MFnIkHandle_setEffector                 | None                |                                         
+    | MFnIkHandle_setPOWeight                 | None                |                                         
+    | MFnIkHandle_setPriority                 | None                |                                         
+    | MFnIkHandle_setSolver                   | None                |                                         
+    | MFnIkHandle_setStartJoint               | None                |                                         
+    | MFnIkHandle_setStartJointAndEffector    | None                |                                         
+    | MFnIkHandle_setStickiness               | None                |                                         
+    | MFnIkHandle_setWeight                   | None                |                                         
+    | MFnIkHandle_solver                      | None                |                                         
+    | MFnIkHandle_stickiness                  | None                |                                         
+    | MFnIkHandle_weight                      | None                |                                         
     | create                                  | None                |                                         
+    | delete_MFnIkHandle                      | None                |                                         
     | getEffector                             | None                |                                         
     | getStartJoint                           | None                |                                         
     | poWeight                                | None                |                                         

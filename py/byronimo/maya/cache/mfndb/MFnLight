@@ -1,6 +1,28 @@
 1
+    | MFnLight_centerOfIllumination           | None                |                                         
+    | MFnLight_color                          | None                |                                         
+    | MFnLight_intensity                      | None                |                                         
+    | MFnLight_lightAmbient                   | None                |                                         
+    | MFnLight_lightDiffuse                   | None                |                                         
+    | MFnLight_lightDirection                 | None                |                                         
+    | MFnLight_lightIntensity                 | None                |                                         
+    | MFnLight_lightSpecular                  | None                |                                         
+    | MFnLight_numShadowSamples               | None                |                                         
+    | MFnLight_opticalFXvisibility            | None                |                                         
+    | MFnLight_rayDepthLimit                  | None                |                                         
+    | MFnLight_setCenterOfIllumination        | None                |                                         
+    | MFnLight_setColor                       | None                |                                         
+    | MFnLight_setIntensity                   | None                |                                         
+    | MFnLight_setNumShadowSamples            | None                |                                         
+    | MFnLight_setOpticalFXvisibility         | None                |                                         
+    | MFnLight_setRayDepthLimit               | None                |                                         
+    | MFnLight_setShadowColor                 | None                |                                         
+    | MFnLight_setUseRayTraceShadows          | None                |                                         
+    | MFnLight_shadowColor                    | None                |                                         
+    | MFnLight_useRayTraceShadows             | None                |                                         
     | centerOfIllumination                    | None                |                                         
     | color                                   | None                |                                         
+    | delete_MFnLight                         | None                |                                         
     | intensity                               | None                |                                         
     | lightAmbient                            | None                |                                         
     | lightDiffuse                            | None                |                                         

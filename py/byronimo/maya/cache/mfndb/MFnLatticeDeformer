@@ -1,8 +1,18 @@
 1
+    | MFnLatticeDeformer_addGeometry          | None                |                                         
+    | MFnLatticeDeformer_baseLattice          | None                |                                         
+    | MFnLatticeDeformer_create               | None                |                                         
+    | MFnLatticeDeformer_deformLattice        | None                |                                         
+    | MFnLatticeDeformer_getAffectedGeometry  | None                |                                         
+    | MFnLatticeDeformer_getDivisions         | None                |                                         
+    | MFnLatticeDeformer_removeGeometry       | None                |                                         
+    | MFnLatticeDeformer_resetLattice         | None                |                                         
+    | MFnLatticeDeformer_setDivisions         | None                |                                         
     | addGeometry                             | None                |                                         
     | baseLattice                             | None                |                                         
     | create                                  | None                |                                         
     | deformLattice                           | None                |                                         
+    | delete_MFnLatticeDeformer               | None                |                                         
     | getAffectedGeometry                     | None                |                                         
     | getDivisions                            | None                |                                         
     | removeGeometry                          | None                |                                         

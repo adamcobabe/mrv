@@ -1,6 +1,21 @@
 1
+    | MFnToggleManip_connectToTogglePlug      | None                |                                         
+    | MFnToggleManip_create                   | None                |                                         
+    | MFnToggleManip_direction                | None                |                                         
+    | MFnToggleManip_directionIndex           | None                |                                         
+    | MFnToggleManip_length                   | None                |                                         
+    | MFnToggleManip_lengthIndex              | None                |                                         
+    | MFnToggleManip_setDirection             | None                |                                         
+    | MFnToggleManip_setLength                | None                |                                         
+    | MFnToggleManip_setStartPoint            | None                |                                         
+    | MFnToggleManip_setToggle                | None                |                                         
+    | MFnToggleManip_startPoint               | None                |                                         
+    | MFnToggleManip_startPointIndex          | None                |                                         
+    | MFnToggleManip_toggle                   | None                |                                         
+    | MFnToggleManip_toggleIndex              | None                |                                         
     | connectToTogglePlug                     | None                |                                         
     | create                                  | None                |                                         
+    | delete_MFnToggleManip                   | None                |                                         
     | direction                               | None                |                                         
     | directionIndex                          | None                |                                         
     | length                                  | None                |                                         

@@ -1,6 +1,20 @@
 1
+    | MFnFreePointTriadManip_connectToPointPlug| None                |                                         
+    | MFnFreePointTriadManip_create           | None                |                                         
+    | MFnFreePointTriadManip_isDrawAxesOn     | None                |                                         
+    | MFnFreePointTriadManip_isKeyframeAllOn  | None                |                                         
+    | MFnFreePointTriadManip_isSnapModeOn     | None                |                                         
+    | MFnFreePointTriadManip_pointIndex       | None                |                                         
+    | MFnFreePointTriadManip_setDirection     | None                |                                         
+    | MFnFreePointTriadManip_setDrawArrowHead | None                |                                         
+    | MFnFreePointTriadManip_setDrawAxes      | None                |                                         
+    | MFnFreePointTriadManip_setGlobalTriadPlane| None                |                                         
+    | MFnFreePointTriadManip_setKeyframeAll   | None                |                                         
+    | MFnFreePointTriadManip_setPoint         | None                |                                         
+    | MFnFreePointTriadManip_setSnapMode      | None                |                                         
     | connectToPointPlug                      | None                |                                         
     | create                                  | None                |                                         
+    | delete_MFnFreePointTriadManip           | None                |                                         
     | isDrawAxesOn                            | None                |                                         
     | isKeyframeAllOn                         | None                |                                         
     | isSnapModeOn                            | None                |                                         

@@ -1,5 +1,9 @@
 1
+    | MFnStringData_create                    | None                |                                         
+    | MFnStringData_set                       | None                |                                         
+    | MFnStringData_string                    | None                |                                         
     | create                                  | None                |                                         
+    | delete_MFnStringData                    | None                |                                         
     | set                                     | None                |                                         
     | string                                  | None                |                                         
     | type                                    | None                |                                         

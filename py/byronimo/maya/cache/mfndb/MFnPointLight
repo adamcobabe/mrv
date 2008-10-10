@@ -1,3 +1,5 @@
 1
+    | MFnPointLight_create                    | None                |                                         
     | create                                  | None                |                                         
+    | delete_MFnPointLight                    | None                |                                         
     | type                                    | None                |                                         

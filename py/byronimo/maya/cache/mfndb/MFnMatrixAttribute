@@ -1,5 +1,9 @@
 1
+    | MFnMatrixAttribute_create               | None                |                                         
+    | MFnMatrixAttribute_getDefault           | None                |                                         
+    | MFnMatrixAttribute_setDefault           | None                |                                         
     | create                                  | Attribute           |                                         
+    | delete_MFnMatrixAttribute               | None                |                                         
     | getDefault                              | None                |                                         
     | setDefault                              | None                |                                         
     | type                                    | None                | getType                                 

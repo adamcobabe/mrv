@@ -1,8 +1,22 @@
 1
+    | MFnArrayAttrsData_checkArrayExist       | None                |                                         
+    | MFnArrayAttrsData_clear                 | None                |                                         
+    | MFnArrayAttrsData_count                 | None                |                                         
+    | MFnArrayAttrsData_create                | None                |                                         
+    | MFnArrayAttrsData_doubleArray           | None                |                                         
+    | MFnArrayAttrsData_getDoubleData         | None                |                                         
+    | MFnArrayAttrsData_getIntData            | None                |                                         
+    | MFnArrayAttrsData_getStringData         | None                |                                         
+    | MFnArrayAttrsData_getVectorData         | None                |                                         
+    | MFnArrayAttrsData_intArray              | None                |                                         
+    | MFnArrayAttrsData_list                  | None                |                                         
+    | MFnArrayAttrsData_stringArray           | None                |                                         
+    | MFnArrayAttrsData_vectorArray           | None                |                                         
     | checkArrayExist                         | None                |                                         
     | clear                                   | None                |                                         
     | count                                   | None                |                                         
     | create                                  | None                |                                         
+    | delete_MFnArrayAttrsData                | None                |                                         
     | doubleArray                             | None                |                                         
     | getDoubleData                           | None                |                                         
     | getIntData                              | None                |                                         

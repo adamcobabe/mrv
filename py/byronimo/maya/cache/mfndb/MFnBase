@@ -1,4 +1,9 @@
 1
+    | MFnBase_hasObj                          | None                |                                         
+    | MFnBase_object                          | None                |                                         
+    | MFnBase_setObject                       | None                |                                         
+    | MFnBase_type                            | None                |                                         
+    | delete_MFnBase                          | None                |                                         
     | hasObj                                  | None                |                                         
     | object                                  | None                |                                         
     | setObject                               | None                |                                         

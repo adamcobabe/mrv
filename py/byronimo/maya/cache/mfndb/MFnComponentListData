@@ -1,7 +1,15 @@
 1
+    | MFnComponentListData___getitem__        | None                |                                         
+    | MFnComponentListData_add                | None                |                                         
+    | MFnComponentListData_clear              | None                |                                         
+    | MFnComponentListData_create             | None                |                                         
+    | MFnComponentListData_has                | None                |                                         
+    | MFnComponentListData_length             | None                |                                         
+    | MFnComponentListData_remove             | None                |                                         
     | add                                     | None                |                                         
     | clear                                   | None                |                                         
 x   | create                                  | None                |                                         
+    | delete_MFnComponentListData             | None                |                                         
     | has                                     | None                |                                         
     | length                                  | None                | getLength                               
     | remove                                  | None                |                                         

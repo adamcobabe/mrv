@@ -1,3 +1,5 @@
 1
+    | MFnMessageAttribute_create              | None                |                                         
     | create                                  | Attribute           |                                         
+    | delete_MFnMessageAttribute              | None                |                                         
     | type                                    | None                | getType                                 

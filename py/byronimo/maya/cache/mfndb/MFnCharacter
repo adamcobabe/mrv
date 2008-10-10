@@ -1,9 +1,27 @@
 1
+    | MFnCharacter_addCurveToClip             | None                |                                         
+    | MFnCharacter_attachInstanceToCharacter  | None                |                                         
+    | MFnCharacter_attachSourceToCharacter    | None                |                                         
+    | MFnCharacter_blendExists                | None                |                                         
+    | MFnCharacter_createBlend                | None                |                                         
+    | MFnCharacter_getBlend                   | None                |                                         
+    | MFnCharacter_getBlendClips              | None                |                                         
+    | MFnCharacter_getBlendCount              | None                |                                         
+    | MFnCharacter_getCharacterThatOwnsPlug   | None                |                                         
+    | MFnCharacter_getClipScheduler           | None                |                                         
+    | MFnCharacter_getMemberPlugs             | None                |                                         
+    | MFnCharacter_getScheduledClip           | None                |                                         
+    | MFnCharacter_getScheduledClipCount      | None                |                                         
+    | MFnCharacter_getSourceClip              | None                |                                         
+    | MFnCharacter_getSourceClipCount         | None                |                                         
+    | MFnCharacter_getSubCharacters           | None                |                                         
+    | MFnCharacter_removeBlend                | None                |                                         
     | addCurveToClip                          | None                |                                         
     | attachInstanceToCharacter               | None                |                                         
     | attachSourceToCharacter                 | None                |                                         
     | blendExists                             | None                |                                         
     | createBlend                             | None                |                                         
+    | delete_MFnCharacter                     | None                |                                         
     | getBlend                                | None                |                                         
     | getBlendClips                           | None                |                                         
     | getBlendCount                           | None                |                                         

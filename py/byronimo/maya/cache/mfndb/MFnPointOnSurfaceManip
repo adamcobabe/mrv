@@ -1,7 +1,18 @@
 1
+    | MFnPointOnSurfaceManip_connectToParamPlug| None                |                                         
+    | MFnPointOnSurfaceManip_connectToSurfacePlug| None                |                                         
+    | MFnPointOnSurfaceManip_create           | None                |                                         
+    | MFnPointOnSurfaceManip_getParameters    | None                |                                         
+    | MFnPointOnSurfaceManip_isDrawSurfaceOn  | None                |                                         
+    | MFnPointOnSurfaceManip_paramIndex       | None                |                                         
+    | MFnPointOnSurfaceManip_setDrawArrows    | None                |                                         
+    | MFnPointOnSurfaceManip_setDrawSurface   | None                |                                         
+    | MFnPointOnSurfaceManip_setParameters    | None                |                                         
+    | MFnPointOnSurfaceManip_surfaceIndex     | None                |                                         
     | connectToParamPlug                      | None                |                                         
     | connectToSurfacePlug                    | None                |                                         
     | create                                  | None                |                                         
+    | delete_MFnPointOnSurfaceManip           | None                |                                         
     | getParameters                           | None                |                                         
     | isDrawSurfaceOn                         | None                |                                         
     | paramIndex                              | None                |                                         

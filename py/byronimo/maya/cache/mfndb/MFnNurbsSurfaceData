@@ -1,3 +1,5 @@
 1
+    | MFnNurbsSurfaceData_create              | None                |                                         
     | create                                  | None                |                                         
+    | delete_MFnNurbsSurfaceData              | None                |                                         
     | type                                    | None                |                                         
