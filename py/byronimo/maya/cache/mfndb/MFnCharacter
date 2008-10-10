@@ -1,0 +1,19 @@
+1
+    | addCurveToClip                          | None                |                                         
+    | attachInstanceToCharacter               | None                |                                         
+    | attachSourceToCharacter                 | None                |                                         
+    | blendExists                             | None                |                                         
+    | createBlend                             | None                |                                         
+    | getBlend                                | None                |                                         
+    | getBlendClips                           | None                |                                         
+    | getBlendCount                           | None                |                                         
+    | getCharacterThatOwnsPlug                | None                |                                         
+    | getClipScheduler                        | None                |                                         
+    | getMemberPlugs                          | None                |                                         
+    | getScheduledClip                        | None                |                                         
+    | getScheduledClipCount                   | None                |                                         
+    | getSourceClip                           | None                |                                         
+    | getSourceClipCount                      | None                |                                         
+    | getSubCharacters                        | None                |                                         
+    | removeBlend                             | None                |                                         
+    | type                                    | None                |                                         

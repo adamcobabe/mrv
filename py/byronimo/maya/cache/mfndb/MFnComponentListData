@@ -3,6 +3,6 @@
     | clear                                   | None                |                                         
 x   | create                                  | None                |                                         
     | has                                     | None                |                                         
-    | length                                  | None                | getLength                                         
+    | length                                  | None                | getLength                               
     | remove                                  | None                |                                         
-    | type                                    | None                | getType                                    
+    | type                                    | None                | getType                                 

@@ -1,7 +1,7 @@
 1
-    | addMember                               | None                |                                          
+    | addMember                               | None                |                                         
     | addMembers                              | None                |                                         
-    | annotation                              | None                | getAnnotation                                        
+    | annotation                              | None                | getAnnotation                           
     | clear                                   | None                |                                         
 x   | create                                  | None                |                                         
     | getIntersection                         | None                |                                         

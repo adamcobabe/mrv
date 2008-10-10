@@ -41,6 +41,7 @@ class TestGeneral( unittest.TestCase ):
 		for nodename in cmds.ls( ):
 			try: 
 				node = nodes.Node( nodename )
+				node.getMFnClasses()
 			except TypeError:
 				failedList.append( ( nodename, cmds.nodeType( nodename ) ) )
 			except:

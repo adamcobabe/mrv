@@ -1,6 +1,6 @@
 1
-    | componentType                           | None                | getComponentType                                        
-    | elementCount                            | None                | getElementCount                                         
+    | componentType                           | None                | getComponentType                        
+    | elementCount                            | None                | getElementCount                         
     | isComplete                              | None                |                                         
     | isEmpty                                 | None                |                                         
     | isEqual                                 | None                |                                         

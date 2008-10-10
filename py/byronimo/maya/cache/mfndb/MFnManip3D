@@ -1,0 +1,9 @@
+1
+    | isOptimizePlaybackOn                    | None                |                                         
+    | isVisible                               | None                |                                         
+    | manipScale                              | None                |                                         
+    | rotateXYZValue                          | None                |                                         
+    | setManipScale                           | None                |                                         
+    | setOptimizePlayback                     | None                |                                         
+    | setVisible                              | None                |                                         
+    | type                                    | None                |                                         

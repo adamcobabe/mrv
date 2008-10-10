@@ -6,7 +6,7 @@
     | canBeWritten                            | None                |                                         
 x   | create                                  | None                |                                         
     | findAlias                               | None                |                                         
-    | findPlug                                | None                | getPlug                                         
+    | findPlug                                | None                | getPlug                                 
     | getAffectedAttributes                   | None                |                                         
     | getAffectedByAttributes                 | None                |                                         
     | getAliasAttr                            | None                |                                         
@@ -16,14 +16,14 @@ x   | create                                  | None                |
     | hasUniqueName                           | None                |                                         
     | isDefaultNode                           | None                |                                         
     | isFlagSet                               | None                |                                         
-    | isFromReferencedFile                    | None                | isReferenced                                         
+    | isFromReferencedFile                    | None                | isReferenced                            
     | isLocked                                | None                |                                         
     | isNewAttribute                          | None                |                                         
     | isShared                                | None                |                                         
-    | name                                    | None                | getName                                        
-    | parentNamespace                         | Namespace           | getNamespace                                 
+    | name                                    | None                | getName                                 
+    | parentNamespace                         | Namespace           | getNamespace                            
     | plugsAlias                              | None                | getPlugAlias                            
-    | removeAttribute                         | Attribute           | getReorderedAttribute                                       
+    | removeAttribute                         | Attribute           | getReorderedAttribute                   
     | reorderedAttribute                      | None                |                                         
     | setAlias                                | None                |                                         
     | setDoNotWrite                           | None                |                                         

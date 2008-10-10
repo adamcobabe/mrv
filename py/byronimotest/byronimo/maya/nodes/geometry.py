@@ -137,8 +137,18 @@ class TestGeometry( unittest.TestCase ):
 			for setobj,component in setcomps:
 				if component:
 					self.failUnless( not component.isEmpty() )
+					
+					# add and remove 
+					self.failUnless( dm.isMemberOf( setobj, component = component ) )
+					
+					dm.removeFrom( setobj, component = component )
+					
+					self.failUnless( not setobj.isMember( dm, component = component ) )
+					
+					dm.addTo( setobj, component = component )
 					#print type( component ) 
 					#print "compinfo: numitems = %i, type = %i" % ( component.getElementCount(), component.type() )
+				# END if there is a component assignment
 			# END for each component
 			
 			self.failUnless( len( setcomps ) == 3 )

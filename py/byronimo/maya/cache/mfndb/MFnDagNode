@@ -1,12 +1,12 @@
 1
 x   | addChild                                | None                |                                         
     | boundingBox                             | None                | getBoundingBox                          
-    | child                                   | Node            	   | getChild                                
+    | child                                   | Node                | getChild                                
     | childCount                              | None                | getChildCount                           
 x   | create                                  | None                |                                         
     | dagPath                                 | DagPath             | getDagPath                              
-    | dagRoot                                 | Node	              | getDagRoot                              
-    | duplicate                               | Node	              |                                         
+    | dagRoot                                 | Node                | getDagRoot                              
+    | duplicate                               | Node                |                                         
     | fullPathName                            | None                | getFullPathName                         
     | getAllPaths                             | None                |                                         
 x   | getPath                                 | None                |                                         
@@ -14,7 +14,7 @@ x   | getPath                                 | None                |
     | hasParent                               | None                |                                         
     | inModel                                 | None                |                                         
     | inUnderWorld                            | None                |                                         
-    | instanceCount                           | None                | getInstanceCount                                         
+    | instanceCount                           | None                | getInstanceCount                        
     | isChildOf                               | None                |                                         
     | isInstanceable                          | None                |                                         
     | isInstanced                             | None                |                                         
@@ -24,7 +24,7 @@ x   | getPath                                 | None                |
 x   | model                                   | None                |                                         
     | objectColor                             | None                | getObjectColor                          
     | objectGroupComponent                    | None                | getObjectGroupComponent                 
-    | parent                                  | Node	              | getParent                               
+    | parent                                  | Node                | getParent                               
     | parentCount                             | None                | getParentCount                          
     | partialPathName                         | None                | getPartialName                          
 x   | removeChild                             | None                |                                         
@@ -35,5 +35,5 @@ x   | setObject                               | None                |
     | setObjectColor                          | None                |                                         
     | setUseObjectColor                       | None                |                                         
     | transformationMatrix                    | None                | getTransformationMatrix                 
-    | type                                    | None                | getType                                         
+    | type                                    | None                | getType                                 
     | usingObjectColor                        | None                | isUsingObjectColor                      

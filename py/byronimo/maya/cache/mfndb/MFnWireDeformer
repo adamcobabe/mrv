@@ -1,0 +1,26 @@
+1
+    | addGeometry                             | None                |                                         
+    | addWire                                 | None                |                                         
+    | create                                  | None                |                                         
+    | crossingEffect                          | None                |                                         
+    | envelope                                | None                |                                         
+    | getAffectedGeometry                     | None                |                                         
+    | getDropoffLocator                       | None                |                                         
+    | holdingShape                            | None                |                                         
+    | localIntensity                          | None                |                                         
+    | numDropoffLocators                      | None                |                                         
+    | numWires                                | None                |                                         
+    | removeGeometry                          | None                |                                         
+    | rotation                                | None                |                                         
+    | setCrossingEffect                       | None                |                                         
+    | setDropoffLocator                       | None                |                                         
+    | setEnvelope                             | None                |                                         
+    | setHoldingShape                         | None                |                                         
+    | setLocalIntensity                       | None                |                                         
+    | setRotation                             | None                |                                         
+    | setWireDropOffDistance                  | None                |                                         
+    | setWireScale                            | None                |                                         
+    | type                                    | None                |                                         
+    | wire                                    | None                |                                         
+    | wireDropOffDistance                     | None                |                                         
+    | wireScale                               | None                |                                         

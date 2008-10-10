@@ -1,0 +1,7 @@
+1
+    | getPointsAffectedByInfluence            | None                |                                         
+    | getWeights                              | None                |                                         
+    | indexForInfluenceObject                 | None                | getIndexForInfluenceObject                                         
+    | influenceObjects                        | None                | getInfluenceObjects                                         
+    | setWeights                              | None                |                                         
+    | type                                    | None                | getType                                        

@@ -3,4 +3,4 @@
 x   | create                                  | None                |                                         
     | isRenderPartition                       | None                |                                         
     | removeMember                            | None                |                                         
-    | type                                    | None                | getType                                         
+    | type                                    | None                | getType                                 

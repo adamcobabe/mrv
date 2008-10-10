@@ -23,6 +23,9 @@ import byronimo.maya as bmaya
 from byronimo.path import Path
 from byronimo.util import uncapitalize, capitalize, PipeSeparatedFile
 import maya.OpenMaya as api
+import maya.OpenMayaAnim as apianim
+import maya.OpenMayaUI	as apiui
+import maya.OpenMayaRender	as apirender
 import re
 import inspect
 import new
@@ -347,7 +350,14 @@ def init_nodeTypeToMfnClsMap( ):
 	
 	version = pf.beginReading( )	 # don't care about version
 	for nodeTypeName, mfnTypeName in pf.readColumnLine( ):
-		nodeTypeToMfnClsMap[ nodeTypeName ] = getattr( api, mfnTypeName )
+		for apimod in ( api, apianim, apirender, apiui ):
+			try:
+				nodeTypeToMfnClsMap[ nodeTypeName ] = getattr( apimod, mfnTypeName )
+				break				# it worked, there is only one matching class 
+			except AttributeError:
+				pass 
+		# END for each api module
+	# END for each type/mfnclass pair 
 		
 	fobj.close()
 		
@@ -514,37 +524,40 @@ def writeMfnDBCacheFiles( ):
 	"""Create a simple Memberlist of available mfn classes and their members 
 	to allow a simple human-editable way of adjusting which methods will be added
 	to the Nodes"""
-	mfnclsnames = [ clsname for clsname in dir( api ) if clsname.startswith( "MFn" ) ]
-	for mfnname in mfnclsnames:
-		mfnfile = nodes.getMfnDBPath( mfnname )
-		mfncls = getattr( api, mfnname )
-		
-		try:
-			mfnfuncs =  [ f  for f  in mfncls.__dict__.itervalues() 
-							if callable( f  ) and not f .__name__.startswith( '_' ) 
-							and not f .__name__.startswith( '<' ) and not inspect.isclass( f  ) ]
-		except AttributeError:
-			continue		# it was a function, not a class 
-		
-		if not len( mfnfuncs ):
-			continue
-		
-		db = MfnMemberMap( )
-		if mfnfile.exists():
-			db.initFromFile( mfnfile )
+	for apimod in ( api, apianim, apirender, apiui ):
+		mfnclsnames = [ clsname for clsname in dir( apimod ) if clsname.startswith( "MFn" ) ]
+		for mfnname in mfnclsnames:
+			mfnfile = nodes.getMfnDBPath( mfnname )
+			mfncls = getattr( apimod, mfnname )
 			
-		# assure folder exists
-		folder = mfnfile.dirname() 
-		if not folder.isdir(): folder.makedirs()
-		
-		
-		# write data - simple set the keys, use default flags
-		for func in mfnfuncs:
-			db.createEntry( func.__name__)
-		
-
-		# finally write the change db
-		db.writeToFile( mfnfile ) 
+			try:
+				mfnfuncs =  [ f  for f  in mfncls.__dict__.itervalues() 
+								if callable( f  ) and not f .__name__.startswith( '_' ) 
+								and not f .__name__.startswith( '<' ) and not inspect.isclass( f  ) ]
+			except AttributeError:
+				continue		# it was a function, not a class 
+			
+			if not len( mfnfuncs ):
+				continue
+			
+			db = MfnMemberMap( )
+			if mfnfile.exists():
+				db.initFromFile( mfnfile )
+				
+			# assure folder exists
+			folder = mfnfile.dirname() 
+			if not folder.isdir(): folder.makedirs()
+			
+			
+			# write data - simple set the keys, use default flags
+			for func in mfnfuncs:
+				db.createEntry( func.__name__)
+			
+	
+			# finally write the change db
+			db.writeToFile( mfnfile )
+		# END for each api class 
+	# END for each api module 
 		
 
 

@@ -528,6 +528,10 @@ class Node( object ):
 		usually either MObject or MDagPath"""
 		raise NotImplementedError( "To be implemented in subclass" )
 	
+	def getMFnClasses( self ):
+		"""@return: list of all function set classes this node supports, most derived 
+		function set comes first"""
+		return [ cls._mfncls for cls in self.__class__.mro() if hasattr( cls, '_mfncls' ) ]
 	#} END interface 
 	
 

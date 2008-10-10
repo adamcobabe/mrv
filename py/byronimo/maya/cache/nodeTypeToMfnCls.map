@@ -44,3 +44,8 @@ component			| 	MFnComponent
 singleIndexedComponent | MFnSingleIndexedComponent
 doubleIndexedComponent | MFnDoubleIndexedComponent
 tripleIndexedComponent | MFnTripleIndexedComponent
+
+geometryFilter		| MFnGeometryFilter
+skinCluster			| MFnSkinCluster
+blendShape			| MFnBlendShapeDeformer
+weightGeometryFilter | MFnWeightGeometryFilter
