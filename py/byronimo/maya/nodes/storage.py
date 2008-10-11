@@ -48,7 +48,7 @@ import maya.OpenMayaMPx as mpx
 import sys 
 import cPickle
 import cStringIO
-import base64
+import binascii
 import struct
 
 
@@ -171,7 +171,7 @@ class PyPickleData( mpx.MPxData ):
 		# NOTE: even binaries will be encoded as this circumvents the 0 byte which terminates the 
 		# char byte stream ... can't help it but writing individual bytes 
 		# TODO: improve this if it turns out to be too slow 
-		api.MStreamUtils.writeCharBuffer( ostream, base64.b64encode( sout.getvalue() ), asBinary )
+		api.MStreamUtils.writeCharBuffer( ostream, binascii.b2a_base64( sout.getvalue() ).strip(), asBinary )
 		
 		if not asBinary:
 			api.MStreamUtils.writeChar( ostream, '"', asBinary )
@@ -207,7 +207,7 @@ class PyPickleData( mpx.MPxData ):
 			# END for each byte
 		# END for all 4 bytes to read 
 		
-		self.__data = cPickle.loads( base64.b64decode( sio.getvalue() ) )
+		self.__data = cPickle.loads( binascii.a2b_base64( sio.getvalue() ) )
 		sys._maya_pyPickleData_trackingDict[ mpx.asHashable( self ) ] = self.__data
 
 	def writeASCII(self, out):
@@ -219,7 +219,7 @@ class PyPickleData( mpx.MPxData ):
 		"""Read base64 element and decode to cStringIO, then unpickle"""
 		parsedIndex = api.MScriptUtil.getUint( lastParsedElement )
 		base64encodedstring = args.asString( parsedIndex )
-		self.__data = cPickle.loads( base64.b64decode( base64encodedstring ) )
+		self.__data = cPickle.loads( binascii.a2b_base64( base64encodedstring ) )
 		
 		parsedIndex += 1
 		api.MScriptUtil.setUint(lastParsedElement,parsedIndex)	# proceed the index
@@ -380,7 +380,7 @@ class StorageBase( object ):
 		# otherwise create it - find a free logical index - do a proper search
 		return self.__makePlug( actualID )
 		
-	def clearAll( self ):
+	def clearAllData( self ):
 		"""empty the whole storage, creating new python storage data to assure 
 		nothing is still referenced
 		@note: use this method if you want to make sure your node 
@@ -390,8 +390,15 @@ class StorageBase( object ):
 			compoundplug.id.setString( "" )
 			compoundplug.dval.setMObject( api.MFnPluginData( ).create( PyPickleData.kPluginDataId ) )
 		
-		
-		
+	def clearData( self, dataID ):
+		"""Clear all data stored in the given dataID"""
+		try:
+			valueplug = self.getStoragePlug( dataID, plugType=self.kValue, autoCreate = False )
+		except AttributeError:
+			return 
+		else:
+			valueplug.setMObject( api.MFnPluginData( ).create( PyPickleData.kPluginDataId ) )
+			
 	#} END edit
 	
 	
