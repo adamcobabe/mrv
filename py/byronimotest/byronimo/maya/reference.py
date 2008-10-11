@@ -82,6 +82,9 @@ class TestReferenceRunner( unittest.TestCase ):
 			ref.cleanup( )
 			ref.cleanup( unresolvedEdits=False )
 			
+			refnode = ref.getReferenceNode( )
+			self.failUnless( not isinstance( refnode, basestring ) )
+			
 		# END for each reference
 		
 	def test_referenceCreation( self ):

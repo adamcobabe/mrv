@@ -299,7 +299,7 @@ class iDagItem( object ):
 	will work natively.
 	
 	Otherwise the getParent and getChildren methods should be overwritten
-	@note: all methods of this class are abstract and need to be overwritten
+	@note: a few methods of this class are abstract and need to be overwritten
 	@note: this class expects the attribute '_sep' to exist containing the 
 	separator at which your object should be split ( for default implementations ).
 	This works as the passed in pointer will belong to derived classes that can 
@@ -377,6 +377,16 @@ class iDagItem( object ):
 			# END while childstack
 		# END if breadth first 
 		return out
+		
+	def isPartOf( self, other ):
+		"""@return: True if self is a part of other, and thus can be found in other
+		@note: operates on strings only"""
+		return str( other ).find( str( self ) ) != -1
+		
+	def isRootOf( self, other ):
+		"""@return: True other starts with self
+		@note: operates on strings"""
+		return str( other ).startswith( str( self ) )
 		
 	#} END Query Methods
 	

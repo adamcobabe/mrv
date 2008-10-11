@@ -234,8 +234,7 @@ class FileReference( Path, iDagItem ):
 	
 	#{Query Methods
 	def isLocked( self ):
-		"""@return: True if reference is locked
-		@todo: ues byronimo wrapped refnode here"""
+		"""@return: True if reference is locked"""
 		return cmds.getAttr( self._refnode + ".locked" )
 		
 	def isLoaded( self ):
@@ -274,6 +273,11 @@ class FileReference( Path, iDagItem ):
 		if self._copynumber != 0:
 			suffix = '{%i}' % self._copynumber
 		return ( str(self) + suffix )
+		
+	def getReferenceNode( self ):
+		"""@return: byronimo wrapped reference node managing this reference"""
+		import byronimo.maya.nodes as nodes 
+		return nodes.Node( self._refnode )
 		
 	#}END query methods
 		
