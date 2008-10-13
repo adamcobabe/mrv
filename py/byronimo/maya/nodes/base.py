@@ -215,6 +215,7 @@ def objExists( objectname ):
 	return toApiobj( objectname ) is not None
 
 
+@undoable
 def delete( *args ):
 	"""Delete the given Node instances
 	@note: all deletions will be stored on one undo operation"""

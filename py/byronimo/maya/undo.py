@@ -80,6 +80,7 @@ class UndoCmd( mpx.MPxCommand ):
 	kCmdName = "byronimoUndo"
 	fPush = "-psh"
 	fPop = "-pop"
+	fId = "-id"
 	
 	def __init__(self):
 		mpx.MPxCommand.__init__(self)
@@ -154,6 +155,9 @@ class UndoCmd( mpx.MPxCommand ):
 		syntax.addFlag( UndoCmd.fPush, "-pushStack" )
 		syntax.addFlag( UndoCmd.fPop, "-popStack" )
 		
+		# id - just for information and debugging
+		syntax.addFlag( UndoCmd.fId, "-callInfo", syntax.kString )
+		
 		syntax.enableEdit( )
 		
 		return syntax
@@ -192,13 +196,13 @@ def undoable( func ):
 	def undoableDecoratorWrapFunc( *args, **kwargs ):
 		"""This is the long version of the method as it is slightly faster than
 		simply using the StartUndo helper"""
-		mel.eval( "byronimoUndo -psh" )
+		mel.eval( "byronimoUndo -psh -id \""+func.__name__+"\"" )
 		try:
 			rval = func( *args, **kwargs )
-			mel.eval( "byronimoUndo -pop" )
+			mel.eval( "byronimoUndo -pop -id \""+func.__name__+"\"" )
 			return rval
 		except:
-			mel.eval( "byronimoUndo -pop" )
+			mel.eval( "byronimoUndo -pop -id \""+func.__name__+"\"" )
 			raise 
 			
 	# END wrapFunc
@@ -211,11 +215,18 @@ class StartUndo:
 	"""Utility class that will push the undo stack on __init__ and pop it on __del__
 	@note: Prefer the undoable decorator over this one as they are easier to use and FASTER !
 	@note: use this class to assure that you pop undo when your method exists"""
-	def __init__( self ):
-		mel.eval( "byronimoUndo -psh" )			# tuned for speed - stirng is baked
+	def __init__( self, id = None ):
+		self.id = id
+		if id:
+			mel.eval( "byronimoUndo -psh -id \""+id+"\"" )
+		else:
+			mel.eval( "byronimoUndo -psh" )					
 
 	def __del__( self ):
-		mel.eval( "byronimoUndo -pop" )
+		if self.id:
+			mel.eval( "byronimoUndo -pop -id \""+self.id+"\"" )
+		else:
+			mel.eval( "byronimoUndo -pop" )
 
 def startUndo( ):
 	"""Call before you start undoable operations
