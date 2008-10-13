@@ -214,6 +214,11 @@ class ObjectSet:
 		return self._checkMemberAddResult( sellist, None, mode, ignore_failure, False )
 	
 	@undoable
+	def clear( self ):
+		"""Clear the set so that it will be empty afterwards"""
+		self.removeMembers( self.getMembers() )
+	
+	@undoable
 	def addMember( self, member, component = api.MObject(), force = False, ignore_failure = False ):
 		"""Add the item to the set
 		@param member: Node, MObject, MDagPath or plug

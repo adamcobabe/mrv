@@ -116,6 +116,24 @@ class TestSets( unittest.TestCase ):
 			
 		self.failUnless( s.getMembers().length() == len( memberlist ) )
 		
+		# MULTI-MEMBER UNDO/REDO 
+		##########################
+		s.removeMembers( memberlist )
+		self.failUnless( s.getMembers().length() == 0 )
+		cmds.undo()
+		self.failUnless( s.getMembers().length() == len( memberlist ) )
+		cmds.redo()
+		self.failUnless( s.getMembers().length() == 0 )
+		
+		# add members again
+		s.addMembers( memberlist )
+		self.failUnless( s.getMembers().length() == len( memberlist ) )
+		cmds.undo()
+		self.failUnless( s.getMembers().length() == 0 )
+		cmds.redo() 
+		self.failUnless( s.getMembers().length() == len( memberlist ) )
+		
+		
 		# remove all members
 		for i,member in enumerate( memberlist ):
 			s.removeMember( member )
@@ -139,6 +157,25 @@ class TestSets( unittest.TestCase ):
 		# remove members from sellist
 		s.removeMembers( sellist )
 		self.failUnless( s.getMembers().length() == 0 )
+		
+		cmds.undo()
+		self.failUnless( s.getMembers().length() == sellist.length() )
+		
+		cmds.redo()
+		self.failUnless( s.getMembers().length() == 0 )
+		
+		
+		# TEST CLEAR 
+		#############
+		s.addMembers( sellist )
+		self.failUnless( s.getMembers().length() == sellist.length() )
+		
+		s.clear()
+		self.failUnless( s.getMembers().length() == 0 )
+		
+		cmds.undo()
+		self.failUnless( s.getMembers().length() == sellist.length() )
+		
 		
 
 	def test_setOperations( self ):
