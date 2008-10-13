@@ -380,6 +380,16 @@ class StorageBase( object ):
 		# otherwise create it - find a free logical index - do a proper search
 		return self.__makePlug( actualID )
 		
+	def _clearData( self, valueplug ):
+		"""Safely clear the data in valueplug - its undoable"""
+		# NOTE: took special handling out - it shuld be done in the api-patch
+		# for an MPlug 
+		plugindataobj = api.MFnPluginData( ).create( PyPickleData.kPluginDataId )
+		valueplug.setMObject( plugindataobj )
+		
+			
+		
+	@undoable
 	def clearAllData( self ):
 		"""empty the whole storage, creating new python storage data to assure 
 		nothing is still referenced
@@ -387,9 +397,10 @@ class StorageBase( object ):
 		is empty after it has been duplicated ( would usually be done in the 
 		postContructor"""
 		for compoundplug in self._node.dta:
-			compoundplug.id.setString( "" )
-			compoundplug.dval.setMObject( api.MFnPluginData( ).create( PyPickleData.kPluginDataId ) )
+			self._clearData( compoundplug.dval )
+		# END for each element in data compound 
 		
+	@undoable
 	def clearData( self, dataID ):
 		"""Clear all data stored in the given dataID"""
 		try:
@@ -397,7 +408,8 @@ class StorageBase( object ):
 		except AttributeError:
 			return 
 		else:
-			valueplug.setMObject( api.MFnPluginData( ).create( PyPickleData.kPluginDataId ) )
+			self._clearData( valueplug )
+		# ELSE attr exists and clearage is required 
 			
 	#} END edit
 	

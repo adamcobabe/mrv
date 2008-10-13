@@ -80,6 +80,18 @@ class TestStorage( unittest.TestCase ):
 			
 			checkTestValue( self, pyvalloaded )
 			
+			
+			# CLEAR NON-EMPTY DATA WITH UNDO
+			##################################
+			storagenode.clearData( "test" )
+			pydatacleared = storagenode.getPythonData( "test", autoCreate =False )
+			self.failUnless( not pydatacleared.has_key( "string" ) )
+			
+			cmds.undo()
+			pydataundone = storagenode.getPythonData( "test", autoCreate =False )
+			self.failUnless( pydataundone.has_key( "string" ) )
+			
+			
 			# CREATE REFERENCE
 			##################
 			bmaya.Scene.new( force = True )
@@ -121,6 +133,11 @@ class TestStorage( unittest.TestCase ):
 		val = snode.getPythonData( "test", autoCreate=True )
 		oval = snode.getPythonData( "othertest", autoCreate=True )
 		self.failUnless( len( data ) == 2 )
+		
+		# CLEAR EMPTY DATA
+		######################
+		snode.clearData( "test" )
+		
 		
 		# PREFIXES
 		############
