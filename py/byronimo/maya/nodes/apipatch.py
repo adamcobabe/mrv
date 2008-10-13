@@ -206,6 +206,9 @@ class MPlug( api.MPlug, util.iDagItem ):
 	By overridding many object methods, the access to plugs becomes very pythonic"""
 	# __slots__ = []  	 apparently it will always have a dict 
 	
+	pa = api.MPlugArray( )		# the only way to get a null plug for use 
+	pa.setLength( 1 )
+	
 	#{ Overridden Methods
 	def __getitem__( self, index ):
 		"""@return: Plug at physical index """
@@ -506,9 +509,8 @@ class MPlug( api.MPlug, util.iDagItem ):
 		noInputs = len( inputs )
 		if noInputs == 0:
 			# TODO: find a better way to get a MPlugPtr type that can properly be tested for isNull
-			pa = api.MPlugArray( )
-			pa.setLength( 1 )
-			return pa[0]
+			return self.pa[0]
+			return None 
 		
 		if noInputs == 1:
 			return inputs[0]

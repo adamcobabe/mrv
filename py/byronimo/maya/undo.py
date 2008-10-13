@@ -416,45 +416,35 @@ class GenericOperationStack( Operation ):
 		return rval
 
 
-from byronimo.util import MetaCopyClsMembers
-import sys
-
-class DGModifier( om.MDGModifier, Operation ):
+class DGModifier( Operation ):
 	"""Undo-aware DG Modifier - using it will automatically put it onto the API undo queue
 	@note: You MUST call doIt() before once you have instantiated an instance, even though you 
-	have nothing on it. This requiredment is related to the undo queue mechanism"""
+	have nothing on it. This requiredment is related to the undo queue mechanism
+	@note: May NOT derive directly from dg modifier!"""
+	
+	_modifier_class_ = om.MDGModifier		# do be overridden by subclasses 
+	
 	def __init__( self ):
 		"""Initialize our base classes explicitly"""
-		om.MDGModifier.__init__( self )
 		Operation.__init__( self )
+		self._modifier = self._modifier_class_( )
 		
-	def _on_deletion_( self ):
-		"""general handler to do general operation handling on deletion
-		@note: NOT ( YET ) USED"""
-		if not self._doitcalled:
-			try:
-				ownindex = sys._maya_stack.index( self )
-				#print "ownindex == " + str( ownindex )
-			except ValueError:
-				pass
-			else:
-				# delete us from the queue - undo should not be called on us
-				# as we have not done anything 
-				del( sys._maya_stack[ ownindex ] )
-		# END if doit not called before deletion - need to get us off the queue
-
+	def __getattr__( self , attr ):
+		"""Always return the attribute of the dg modifier - it is fully compatible 
+		to our operation interface"""
+		return getattr( self._modifier, attr )
 	
-class DagModifier( om.MDagModifier, Operation ):
+	def doIt( self ):
+		"""Override from Operation"""
+		return self._modifier.doIt()
+		
+	def undoIt( self ):
+		"""Override from Operation"""
+		return self._modifier.undoIt()
+	
+class DagModifier( DGModifier ):
 	"""undo-aware DAG modifier, copying all extra functions from DGModifier"""
-	__metaclass__ = MetaCopyClsMembers
-	
-	__virtual_bases__ = ( DGModifier, )
-	
-	def __init__( self ):
-		"""Intiailize our base explicitly"""
-		om.MDagModifier.__init__( self )
-		Operation.__init__( self )
-		
+	_modifier_class_ = om.MDagModifier	
 		
 	
 # keep aliases
