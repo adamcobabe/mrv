@@ -49,8 +49,8 @@ Wrote DOT to: /tmp/multiinput.postcreate.dot
 --------------------------------------------
 2_WrappedWorkflow: SETTING SHELLCLS on 3_TestProcessTarget
 2_WrappedWorkflow: SETTING SHELLCLS on 1_TestProcess
-1_WrappedWorkflow: SETTING SHELLCLS on 1_TestProcess
 1_WrappedWorkflow: SETTING SHELLCLS on 3_TestProcessTarget
+1_WrappedWorkflow: SETTING SHELLCLS on 1_TestProcess
 CON: '1_WrappedWorkflow._FP_3_TestProcessTarget_outString' -> '2_WrappedWorkflow._FP_3_TestProcessTarget_inUni'
 CON: '1_WrappedWorkflow._FP_3_TestProcessTarget_outChain' -> '2_WrappedWorkflow._FP_1_TestProcess_inChain'
 -----------------------------------------------
@@ -174,69 +174,69 @@ Warning: Reference file path remapped from '/home/sebastian/ws_repository/src/wh
 File read in 0 seconds.
 
 
-Created 100 nodes in 0.570000 s ( 175.438596 / s )
+Created 100 nodes in 0.510000 s ( 196.078431 / s )
 Undo: byronimoUndo -pop
 Undone Operation in 0.000000 s
-Created 2500 nodes in 7.030000 s ( 355.618777 / s )
+Created 2500 nodes in 6.910000 s ( 361.794501 / s )
 Undo: byronimoUndo -pop
 Undone Operation in 0.160000 s
 Redo: byronimoUndo -pop
-Created 7447 Nodes ( from STRING ) in 1.560000 s ( 4773.717949 / s )
-Created 7447 Nodes ( from APIOBJ ) in 0.630000 s ( 11820.634921 / s ) -> 247.619048 % faster
+Created 7477 Nodes ( from STRING ) in 1.560000 s ( 4792.948718 / s )
+Created 7477 Nodes ( from APIOBJ ) in 0.640000 s ( 11682.812500 / s ) -> 243.750000 % faster
 File read in 0 seconds.
-Walked 2500 nodes in 0.450000 s ( 5555.555556 / s )
+Walked 2500 nodes in 0.440000 s ( 5681.818182 / s )
 Walked 2500 WRAPPED nodes in 1.300000 s ( 1923.076923 / s )
 Walked 2500 nodes BREADTH FIRST in 0.690000 s ( 3623.188406 / s )
 File read in 7 seconds.
-Walked 25000 nodes in 4.440000 s ( 5630.630631 / s )
-Walked 25000 WRAPPED nodes in 13.110000 s ( 1906.941266 / s )
-Walked 25000 nodes BREADTH FIRST in 29.090000 s ( 859.401856 / s )
-10 MULTI PLUG Connected in 0.240000 s ( 41.666667 / s )
+Walked 25000 nodes in 4.480000 s ( 5580.357143 / s )
+Walked 25000 WRAPPED nodes in 13.140000 s ( 1902.587519 / s )
+Walked 25000 nodes BREADTH FIRST in 29.290000 s ( 853.533629 / s )
+10 MULTI PLUG Connected in 0.250000 s ( 40.000000 / s )
 Undo: byronimoUndo -pop
 Redo: byronimoUndo -pop
-UNDO / REDO Time = 0.170000 / 0.130000 ( 1.846154 * faster than initial creation )
-50 MULTI PLUG Connected in 1.060000 s ( 47.169811 / s )
+UNDO / REDO Time = 0.180000 / 0.140000 ( 1.785714 * faster than initial creation )
+50 MULTI PLUG Connected in 1.100000 s ( 45.454545 / s )
 Undo: byronimoUndo -pop
 Redo: byronimoUndo -pop
-UNDO / REDO Time = 0.600000 / 0.710000 ( 1.492958 * faster than initial creation )
-100 MULTI PLUG Connected in 1.520000 s ( 65.789474 / s )
+UNDO / REDO Time = 0.600000 / 0.720000 ( 1.527778 * faster than initial creation )
+100 MULTI PLUG Connected in 1.550000 s ( 64.516129 / s )
 Undo: byronimoUndo -pop
 Redo: byronimoUndo -pop
-UNDO / REDO Time = 0.820000 / 0.830000 ( 1.831325 * faster than initial creation )
-200 MULTI PLUG Connected in 3.040000 s ( 65.789474 / s )
+UNDO / REDO Time = 0.840000 / 0.850000 ( 1.823529 * faster than initial creation )
+200 MULTI PLUG Connected in 3.160000 s ( 63.291139 / s )
 Undo: byronimoUndo -pop
 Redo: byronimoUndo -pop
-UNDO / REDO Time = 1.580000 / 1.750000 ( 1.737143 * faster than initial creation )
-10 SINGLE PLUGS Connected in 0.040000 s ( 250.000000 / s )
+UNDO / REDO Time = 1.640000 / 1.840000 ( 1.717391 * faster than initial creation )
+10 SINGLE PLUGS Connected in 0.030000 s ( 333.333333 / s )
 Undo: byronimoUndo -pop
 Redo: byronimoUndo -pop
-UNDO / REDO Time = 0.000000 / 0.000000 ( 40.000000 * faster than initial creation )
-50 SINGLE PLUGS Connected in 0.140000 s ( 357.142857 / s )
+UNDO / REDO Time = 0.000000 / 0.000000 ( 30.000000 * faster than initial creation )
+50 SINGLE PLUGS Connected in 0.150000 s ( 333.333333 / s )
 Undo: byronimoUndo -pop
 Redo: byronimoUndo -pop
-UNDO / REDO Time = 0.000000 / 0.000000 ( 140.000000 * faster than initial creation )
-100 SINGLE PLUGS Connected in 0.350000 s ( 285.714286 / s )
+UNDO / REDO Time = 0.000000 / 0.000000 ( 150.000000 * faster than initial creation )
+100 SINGLE PLUGS Connected in 0.360000 s ( 277.777778 / s )
 Undo: byronimoUndo -pop
 Redo: byronimoUndo -pop
-UNDO / REDO Time = 0.000000 / 0.000000 ( 350.000000 * faster than initial creation )
-200 SINGLE PLUGS Connected in 0.650000 s ( 307.692308 / s )
+UNDO / REDO Time = 0.000000 / 0.000000 ( 360.000000 * faster than initial creation )
+200 SINGLE PLUGS Connected in 0.660000 s ( 303.030303 / s )
 Undo: byronimoUndo -pop
 Redo: byronimoUndo -pop
-UNDO / REDO Time = 0.000000 / 0.000000 ( 650.000000 * faster than initial creation )
+UNDO / REDO Time = 0.000000 / 0.010000 ( 66.000000 * faster than initial creation )
 
 
-UNDO: DECORATED Undo disabled: 44135 ops in 1.450000 s ( 30437.931034 / s )
-UNDO: MANUAL Undo disabled: 44135 ops in 1.490000 s ( 29620.805369 / s )
-UNDO: DECORATED is 2.684564 % faster than manually implemented functions !
-UNDO: DECORATED : 44135 ops in 1.790000 s ( 24656.424581 / s )
+UNDO: DECORATED Undo disabled: 44135 ops in 1.460000 s ( 30229.452055 / s )
+UNDO: MANUAL Undo disabled: 44135 ops in 1.510000 s ( 29228.476821 / s )
+UNDO: DECORATED is 3.311258 % faster than manually implemented functions !
+UNDO: DECORATED : 44135 ops in 1.800000 s ( 24519.444444 / s )
 UNDO: MANUAL : 44135 ops in 2.040000 s ( 21634.803922 / s )
-UNDO: DECORATED is 12.254902 % faster than manually implemented functions !
+UNDO: DECORATED is 11.764706 % faster than manually implemented functions !
 Undo: byronimoUndo -pop
 Undo: byronimoUndo -pop -id "_recurseUndoDeco"
 Redo: byronimoUndo -pop -id "_recurseUndoDeco"
 Redo: byronimoUndo -pop
 UNDO: CALL TIME: 176540 operations in 0.110000 s ( 1604909.090909 / s )
-UNDO: RATIO UNDO QUEUE ON/OFF: 1.790000 s (on) vs 1.450000 s (off) = 18.994413 % speedup on disabled queue ( difference [s] = 0.550000 )
+UNDO: RATIO UNDO QUEUE ON/OFF: 1.800000 s (on) vs 1.460000 s (off) = 18.888889 % speedup on disabled queue ( difference [s] = 0.530000 )
 Undo: byronimoUndo -pop
 Redo: byronimoUndo -pop
 Undo: byronimoUndo -pop
@@ -247,10 +247,10 @@ Undo: byronimoUndo -pop
 Undo: byronimoUndo -pop
 Redo: byronimoUndo -pop
 File read in 0 seconds.
-Randomized 8997 node translations in 2.380000 s ( 3780.252101 / s )
+Randomized 8997 node translations in 2.410000 s ( 3733.195021 / s )
 SAVED TMP FILE TO: /tmp/randomscene.mb
-Average position of 8997 nodes is: <0.058464,-0.040124,-0.066244> in 2.160000 s
-Set 8997 nodes to average position in 0.510000 s ( 17641.176471 / s )
+Average position of 8997 nodes is: <-0.147605,-0.003668,0.119151> in 2.130000 s
+Set 8997 nodes to average position in 0.520000 s ( 17301.923077 / s )
 SAVED TMP FILE TO: /tmp/averaged.mb
 SETTING 3_TestProcessTarget.inUni
 WILL QUERY: 3_TestProcessTarget.outString
@@ -593,8 +593,8 @@ Undo: byronimoUndo -pop -id "setPartition"
 Redo: byronimoUndo -pop -id "setPartition"
 CON: 's1.outRand' -> 's2.inFloat'
 CON: 's2.outMult' -> 's3.inFloat'
-CON: 's1.outRand' -> 's2.inFloat'
 CON: 's2.outMult' -> 's3.inFloat'
+CON: 's1.outRand' -> 's2.inFloat'
 CON: 's1.outRand' -> 's2.inFloat'
 CON: 's1.outRand' -> 's2.inFloat'
 CON: 's3.outRand' -> 's2.inFloat'
@@ -608,19 +608,19 @@ GN_1: SETTING SHELLCLS on s2
 CON: 's1.outAdd' -> 's2.inFloat'
 CON: 's1.outAdd' -> 's2.inFloat'
 GN_2: SETTING SHELLCLS on s2
-CON: 's1.outAdd' -> 's2.inFloat'
 GN_2: SETTING SHELLCLS on s1
+CON: 's1.outAdd' -> 's2.inFloat'
 CON: 's1.outAdd' -> 's2.inFloat'
 CON: 'GN_1._FP_s2_outAdd' -> 'GN_2._FP_s1_inFloat'
 CON: 's1.outAdd' -> 's2.inFloat'
 CON: 's1.outAdd' -> 's2.inFloat'
-GN_1: SETTING SHELLCLS on s2
-CON: 's1.outAdd' -> 's2.inFloat'
 GN_1: SETTING SHELLCLS on s1
 CON: 's1.outAdd' -> 's2.inFloat'
-GN_2: SETTING SHELLCLS on s2
+GN_1: SETTING SHELLCLS on s2
 CON: 's1.outAdd' -> 's2.inFloat'
 GN_2: SETTING SHELLCLS on s1
+CON: 's1.outAdd' -> 's2.inFloat'
+GN_2: SETTING SHELLCLS on s2
 CON: 's1.outAdd' -> 's2.inFloat'
 CON: 'GN_1._FP_s2_outAdd' -> 'GN_2._FP_s1_inFloat'
 CON: 's1.outAdd' -> 's2.inFloat'
@@ -638,9 +638,9 @@ SGN_1: SETTING SHELLCLS on GN_1
 SGN_1: SETTING SHELLCLS on GN_2
 CON: 'GN_1._FP_s2_outAdd' -> 'GN_2._FP_s1_inFloat'
 CON: 'GN_1._FP_s2_outAdd' -> 'GN_2._FP_s1_inFloat'
+SGN_2: SETTING SHELLCLS on GN_1
 SGN_2: SETTING SHELLCLS on GN_2
 CON: 'GN_1._FP_s2_outAdd' -> 'GN_2._FP_s1_inFloat'
-SGN_2: SETTING SHELLCLS on GN_1
 CON: 'GN_1._FP_s2_outAdd' -> 'GN_2._FP_s1_inFloat'
 CON: 'SGN_1._FP_GN_2__FP_s2_outAdd' -> 'SGN_2._FP_GN_1__FP_s1_inFloat'
 CON: 'SGN_2._FP_GN_2__FP_s2_outAdd' -> 'SGN_1._FP_GN_1__FP_s1_inFloat'
@@ -798,7 +798,7 @@ Traceback (most recent call last):
 AssertionError
 
 ----------------------------------------------------------------------
-Ran 97 tests in 125.202s
+Ran 97 tests in 123.418s
 
 FAILED (failures=2, errors=2)
 
