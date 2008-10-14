@@ -547,7 +547,7 @@ class Node( object ):
 	#} END interface 
 	
 
-class DependNode:
+class DependNode( Node ):		# parent just for epydoc - 
 	""" Implements access to dependency nodes 
 	
 	Depdency Nodes are manipulated using an MObjectHandle which is safest to go with, 
@@ -729,12 +729,12 @@ class DependNode:
 	#}
 	
 	
-class Entity:
+class Entity( DependNode ):		# parent just for epydoc 
 	"""Common base for dagnodes and paritions"""
 	__metaclass__ = nodes.MetaClassCreatorNodes
 
 
-class DagNode( iDagItem ):
+class DagNode( Entity, iDagItem ):	# parent just for epydoc 
 	""" Implements access to DAG nodes """
 	__metaclass__ = nodes.MetaClassCreatorNodes
 	_sep = "|"

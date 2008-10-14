@@ -107,7 +107,6 @@ def getDagIterator( *args, **kwargs ):
 	if root is not None :
 		startObj = startPath = None
 		if isinstance( root, api.MDagPath ):
-			print "WAS DAG PATH"
 			startPath = root
 		else:
 			startObj = root
