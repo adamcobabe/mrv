@@ -1,0 +1,180 @@
+LOADING workflowwrap FROM FILE /home/sebastian/ws_repository/src/whitesharkstd/trunk/ext/byronimo/py/byronimotest/byronimo/automation/workflows/workflowwrap.dot
+LOADING multiinput FROM FILE /home/sebastian/ws_repository/src/whitesharkstd/trunk/ext/byronimo/py/byronimotest/byronimo/automation/workflows/multiinput.dot
+CON: '1_TestProcess.outText' -> '2_TestProcess.inText'
+CON: '1_TestProcess.outChain' -> '2_TestProcess.inChain'
+CON: '1_TestProcess.outInt' -> '2_TestProcess.inInt'
+CON: '1_TestProcess.outFloat' -> '2_TestProcess.inFloat'
+CON: '2_TestProcess.outChain' -> '3_TestProcessTarget.inChain'
+CON: '2_TestProcess.outInt' -> '3_TestProcessTarget.inInt'
+CON: '2_TestProcess.outFloat' -> '3_TestProcessTarget.inFloat'
+--------------------------------------------
+Wrote DOT to: /tmp/multiinput.postcreate.dot
+--------------------------------------------
+----------------------------------------------
+Wrote DOT to: /tmp/workflowwrap.postcreate.dot
+----------------------------------------------
+LOADING multiinput FROM FILE /home/sebastian/ws_repository/src/whitesharkstd/trunk/ext/byronimo/py/byronimotest/byronimo/automation/workflows/multiinput.dot
+CON: '1_TestProcess.outText' -> '2_TestProcess.inText'
+CON: '1_TestProcess.outChain' -> '2_TestProcess.inChain'
+CON: '1_TestProcess.outInt' -> '2_TestProcess.inInt'
+CON: '1_TestProcess.outFloat' -> '2_TestProcess.inFloat'
+CON: '2_TestProcess.outChain' -> '3_TestProcessTarget.inChain'
+CON: '2_TestProcess.outInt' -> '3_TestProcessTarget.inInt'
+CON: '2_TestProcess.outFloat' -> '3_TestProcessTarget.inFloat'
+--------------------------------------------
+Wrote DOT to: /tmp/multiinput.postcreate.dot
+--------------------------------------------
+LOADING multiWorkflow FROM FILE /home/sebastian/ws_repository/src/whitesharkstd/trunk/ext/byronimo/py/byronimotest/byronimo/automation/workflows/multiWorkflow.dot
+LOADING multiinput FROM FILE /home/sebastian/ws_repository/src/whitesharkstd/trunk/ext/byronimo/py/byronimotest/byronimo/automation/workflows/multiinput.dot
+CON: '1_TestProcess.outText' -> '2_TestProcess.inText'
+CON: '1_TestProcess.outChain' -> '2_TestProcess.inChain'
+CON: '1_TestProcess.outInt' -> '2_TestProcess.inInt'
+CON: '1_TestProcess.outFloat' -> '2_TestProcess.inFloat'
+CON: '2_TestProcess.outChain' -> '3_TestProcessTarget.inChain'
+CON: '2_TestProcess.outInt' -> '3_TestProcessTarget.inInt'
+CON: '2_TestProcess.outFloat' -> '3_TestProcessTarget.inFloat'
+--------------------------------------------
+Wrote DOT to: /tmp/multiinput.postcreate.dot
+--------------------------------------------
+LOADING multiinput FROM FILE /home/sebastian/ws_repository/src/whitesharkstd/trunk/ext/byronimo/py/byronimotest/byronimo/automation/workflows/multiinput.dot
+CON: '1_TestProcess.outText' -> '2_TestProcess.inText'
+CON: '1_TestProcess.outChain' -> '2_TestProcess.inChain'
+CON: '1_TestProcess.outInt' -> '2_TestProcess.inInt'
+CON: '1_TestProcess.outFloat' -> '2_TestProcess.inFloat'
+CON: '2_TestProcess.outChain' -> '3_TestProcessTarget.inChain'
+CON: '2_TestProcess.outInt' -> '3_TestProcessTarget.inInt'
+CON: '2_TestProcess.outFloat' -> '3_TestProcessTarget.inFloat'
+--------------------------------------------
+Wrote DOT to: /tmp/multiinput.postcreate.dot
+--------------------------------------------
+2_WrappedWorkflow: SETTING SHELLCLS on 3_TestProcessTarget
+2_WrappedWorkflow: SETTING SHELLCLS on 1_TestProcess
+1_WrappedWorkflow: SETTING SHELLCLS on 3_TestProcessTarget
+1_WrappedWorkflow: SETTING SHELLCLS on 1_TestProcess
+CON: '1_WrappedWorkflow._FP_3_TestProcessTarget_outString' -> '2_WrappedWorkflow._FP_3_TestProcessTarget_inUni'
+CON: '1_WrappedWorkflow._FP_3_TestProcessTarget_outChain' -> '2_WrappedWorkflow._FP_1_TestProcess_inChain'
+-----------------------------------------------
+Wrote DOT to: /tmp/multiWorkflow.postcreate.dot
+-----------------------------------------------
+LOADING simpleconnection FROM FILE /home/sebastian/ws_repository/src/whitesharkstd/trunk/ext/byronimo/py/byronimotest/byronimo/automation/workflows/simpleconnection.dot
+CON: 'TestProcess0.outText' -> 'TestProcess1.inText'
+CON: 'TestProcess0.outChain' -> 'TestProcess1.inChain'
+CON: 'TestProcess0.outInt' -> 'TestProcess1.inInt'
+CON: 'TestProcess0.outFloat' -> 'TestProcess1.inFloat'
+--------------------------------------------------
+Wrote DOT to: /tmp/simpleconnection.postcreate.dot
+--------------------------------------------------
+Initializing byronimo.maya.undo
+Initializing byronimo.maya.nodes.storage
+File read in 0 seconds.
+Undo: byronimoUndo -pop -id "create"
+Redo: byronimoUndo -pop -id "create"
+Undo: byronimoUndo -pop -id "setCurrent"
+Undo: byronimoUndo -pop -id "create"
+Redo: byronimoUndo -pop -id "create"
+Undo: byronimoUndo -pop -id "setCurrent"
+Undo: byronimoUndo -pop -id "create"
+Redo: byronimoUndo -pop -id "create"
+Undo: byronimoUndo -pop -id "setCurrent"
+Undo: byronimoUndo -pop -id "create"
+Redo: byronimoUndo -pop -id "create"
+Undo: byronimoUndo -pop -id "setCurrent"
+Warning: The current namespace is now ":".
+Warning: The current namespace is now ":".
+Warning: The current namespace is now ":".
+Warning: The current namespace is now ":".
+Warning: The current namespace is now ":".
+Warning: The current namespace is now ":".
+Warning: The current namespace is now ":".
+Warning: The current namespace is now ":".
+Warning: The current namespace is now ":".
+Warning: The current namespace is now ":".
+Warning: The current namespace is now ":".
+Warning: The current namespace is now ":".
+Warning: The current namespace is now ":".
+Warning: The current namespace is now ":".
+Warning: The current namespace is now ":".
+Warning: The current namespace is now ":".
+Warning: The current namespace is now ":".
+Warning: The current namespace is now ":".
+Warning: The current namespace is now ":".
+Warning: The current namespace is now ":".
+Warning: The current namespace is now ":".
+Warning: The current namespace is now ":".
+Warning: The current namespace is now ":".
+Warning: The current namespace is now ":".
+Warning: The current namespace is now ":".
+File read in 0 seconds.
+Undo: byronimoUndo -pop
+Redo: byronimoUndo -pop
+Undo: byronimoUndo -pop
+Redo: byronimoUndo -pop
+Undo: byronimoUndo -pop
+Undo: byronimoUndo -pop
+Undo: byronimoUndo -pop
+Undo: byronimoUndo -pop
+Redo: byronimoUndo -pop
+Warning: file: /home/sebastian/ws_repository/src/whitesharkstd/trunk/ext/byronimo/py/byronimotest/byronimo/maya/ma/refbase.ma line 12: Reference file path remapped from '$MAYAFILEBASE/ma/cube.ma' to '/home/sebastian/ws_repository/src/whitesharkstd/trunk/ext/byronimo/py/byronimotest/byronimo/maya/ma/cube.ma'.
+Warning: file: /home/sebastian/ws_repository/src/whitesharkstd/trunk/ext/byronimo/py/byronimotest/byronimo/maya/ma/refbase.ma line 13: Reference file path remapped from '$MAYAFILEBASE/ma/cylinder.ma' to '/home/sebastian/ws_repository/src/whitesharkstd/trunk/ext/byronimo/py/byronimotest/byronimo/maya/ma/cylinder.ma'.
+Warning: file: /home/sebastian/ws_repository/src/whitesharkstd/trunk/ext/byronimo/py/byronimotest/byronimo/maya/ma/refbase.ma line 14: Reference file path remapped from '$MAYAFILEBASE/ma/sphere.ma' to '/home/sebastian/ws_repository/src/whitesharkstd/trunk/ext/byronimo/py/byronimotest/byronimo/maya/ma/sphere.ma'.
+Warning: file: /home/sebastian/ws_repository/src/whitesharkstd/trunk/ext/byronimo/py/byronimotest/byronimo/maya/ma/refbase.ma line 15: Reference file path remapped from '$MAYAFILEBASE/ma/subrefbase.ma' to '/home/sebastian/ws_repository/src/whitesharkstd/trunk/ext/byronimo/py/byronimotest/byronimo/maya/ma/subrefbase.ma'.
+File read in 0 seconds.
+File read in 0 seconds.
+File read in 0 seconds.
+File read in 0 seconds.
+Warning: file: /home/sebastian/ws_repository/src/whitesharkstd/trunk/ext/byronimo/py/byronimotest/byronimo/maya/ma/subrefbase.ma line 12: Reference file path remapped from '$MAYAFILEBASE/ma/cube.ma' to '/home/sebastian/ws_repository/src/whitesharkstd/trunk/ext/byronimo/py/byronimotest/byronimo/maya/ma/cube.ma'.
+Warning: file: /home/sebastian/ws_repository/src/whitesharkstd/trunk/ext/byronimo/py/byronimotest/byronimo/maya/ma/subrefbase.ma line 13: Reference file path remapped from '$MAYAFILEBASE/ma/cylinder.ma' to '/home/sebastian/ws_repository/src/whitesharkstd/trunk/ext/byronimo/py/byronimotest/byronimo/maya/ma/cylinder.ma'.
+Warning: file: /home/sebastian/ws_repository/src/whitesharkstd/trunk/ext/byronimo/py/byronimotest/byronimo/maya/ma/subrefbase.ma line 14: Reference file path remapped from '$MAYAFILEBASE/ma/sphere.ma' to '/home/sebastian/ws_repository/src/whitesharkstd/trunk/ext/byronimo/py/byronimotest/byronimo/maya/ma/sphere.ma'.
+Warning: file: /home/sebastian/ws_repository/src/whitesharkstd/trunk/ext/byronimo/py/byronimotest/byronimo/maya/ma/subrefbase.ma line 15: Reference file path remapped from '$MAYAFILEBASE/ma/subsubrefbase.ma' to '/home/sebastian/ws_repository/src/whitesharkstd/trunk/ext/byronimo/py/byronimotest/byronimo/maya/ma/subsubrefbase.ma'.
+File read in 0 seconds.
+Warning: file: /home/sebastian/ws_repository/src/whitesharkstd/trunk/ext/byronimo/py/byronimotest/byronimo/maya/ma/subsubrefbase.ma line 8: Reference file path remapped from '$MAYAFILEBASE/ma/cube.ma' to '/home/sebastian/ws_repository/src/whitesharkstd/trunk/ext/byronimo/py/byronimotest/byronimo/maya/ma/cube.ma'.
+Warning: file: /home/sebastian/ws_repository/src/whitesharkstd/trunk/ext/byronimo/py/byronimotest/byronimo/maya/ma/subsubrefbase.ma line 9: Reference file path remapped from '$MAYAFILEBASE/ma/cylinder.ma' to '/home/sebastian/ws_repository/src/whitesharkstd/trunk/ext/byronimo/py/byronimotest/byronimo/maya/ma/cylinder.ma'.
+Warning: file: /home/sebastian/ws_repository/src/whitesharkstd/trunk/ext/byronimo/py/byronimotest/byronimo/maya/ma/subsubrefbase.ma line 10: Reference file path remapped from '$MAYAFILEBASE/ma/sphere.ma' to '/home/sebastian/ws_repository/src/whitesharkstd/trunk/ext/byronimo/py/byronimotest/byronimo/maya/ma/sphere.ma'.
+File read in 0 seconds.
+Warning: file: /home/sebastian/ws_repository/src/whitesharkstd/trunk/ext/byronimo/py/byronimotest/byronimo/maya/ma/refbase.ma line 12: Reference file path remapped from '$MAYAFILEBASE/ma/cube.ma' to '/home/sebastian/ws_repository/src/whitesharkstd/trunk/ext/byronimo/py/byronimotest/byronimo/maya/ma/cube.ma'.
+Warning: file: /home/sebastian/ws_repository/src/whitesharkstd/trunk/ext/byronimo/py/byronimotest/byronimo/maya/ma/refbase.ma line 13: Reference file path remapped from '$MAYAFILEBASE/ma/cylinder.ma' to '/home/sebastian/ws_repository/src/whitesharkstd/trunk/ext/byronimo/py/byronimotest/byronimo/maya/ma/cylinder.ma'.
+Warning: file: /home/sebastian/ws_repository/src/whitesharkstd/trunk/ext/byronimo/py/byronimotest/byronimo/maya/ma/refbase.ma line 14: Reference file path remapped from '$MAYAFILEBASE/ma/sphere.ma' to '/home/sebastian/ws_repository/src/whitesharkstd/trunk/ext/byronimo/py/byronimotest/byronimo/maya/ma/sphere.ma'.
+Warning: file: /home/sebastian/ws_repository/src/whitesharkstd/trunk/ext/byronimo/py/byronimotest/byronimo/maya/ma/refbase.ma line 15: Reference file path remapped from '$MAYAFILEBASE/ma/subrefbase.ma' to '/home/sebastian/ws_repository/src/whitesharkstd/trunk/ext/byronimo/py/byronimotest/byronimo/maya/ma/subrefbase.ma'.
+File read in 0 seconds.
+File read in 0 seconds.
+File read in 0 seconds.
+File read in 0 seconds.
+Warning: file: /home/sebastian/ws_repository/src/whitesharkstd/trunk/ext/byronimo/py/byronimotest/byronimo/maya/ma/subrefbase.ma line 12: Reference file path remapped from '$MAYAFILEBASE/ma/cube.ma' to '/home/sebastian/ws_repository/src/whitesharkstd/trunk/ext/byronimo/py/byronimotest/byronimo/maya/ma/cube.ma'.
+Warning: file: /home/sebastian/ws_repository/src/whitesharkstd/trunk/ext/byronimo/py/byronimotest/byronimo/maya/ma/subrefbase.ma line 13: Reference file path remapped from '$MAYAFILEBASE/ma/cylinder.ma' to '/home/sebastian/ws_repository/src/whitesharkstd/trunk/ext/byronimo/py/byronimotest/byronimo/maya/ma/cylinder.ma'.
+Warning: file: /home/sebastian/ws_repository/src/whitesharkstd/trunk/ext/byronimo/py/byronimotest/byronimo/maya/ma/subrefbase.ma line 14: Reference file path remapped from '$MAYAFILEBASE/ma/sphere.ma' to '/home/sebastian/ws_repository/src/whitesharkstd/trunk/ext/byronimo/py/byronimotest/byronimo/maya/ma/sphere.ma'.
+Warning: file: /home/sebastian/ws_repository/src/whitesharkstd/trunk/ext/byronimo/py/byronimotest/byronimo/maya/ma/subrefbase.ma line 15: Reference file path remapped from '$MAYAFILEBASE/ma/subsubrefbase.ma' to '/home/sebastian/ws_repository/src/whitesharkstd/trunk/ext/byronimo/py/byronimotest/byronimo/maya/ma/subsubrefbase.ma'.
+File read in 0 seconds.
+Warning: file: /home/sebastian/ws_repository/src/whitesharkstd/trunk/ext/byronimo/py/byronimotest/byronimo/maya/ma/subsubrefbase.ma line 8: Reference file path remapped from '$MAYAFILEBASE/ma/cube.ma' to '/home/sebastian/ws_repository/src/whitesharkstd/trunk/ext/byronimo/py/byronimotest/byronimo/maya/ma/cube.ma'.
+Warning: file: /home/sebastian/ws_repository/src/whitesharkstd/trunk/ext/byronimo/py/byronimotest/byronimo/maya/ma/subsubrefbase.ma line 9: Reference file path remapped from '$MAYAFILEBASE/ma/cylinder.ma' to '/home/sebastian/ws_repository/src/whitesharkstd/trunk/ext/byronimo/py/byronimotest/byronimo/maya/ma/cylinder.ma'.
+Warning: file: /home/sebastian/ws_repository/src/whitesharkstd/trunk/ext/byronimo/py/byronimotest/byronimo/maya/ma/subsubrefbase.ma line 10: Reference file path remapped from '$MAYAFILEBASE/ma/sphere.ma' to '/home/sebastian/ws_repository/src/whitesharkstd/trunk/ext/byronimo/py/byronimotest/byronimo/maya/ma/sphere.ma'.
+File read in 0 seconds.
+File read in 0 seconds.
+File read in 0 seconds.
+File read in 0 seconds.
+File read in 0 seconds.
+Warning: file: /home/sebastian/ws_repository/src/whitesharkstd/trunk/ext/byronimo/py/byronimotest/byronimo/maya/ma/subrefbase.ma line 12: Reference file path remapped from '$MAYAFILEBASE/ma/cube.ma' to '/home/sebastian/ws_repository/src/whitesharkstd/trunk/ext/byronimo/py/byronimotest/byronimo/maya/ma/cube.ma'.
+Warning: file: /home/sebastian/ws_repository/src/whitesharkstd/trunk/ext/byronimo/py/byronimotest/byronimo/maya/ma/subrefbase.ma line 13: Reference file path remapped from '$MAYAFILEBASE/ma/cylinder.ma' to '/home/sebastian/ws_repository/src/whitesharkstd/trunk/ext/byronimo/py/byronimotest/byronimo/maya/ma/cylinder.ma'.
+Warning: file: /home/sebastian/ws_repository/src/whitesharkstd/trunk/ext/byronimo/py/byronimotest/byronimo/maya/ma/subrefbase.ma line 14: Reference file path remapped from '$MAYAFILEBASE/ma/sphere.ma' to '/home/sebastian/ws_repository/src/whitesharkstd/trunk/ext/byronimo/py/byronimotest/byronimo/maya/ma/sphere.ma'.
+Warning: file: /home/sebastian/ws_repository/src/whitesharkstd/trunk/ext/byronimo/py/byronimotest/byronimo/maya/ma/subrefbase.ma line 15: Reference file path remapped from '$MAYAFILEBASE/ma/subsubrefbase.ma' to '/home/sebastian/ws_repository/src/whitesharkstd/trunk/ext/byronimo/py/byronimotest/byronimo/maya/ma/subsubrefbase.ma'.
+File read in 0 seconds.
+File read in 0 seconds.
+File read in 0 seconds.
+File read in 0 seconds.
+Warning: file: /home/sebastian/ws_repository/src/whitesharkstd/trunk/ext/byronimo/py/byronimotest/byronimo/maya/ma/subsubrefbase.ma line 8: Reference file path remapped from '$MAYAFILEBASE/ma/cube.ma' to '/home/sebastian/ws_repository/src/whitesharkstd/trunk/ext/byronimo/py/byronimotest/byronimo/maya/ma/cube.ma'.
+Warning: file: /home/sebastian/ws_repository/src/whitesharkstd/trunk/ext/byronimo/py/byronimotest/byronimo/maya/ma/subsubrefbase.ma line 9: Reference file path remapped from '$MAYAFILEBASE/ma/cylinder.ma' to '/home/sebastian/ws_repository/src/whitesharkstd/trunk/ext/byronimo/py/byronimotest/byronimo/maya/ma/cylinder.ma'.
+Warning: file: /home/sebastian/ws_repository/src/whitesharkstd/trunk/ext/byronimo/py/byronimotest/byronimo/maya/ma/subsubrefbase.ma line 10: Reference file path remapped from '$MAYAFILEBASE/ma/sphere.ma' to '/home/sebastian/ws_repository/src/whitesharkstd/trunk/ext/byronimo/py/byronimotest/byronimo/maya/ma/sphere.ma'.
+File read in 0 seconds.
+Warning: Reference file path remapped from '/home/sebastian/ws_repository/src/whitesharkstd/trunk/ext/byronimo/py/byronimotest/byronimo/maya/ma/cube.ma' to '/home/sebastian/ws_repository/src/whitesharkstd/trunk/ext/byronimo/py/byronimotest/byronimo/maya/ma/cube.ma'.
+File read in 0 seconds.
+Warning: Reference file path remapped from '/home/sebastian/ws_repository/src/whitesharkstd/trunk/ext/byronimo/py/byronimotest/byronimo/maya/ma/sphere.ma' to '/home/sebastian/ws_repository/src/whitesharkstd/trunk/ext/byronimo/py/byronimotest/byronimo/maya/ma/sphere.ma'.
+File read in 0 seconds.
+Warning: Reference file path remapped from '/home/sebastian/ws_repository/src/whitesharkstd/trunk/ext/byronimo/py/byronimotest/byronimo/maya/ma/cylinder.ma' to '/home/sebastian/ws_repository/src/whitesharkstd/trunk/ext/byronimo/py/byronimotest/byronimo/maya/ma/cylinder.ma'.
+File read in 0 seconds.
+Warning: Reference file path remapped from '/home/sebastian/ws_repository/src/whitesharkstd/trunk/ext/byronimo/py/byronimotest/byronimo/maya/ma/empty.ma' to '/home/sebastian/ws_repository/src/whitesharkstd/trunk/ext/byronimo/py/byronimotest/byronimo/maya/ma/empty.ma'.
+File read in 0 seconds.
+
+
+Created 100 nodes in 0.480000 s ( 208.333333 / s )
+Undo: byronimoUndo -pop
+Undone Operation in 0.010000 s
+Fatal Error. Attempting to save in /usr/tmp/sebastian.20081014.1902.ma
