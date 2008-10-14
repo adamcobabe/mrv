@@ -49,8 +49,8 @@ Wrote DOT to: /tmp/multiinput.postcreate.dot
 --------------------------------------------
 2_WrappedWorkflow: SETTING SHELLCLS on 3_TestProcessTarget
 2_WrappedWorkflow: SETTING SHELLCLS on 1_TestProcess
-1_WrappedWorkflow: SETTING SHELLCLS on 3_TestProcessTarget
 1_WrappedWorkflow: SETTING SHELLCLS on 1_TestProcess
+1_WrappedWorkflow: SETTING SHELLCLS on 3_TestProcessTarget
 CON: '1_WrappedWorkflow._FP_3_TestProcessTarget_outString' -> '2_WrappedWorkflow._FP_3_TestProcessTarget_inUni'
 CON: '1_WrappedWorkflow._FP_3_TestProcessTarget_outChain' -> '2_WrappedWorkflow._FP_1_TestProcess_inChain'
 -----------------------------------------------
@@ -174,7 +174,631 @@ Warning: Reference file path remapped from '/home/sebastian/ws_repository/src/wh
 File read in 0 seconds.
 
 
-Created 100 nodes in 0.480000 s ( 208.333333 / s )
+Created 100 nodes in 0.570000 s ( 175.438596 / s )
 Undo: byronimoUndo -pop
-Undone Operation in 0.010000 s
-Fatal Error. Attempting to save in /usr/tmp/sebastian.20081014.1902.ma
+Undone Operation in 0.000000 s
+Created 2500 nodes in 7.030000 s ( 355.618777 / s )
+Undo: byronimoUndo -pop
+Undone Operation in 0.160000 s
+Redo: byronimoUndo -pop
+Created 7447 Nodes ( from STRING ) in 1.560000 s ( 4773.717949 / s )
+Created 7447 Nodes ( from APIOBJ ) in 0.630000 s ( 11820.634921 / s ) -> 247.619048 % faster
+File read in 0 seconds.
+Walked 2500 nodes in 0.450000 s ( 5555.555556 / s )
+Walked 2500 WRAPPED nodes in 1.300000 s ( 1923.076923 / s )
+Walked 2500 nodes BREADTH FIRST in 0.690000 s ( 3623.188406 / s )
+File read in 7 seconds.
+Walked 25000 nodes in 4.440000 s ( 5630.630631 / s )
+Walked 25000 WRAPPED nodes in 13.110000 s ( 1906.941266 / s )
+Walked 25000 nodes BREADTH FIRST in 29.090000 s ( 859.401856 / s )
+10 MULTI PLUG Connected in 0.240000 s ( 41.666667 / s )
+Undo: byronimoUndo -pop
+Redo: byronimoUndo -pop
+UNDO / REDO Time = 0.170000 / 0.130000 ( 1.846154 * faster than initial creation )
+50 MULTI PLUG Connected in 1.060000 s ( 47.169811 / s )
+Undo: byronimoUndo -pop
+Redo: byronimoUndo -pop
+UNDO / REDO Time = 0.600000 / 0.710000 ( 1.492958 * faster than initial creation )
+100 MULTI PLUG Connected in 1.520000 s ( 65.789474 / s )
+Undo: byronimoUndo -pop
+Redo: byronimoUndo -pop
+UNDO / REDO Time = 0.820000 / 0.830000 ( 1.831325 * faster than initial creation )
+200 MULTI PLUG Connected in 3.040000 s ( 65.789474 / s )
+Undo: byronimoUndo -pop
+Redo: byronimoUndo -pop
+UNDO / REDO Time = 1.580000 / 1.750000 ( 1.737143 * faster than initial creation )
+10 SINGLE PLUGS Connected in 0.040000 s ( 250.000000 / s )
+Undo: byronimoUndo -pop
+Redo: byronimoUndo -pop
+UNDO / REDO Time = 0.000000 / 0.000000 ( 40.000000 * faster than initial creation )
+50 SINGLE PLUGS Connected in 0.140000 s ( 357.142857 / s )
+Undo: byronimoUndo -pop
+Redo: byronimoUndo -pop
+UNDO / REDO Time = 0.000000 / 0.000000 ( 140.000000 * faster than initial creation )
+100 SINGLE PLUGS Connected in 0.350000 s ( 285.714286 / s )
+Undo: byronimoUndo -pop
+Redo: byronimoUndo -pop
+UNDO / REDO Time = 0.000000 / 0.000000 ( 350.000000 * faster than initial creation )
+200 SINGLE PLUGS Connected in 0.650000 s ( 307.692308 / s )
+Undo: byronimoUndo -pop
+Redo: byronimoUndo -pop
+UNDO / REDO Time = 0.000000 / 0.000000 ( 650.000000 * faster than initial creation )
+
+
+UNDO: DECORATED Undo disabled: 44135 ops in 1.450000 s ( 30437.931034 / s )
+UNDO: MANUAL Undo disabled: 44135 ops in 1.490000 s ( 29620.805369 / s )
+UNDO: DECORATED is 2.684564 % faster than manually implemented functions !
+UNDO: DECORATED : 44135 ops in 1.790000 s ( 24656.424581 / s )
+UNDO: MANUAL : 44135 ops in 2.040000 s ( 21634.803922 / s )
+UNDO: DECORATED is 12.254902 % faster than manually implemented functions !
+Undo: byronimoUndo -pop
+Undo: byronimoUndo -pop -id "_recurseUndoDeco"
+Redo: byronimoUndo -pop -id "_recurseUndoDeco"
+Redo: byronimoUndo -pop
+UNDO: CALL TIME: 176540 operations in 0.110000 s ( 1604909.090909 / s )
+UNDO: RATIO UNDO QUEUE ON/OFF: 1.790000 s (on) vs 1.450000 s (off) = 18.994413 % speedup on disabled queue ( difference [s] = 0.550000 )
+Undo: byronimoUndo -pop
+Redo: byronimoUndo -pop
+Undo: byronimoUndo -pop
+Redo: byronimoUndo -pop
+Undo: byronimoUndo -pop
+Undo: byronimoUndo -pop
+Undo: byronimoUndo -pop
+Undo: byronimoUndo -pop
+Redo: byronimoUndo -pop
+File read in 0 seconds.
+Randomized 8997 node translations in 2.380000 s ( 3780.252101 / s )
+SAVED TMP FILE TO: /tmp/randomscene.mb
+Average position of 8997 nodes is: <0.058464,-0.040124,-0.066244> in 2.160000 s
+Set 8997 nodes to average position in 0.510000 s ( 17641.176471 / s )
+SAVED TMP FILE TO: /tmp/averaged.mb
+SETTING 3_TestProcessTarget.inUni
+WILL QUERY: 3_TestProcessTarget.outString
+unicode workflow test
+1. 1_TestProcess provides 8 through outInt to TestProcess
+2. 2_TestProcess provides 16 through outInt to OtherTestProcess
+3. 1_TestProcess provides 5.0 through outFloat to TestProcess
+4. 2_TestProcess provides 10.0 through outFloat to OtherTestProcess
+5. 3_TestProcessTarget computes u'this10.020202020202020202020202020202020' when asked for outString
+WrappedWorkflow: SETTING SHELLCLS on 1_TestProcess
+WrappedWorkflow: SETTING SHELLCLS on 3_TestProcessTarget
+SETTING WrappedWorkflow._FP_3_TestProcessTarget_inUni
+WILL QUERY: WrappedWorkflow._FP_3_TestProcessTarget_outString
+this10.020202020202020202020202020202020
+SETTING 3_TestProcessTarget.inUni
+WILL QUERY: 3_TestProcessTarget.outString
+SETTING 1_WrappedWorkflow._FP_1_TestProcess_inChain
+WILL QUERY: 2_WrappedWorkflow._FP_3_TestProcessTarget_outChain
+MULTI WRAPPED WORKFLOW
+1. 1_TestProcess provides [15] through outChain to TestProcess
+2. 2_TestProcess provides [25] through outChain to OtherTestProcess
+3. 3_TestProcessTarget provides [35] through outChain to TestProcess
+4. 1_TestProcess provides [45] through outChain to TestProcess
+5. 2_TestProcess provides [55] through outChain to OtherTestProcess
+6. 3_TestProcessTarget computes [65] when asked for outChain
+SETTING TestProcess0.inInt
+WILL QUERY: TestProcess1.outInt
+SETTING TestProcess0.inFloat
+WILL QUERY: TestProcess1.outFloat
+SETTING 3_TestProcessTarget.inUni
+WILL QUERY: 3_TestProcessTarget.outString
+SETTING TestProcess0.inInt
+WILL QUERY: TestProcess1.outInt
+SETTING TestProcess0.inText
+WILL QUERY: TestProcess1.outText
+SETTING TestProcess0.inInt
+WILL QUERY: TestProcess1.outInt
+SETTING TestProcess0.inFloat
+WILL QUERY: TestProcess1.outFloat
+SETTING TestProcess0.inFloat
+WILL QUERY: TestProcess1.outFloat
+Undo: byronimoUndo -pop -id "connectTo"
+Redo: byronimoUndo -pop -id "connectTo"
+Undo: byronimoUndo -pop -id "connectTo"
+Undo: byronimoUndo -pop -id "disconnectInput"
+Undo: byronimoUndo -pop -id "disconnectOutputs"
+Undo: byronimoUndo -pop -id "disconnectFrom"
+Undo: byronimoUndo -pop -id "wrappedSetAttr"
+Redo: byronimoUndo -pop -id "wrappedSetAttr"
+Undo: byronimoUndo -pop -id "wrappedSetAttr"
+Redo: byronimoUndo -pop -id "wrappedSetAttr"
+WAS DAG PATH
+File read in 0 seconds.
+File read in 0 seconds.
+Result: sine1Set
+Result: sine1Set
+Result: sine1Set
+Result: tweakSet1
+Result: tweakSet1
+Result: squash1Set
+Result: squash1Set
+Result: squash1Set
+Result: sine1Set
+Result: sine1Set
+Result: sine1Set
+Result: tweakSet2
+Result: tweakSet2
+Result: squash1Set
+Result: squash1Set
+Result: squash1Set
+Undo: byronimoUndo -pop -id "createNode"
+Redo: byronimoUndo -pop -id "createNode"
+Undo: byronimoUndo -pop -id "createNode"
+Redo: byronimoUndo -pop -id "createNode"
+Undo: byronimoUndo -pop -id "createNode"
+Redo: byronimoUndo -pop -id "createNode"
+Undo: byronimoUndo -pop -id "createNode"
+Redo: byronimoUndo -pop -id "createNode"
+Undo: byronimoUndo -pop -id "createNode"
+Redo: byronimoUndo -pop -id "createNode"
+Undo: byronimoUndo -pop -id "createNode"
+Redo: byronimoUndo -pop -id "createNode"
+Undo: byronimoUndo -pop -id "createNode"
+Redo: byronimoUndo -pop -id "createNode"
+Undo: byronimoUndo -pop -id "createNode"
+Redo: byronimoUndo -pop -id "createNode"
+File read in 0 seconds.
+Warning: This file contains an uncached fluid; rewind and playback to see correct current state.
+ 
+Found a resolution node; these are being phased out.
+Please add an entry to a file named userImageFormats.mel such as the following:
+global string   $gUserImageFormatData[] =
+    { "resolution1  640  480  1.33333" };
+These values have been added to the Render Settings Resolution menu.
+Warning: Please check the Script Editor for details.
+Error: Ignoring attempt to open a new IFF file before previous one was closed
+Error: Specified file, , is not a valid image file.
+Undo: byronimoUndo -pop -id "addInstancedChild"
+Undo: byronimoUndo -pop -id "addInstancedChild"
+Redo: byronimoUndo -pop -id "addInstancedChild"
+Undo: byronimoUndo -pop -id "addInstancedChild"
+Undo: byronimoUndo -pop -id "addInstancedChild"
+Redo: byronimoUndo -pop -id "addInstancedChild"
+Undo: byronimoUndo -pop -id "addInstancedChild"
+Undo: byronimoUndo -pop -id "addInstancedChild"
+Redo: byronimoUndo -pop -id "addInstancedChild"
+Undo: byronimoUndo -pop -id "addChild"
+Undo: byronimoUndo -pop -id "addChild"
+Redo: byronimoUndo -pop -id "addChild"
+Undo: byronimoUndo -pop -id "addChild"
+Undo: byronimoUndo -pop -id "addChild"
+Redo: byronimoUndo -pop -id "addChild"
+Undo: byronimoUndo -pop -id "addChild"
+Undo: byronimoUndo -pop -id "addChild"
+Redo: byronimoUndo -pop -id "addChild"
+Undo: byronimoUndo -pop -id "addChild"
+Redo: byronimoUndo -pop -id "addChild"
+Undo: byronimoUndo -pop -id "wrappedSetAttr"
+Undo: byronimoUndo -pop -id "wrappedSetAttr"
+Undo: byronimoUndo -pop -id "wrappedSetAttr"
+Undo: byronimoUndo -pop -id "wrappedSetAttr"
+Undo: byronimoUndo -pop -id "removeChild"
+Undo: byronimoUndo -pop -id "removeChild"
+Undo: byronimoUndo -pop -id "reparent"
+Redo: byronimoUndo -pop -id "reparent"
+Undo: byronimoUndo -pop -id "addChild"
+Redo: byronimoUndo -pop -id "addChild"
+Undo: byronimoUndo -pop -id "addChild"
+Redo: byronimoUndo -pop -id "addChild"
+Undo: byronimoUndo -pop -id "rename"
+Redo: byronimoUndo -pop -id "rename"
+Undo: byronimoUndo -pop -id "rename"
+Redo: byronimoUndo -pop -id "rename"
+Result: memberSet
+Undo: byronimoUndo -pop -id "addMember"
+Redo: byronimoUndo -pop -id "addMember"
+Result: memberSet
+Undo: byronimoUndo -pop -id "addMember"
+Redo: byronimoUndo -pop -id "addMember"
+Result: memberSet
+Undo: byronimoUndo -pop -id "addMember"
+Redo: byronimoUndo -pop -id "addMember"
+Result: memberSet
+Undo: byronimoUndo -pop -id "addMember"
+Redo: byronimoUndo -pop -id "addMember"
+Result: memberSet
+Undo: byronimoUndo -pop -id "addMember"
+Redo: byronimoUndo -pop -id "addMember"
+Result: memberSet
+Undo: byronimoUndo -pop -id "addMember"
+Redo: byronimoUndo -pop -id "addMember"
+Undo: byronimoUndo -pop -id "addMember"
+Undo: byronimoUndo -pop -id "addMember"
+Undo: byronimoUndo -pop -id "addMember"
+Undo: byronimoUndo -pop -id "addMember"
+Undo: byronimoUndo -pop -id "addMember"
+Undo: byronimoUndo -pop -id "addMember"
+Redo: byronimoUndo -pop -id "addMember"
+Redo: byronimoUndo -pop -id "addMember"
+Redo: byronimoUndo -pop -id "addMember"
+Redo: byronimoUndo -pop -id "addMember"
+Redo: byronimoUndo -pop -id "addMember"
+Redo: byronimoUndo -pop -id "addMember"
+Result: memberSet
+Undo: byronimoUndo -pop -id "removeMembers"
+Redo: byronimoUndo -pop -id "removeMembers"
+Result: memberSet
+Result: set4
+Result: set4
+Undo: byronimoUndo -pop -id "addMembers"
+Redo: byronimoUndo -pop -id "addMembers"
+Result: memberSet
+Result: memberSet
+Result: memberSet
+Result: memberSet
+Result: memberSet
+Result: memberSet
+Result: memberSet
+Result: set4
+Result: set4
+Result: memberSet
+Result: memberSet
+Result: set4
+Result: set4
+Result: memberSet
+Undo: byronimoUndo -pop -id "removeMembers"
+Redo: byronimoUndo -pop -id "removeMembers"
+Result: memberSet
+Result: set4
+Result: set4
+Result: memberSet
+Undo: byronimoUndo -pop -id "clear"
+Result: s1
+Error: Cannot add the following items to the set since they would break the exclusivity constraint: trans
+Error: Cannot add the following items to the set since they would break the exclusivity constraint: trans
+Error: Cannot add the following items to the set since they would break the exclusivity constraint: trans
+Result: s1
+Result: s2
+Error: Cannot add the following items to the set since they would break the exclusivity constraint: trans
+Result: set4
+Result: set4
+Result: s1
+Result: set4
+Result: set4
+Error: Cannot add the following items to the set since they would break the exclusivity constraint: trans
+Result: set4
+Result: set4
+Result: set4
+Result: set4
+Result: s1
+Result: set4
+Result: set4
+Result: s2
+Result: s1
+Result: set4
+Result: set4
+Result: s1
+Error: Cannot add the following items to the set since they would break the exclusivity constraint: s3
+Error: Cannot add the following items to the set since they would break the exclusivity constraint: s3
+Error: Cannot add the following items to the set since they would break the exclusivity constraint: s3
+Result: s1
+Result: s2
+Error: Cannot add the following items to the set since they would break the exclusivity constraint: s3
+Result: set4
+Result: set4
+Result: s1
+Result: set4
+Result: set4
+Error: Cannot add the following items to the set since they would break the exclusivity constraint: s3
+Result: set4
+Result: set4
+Result: set4
+Result: set4
+Result: s1
+Result: set4
+Result: set4
+Result: s2
+Result: s1
+Result: set4
+Result: set4
+Result: memberSet
+Result: memberSet
+Result: set4
+Result: set4
+Result: memberSet2
+Result: set4
+Result: set4
+Result: memberSet2
+Result: set4
+Result: set4
+Result: set4
+Result: set4
+Result: anotherObjectSet
+Result: set4
+Result: set4
+Result: memberSet2
+Result: memberSet
+Result: memberSet
+Result: set4
+Result: set4
+Result: set4
+Result: memberSet
+Result: memberSet
+Result: set5
+Result: set5
+Result: set4
+Result: set4
+Result: memberSet
+Result: memberSet
+Result: set5
+Result: set5
+Result: set4
+Result: anotherObjectSet
+Result: anotherObjectSet
+Result: memberSet
+Result: memberSet
+Result: memberSet
+Result: set4
+Result: set4
+Result: memberSet
+Result: set4
+Result: set4
+Result: memberSet
+Result: memberSet
+Result: memberSet
+Result: set4
+Result: set4
+Result: memberSet
+Result: set4
+Result: set4
+Result: memberSet
+Result: memberSet
+Result: memberSet
+Result: set4
+Result: set4
+Result: memberSet
+Result: set4
+Result: set4
+File read in 0 seconds.
+Result: sg4
+Result: sg4
+Result: sg1
+Result: sg1
+Result: sg2
+Result: sg2
+Result: sg3
+Result: sg3
+Error: Cannot add the following items to the set since they would break the exclusivity constraint: pSphere1.f[0:2]
+Error: Cannot add the following items to the set since they would break the exclusivity constraint: pSphere1.f[0:2]
+Result: sg3
+Result: sg4
+Result: sg1
+Error: Cannot add the following items to the set since they would break the exclusivity constraint: pSphere1.f[0:2]
+Error: Cannot add the following items to the set since they would break the exclusivity constraint: pSphere1.f[3:5]
+Result: sg1
+Result: sg3
+Result: sg4
+Result: sg2
+File read in 0 seconds.
+Undo: byronimoUndo -pop -id "clearData"
+File read in 0 seconds.
+File read in 0 seconds.
+File read in 0 seconds.
+File read in 0 seconds.
+Undo: byronimoUndo -pop -id "clearData"
+File read in 0 seconds.
+File read in 0 seconds.
+File read in 0 seconds.
+Undo: byronimoUndo -pop
+Redo: byronimoUndo -pop
+Undo: byronimoUndo -pop -id "deleteObjectSet"
+Redo: byronimoUndo -pop -id "deleteObjectSet"
+Undo: byronimoUndo -pop -id "deleteObjectSet"
+Undo: byronimoUndo -pop -id "setPartition"
+Redo: byronimoUndo -pop -id "setPartition"
+Undo: byronimoUndo -pop -id "deleteObjectSet"
+Undo: byronimoUndo -pop
+Redo: byronimoUndo -pop
+Undo: byronimoUndo -pop -id "setPartition"
+Redo: byronimoUndo -pop -id "setPartition"
+CON: 's1.outRand' -> 's2.inFloat'
+CON: 's2.outMult' -> 's3.inFloat'
+CON: 's1.outRand' -> 's2.inFloat'
+CON: 's2.outMult' -> 's3.inFloat'
+CON: 's1.outRand' -> 's2.inFloat'
+CON: 's1.outRand' -> 's2.inFloat'
+CON: 's3.outRand' -> 's2.inFloat'
+CON: 's1.inFloat' -> 's3.inFloat'
+CON: 's2.inInt' -> 's3.inInt'
+CON: 's1.outAdd' -> 's2.inFloat'
+CON: 's1.outAdd' -> 's2.inFloat'
+GN_1: SETTING SHELLCLS on s1
+CON: 's1.outAdd' -> 's2.inFloat'
+GN_1: SETTING SHELLCLS on s2
+CON: 's1.outAdd' -> 's2.inFloat'
+CON: 's1.outAdd' -> 's2.inFloat'
+GN_2: SETTING SHELLCLS on s2
+CON: 's1.outAdd' -> 's2.inFloat'
+GN_2: SETTING SHELLCLS on s1
+CON: 's1.outAdd' -> 's2.inFloat'
+CON: 'GN_1._FP_s2_outAdd' -> 'GN_2._FP_s1_inFloat'
+CON: 's1.outAdd' -> 's2.inFloat'
+CON: 's1.outAdd' -> 's2.inFloat'
+GN_1: SETTING SHELLCLS on s2
+CON: 's1.outAdd' -> 's2.inFloat'
+GN_1: SETTING SHELLCLS on s1
+CON: 's1.outAdd' -> 's2.inFloat'
+GN_2: SETTING SHELLCLS on s2
+CON: 's1.outAdd' -> 's2.inFloat'
+GN_2: SETTING SHELLCLS on s1
+CON: 's1.outAdd' -> 's2.inFloat'
+CON: 'GN_1._FP_s2_outAdd' -> 'GN_2._FP_s1_inFloat'
+CON: 's1.outAdd' -> 's2.inFloat'
+CON: 's1.outAdd' -> 's2.inFloat'
+GN_1: SETTING SHELLCLS on s1
+CON: 's1.outAdd' -> 's2.inFloat'
+GN_1: SETTING SHELLCLS on s2
+CON: 's1.outAdd' -> 's2.inFloat'
+GN_2: SETTING SHELLCLS on s2
+CON: 's1.outAdd' -> 's2.inFloat'
+GN_2: SETTING SHELLCLS on s1
+CON: 's1.outAdd' -> 's2.inFloat'
+CON: 'GN_1._FP_s2_outAdd' -> 'GN_2._FP_s1_inFloat'
+SGN_1: SETTING SHELLCLS on GN_1
+SGN_1: SETTING SHELLCLS on GN_2
+CON: 'GN_1._FP_s2_outAdd' -> 'GN_2._FP_s1_inFloat'
+CON: 'GN_1._FP_s2_outAdd' -> 'GN_2._FP_s1_inFloat'
+SGN_2: SETTING SHELLCLS on GN_2
+CON: 'GN_1._FP_s2_outAdd' -> 'GN_2._FP_s1_inFloat'
+SGN_2: SETTING SHELLCLS on GN_1
+CON: 'GN_1._FP_s2_outAdd' -> 'GN_2._FP_s1_inFloat'
+CON: 'SGN_1._FP_GN_2__FP_s2_outAdd' -> 'SGN_2._FP_GN_1__FP_s1_inFloat'
+CON: 'SGN_2._FP_GN_2__FP_s2_outAdd' -> 'SGN_1._FP_GN_1__FP_s1_inFloat'
+CON: 's1.outBool' -> 's2.inBool'
+CON: 's1.outBool' -> 's2.inBool'
+GNode: SETTING SHELLCLS on s1
+GNode: SETTING SHELLCLS on s2
+CON: 's1.outBool' -> 's2.inBool'
+CON: 's1.outBool' -> 's2.inBool'
+CON: 's1.outBool' -> 's2.inBool'
+byronimo.maya.namespace: test all namespace functionality ... ok
+byronimo.maya.util: test optionvars dict ... ok
+byronimo.maya.scene: check file callback ... ok
+byronimo.maya.scene: Test ordinary scene callbacks ... ok
+byronimo.maya.scene: use group 0 check callbacks ... ok
+byronimo.maya.scene: force a new scene ... ok
+byronimo.maya.scene: open file ... ok
+byronimo.maya.scene: safe a file under new names and with different formats ... ok
+byronimo.maya.undo: test DAG modifier capabilities ... ok
+byronimo.maya.undo: test dg modifier capabilities ... ok
+byronimo.maya.undo: basic assertions ... ok
+byronimo.maya.reference: list some references and query their information ... ERROR
+byronimo.maya.reference: create , delete and replace references ... ERROR
+byronimo.maya.benchmark.general: test random node creation performance ... ok
+byronimo.maya.benchmark.general.dagWalking: see how many nodes per second we walk ... ok
+byronimo.maya.apipatch: test plug performance ... ok
+byronimo.maya.undo: recursive undo including decorator ... ok
+byronimo.maya.undo: test DAG modifier capabilities ... ok
+byronimo.maya.undo: test dg modifier capabilities ... ok
+byronimo.maya.undo: basic assertions ... ok
+byronimo.maya.nodes.benchmark: simply randomize the transformations of dag nodes on a scene ... ok
+byronimo.maya.nodes.benchmark: compute the center point of all  dagnodes in scene ... ok
+byronimo.automation.report: test plan report ... ok
+byronimo.automation.process: check workflow nested into process ... ok
+byronimo.automation.workflow: assure callgraph can be generated properly ... ok
+byronimo.automation.workflow: create a simple workflow from a dot file ... ok
+byronimo.automation.workflow:  test facades of workflows ... ok
+byronimo.maya.ui: test callbacks and handling - needs user interaction ... ok
+byronimo.maya.ui: create some windows ... ok
+byronimo.maya.ui: test basic layout functions ... ok
+byronimo.maya.nodes: Test plug abilities( node.attribute ) ... ok
+byronimo.maya.nodes: test the plugarray wrapper ... ok
+byronimo.maya.nodes: test matrix data ... ok
+byronimo.maya.nodes: test primitive types ... ok
+byronimo.maya.nodes.iterators: simple DAG iteration ... ok
+byronimo.maya.nodes.iterators: simple dg graph iteration ... ok
+byronimo.maya.nodes.iterators: simple DG iteration ... ok
+byronimo.maya.nodes.iterators: Iterate selection lists ... ok
+byronimo.maya.nodes.geometry: set handling tests for different types ... ok
+byronimo.maya.nodes: create nodes with long names and namespaces ... ok
+byronimo.maya.nodes: if mobjects where used internally, this test would fail ... ok
+byronimo.maya.nodes: check whether we can properly handle node exist checks ... ok
+byronimo.maya.nodes: test wrapper class creation ... ok
+byronimo.maya.nodes: tests the add and remove children ... ok
+byronimo.maya.nodes: add a custom type to the system ... ok
+byronimo.nodes.maya: DependeNode.__getitem__ ... ok
+byronimo.maya.nodes.base: test how display type and display overrides work hierarchically ... ok
+byronimo.maya.nodes: handle duplication of instances ... ok
+byronimo.maya.nodes.base: traverse instances ... ok
+byroniom.maya.nodes.base: write a generated cache using the builder function ... ok
+byronimo.maya.nodes: test how remove child responds ... ok
+byronimo.maya.nodes: see of reparenting is responding when instances are involved ... ok
+byronimo.maya.nodes: create and access dag nodes ... ok
+byronimo.maya.nodes: create and access dependency nodes ( not being dag nodes ) ... ok
+byronimo.maya.nodes.sets: create,add and remove ... ok
+byronimo.maya.nodes.sets: add/remove members from all kinds of inputs ... ok
+byronimo.maya.nodes.sets: test partition constraints ... ok
+byroniom.maya.nodes.sets: unions, intersections, difference, overloaded ops ... ok
+byronimo.maya.nodes.sets: member handling with components - needs to run last ... ok
+byronimo.maya.nodes.storage: test of the attribute accesss on storages is working ... ok
+byronimo.maya.nodes.storage: test pickle data ... ok
+byronimo.maya.nodes.storage: test built-in sethandling ... ok
+path: test intatiation ... ok
+dgengine: duplicate a graph ... ok
+dgengine: Test full feature set ... ok
+Decorators: Tests whether methods using both, rval and parameter type checking works as expected ... ok
+Decorators: Assure that the typecheck param is able to send type error exceptions ... ok
+Decorators: Assure that people do not set kv type checks that do not match any actual method variable ... ok
+Decorators: Assure that the rval test decorator is able to catch these kinds of  type errors ... ok
+byronimo.util.DAGTree: Test general methods ... ok
+byronimo.util: test generalized filters ... ok
+byronimo.util: test IntKeygenerator ... ok
+ConfigAccessor: assure that the provided iterators for sections and keys work ... ok
+ConfigAccessor.Properties: Assure that key properties can be parsed ... ok
+ConfigAccessor:If a configuration gets flattened several times, the result must always match with the original ... ok
+ConfigAccessor: see if ca['keyname'] works ... ok
+ConfigAccessor.Properties: if properties are set at runtime, the propertysections might need long names for qualification when written ... ok
+ConfigAccessor.Properties: Property attribute of property must not be set ... ok
+ConfigAccessor: Tests whether malformed INI files raise ... FAIL
+ConfigAccessor: Tests whether non-malformed INI files can be read ( single and multi ) ... ok
+ConfigAccessor.Properties: Assure that section and key properties can be parsed ... ok
+ConfigAccessor.Properties: Assure that section properties can be parsed ... ok
+ConfigDiffer: Assure added keys are detected ... ok
+ConfigDiffer: Assure removed keys are detected ... ok
+ConfigDiffer: Assure added key-values are detected ... ok
+ConfigDiffer: Assure changed key-values are detected as a removed and added value ... ok
+ConfigDiffer: Assure removed key-values are detected ... ok
+ConfigDiffer: Assure that changes in properties are being detected ... ok
+ConfigDiffer: Assure diffing will detect removed sections ... ok
+ConfigDiffer: Assure diffing will detect removed and added sections ... ok
+ConfigDiffer: Assure diffing will detect removed and added sections, no unchanged sections ... ok
+ConfigManager: Simple read and alter values in the Configuration Manager, and write them back ... ok
+ConfigManager: check if filedescriptor parsing is generally working ... ok
+DictToINIFile:Tests whether default dicts can actually be handled by the converter ... FAIL
+DictToINIFile:Tests whether malformed strings trigger exceptions if malformed ... ok
+dgengine: graphFacadeNodes: full facade test ... ok
+dgending: graphnode configuration ... ok
+
+======================================================================
+ERROR: byronimo.maya.reference: list some references and query their information
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/home/sebastian/ws_repository/src/whitesharkstd/trunk/ext/byronimo/py/byronimotest/byronimo/maya/reference.py", line 43, in test_listAndQuery
+    ref.getChildrenDeep( )		# try function
+  File "/home/sebastian/ws_repository/src/whitesharkstd/trunk/ext/byronimo/py/byronimo/util.py", line 373, in getChildrenDeep
+    children = item.getChildren( predicate = predicate )
+  File "/home/sebastian/ws_repository/src/whitesharkstd/trunk/ext/byronimo/py/byronimo/maya/reference.py", line 253, in getChildren
+    return scene.Scene.lsReferences( referenceFile = self.getFullPath(), predicate = predicate )
+  File "/home/sebastian/ws_repository/src/whitesharkstd/trunk/py/whiteshark/../../ext/byronimo/py/byronimo/maya/scene.py", line 184, in lsReferences
+    for reffile in cmds.file( str( referenceFile ), q=1, r=1, un=1 ):
+RuntimeError: Cannot find the reference file.
+
+
+======================================================================
+ERROR: byronimo.maya.reference: create , delete and replace references
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/home/sebastian/ws_repository/src/whitesharkstd/trunk/ext/byronimo/py/byronimotest/byronimo/maya/reference.py", line 136, in test_referenceCreation
+    childrefs = firstsubref.importRef( depth = 1 )
+  File "/home/sebastian/ws_repository/src/whitesharkstd/trunk/ext/byronimo/py/byronimo/maya/reference.py", line 167, in importRef
+    return importRecursive( self, 0, depth )
+  File "/home/sebastian/ws_repository/src/whitesharkstd/trunk/ext/byronimo/py/byronimo/maya/reference.py", line 154, in importRecursive
+    children = reference.getChildren()
+  File "/home/sebastian/ws_repository/src/whitesharkstd/trunk/ext/byronimo/py/byronimo/maya/reference.py", line 253, in getChildren
+    return scene.Scene.lsReferences( referenceFile = self.getFullPath(), predicate = predicate )
+  File "/home/sebastian/ws_repository/src/whitesharkstd/trunk/py/whiteshark/../../ext/byronimo/py/byronimo/maya/scene.py", line 184, in lsReferences
+    for reffile in cmds.file( str( referenceFile ), q=1, r=1, un=1 ):
+RuntimeError: Cannot find the reference file.
+
+
+======================================================================
+FAIL: ConfigAccessor: Tests whether malformed INI files raise
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/home/sebastian/ws_repository/src/whitesharkstd/trunk/ext/byronimo/py/byronimotest/byronimo/configuration.py", line 137, in test_readInvalidINI
+    self.failUnlessRaises( ConfigParsingError, ca.readfp, ini )
+AssertionError: ConfigParsingError not raised
+
+======================================================================
+FAIL: DictToINIFile:Tests whether default dicts can actually be handled by the converter
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/home/sebastian/ws_repository/src/whitesharkstd/trunk/ext/byronimo/py/byronimotest/byronimo/configuration.py", line 60, in test_allValidDicts
+    self.failUnless( cp.get( head, k ) == str(dictionary[k]).strip() )
+AssertionError
+
+----------------------------------------------------------------------
+Ran 97 tests in 125.202s
+
+FAILED (failures=2, errors=2)
+
