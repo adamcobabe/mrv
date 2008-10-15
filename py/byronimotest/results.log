@@ -47,8 +47,8 @@ CON: '2_TestProcess.outFloat' -> '3_TestProcessTarget.inFloat'
 --------------------------------------------
 Wrote DOT to: /tmp/multiinput.postcreate.dot
 --------------------------------------------
-2_WrappedWorkflow: SETTING SHELLCLS on 3_TestProcessTarget
 2_WrappedWorkflow: SETTING SHELLCLS on 1_TestProcess
+2_WrappedWorkflow: SETTING SHELLCLS on 3_TestProcessTarget
 1_WrappedWorkflow: SETTING SHELLCLS on 1_TestProcess
 1_WrappedWorkflow: SETTING SHELLCLS on 3_TestProcessTarget
 CON: '1_WrappedWorkflow._FP_3_TestProcessTarget_outChain' -> '2_WrappedWorkflow._FP_1_TestProcess_inChain'
@@ -174,69 +174,69 @@ Warning: Reference file path remapped from '/home/sebastian/ws_repository/src/wh
 File read in 0 seconds.
 
 
-Created 100 nodes in 0.450000 s ( 222.222222 / s )
+Created 100 nodes in 0.740000 s ( 135.135135 / s )
 Undo: byronimoUndo -pop
 Undone Operation in 0.010000 s
-Created 2500 nodes in 6.870000 s ( 363.901019 / s )
+Created 2500 nodes in 6.910000 s ( 361.794501 / s )
 Undo: byronimoUndo -pop
-Undone Operation in 0.150000 s
+Undone Operation in 0.160000 s
 Redo: byronimoUndo -pop
-Created 7292 Nodes ( from STRING ) in 1.510000 s ( 4829.139073 / s )
-Created 7292 Nodes ( from APIOBJ ) in 0.610000 s ( 11954.098361 / s ) -> 247.540984 % faster
+Created 7444 Nodes ( from STRING ) in 1.560000 s ( 4771.794872 / s )
+Created 7444 Nodes ( from APIOBJ ) in 0.630000 s ( 11815.873016 / s ) -> 247.619048 % faster
 File read in 0 seconds.
 Walked 2500 nodes in 0.440000 s ( 5681.818182 / s )
-Walked 2500 WRAPPED nodes in 1.280000 s ( 1953.125000 / s )
-Walked 2500 nodes BREADTH FIRST in 0.690000 s ( 3623.188406 / s )
+Walked 2500 WRAPPED nodes in 1.300000 s ( 1923.076923 / s )
+Walked 2500 nodes BREADTH FIRST in 0.680000 s ( 3676.470588 / s )
 File read in 7 seconds.
-Walked 25000 nodes in 4.450000 s ( 5617.977528 / s )
-Walked 25000 WRAPPED nodes in 13.120000 s ( 1905.487805 / s )
-Walked 25000 nodes BREADTH FIRST in 29.110000 s ( 858.811405 / s )
-10 MULTI PLUG Connected in 0.240000 s ( 41.666667 / s )
+Walked 25000 nodes in 4.460000 s ( 5605.381166 / s )
+Walked 25000 WRAPPED nodes in 13.110000 s ( 1906.941266 / s )
+Walked 25000 nodes BREADTH FIRST in 28.990000 s ( 862.366333 / s )
+10 MULTI PLUG Connected in 0.250000 s ( 40.000000 / s )
 Undo: byronimoUndo -pop
 Redo: byronimoUndo -pop
-UNDO / REDO Time = 0.180000 / 0.130000 ( 1.846154 * faster than initial creation )
-50 MULTI PLUG Connected in 1.090000 s ( 45.871560 / s )
+UNDO / REDO Time = 0.190000 / 0.140000 ( 1.785714 * faster than initial creation )
+50 MULTI PLUG Connected in 1.100000 s ( 45.454545 / s )
 Undo: byronimoUndo -pop
 Redo: byronimoUndo -pop
-UNDO / REDO Time = 0.580000 / 0.700000 ( 1.557143 * faster than initial creation )
-100 MULTI PLUG Connected in 1.520000 s ( 65.789474 / s )
+UNDO / REDO Time = 0.580000 / 0.690000 ( 1.594203 * faster than initial creation )
+100 MULTI PLUG Connected in 1.510000 s ( 66.225166 / s )
 Undo: byronimoUndo -pop
 Redo: byronimoUndo -pop
-UNDO / REDO Time = 0.820000 / 0.820000 ( 1.853659 * faster than initial creation )
-200 MULTI PLUG Connected in 3.050000 s ( 65.573770 / s )
+UNDO / REDO Time = 0.810000 / 0.860000 ( 1.755814 * faster than initial creation )
+200 MULTI PLUG Connected in 3.130000 s ( 63.897764 / s )
 Undo: byronimoUndo -pop
 Redo: byronimoUndo -pop
-UNDO / REDO Time = 1.580000 / 1.770000 ( 1.723164 * faster than initial creation )
-10 SINGLE PLUGS Connected in 0.030000 s ( 333.333333 / s )
+UNDO / REDO Time = 1.640000 / 1.830000 ( 1.710383 * faster than initial creation )
+10 SINGLE PLUGS Connected in 0.040000 s ( 250.000000 / s )
 Undo: byronimoUndo -pop
 Redo: byronimoUndo -pop
-UNDO / REDO Time = 0.000000 / 0.000000 ( 30.000000 * faster than initial creation )
+UNDO / REDO Time = 0.000000 / 0.000000 ( 40.000000 * faster than initial creation )
 50 SINGLE PLUGS Connected in 0.150000 s ( 333.333333 / s )
 Undo: byronimoUndo -pop
 Redo: byronimoUndo -pop
 UNDO / REDO Time = 0.000000 / 0.000000 ( 150.000000 * faster than initial creation )
-100 SINGLE PLUGS Connected in 0.340000 s ( 294.117647 / s )
+100 SINGLE PLUGS Connected in 0.360000 s ( 277.777778 / s )
 Undo: byronimoUndo -pop
 Redo: byronimoUndo -pop
-UNDO / REDO Time = 0.000000 / 0.000000 ( 340.000000 * faster than initial creation )
-200 SINGLE PLUGS Connected in 0.630000 s ( 317.460317 / s )
+UNDO / REDO Time = 0.000000 / 0.000000 ( 360.000000 * faster than initial creation )
+200 SINGLE PLUGS Connected in 0.680000 s ( 294.117647 / s )
 Undo: byronimoUndo -pop
 Redo: byronimoUndo -pop
-UNDO / REDO Time = 0.010000 / 0.000000 ( 630.000000 * faster than initial creation )
+UNDO / REDO Time = 0.000000 / 0.000000 ( 680.000000 * faster than initial creation )
 
 
-UNDO: DECORATED Undo disabled: 44135 ops in 1.440000 s ( 30649.305556 / s )
+UNDO: DECORATED Undo disabled: 44135 ops in 1.430000 s ( 30863.636364 / s )
 UNDO: MANUAL Undo disabled: 44135 ops in 1.490000 s ( 29620.805369 / s )
-UNDO: DECORATED is 3.355705 % faster than manually implemented functions !
-UNDO: DECORATED : 44135 ops in 1.790000 s ( 24656.424581 / s )
+UNDO: DECORATED is 4.026846 % faster than manually implemented functions !
+UNDO: DECORATED : 44135 ops in 1.780000 s ( 24794.943820 / s )
 UNDO: MANUAL : 44135 ops in 2.030000 s ( 21741.379310 / s )
-UNDO: DECORATED is 11.822660 % faster than manually implemented functions !
+UNDO: DECORATED is 12.315271 % faster than manually implemented functions !
 Undo: byronimoUndo -pop
 Undo: byronimoUndo -pop -id "_recurseUndoDeco"
 Redo: byronimoUndo -pop -id "_recurseUndoDeco"
 Redo: byronimoUndo -pop
-UNDO: CALL TIME: 176540 operations in 0.110000 s ( 1604909.090909 / s )
-UNDO: RATIO UNDO QUEUE ON/OFF: 1.790000 s (on) vs 1.440000 s (off) = 19.553073 % speedup on disabled queue ( difference [s] = 0.540000 )
+UNDO: CALL TIME: 176540 operations in 0.120000 s ( 1471166.666667 / s )
+UNDO: RATIO UNDO QUEUE ON/OFF: 1.780000 s (on) vs 1.430000 s (off) = 19.662921 % speedup on disabled queue ( difference [s] = 0.540000 )
 Undo: byronimoUndo -pop
 Redo: byronimoUndo -pop
 Undo: byronimoUndo -pop
@@ -247,9 +247,9 @@ Undo: byronimoUndo -pop
 Undo: byronimoUndo -pop
 Redo: byronimoUndo -pop
 File read in 0 seconds.
-Randomized 8997 node translations in 2.400000 s ( 3748.750000 / s )
+Randomized 8997 node translations in 2.390000 s ( 3764.435146 / s )
 SAVED TMP FILE TO: /tmp/randomscene.mb
-Average position of 8997 nodes is: <0.109259,-0.111148,-0.093809> in 2.140000 s
+Average position of 8997 nodes is: <0.150050,-0.005669,-0.004224> in 2.130000 s
 Set 8997 nodes to average position in 0.520000 s ( 17301.923077 / s )
 SAVED TMP FILE TO: /tmp/averaged.mb
 SETTING 3_TestProcessTarget.inUni
@@ -260,8 +260,8 @@ unicode workflow test
 3. 1_TestProcess provides 5.0 through outFloat to TestProcess
 4. 2_TestProcess provides 10.0 through outFloat to OtherTestProcess
 5. 3_TestProcessTarget computes u'this10.020202020202020202020202020202020' when asked for outString
-WrappedWorkflow: SETTING SHELLCLS on 3_TestProcessTarget
 WrappedWorkflow: SETTING SHELLCLS on 1_TestProcess
+WrappedWorkflow: SETTING SHELLCLS on 3_TestProcessTarget
 SETTING WrappedWorkflow._FP_3_TestProcessTarget_inUni
 WILL QUERY: WrappedWorkflow._FP_3_TestProcessTarget_outString
 this10.020202020202020202020202020202020
@@ -602,9 +602,20 @@ CON: 's2.inInt' -> 's3.inInt'
 CON: 's1.outAdd' -> 's2.inFloat'
 CON: 's1.outAdd' -> 's2.inFloat'
 GN_1: SETTING SHELLCLS on s2
-CON: 's1.outAdd' -> 's2.inFloat'
 GN_1: SETTING SHELLCLS on s1
 CON: 's1.outAdd' -> 's2.inFloat'
+CON: 's1.outAdd' -> 's2.inFloat'
+CON: 's1.outAdd' -> 's2.inFloat'
+GN_2: SETTING SHELLCLS on s1
+GN_2: SETTING SHELLCLS on s2
+CON: 's1.outAdd' -> 's2.inFloat'
+CON: 's1.outAdd' -> 's2.inFloat'
+CON: 'GN_1._FP_s2_outAdd' -> 'GN_2._FP_s1_inFloat'
+CON: 's1.outAdd' -> 's2.inFloat'
+CON: 's1.outAdd' -> 's2.inFloat'
+GN_1: SETTING SHELLCLS on s2
+CON: 's1.outAdd' -> 's2.inFloat'
+GN_1: SETTING SHELLCLS on s1
 CON: 's1.outAdd' -> 's2.inFloat'
 GN_2: SETTING SHELLCLS on s1
 CON: 's1.outAdd' -> 's2.inFloat'
@@ -617,37 +628,26 @@ GN_1: SETTING SHELLCLS on s1
 CON: 's1.outAdd' -> 's2.inFloat'
 GN_1: SETTING SHELLCLS on s2
 CON: 's1.outAdd' -> 's2.inFloat'
-GN_2: SETTING SHELLCLS on s2
-CON: 's1.outAdd' -> 's2.inFloat'
 GN_2: SETTING SHELLCLS on s1
 CON: 's1.outAdd' -> 's2.inFloat'
-CON: 'GN_1._FP_s2_outAdd' -> 'GN_2._FP_s1_inFloat'
-CON: 's1.outAdd' -> 's2.inFloat'
-CON: 's1.outAdd' -> 's2.inFloat'
-GN_1: SETTING SHELLCLS on s2
-GN_1: SETTING SHELLCLS on s1
-CON: 's1.outAdd' -> 's2.inFloat'
-CON: 's1.outAdd' -> 's2.inFloat'
 GN_2: SETTING SHELLCLS on s2
-CON: 's1.outAdd' -> 's2.inFloat'
-GN_2: SETTING SHELLCLS on s1
 CON: 's1.outAdd' -> 's2.inFloat'
 CON: 'GN_1._FP_s2_outAdd' -> 'GN_2._FP_s1_inFloat'
 SGN_1: SETTING SHELLCLS on GN_1
-CON: 'GN_1._FP_s2_outAdd' -> 'GN_2._FP_s1_inFloat'
 SGN_1: SETTING SHELLCLS on GN_2
 CON: 'GN_1._FP_s2_outAdd' -> 'GN_2._FP_s1_inFloat'
-SGN_2: SETTING SHELLCLS on GN_1
+CON: 'GN_1._FP_s2_outAdd' -> 'GN_2._FP_s1_inFloat'
 SGN_2: SETTING SHELLCLS on GN_2
+SGN_2: SETTING SHELLCLS on GN_1
 CON: 'GN_1._FP_s2_outAdd' -> 'GN_2._FP_s1_inFloat'
 CON: 'GN_1._FP_s2_outAdd' -> 'GN_2._FP_s1_inFloat'
 CON: 'SGN_1._FP_GN_2__FP_s2_outAdd' -> 'SGN_2._FP_GN_1__FP_s1_inFloat'
 CON: 'SGN_2._FP_GN_2__FP_s2_outAdd' -> 'SGN_1._FP_GN_1__FP_s1_inFloat'
 CON: 's1.outBool' -> 's2.inBool'
 CON: 's1.outBool' -> 's2.inBool'
-GNode: SETTING SHELLCLS on s2
-CON: 's1.outBool' -> 's2.inBool'
 GNode: SETTING SHELLCLS on s1
+CON: 's1.outBool' -> 's2.inBool'
+GNode: SETTING SHELLCLS on s2
 CON: 's1.outBool' -> 's2.inBool'
 CON: 's1.outBool' -> 's2.inBool'
 byronimo.maya.namespace: test all namespace functionality ... ok
@@ -743,7 +743,7 @@ ConfigDiffer: Assure diffing will detect removed and added sections ... ok
 ConfigDiffer: Assure diffing will detect removed and added sections, no unchanged sections ... ok
 ConfigManager: Simple read and alter values in the Configuration Manager, and write them back ... ok
 ConfigManager: check if filedescriptor parsing is generally working ... ok
-DictToINIFile:Tests whether default dicts can actually be handled by the converter ... ok
+DictToINIFile:Tests whether default dicts can actually be handled by the converter ... FAIL
 DictToINIFile:Tests whether malformed strings trigger exceptions if malformed ... ok
 dgengine: graphFacadeNodes: full facade test ... ok
 dgending: graphnode configuration ... ok
@@ -788,8 +788,16 @@ Traceback (most recent call last):
     self.failUnlessRaises( ConfigParsingError, ca.readfp, ini )
 AssertionError: ConfigParsingError not raised
 
+======================================================================
+FAIL: DictToINIFile:Tests whether default dicts can actually be handled by the converter
 ----------------------------------------------------------------------
-Ran 97 tests in 121.254s
+Traceback (most recent call last):
+  File "/home/sebastian/ws_repository/src/whitesharkstd/trunk/ext/byronimo/py/byronimotest/byronimo/configuration.py", line 60, in test_allValidDicts
+    self.failUnless( cp.get( head, k ) == str(dictionary[k]).strip() )
+AssertionError
 
-FAILED (failures=1, errors=2)
+----------------------------------------------------------------------
+Ran 97 tests in 122.498s
+
+FAILED (failures=2, errors=2)
 
