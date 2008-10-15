@@ -319,7 +319,6 @@ class Workflow( Graph ):
 		these = lambda shell: not shell.plug.providesOutput() or shell.getOutputs( )
 		allAffectedNodes = ( shell.node for shell in inputshell.iterShells( direction = "down", visit_once = 1, prune = these ) )
 		outputshell = None
-		
 		# AFFECTED NODES 
 		##################
 		# use last compatible node in the chain - 
@@ -332,7 +331,10 @@ class Workflow( Graph ):
 				
 			if shell:
 				outputshell = shell
-				break
+				# so here it comes - take this break away, and workflow might not work anymore
+				# perhaps we should add a flag to define whether workflows should keep on looking 
+				# or not - if not, one has to carefully plane the output plugs ... 
+				break					
 		# END for each affected node try to get a valid shell 
 		
 		# AFFECTED PLUGS HANDLING
