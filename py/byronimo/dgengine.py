@@ -722,7 +722,9 @@ class _PlugShell( tuple ):
 	
 	#{ Name Overrides
 	__rshift__ = lambda self,other: self.connect( other, force=True )
-	__gt__ = lambda self,other: self.connect( other, force=False )
+	# NOTE: this will cause problems when sorting them :) - so lets just use >> for the 
+	# forced connection !
+	# __gt__ = lambda self,other: self.connect( other, force=False )
 	
 	#} END name overrides 
 	
