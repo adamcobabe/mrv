@@ -343,7 +343,9 @@ class StorageBase( object ):
 				return 
 			self._plug.setMObject( self._plug.asMObject() )
 			self._updateCalled = True
-		
+	# END class pypickle value 	
+	
+	
 	
 	#{ Overridden Methods 
 	def __init__( self, attrprefix = "", mayaNode = None ):
@@ -628,6 +630,11 @@ class StorageBase( object ):
 		"""@return: Node actually being used as storage"""
 		return self._node
 		
+	def setStorageNode( self, node ):
+		"""Set ourselves to use the given storage compatible node
+		@note: use this if the path of our instance has changed - otherwise 
+		trying to access functions will fail as the path of our node might be invalid"""
+		self._node = node 
 	# END query general
 	
 
