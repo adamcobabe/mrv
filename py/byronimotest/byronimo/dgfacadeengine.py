@@ -76,11 +76,11 @@ class TestDGFacadeEngine( unittest.TestCase ):
 		g.addNode( s1 )
 		g.addNode( s2 )
 		
-		s1.outAdd > s2.inFloat
+		s1.outAdd >> s2.inFloat
 		
 		# EVALUATION CHECK
 		# run through two evals
-		self.failUnless( s2.outAdd.get( ) == 2 )
+		self.failUnless( s2.outAdd.get( ) == 2)
 		
 		
 		# wrap it
@@ -186,7 +186,7 @@ class TestDGFacadeEngine( unittest.TestCase ):
 		
 		# SIMPLE CONNECTION
 		####################
-		sgn1._FP_GN_2__FP_s2_outAdd > sgn2._FP_GN_1__FP_s1_inFloat
+		sgn1._FP_GN_2__FP_s2_outAdd >> sgn2._FP_GN_1__FP_s1_inFloat
 		
 		sg1inFloat = sgn1._FP_GN_1__FP_s1_inFloat
 		sg2inFloat = sgn2._FP_GN_1__FP_s1_inFloat
@@ -219,7 +219,7 @@ class TestDGFacadeEngine( unittest.TestCase ):
 		##################
 		# internal plugs can be explicitly set, the cache will be used on evaluation
 		# even if a connection is coming in from the ( outside ) facade node
-		sg2outAdd > sg1inFloat
+		sg2outAdd >> sg1inFloat
 		sg1inFloat.set( 20.0 )
 		self.failUnless( sg2outAdd.get( ) == 28 )	# if it didnt work, we would go into recursion
 		
@@ -243,7 +243,7 @@ class TestDGFacadeEngine( unittest.TestCase ):
 		g.addNode( s1 )
 		g.addNode( s2 )
 		
-		s1.outBool > s2.inBool
+		s1.outBool >> s2.inBool
 		
 		# wrap it
 		og = Graph( )				# other graph

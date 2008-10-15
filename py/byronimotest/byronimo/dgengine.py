@@ -279,8 +279,8 @@ class TestDGEngine( unittest.TestCase ):
 		graph.addNode( s2 )
 		graph.addNode( s3 )
 		
-		s1.outRand > s2.inFloat
-		s2.outMult > s3.inFloat
+		s1.outRand >> s2.inFloat
+		s2.outMult >> s3.inFloat
 		
 		g2 = graph.duplicate( )
 		
