@@ -520,9 +520,9 @@ class _PlugShell( tuple ):
 			try: 
 				result = self.node.compute( self.plug, mode )
 			except ComputeError,e:
-				raise 			
-			except Exception,e:		# except all - this is an unknown excetion
-				raise ComputeError( "Computation of %r failed with an unhandled exception" % repr( self ), str( e ),e )
+				raise ComputeError( "Computation Failed ( %s ): %s" % ( repr( self ), str( e ) ) )
+			except Exception:		# except all - this is an unknown excetion - just pass it on, keeping the origin
+				raise 
 			
 			if result is None:
 				raise AssertionError( "Plug %s returned None - check your node implementation" % ( str( self ) ) )
