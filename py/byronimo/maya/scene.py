@@ -22,16 +22,17 @@ __copyright__='(c) 2008 Sebastian Thiel'
 
 
 # export filter 
-__all__ = [ 'currentScene', 'Scene' ]
+__all__ = [ 'Scene' ]
 
-import maya.cmds as cmds
-from byronimo.path import Path
+
 #import byronimo.maya.util as util
 mayautil = __import__( "byronimo.maya.util", globals(), locals(), [ "util" ] )
 util = __import__( "byronimo.util", globals(), locals(), [ "util" ] )
+refmod = __import__( "byronimo.maya.reference", globals(), locals(), ['reference'] )
+
 import maya.OpenMaya as om
 import maya.cmds as cmds
-refmod = __import__( "byronimo.maya.reference", globals(), locals(), ['reference'] )
+from byronimo.path import Path
 from byronimo.util import iDagItem
 
 
@@ -175,29 +176,18 @@ class Scene( util.Singleton ):
 		return cmds.file( q=1, amf=True )
 		
 	@staticmethod
-	def lsReferences( referenceFile = "", predicate = lambda x: True ):
+	def lsReferences( **kwargs ):
 		""" list all references in the scene or in referenceFile
 		@param referenceFile: if not empty, the references below the given reference file will be returned
 		@param predicate: method returning true for each valid file reference object
 		@return: list of L{FileReference}s objects"""
-		out = []
-		for reffile in cmds.file( str( referenceFile ), q=1, r=1, un=1 ):
-			refobj = refmod.FileReference( filepath = reffile )
-			if predicate( refobj ):
-				out.append( refobj )
-		# END for each reference file
-		return out
+		return refmod.FileReference.ls( **kwargs )
 	
 	@staticmethod
-	def lsReferencesDeep( predicate = lambda x: True, **kwargs ):
+	def lsReferencesDeep( **kwargs ):
 		""" Return all references recursively 
 		@param **kwargs: support for arguments as in lsReferences"""
-		refs = Scene.lsReferences( **kwargs )
-		out = refs
-		for ref in refs:
-			out.extend( ref.getChildrenDeep( order = iDagItem.kOrder_BreadthFirst, predicate=predicate ) )
-		return out
-		
+		return refmod.FileReference.lsDeep( **kwargs )
 	#} END query methods
 	
 	

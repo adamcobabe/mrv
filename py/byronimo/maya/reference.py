@@ -18,7 +18,6 @@ __copyright__='(c) 2008 Sebastian Thiel'
 
 from byronimo.path import Path
 from byronimo.exceptions import *
-scene = __import__( "byronimo.maya.scene", globals(), locals(), ["scene"] )
 from byronimo.maya.namespace import Namespace
 import maya.cmds as cmds
 from byronimo.util import iDagItem
@@ -50,7 +49,9 @@ class FileReferenceError( ByronimoError ):
 ###########
 class FileReference( Path, iDagItem ):
 	"""Represents a Maya file reference
-	@note: do not cache these instances but get a fresh one when you have to work with it"""
+	@note: do not cache these instances but get a fresh one when you have to work with it
+	@note: as FileReference is also a iDagItem, all the respective methods, especially for 
+	parent/child iteration and query can be used as well"""
 	
 	
 	editTypes = [	'setAttr','addAttr','deleteAttr','connectAttr','disconnectAttr','parent' ]
@@ -64,14 +65,15 @@ class FileReference( Path, iDagItem ):
 			cpn = int( buf[1][:-1] )
 			path = buf[0]
 		return path,cpn
-				
+	
+	#{ Object Overrides
+	
 	def __new__( cls, filepath = None, refnode = None, **kwargs ):
 		def handleCreation(  refnode ):
 			""" Initialize the instance by a reference node - lets not trust paths """
 			path = cmds.referenceQuery( refnode, filename=1, un=1 )
 			path,cpn = cls._splitCopyNumber( path )
 			self = Path.__new__( cls, path )
-			self._copynumber = cpn
 			self._refnode = refnode					# keep it for now 
 			return self
 		# END creation handler 
@@ -85,6 +87,19 @@ class FileReference( Path, iDagItem ):
 	def __init__( self, *args, **kwargs ):
 		""" Initialize our iDagItem base """
 		return iDagItem.__init__( self, separator = '/' )
+	
+	def __eq__( self, other ):
+		"""Special treatment for other filereferences"""
+		# need equal copy numbers as well as equal paths 
+		if isinstance( other, FileReference ):
+			return self.getCopyNumber() == other.getCopyNumber() and Path.__eq__( self, other )
+			
+		return Path.__eq__( self, other )
+	
+	def __ne__( self, other ):
+		return not self.__eq__( other )
+		
+	#} END object overrides 
 	
 	#{ Static Methods 
 	@staticmethod
@@ -119,6 +134,60 @@ class FileReference( Path, iDagItem ):
 		prevns.setCurrent( )
 		
 		return FileReference( createdRefpath )
+		
+	@staticmethod
+	def find( paths, **kwargs ):
+		"""Find the reference for each path in paths
+		@param **kwargs: all supported by L{ls}
+		@return: list( FileReference|None, ... ) 
+		if a filereference was found for given occurrence of Path, it will be returned 
+		at index of the current path in the input paths, otherwise it is None.
+		@note: zip( paths, result ) to get a corresponding tuple list associating each input path
+		with the located reference"""
+		if not isinstance( paths, (list,tuple) ) or hasattr( paths, 'next' ):
+			raise TypeError( "paths must be tuple, was %s" % type( paths ) )
+			
+		refs = FileReference.ls( **kwargs )
+		
+		# build dict for fast lookup 
+		lut = dict()
+		lut.update( ( ref, ref ) for ref in refs )		# ref will take care about the comparison
+		
+		# remove the keys once we hit them !
+		outlist = list()
+		for path in paths:
+			ref = lut.get( path, None )
+			outlist.append( ref )
+			
+			if ref:
+				del( lut[ path ] )
+		# END for each path to find 
+		return outlist
+		
+	@staticmethod
+	def ls( referenceFile = "", predicate = lambda x: True ):
+		""" list all references in the scene or in referenceFile
+		@param referenceFile: if not empty, the references below the given reference file will be returned
+		@param predicate: method returning true for each valid file reference object
+		@return: list of L{FileReference}s objects"""
+		out = []
+		for reffile in cmds.file( str( referenceFile ), q=1, r=1, un=1 ):
+			refobj = FileReference( filepath = reffile )
+			if predicate( refobj ):
+				out.append( refobj )
+		# END for each reference file
+		return out
+		
+	@staticmethod
+	def lsDeep( predicate = lambda x: True, **kwargs ):
+		""" Return all references recursively 
+		@param **kwargs: support for arguments as in lsReferences"""
+		refs = FileReference.ls( **kwargs )
+		out = refs
+		for ref in refs:
+			out.extend( ref.getChildrenDeep( order = iDagItem.kOrder_BreadthFirst, predicate=predicate ) )
+		return out
+		
 	
 	def remove( self, **kwargs ):
 		""" Remove the given reference 
@@ -250,12 +319,14 @@ class FileReference( Path, iDagItem ):
 		
 	def getChildren( self , predicate = lambda x: True ):
 		""" @return: all intermediate child references of this instance """
-		return scene.Scene.lsReferences( referenceFile = self.getFullPath(), predicate = predicate )
+		return self.ls( referenceFile = self.getFullPath(), predicate = predicate )
 		
 		
 	def getCopyNumber( self ):
-		"""@return: the references copy number - starting at 0 for the first reference"""
-		return self._copynumber
+		"""@return: the references copy number - starting at 0 for the first reference
+		@note: we do not cache the copy number as mayas internal numbering can change on 
+		when references change - the only stable thing is the reference node name"""
+		return self._splitCopyNumber( self.getFullPath() )[1]
 		
 	def getNamespace( self ):
 		"""@return: namespace object of the namespace holding all objects in this reference"""
@@ -268,11 +339,10 @@ class FileReference( Path, iDagItem ):
 		return Namespace( ":" + parentspace + refspace )
 			
 	def getFullPath( self ):
-		"""@return: string with full path including copy number"""
-		suffix = ""
-		if self._copynumber != 0:
-			suffix = '{%i}' % self._copynumber
-		return ( str(self) + suffix )
+		"""@return: string with full path including copy number
+		@note: we always query it from maya as our numbers change if some other 
+		reference is being removed and cannot be trusted"""
+		return cmds.referenceQuery( self._refnode, f=1, un=1 )
 		
 	def getReferenceNode( self ):
 		"""@return: byronimo wrapped reference node managing this reference"""
