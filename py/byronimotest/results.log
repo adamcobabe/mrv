@@ -47,12 +47,12 @@ CON: '2_TestProcess.outFloat' -> '3_TestProcessTarget.inFloat'
 --------------------------------------------
 Wrote DOT to: /tmp/multiinput.postcreate.dot
 --------------------------------------------
-2_WrappedWorkflow: SETTING SHELLCLS on 1_TestProcess
 2_WrappedWorkflow: SETTING SHELLCLS on 3_TestProcessTarget
-1_WrappedWorkflow: SETTING SHELLCLS on 1_TestProcess
+2_WrappedWorkflow: SETTING SHELLCLS on 1_TestProcess
 1_WrappedWorkflow: SETTING SHELLCLS on 3_TestProcessTarget
-CON: '1_WrappedWorkflow._FP_3_TestProcessTarget_outString' -> '2_WrappedWorkflow._FP_3_TestProcessTarget_inUni'
+1_WrappedWorkflow: SETTING SHELLCLS on 1_TestProcess
 CON: '1_WrappedWorkflow._FP_3_TestProcessTarget_outChain' -> '2_WrappedWorkflow._FP_1_TestProcess_inChain'
+CON: '1_WrappedWorkflow._FP_3_TestProcessTarget_outString' -> '2_WrappedWorkflow._FP_3_TestProcessTarget_inUni'
 -----------------------------------------------
 Wrote DOT to: /tmp/multiWorkflow.postcreate.dot
 -----------------------------------------------
@@ -174,69 +174,69 @@ Warning: Reference file path remapped from '/home/sebastian/ws_repository/src/wh
 File read in 0 seconds.
 
 
-Created 100 nodes in 0.470000 s ( 212.765957 / s )
+Created 100 nodes in 0.460000 s ( 217.391304 / s )
 Undo: byronimoUndo -pop
-Undone Operation in 0.010000 s
-Created 2500 nodes in 6.940000 s ( 360.230548 / s )
+Undone Operation in 0.000000 s
+Created 2500 nodes in 6.790000 s ( 368.188513 / s )
 Undo: byronimoUndo -pop
-Undone Operation in 0.160000 s
+Undone Operation in 0.150000 s
 Redo: byronimoUndo -pop
-Created 7481 Nodes ( from STRING ) in 1.570000 s ( 4764.968153 / s )
-Created 7481 Nodes ( from APIOBJ ) in 0.630000 s ( 11874.603175 / s ) -> 249.206349 % faster
+Created 7398 Nodes ( from STRING ) in 1.530000 s ( 4835.294118 / s )
+Created 7398 Nodes ( from APIOBJ ) in 0.620000 s ( 11932.258065 / s ) -> 246.774194 % faster
 File read in 0 seconds.
-Walked 2500 nodes in 0.430000 s ( 5813.953488 / s )
+Walked 2500 nodes in 0.440000 s ( 5681.818182 / s )
 Walked 2500 WRAPPED nodes in 1.290000 s ( 1937.984496 / s )
 Walked 2500 nodes BREADTH FIRST in 0.680000 s ( 3676.470588 / s )
 File read in 7 seconds.
-Walked 25000 nodes in 4.470000 s ( 5592.841163 / s )
-Walked 25000 WRAPPED nodes in 13.070000 s ( 1912.777353 / s )
-Walked 25000 nodes BREADTH FIRST in 28.930000 s ( 864.154857 / s )
-10 MULTI PLUG Connected in 0.240000 s ( 41.666667 / s )
+Walked 25000 nodes in 4.490000 s ( 5567.928731 / s )
+Walked 25000 WRAPPED nodes in 12.980000 s ( 1926.040062 / s )
+Walked 25000 nodes BREADTH FIRST in 29.190000 s ( 856.457691 / s )
+10 MULTI PLUG Connected in 0.250000 s ( 40.000000 / s )
 Undo: byronimoUndo -pop
 Redo: byronimoUndo -pop
-UNDO / REDO Time = 0.180000 / 0.130000 ( 1.846154 * faster than initial creation )
-50 MULTI PLUG Connected in 1.060000 s ( 47.169811 / s )
+UNDO / REDO Time = 0.180000 / 0.130000 ( 1.923077 * faster than initial creation )
+50 MULTI PLUG Connected in 1.110000 s ( 45.045045 / s )
 Undo: byronimoUndo -pop
 Redo: byronimoUndo -pop
-UNDO / REDO Time = 0.580000 / 0.680000 ( 1.558824 * faster than initial creation )
-100 MULTI PLUG Connected in 1.500000 s ( 66.666667 / s )
+UNDO / REDO Time = 0.590000 / 0.710000 ( 1.563380 * faster than initial creation )
+100 MULTI PLUG Connected in 1.550000 s ( 64.516129 / s )
 Undo: byronimoUndo -pop
 Redo: byronimoUndo -pop
-UNDO / REDO Time = 0.800000 / 0.820000 ( 1.829268 * faster than initial creation )
-200 MULTI PLUG Connected in 3.000000 s ( 66.666667 / s )
+UNDO / REDO Time = 0.840000 / 0.860000 ( 1.802326 * faster than initial creation )
+200 MULTI PLUG Connected in 3.120000 s ( 64.102564 / s )
 Undo: byronimoUndo -pop
 Redo: byronimoUndo -pop
-UNDO / REDO Time = 1.560000 / 1.760000 ( 1.704545 * faster than initial creation )
-10 SINGLE PLUGS Connected in 0.030000 s ( 333.333333 / s )
+UNDO / REDO Time = 1.620000 / 1.830000 ( 1.704918 * faster than initial creation )
+10 SINGLE PLUGS Connected in 0.040000 s ( 250.000000 / s )
 Undo: byronimoUndo -pop
 Redo: byronimoUndo -pop
-UNDO / REDO Time = 0.000000 / 0.000000 ( 30.000000 * faster than initial creation )
+UNDO / REDO Time = 0.000000 / 0.000000 ( 40.000000 * faster than initial creation )
 50 SINGLE PLUGS Connected in 0.140000 s ( 357.142857 / s )
 Undo: byronimoUndo -pop
 Redo: byronimoUndo -pop
-UNDO / REDO Time = 0.010000 / 0.000000 ( 140.000000 * faster than initial creation )
-100 SINGLE PLUGS Connected in 0.340000 s ( 294.117647 / s )
+UNDO / REDO Time = 0.000000 / 0.000000 ( 140.000000 * faster than initial creation )
+100 SINGLE PLUGS Connected in 0.350000 s ( 285.714286 / s )
 Undo: byronimoUndo -pop
 Redo: byronimoUndo -pop
-UNDO / REDO Time = 0.000000 / 0.010000 ( 34.000000 * faster than initial creation )
-200 SINGLE PLUGS Connected in 0.620000 s ( 322.580645 / s )
+UNDO / REDO Time = 0.000000 / 0.000000 ( 350.000000 * faster than initial creation )
+200 SINGLE PLUGS Connected in 0.660000 s ( 303.030303 / s )
 Undo: byronimoUndo -pop
 Redo: byronimoUndo -pop
-UNDO / REDO Time = 0.010000 / 0.000000 ( 620.000000 * faster than initial creation )
+UNDO / REDO Time = 0.010000 / 0.000000 ( 660.000000 * faster than initial creation )
 
 
 UNDO: DECORATED Undo disabled: 44135 ops in 1.430000 s ( 30863.636364 / s )
-UNDO: MANUAL Undo disabled: 44135 ops in 1.480000 s ( 29820.945946 / s )
-UNDO: DECORATED is 3.378378 % faster than manually implemented functions !
+UNDO: MANUAL Undo disabled: 44135 ops in 1.460000 s ( 30229.452055 / s )
+UNDO: DECORATED is 2.054795 % faster than manually implemented functions !
 UNDO: DECORATED : 44135 ops in 1.780000 s ( 24794.943820 / s )
-UNDO: MANUAL : 44135 ops in 2.020000 s ( 21849.009901 / s )
-UNDO: DECORATED is 11.881188 % faster than manually implemented functions !
+UNDO: MANUAL : 44135 ops in 2.010000 s ( 21957.711443 / s )
+UNDO: DECORATED is 11.442786 % faster than manually implemented functions !
 Undo: byronimoUndo -pop
 Undo: byronimoUndo -pop -id "_recurseUndoDeco"
 Redo: byronimoUndo -pop -id "_recurseUndoDeco"
 Redo: byronimoUndo -pop
 UNDO: CALL TIME: 176540 operations in 0.110000 s ( 1604909.090909 / s )
-UNDO: RATIO UNDO QUEUE ON/OFF: 1.780000 s (on) vs 1.430000 s (off) = 19.662921 % speedup on disabled queue ( difference [s] = 0.540000 )
+UNDO: RATIO UNDO QUEUE ON/OFF: 1.780000 s (on) vs 1.430000 s (off) = 19.662921 % speedup on disabled queue ( difference [s] = 0.550000 )
 Undo: byronimoUndo -pop
 Redo: byronimoUndo -pop
 Undo: byronimoUndo -pop
@@ -247,10 +247,10 @@ Undo: byronimoUndo -pop
 Undo: byronimoUndo -pop
 Redo: byronimoUndo -pop
 File read in 0 seconds.
-Randomized 8997 node translations in 2.380000 s ( 3780.252101 / s )
+Randomized 8997 node translations in 2.390000 s ( 3764.435146 / s )
 SAVED TMP FILE TO: /tmp/randomscene.mb
-Average position of 8997 nodes is: <-0.082917,0.154607,-0.029565> in 2.150000 s
-Set 8997 nodes to average position in 0.520000 s ( 17301.923077 / s )
+Average position of 8997 nodes is: <0.106369,-0.069356,-0.128265> in 2.130000 s
+Set 8997 nodes to average position in 0.530000 s ( 16975.471698 / s )
 SAVED TMP FILE TO: /tmp/averaged.mb
 SETTING 3_TestProcessTarget.inUni
 WILL QUERY: 3_TestProcessTarget.outString
@@ -292,6 +292,7 @@ SETTING TestProcess0.inFloat
 WILL QUERY: TestProcess1.outFloat
 SETTING TestProcess0.inFloat
 WILL QUERY: TestProcess1.outFloat
+100.0
 Undo: byronimoUndo -pop -id "connectTo"
 Redo: byronimoUndo -pop -id "connectTo"
 Undo: byronimoUndo -pop -id "connectTo"
@@ -594,47 +595,77 @@ CON: 's1.outRand' -> 's2.inFloat'
 CON: 's2.outMult' -> 's3.inFloat'
 CON: 's1.outRand' -> 's2.inFloat'
 CON: 's2.outMult' -> 's3.inFloat'
+CON: 's1.outRand' -> 's2.inFloat'
+CON: 's1.outRand' -> 's2.inFloat'
+CON: 's3.outRand' -> 's2.inFloat'
+CON: 's1.inFloat' -> 's3.inFloat'
+CON: 's2.inInt' -> 's3.inInt'
+my message
+my message
+my message
+my message
+my message
+my message
+my message
+my message
+my message
+my message
+0%
+100%
+100.0
+my message
+my message
+my message
+my message
+my message
+my message
+my message
+my message
+my message
+my message
+0/10
+10/10
 CON: 's1.outAdd' -> 's2.inFloat'
 CON: 's1.outAdd' -> 's2.inFloat'
+GN_1: SETTING SHELLCLS on s2
 GN_1: SETTING SHELLCLS on s1
+CON: 's1.outAdd' -> 's2.inFloat'
+CON: 's1.outAdd' -> 's2.inFloat'
+CON: 's1.outAdd' -> 's2.inFloat'
+GN_2: SETTING SHELLCLS on s2
+CON: 's1.outAdd' -> 's2.inFloat'
+GN_2: SETTING SHELLCLS on s1
+CON: 's1.outAdd' -> 's2.inFloat'
+CON: 'GN_1._FP_s2_outAdd' -> 'GN_2._FP_s1_inFloat'
+CON: 's1.outAdd' -> 's2.inFloat'
 CON: 's1.outAdd' -> 's2.inFloat'
 GN_1: SETTING SHELLCLS on s2
 CON: 's1.outAdd' -> 's2.inFloat'
+GN_1: SETTING SHELLCLS on s1
 CON: 's1.outAdd' -> 's2.inFloat'
-GN_2: SETTING SHELLCLS on s1
 GN_2: SETTING SHELLCLS on s2
+GN_2: SETTING SHELLCLS on s1
 CON: 's1.outAdd' -> 's2.inFloat'
 CON: 's1.outAdd' -> 's2.inFloat'
 CON: 'GN_1._FP_s2_outAdd' -> 'GN_2._FP_s1_inFloat'
 CON: 's1.outAdd' -> 's2.inFloat'
 CON: 's1.outAdd' -> 's2.inFloat'
 GN_1: SETTING SHELLCLS on s2
-GN_1: SETTING SHELLCLS on s1
-CON: 's1.outAdd' -> 's2.inFloat'
-CON: 's1.outAdd' -> 's2.inFloat'
-GN_2: SETTING SHELLCLS on s2
-GN_2: SETTING SHELLCLS on s1
-CON: 's1.outAdd' -> 's2.inFloat'
-CON: 's1.outAdd' -> 's2.inFloat'
-CON: 'GN_1._FP_s2_outAdd' -> 'GN_2._FP_s1_inFloat'
-CON: 's1.outAdd' -> 's2.inFloat'
-CON: 's1.outAdd' -> 's2.inFloat'
-GN_1: SETTING SHELLCLS on s2
 CON: 's1.outAdd' -> 's2.inFloat'
 GN_1: SETTING SHELLCLS on s1
 CON: 's1.outAdd' -> 's2.inFloat'
 GN_2: SETTING SHELLCLS on s2
-GN_2: SETTING SHELLCLS on s1
 CON: 's1.outAdd' -> 's2.inFloat'
+GN_2: SETTING SHELLCLS on s1
 CON: 's1.outAdd' -> 's2.inFloat'
 CON: 'GN_1._FP_s2_outAdd' -> 'GN_2._FP_s1_inFloat'
 SGN_1: SETTING SHELLCLS on GN_2
+CON: 'GN_1._FP_s2_outAdd' -> 'GN_2._FP_s1_inFloat'
 SGN_1: SETTING SHELLCLS on GN_1
 CON: 'GN_1._FP_s2_outAdd' -> 'GN_2._FP_s1_inFloat'
-CON: 'GN_1._FP_s2_outAdd' -> 'GN_2._FP_s1_inFloat'
 SGN_2: SETTING SHELLCLS on GN_2
-CON: 'GN_1._FP_s2_outAdd' -> 'GN_2._FP_s1_inFloat'
 SGN_2: SETTING SHELLCLS on GN_1
+CON: 'GN_1._FP_s2_outAdd' -> 'GN_2._FP_s1_inFloat'
 CON: 'GN_1._FP_s2_outAdd' -> 'GN_2._FP_s1_inFloat'
 CON: 'SGN_1._FP_GN_2__FP_s2_outAdd' -> 'SGN_2._FP_GN_1__FP_s1_inFloat'
 CON: 'SGN_2._FP_GN_2__FP_s2_outAdd' -> 'SGN_1._FP_GN_1__FP_s1_inFloat'
@@ -675,6 +706,7 @@ byronimo.automation.workflow:  test facades of workflows ... ok
 byronimo.maya.ui: test callbacks and handling - needs user interaction ... ok
 byronimo.maya.ui: create some windows ... ok
 byronimo.maya.ui: test basic layout functions ... ok
+byronimo.maya.ui: test progress window functionality ... ERROR
 byronimo.maya.nodes: Test plug abilities( node.attribute ) ... ok
 byronimo.maya.nodes: test the plugarray wrapper ... ok
 byronimo.maya.nodes: test matrix data ... ok
@@ -709,7 +741,7 @@ byronimo.maya.nodes.storage: test pickle data ... ok
 byronimo.maya.nodes.storage: test built-in sethandling ... ok
 path: test intatiation ... ok
 dgengine: duplicate a graph ... ok
-dgengine: Test full feature set ... ERROR
+dgengine: Test full feature set ... ok
 Decorators: Tests whether methods using both, rval and parameter type checking works as expected ... ok
 Decorators: Assure that the typecheck param is able to send type error exceptions ... ok
 Decorators: Assure that people do not set kv type checks that do not match any actual method variable ... ok
@@ -717,6 +749,8 @@ Decorators: Assure that the rval test decorator is able to catch these kinds of 
 byronimo.util.DAGTree: Test general methods ... ok
 byronimo.util: test generalized filters ... ok
 byronimo.util: test IntKeygenerator ... ok
+byronimo.util: interface base testing of main functionality ... ok
+byronimo.utils.iProgressIndicator: do some simple progress testing ... ok
 ConfigAccessor: assure that the provided iterators for sections and keys work ... ok
 ConfigAccessor.Properties: Assure that key properties can be parsed ... ok
 ConfigAccessor:If a configuration gets flattened several times, the result must always match with the original ... ok
@@ -749,7 +783,7 @@ ERROR: byronimo.maya.reference: list some references and query their information
 Traceback (most recent call last):
   File "/home/sebastian/ws_repository/src/whitesharkstd/trunk/ext/byronimo/py/byronimotest/byronimo/maya/reference.py", line 43, in test_listAndQuery
     ref.getChildrenDeep( )		# try function
-  File "/home/sebastian/ws_repository/src/whitesharkstd/trunk/ext/byronimo/py/byronimo/util.py", line 373, in getChildrenDeep
+  File "/home/sebastian/ws_repository/src/whitesharkstd/trunk/ext/byronimo/py/byronimo/util.py", line 189, in getChildrenDeep
     children = item.getChildren( predicate = predicate )
   File "/home/sebastian/ws_repository/src/whitesharkstd/trunk/py/whiteshark/../../ext/byronimo/py/byronimo/maya/reference.py", line 322, in getChildren
     return self.ls( referenceFile = self.getFullPath(), predicate = predicate )
@@ -776,16 +810,12 @@ RuntimeError: Cannot find the reference file.
 
 
 ======================================================================
-ERROR: dgengine: Test full feature set
+ERROR: byronimo.maya.ui: test progress window functionality
 ----------------------------------------------------------------------
 Traceback (most recent call last):
-  File "/home/sebastian/ws_repository/src/whitesharkstd/trunk/ext/byronimo/py/byronimotest/byronimo/dgengine.py", line 108, in test_fullFeatureTest
-    self.failUnlessRaises( ComputeFailed, s1.outFailCompute.get  )
-  File "/usr/lib/python2.4/unittest.py", line 320, in failUnlessRaises
-    callableObj(*args, **kwargs)
-  File "/home/sebastian/ws_repository/src/whitesharkstd/trunk/ext/byronimo/py/byronimo/dgengine.py", line 523, in get
-    raise ComputeError( "Computation Failed ( %s ): %s" % ( repr( self ), str( e ) ) )
-ComputeError: Computation Failed ( s1.outFailCompute ): Test compute failed
+  File "/home/sebastian/ws_repository/src/whitesharkstd/trunk/ext/byronimo/py/byronimotest/byronimo/maya/ui/general.py", line 196, in test_progressWindow
+    progress.setInterrupable( True )
+AttributeError: 'ProgressWindow' object has no attribute 'setInterrupable'
 
 ======================================================================
 FAIL: ConfigAccessor: Tests whether malformed INI files raise
@@ -796,7 +826,7 @@ Traceback (most recent call last):
 AssertionError: ConfigParsingError not raised
 
 ----------------------------------------------------------------------
-Ran 97 tests in 121.315s
+Ran 100 tests in 124.867s
 
 FAILED (failures=1, errors=3)
 
