@@ -386,7 +386,7 @@ class iProgressIndicator( object ):
 		# compute the percentage
 		p = self.__progress
 		mn,mx = self.getRange()
-		return min( max( ( p + 1 - mn ) / float( mx - mn ), 0.0 ), 1.0 ) * 100.0
+		return min( max( ( p - mn ) / float( mx - mn ), 0.0 ), 1.0 ) * 100.0
 		
 	def getRange( self ):
 		"""@return: tuple( min, max ) value"""
@@ -404,7 +404,7 @@ class iProgressIndicator( object ):
 			
 		return prefix 
 		
-	def isInterruptable( self ):
+	def isAbortable( self ):
 		"""@return: True if the process may be cancelled"""
 		return self.__may_abort
 		

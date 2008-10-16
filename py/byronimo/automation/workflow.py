@@ -137,6 +137,10 @@ class Workflow( Graph ):
 			"""@return: root at which the call started"""
 			return self._root
 			
+		def getSizeCallStack( self ):
+			"""@return: length of the callstack"""
+			return len( self._call_stack )
+			
 		def toCallList( self, reverse = True, pruneIfTrue = lambda x: False ):
 			"""@return: flattened version of graph as list of ProcessData edges in call order , having
 			the root as last element of the list

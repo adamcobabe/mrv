@@ -920,6 +920,10 @@ class Graph( DiGraph, iDuplicatable ):
 		"""@return: immutable copy of the nodes used in the graph"""
 		return tuple( self._nodes )
 		
+	def getNumNodes( self ):
+		"""@return: number of nodes in the graph"""
+		return len( self._nodes )
+		
 	#} END query
 	
 	#{ Connecitons 
