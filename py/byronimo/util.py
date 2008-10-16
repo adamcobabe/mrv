@@ -312,7 +312,7 @@ class iProgressIndicator( object ):
 	for you if you use the get() method yourself"""
 	
 	#{ Initialization 
-	def __init__( self, min = 0, max = 100, is_relative = True, **kwargs ):
+	def __init__( self, min = 0, max = 100, is_relative = True, may_abort = False, **kwargs ):
 		"""@param min: the minimum progress value
 		@param max: the maximum progress value
 		@param is_relative: if True, the values given will be scaled to a range of 0-100, 
@@ -320,13 +320,14 @@ class iProgressIndicator( object ):
 		@param kwargs: additional arguments being ignored"""
 		self.setRange( min, max )
 		self.setRelative( is_relative )
+		self.setAbortable( may_abort )
 		self.__progress = min
 		
 		
+		
 	def begin( self ):
-		"""intiialize the progress indicator for first use
-		@note: you may not call any other interface function before this ne """
-		pass 
+		"""intiialize the progress indicator before calling L{set} """
+		self.__progress = self.__min		# refresh
 	
 	def end( self ):
 		"""indicate that you are done with the progress indicator - this must be your last
@@ -341,17 +342,10 @@ class iProgressIndicator( object ):
 		@param message: message passed along by the user"""
 		p = self.get( )
 		
-		pmsg = None
-		if self.isRelative():
-			pmsg = "%i%%" % p
-		else:
-			mn,mx = self.getRange()
-			pmsg = "%i | < %i > | %i" % ( mn, p, mx )
+		if not message:
+			message = self.getPrefix( p )
 			
-		if message:
-			pmsg = "( %s ): %s" % ( pmsg, str( message ) )
-			
-		print pmsg
+		print message
 		
 	def set( self, value, message = None , omit_refresh=False ):
 		"""Set the progress of the progress indicator to the given value
@@ -362,7 +356,7 @@ class iProgressIndicator( object ):
 		self.__progress = value
 		
 		if not omit_refresh:
-			self.refresh( message )
+			self.refresh( message = message )
 	
 	def setRange( self, min, max ):
 		"""set the range within we expect our progress to occour"""
@@ -372,6 +366,11 @@ class iProgressIndicator( object ):
 	def setRelative( self, state ):
 		"""enable or disable relative progress computations"""
 		self.__relative = state
+		
+	def setAbortable( self, state ):
+		"""If state is True, the progress may be interrupted, if false it cannot 
+		be interrupted"""
+		self.__may_abort = state
 		
 	#} END edit  
 	
@@ -392,6 +391,22 @@ class iProgressIndicator( object ):
 	def getRange( self ):
 		"""@return: tuple( min, max ) value"""
 		return ( self.__min, self.__max )
+		
+	def getPrefix( self, value ):
+		"""@return: a prefix indicating the progress according to the current range
+		and given value """
+		prefix = ""
+		if self.isRelative():
+			prefix = "%i%%" % value
+		else:
+			mn,mx = self.getRange()
+			prefix = "%i/%i" % ( value, mx )
+			
+		return prefix 
+		
+	def isInterruptable( self ):
+		"""@return: True if the process may be cancelled"""
+		return self.__may_abort
 		
 	def isRelative( self ):
 		"""@return: true if internal progress computations are relative, False if 

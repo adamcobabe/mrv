@@ -111,9 +111,10 @@ class ProgressWindow( util.iProgressIndicator ):
 		kwargs.pop( "ic", kwargs.pop( "isCancelled", 0 ) )
 		kwargs.pop( "e", kwargs.pop( "edit", 0 ) )
 		
-		# Init progress window 
-		cmds.progressWindow( **kwargs )
+		self.kwargs = kwargs  			# store for begin
 		
+		
+	#{ iProgress Overrides
 	
 	def refresh( self, message = None ):
 		"""Finally show the progress window"""
@@ -127,16 +128,32 @@ class ProgressWindow( util.iProgressIndicator ):
 		myargs[ "pr" ] = p
 		myargs[ "status" ] = message or ( "Progress %s" % ( "." * ( int(p) % 4 ) ) )
 		
-		cmds.progressWindow( **myargs )
+		try:
+			cmds.progressWindow( **myargs )
+		except RuntimeError,e:
+			print str( e )
+			pass 		# don't know yet why that happens
 		
-		
-	#{ iProgress Overrides
+	def begin( self ):
+		"""Show our window"""
+		super( ProgressWindow, self ).begin( )
+		cmds.progressWindow( **self.kwargs )
+	
 	def end( self ):
 		"""Close the progress window"""
-		# damn, has to be deferred to actually work 
+		# damn, has to be deferred to actually work
+		super( ProgressWindow, self ).end( )
 		mutils.executeDeferred( cmds.progressWindow, ep=1 )
 		
 	def isCancelRequested( self ):
 		"""@return: True if the action should be cancelled, False otherwise"""
 		return cmds.progressWindow( q=1, ic=1 )
+		
+	def isAbortable( self ):
+		"""@return : true if the process can be aborted"""
+		return cmds.progressWindow( q=1, ii=1 )
+		
+	def setAbortable( self, state ):
+		cmds.progressWindow( e=1, ii=state )
+		return super( ProgressWindow, self ).setAbortable( state ) 
 	#} END iProgressOverrides 

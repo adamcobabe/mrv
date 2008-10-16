@@ -191,7 +191,9 @@ class TestGeneralUI( unittest.TestCase ):
 		
 		
 		# ABSOLUTE ITERATION
+		#######################
 		progress.setRelative( False )
+		progress.setInterrupable( True )
 		progress.begin()
 		for i in range( maxrange ):
 			progress.set( i )

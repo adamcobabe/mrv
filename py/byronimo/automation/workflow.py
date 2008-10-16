@@ -459,6 +459,11 @@ class Workflow( Graph ):
 		# recompute rate as we might have changed it 
 		return shell.node.getTargetRating( target )
 	
+	def getCallGraph( self ):
+		"""@return: current callgraph instance
+		@note: its strictly read-only and may not be changed"""
+		return self._callgraph
+	
 	#} END query 
 	
 	#{ Internal Process Interface 

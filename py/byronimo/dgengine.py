@@ -520,7 +520,7 @@ class _PlugShell( tuple ):
 			try: 
 				result = self.node.compute( self.plug, mode )
 			except ComputeError,e:
-				raise ComputeError( "Computation Failed ( %s ): %s" % ( repr( self ), str( e ) ) )
+				raise ComputeError( "%s: %s" % ( repr( self ), str( e ) ) )
 			except Exception:		# except all - this is an unknown excetion - just pass it on, keeping the origin
 				raise 
 			

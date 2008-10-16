@@ -192,7 +192,7 @@ class ProcessBase( NodeBase ):
 		finalmode = wfl._mode			# use global mode 
 		
 		# if we are root, we take the mode given by the caller though 
-		if wfl._callgraph.getCallRoot().process == self:
+		if wfl.getCallGraph().getCallRoot().process == self:
 			finalmode = mode 
 	
 		# exceptions are handled by dgengine	
