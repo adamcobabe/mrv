@@ -61,7 +61,6 @@ class TestDAGTree( unittest.TestCase ):
 			self.failUnless( isinstance( i, int ) )
 			
 			
-			
 	def test_interfaceBase( self ):
 		"""byronimo.util: interface base testing of main functionality"""
 		class IMasterTest( InterfaceMaster ):
@@ -138,3 +137,39 @@ class TestDAGTree( unittest.TestCase ):
 		imaster.setInterface( "iTest", None )
 		self.failUnless( len( imaster.listInterfaces( ) ) == 0 )
 		
+	
+	def test_progressIndicator( self ):
+		"""byronimo.utils.iProgressIndicator: do some simple progress testing"""
+		maxrange = 10
+		progress = iProgressIndicator( min = 0, max = maxrange, is_relative = 1 )
+		
+		# RELATIVE ITERATION 
+		progress.begin()
+		for i in range( maxrange ):
+			progress.set( i, "my message" )
+		progress.end()
+		
+		
+		# RANGE CHECK 
+		progress.set( -10 )
+		self.failUnless( progress.get() == 0 ) 
+		
+		progress.set( maxrange * 2 )
+		print progress.get()
+		self.failUnless( progress.get() == 100.0 )
+		
+		
+		# ABSOLUTE ITERATION
+		progress.setRelative( False )
+		progress.begin()
+		for i in range( maxrange ):
+			progress.set( i, "my message" )
+		progress.end()
+		
+		
+		# RANGE CHECK  
+		progress.set( -10 )
+		self.failUnless( progress.get() == 0 ) 
+		
+		progress.set( maxrange * 2 )
+		self.failUnless( progress.get() == maxrange )

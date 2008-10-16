@@ -259,7 +259,7 @@ class iDuplicatable( object ):
 		@note: you must support *args and **kwargs if one of your iDuplicate bases does"""
 		raise NotImplementedError( "Copy all data you know from other into self" )
 		
-	# END interface
+	#} END interface
 	
 	def duplicate( self, *args, **kwargs ):
 		"""Implements a c-style copy constructor by creating a new instance of self
@@ -304,6 +304,95 @@ class iDuplicatable( object ):
 		# return the result !
 		return instance
 	
+class iProgressIndicator( object ):
+	"""Interface allowing to submit progress information
+	The default implementation just prints the respective messages
+	Additionally you may query whether the computation has been cancelled by the user
+	@note: this interface is a simple progress indicator itself, and can do some computations
+	for you if you use the get() method yourself"""
+	
+	#{ Initialization 
+	def __init__( self, min = 0, max = 100, is_relative = True ):
+		"""@param min: the minimum progress value
+		@param max: the maximum progress value
+		@param is_relative: if True, the values given will be scaled to a range of 0-100, 
+		if False no adjustments will be done"""
+		self.setRange( min, max )
+		self.setRelative( is_relative )
+		self.__progress = min
+		
+		
+	def begin( self ):
+		"""intiialize the progress indicator for first use
+		@note: you may not call any other interface function before this ne """
+		pass 
+	
+	def end( self ):
+		"""indicate that you are done with the progress indicator - this must be your last
+		call to the interface""" 
+		pass 
+		
+	#} END initialization 
+	
+	#{ Edit
+	def set( self, value, message = None ):
+		"""Set the progress of the progress indicator to the given value
+		@param value: progress value ( min<=value<=max )
+		@param message: optional message you would like to give to the user"""
+		self.__progress = value
+		p = self.get( )
+		
+		pmsg = None
+		if self.isRelative():
+			pmsg = "%i%%" % p
+		else:
+			mn,mx = self.getRange()
+			pmsg = "%i | < %i > | %i" % ( mn, p, mx )
+			
+		if message:
+			pmsg = "( %s ): %s" % ( pmsg, str( message ) )
+			
+		print pmsg
+	
+	
+	def setRange( self, min, max ):
+		"""set the range within we expect our progress to occour"""
+		self.__min = min
+		self.__max = max
+	
+	def setRelative( self, state ):
+		"""enable or disable relative progress computations"""
+		self.__relative = state
+		
+	#} END edit  
+	
+	#{ Query
+	def get( self ):
+		"""@return: the current progress value
+		@note: if set to relative mode, values will range 
+		from 0.0 to 100.0"""
+		if not self.isRelative():
+			mn,mx = self.getRange()
+			return min( max( self.__progress, mn ), mx ) 
+			
+		# compute the percentage
+		p = self.__progress
+		mn,mx = self.getRange()
+		return min( max( ( p + 1 - mn ) / float( mx - mn ), 0.0 ), 1.0 ) * 100.0
+		
+	def getRange( self ):
+		"""@return: tuple( min, max ) value"""
+		return ( self.__min, self.__max )
+		
+	def isRelative( self ):
+		"""@return: true if internal progress computations are relative, False if 
+		they are treated as absolute values"""
+		return self.__relative
+		
+	def isCancelRequested( self ):
+		"""@return: true if the operation should be aborted"""
+		return False
+	#} END query 
 
 #} END interfaces 
 
