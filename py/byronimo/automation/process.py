@@ -181,19 +181,8 @@ class ProcessBase( NodeBase ):
 	# } END interface
 	
 	#{ Overridden from NodeBase
-	
-	def compute( self, plug, mode = None ):
-		"""Just wire the call to our output base as it will be tracked and hooked into our 
-		system"""
-		return self.evaluateStateBase( plug, mode )
-		
-	#}# END overridden from NodeBase
-	
-	
-	#{ Base 
-	# methods that drive the actual call
 	@track_output_call
-	def evaluateStateBase( self, plug, mode ):
+	def compute( self, plug, mode = None ):
 		"""Base implementation of the output, called by L{getInput} Method. 
 		Its used to have a general hook for the flow tracing
 		@param plug: plug to evaluate
@@ -209,6 +198,12 @@ class ProcessBase( NodeBase ):
 		# exceptions are handled by dgengine	
 		# call actually implemented method
 		return self.evaluateState( plug, finalmode )
+		
+	#}# END overridden from NodeBase
+	
+	
+	#{ Base 
+	# methods that drive the actual call
 		
 	def prepareProcess( self ):
 		"""Will be called on all processes of the workflow once before a target is 

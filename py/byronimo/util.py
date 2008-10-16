@@ -312,11 +312,12 @@ class iProgressIndicator( object ):
 	for you if you use the get() method yourself"""
 	
 	#{ Initialization 
-	def __init__( self, min = 0, max = 100, is_relative = True ):
+	def __init__( self, min = 0, max = 100, is_relative = True, **kwargs ):
 		"""@param min: the minimum progress value
 		@param max: the maximum progress value
 		@param is_relative: if True, the values given will be scaled to a range of 0-100, 
-		if False no adjustments will be done"""
+		if False no adjustments will be done
+		@param kwargs: additional arguments being ignored"""
 		self.setRange( min, max )
 		self.setRelative( is_relative )
 		self.__progress = min
@@ -522,11 +523,15 @@ class InterfaceMaster( object ):
 			self.__callerid = ibase._num_callers
 			ibase._num_callers += 1
 			
+			ibase._current_caller_id = self.__callerid		# assure the callback finds the right one
+			ibase.givenToCaller( )
+			
 		def __getattr__( self, attr ):
 			self.__ibase._current_caller_id = self.__callerid 	# set our caller 
 			return getattr( self.__ibase, attr )
 			
 		def __del__( self ):
+			self.__ibase.aboutToRemoveFromCaller( )
 			self.__ibase._num_callers -= 1
 			self.__ibase._current_caller_id = -1
 	
@@ -549,6 +554,16 @@ class InterfaceMaster( object ):
 			@note: the return value of this method is undefined if called if the 
 			method has been called by someone not being an official caller ( like yourself )"""
 			return self._current_caller_id
+			
+		def givenToCaller( self ):
+			"""Called once our interface has been given to a new caller.
+			The caller has not made a call yet, but its id can be queried"""
+			pass 
+			
+		def aboutToRemoveFromCaller( self ):
+			"""Called once our interface is about to be removed from the current 
+			caller - you will not receive a call from it anymore """
+			pass 
 		
 	#} END helper classes 
 	
