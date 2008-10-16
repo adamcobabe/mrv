@@ -59,3 +59,44 @@ class TestDAGTree( unittest.TestCase ):
 		"""byronimo.util: test IntKeygenerator"""
 		for i in IntKeyGenerator( [ 1,2,3 ] ):
 			self.failUnless( isinstance( i, int ) )
+			
+			
+			
+	def test_interfaceBase( self ):
+		"""byronimo.util: interface base testing of main functionality"""
+		class IBaseTest( InterfaceBase ):
+			ib_provide_on_instance = True
+			
+		class Interface( object ):
+			def __init__( self ):
+				self.callcount = 0
+				
+			def icall( self ):
+				self.callcount += 1 
+				
+		ibase = IBaseTest()
+		iinst = Interface()
+		ibase.setInterface( "iTest", iinst )
+		
+		self.failUnless( len( ibase.listInterfaces() ) == 1 and ibase.listInterfaces()[0] == "iTest" )
+		self.failUnless( iinst == ibase.getInterface( "iTest" ) )
+		self.failUnless( iinst == ibase.iTest )
+		
+		
+		# del interface 
+		ibase.setInterface( "iTest", None )
+		ibase.setInterface( "iTest", None )  # multiple 
+		ibase.setInterface( "iTest2", None ) # non-existing
+		
+		self.failUnlessRaises( AttributeError, getattr, ibase, "iTest" )
+		self.failUnlessRaises( ValueError, ibase.getInterface, "iTest" )
+		
+		
+		# NO CLASS ACCESS 
+		IBaseTest.ib_provide_on_instance = False
+		ibase.setInterface( "iTest", iinst )
+		
+		self.failUnlessRaises( AttributeError, getattr, ibase, "iTest" )
+		self.failUnless( ibase.getInterface( "iTest" ) == iinst )
+		ibase.setInterface( "iTest", None )
+		

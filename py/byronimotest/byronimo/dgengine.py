@@ -105,7 +105,7 @@ class TestDGEngine( unittest.TestCase ):
 		self.failUnlessRaises( NotWritableError, s1.outRand.set, "that" )
 		
 		# computation failed check
-		self.failUnlessRaises( ComputeFailed, s1.outFailCompute.get  )
+		self.failUnlessRaises( ComputeError, s1.outFailCompute.get  )
 		
 		# missing default value
 		self.failUnlessRaises( MissingDefaultValueError, s1.inInt.get )
@@ -164,7 +164,7 @@ class TestDGEngine( unittest.TestCase ):
 		s2.inInt.connect( s3.inInt )
 		
 		# inInt does not have a default value, so computation fails unhandled 
-		self.failUnlessRaises( ComputeError, s3.outMult.get )	
+		self.failUnlessRaises( MissingDefaultValueError, s3.outMult.get )	
 		
 		# set in int and it should work
 		s2.inInt.set( 4 )

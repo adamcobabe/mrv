@@ -104,193 +104,9 @@ def getPackageClasses( importBase, packageFile, predicate = lambda x: True ):
 #### Classes 		  	####
 ##########################
 
-class iDuplicatable( object ):
-	"""Simple interface allowing any class to be properly duplicated"""
-	#{ Interface 
-	
-	def createInstance( self, *args, **kwargs ):
-		"""Create and Initialize an instance of self.__class__( ... ) based on your own data
-		@return: new instance of self
-		@note: using self.__class__ instead of an explicit class allows derived 
-		classes that do not have anything to duplicate just to use your implementeation
-		@note: you must support *args and **kwargs if one of your iDuplicate bases does"""
-		raise NotImplementedError( "Implement like self.__class__( yourInitArgs )" )
-		
-	def copyFrom( self, other, *args, **kwargs ):
-		"""Copy the data from other into self as good as possible
-		Only copy the data that is unique to your specific class - the data of other 
-		classes will be taken care of by them !
-		@note: you must support *args and **kwargs if one of your iDuplicate bases does"""
-		raise NotImplementedError( "Copy all data you know from other into self" )
-		
-	# END interface
-	
-	def duplicate( self, *args, **kwargs ):
-		"""Implements a c-style copy constructor by creating a new instance of self
-		and applying the copy from methods from base to all classes implementing the copyfrom 
-		method. Thus we will call the method directly on the class
-		@param *args,**kwargs : passed to copyFrom and createInstance method to give additional directions"""
-		try:
-			createInstFunc = getattr( self, 'createInstance' ) 
-			instance = createInstFunc( *args, **kwargs )
-		except TypeError,e: 		#	 could be the derived class does not support the args ( although it should
-			#raise
-			raise AssertionError( "The subclass method %s must support *args and or **kwargs if the superclass does, error: %s" % ( createInstFunc, e ) )
-		
-		
-		# Sanity Check 
-		if not ( instance.__class__ is self.__class__ ):
-			msg = "Duplicate must have same class as self, was %s, should be %s" % ( instance.__class__, self.__class__ )
-			raise AssertionError( msg )
-			
-			
-		# Get reversed mro, starting at lowest base
-		mrorev = instance.__class__.mro()
-		mrorev.reverse()
-		
-		# APPLY COPY CONSTRUCTORS !
-		##############################
-		for base in mrorev:
-			if base is iDuplicatable:
-				continue
-			
-			# must get the actual method directly from the base ! Getattr respects the mro ( of course )
-			# and possibly looks at the base's superclass methods of the same name
-			try:
-				copyFromFunc = base.__dict__[ 'copyFrom' ] 
-				copyFromFunc( instance, self, *args, **kwargs )
-			except KeyError:
-				pass 
-			except TypeError,e: 		#	 could be the derived class does not support the args ( although it shold
-				raise AssertionError( "The subclass method %s.%s must support *args and or **kwargs if the superclass does, error: %s" % (base, copyFromFunc,e) )
-		# END for each base 
-		
-		# return the result !
-		return instance
-	
 
-class Call( object ):
-	"""Call object encapsulating any code, thus providing a simple facade for it
-	@note: derive from it if a more complex call is required""" 
-	def __init__( self, func, *args,**kwargs ):
-		"""Initialize object with function to call once this object is called"""
-		self.func = func
-		self.args = args
-		self.kwargs = kwargs
-		
-	def __call__( self, *args, **kwargs ):
-		"""Execute the stored function on call
-		@note: having *args and **kwargs set makes it more versatile"""
-		return self.func( *self.args, **self.kwargs )
-		
-		
-class CallbackBase( object ):
-	"""Base class for all classes that want to provide a common callback interface
-	to supply event information to clients.
-	Usage
-	-----
-	Derive from this class and define your callbacks like :
-	eventname = CallbackBase.Event( "eventname" )
-	Call it using 
-	self.sendEvent( "eventname", [ args [ kwargs ] ] )
-	If more args are given during your call, this has to be documented 
-	
-	Users register using 
-	yourclass.eventname = callable
-	
-	and deregister using 
-	yourclass.removeEvent( eventname, callable )
-	
-	@note: using weak-references to ensure one does not keep objects alive"""
-	
-	class Event( object ):
-		"""Descriptor allowing to easily setup callbacks for classes derived from 
-		CallbackBase"""
-		def __init__( self, eventname ):
-			self.eventname = eventname + "_set"	# set attr going to keep events 
-			
-		def __set__( self, inst, eventfunc ):
-			"""Set a new event to our object"""
-			self.__get__( inst ).add( weakref.ref( eventfunc ) )
-			
-		def __get__( self, inst, cls = None ):
-			"""Always return the set itself so that one can iterate it"""
-			if inst is None:
-				raise TypeError( "The attribute %s cannot be accessed on class level" % self.eventname )
-				
-			if not hasattr( inst, self.eventname ):
-				setattr( inst, self.eventname, set() )
-			
-			return getattr( inst, self.eventname )
-	
-	
-	def removeEvent( self, eventname, eventfunc ):
-		"""remove the given event function from the event identified by eventname
-		@note: will not raise if it does not exist"""
-		try:
-			getattr( self, eventname ).remove( weakref.ref( event ) )
-		except KeyError:
-			pass 
-			
-	def sendEvent( self, eventname, *args, **kwargs ):
-		"""Send the given event to all registered event listeners
-		@note: will catch all event exceptions trown by the methods called
-		@return: False if at least one event call threw an exception, true otherwise"""
-		success = True
-		for funcref in getattr( self, eventname ):
-			try:
-				func = funcref()	# its a weak reference 
-				if func:
-					func( *args, **kwargs )
-			except Exception:
-				success = False
-				#print "Error: Exception thrown by function %s during event %s" % ( func, eventname )
-		# END for each registered event
-		return success
-		
-	
 
-class Singleton(object) :
-	""" Singleton classes can be derived from this class,
-		you can derive from other classes as long as Singleton comes first (and class doesn't override __new__ ) """
-	def __new__(cls, *p, **k):
-		if not '_the_instance' in cls.__dict__:
-			cls._the_instance = super(Singleton, cls).__new__(cls)
-		return cls._the_instance
-
-class IntKeyGenerator( object ):
-	"""Provides iterators for directly access list like objects supporting 
-	__getitem__ method 
-	@note: the list must not change size during iteration !"""
-	def __init__( self, listobj ):
-		"""Initialize the generator with the list to iterate"""
-		self.listobj = listobj
-		self.index = 0
-		self.length = len( self.listobj )
-	
-	def __iter__( self ):
-		return self
-
-	def next( self ):
-		if self.index < self.length:
-			rval = self.listobj[ self.index ]
-			self.index += 1
-			return rval
-		else:
-			raise StopIteration
-			
-
-class CallOnDeletion( object ):
-	"""Call the given callable object once this object is being deleted
-	Its usefull if you want to assure certain code to run once the parent scope 
-	of this object looses focus"""
-	def __init__( self, callableobj ):
-		self.callableobj = callableobj
-		
-	def __del__( self ):
-		if self.callableobj:
-			self.callableobj( )
-		
+#{ Interfaces 
 
 class iDagItem( object ):
 	""" Describes interface for a DAG item.
@@ -422,6 +238,288 @@ class iDagItem( object ):
 		return sname + childname		
 	
 	#} END name generation
+
+
+class iDuplicatable( object ):
+	"""Simple interface allowing any class to be properly duplicated"""
+	#{ Interface 
+	
+	def createInstance( self, *args, **kwargs ):
+		"""Create and Initialize an instance of self.__class__( ... ) based on your own data
+		@return: new instance of self
+		@note: using self.__class__ instead of an explicit class allows derived 
+		classes that do not have anything to duplicate just to use your implementeation
+		@note: you must support *args and **kwargs if one of your iDuplicate bases does"""
+		raise NotImplementedError( "Implement like self.__class__( yourInitArgs )" )
+		
+	def copyFrom( self, other, *args, **kwargs ):
+		"""Copy the data from other into self as good as possible
+		Only copy the data that is unique to your specific class - the data of other 
+		classes will be taken care of by them !
+		@note: you must support *args and **kwargs if one of your iDuplicate bases does"""
+		raise NotImplementedError( "Copy all data you know from other into self" )
+		
+	# END interface
+	
+	def duplicate( self, *args, **kwargs ):
+		"""Implements a c-style copy constructor by creating a new instance of self
+		and applying the copy from methods from base to all classes implementing the copyfrom 
+		method. Thus we will call the method directly on the class
+		@param *args,**kwargs : passed to copyFrom and createInstance method to give additional directions"""
+		try:
+			createInstFunc = getattr( self, 'createInstance' ) 
+			instance = createInstFunc( *args, **kwargs )
+		except TypeError,e: 		#	 could be the derived class does not support the args ( although it should
+			#raise
+			raise AssertionError( "The subclass method %s must support *args and or **kwargs if the superclass does, error: %s" % ( createInstFunc, e ) )
+		
+		
+		# Sanity Check 
+		if not ( instance.__class__ is self.__class__ ):
+			msg = "Duplicate must have same class as self, was %s, should be %s" % ( instance.__class__, self.__class__ )
+			raise AssertionError( msg )
+			
+			
+		# Get reversed mro, starting at lowest base
+		mrorev = instance.__class__.mro()
+		mrorev.reverse()
+		
+		# APPLY COPY CONSTRUCTORS !
+		##############################
+		for base in mrorev:
+			if base is iDuplicatable:
+				continue
+			
+			# must get the actual method directly from the base ! Getattr respects the mro ( of course )
+			# and possibly looks at the base's superclass methods of the same name
+			try:
+				copyFromFunc = base.__dict__[ 'copyFrom' ] 
+				copyFromFunc( instance, self, *args, **kwargs )
+			except KeyError:
+				pass 
+			except TypeError,e: 		#	 could be the derived class does not support the args ( although it shold
+				raise AssertionError( "The subclass method %s.%s must support *args and or **kwargs if the superclass does, error: %s" % (base, copyFromFunc,e) )
+		# END for each base 
+		
+		# return the result !
+		return instance
+	
+
+#} END interfaces 
+
+class Call( object ):
+	"""Call object encapsulating any code, thus providing a simple facade for it
+	@note: derive from it if a more complex call is required""" 
+	def __init__( self, func, *args,**kwargs ):
+		"""Initialize object with function to call once this object is called"""
+		self.func = func
+		self.args = args
+		self.kwargs = kwargs
+		
+	def __call__( self, *args, **kwargs ):
+		"""Execute the stored function on call
+		@note: having *args and **kwargs set makes it more versatile"""
+		return self.func( *self.args, **self.kwargs )
+		
+		
+class CallbackBase( object ):
+	"""Base class for all classes that want to provide a common callback interface
+	to supply event information to clients.
+	Usage
+	-----
+	Derive from this class and define your callbacks like :
+	eventname = CallbackBase.Event( "eventname" )
+	Call it using 
+	self.sendEvent( "eventname", [ args [ kwargs ] ] )
+	If more args are given during your call, this has to be documented 
+	
+	Users register using 
+	yourclass.eventname = callable
+	
+	and deregister using 
+	yourclass.removeEvent( eventname, callable )
+	
+	@note: using weak-references to ensure one does not keep objects alive"""
+	
+	class Event( object ):
+		"""Descriptor allowing to easily setup callbacks for classes derived from 
+		CallbackBase"""
+		def __init__( self, eventname ):
+			self.eventname = eventname + "_set"	# set attr going to keep events 
+			
+		def __set__( self, inst, eventfunc ):
+			"""Set a new event to our object"""
+			self.__get__( inst ).add( weakref.ref( eventfunc ) )
+			
+		def __get__( self, inst, cls = None ):
+			"""Always return the set itself so that one can iterate it"""
+			if inst is None:
+				raise TypeError( "The attribute %s cannot be accessed on class level" % self.eventname )
+				
+			if not hasattr( inst, self.eventname ):
+				setattr( inst, self.eventname, set() )
+			
+			return getattr( inst, self.eventname )
+	
+	
+	def removeEvent( self, eventname, eventfunc ):
+		"""remove the given event function from the event identified by eventname
+		@note: will not raise if it does not exist"""
+		try:
+			getattr( self, eventname ).remove( weakref.ref( eventfunc ) )
+		except KeyError:
+			pass 
+			
+	def sendEvent( self, eventname, *args, **kwargs ):
+		"""Send the given event to all registered event listeners
+		@note: will catch all event exceptions trown by the methods called
+		@return: False if at least one event call threw an exception, true otherwise"""
+		success = True
+		for funcref in getattr( self, eventname ):
+			try:
+				func = funcref()	# its a weak reference 
+				if func:
+					func( *args, **kwargs )
+			except Exception:
+				success = False
+				#print "Error: Exception thrown by function %s during event %s" % ( func, eventname )
+		# END for each registered event
+		return success
+		
+	
+class InterfaceBase( object ):
+	"""Base class making the derived class an interface provider, allowing interfaces 
+	to be set, queried and used including build-in use"""
+	
+	#{ Configuration 
+	ib_provide_on_instance = True			 # if true, interfaces are available directly through the class using descriptors 
+	#} END configuration 
+	
+	#{ Helper Classes 
+	class InterfaceDescriptor( object ):
+		"""Descriptor handing out interfaces from our interface dict
+		They allow access to interfaces directly through the InterfaceBase without calling
+		extra functions"""
+		
+		def __init__( self, interfacename ):
+			self.iname = interfacename			# keep name of our interface 
+		
+		def __get__( self, inst, cls = None ):
+			if inst is None:
+				raise AttributeError( "Interfaces must be accessed through the instance of the class" )
+			
+			try:
+				return inst._idict[ self.iname ]
+			except KeyError:
+				raise AttributeError( "Interface %s does not exist" % self.iname )
+				
+		def __set__( self, value ):
+			raise ValueError( "Cannot set interfaces through the instance - use the setInterface method instead" ) 
+	
+	#} END helper classes 
+	
+	#{ Object Overrides 
+	def __init__( self ):
+		"""Initialize the interface base with some tracking variables"""
+		self._idict = dict()			# keep interfacename->interfaceinstance relations 
+	
+	#} END object overrides 
+	
+	
+	#{ Interface 
+	def setInterface( self, interfaceName, interfaceInstance ):
+		"""Set the given interfaceInstance to be handed out once an interface 
+		with interfaceName is requested from the provider base
+		@param interfaceName: should start with i..., i.e. names would be iInterface
+		The name can be used to refer to the interface later on
+		@param interfaceInstance: instance to be handed out once an interface with the 
+		given name is requested by the InterfaceBase or None
+		if None, the interface will effectively be deleted"""
+		
+		if interfaceInstance is None:			# delete interface ?
+			# delete from dict
+			try:
+				del( self._idict[ interfaceName ] )
+			except KeyError:
+				pass 
+			
+			# delete class descriptor  
+			if self.ib_provide_on_instance: 
+				try: 
+					delattr( self.__class__, interfaceName )
+				except AttributeError:
+					pass 
+			# END del on class 
+				 
+		# END interface deleting
+		else:
+			self._idict[ interfaceName ] = interfaceInstance
+			
+			# set on class ?
+			if self.ib_provide_on_instance:
+				setattr( self.__class__, interfaceName, self.InterfaceDescriptor( interfaceName ) ) 
+		
+		# provide class variables ?
+		
+		
+	def getInterface( self, interfaceName ):
+		"""@return: an interface registered with interfaceName
+		@raise ValueError: if no such interface exists"""
+		try:
+			return self._idict[ interfaceName ]
+		except KeyError:
+			raise ValueError( "Interface %s does not exist" % interfaceName )
+		
+	def listInterfaces( self ):
+		"""@return: list of names indicating interfaces available at our interfaceBase"""
+		return self._idict.keys()
+		
+	#} END interface
+	
+
+
+
+class Singleton(object) :
+	""" Singleton classes can be derived from this class,
+		you can derive from other classes as long as Singleton comes first (and class doesn't override __new__ ) """
+	def __new__(cls, *p, **k):
+		if not '_the_instance' in cls.__dict__:
+			cls._the_instance = super(Singleton, cls).__new__(cls)
+		return cls._the_instance
+
+class IntKeyGenerator( object ):
+	"""Provides iterators for directly access list like objects supporting 
+	__getitem__ method 
+	@note: the list must not change size during iteration !"""
+	def __init__( self, listobj ):
+		"""Initialize the generator with the list to iterate"""
+		self.listobj = listobj
+		self.index = 0
+		self.length = len( self.listobj )
+	
+	def __iter__( self ):
+		return self
+
+	def next( self ):
+		if self.index < self.length:
+			rval = self.listobj[ self.index ]
+			self.index += 1
+			return rval
+		else:
+			raise StopIteration
+			
+
+class CallOnDeletion( object ):
+	"""Call the given callable object once this object is being deleted
+	Its usefull if you want to assure certain code to run once the parent scope 
+	of this object looses focus"""
+	def __init__( self, callableobj ):
+		self.callableobj = callableobj
+		
+	def __del__( self ):
+		if self.callableobj:
+			self.callableobj( )
+		
 
 class DAGTree( nxtree.DirectedTree ):
 	"""Adds utility functions to DirectedTree allowing to handle a directed tree like a dag
