@@ -64,39 +64,77 @@ class TestDAGTree( unittest.TestCase ):
 			
 	def test_interfaceBase( self ):
 		"""byronimo.util: interface base testing of main functionality"""
-		class IBaseTest( InterfaceBase ):
-			ib_provide_on_instance = True
+		class IMasterTest( InterfaceMaster ):
+			im_provide_on_instance = True
 			
 		class Interface( object ):
-			def __init__( self ):
-				self.callcount = 0
+			pass 
+		# END simple interface 
+			
+		class TrackedInterface( InterfaceMaster.InterfaceBase ):
+			def __init__( self, testinst ):
+				self.test = testinst
+				super( TrackedInterface, self ).__init__( )
 				
-			def icall( self ):
-				self.callcount += 1 
-				
-		ibase = IBaseTest()
-		iinst = Interface()
-		ibase.setInterface( "iTest", iinst )
+			def testcall( self, targetcallers, targetcallerid ):
+				self.test.failUnless( self.getNumCallers( ) == targetcallers )
+				self.test.failUnless( self.getCallerId( ) == targetcallerid ) 
+		# END tracked interface 
 		
-		self.failUnless( len( ibase.listInterfaces() ) == 1 and ibase.listInterfaces()[0] == "iTest" )
-		self.failUnless( iinst == ibase.getInterface( "iTest" ) )
-		self.failUnless( iinst == ibase.iTest )
+		
+		# SIMPLE INTERFACE 
+		##################### 
+		imaster = IMasterTest()
+		iinst = Interface()
+		imaster.setInterface( "iTest", iinst )
+		
+		self.failUnless( len( imaster.listInterfaces() ) == 1 and imaster.listInterfaces()[0] == "iTest" )
+		self.failUnless( iinst == imaster.getInterface( "iTest" ) )
+		self.failUnless( iinst == imaster.iTest )
 		
 		
 		# del interface 
-		ibase.setInterface( "iTest", None )
-		ibase.setInterface( "iTest", None )  # multiple 
-		ibase.setInterface( "iTest2", None ) # non-existing
+		imaster.setInterface( "iTest", None )
+		imaster.setInterface( "iTest", None )  # multiple 
+		imaster.setInterface( "iTest2", None ) # non-existing
 		
-		self.failUnlessRaises( AttributeError, getattr, ibase, "iTest" )
-		self.failUnlessRaises( ValueError, ibase.getInterface, "iTest" )
+		self.failUnlessRaises( AttributeError, getattr, imaster, "iTest" )
+		self.failUnlessRaises( ValueError, imaster.getInterface, "iTest" )
 		
 		
 		# NO CLASS ACCESS 
-		IBaseTest.ib_provide_on_instance = False
-		ibase.setInterface( "iTest", iinst )
+		imaster.im_provide_on_instance = False
+		imaster.setInterface( "iTest", iinst )
 		
-		self.failUnlessRaises( AttributeError, getattr, ibase, "iTest" )
-		self.failUnless( ibase.getInterface( "iTest" ) == iinst )
-		ibase.setInterface( "iTest", None )
+		self.failUnlessRaises( AttributeError, getattr, imaster, "iTest" )
+		self.failUnless( imaster.getInterface( "iTest" ) == iinst )
+		imaster.setInterface( "iTest", None )
+		
+		self.failUnless( len( imaster.listInterfaces( ) ) == 0 )
+		
+		
+		# TRACKED INTERFACE
+		###################
+		binst = TrackedInterface( self )
+		imaster.im_provide_on_instance = True
+		imaster.setInterface( "iTest", binst )
+		
+		caller = imaster.getInterface( "iTest" )
+		self.failUnless( type( caller ) == InterfaceMaster._InterfaceHandler )
+		caller.testcall( 1, 0 )
+		
+		caller2 = imaster.iTest
+		caller2.testcall( 2, 1 )
+		
+		caller.testcall( 2, 0 )
+		
+		del( caller2 )
+		caller.testcall( 1, 0 )
+		
+		del( caller )
+		self.failUnless( binst._num_callers == 0 )
+		self.failUnless( binst._current_caller_id == -1 )
+		
+		imaster.setInterface( "iTest", None )
+		self.failUnless( len( imaster.listInterfaces( ) ) == 0 )
 		

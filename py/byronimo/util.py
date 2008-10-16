@@ -387,18 +387,18 @@ class CallbackBase( object ):
 		return success
 		
 	
-class InterfaceBase( object ):
+class InterfaceMaster( object ):
 	"""Base class making the derived class an interface provider, allowing interfaces 
 	to be set, queried and used including build-in use"""
 	
 	#{ Configuration 
-	ib_provide_on_instance = True			 # if true, interfaces are available directly through the class using descriptors 
+	im_provide_on_instance = True			 # if true, interfaces are available directly through the class using descriptors 
 	#} END configuration 
 	
 	#{ Helper Classes 
 	class InterfaceDescriptor( object ):
 		"""Descriptor handing out interfaces from our interface dict
-		They allow access to interfaces directly through the InterfaceBase without calling
+		They allow access to interfaces directly through the InterfaceMaster without calling
 		extra functions"""
 		
 		def __init__( self, interfacename ):
@@ -409,13 +409,50 @@ class InterfaceBase( object ):
 				raise AttributeError( "Interfaces must be accessed through the instance of the class" )
 			
 			try:
-				return inst._idict[ self.iname ]
+				return inst.getInterface( self.iname )
 			except KeyError:
 				raise AttributeError( "Interface %s does not exist" % self.iname )
 				
 		def __set__( self, value ):
 			raise ValueError( "Cannot set interfaces through the instance - use the setInterface method instead" ) 
 	
+	
+	class _InterfaceHandler( object ):
+		"""Utility class passing all calls to the stored InterfaceBase, updating the 
+		internal caller-id"""
+		def __init__( self, ibase ):
+			self.__ibase = ibase
+			self.__callerid = ibase._num_callers
+			ibase._num_callers += 1
+			
+		def __getattr__( self, attr ):
+			self.__ibase._current_caller_id = self.__callerid 	# set our caller 
+			return getattr( self.__ibase, attr )
+			
+		def __del__( self ):
+			self.__ibase._num_callers -= 1
+			self.__ibase._current_caller_id = -1
+	
+	
+	class InterfaceBase( object ):
+		"""If your interface class is derived from this base, you get access to 
+		access to call to the number of your current caller.
+		@note: You can register an InterfaceBase with several InterfaceMasters and 
+		share the caller count respectively"""
+		def __init__( self ):
+			self._current_caller_id	 = -1 # id of the caller currently operating on us
+			self._num_callers = 0		# the amount of possible callers, ids range from 0 to (num_callers-1)
+		
+		def getNumCallers( self ):
+			"""@return: number possible callers"""
+			return self._num_callers	
+			
+		def getCallerId( self ):
+			"""Return the number of the caller that called your interface method
+			@note: the return value of this method is undefined if called if the 
+			method has been called by someone not being an official caller ( like yourself )"""
+			return self._current_caller_id
+		
 	#} END helper classes 
 	
 	#{ Object Overrides 
@@ -433,9 +470,9 @@ class InterfaceBase( object ):
 		@param interfaceName: should start with i..., i.e. names would be iInterface
 		The name can be used to refer to the interface later on
 		@param interfaceInstance: instance to be handed out once an interface with the 
-		given name is requested by the InterfaceBase or None
-		if None, the interface will effectively be deleted"""
-		
+		given name is requested by the InterfaceMaster or None
+		if None, the interface will effectively be deleted
+		@raise ValueError: if given InterfaceBase has a master already """   
 		if interfaceInstance is None:			# delete interface ?
 			# delete from dict
 			try:
@@ -444,7 +481,7 @@ class InterfaceBase( object ):
 				pass 
 			
 			# delete class descriptor  
-			if self.ib_provide_on_instance: 
+			if self.im_provide_on_instance: 
 				try: 
 					delattr( self.__class__, interfaceName )
 				except AttributeError:
@@ -456,7 +493,7 @@ class InterfaceBase( object ):
 			self._idict[ interfaceName ] = interfaceInstance
 			
 			# set on class ?
-			if self.ib_provide_on_instance:
+			if self.im_provide_on_instance:
 				setattr( self.__class__, interfaceName, self.InterfaceDescriptor( interfaceName ) ) 
 		
 		# provide class variables ?
@@ -466,12 +503,18 @@ class InterfaceBase( object ):
 		"""@return: an interface registered with interfaceName
 		@raise ValueError: if no such interface exists"""
 		try:
-			return self._idict[ interfaceName ]
+			iinst = self._idict[ interfaceName ]
+			
+			# return wrapper if we can, otherwise just 
+			if isinstance( iinst, self.InterfaceBase ):
+				return self._InterfaceHandler( iinst )
+			else:
+				return iinst
 		except KeyError:
 			raise ValueError( "Interface %s does not exist" % interfaceName )
 		
 	def listInterfaces( self ):
-		"""@return: list of names indicating interfaces available at our interfaceBase"""
+		"""@return: list of names indicating interfaces available at our InterfaceMaster"""
 		return self._idict.keys()
 		
 	#} END interface
