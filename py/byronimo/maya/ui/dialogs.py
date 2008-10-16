@@ -20,6 +20,7 @@ __copyright__='(c) 2008 Sebastian Thiel'
 
 ui = __import__( "byronimo.maya.ui",globals(), locals(), ['ui'] )
 import maya.cmds as cmds
+import maya.utils as mutils
 import byronimo.util as util
 import byronimo.maya.util as mutil
 
@@ -91,3 +92,51 @@ class ConfirmDialog( Dialog ):
 		
 	def getReturnValue( self ):
 		return self._ret
+		
+		
+class ProgressWindow( util.iProgressIndicator ):
+	"""Simple progress window wrpping the default maya progress window"""
+	def __init__( self, **kwargs ):
+		"""Everything that iProgress indicator and Maya Progress Window support"""
+		min = kwargs.pop( "min", kwargs.pop( "minValue" , 0 ) )
+		max = kwargs.pop( "max", kwargs.pop( "maxValue", 100 ) )
+		
+		relative = kwargs.pop( "is_relative", 1 )
+		super( ProgressWindow, self ).__init__( min = min, max = max, is_relative = relative )
+		
+		# remove invalid args 
+		kwargs.pop( "s", kwargs.pop( "step", 0 ) )
+		kwargs.pop( "pr", kwargs.pop( "progress", 0 ) )
+		kwargs.pop( "ep", kwargs.pop( "endProgress", 0 ) )
+		kwargs.pop( "ic", kwargs.pop( "isCancelled", 0 ) )
+		kwargs.pop( "e", kwargs.pop( "edit", 0 ) )
+		
+		# Init progress window 
+		cmds.progressWindow( **kwargs )
+		
+	
+	def refresh( self, message = None ):
+		"""Finally show the progress window"""
+		mn,mx = ( self.isRelative() and ( 0,100) ) or self.getRange()
+		p = self.get()
+		
+		myargs = dict()
+		myargs[ "e" ] = 1
+		myargs[ "min" ] = mn
+		myargs[ "max" ] = mx
+		myargs[ "pr" ] = p
+		myargs[ "status" ] = message or ( "Progress %s" % ( "." * ( int(p) % 4 ) ) )
+		
+		cmds.progressWindow( **myargs )
+		
+		
+	#{ iProgress Overrides
+	def end( self ):
+		"""Close the progress window"""
+		# damn, has to be deferred to actually work 
+		mutils.executeDeferred( cmds.progressWindow, ep=1 )
+		
+	def isCancelRequested( self ):
+		"""@return: True if the action should be cancelled, False otherwise"""
+		return cmds.progressWindow( q=1, ic=1 )
+	#} END iProgressOverrides 

@@ -165,4 +165,43 @@ class TestGeneralUI( unittest.TestCase ):
 			b.setCommand( ui.Callback( sys.stdout.write, "hello" ) )
 		col.setParentActive()
 		
-		win.show() 
+		win.show()
+		
+	def test_progressWindow( self ):
+		"""byronimo.maya.ui: test progress window functionality"""
+		maxrange = 100
+		import time
+		progress = ui.ProgressWindow( min = 0, max = maxrange, is_relative = 1 )
+		
+		# RELATIVE ITERATION 
+		progress.begin()
+		for i in range( maxrange ):
+			progress.set( i, "my message" )
+			time.sleep( 0.025 )
+		progress.end()
+		
+		
+		# RANGE CHECK 
+		progress.set( -10 )
+		self.failUnless( progress.get() == 0 ) 
+		
+		progress.set( maxrange * 2 )
+		print progress.get()
+		self.failUnless( progress.get() == 100.0 )
+		
+		
+		# ABSOLUTE ITERATION
+		progress.setRelative( False )
+		progress.begin()
+		for i in range( maxrange ):
+			progress.set( i )
+			time.sleep( 0.025 )
+		progress.end()
+		
+		
+		# RANGE CHECK  
+		progress.set( -10 )
+		self.failUnless( progress.get() == 0 ) 
+		
+		progress.set( maxrange * 2 )
+		self.failUnless( progress.get() == maxrange )

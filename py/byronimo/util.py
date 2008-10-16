@@ -335,11 +335,9 @@ class iProgressIndicator( object ):
 	#} END initialization 
 	
 	#{ Edit
-	def set( self, value, message = None ):
-		"""Set the progress of the progress indicator to the given value
-		@param value: progress value ( min<=value<=max )
-		@param message: optional message you would like to give to the user"""
-		self.__progress = value
+	def refresh( self, message = None ):
+		"""Refresh the progress indicator so that it represents its values on screen.
+		@param message: message passed along by the user"""
 		p = self.get( )
 		
 		pmsg = None
@@ -353,7 +351,17 @@ class iProgressIndicator( object ):
 			pmsg = "( %s ): %s" % ( pmsg, str( message ) )
 			
 		print pmsg
-	
+		
+	def set( self, value, message = None , omit_refresh=False ):
+		"""Set the progress of the progress indicator to the given value
+		@param value: progress value ( min<=value<=max )
+		@param message: optional message you would like to give to the user
+		@param omit_refresh: by default, the progress indicator refreshes on set, 
+		if False, you have to call refresh manually after you set the value"""
+		self.__progress = value
+		
+		if not omit_refresh:
+			self.refresh( message )
 	
 	def setRange( self, min, max ):
 		"""set the range within we expect our progress to occour"""
