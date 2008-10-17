@@ -73,7 +73,7 @@ def loadWorkflowFromDotFile( dotfile ):
 	wfl = Workflow( name=dotfile.p_namebase )
 	
 	
-	print "LOADING %s FROM FILE %s" % (wfl,dotfile)
+	#print "LOADING %s FROM FILE %s" % (wfl,dotfile)
 	for node in dotgraph.get_node_list():
 		# can have initializers
 		nodeid = node.get_name().strip( '"' )
@@ -169,13 +169,13 @@ def loadWorkflowFromDotFile( dotfile ):
 			raise AssertionError( "Found no compatible connection from %s to %s in workflow %s - check your processes" % ( snode, dnode, wfl ) )
 			
 	# DEBUG - write workflow 
-	import tempfile
-	path = "%s/%s.postcreate.dot" % ( tempfile.gettempdir(), wfl )
-	wfl.writeDot( path )
-	msg = "Wrote DOT to: %s" % path
-	print "-" * len( msg )
-	print msg
-	print "-" * len( msg )
+	#import tempfile
+	#path = "%s/%s.postcreate.dot" % ( tempfile.gettempdir(), wfl )
+	#wfl.writeDot( path )
+	#msg = "Wrote DOT to: %s" % path
+	#print "-" * len( msg )
+	#print msg
+	#print "-" * len( msg )
 	
 	# END for each edge 
 	return wfl

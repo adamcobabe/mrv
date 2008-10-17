@@ -961,7 +961,7 @@ class Graph( DiGraph, iDuplicatable ):
 		# END destinationshell already connected
 		
 		# connect us
-		print "CON: %r -> %r" % ( repr(sourceshell), repr(destinationshell) )
+		# print "CON: %r -> %r" % ( repr(sourceshell), repr(destinationshell) )
 		self.add_edge( sourceshell, v = destinationshell )
 		return sourceshell
 		
