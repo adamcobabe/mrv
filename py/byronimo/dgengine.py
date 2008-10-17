@@ -749,6 +749,14 @@ class Graph( DiGraph, iDuplicatable ):
 		# NOTE : nodes will remove themselves once they are not referenced anymore
 		self._nodes.clear()
 		
+		
+	def __getattr__( self , attr ):
+		"""Allows access to nodes by name just by accessing the graph directly"""
+		try:
+			return self.getNodeByID( attr )
+		except NameError:
+			return super( Graph, self ).__getattribute__( attr )
+		
 	#} END object methods 
 	
 	#{ Debugging
@@ -923,6 +931,16 @@ class Graph( DiGraph, iDuplicatable ):
 	def getNumNodes( self ):
 		"""@return: number of nodes in the graph"""
 		return len( self._nodes )
+		
+	def getNodeByID( self, nodeID ):
+		"""@return: instance of a node according to the given node id
+		@raise NameError: if no such node exists in graph"""
+		for node in self.iterNodes():
+			if node.getID() == nodeID:
+				return node
+				
+		raise NameError( "Node with ID %s not found in graph" % nodeID )
+		
 		
 	#} END query
 	

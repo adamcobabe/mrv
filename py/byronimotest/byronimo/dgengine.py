@@ -245,6 +245,10 @@ class TestDGEngine( unittest.TestCase ):
 		# iterconnectednodes 
 		self.failUnless( len( list( graph.iterConnectedNodes() ) ) == 3 )
 		
+		# get by name  id 
+		for n in ( s1, s2, s3 ):
+			self.failUnless( getattr( graph, n.getID() ) == n ) 
+		
 		graph.writeDot( "/usr/tmp/PreRemove.dot" )
 		# remove nodes and check connections 
 		graph.removeNode( s3 )
