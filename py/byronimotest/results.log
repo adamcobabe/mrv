@@ -1,69 +1,3 @@
-LOADING workflowwrap FROM FILE /home/sebastian/ws_repository/src/whitesharkstd/trunk/ext/byronimo/py/byronimotest/byronimo/automation/workflows/workflowwrap.dot
-LOADING multiinput FROM FILE /home/sebastian/ws_repository/src/whitesharkstd/trunk/ext/byronimo/py/byronimotest/byronimo/automation/workflows/multiinput.dot
-CON: '1_TestProcess.outText' -> '2_TestProcess.inText'
-CON: '1_TestProcess.outChain' -> '2_TestProcess.inChain'
-CON: '1_TestProcess.outInt' -> '2_TestProcess.inInt'
-CON: '1_TestProcess.outFloat' -> '2_TestProcess.inFloat'
-CON: '2_TestProcess.outChain' -> '3_TestProcessTarget.inChain'
-CON: '2_TestProcess.outInt' -> '3_TestProcessTarget.inInt'
-CON: '2_TestProcess.outFloat' -> '3_TestProcessTarget.inFloat'
---------------------------------------------
-Wrote DOT to: /tmp/multiinput.postcreate.dot
---------------------------------------------
-----------------------------------------------
-Wrote DOT to: /tmp/workflowwrap.postcreate.dot
-----------------------------------------------
-LOADING multiinput FROM FILE /home/sebastian/ws_repository/src/whitesharkstd/trunk/ext/byronimo/py/byronimotest/byronimo/automation/workflows/multiinput.dot
-CON: '1_TestProcess.outText' -> '2_TestProcess.inText'
-CON: '1_TestProcess.outChain' -> '2_TestProcess.inChain'
-CON: '1_TestProcess.outInt' -> '2_TestProcess.inInt'
-CON: '1_TestProcess.outFloat' -> '2_TestProcess.inFloat'
-CON: '2_TestProcess.outChain' -> '3_TestProcessTarget.inChain'
-CON: '2_TestProcess.outInt' -> '3_TestProcessTarget.inInt'
-CON: '2_TestProcess.outFloat' -> '3_TestProcessTarget.inFloat'
---------------------------------------------
-Wrote DOT to: /tmp/multiinput.postcreate.dot
---------------------------------------------
-LOADING multiWorkflow FROM FILE /home/sebastian/ws_repository/src/whitesharkstd/trunk/ext/byronimo/py/byronimotest/byronimo/automation/workflows/multiWorkflow.dot
-LOADING multiinput FROM FILE /home/sebastian/ws_repository/src/whitesharkstd/trunk/ext/byronimo/py/byronimotest/byronimo/automation/workflows/multiinput.dot
-CON: '1_TestProcess.outText' -> '2_TestProcess.inText'
-CON: '1_TestProcess.outChain' -> '2_TestProcess.inChain'
-CON: '1_TestProcess.outInt' -> '2_TestProcess.inInt'
-CON: '1_TestProcess.outFloat' -> '2_TestProcess.inFloat'
-CON: '2_TestProcess.outChain' -> '3_TestProcessTarget.inChain'
-CON: '2_TestProcess.outInt' -> '3_TestProcessTarget.inInt'
-CON: '2_TestProcess.outFloat' -> '3_TestProcessTarget.inFloat'
---------------------------------------------
-Wrote DOT to: /tmp/multiinput.postcreate.dot
---------------------------------------------
-LOADING multiinput FROM FILE /home/sebastian/ws_repository/src/whitesharkstd/trunk/ext/byronimo/py/byronimotest/byronimo/automation/workflows/multiinput.dot
-CON: '1_TestProcess.outText' -> '2_TestProcess.inText'
-CON: '1_TestProcess.outChain' -> '2_TestProcess.inChain'
-CON: '1_TestProcess.outInt' -> '2_TestProcess.inInt'
-CON: '1_TestProcess.outFloat' -> '2_TestProcess.inFloat'
-CON: '2_TestProcess.outChain' -> '3_TestProcessTarget.inChain'
-CON: '2_TestProcess.outInt' -> '3_TestProcessTarget.inInt'
-CON: '2_TestProcess.outFloat' -> '3_TestProcessTarget.inFloat'
---------------------------------------------
-Wrote DOT to: /tmp/multiinput.postcreate.dot
---------------------------------------------
-2_WrappedWorkflow: SETTING SHELLCLS on 3_TestProcessTarget
-2_WrappedWorkflow: SETTING SHELLCLS on 1_TestProcess
-1_WrappedWorkflow: SETTING SHELLCLS on 3_TestProcessTarget
-1_WrappedWorkflow: SETTING SHELLCLS on 1_TestProcess
-CON: '1_WrappedWorkflow._FP_3_TestProcessTarget_outChain' -> '2_WrappedWorkflow._FP_1_TestProcess_inChain'
-CON: '1_WrappedWorkflow._FP_3_TestProcessTarget_outString' -> '2_WrappedWorkflow._FP_3_TestProcessTarget_inUni'
------------------------------------------------
-Wrote DOT to: /tmp/multiWorkflow.postcreate.dot
------------------------------------------------
-LOADING simpleconnection FROM FILE /home/sebastian/ws_repository/src/whitesharkstd/trunk/ext/byronimo/py/byronimotest/byronimo/automation/workflows/simpleconnection.dot
-CON: 'TestProcess0.outText' -> 'TestProcess1.inText'
-CON: 'TestProcess0.outChain' -> 'TestProcess1.inChain'
-CON: 'TestProcess0.outInt' -> 'TestProcess1.inInt'
-CON: 'TestProcess0.outFloat' -> 'TestProcess1.inFloat'
---------------------------------------------------
-Wrote DOT to: /tmp/simpleconnection.postcreate.dot
---------------------------------------------------
 Initializing byronimo.maya.undo
 Initializing byronimo.maya.nodes.storage
 File read in 0 seconds.
@@ -174,69 +108,69 @@ Warning: Reference file path remapped from '/home/sebastian/ws_repository/src/wh
 File read in 0 seconds.
 
 
-Created 100 nodes in 0.460000 s ( 217.391304 / s )
+Created 100 nodes in 0.440000 s ( 227.272727 / s )
 Undo: byronimoUndo -pop
 Undone Operation in 0.000000 s
-Created 2500 nodes in 6.790000 s ( 368.188513 / s )
+Created 2500 nodes in 6.650000 s ( 375.939850 / s )
 Undo: byronimoUndo -pop
 Undone Operation in 0.150000 s
 Redo: byronimoUndo -pop
-Created 7398 Nodes ( from STRING ) in 1.530000 s ( 4835.294118 / s )
-Created 7398 Nodes ( from APIOBJ ) in 0.620000 s ( 11932.258065 / s ) -> 246.774194 % faster
+Created 7206 Nodes ( from STRING ) in 1.420000 s ( 5074.647887 / s )
+Created 7206 Nodes ( from APIOBJ ) in 0.590000 s ( 12213.559322 / s ) -> 240.677966 % faster
 File read in 0 seconds.
-Walked 2500 nodes in 0.440000 s ( 5681.818182 / s )
-Walked 2500 WRAPPED nodes in 1.290000 s ( 1937.984496 / s )
+Walked 2500 nodes in 0.430000 s ( 5813.953488 / s )
+Walked 2500 WRAPPED nodes in 1.280000 s ( 1953.125000 / s )
 Walked 2500 nodes BREADTH FIRST in 0.680000 s ( 3676.470588 / s )
 File read in 7 seconds.
-Walked 25000 nodes in 4.490000 s ( 5567.928731 / s )
-Walked 25000 WRAPPED nodes in 12.980000 s ( 1926.040062 / s )
-Walked 25000 nodes BREADTH FIRST in 29.190000 s ( 856.457691 / s )
-10 MULTI PLUG Connected in 0.250000 s ( 40.000000 / s )
+Walked 25000 nodes in 4.450000 s ( 5617.977528 / s )
+Walked 25000 WRAPPED nodes in 12.990000 s ( 1924.557352 / s )
+Walked 25000 nodes BREADTH FIRST in 33.930000 s ( 736.811082 / s )
+10 MULTI PLUG Connected in 0.230000 s ( 43.478261 / s )
 Undo: byronimoUndo -pop
 Redo: byronimoUndo -pop
-UNDO / REDO Time = 0.180000 / 0.130000 ( 1.923077 * faster than initial creation )
-50 MULTI PLUG Connected in 1.110000 s ( 45.045045 / s )
+UNDO / REDO Time = 0.170000 / 0.190000 ( 1.210526 * faster than initial creation )
+50 MULTI PLUG Connected in 1.010000 s ( 49.504950 / s )
 Undo: byronimoUndo -pop
 Redo: byronimoUndo -pop
-UNDO / REDO Time = 0.590000 / 0.710000 ( 1.563380 * faster than initial creation )
-100 MULTI PLUG Connected in 1.550000 s ( 64.516129 / s )
+UNDO / REDO Time = 0.640000 / 0.690000 ( 1.463768 * faster than initial creation )
+100 MULTI PLUG Connected in 1.520000 s ( 65.789474 / s )
 Undo: byronimoUndo -pop
 Redo: byronimoUndo -pop
-UNDO / REDO Time = 0.840000 / 0.860000 ( 1.802326 * faster than initial creation )
-200 MULTI PLUG Connected in 3.120000 s ( 64.102564 / s )
+UNDO / REDO Time = 0.750000 / 0.880000 ( 1.727273 * faster than initial creation )
+200 MULTI PLUG Connected in 3.020000 s ( 66.225166 / s )
 Undo: byronimoUndo -pop
 Redo: byronimoUndo -pop
-UNDO / REDO Time = 1.620000 / 1.830000 ( 1.704918 * faster than initial creation )
-10 SINGLE PLUGS Connected in 0.040000 s ( 250.000000 / s )
+UNDO / REDO Time = 1.580000 / 1.700000 ( 1.776471 * faster than initial creation )
+10 SINGLE PLUGS Connected in 0.030000 s ( 333.333333 / s )
 Undo: byronimoUndo -pop
 Redo: byronimoUndo -pop
-UNDO / REDO Time = 0.000000 / 0.000000 ( 40.000000 * faster than initial creation )
-50 SINGLE PLUGS Connected in 0.140000 s ( 357.142857 / s )
+UNDO / REDO Time = 0.000000 / 0.000000 ( 30.000000 * faster than initial creation )
+50 SINGLE PLUGS Connected in 0.210000 s ( 238.095238 / s )
 Undo: byronimoUndo -pop
 Redo: byronimoUndo -pop
-UNDO / REDO Time = 0.000000 / 0.000000 ( 140.000000 * faster than initial creation )
-100 SINGLE PLUGS Connected in 0.350000 s ( 285.714286 / s )
+UNDO / REDO Time = 0.000000 / 0.000000 ( 210.000000 * faster than initial creation )
+100 SINGLE PLUGS Connected in 0.280000 s ( 357.142857 / s )
 Undo: byronimoUndo -pop
 Redo: byronimoUndo -pop
-UNDO / REDO Time = 0.000000 / 0.000000 ( 350.000000 * faster than initial creation )
-200 SINGLE PLUGS Connected in 0.660000 s ( 303.030303 / s )
+UNDO / REDO Time = 0.010000 / 0.000000 ( 280.000000 * faster than initial creation )
+200 SINGLE PLUGS Connected in 0.690000 s ( 289.855072 / s )
 Undo: byronimoUndo -pop
 Redo: byronimoUndo -pop
-UNDO / REDO Time = 0.010000 / 0.000000 ( 660.000000 * faster than initial creation )
+UNDO / REDO Time = 0.010000 / 0.000000 ( 690.000000 * faster than initial creation )
 
 
-UNDO: DECORATED Undo disabled: 44135 ops in 1.430000 s ( 30863.636364 / s )
-UNDO: MANUAL Undo disabled: 44135 ops in 1.460000 s ( 30229.452055 / s )
-UNDO: DECORATED is 2.054795 % faster than manually implemented functions !
-UNDO: DECORATED : 44135 ops in 1.780000 s ( 24794.943820 / s )
-UNDO: MANUAL : 44135 ops in 2.010000 s ( 21957.711443 / s )
-UNDO: DECORATED is 11.442786 % faster than manually implemented functions !
+UNDO: DECORATED Undo disabled: 44135 ops in 1.470000 s ( 30023.809524 / s )
+UNDO: MANUAL Undo disabled: 44135 ops in 1.500000 s ( 29423.333333 / s )
+UNDO: DECORATED is 2.000000 % faster than manually implemented functions !
+UNDO: DECORATED : 44135 ops in 1.830000 s ( 24117.486339 / s )
+UNDO: MANUAL : 44135 ops in 1.830000 s ( 24117.486339 / s )
+UNDO: DECORATED is 0.000000 % faster than manually implemented functions !
 Undo: byronimoUndo -pop
 Undo: byronimoUndo -pop -id "_recurseUndoDeco"
 Redo: byronimoUndo -pop -id "_recurseUndoDeco"
 Redo: byronimoUndo -pop
 UNDO: CALL TIME: 176540 operations in 0.110000 s ( 1604909.090909 / s )
-UNDO: RATIO UNDO QUEUE ON/OFF: 1.780000 s (on) vs 1.430000 s (off) = 19.662921 % speedup on disabled queue ( difference [s] = 0.550000 )
+UNDO: RATIO UNDO QUEUE ON/OFF: 1.830000 s (on) vs 1.470000 s (off) = 19.672131 % speedup on disabled queue ( difference [s] = 0.330000 )
 Undo: byronimoUndo -pop
 Redo: byronimoUndo -pop
 Undo: byronimoUndo -pop
@@ -247,11 +181,11 @@ Undo: byronimoUndo -pop
 Undo: byronimoUndo -pop
 Redo: byronimoUndo -pop
 File read in 0 seconds.
-Randomized 8997 node translations in 2.390000 s ( 3764.435146 / s )
-SAVED TMP FILE TO: /tmp/randomscene.mb
-Average position of 8997 nodes is: <0.106369,-0.069356,-0.128265> in 2.130000 s
-Set 8997 nodes to average position in 0.530000 s ( 16975.471698 / s )
-SAVED TMP FILE TO: /tmp/averaged.mb
+Randomized 8997 node translations in 2.380000 s ( 3780.252101 / s )
+SAVED TMP FILE TO: /usr/tmp/randomscene.mb
+Average position of 8997 nodes is: <0.037457,-0.182061,-0.113371> in 1.900000 s
+Set 8997 nodes to average position in 0.520000 s ( 17301.923077 / s )
+SAVED TMP FILE TO: /usr/tmp/averaged.mb
 SETTING 3_TestProcessTarget.inUni
 WILL QUERY: 3_TestProcessTarget.outString
 unicode workflow test
@@ -260,8 +194,6 @@ unicode workflow test
 3. 1_TestProcess provides 5.0 through outFloat to TestProcess
 4. 2_TestProcess provides 10.0 through outFloat to OtherTestProcess
 5. 3_TestProcessTarget computes u'this10.020202020202020202020202020202020' when asked for outString
-WrappedWorkflow: SETTING SHELLCLS on 3_TestProcessTarget
-WrappedWorkflow: SETTING SHELLCLS on 1_TestProcess
 SETTING WrappedWorkflow._FP_3_TestProcessTarget_inUni
 WILL QUERY: WrappedWorkflow._FP_3_TestProcessTarget_outString
 this10.020202020202020202020202020202020
@@ -591,15 +523,6 @@ Undo: byronimoUndo -pop
 Redo: byronimoUndo -pop
 Undo: byronimoUndo -pop -id "setPartition"
 Redo: byronimoUndo -pop -id "setPartition"
-CON: 's1.outRand' -> 's2.inFloat'
-CON: 's2.outMult' -> 's3.inFloat'
-CON: 's1.outRand' -> 's2.inFloat'
-CON: 's2.outMult' -> 's3.inFloat'
-CON: 's1.outRand' -> 's2.inFloat'
-CON: 's1.outRand' -> 's2.inFloat'
-CON: 's3.outRand' -> 's2.inFloat'
-CON: 's1.inFloat' -> 's3.inFloat'
-CON: 's2.inInt' -> 's3.inInt'
 my message
 my message
 my message
@@ -625,57 +548,6 @@ my message
 my message
 0/10
 10/10
-CON: 's1.outAdd' -> 's2.inFloat'
-CON: 's1.outAdd' -> 's2.inFloat'
-GN_1: SETTING SHELLCLS on s2
-GN_1: SETTING SHELLCLS on s1
-CON: 's1.outAdd' -> 's2.inFloat'
-CON: 's1.outAdd' -> 's2.inFloat'
-CON: 's1.outAdd' -> 's2.inFloat'
-GN_2: SETTING SHELLCLS on s2
-CON: 's1.outAdd' -> 's2.inFloat'
-GN_2: SETTING SHELLCLS on s1
-CON: 's1.outAdd' -> 's2.inFloat'
-CON: 'GN_1._FP_s2_outAdd' -> 'GN_2._FP_s1_inFloat'
-CON: 's1.outAdd' -> 's2.inFloat'
-CON: 's1.outAdd' -> 's2.inFloat'
-GN_1: SETTING SHELLCLS on s2
-CON: 's1.outAdd' -> 's2.inFloat'
-GN_1: SETTING SHELLCLS on s1
-CON: 's1.outAdd' -> 's2.inFloat'
-GN_2: SETTING SHELLCLS on s2
-GN_2: SETTING SHELLCLS on s1
-CON: 's1.outAdd' -> 's2.inFloat'
-CON: 's1.outAdd' -> 's2.inFloat'
-CON: 'GN_1._FP_s2_outAdd' -> 'GN_2._FP_s1_inFloat'
-CON: 's1.outAdd' -> 's2.inFloat'
-CON: 's1.outAdd' -> 's2.inFloat'
-GN_1: SETTING SHELLCLS on s2
-CON: 's1.outAdd' -> 's2.inFloat'
-GN_1: SETTING SHELLCLS on s1
-CON: 's1.outAdd' -> 's2.inFloat'
-GN_2: SETTING SHELLCLS on s2
-CON: 's1.outAdd' -> 's2.inFloat'
-GN_2: SETTING SHELLCLS on s1
-CON: 's1.outAdd' -> 's2.inFloat'
-CON: 'GN_1._FP_s2_outAdd' -> 'GN_2._FP_s1_inFloat'
-SGN_1: SETTING SHELLCLS on GN_2
-CON: 'GN_1._FP_s2_outAdd' -> 'GN_2._FP_s1_inFloat'
-SGN_1: SETTING SHELLCLS on GN_1
-CON: 'GN_1._FP_s2_outAdd' -> 'GN_2._FP_s1_inFloat'
-SGN_2: SETTING SHELLCLS on GN_2
-SGN_2: SETTING SHELLCLS on GN_1
-CON: 'GN_1._FP_s2_outAdd' -> 'GN_2._FP_s1_inFloat'
-CON: 'GN_1._FP_s2_outAdd' -> 'GN_2._FP_s1_inFloat'
-CON: 'SGN_1._FP_GN_2__FP_s2_outAdd' -> 'SGN_2._FP_GN_1__FP_s1_inFloat'
-CON: 'SGN_2._FP_GN_2__FP_s2_outAdd' -> 'SGN_1._FP_GN_1__FP_s1_inFloat'
-CON: 's1.outBool' -> 's2.inBool'
-CON: 's1.outBool' -> 's2.inBool'
-GNode: SETTING SHELLCLS on s1
-CON: 's1.outBool' -> 's2.inBool'
-GNode: SETTING SHELLCLS on s2
-CON: 's1.outBool' -> 's2.inBool'
-CON: 's1.outBool' -> 's2.inBool'
 byronimo.maya.namespace: test all namespace functionality ... ok
 byronimo.maya.util: test optionvars dict ... ok
 byronimo.maya.scene: check file callback ... ok
@@ -706,7 +578,7 @@ byronimo.automation.workflow:  test facades of workflows ... ok
 byronimo.maya.ui: test callbacks and handling - needs user interaction ... ok
 byronimo.maya.ui: create some windows ... ok
 byronimo.maya.ui: test basic layout functions ... ok
-byronimo.maya.ui: test progress window functionality ... ERROR
+byronimo.maya.ui: test progress window functionality ... ok
 byronimo.maya.nodes: Test plug abilities( node.attribute ) ... ok
 byronimo.maya.nodes: test the plugarray wrapper ... ok
 byronimo.maya.nodes: test matrix data ... ok
@@ -810,14 +682,6 @@ RuntimeError: Cannot find the reference file.
 
 
 ======================================================================
-ERROR: byronimo.maya.ui: test progress window functionality
-----------------------------------------------------------------------
-Traceback (most recent call last):
-  File "/home/sebastian/ws_repository/src/whitesharkstd/trunk/ext/byronimo/py/byronimotest/byronimo/maya/ui/general.py", line 196, in test_progressWindow
-    progress.setInterrupable( True )
-AttributeError: 'ProgressWindow' object has no attribute 'setInterrupable'
-
-======================================================================
 FAIL: ConfigAccessor: Tests whether malformed INI files raise
 ----------------------------------------------------------------------
 Traceback (most recent call last):
@@ -826,7 +690,7 @@ Traceback (most recent call last):
 AssertionError: ConfigParsingError not raised
 
 ----------------------------------------------------------------------
-Ran 100 tests in 124.867s
+Ran 100 tests in 133.586s
 
-FAILED (failures=1, errors=3)
+FAILED (failures=1, errors=2)
 
