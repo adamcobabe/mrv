@@ -201,8 +201,11 @@ class iDagItem( object ):
 		
 	def isRootOf( self, other ):
 		"""@return: True other starts with self
-		@note: operates on strings"""
-		return str( other ).startswith( str( self ) )
+		@note: operates on strings
+		@note: we assume other has the same type as self, thus the same separator"""
+		selfstr =  self.addSep( str( self ), self._sep )
+		other = self.addSep( str( other ), self._sep )
+		return other.startswith( selfstr )
 		
 	#} END Query Methods
 	
@@ -226,12 +229,21 @@ class iDagItem( object ):
 	#} END Iterators 
 
 	#{ Name Generation
+	@staticmethod
+	def addSep( item, sep ):
+		"""@return: item with separator added to it ( just once )
+		@note: operates best on strings
+		@param item: item to add separator to
+		@param sep: the separator"""
+		if not item.endswith( sep ):
+			item += sep
+		return item
+		
 	def getFullChildName( self, childname ):
 		"""Add the given name to the string version of our instance
 		@return: string with childname added like name _sep childname"""
-		sname = str( self )
-		if not sname.endswith( self._sep ):
-			sname += self._sep
+		sname = self.addSep( str( self ), self._sep )
+		
 		if childname.startswith( self._sep ):
 			childname = childname[1:]
 			

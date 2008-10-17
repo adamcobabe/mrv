@@ -60,6 +60,8 @@ class ProcessBase( NodeBase ):
 	"""The base class for all processes, defining a common interface
 	
 	Inputs and Outputs of this node are statically described using plugs
+	@note: the process base is able to duplcate properly as it stores in constructor
+	arguments accordingly 
 	"""
 	kNo, kGood, kPerfect = 0, 127, 255				# specify how good a certain target can be produced
 	is_state, target_state, dirty_check = ( 1,2,4 )
@@ -69,25 +71,24 @@ class ProcessBase( NodeBase ):
 	
 	__all__.append( "ProcessBase" )
 	
-	
 	def __init__( self, id, *args, **kwargs ):
 		"""Initialize process with most common information
 		@param noun: noun describing the process, ( i.e. "Process" )
 		@param verb: verb describing the process, ( i.e. "processing" )
 		@param workflow: workflow this instance of part of """
-		NodeBase.__init__( self, id = id )		# init last - need our info first !
+		self._args = args
+		self._kwargs = kwargs 
+		NodeBase.__init__( self, id = id, *args, **kwargs )		# init last - need our info first !
 		
-	
-	#{ iDuplicatable Interface 
+	#{ iDuplicatable Interface
 	def createInstance( self, *args, **kwargs ):
 		"""Create a copy of self and return it"""
-		return self.__class__( self.id )
+		return self.__class__( self.id, *self._args, **self._kwargs )
 		
 	def copyFrom( self, other, *args, **kwargs ):
-		""" Does nothing """
-		# noun and verb is coming from the class anyway, it has been created
-		# during instance creation 
-		
+		"""Note: we have already given our args to the class during instance creation, 
+		thus we do not copy args again"""
+		pass 
 	#} END iDuplicatable
 	
 
@@ -217,34 +218,6 @@ class ProcessBase( NodeBase ):
 		return self.graph
 	
 	#} END base 
-	
-	
-class ArgProcessBase( ProcessBase ):
-	"""Baseclass for all processes taking arguments. It will store them allowing 
-	it to be properly duplicated"""
-	__all__.append( "ArgProcessBase" )
-	__slots__ = ( 'args','kwargs' )
-
-	
-	def __init__( self, id, *args, **kwargs ):
-		"""Store args and kwargs for later duplicateion"""
-		self.args = args
-		self.kwargs = kwargs 
-		super( ArgProcessBase, self ).__init__( id, *args, **kwargs )
-		
-	#{ iDuplicatable Interface
-	
-	def createInstance( self, *args, **kwargs ):
-		"""Create a copy of self and return it"""
-		return self.__class__( self.id, *self.args, **self.kwargs )
-		
-	def copyFrom( self, other, *args, **kwargs ):
-		"""Note: we have already given our args to the class during instance creation, 
-		thus we do not copy args again"""
-		pass 
-		
-	#} END iDuplicatable
-	
 	
 	
 class WorkflowProcessBase( GraphNodeBase, ProcessBase ):
