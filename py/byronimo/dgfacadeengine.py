@@ -505,7 +505,7 @@ class FacadeNodeBase( NodeBase ):
 			# of _IOShell as shellcls, but no instance 
 			if not isinstance( orignode.shellcls, _IOShell ):
 				classShellCls = orignode.shellcls
-				print "%s: SETTING SHELLCLS on %s" %  ( self, orignode )
+				# print "%s: SETTING SHELLCLS on %s" %  ( self, orignode )
 				orignode.shellcls = _IOShell( classShellCls, self )
 				# END for each shell to reconnect 
 			# END if we have to swap in our facadeIOShell
