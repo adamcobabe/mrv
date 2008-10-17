@@ -81,7 +81,8 @@ class Scene( util.Singleton ):
 	"""Singleton Class allowing access to the maya scene"""
 	
 	
-	_fileTypeMap = { 	".ma" : "mayaAscii",
+	_fileTypeMap = { 	""	  : "mayaAscii",		# treat untitled scenes as ma
+						".ma" : "mayaAscii",
 						".mb" : "mayaBinary" }
 	
 	#{ Public Members
@@ -118,16 +119,20 @@ class Scene( util.Singleton ):
 		return Path( cmds.file( new = True, force = force, **kwargs ) )
 		
 	@staticmethod
-	def save( scenepath, **kwargs ):
+	def save( scenepath, autodelete_unknown = False, **kwargs ):
 		"""The save the currently opened scene under scenepath in the respective format
 		@param scenepath: if None or "", the currently opened scene will be used
+		@param autodelete_unknown: if true, unknown nodes will automatically be deleted
+		before an attempt is made to change the maya file type 
 		@param **kwargs: passed to cmds.file """
 		if scenepath is None or scenepath == "":
 			scenepath = Scene.getName( )
 			
 		scenepath = Path( scenepath )
+		curscene = Scene.getName()
 		try :
 			filetype = Scene._fileTypeMap[ scenepath.p_ext ]
+			curscenetype = Scene._fileTypeMap[ curscene.p_ext ]
 		except KeyError:
 			raise RuntimeError( "Unsupported filetype of: " + scenepath  )
 			
@@ -140,6 +145,11 @@ class Scene( util.Singleton ):
 		if not parentdir.exists( ):
 			parentdir.makedirs( )
 			
+		# delete unknown before changing types ( would result in an error otherwise )
+		if autodelete_unknown and curscenetype != filetype:
+			unknownNodes = cmds.ls( type="unknown" )		# using mel is the faatest here 
+			if unknownNodes:
+				cmds.delete( unknownNodes )
 		# safe the file	
 		return Path( cmds.file( save=True, type=filetype, **kwargs ) )
 		
