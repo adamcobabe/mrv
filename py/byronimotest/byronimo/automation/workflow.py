@@ -18,6 +18,7 @@ __copyright__='(c) 2008 Sebastian Thiel'
 
 import unittest
 import workflows
+import byronimo.automation.workflow as workflow
 from byronimo.automation.workflow import Workflow
 from byronimo.automation.process import *
 
@@ -73,6 +74,13 @@ class TestWorkflow( unittest.TestCase ):
 		res = scwfl.makeTarget( 2.5 )
 		self.failUnless( res == 10.0 )
 
+	
+	def test_simpleDirtyCheck( self ):
+		"""byronimo.automation.workflow: test a simple dirtycheck"""
+		scwfl = workflows.simpleconnection
+		scwfl.getDirtyReport( 5, mode="deep" )
+		d = workflow.DirtyException()
+		
 	
 	def test_callgraph( self ):
 		"""byronimo.automation.workflow: assure callgraph can be generated properly"""

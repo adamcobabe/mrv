@@ -16,9 +16,10 @@ __copyright__='(c) 2008 Sebastian Thiel'
 
 from networkx.digraph import DiGraph
 from byronimo.dgengine import Graph
-from byronimo.dgengine import ComputeError
 import time 
 import weakref
+import sys
+import traceback
 
 #####################
 ## EXCEPTIONS ######
@@ -28,16 +29,23 @@ class TargetError( ValueError ):
 	"""Thrown if target is now supported by the workflow ( and thus cannot be made )"""
 	
 
-class DirtyException( ComputeError ):
+class DirtyException( Exception ):
 	"""Exception thrown when system is in dirty query mode and the process detects
 	that it is dirty.
 	
 	The exception can also contain a report that will be returned using the 
 	getReport function.
+	@note: Thus exeption class must NOT be derived from ComputeError as it will be caught 
+	by the DG engine and mis-interpreted - unknown exceptions will just be passed on by it 
 	"""
+	__slots__ = "report"
 	def __init__( self, report = '' ):
-		self.report = report
+		Exception.__init__( self )	# cannot use super with exceptions apparently
+		self.report = report                                 
 		
+		
+	def __str__( self ):
+		return str( self.report )
 	#{ Interface
 		
 	def getReport( self ):
@@ -233,13 +241,14 @@ class Workflow( Graph ):
 		as used by L{getDirtyReport}"""
 		report = list( ( outputplug, None ) )
 		try:
-			outputplug.clearCache() 		# assure it eavaluates
+			outputplug.clearCache( clear_affected = False ) 		# assure it eavaluates
 			outputplug.get( processmode )	# trigger computation, might raise 
 		except DirtyException, e:
 			report[ 1 ] = e					# remember report as well
-		except Exception, e:
-			# Renember normal errors , put them into a dirty report
-			report[ 1 ] = DirtyException( report = str( e ) )					 
+		except Exception:
+			# Renember normal errors , put them into a dirty report, as well as stacktrace
+			excformat = traceback.format_exception( *sys.exc_info() )
+			report[ 1 ] = DirtyException( report = ''.join( excformat ) )					 
 		
 		return tuple( report )
 		
@@ -285,7 +294,10 @@ class Workflow( Graph ):
 			for s_pdata,d_pdata in calllist:
 				if d_pdata is None:					# the root node ( we already called it ) has no destination 
 					continue
-				outreports.append( self._evaluateDirtyState( d_pdata.process.toShell( d_pdata.plug ), processmode ) )
+				
+				outputshell = d_pdata.process.toShell( d_pdata.plug )
+				print "Querying %s" % repr( outputshell )
+				outreports.append( self._evaluateDirtyState( outputshell, processmode ) )
 			# END for each s_pdata, d_pdata 
 		# END if multi handling 
 		return outreports
