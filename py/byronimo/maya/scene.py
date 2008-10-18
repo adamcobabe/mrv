@@ -147,9 +147,8 @@ class Scene( util.Singleton ):
 			
 		# delete unknown before changing types ( would result in an error otherwise )
 		if autodelete_unknown and curscenetype != filetype:
-			unknownNodes = cmds.ls( type="unknown" )		# using mel is the faatest here 
-			if unknownNodes:
-				cmds.delete( unknownNodes )
+			Scene.deleteUnknownNodes()
+			
 		# safe the file	
 		return Path( cmds.file( save=True, type=filetype, **kwargs ) )
 		
@@ -175,6 +174,18 @@ class Scene( util.Singleton ):
 		
 	#} END edit methods
 	
+	#{ Utilities
+	@staticmethod
+	def deleteUnknownNodes( ):
+		"""Deletes all unknown nodes in the scene
+		@note: only do this if you are about to change the type of the scene during 
+		save or export - otherwise the operation would fail if there are still unknown nodes 
+		in the scene"""
+		unknownNodes = cmds.ls( type="unknown" )		# using mel is the faatest here 
+		if unknownNodes:
+			cmds.delete( unknownNodes )
+	
+	#} END utilities 
 	
 	#{ Query Methods
 	@staticmethod
