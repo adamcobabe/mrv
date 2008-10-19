@@ -174,6 +174,10 @@ class Path(_base):
 		read from a configuration file, for example.
 		"""
 		return self.expandvars().expanduser().normpath()
+		
+	def containsvars( self ):
+		"""@return: True if this path contains environment variables"""
+		return self.find( '$' ) != -1 or self.find( '$' ) != -1
 
 	def _get_namebase(self):
 		base, ext = os.path.splitext(self.p_name)
