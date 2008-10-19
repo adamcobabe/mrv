@@ -108,69 +108,69 @@ Warning: Reference file path remapped from '/home/sebastian/ws_repository/src/wh
 File read in 0 seconds.
 
 
-Created 100 nodes in 0.670000 s ( 149.253731 / s )
+Created 100 nodes in 0.640000 s ( 156.250000 / s )
 Undo: byronimoUndo -pop
-Undone Operation in 0.010000 s
-Created 2500 nodes in 6.910000 s ( 361.794501 / s )
+Undone Operation in 0.000000 s
+Created 2500 nodes in 6.820000 s ( 366.568915 / s )
 Undo: byronimoUndo -pop
 Undone Operation in 0.160000 s
 Redo: byronimoUndo -pop
-Created 7425 Nodes ( from STRING ) in 1.480000 s ( 5016.891892 / s )
-Created 7425 Nodes ( from APIOBJ ) in 0.630000 s ( 11785.714286 / s ) -> 234.920635 % faster
+Created 7281 Nodes ( from STRING ) in 1.420000 s ( 5127.464789 / s )
+Created 7281 Nodes ( from APIOBJ ) in 0.600000 s ( 12135.000000 / s ) -> 236.666667 % faster
 File read in 0 seconds.
 Walked 2500 nodes in 0.440000 s ( 5681.818182 / s )
-Walked 2500 WRAPPED nodes in 1.290000 s ( 1937.984496 / s )
-Walked 2500 nodes BREADTH FIRST in 0.680000 s ( 3676.470588 / s )
+Walked 2500 WRAPPED nodes in 1.250000 s ( 2000.000000 / s )
+Walked 2500 nodes BREADTH FIRST in 0.690000 s ( 3623.188406 / s )
 File read in 7 seconds.
-Walked 25000 nodes in 4.420000 s ( 5656.108597 / s )
-Walked 25000 WRAPPED nodes in 13.090000 s ( 1909.854851 / s )
-Walked 25000 nodes BREADTH FIRST in 29.710000 s ( 841.467519 / s )
+Walked 25000 nodes in 4.400000 s ( 5681.818182 / s )
+Walked 25000 WRAPPED nodes in 12.900000 s ( 1937.984496 / s )
+Walked 25000 nodes BREADTH FIRST in 29.070000 s ( 859.993120 / s )
 10 MULTI PLUG Connected in 0.260000 s ( 38.461538 / s )
 Undo: byronimoUndo -pop
 Redo: byronimoUndo -pop
-UNDO / REDO Time = 0.180000 / 0.220000 ( 1.181818 * faster than initial creation )
-50 MULTI PLUG Connected in 1.080000 s ( 46.296296 / s )
+UNDO / REDO Time = 0.230000 / 0.250000 ( 1.040000 * faster than initial creation )
+50 MULTI PLUG Connected in 1.200000 s ( 41.666667 / s )
 Undo: byronimoUndo -pop
 Redo: byronimoUndo -pop
-UNDO / REDO Time = 0.680000 / 0.730000 ( 1.479452 * faster than initial creation )
-100 MULTI PLUG Connected in 1.600000 s ( 62.500000 / s )
+UNDO / REDO Time = 0.700000 / 0.760000 ( 1.578947 * faster than initial creation )
+100 MULTI PLUG Connected in 1.710000 s ( 58.479532 / s )
 Undo: byronimoUndo -pop
 Redo: byronimoUndo -pop
-UNDO / REDO Time = 0.810000 / 0.930000 ( 1.720430 * faster than initial creation )
-200 MULTI PLUG Connected in 3.170000 s ( 63.091483 / s )
+UNDO / REDO Time = 0.780000 / 0.910000 ( 1.879121 * faster than initial creation )
+200 MULTI PLUG Connected in 3.110000 s ( 64.308682 / s )
 Undo: byronimoUndo -pop
 Redo: byronimoUndo -pop
-UNDO / REDO Time = 1.650000 / 1.800000 ( 1.761111 * faster than initial creation )
-10 SINGLE PLUGS Connected in 0.040000 s ( 250.000000 / s )
+UNDO / REDO Time = 1.630000 / 1.740000 ( 1.787356 * faster than initial creation )
+10 SINGLE PLUGS Connected in 0.030000 s ( 333.333333 / s )
 Undo: byronimoUndo -pop
 Redo: byronimoUndo -pop
-UNDO / REDO Time = 0.000000 / 0.000000 ( 40.000000 * faster than initial creation )
+UNDO / REDO Time = 0.000000 / 0.000000 ( 30.000000 * faster than initial creation )
 50 SINGLE PLUGS Connected in 0.200000 s ( 250.000000 / s )
 Undo: byronimoUndo -pop
 Redo: byronimoUndo -pop
 UNDO / REDO Time = 0.000000 / 0.000000 ( 200.000000 * faster than initial creation )
-100 SINGLE PLUGS Connected in 0.300000 s ( 333.333333 / s )
+100 SINGLE PLUGS Connected in 0.290000 s ( 344.827586 / s )
 Undo: byronimoUndo -pop
 Redo: byronimoUndo -pop
-UNDO / REDO Time = 0.000000 / 0.000000 ( 300.000000 * faster than initial creation )
+UNDO / REDO Time = 0.000000 / 0.010000 ( 29.000000 * faster than initial creation )
 200 SINGLE PLUGS Connected in 0.700000 s ( 285.714286 / s )
 Undo: byronimoUndo -pop
 Redo: byronimoUndo -pop
-UNDO / REDO Time = 0.000000 / 0.000000 ( 700.000000 * faster than initial creation )
+UNDO / REDO Time = 0.000000 / 0.010000 ( 70.000000 * faster than initial creation )
 
 
-UNDO: DECORATED Undo disabled: 44135 ops in 1.430000 s ( 30863.636364 / s )
-UNDO: MANUAL Undo disabled: 44135 ops in 1.500000 s ( 29423.333333 / s )
-UNDO: DECORATED is 4.666667 % faster than manually implemented functions !
-UNDO: DECORATED : 44135 ops in 1.810000 s ( 24383.977901 / s )
-UNDO: MANUAL : 44135 ops in 1.780000 s ( 24794.943820 / s )
-UNDO: DECORATED is -1.685393 % faster than manually implemented functions !
+UNDO: DECORATED Undo disabled: 44135 ops in 1.450000 s ( 30437.931034 / s )
+UNDO: MANUAL Undo disabled: 44135 ops in 1.540000 s ( 28659.090909 / s )
+UNDO: DECORATED is 5.844156 % faster than manually implemented functions !
+UNDO: DECORATED : 44135 ops in 1.880000 s ( 23476.063830 / s )
+UNDO: MANUAL : 44135 ops in 1.790000 s ( 24656.424581 / s )
+UNDO: DECORATED is -5.027933 % faster than manually implemented functions !
 Undo: byronimoUndo -pop
 Undo: byronimoUndo -pop -id "_recurseUndoDeco"
 Redo: byronimoUndo -pop -id "_recurseUndoDeco"
 Redo: byronimoUndo -pop
 UNDO: CALL TIME: 176540 operations in 0.110000 s ( 1604909.090909 / s )
-UNDO: RATIO UNDO QUEUE ON/OFF: 1.810000 s (on) vs 1.430000 s (off) = 20.994475 % speedup on disabled queue ( difference [s] = 0.280000 )
+UNDO: RATIO UNDO QUEUE ON/OFF: 1.880000 s (on) vs 1.450000 s (off) = 22.872340 % speedup on disabled queue ( difference [s] = 0.250000 )
 Undo: byronimoUndo -pop
 Redo: byronimoUndo -pop
 Undo: byronimoUndo -pop
@@ -181,10 +181,10 @@ Undo: byronimoUndo -pop
 Undo: byronimoUndo -pop
 Redo: byronimoUndo -pop
 File read in 0 seconds.
-Randomized 8997 node translations in 2.390000 s ( 3764.435146 / s )
+Randomized 8997 node translations in 2.380000 s ( 3780.252101 / s )
 SAVED TMP FILE TO: /usr/tmp/randomscene.mb
-Average position of 8997 nodes is: <0.090030,0.107814,-0.046126> in 1.920000 s
-Set 8997 nodes to average position in 0.520000 s ( 17301.923077 / s )
+Average position of 8997 nodes is: <0.037790,-0.035456,0.103701> in 1.910000 s
+Set 8997 nodes to average position in 0.530000 s ( 16975.471698 / s )
 SAVED TMP FILE TO: /usr/tmp/averaged.mb
 SETTING 3_TestProcessTarget.inUni
 WILL QUERY: 3_TestProcessTarget.outString
@@ -271,7 +271,7 @@ Undo: byronimoUndo -pop -id "createNode"
 Redo: byronimoUndo -pop -id "createNode"
 Undo: byronimoUndo -pop -id "createNode"
 Redo: byronimoUndo -pop -id "createNode"
-File read in 0 seconds.
+File read in 1 seconds.
 Warning: This file contains an uncached fluid; rewind and playback to see correct current state.
  
 Found a resolution node; these are being phased out.
@@ -693,7 +693,7 @@ Traceback (most recent call last):
 AssertionError: ConfigParsingError not raised
 
 ----------------------------------------------------------------------
-Ran 101 tests in 130.014s
+Ran 101 tests in 130.690s
 
 FAILED (failures=1, errors=2)
 
