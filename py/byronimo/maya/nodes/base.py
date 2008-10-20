@@ -232,7 +232,8 @@ def select( nodelist ):
 	
 
 @undoable
-def createNode( nodename, nodetype, autocreateNamespace=True, renameOnClash = True, forceNewLeaf=False):
+def createNode( nodename, nodetype, autocreateNamespace=True, renameOnClash = True, 
+			     forceNewLeaf=False , maxShapesPerTransform = 0 ):
 	"""Create a new node of nodetype with given nodename
 	@param nodename: like "mynode" or "namespace:mynode" or "|parent|mynode" or 
 	"|ns1:parent|ns1:ns2:parent|ns3:mynode". The name may contain any amount of parents
@@ -247,6 +248,10 @@ def createNode( nodename, nodetype, autocreateNamespace=True, renameOnClash = Tr
 	@param forceNewLeaf: default False, if True, nodes will be created anyway if a node with the same name 
 	already exists - this will recreate the leaf portion of the given paths. Implies renameOnClash
 	If False, you will receive an already existing node if the type matches.
+	@param maxShapesPerTransform: only used when renameOnClash is True, defining the number of 
+	shapes you may have below a transform. If the number would be exeeded by the creation of 
+	a shape below a given transform, a new transform auto-renamed transform will be created automatically.
+	This transform is garantueed to be new and will be used as new parent for the shape.
 	@raise RuntimeError: If nodename contains namespaces or parents that may not be created
 	@raise NameError: If name of desired node clashes as existing node has different type
 	@note: As this method is checking a lot and tries to be smart, its relatively slow ( creates ~400 nodes / s )
