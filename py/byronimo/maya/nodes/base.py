@@ -564,7 +564,6 @@ class DependNode( Node ):		# parent just for epydoc -
 	def __getattr__( self, attr ):
 		"""Interpret attributes not in our dict as attributes on the wrapped node, 
 		create a plug for it and add it to our class dict, effectively caching the attribute"""
-		depfn = DependNode._mfncls( self._apiobj )
 		base = super( DependNode, self )
 		try:
 			plug = self.findPlug( str(attr) )
@@ -1226,7 +1225,7 @@ class DagNode( Entity, iDagItem ):	# parent just for epydoc
 		
 	def getName( self ):
 		"""@return: fully qualified ( long ) name of this dag node"""
-		return self.getFullPathName( )
+		return self.fullPathName( )
 
 	
 	#{ Hierarchy Query

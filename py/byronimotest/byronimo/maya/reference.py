@@ -102,6 +102,7 @@ class TestReferenceRunner( unittest.TestCase ):
 				ref = FileReference.create( newreffile , load = load )
 				self.failUnless( ref.p_loaded == load )
 				self.failUnless( ref == newreffile )
+				self.failUnless( ref.exists() )
 				
 				# try to create a reference with the same namespace
 				self.failUnlessRaises( ValueError, ref.create, ref, load = load, namespace = ref.p_namespace )
@@ -120,6 +121,7 @@ class TestReferenceRunner( unittest.TestCase ):
 		
 		for ref in unloadedrefs:
 			ref.remove( )
+			self.failUnless( not ref.exists() )
 			self.failUnlessRaises( RuntimeError, ref.getNamespace )
 			
 		# cross-replace references

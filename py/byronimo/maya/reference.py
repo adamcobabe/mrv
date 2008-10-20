@@ -302,6 +302,15 @@ class FileReference( Path, iDagItem ):
 	
 	
 	#{Query Methods
+	def exists( self ):
+		"""@return: True if our file reference exists in maya"""
+		try:
+			self.getFullPath( )
+		except RuntimeError:
+			return False
+		else:
+			return True
+		
 	def isLocked( self ):
 		"""@return: True if reference is locked"""
 		return cmds.getAttr( self._refnode + ".locked" )

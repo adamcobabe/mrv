@@ -20,6 +20,7 @@ from byronimo.maya import undo
 from byronimo.maya.util import noneToList
 from byronimo.util import iDagItem, CallOnDeletion, Call
 import maya.cmds as cmds
+import maya.OpenMaya as api
 
 
 #{ Static Access
@@ -211,10 +212,6 @@ class Namespace( unicode, iDagItem ):
 		melop.addUndoit( cmds.namespace, set = Namespace.getCurrent() )
 		melop.doIt()
 		
-		#mod = undo.DGModifier( )
-		#mod.commandToExecute( 'namespace -set "%s"' % self )
-		#mod.doIt()
-		
 	#} END edit methods 
 	
 	#{Query Methods
@@ -302,10 +299,89 @@ class Namespace( unicode, iDagItem ):
 	#} END query methods
 	
 	
-	#{ Iterators 
-	def iterObjects( self ):
-		"""@return: generator returning all objects in this namespace"""
-		raise NotImplementedError()
+	#{ Iterators
+	
+	@staticmethod
+	def _getNamespaceObjects( namespace, sellist, curdepth, maxdepth, asStrings ):
+		"""if as strings is given, the sellist returned will be a list of strings"""
+		if maxdepth and not ( curdepth < maxdepth ):
+			return 
+		
+		namespace.setCurrent()
+		objs = cmds.namespaceInfo( lod=1 )
+		if not objs: 
+			return 
+			
+		# REMOVE INVALID OBJECTS 
+		############################
+		if namespace == Namespace.rootNamespace:
+			forbiddenlist = [ "groundPlane", "groundPlane_transform", "world" ]
+			for item in forbiddenlist:
+				objs.remove( item )
+		# END forbidden object removal
+		
+		
+		# OBJECT OUTPUT HANDLING 
+		#########################
+		if asStrings:
+			sellist.extend( objs )
+		else:
+			for obj in objs:
+				sellist.add( obj )
+		# END if selection list is required 
+		
+		
+		for child in namespace.getChildren():
+			Namespace._getNamespaceObjects( namespace + child, sellist, curdepth + 1, maxdepth, asStrings )
+	# END lod recursive method
+	
+	
+	def getSelectionList( self, depth=1, as_strings = False, child_predicate = lambda x: True  ):
+		"""@return: selection list containing all objects in the namespace ( or list of strings if 
+		as_strings is True )
+		@param depth: if 1, only objects in this namespace will be returned
+		if 0, all subnamespaces will be included as well, 
+		if 0<depth<x include all objects up to the x subnamespace
+		@param child_predicate: return True for all childnamespaces to include in your query
+		@param as_strings: if true, the selection list returned will be a list of strings instead
+		of a selection list object.
+		Use L{listObjectStrings} to have a more specific name for the method
+		@note: if the namespace does not exist, an empty selection list will be returned
+		@note: use iterSelectionList to operate on it"""
+		sellist = None
+		if as_strings:
+			sellist = []
+		else:
+			sellist = api.MSelectionList()
+			
+		if not self.exists():
+			return sellist
+		
+		# FILL SELLIST
+		#################
+		curns = self.getCurrent()		# store for later 
+		self._getNamespaceObjects( self, sellist, 0, depth, as_strings )
+		self.setCurrent()				# reset current 
+		
+		return sellist
+		
+	def listObjectStrings( self, **kwargs ):
+		"""As above, but returns a list of strings instead of as selection list
+		@note: this convenience method supports all arguments as L{getSelectionList}"""
+		kwargs[ "as_strings" ] = 1
+		return self.getSelectionList( **kwargs )
+		
+	
+	def iterObjects( self, depth=1, child_predicate = lambda x: True, **kwargs ):
+		"""As above, but returns iterator on all objects in the namespace
+		@param **kwargs: given to the selection list iterator
+		@note: this is a convenience method
+		@note: the method is inherently inefficient as a full list of object names 
+		in the naemspace will be retrieved anyway"""
+		from nodes.iterators import iterSelectionList
+		sellist = self.getSelectionList( depth = depth, child_predicate = child_predicate, as_strings = False )
+		
+		return iterSelectionList( sellist, **kwargs )
 
 	
 	#} END objects 
