@@ -716,7 +716,6 @@ class DependNode( Node ):		# parent just for epydoc -
 		@note: objects on the undo queue are alive, but NOT valid"""
 		return api.MObjectHandle( self._apiobj ).isAlive()
 	
-	
 	#} END status 
 	
 	#{ General Query  
@@ -725,6 +724,16 @@ class DependNode( Node ):		# parent just for epydoc -
 		return self._apiobj
 		
 	getApiObject = getObject		# overridden from Node
+	
+	
+	def getReferenceFile( self ):
+		"""@return: name ( str ) of file this node is coming from - it could contain 
+		a copy number as {x}
+		@note: will raise if the node is not referenced, use isReferenced to figure 
+		that out"""
+		# apparently, we have to use MEL here :(
+		return cmds.referenceQuery( str( self ) , f=1 )
+		
 	#}END general query 
 	
 	#{ Edit Methods 

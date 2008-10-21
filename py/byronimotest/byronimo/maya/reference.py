@@ -106,13 +106,22 @@ class TestReferenceRunner( unittest.TestCase ):
 				self.failUnless( ref.exists() )
 				
 				# try to create a reference with the same namespace
-				self.failUnlessRaises( ValueError, ref.create, ref, load = load, namespace = ref.p_namespace )
+				#self.failUnlessRaises( ValueError, ref.create, ref, load = load, namespace = ref.p_namespace )
 				newrefs.append( ref )
 				
 				# should found newref 
 				findresult = FileReference.find( [ ref ] )
 				self.failUnless( len( findresult ) == 1 and findresult[0] == ref )
 				self.failUnless( ref in findresult )	# see that >in< operator works
+				
+				
+				# iterate the objects 
+				for node in ref.getNamespace( ).iterObjects( ):
+					if node.getApiType() != api.MFn.kReference: 
+						filename = node.getReferenceFile( )
+						self.failUnless( FileReference( filepath=filename ) == ref )
+				# END for each node in filename
+					
 			# END for each filename
 		# END for load state 
 		

@@ -331,8 +331,8 @@ class Namespace( unicode, iDagItem ):
 		# END if selection list is required 
 		
 		
-		for child in namespace.getChildren():
-			Namespace._getNamespaceObjects( namespace + child, sellist, curdepth + 1, maxdepth, asStrings )
+		for child in namespace.getChildren():	# children are abolute
+			Namespace._getNamespaceObjects( child, sellist, curdepth + 1, maxdepth, asStrings )
 	# END lod recursive method
 	
 	

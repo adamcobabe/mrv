@@ -217,10 +217,15 @@ class FileReference( Path, iDagItem ):
 		""" Remove the given reference 
 		@note: assures that no namespaces of that reference are left, remaining objects
 		will be moved into the root namespace. This way the namespaces will not be wasted.
+		This fails if there are referenced objects in the subnamespace - we currently only 
+		catch that exception as the main reference removal worked anyway
 		@note: **kwargs passed to namespace.delete """
 		ns = self.getNamespace( )
 		cmds.file( self.getFullPath( ), rr=1 )
-		ns.delete( **kwargs )
+		try:
+			ns.delete( **kwargs )
+		except RuntimeError:
+			pass 
 	
 	
 	def replace( self, filepath ):
