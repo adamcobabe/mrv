@@ -155,12 +155,24 @@ class FileReference( Path, iDagItem ):
 		
 		# build dict for fast lookup 
 		lut = dict()
+		
 		pathscp = paths[:]								# copy them before change !
 		
 		if ignore_ext:
-			lut.update( ( Path( ref ).splitext()[0], ref ) for ref in refs )	# keys have no ext
+			# actually, keep the instance number - just count it up
+			countlut = dict()
+			def getCountTuple( filepath ):
+				pathnoext = Path( filepath ).splitext()[0]
+				count = countlut.get( pathnoext, 0 )
+				countlut[ pathnoext ] = count + 1
+				return ( pathnoext , count )
+				
+			for ref in refs:
+				lut[ getCountTuple( ref ) ] = ref			# keys have no ext
+			
+			countlut = dict()
 			for i,path in enumerate( pathscp ):
-				pathscp[i] = Path( path ).splitext()[0]
+				pathscp[i] = getCountTuple( path )
 		else:
 			lut.update( ( ref, ref ) for ref in refs )		# ref will take care about the comparison
 		# END split extensions on request 
@@ -172,8 +184,7 @@ class FileReference( Path, iDagItem ):
 			ref = lut.get( path, None )
 			outlist.append( ref )
 			
-			if ref:
-				del( lut[ path ] )
+			# no need to delete the keys as they have to be unique anyway 
 		# END for each path to find 
 		return outlist
 		
