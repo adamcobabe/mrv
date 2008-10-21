@@ -105,9 +105,9 @@ class Namespace( unicode, iDagItem ):
 		if newns.exists():		 # skip work
 			return newns
 		
-		previousns = Namespace.getCurrent()
 		cleanup = CallOnDeletion( None )
-		if newns.isAbsolute():	# assure root is current if we are having an absolute name 
+		if newns.isAbsolute():	# assure root is current if we are having an absolute name
+			previousns = Namespace.getCurrent()
 			Namespace( Namespace.rootNamespace ).setCurrent( )
 			cleanup.callableobj = lambda : previousns.setCurrent()
 		
