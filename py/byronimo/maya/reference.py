@@ -139,6 +139,9 @@ class FileReference( Path, iDagItem ):
 	def find( paths, **kwargs ):
 		"""Find the reference for each path in paths
 		@param **kwargs: all supported by L{ls}
+		@param ignore_extension: if True, default False, the extension will be ignored, 
+		thus an MA file will be meatched with an MB file. The references found will still have 
+		their extension
 		@return: list( FileReference|None, ... ) 
 		if a filereference was found for given occurrence of Path, it will be returned 
 		at index of the current path in the input paths, otherwise it is None.
@@ -147,15 +150,25 @@ class FileReference( Path, iDagItem ):
 		if not isinstance( paths, (list,tuple) ) or hasattr( paths, 'next' ):
 			raise TypeError( "paths must be tuple, was %s" % type( paths ) )
 			
+		ignore_ext = kwargs.pop( "ignore_extension", False )
 		refs = FileReference.ls( **kwargs )
 		
 		# build dict for fast lookup 
 		lut = dict()
-		lut.update( ( ref, ref ) for ref in refs )		# ref will take care about the comparison
+		pathscp = paths[:]								# copy them before change !
+		
+		if ignore_ext:
+			lut.update( ( Path( ref ).splitext()[0], ref ) for ref in refs )	# keys have no ext
+			for i,path in enumerate( pathscp ):
+				pathscp[i] = Path( path ).splitext()[0]
+		else:
+			lut.update( ( ref, ref ) for ref in refs )		# ref will take care about the comparison
+		# END split extensions on request 
+		
 		
 		# remove the keys once we hit them !
 		outlist = list()
-		for path in paths:
+		for path in pathscp:
 			ref = lut.get( path, None )
 			outlist.append( ref )
 			

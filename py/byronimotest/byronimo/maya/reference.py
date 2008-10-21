@@ -87,6 +87,7 @@ class TestReferenceRunner( unittest.TestCase ):
 			
 			# it should always find our reference as well 
 			self.failUnless( FileReference.find( [ref] )[0] == ref )
+			self.failUnless( FileReference.find( [ref], ignore_extension = True )[0] == ref )
 			
 		# END for each reference
 		
