@@ -95,16 +95,19 @@ class TestReferenceRunner( unittest.TestCase ):
 		
 		
 		# ITER ROOT NAMESPACE - REAL OBJECTS
+		curns = Namespace.getCurrent()
 		numobjs = 0
 		for obj in Namespace( ":" ).iterObjects( depth = 0 ):
 			numobjs += 1
 		self.failUnless( numobjs != 0 )
+		self.failUnless( Namespace.getCurrent() == curns )
 		
 		# ITER STRINGS
 		newnumobjs = 0
 		for obj in Namespace( ":" ).listObjectStrings( depth = 0, as_strings = 1 ):
 			newnumobjs += 1
-			
+		
+		self.failUnless( Namespace.getCurrent() == curns )
 		self.failUnless( newnumobjs == numobjs )
 			
 		# empty namespace must come out as root 

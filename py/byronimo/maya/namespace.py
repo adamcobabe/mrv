@@ -359,7 +359,7 @@ class Namespace( unicode, iDagItem ):
 		#################
 		curns = self.getCurrent()		# store for later 
 		self._getNamespaceObjects( self, sellist, 0, depth, as_strings )
-		self.setCurrent()				# reset current 
+		curns.setCurrent()				# reset current 
 		
 		return sellist
 		
