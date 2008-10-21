@@ -309,27 +309,25 @@ class Namespace( unicode, iDagItem ):
 		
 		namespace.setCurrent()
 		objs = cmds.namespaceInfo( lod=1 )
-		if not objs: 
-			return 
+		if objs: 
+			# REMOVE INVALID OBJECTS 
+			############################
+			if namespace == Namespace.rootNamespace:
+				forbiddenlist = [ "groundPlane", "groundPlane_transform", "world" ]
+				for item in forbiddenlist:
+					objs.remove( item )
+			# END forbidden object removal
 			
-		# REMOVE INVALID OBJECTS 
-		############################
-		if namespace == Namespace.rootNamespace:
-			forbiddenlist = [ "groundPlane", "groundPlane_transform", "world" ]
-			for item in forbiddenlist:
-				objs.remove( item )
-		# END forbidden object removal
-		
-		
-		# OBJECT OUTPUT HANDLING 
-		#########################
-		if asStrings:
-			sellist.extend( objs )
-		else:
-			for obj in objs:
-				sellist.add( obj )
-		# END if selection list is required 
-		
+			
+			# OBJECT OUTPUT HANDLING 
+			#########################
+			if asStrings:
+				sellist.extend( objs )
+			else:
+				for obj in objs:
+					sellist.add( obj )
+			# END if selection list is required 
+		# END if there are objects 
 		
 		for child in namespace.getChildren():	# children are abolute
 			Namespace._getNamespaceObjects( child, sellist, curdepth + 1, maxdepth, asStrings )

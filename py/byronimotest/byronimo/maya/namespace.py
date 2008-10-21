@@ -94,13 +94,18 @@ class TestReferenceRunner( unittest.TestCase ):
 				self.failUnless( not child.exists() )
 		
 		
-		# ITER ROOT NAMESPACE - REAL OBJECTS  
+		# ITER ROOT NAMESPACE - REAL OBJECTS
+		numobjs = 0
 		for obj in Namespace( ":" ).iterObjects( depth = 0 ):
-			pass
+			numobjs += 1
+		self.failUnless( numobjs != 0 )
 		
-		# ITER STRINGS 
+		# ITER STRINGS
+		newnumobjs = 0
 		for obj in Namespace( ":" ).listObjectStrings( depth = 0, as_strings = 1 ):
-			pass
+			newnumobjs += 1
+			
+		self.failUnless( newnumobjs == numobjs )
 			
 		# empty namespace must come out as root 
 		ns = Namespace( "" )
