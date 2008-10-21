@@ -26,6 +26,7 @@ from byronimotest.byronimo.maya import get_maya_file
 from byronimo.util import capitalize
 from byronimo.maya.util import StandinClass
 import maya.cmds as cmds
+import byronimotest.byronimo.maya as common
 
 class TestGeneral( unittest.TestCase ):
 	""" Test general maya framework """
@@ -413,7 +414,7 @@ class TestNodeBase( unittest.TestCase ):
 							  	autocreateNamespace = False )
 		self.failUnless( newmesh != mesh )
 		instbase = nodes.createNode( "|duplparent2|newnamespace:instmesh", "transform" ) 
-		meshinst = instbase.addChild( mesh )
+		meshinst = instbase.addInstancedChild( mesh )
 		meshinstname = str( meshinst )
 		
 		# UNDO DUPLICATE
@@ -516,18 +517,21 @@ class TestNodeBase( unittest.TestCase ):
 		
 		
 		# KEEP PARENT FALSE - USE INSTANCES
+		# TODO: this test needs a redo - the original purpose got lost when 
+		# the addChild method has been changed, additionally it needs to be 
+		# better documented as this instancing stuff is not easily understood if 
+		# one just sees the code 
 		for orig,inst in zip( itemlist, instlist ):
-			reparentednode = obase.addChild( inst, keepExistingParent=False )
+			inst = obase.addChild( inst, keepExistingParent=False )
 			obase.addChild( inst, keepExistingParent=False )	 # duplicate adds are not problem
 			
-			self.failUnless( reparentednode.isValid() and inst.isAlive() )
-			self.failUnless( not inst.isValid() )
+			self.failUnless( inst.isValid() and inst.isAlive() )
 			self.failUnless( orig.isValid() )			# original may not be influenced by that operation
 			
 			# undo / redo 
 			cmds.undo()
-			cmds.undo()
-			self.failUnless( not reparentednode.isValid() and inst.isValid() and orig.isValid() ) 
+			#cmds.undo()	# just one undo counts 
+			self.failUnless( inst.isValid() and orig.isValid() ) 
 			
 			cmds.redo()
 		# END for each instance 
@@ -538,13 +542,50 @@ class TestNodeBase( unittest.TestCase ):
 		# RENAME ON CLASH = True
 		otransname = str( otrans )
 		renamedtrans = obase.addChild( otrans, renameOnClash = True )
-		self.failUnless( renamedtrans.isValid() and not otrans.isValid() )
-		self.failUnless( str( renamedtrans ) != otransname )
+		self.failUnless( renamedtrans.isValid() )
+		renamedname = str( renamedtrans )
+		self.failUnless( renamedname != otransname )
 		
 		cmds.undo( )
-		self.failUnless( not renamedtrans.isValid() and otrans.isValid() )
+		self.failUnless( nodes.objExists( otransname ) and not nodes.objExists( renamedname ) )
 		
 		cmds.redo()
+		
+	def test_instancesAndParenting( self ):
+		"""byronimo.maya.nodes.base: test instances and parenting, also instanced attributes"""
+		bmaya.Scene.open( get_maya_file( "instancetest.ma" ), force=True )
+		m = nodes.Node( "m" )			# mesh, two direct and two indirect instances
+		c1 = nodes.createNode( "|c1", "transform" )
+		
+		self.failUnless( m.getInstanceCount( 0 ) == 2 )
+		self.failUnless( m.getInstanceCount( 1 ) == 4 )
+		
+		# test parenting
+		mci = c1.addInstancedChild( m )
+		
+		# common._saveTempFile( "instancetest.ma" )
+		self.failUnless( m.getInstanceCount( 0 ) == 3 )
+		self.failUnless( m.getInstanceCount( 1 ) == 5 )	# direct + indirect
+		
+		c1.removeChild( mci )
+		
+		self.failUnless( m.getInstanceCount( 0 ) == 2 )
+		self.failUnless( m.getInstanceCount( 1 ) == 4 )	# direct + indirect
+		
+		# check reparent 
+		d1 = nodes.createNode( "|d1", "transform" )
+		c1 = c1.reparent( d1 )
+		
+		self.failUnless( m.getInstanceCount( 0 ) == 2 )
+		self.failUnless( m.getInstanceCount( 1 ) == 4 )
+		
+		# reparent an instanced transform under d1
+		a2 = nodes.Node( "a2" )
+		
+		a2 = a2.reparent( d1, raiseOnInstance=0 )			# destroys instances 
+		self.failUnless( m.getInstanceCount( 0 ) == 2 )
+		self.failUnless( m.getInstanceCount( 1 ) == 2 )
+		
 		
 	def test_instanceTraversal( self ):
 		"""byronimo.maya.nodes.base: traverse instances"""

@@ -215,7 +215,7 @@ class MPlug( api.MPlug, util.iDagItem ):
 		return self.getByIndex( index )
 		
 	def __len__( self ):
-		"""@return: Plug at physical index """
+		"""@return: number of physical elements in the array """
 		if not self.isArray( ): return 0
 		return self.getNumElements( )
 		

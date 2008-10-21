@@ -17,7 +17,7 @@ __id__="$Id: configuration.py 16 2008-05-29 00:30:46Z byron $"
 __copyright__='(c) 2008 Sebastian Thiel'
 
 from byronimo.maya import undo
-from byronimo.maya.util import noneToList
+from byronimo.maya.util import noneToList, MuteUndo
 from byronimo.util import iDagItem, CallOnDeletion, Call
 import maya.cmds as cmds
 import maya.OpenMaya as api
@@ -357,6 +357,8 @@ class Namespace( unicode, iDagItem ):
 		
 		# FILL SELLIST
 		#################
+		# assure we do not record this and alter the undoqueue
+		disableUndo = MuteUndo()
 		curns = self.getCurrent()		# store for later 
 		self._getNamespaceObjects( self, sellist, 0, depth, as_strings )
 		curns.setCurrent()				# reset current 

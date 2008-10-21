@@ -161,8 +161,11 @@ class FileReference( Path, iDagItem ):
 		if ignore_ext:
 			# actually, keep the instance number - just count it up
 			countlut = dict()
+			# as keys we do not allow environment variables, as there could be 
+			# versions with and without vars,although all pointing to the same path, 
+			# pure string comparison will not find them 
 			def getCountTuple( filepath ):
-				pathnoext = Path( filepath ).splitext()[0]
+				pathnoext = Path( filepath ).expandvars().splitext()[0]		
 				count = countlut.get( pathnoext, 0 )
 				countlut[ pathnoext ] = count + 1
 				return ( pathnoext , count )

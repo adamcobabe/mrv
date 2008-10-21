@@ -796,7 +796,6 @@ class DagNode( Entity, iDagItem ):	# parent just for epydoc
 		@note: will remove all instance of this object and leave this object at only one path - 
 		if this is not what you want, use the addChild method instead as it can properly handle this case  
 		@note: this method handles namespaces properly """
-		
 		if raiseOnInstance and self.getInstanceCount( False ) > 1:
 			raise RuntimeError( "%r is instanced - reparent operation would destroy direct instances" % self )
 		
@@ -810,7 +809,6 @@ class DagNode( Entity, iDagItem ):	# parent just for epydoc
 		# END rename on clash handling 
 			
 		thispathobj = self._apidagpath.getApiObj()
-		# HAVE TO USE MEL !!
 		# As stupid dagmodifier cannot handle instances right ( as it works on MObjects
 		mod = None		# create it once we are sure the operation takes place 
 		if parentnode:
@@ -900,8 +898,20 @@ class DagNode( Entity, iDagItem ):	# parent just for epydoc
 		@return: childNode whose path is pointing to the new child location 
 		@note: the keepExistingParent flag is custom implemented as it would remove all existng parentS, 
 		not just the one of the path behind the object ( it does not use a path, so it must remove all existing 
-		parents unfortunatly ! )"""
+		parents unfortunatly ! )
+		@note: as maya internally handles add/remove child as instancing operation, even though 
+		keepExistingParent is False, it will mess up things and for a short period of time in fact
+		have two n + 1 instances, right before one is unlinked, This still fills a slot or something, and 
+		isInstanced will be true, although the pathcount is 1. 
+		Long story short: if the item to be added to us is not instanced, we use reparent instead. It 
+		will not harm in direct instances, so its save to use.
+		@note: if the instance count of the item is 1 and keepExistingParent is False, the position 
+		argument is being ignored"""
 		# print "( %i/%i ) ADD CHILD (keep=%i): %r to %r"  % ( api.MGlobal.isUndoing(),api.MGlobal.isRedoing(), keepExistingParent, DependNode( childNode._apiobj ) , self )
+		
+		# should we use reparent to get around an instance bug ?
+		if not keepExistingParent and childNode.getInstanceCount( 0 ) == 1:	# direct only 
+			return childNode.reparent( self, renameOnClash=renameOnClash, raiseOnInstance=False )
 		
 		# CHILD ALREADY THERE ?
 		#########################
