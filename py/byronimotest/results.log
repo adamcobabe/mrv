@@ -108,69 +108,69 @@ Warning: Reference file path remapped from '/home/sebastian/ws_repository/src/wh
 File read in 0 seconds.
 
 
-Created 100 nodes in 0.680000 s ( 147.058824 / s )
+Created 100 nodes in 0.510000 s ( 196.078431 / s )
 Undo: byronimoUndo -pop
-Undone Operation in 0.000000 s
-Created 2500 nodes in 7.010000 s ( 356.633381 / s )
+Undone Operation in 0.010000 s
+Created 2500 nodes in 6.830000 s ( 366.032211 / s )
 Undo: byronimoUndo -pop
-Undone Operation in 0.160000 s
+Undone Operation in 0.150000 s
 Redo: byronimoUndo -pop
-Created 7585 Nodes ( from STRING ) in 1.570000 s ( 4831.210191 / s )
-Created 7585 Nodes ( from APIOBJ ) in 0.640000 s ( 11851.562500 / s ) -> 245.312500 % faster
+Created 7261 Nodes ( from STRING ) in 1.500000 s ( 4840.666667 / s )
+Created 7261 Nodes ( from APIOBJ ) in 0.600000 s ( 12101.666667 / s ) -> 250.000000 % faster
 File read in 0 seconds.
 Walked 2500 nodes in 0.440000 s ( 5681.818182 / s )
-Walked 2500 WRAPPED nodes in 1.280000 s ( 1953.125000 / s )
-Walked 2500 nodes BREADTH FIRST in 0.690000 s ( 3623.188406 / s )
+Walked 2500 WRAPPED nodes in 1.260000 s ( 1984.126984 / s )
+Walked 2500 nodes BREADTH FIRST in 0.680000 s ( 3676.470588 / s )
 File read in 7 seconds.
-Walked 25000 nodes in 4.460000 s ( 5605.381166 / s )
-Walked 25000 WRAPPED nodes in 12.950000 s ( 1930.501931 / s )
-Walked 25000 nodes BREADTH FIRST in 29.220000 s ( 855.578371 / s )
-10 MULTI PLUG Connected in 0.250000 s ( 40.000000 / s )
+Walked 25000 nodes in 4.420000 s ( 5656.108597 / s )
+Walked 25000 WRAPPED nodes in 12.930000 s ( 1933.488012 / s )
+Walked 25000 nodes BREADTH FIRST in 29.040000 s ( 860.881543 / s )
+10 MULTI PLUG Connected in 0.260000 s ( 38.461538 / s )
 Undo: byronimoUndo -pop
 Redo: byronimoUndo -pop
-UNDO / REDO Time = 0.190000 / 0.130000 ( 1.923077 * faster than initial creation )
+UNDO / REDO Time = 0.120000 / 0.190000 ( 1.368421 * faster than initial creation )
 50 MULTI PLUG Connected in 1.040000 s ( 48.076923 / s )
 Undo: byronimoUndo -pop
 Redo: byronimoUndo -pop
-UNDO / REDO Time = 0.660000 / 0.700000 ( 1.485714 * faster than initial creation )
+UNDO / REDO Time = 0.650000 / 0.710000 ( 1.464789 * faster than initial creation )
 100 MULTI PLUG Connected in 1.550000 s ( 64.516129 / s )
 Undo: byronimoUndo -pop
 Redo: byronimoUndo -pop
-UNDO / REDO Time = 0.850000 / 0.840000 ( 1.845238 * faster than initial creation )
-200 MULTI PLUG Connected in 3.120000 s ( 64.102564 / s )
+UNDO / REDO Time = 0.780000 / 0.910000 ( 1.703297 * faster than initial creation )
+200 MULTI PLUG Connected in 3.090000 s ( 64.724919 / s )
 Undo: byronimoUndo -pop
 Redo: byronimoUndo -pop
-UNDO / REDO Time = 1.610000 / 1.800000 ( 1.733333 * faster than initial creation )
+UNDO / REDO Time = 1.590000 / 1.770000 ( 1.745763 * faster than initial creation )
 10 SINGLE PLUGS Connected in 0.030000 s ( 333.333333 / s )
 Undo: byronimoUndo -pop
 Redo: byronimoUndo -pop
 UNDO / REDO Time = 0.000000 / 0.000000 ( 30.000000 * faster than initial creation )
-50 SINGLE PLUGS Connected in 0.150000 s ( 333.333333 / s )
+50 SINGLE PLUGS Connected in 0.140000 s ( 357.142857 / s )
 Undo: byronimoUndo -pop
 Redo: byronimoUndo -pop
-UNDO / REDO Time = 0.000000 / 0.000000 ( 150.000000 * faster than initial creation )
+UNDO / REDO Time = 0.000000 / 0.000000 ( 140.000000 * faster than initial creation )
 100 SINGLE PLUGS Connected in 0.350000 s ( 285.714286 / s )
 Undo: byronimoUndo -pop
 Redo: byronimoUndo -pop
-UNDO / REDO Time = 0.010000 / 0.000000 ( 350.000000 * faster than initial creation )
-200 SINGLE PLUGS Connected in 0.650000 s ( 307.692308 / s )
+UNDO / REDO Time = 0.000000 / 0.000000 ( 350.000000 * faster than initial creation )
+200 SINGLE PLUGS Connected in 0.640000 s ( 312.500000 / s )
 Undo: byronimoUndo -pop
 Redo: byronimoUndo -pop
-UNDO / REDO Time = 0.000000 / 0.000000 ( 650.000000 * faster than initial creation )
+UNDO / REDO Time = 0.000000 / 0.000000 ( 640.000000 * faster than initial creation )
 
 
-UNDO: DECORATED Undo disabled: 44135 ops in 1.430000 s ( 30863.636364 / s )
+UNDO: DECORATED Undo disabled: 44135 ops in 1.450000 s ( 30437.931034 / s )
 UNDO: MANUAL Undo disabled: 44135 ops in 1.490000 s ( 29620.805369 / s )
-UNDO: DECORATED is 4.026846 % faster than manually implemented functions !
-UNDO: DECORATED : 44135 ops in 1.790000 s ( 24656.424581 / s )
-UNDO: MANUAL : 44135 ops in 2.020000 s ( 21849.009901 / s )
-UNDO: DECORATED is 11.386139 % faster than manually implemented functions !
+UNDO: DECORATED is 2.684564 % faster than manually implemented functions !
+UNDO: DECORATED : 44135 ops in 1.800000 s ( 24519.444444 / s )
+UNDO: MANUAL : 44135 ops in 2.040000 s ( 21634.803922 / s )
+UNDO: DECORATED is 11.764706 % faster than manually implemented functions !
 Undo: byronimoUndo -pop
 Undo: byronimoUndo -pop -id "_recurseUndoDeco"
 Redo: byronimoUndo -pop -id "_recurseUndoDeco"
 Redo: byronimoUndo -pop
-UNDO: CALL TIME: 176540 operations in 0.110000 s ( 1604909.090909 / s )
-UNDO: RATIO UNDO QUEUE ON/OFF: 1.790000 s (on) vs 1.430000 s (off) = 20.111732 % speedup on disabled queue ( difference [s] = 0.530000 )
+UNDO: CALL TIME: 176540 operations in 0.120000 s ( 1471166.666667 / s )
+UNDO: RATIO UNDO QUEUE ON/OFF: 1.800000 s (on) vs 1.450000 s (off) = 19.444444 % speedup on disabled queue ( difference [s] = 0.550000 )
 Undo: byronimoUndo -pop
 Redo: byronimoUndo -pop
 Undo: byronimoUndo -pop
@@ -181,9 +181,9 @@ Undo: byronimoUndo -pop
 Undo: byronimoUndo -pop
 Redo: byronimoUndo -pop
 File read in 0 seconds.
-Randomized 8997 node translations in 2.390000 s ( 3764.435146 / s )
+Randomized 8997 node translations in 2.380000 s ( 3780.252101 / s )
 SAVED TMP FILE TO: /usr/tmp/randomscene.mb
-Average position of 8997 nodes is: <-0.019562,-0.059575,0.153718> in 2.140000 s
+Average position of 8997 nodes is: <-0.302990,-0.003112,0.108258> in 1.920000 s
 Set 8997 nodes to average position in 0.530000 s ( 16975.471698 / s )
 SAVED TMP FILE TO: /usr/tmp/averaged.mb
 SETTING 3_TestProcessTarget.inUni
@@ -214,6 +214,60 @@ SETTING TestProcess0.inFloat
 WILL QUERY: TestProcess1.outFloat
 SETTING 3_TestProcessTarget.inUni
 WILL QUERY: 3_TestProcessTarget.outString
+SETTING TestProcess0.inFloat
+WILL QUERY: TestProcess1.outFloat
+SETTING TestProcess0.inFloat
+WILL QUERY: TestProcess1.outFloat
+SETTING TestProcess0.inFloat
+WILL QUERY: TestProcess1.outFloat
+SETTING TestProcess0.inFloat
+WILL QUERY: TestProcess1.outFloat
+SETTING TestProcess0.inFloat
+WILL QUERY: TestProcess1.outFloat
+SETTING TestProcess0.inFloat
+WILL QUERY: TestProcess1.outFloat
+SETTING TestProcess0.inFloat
+WILL QUERY: TestProcess1.outFloat
+SETTING TestProcess0.inFloat
+WILL QUERY: TestProcess1.outFloat
+SETTING TestProcess0.inFloat
+WILL QUERY: TestProcess1.outFloat
+SETTING TestProcess0.inFloat
+WILL QUERY: TestProcess1.outFloat
+SETTING TestProcess0.inFloat
+WILL QUERY: TestProcess1.outFloat
+SETTING TestProcess0.inFloat
+WILL QUERY: TestProcess1.outFloat
+SETTING TestProcess0.inFloat
+WILL QUERY: TestProcess1.outFloat
+SETTING TestProcess0.inFloat
+WILL QUERY: TestProcess1.outFloat
+SETTING TestProcess0.inFloat
+WILL QUERY: TestProcess1.outFloat
+SETTING TestProcess0.inFloat
+WILL QUERY: TestProcess1.outFloat
+SETTING TestProcess0.inFloat
+WILL QUERY: TestProcess1.outFloat
+SETTING TestProcess0.inFloat
+WILL QUERY: TestProcess1.outFloat
+SETTING TestProcess0.inFloat
+WILL QUERY: TestProcess1.outFloat
+SETTING TestProcess0.inFloat
+WILL QUERY: TestProcess1.outFloat
+SETTING TestProcess0.inFloat
+WILL QUERY: TestProcess1.outFloat
+SETTING TestProcess0.inFloat
+WILL QUERY: TestProcess1.outFloat
+SETTING TestProcess0.inFloat
+WILL QUERY: TestProcess1.outFloat
+SETTING TestProcess0.inFloat
+WILL QUERY: TestProcess1.outFloat
+SETTING TestProcess0.inFloat
+WILL QUERY: TestProcess1.outFloat
+SETTING TestProcess0.inFloat
+WILL QUERY: TestProcess1.outFloat
+SETTING TestProcess0.inFloat
+WILL QUERY: TestProcess1.outFloat
 SETTING TestProcess0.inInt
 WILL QUERY: TestProcess1.outInt
 SETTING TestProcess0.inInt
@@ -271,7 +325,7 @@ Undo: byronimoUndo -pop -id "createNode"
 Redo: byronimoUndo -pop -id "createNode"
 Undo: byronimoUndo -pop -id "createNode"
 Redo: byronimoUndo -pop -id "createNode"
-File read in 1 seconds.
+File read in 0 seconds.
 Warning: This file contains an uncached fluid; rewind and playback to see correct current state.
  
 Found a resolution node; these are being phased out.
@@ -292,12 +346,9 @@ Undo: byronimoUndo -pop -id "addInstancedChild"
 Undo: byronimoUndo -pop -id "addInstancedChild"
 Redo: byronimoUndo -pop -id "addInstancedChild"
 Undo: byronimoUndo -pop -id "addChild"
-Undo: byronimoUndo -pop -id "addChild"
 Redo: byronimoUndo -pop -id "addChild"
 Undo: byronimoUndo -pop -id "addChild"
-Undo: byronimoUndo -pop -id "addChild"
 Redo: byronimoUndo -pop -id "addChild"
-Undo: byronimoUndo -pop -id "addChild"
 Undo: byronimoUndo -pop -id "addChild"
 Redo: byronimoUndo -pop -id "addChild"
 Undo: byronimoUndo -pop -id "addChild"
@@ -306,14 +357,50 @@ Undo: byronimoUndo -pop -id "wrappedSetAttr"
 Undo: byronimoUndo -pop -id "wrappedSetAttr"
 Undo: byronimoUndo -pop -id "wrappedSetAttr"
 Undo: byronimoUndo -pop -id "wrappedSetAttr"
+mental ray for Maya 8.5 
+// mental ray for Maya: using startup file /usr/autodesk/maya8.5-x64/mentalray/maya.rayrc
+mental ray for Maya: setup
+mental ray for Maya: initialize
+mental ray: version 3.5.6.8, 14 Feb 2007, revision 20433
+mental ray for Maya: using 1 license
+mental ray for Maya: register extensions
+// mental ray Node Factory: loaded
+// parsing /usr/autodesk/maya8.5-x64/mentalray/include/architectural.mi
+// loading /usr/autodesk/maya8.5-x64/mentalray/lib/architectural.so
+// generating Maya nodes...
+// parsing /usr/autodesk/maya8.5-x64/mentalray/include/base.mi
+// loading /usr/autodesk/maya8.5-x64/mentalray/lib/base.so
+// generating Maya nodes...
+// parsing /usr/autodesk/maya8.5-x64/mentalray/include/contour.mi
+// loading /usr/autodesk/maya8.5-x64/mentalray/lib/contour.so
+// generating Maya nodes...
+// parsing /usr/autodesk/maya8.5-x64/mentalray/include/paint.mi
+// loading /usr/autodesk/maya8.5-x64/mentalray/lib/paint.so
+// generating Maya nodes...
+// parsing /usr/autodesk/maya8.5-x64/mentalray/include/physics.mi
+// loading /usr/autodesk/maya8.5-x64/mentalray/lib/physics.so
+// generating Maya nodes...
+// parsing /usr/autodesk/maya8.5-x64/mentalray/include/subsurface.mi
+// loading /usr/autodesk/maya8.5-x64/mentalray/lib/subsurface.so
+// generating Maya nodes...
+// parsing /usr/autodesk/maya8.5-x64/mentalray/include/surfaceSampler.mi
+// loading /usr/autodesk/maya8.5-x64/mentalray/lib/surfaceSampler.so
+// generating Maya nodes...
+mental ray for Maya: successfully registered
+mental ray for Maya: loading startup file: /usr/autodesk/maya8.5-x64/mentalray/maya.rayrc
+mental ray: mental ray for Maya - startup done
+Warning: file: /home/sebastian/ws_repository/src/whitesharkstd/trunk/ext/byronimo/py/byronimotest/byronimo/maya/ma/instancetest.ma line 270: Unrecognized node type 'vectorRenderGlobals'; preserving node information during this session.
+File read in 0 seconds.
+Warning: Errors have occurred while reading this scene that may result in data loss.
+Error: line 1: Plug-in, "VectorRender.so", was not found on MAYA_PLUG_IN_PATH.
 Undo: byronimoUndo -pop -id "removeChild"
 Undo: byronimoUndo -pop -id "removeChild"
 Undo: byronimoUndo -pop -id "reparent"
 Redo: byronimoUndo -pop -id "reparent"
-Undo: byronimoUndo -pop -id "addChild"
-Redo: byronimoUndo -pop -id "addChild"
-Undo: byronimoUndo -pop -id "addChild"
-Redo: byronimoUndo -pop -id "addChild"
+Undo: byronimoUndo -pop -id "addInstancedChild"
+Redo: byronimoUndo -pop -id "addInstancedChild"
+Undo: byronimoUndo -pop -id "addInstancedChild"
+Redo: byronimoUndo -pop -id "addInstancedChild"
 Undo: byronimoUndo -pop -id "rename"
 Redo: byronimoUndo -pop -id "rename"
 Undo: byronimoUndo -pop -id "rename"
@@ -575,6 +662,7 @@ byronimo.maya.nodes.benchmark: compute the center point of all  dagnodes in scen
 byronimo.automation.report: test plan report ... ok
 byronimo.automation.process: check workflow nested into process ... ok
 byronimo.automation.workflow: assure callgraph can be generated properly ... ok
+byronimo.automation.workflow: test multiple targets at once ... ok
 byronimo.automation.workflow: test a simple dirtycheck ... ok
 byronimo.automation.workflow: create a simple workflow from a dot file ... ok
 byronimo.automation.workflow:  test facades of workflows ... ok
@@ -694,7 +782,7 @@ Traceback (most recent call last):
 AssertionError: ConfigParsingError not raised
 
 ----------------------------------------------------------------------
-Ran 102 tests in 130.299s
+Ran 103 tests in 128.089s
 
 FAILED (failures=1, errors=2)
 
