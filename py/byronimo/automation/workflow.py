@@ -15,7 +15,7 @@ __id__="$Id: configuration.py 50 2008-08-12 13:33:55Z byron $"
 __copyright__='(c) 2008 Sebastian Thiel'
 
 from networkx.digraph import DiGraph
-from byronimo.dgengine import Graph
+from byronimo.dgengine import Graph, ComputeError
 import time 
 import weakref
 import sys
@@ -251,7 +251,7 @@ class Workflow( Graph ):
 					errstream.write( msg )
 				else:
 					print msg			# default output stream
-			except e:
+			except Exception, e:
 				# except all 
 				msg = "Unhandled Exception: " + str( e ) + "\n"
 				if errstream:
