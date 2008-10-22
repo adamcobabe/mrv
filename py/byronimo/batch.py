@@ -79,7 +79,8 @@ def process( cmd, args, inputList, errorstream = None, donestream = None, inputs
 	for i in range( 0, numInputs, inputsPerProcess ):
 		
 		cmdinput = inputList[ i : i + inputsPerProcess ]	# deals with bounds
-		process = subprocess.Popen( (cmd,)+tuple(args),stderr=subprocess.PIPE, stdin=subprocess.PIPE, env=os.environ )
+		callcmd = (cmd,)+tuple(args)+tuple(cmdinput)
+		process = subprocess.Popen( callcmd,stderr=subprocess.PIPE, stdin=subprocess.PIPE, env=os.environ )
 		
 		jobs.append( process )
 		
@@ -98,7 +99,7 @@ def process( cmd, args, inputList, errorstream = None, donestream = None, inputs
 		
 		
 		if len( jobs ) != numJobs:
-			raise AssertionError( "invalid job count:" )
+			raise AssertionError( "invalid job count" )
 		
 		# we have a full queue now - get a new one asap
 		superviseJobs( jobs, numJobs, cmdinput, errorstream, donestream )
