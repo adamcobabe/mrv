@@ -235,6 +235,42 @@ class Workflow( Graph ):
 		shell, result = self._evaluate( target, processmode, globalmode )
 		return result
 	
+	def makeTargets( self, targetList, errstream=None, donestream=None ):
+		""" batch module compatible method allowing to make mutliple targets at once
+		@param targetList: iterable providing the targets to make
+		@param errstream: object with file interface allowing to log errors that occurred 
+		during operation
+		@param donestream: if list, targets successfully done will be appended to it, if 
+		it is a stream, the string representation will be wrtten to it"""
+		for target in targetList:
+			try:
+				self.makeTarget( target )
+			except ComputeError,e:
+				msg = str( e ) + "\n"
+				if errstream:
+					errstream.write( msg )
+				else:
+					print msg			# default output stream
+			except e:
+				# except all 
+				msg = "Unhandled Exception: " + str( e ) + "\n"
+				if errstream:
+					errstream.write( msg )
+				else:
+					print msg
+			
+			if donestream is None:
+				continue
+				
+			# all clear, put item to done list
+			if hasattr( donestream, "write" ):
+				donestream.write( str( target ) + "\n" )
+			else:
+				# assume its a list
+				donestream.append( target )
+		# END for each target 
+		
+		
 	
 	def _evaluateDirtyState( self, outputplug, processmode ):
 		"""Evaluate the given plug in process mode and return a dirty report tuple 

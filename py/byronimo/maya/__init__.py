@@ -232,8 +232,8 @@ def init_system( ):
 	# DID IT WORK ? 
 	try: 
 		import maya
-	except: 
-		raise EnvironmentError( "Failed to import maya - check this script or assure LD_LIBRARY path is set accordingly" )
+	except Exception, e: 
+		raise EnvironmentError( "Failed to import maya - check this script or assure LD_LIBRARY path is set accordingly: " + str( e ) )
 	
 	
 	# FINALLY STARTUP MAYA

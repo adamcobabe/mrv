@@ -21,6 +21,7 @@ import workflows
 import byronimo.automation.workflow as workflow
 from byronimo.automation.workflow import Workflow
 from byronimo.automation.process import *
+from cStringIO import StringIO 
 
 class TestWorkflow( unittest.TestCase ):
 	"""Test workflow class"""
@@ -111,6 +112,27 @@ class TestWorkflow( unittest.TestCase ):
 		
 		self.failUnless( len( cg.nodes() ) == 5 )
 		self.failUnless( len( cg.edges() ) == 4 )
+		
+	def test_multiTarget( self ):
+		"""byronimo.automation.workflow: test multiple targets at once"""
+		scwfl = workflows.simpleconnection
+		listtypes = ( None, list, StringIO )
+		
+		# test it with all possible value types 
+		for errtype in listtypes:
+			errtypeinst = errtype
+			if errtype is not None:
+				errtypeinst = errtype()
+			for outtype in listtypes:
+				outtypeinst = outtype
+				if outtype is not None:
+					outtypeinst = outtype()
+					
+				scwfl.makeTargets( (1.0,2.0,3.0), errtypeinst, outtypeinst )
+			# END for each done type
+		# END for each outtype 
+		
+		
 		
 	def test_workflowfacades( self ):
 		"""byronimo.automation.workflow:  test facades of workflows"""
