@@ -195,6 +195,15 @@ def toComponentSelectionList( nodeCompList, mergeWithExisting = False ):
 	
 	return sellist
 		
+def toSelectionListFromNames( nodenames ):
+	"""Convert the given iterable of nodenames to a selection list
+	@return: MSelectionList, use L{iterSelectionList} to retrieve the objects"""
+	sellist = api.MSelectionList()
+	for name in nodenames:
+		sellist.add( name )
+	
+	return sellist
+	
 
 def fromSelectionList( sellist, handlePlugs=1, **kwargs ):
 	"""@return: list of Nodes and MPlugs stored in the given selection list
