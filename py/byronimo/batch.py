@@ -8,6 +8,8 @@ from the commandline, possibly wrapped by a shell script to specialize its usae
 """
 import sys
 from collections import deque
+import subprocess
+import time
 
 __author__='$Author: byron $'
 __contact__='byron@byronimo.de'
@@ -17,6 +19,7 @@ __date__="$Date: 2008-07-16 22:41:16 +0200 (Wed, 16 Jul 2008) $"
 __revision__="$Revision: 22 $"
 __id__="$Id: configuration.py 22 2008-07-16 20:41:16Z byron $"
 __copyright__='(c) 2008 Sebastian Thiel'
+
 
 
 def process( cmd, args, inputList, errorstream = None, donestream = None, inputsPerProcess = 1 ):
@@ -30,8 +33,26 @@ def process( cmd, args, inputList, errorstream = None, donestream = None, inputs
 	@param inputsPerProcess: pass the given number of inputs to the cmd, or less if there 
 	are not enough items on the input list
 	""" 
-	pass 
-
+	# very simple for now - just get the input together and call the cmd
+	numInputs = len( inputList )
+	for i in range( 0, numInputs, inputsPerProcess ):
+		
+		cmdinput = inputList[ i : i + inputsPerProcess ]	# deals with bounds
+		process = subprocess.Popen( (cmd,)+tuple(args),stderr=subprocess.PIPE )
+		
+		# wait for the subprocess to terminate 
+		while process.poll() == None:
+			time.sleep( 0.25 )
+			
+		# the process finished - get the stderr
+		if errorstream:
+			errorstream.writelines( process.stderr.readlines() )
+		
+		# append to the done list only if there is no error
+		if donestream is not None and process.returncode == 0:
+			donestream.writelines( "\n".join( cmdinput ) + "\n" )
+			donestream.flush()
+	# END for each chunk of inputs 
 
 
 #{ Command Line Tool 
