@@ -6,7 +6,7 @@ from the commandline, possibly wrapped by a shell script to specialize its usae
 @newfield revision: Revision
 @newfield id: SVN Id
 """
-import sys
+import sys,os
 from collections import deque
 import subprocess
 import time
@@ -20,9 +20,48 @@ __revision__="$Revision: 22 $"
 __id__="$Id: configuration.py 22 2008-07-16 20:41:16Z byron $"
 __copyright__='(c) 2008 Sebastian Thiel'
 
-
-
-def process( cmd, args, inputList, errorstream = None, donestream = None, inputsPerProcess = 1 ):
+def superviseJobs( jobs, returnIfLessThan, cmdinput, errorstream, donestream ):
+	"""Check on the jobs we have and wait for finished ones. Write information 
+	about them into the respective streams
+	@param returnIfLessThan: return once we have less than the given amount of running jobs"""
+	sleeptime = 1.0		 # wait one second in the main loop before checking the processes
+	
+	if not jobs:
+		return
+	
+	while True:
+		
+		jobscp = jobs[:]			# are going to alter the jobs queue
+		for process in jobscp:
+			# check if subprocess is done 
+			if process.poll() == None:
+				continue
+				
+			# pop the process off the queue 
+			jobs.remove( process )
+			
+			# the process finished - get the stderr
+			if errorstream:
+				errorstream.writelines( process.stderr.readlines() )
+				errorstream.flush()
+			
+			# append to the done list only if there is no error
+			if donestream is not None and process.returncode == 0:
+				donestream.writelines( "\n".join( cmdinput ) + "\n" )
+				donestream.flush()
+				
+			# can we return ?
+			if len( jobs ) < returnIfLessThan:
+				return 
+				
+		# END for each job
+		
+		time.sleep( sleeptime )
+	# END endless loop
+	
+		
+def process( cmd, args, inputList, errorstream = None, donestream = None, inputsPerProcess = 1, 
+			 numJobs=1):
 	"""Launch process at cmd with args and a list of input objects from inputList appended to args
 	@param cmd: full path to tool you wish to start, like /bin/bash
 	@param args: List of all argument strings to be passed to cmd
@@ -32,28 +71,42 @@ def process( cmd, args, inputList, errorstream = None, donestream = None, inputs
 	have been processed if not None. Items are newline terminated 
 	@param inputsPerProcess: pass the given number of inputs to the cmd, or less if there 
 	are not enough items on the input list
+	@param numJobs: number of processes we may run in parallel
 	""" 
 	# very simple for now - just get the input together and call the cmd
+	jobs = list()
 	numInputs = len( inputList )
 	for i in range( 0, numInputs, inputsPerProcess ):
 		
 		cmdinput = inputList[ i : i + inputsPerProcess ]	# deals with bounds
-		process = subprocess.Popen( (cmd,)+tuple(args),stderr=subprocess.PIPE )
+		process = subprocess.Popen( (cmd,)+tuple(args),stderr=subprocess.PIPE, stdin=subprocess.PIPE, env=os.environ )
 		
-		# wait for the subprocess to terminate 
-		while process.poll() == None:
-			time.sleep( 0.25 )
-			
-		# the process finished - get the stderr
-		if errorstream:
-			errorstream.writelines( process.stderr.readlines() )
+		jobs.append( process )
 		
-		# append to the done list only if there is no error
-		if donestream is not None and process.returncode == 0:
-			donestream.writelines( "\n".join( cmdinput ) + "\n" )
-			donestream.flush()
+		# fill our input argumets additionally to stdin
+		try:
+			process.stdin.writelines( '\n'.join( cmdinput ) )
+			process.stdin.flush()
+			process.stdin.close()
+		except IOError:
+			pass 	# could be closed already 
+		
+		
+		# get another job ?
+		if len( jobs ) < numJobs:
+			continue
+		
+		
+		if len( jobs ) != numJobs:
+			raise AssertionError( "invalid job count:" )
+		
+		# we have a full queue now - get a new one asap
+		superviseJobs( jobs, numJobs, cmdinput, errorstream, donestream )
 	# END for each chunk of inputs 
 
+	# queue is empty, finalize our pending jobs
+	superviseJobs( jobs, 1, cmdinput, errorstream, donestream )
+	
 
 #{ Command Line Tool 
 
@@ -63,7 +116,11 @@ def _usageAndExit( msg = None ):
 -E|D - 	means to use the default stream, either stderr or stdout
 -e 	ends the parsing of commandline arguments for the batch process tool 
 	and uses the rest of the commandline as direct input for your command
--s	defines how many input arguments will be passed per command invocation"""
+-s	defines how many input arguments will be passed per command invocation
+-j	the number of processes to keep running in parallel, default 1
+
+	The given inputargs will be passed as arguments to the commands or into 
+	the standardinput of the process"""
 	if msg:
 		print msg
 		
@@ -95,6 +152,7 @@ if __name__ == "__main__":
 	inputList = list()
 	streams = list( ( None, None ) )
 	
+	numJobs = 1
 	inputsPerProcess = 1
 	cmd = None
 	cmdargs = list()
@@ -143,6 +201,16 @@ if __name__ == "__main__":
 		
 		if flagfound: continue
 		
+		if arg == "-j":
+			msg = "-j must be followed by a number > 0"
+			numJobs = int( _popleftchecked( argv, msg ) )
+			flagfound = True
+			if numJobs < 1:
+				_usageAndExit( msg )
+		# END -s
+		
+		if flagfound: continue
+		
 		# its an input argument 
 		inputList.append( arg )
 		
@@ -154,7 +222,7 @@ if __name__ == "__main__":
 	
 	
 	# have everything, transfer control to the actual batch method
-	process( cmd, cmdargs, inputList, streams[0], streams[1], inputsPerProcess )
+	process( cmd, cmdargs, inputList, streams[0], streams[1], inputsPerProcess, numJobs )
 	
 
 #} END command line tool 
