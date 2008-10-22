@@ -106,7 +106,7 @@ def process( cmd, args, inputList, errorstream = None, donestream = None, inputs
 	# END for each chunk of inputs 
 
 	# queue is empty, finalize our pending jobs
-	superviseJobs( jobs, 1, cmdinput, errorstream, donestream )
+	superviseJobs( jobs, 1, list(), errorstream, donestream )
 	
 
 #{ Command Line Tool 
