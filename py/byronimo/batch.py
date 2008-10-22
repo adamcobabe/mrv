@@ -149,7 +149,9 @@ def _popleftchecked( argv, errmsg ):
 	except IndexError:
 		_usageAndExit( errmsg )
 
-if __name__ == "__main__":
+
+def main( *args ):
+	"""Processes the arguments"""
 	inputList = list()
 	streams = list( ( None, None ) )
 	
@@ -161,7 +163,7 @@ if __name__ == "__main__":
 	
 	# PARSE ARGUMENTS
 	##################
-	argv = deque( sys.argv[1:] )
+	argv = deque( args )
 	while argv:
 		arg = argv.popleft()
 		
@@ -225,5 +227,9 @@ if __name__ == "__main__":
 	# have everything, transfer control to the actual batch method
 	process( cmd, cmdargs, inputList, streams[0], streams[1], inputsPerProcess, numJobs )
 	
+	
+
+if __name__ == "__main__":
+	main( *sys.argv[1:] )
 
 #} END command line tool 
