@@ -13,7 +13,8 @@ set PYTHONPATH=%pyrepobase%;%mayapy%;%PYTHONPATH%
 set PATH=%mayapydll%;%mayadll%;%PATH%
 
 REM execute the tool 
-python %*
+REM python %*
+"%MAYA_LOCATION%\bin\mayapy.exe" %*
 
 
 :end

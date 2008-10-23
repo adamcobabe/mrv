@@ -182,8 +182,9 @@ def init_system( ):
 	use the MAYA_LOCATION to get this to work.
 	"""
 	# RUNNING WITHIN MAYA ? Then we have everything
+	# if being launched in mayapy, we need initialization though !
 	binBaseName = os.path.split( sys.executable )[1].split( '.' )[0]
-	if binBaseName[0:4].lower() == 'maya':
+	if binBaseName[0:4].lower() == 'maya' and binBaseName[0:6].lower() != 'mayapy':
 		return 
 	
 	
