@@ -115,6 +115,10 @@ def _usageAndExit( msg = None ):
 	"""Print usage"""
 	print """python ../byronimo/batch.py inputarg [inputarg ...] [-E fileForErrors|-] [-D fileForFinishedOutput|-] [-s numInputsPerProcess] -e cmd [cmdArg ...] 
 -E|D - 	means to use the default stream, either stderr or stdout
+-I	if specified, arguments will also be read from stdin until it is depleted as 
+	newline separated list of names 
+	Its particlularly important that the pipe to stdin closes once its done as 
+	this command currently does not support streaming of input args
 -e 	ends the parsing of commandline arguments for the batch process tool 
 	and uses the rest of the commandline as direct input for your command
 -s	defines how many input arguments will be passed per command invocation
@@ -152,6 +156,10 @@ def _popleftchecked( argv, errmsg ):
 
 def main( *args ):
 	"""Processes the arguments"""
+	
+	if not args:
+		_usageAndExit( )
+	
 	inputList = list()
 	streams = list( ( None, None ) )
 	
@@ -159,6 +167,7 @@ def main( *args ):
 	inputsPerProcess = 1
 	cmd = None
 	cmdargs = list()
+	haveReadInput = False
 	
 	
 	# PARSE ARGUMENTS
@@ -203,13 +212,25 @@ def main( *args ):
 		# END -s
 		
 		if flagfound: continue
-		
 		if arg == "-j":
 			msg = "-j must be followed by a number > 0"
 			numJobs = int( _popleftchecked( argv, msg ) )
 			flagfound = True
 			if numJobs < 1:
 				_usageAndExit( msg )
+		# END -s
+		
+		if flagfound: continue
+		
+		# INPUT ARGUMENTS FROM STDIN
+		if arg == "-I":
+			flagfound = True
+			if haveReadInput: 
+				_usageAndExit( "-I may only be specified once" )
+				
+			haveReadInput = True
+			# read stripped lines from stdin
+			inputList.extend( ( l.strip() for l in  sys.stdin.readlines() ) )
 		# END -s
 		
 		if flagfound: continue
