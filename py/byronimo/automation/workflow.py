@@ -253,7 +253,7 @@ class Workflow( Graph ):
 					print msg			# default output stream
 			except Exception, e:
 				# except all 
-				msg = "Unhandled Exception: " + str( e ) + "\n"
+				msg = "--> UNHANDLED EXCEPTION: " + str( e ) + "\n"
 				if errstream:
 					errstream.write( msg )
 				else:

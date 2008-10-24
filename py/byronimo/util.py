@@ -17,6 +17,7 @@ __copyright__='(c) 2008 Sebastian Thiel'
 import networkx.tree as nxtree
 from collections import deque as Deque
 import weakref
+import inspect 
 
 ############################
 #### Methods 		  	####
@@ -291,6 +292,16 @@ class iDuplicatable( object ):
 			msg = "Duplicate must have same class as self, was %s, should be %s" % ( instance.__class__, self.__class__ )
 			raise AssertionError( msg )
 			
+		return self.copyTo( instance, *args, **kwargs )
+		
+	def copyTo( self, instance, *args, **kwargs ):
+		"""Copy the values of ourselves onto the given instance which must be an 
+		instance of our class to be compatible.
+		Only the common classes will be copied to instance
+		@return: altered instance
+		@note: instance will be altered during theat process"""
+		if not isinstance( instance, self.__class__ ):
+			raise TypeError( "copyTo: Instance must be of type %s but was type %s" % ( type( self ), type( instance ) ) ) 
 			
 		# Get reversed mro, starting at lowest base
 		mrorev = instance.__class__.mro()
@@ -315,6 +326,7 @@ class iDuplicatable( object ):
 		
 		# return the result !
 		return instance
+		
 	
 class iProgressIndicator( object ):
 	"""Interface allowing to submit progress information
@@ -447,7 +459,7 @@ class Call( object ):
 		return self.func( *self.args, **self.kwargs )
 		
 		
-class CallbackBase( object ):
+class CallbackBase( iDuplicatable ):
 	"""Base class for all classes that want to provide a common callback interface
 	to supply event information to clients.
 	Usage
@@ -485,7 +497,13 @@ class CallbackBase( object ):
 				setattr( inst, self.eventname, set() )
 			
 			return getattr( inst, self.eventname )
-	
+			
+		def duplicate( self ):
+			inst = Event( "" )
+			inst.eventname = self.eventname
+			return inst
+		
+	# END event class 
 	
 	def removeEvent( self, eventname, eventfunc ):
 		"""remove the given event function from the event identified by eventname
@@ -511,8 +529,21 @@ class CallbackBase( object ):
 		# END for each registered event
 		return success
 		
+	def listEventNames( self ):
+		"""@return: list of event ids that exist on our class"""
+		return [ name for name,member in inspect.getmembers( self, predicate = lambda m: isinstance( m, self.Event ) ) ]
+			
+		
+	#{ iDuplicatable 
+	def copyFrom( self, other, *args, **kwargs ):
+		"""Copy callbacks from other to ourselves"""
+		for event in other.listEventNames():
+			setattr( self.__class__, event.eventname, event.duplicate( ) )
 	
-class InterfaceMaster( object ):
+	#} END iDuplicatable
+		
+	
+class InterfaceMaster( iDuplicatable ):
 	"""Base class making the derived class an interface provider, allowing interfaces 
 	to be set, queried and used including build-in use"""
 	
@@ -600,6 +631,17 @@ class InterfaceMaster( object ):
 		self._idict = dict()			# keep interfacename->interfaceinstance relations 
 	
 	#} END object overrides 
+	
+	def copyFrom( self, other, *args, **kwargs ):
+		"""Copy all interface from other to self, use they duplciate method if 
+		possibly """
+		for ifname, ifinst in other._idict.iteritems():
+			myinst = ifinst
+			if hasattr( ifinst, "duplicate" ):
+				myinst = ifinst.duplicate( )
+				
+			self.setInterface( ifname, myinst )
+		# END for each interface in other 
 	
 	
 	#{ Interface 
