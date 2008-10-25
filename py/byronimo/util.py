@@ -100,6 +100,58 @@ def getPackageClasses( importBase, packageFile, predicate = lambda x: True ):
 	# import the modules 
 	return outclasses
 	
+def iterNetworkxGraph( graph, startItem, direction = 0, prune = lambda i,g: False, 
+					   stop = lambda i,g: False, depth = -1, branch_first=True, 
+					   visit_once = True, ignore_startitem=1 ):
+	"""@return: list of items that are related to the given startItem
+	@param direction: specifies search direction, either :
+	0 = items being successors of startItem
+	1 = items being predecessors of startItem
+	@param prune: return True if item i in graph g should be pruned from result
+	@param stop: return True if item i in graph g should be returned, but should also 
+	stop the search in that direction
+	@param branch_first: if True, items will be returned branch first, otherwise depth first
+	@param visit_once: if True, items will only be returned once, although they might be encountered
+	several times
+	@param ignore_startitem: if True, the startItem will be ignored and automatically pruned from 
+	the result 
+	@note: this is an adjusted version of L{dgengine.iterShells}"""
+	visited = set()
+	stack = Deque()
+	stack.append( startItem )
+	
+	def addToStack( stack, lst, branch_first ):
+		if branch_first:
+			reviter = ( lst[i] for i in range( len( lst )-1,-1,-1) )
+			stack.extendleft( reviter )
+		else:
+			stack.extend( lst )
+	# END addToStack local method
+	
+	# adjust function to define direction
+	directionfunc = graph.successors
+	if direction == 1:
+		directionfunc = graph.predecessors
+	
+	while stack:
+		item = stack.pop()
+		
+		if item in visited:
+			continue
+		
+		if visit_once:
+			visited.add( item )
+		
+		if stop( item, graph ):
+			continue
+			
+		skipStartItem = ignore_startitem and ( item == startItem )
+		if not skipStartItem and not prune( item, graph ):
+			yield item
+		
+		addToStack( stack, directionfunc( item ), branch_first )
+	# END for each item on work stack
+
 
 ############################
 #### Classes 		  	####

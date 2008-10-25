@@ -18,7 +18,7 @@ __copyright__='(c) 2008 Sebastian Thiel'
 import byronimo				# assure we have the main module !
 from networkx import DiGraph
 from networkx.readwrite import gpickle
-from byronimo.path import Path
+from byronimo.util import iterNetworkxGraph
 from itertools import chain
 
 import getopt
@@ -29,9 +29,11 @@ import re
 class MayaFileGraph( DiGraph ):
 	"""Contains dependnecies between maya files including utility functions 
 	allowing to more easily find what you are looking for"""
-	refpathregex = re.compile( '.*-r .*"(.*)";' ) 
 	
+	refpathregex = re.compile( '.*-r .*"(.*)";' )
+	kAffects,kAffectedBy = range( 2 )
 	
+	#{ Edit 
 	@staticmethod
 	def createFromFiles( fileList, **kwargs ):
 		"""@return: MayaFileGraph providing dependency information about the files 
@@ -41,8 +43,12 @@ class MayaFileGraph( DiGraph ):
 		@param **kwargs: alll arguemnts of L{addFromFile} are supported """
 		graph = MayaFileGraph( )
 		
-		
+		files_seen = set()
 		for mayafile in fileList:
+			if mayafile in files_seen:
+				continue
+			files_seen.add( mayafile )
+			
 			graph.addFromFile( mayafile.strip(), **kwargs )
 		# END for each file to parse
 		
@@ -66,6 +72,15 @@ class MayaFileGraph( DiGraph ):
 		
 		# parse depends 
 		for line in filehandle:
+			
+			# take the stupid newlines into account !
+			if not line.endswith( ";\n" ):
+				try:
+					line = line.strip() + filehandle.next()
+				except StopIteration:
+					break
+			# END newline special handling 
+			
 			match = MayaFileGraph.refpathregex.match( line )
 			
 			if not match:
@@ -116,12 +131,27 @@ class MayaFileGraph( DiGraph ):
 			# create edges
 			curfilestr = str( curfile )
 			for depfile in curfiledepends:
-				self.add_edge( ( curfilestr, depfile ) )
+				self.add_edge( ( path_remapping( depfile ), curfilestr ) )
 				
 			# add to stack and go on 
 			depfiles.extend( curfiledepends )
 		# END dependency loop
 		
+		#} END edit 
+		
+	#{ Query 
+	def getDepends( self, filePath, direction = kAffects, **kwargs ):
+		"""@return: list of paths that are related to the given filePath
+		@param direction: specifies search direction, either :
+		kAffects = Files that filePath affects
+		kAffectedBy = Files that affect filePath
+		@param **kwargs: correspon to L{iterNetworkxGraph}"""
+		kwargs[ 'direction' ] = direction
+		kwargs[ 'ignore_startitem' ] = 1			# default
+		kwargs[ 'branch_first' ] = 1		# default 	
+		return list( iterNetworkxGraph( self, filePath, **kwargs ) )
+	
+	#} END query 
 		
 		
 def main( fileList, **kwargs ):
@@ -135,7 +165,14 @@ def _usageAndExit( msg = None ):
 	print """bpython mdepparse.py [-i] file_to_parse.ma [file_to_parse, ...]
 	
 -t	Target file used to store the parsed dependency information
-	If not given, the command will automatically be in query mode
+	If not given, the command will automatically be in query mode.
+	The file format is simply a pickle of the underlying Networkx graph
+	
+-s	Source dependency file previously written with -t. If specified, this file 
+	will be read to quickly be read for queries. If not given, the information
+	will be parsed first. Thus it is recommended to have a first run storing 
+	the dependencies and do all queries just reading in the dependencies using 
+	-s 
 	
 -i	if given, a list of input files will be read from stdin. The tool will start 
 	parsing the files as the come through the pipe
@@ -146,7 +183,18 @@ def _usageAndExit( msg = None ):
 -m	map one value in the string to another, i.e:
 	-m source=target[=...]
 	-m c:\\=/mnt/data/
-	sort it with the longest remapping first to assure no accidential matches"""
+	sort it with the longest remapping first to assure no accidential matches
+
+QUERY
+-----
+All values returned in query mode will be new-line separated file paths 
+--affects 		retrieve all files that are affected by the input files
+--affected-by 	retrieve all files that are affect the input files
+-l				if set, only leaf paths, thus paths being at the end of the chain
+				will be returned.
+				If not given, all paths, i.e. all intermediate references, will
+				be returned as well
+"""
 	if msg:
 		print msg
 		
@@ -156,11 +204,10 @@ def _usageAndExit( msg = None ):
 if __name__ == "__main__":
 	# parse the arguments as retrieved from the command line !
 	try:
-		opts, rest = getopt.getopt( sys.argv[1:], "iam:t:", ( "affects", "affected-by" ) )
+		opts, rest = getopt.getopt( sys.argv[1:], "iam:t:s:l", [ "affects", "affected-by" ] )
 	except getopt.GetoptError,e:
 		_usageAndExit( str( e ) )
 		
-	
 	if not opts and not rest:
 		_usageAndExit()
 		
@@ -209,22 +256,48 @@ if __name__ == "__main__":
 	
 	
 	targetFile = opts.get( "-t", None )
+	sourceFile = opts.get( "-s", None )
 	
 	
+	# GET DEPENDS 
+	##################
+	graph = None
+	if not sourceFile:
+		graph = main( filelist, **kwargs )
+	else:
+		print "Reading dependencies from: %s" % sourceFile
+		graph = gpickle.read_gpickle( sourceFile )
+		
 	# WRITE MODE ? 
 	##############
+	# save to target file
 	if targetFile:
-		graph = main( filelist, **kwargs )
-		
-		# save to target file
 		print  "Saving dependencies to %s" % targetFile 
 		gpickle.write_gpickle( graph, targetFile )
 		
-	else:
-		# QUERY MODE 
-		###############
-		pass 
 	
+	# QUERY MODE 
+	###############
+	for flag, direction in (	( "--affects", MayaFileGraph.kAffects ),
+								("--affected-by",MayaFileGraph.kAffectedBy ) ):
+		if not flag in opts:
+			continue
 		
+		# PREPARE LEAF FUNCTION
+		prune = lambda i,g: False
+		if "-l" in opts:
+			degreefunc = ( ( direction == MayaFileGraph.kAffects ) and MayaFileGraph.out_degree ) or MayaFileGraph.in_degree 
+			prune = lambda i,g: degreefunc( g, i ) == 0 
+		
+		# write information to stdout 
+		for filepath in filelist:
+			filepath = filepath.strip()		# could be from stdin
+			depends = graph.getDepends( filepath, direction = direction, prune = prune, visit_once=1, branch_first=1 )
+			
+			sys.stdout.writelines( ( dep + "\n" for dep in depends )  )
+	# END for each direction to search 
+		
+	
+	
 	
 	
