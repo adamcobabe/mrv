@@ -16,7 +16,7 @@ __id__="$Id: configuration.py 50 2008-08-12 13:33:55Z byron $"
 __copyright__='(c) 2008 Sebastian Thiel'
 
 import byronimo				# assure we have the main module !
-from networkx import DiGraph
+from networkx import DiGraph, NetworkXError
 from networkx.readwrite import gpickle
 from byronimo.util import iterNetworkxGraph
 from itertools import chain
@@ -33,6 +33,7 @@ class MayaFileGraph( DiGraph ):
 	refpathregex = re.compile( '.*-r .*"(.*)";' )
 	kAffects,kAffectedBy = range( 2 )
 	invalidNodeID = "__invalid__"
+	invalidPrefix = ":_iv_:"
 	
 	#{ Edit 
 	@staticmethod
@@ -68,8 +69,8 @@ class MayaFileGraph( DiGraph ):
 			filehandle = open( os.path.expandvars( mafile ), "r" )
 		except IOError,e:
 			# store as invalid 
-			self.add_edge( ( self.invalidNodeID, str( mafile ) ) )
-			print "Parsing Failed: %s" % str( e )
+			self.add_edge( ( self.invalidNodeID, self.invalidPrefix + str( mafile ) ) )
+			sys.stderr.write( "Parsing Failed: %s\n" % str( e ) )
 			return outdepends
 		
 		# parse depends 
@@ -120,7 +121,7 @@ class MayaFileGraph( DiGraph ):
 			
 			# ASSURE MA FILE 
 			if os.path.splitext( curfile )[1] != ".ma":
-				print "Skipped non-ma file: %s" % curfile
+				sys.stderr.write( "Skipped non-ma file: %s\n" % curfile )
 				continue
 			# END assure ma file 
 			
@@ -151,12 +152,17 @@ class MayaFileGraph( DiGraph ):
 		kwargs[ 'direction' ] = direction
 		kwargs[ 'ignore_startitem' ] = 1			# default
 		kwargs[ 'branch_first' ] = 1		# default 	
-		return list( iterNetworkxGraph( self, filePath, **kwargs ) )
+		try:
+			return list( iterNetworkxGraph( self, filePath, **kwargs ) )
+		except NetworkXError:
+			sys.stderr.write( "Path %s unknown to dependency graph\n" % filePath )
+		return list()
 	
 	def getInvalid( self ):
 		"""@return: list of filePaths that could not be parsed, most probably 
 		because they could not be found by the system"""
-		return self.successors( self.invalidNodeID )
+		lenp = len( self.invalidPrefix  )
+		return [ iv[ lenp : ] for iv in self.successors( self.invalidNodeID ) ]
 	#} END query 
 		
 		
@@ -206,10 +212,15 @@ All values returned in query mode will be new-line separated file paths
 				if 1, only direct references will be returned
 				if > 1, also sub[sub...] references will returned
 				
--b				if set, return all bad or invalid files stored in the database
-				if not input argument is given.
-				These could not be found by the system. 
-				This option ignore any input arguments.
+-b				if set and no input arg exists, return all bad or invalid files stored in the database
+				if an input argument is given, it acts as a filter and only returns 
+				filepaths that are marked invalid
+				
+-e				return full edges instead of only the successors/predecessors.
+				This allows tools to parse the output and make more sense of it
+				Will be ignored in nice mode
+				
+-n 				nice output, designed to be human-readable
 """
 	if msg:
 		print msg
@@ -220,7 +231,7 @@ All values returned in query mode will be new-line separated file paths
 if __name__ == "__main__":
 	# parse the arguments as retrieved from the command line !
 	try:
-		opts, rest = getopt.getopt( sys.argv[1:], "iam:t:s:ld:b", [ "affects", "affected-by" ] )
+		opts, rest = getopt.getopt( sys.argv[1:], "iam:t:s:ld:ben", [ "affects", "affected-by" ] )
 	except getopt.GetoptError,e:
 		_usageAndExit( str( e ) )
 		
@@ -299,7 +310,15 @@ if __name__ == "__main__":
 	
 	# QUERY MODE 
 	###############
+	invalidFiles = set()
+	used_invalid_as_filter = False
+	if return_invalid:
+		invalidFiles = set( graph.getInvalid() )
+		
 	depth = int( opts.get( "-d", -1 ) )
+	as_edge = "-e" in opts
+	nice_mode = "-n" in opts 
+	
 	for flag, direction in (	( "--affects", MayaFileGraph.kAffects ),
 								("--affected-by",MayaFileGraph.kAffectedBy ) ):
 		if not flag in opts:
@@ -317,12 +336,33 @@ if __name__ == "__main__":
 			depends = graph.getDepends( filepath, direction = direction, prune = prune, 
 									   	visit_once=1, branch_first=1, depth=depth )
 			
-			sys.stdout.writelines( ( dep + "\n" for dep in depends )  )
+			if invalidFiles:
+				depends = set( depends ) & invalidFiles
+				used_invalid_as_filter = True		# prevents that we print all of them later
+				
+			# match with invalid files if required
+			if nice_mode:
+				depthstr = "unlimited"
+				if depth != -1:
+					depthstr = str( depth )
+					
+				affectsstr = "is affected by: "
+				if direction == MayaFileGraph.kAffects:
+					affectsstr = "affects: "
+				
+				headline = "%s ( depth = %s, invalid only = %i )\n" % ( filepath, depthstr, return_invalid )
+				sys.stdout.write( headline )
+				sys.stdout.write( "-" * len( headline ) + "\n" )
+				
+				sys.stdout.write( affectsstr + "\n" )
+				sys.stdout.writelines( "\t - " + dep + "\n" for dep in depends )
+			else:
+				prefix = ""
+				if as_edge:
+					prefix = "%s->" % filepath
+				sys.stdout.writelines( ( prefix + dep + "\n" for dep in depends )  )
 	# END for each direction to search 
 		
-	# INVALID ? 
-	if return_invalid:
-		sys.stdout.writelines( ( iv + "\n" for iv in graph.getInvalid() ) )
-	
-	
+	if not used_invalid_as_filter and len( invalidFiles ):
+		sys.stdout.writelines( ( iv + "\n" for iv in invalidFiles ) )
 	
