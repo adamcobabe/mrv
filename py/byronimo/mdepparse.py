@@ -42,19 +42,9 @@ class MayaFileGraph( DiGraph ):
 		in fileList and their subReference.
 		@param fileList: iterable providing the filepaths to be parsed and added 
 		to this graph
-		@param **kwargs: alll arguemnts of L{addFromFile} are supported """
+		@param **kwargs: alll arguemnts of L{addFromFiles} are supported """
 		graph = MayaFileGraph( )
-		
-		files_seen = set()
-		for mayafile in fileList:
-			if mayafile in files_seen:
-				continue
-			files_seen.add( mayafile )
-			
-			graph.addFromFile( mayafile.strip(), **kwargs )
-		# END for each file to parse
-		
-		
+		graph.addFromFiles( fileList, **kwargs )
 		return graph
 		
 		
@@ -99,10 +89,11 @@ class MayaFileGraph( DiGraph ):
 		filehandle.close()
 		return outdepends
 	
-	def addFromFile( self, mafile, parse_all_paths = False, 
-					path_remapping = lambda f: f ):
-		"""Parse the dependencies from the given maya ascii file and add them to 
+	def addFromFiles( self, mafiles, parse_all_paths = False, 
+					path_remapping = lambda f: f, ignorelist=None ):
+		"""Parse the dependencies from the given maya ascii files and add them to 
 		this graph
+		@note: the more files are given, the more efficient the method can be
 		@param parse_all_paths: if True, default False, all paths found in the file will be used.
 		This will slow down the parsing as the whole file will be searched for references
 		instead of just the header of the file
@@ -111,34 +102,39 @@ class MayaFileGraph( DiGraph ):
 		This parser can parse references only from MA files, and the path_remapping 
 		function should ensure that the given file can be read. It will always 
 		be applied 
+		@param ignorelist: global ignore list that can be passed in to allow us 
+		to skip files that have already been proecss
 		@note: if the parsed path contain environment variables you must start the 
 		tool such that these can be resolved by the system. Otherwise files might 
-		not be found"""
-		depfiles = [ mafile ]
+		not be found
+		@todo: parse_all_paths still to be implemented"""
 		files_parsed = set()					 # assure we do not duplicate work
-		while depfiles:
-			curfile = path_remapping( depfiles.pop() )
-			
-			# ASSURE MA FILE 
-			if os.path.splitext( curfile )[1] != ".ma":
-				sys.stderr.write( "Skipped non-ma file: %s\n" % curfile )
-				continue
-			# END assure ma file 
-			
-			if curfile in files_parsed:
-				continue
-			
-			curfiledepends = self._parseDepends( curfile, parse_all_paths )
-			files_parsed.add( curfile )
-			
-			# create edges
-			curfilestr = str( curfile )
-			for depfile in curfiledepends:
-				self.add_edge( ( path_remapping( depfile ), curfilestr ) )
+		for mafile in mafiles:
+			depfiles = [ mafile.strip() ]
+			while depfiles:
+				curfile = path_remapping( depfiles.pop() )
 				
-			# add to stack and go on 
-			depfiles.extend( curfiledepends )
-		# END dependency loop
+				# ASSURE MA FILE 
+				if os.path.splitext( curfile )[1] != ".ma":
+					sys.stderr.write( "Skipped non-ma file: %s\n" % curfile )
+					continue
+				# END assure ma file 
+				
+				if curfile in files_parsed:
+					continue
+				
+				curfiledepends = self._parseDepends( curfile, parse_all_paths )
+				files_parsed.add( curfile )
+				
+				# create edges
+				curfilestr = str( curfile )
+				for depfile in curfiledepends:
+					self.add_edge( ( path_remapping( depfile ), curfilestr ) )
+					
+				# add to stack and go on 
+				depfiles.extend( curfiledepends )
+			# END dependency loop
+		# END for each file to parse 
 		
 		#} END edit 
 		
@@ -191,6 +187,7 @@ def _usageAndExit( msg = None ):
 	
 -a	if given, all paths will be parsed from the input files. This will take longer 
 	than just parsing references as the whole file needs to be read
+	TODO: actual implementation
 	
 -m	map one value in the string to another, i.e:
 	-m source=target[=...]
