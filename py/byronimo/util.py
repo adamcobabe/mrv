@@ -110,6 +110,9 @@ def iterNetworkxGraph( graph, startItem, direction = 0, prune = lambda i,g: Fals
 	@param prune: return True if item i in graph g should be pruned from result
 	@param stop: return True if item i in graph g should be returned, but should also 
 	stop the search in that direction
+	@param depth: define at which level the iteration should not go deeper
+	if -1, there is no limit
+	i.e. if 1, you would only get the first level of predessessors/successors 
 	@param branch_first: if True, items will be returned branch first, otherwise depth first
 	@param visit_once: if True, items will only be returned once, although they might be encountered
 	several times
@@ -118,14 +121,14 @@ def iterNetworkxGraph( graph, startItem, direction = 0, prune = lambda i,g: Fals
 	@note: this is an adjusted version of L{dgengine.iterShells}"""
 	visited = set()
 	stack = Deque()
-	stack.append( startItem )
+	stack.append( ( 0 , startItem ) )		# startitem is always depth level 0
 	
-	def addToStack( stack, lst, branch_first ):
+	def addToStack( stack, lst, branch_first, dpth ):
 		if branch_first:
-			reviter = ( lst[i] for i in range( len( lst )-1,-1,-1) )
+			reviter = ( ( dpth , lst[i] ) for i in range( len( lst )-1,-1,-1) )
 			stack.extendleft( reviter )
 		else:
-			stack.extend( lst )
+			stack.extend( ( dpth,item ) for item in lst )
 	# END addToStack local method
 	
 	# adjust function to define direction
@@ -134,7 +137,7 @@ def iterNetworkxGraph( graph, startItem, direction = 0, prune = lambda i,g: Fals
 		directionfunc = graph.predecessors
 	
 	while stack:
-		item = stack.pop()
+		d, item = stack.pop()			# depth of item, item
 		
 		if item in visited:
 			continue
@@ -149,7 +152,12 @@ def iterNetworkxGraph( graph, startItem, direction = 0, prune = lambda i,g: Fals
 		if not skipStartItem and not prune( item, graph ):
 			yield item
 		
-		addToStack( stack, directionfunc( item ), branch_first )
+		# only continue to next level if this is appropriate !
+		nd = d + 1
+		if depth > -1 and nd > depth:
+			continue
+		
+		addToStack( stack, directionfunc( item ), branch_first, nd )
 	# END for each item on work stack
 
 

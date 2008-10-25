@@ -32,6 +32,7 @@ class MayaFileGraph( DiGraph ):
 	
 	refpathregex = re.compile( '.*-r .*"(.*)";' )
 	kAffects,kAffectedBy = range( 2 )
+	invalidNodeID = "__invalid__"
 	
 	#{ Edit 
 	@staticmethod
@@ -56,8 +57,7 @@ class MayaFileGraph( DiGraph ):
 		return graph
 		
 		
-	@staticmethod
-	def _parseDepends( mafile, allPaths ):
+	def _parseDepends( self, mafile, allPaths ):
 		"""@return: list of filepath as parsed from the given mafile.
 		@param allPaths: if True, the whole file will be parsed, if False, only
 		the reference section will be parsed"""
@@ -67,6 +67,8 @@ class MayaFileGraph( DiGraph ):
 		try:
 			filehandle = open( os.path.expandvars( mafile ), "r" )
 		except IOError,e:
+			# store as invalid 
+			self.add_edge( ( self.invalidNodeID, str( mafile ) ) )
 			print "Parsing Failed: %s" % str( e )
 			return outdepends
 		
@@ -151,6 +153,10 @@ class MayaFileGraph( DiGraph ):
 		kwargs[ 'branch_first' ] = 1		# default 	
 		return list( iterNetworkxGraph( self, filePath, **kwargs ) )
 	
+	def getInvalid( self ):
+		"""@return: list of filePaths that could not be parsed, most probably 
+		because they could not be found by the system"""
+		return self.successors( self.invalidNodeID )
 	#} END query 
 		
 		
@@ -190,10 +196,20 @@ QUERY
 All values returned in query mode will be new-line separated file paths 
 --affects 		retrieve all files that are affected by the input files
 --affected-by 	retrieve all files that are affect the input files
+
 -l				if set, only leaf paths, thus paths being at the end of the chain
 				will be returned.
 				If not given, all paths, i.e. all intermediate references, will
 				be returned as well
+				
+-d int			if not set, all references and subreferences will be retrieved
+				if 1, only direct references will be returned
+				if > 1, also sub[sub...] references will returned
+				
+-b				if set, return all bad or invalid files stored in the database
+				if not input argument is given.
+				These could not be found by the system. 
+				This option ignore any input arguments.
 """
 	if msg:
 		print msg
@@ -204,7 +220,7 @@ All values returned in query mode will be new-line separated file paths
 if __name__ == "__main__":
 	# parse the arguments as retrieved from the command line !
 	try:
-		opts, rest = getopt.getopt( sys.argv[1:], "iam:t:s:l", [ "affects", "affected-by" ] )
+		opts, rest = getopt.getopt( sys.argv[1:], "iam:t:s:ld:b", [ "affects", "affected-by" ] )
 	except getopt.GetoptError,e:
 		_usageAndExit( str( e ) )
 		
@@ -213,7 +229,8 @@ if __name__ == "__main__":
 		
 	opts = dict( opts )
 	fromstdin = "-i" in opts
-	if not fromstdin and not rest:
+	return_invalid = "-b" in opts
+	if not fromstdin and not rest and not return_invalid:
 		_usageAndExit( "Please specify the files you wish to parse or query" )
 	
 	# PREPARE KWARGS 
@@ -248,6 +265,8 @@ if __name__ == "__main__":
 	
 	kwargs[ 'path_remapping' ] = remap_func
 	
+	
+	
 	# PREPARE FILELIST 
 	###################
 	filelist = rest
@@ -267,7 +286,9 @@ if __name__ == "__main__":
 	else:
 		print "Reading dependencies from: %s" % sourceFile
 		graph = gpickle.read_gpickle( sourceFile )
-		
+	
+
+
 	# WRITE MODE ? 
 	##############
 	# save to target file
@@ -278,6 +299,7 @@ if __name__ == "__main__":
 	
 	# QUERY MODE 
 	###############
+	depth = int( opts.get( "-d", -1 ) )
 	for flag, direction in (	( "--affects", MayaFileGraph.kAffects ),
 								("--affected-by",MayaFileGraph.kAffectedBy ) ):
 		if not flag in opts:
@@ -287,17 +309,20 @@ if __name__ == "__main__":
 		prune = lambda i,g: False
 		if "-l" in opts:
 			degreefunc = ( ( direction == MayaFileGraph.kAffects ) and MayaFileGraph.out_degree ) or MayaFileGraph.in_degree 
-			prune = lambda i,g: degreefunc( g, i ) == 0 
+			prune = lambda i,g: degreefunc( g, i ) != 0 
 		
 		# write information to stdout 
 		for filepath in filelist:
 			filepath = filepath.strip()		# could be from stdin
-			depends = graph.getDepends( filepath, direction = direction, prune = prune, visit_once=1, branch_first=1 )
+			depends = graph.getDepends( filepath, direction = direction, prune = prune, 
+									   	visit_once=1, branch_first=1, depth=depth )
 			
 			sys.stdout.writelines( ( dep + "\n" for dep in depends )  )
 	# END for each direction to search 
 		
-	
+	# INVALID ? 
+	if return_invalid:
+		sys.stdout.writelines( ( iv + "\n" for iv in graph.getInvalid() ) )
 	
 	
 	
