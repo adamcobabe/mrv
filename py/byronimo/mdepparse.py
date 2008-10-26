@@ -162,7 +162,7 @@ class MayaFileGraph( DiGraph ):
 	def getDepends( self, filePath, direction = kAffects,
 				   to_os_path = lambda f: os.path.expandvars( f ),
 					os_path_to_db_key = lambda f: f, return_unresolved = False,
-				   **kwargs ):
+				   invalid_only = False, **kwargs ):
 		"""@return: list of paths ( converted to os paths ) that are related to 
 		the given filePath
 		@param direction: specifies search direction, either :
@@ -174,8 +174,8 @@ class MayaFileGraph( DiGraph ):
 		an os paths and you get the paths as stored in the graph. 
 		Please not that the to_os_path function is still needed to generate
 		a valid key, depending on the format of filepaths stored in this graph
-		@note: invalid paths will always be returned unresolved to allow matching 
-		with the list returned by getInvalid"""
+		@param invalid_only: if True, only invalid dependencies will be returned, all 
+		including the invalid ones otherwise"""
 		kwargs[ 'direction' ] = direction
 		kwargs[ 'ignore_startitem' ] = 1			# default
 		kwargs[ 'branch_first' ] = 1		# default
@@ -190,12 +190,16 @@ class MayaFileGraph( DiGraph ):
 		
 		try:
 			for f in iterNetworkxGraph( self, keypath, **kwargs ):
-				if f not in invalid:
-					f = to_os_path( f )
+				is_valid = f not in invalid 
+				f = to_os_path( f )		# remap only valid paths
+				
+				if is_valid and invalid_only:	# skip valid ones ?
+					continue
+					
 				outlist.append( f )
 			# END for each file in dependencies 
 		except NetworkXError:
-			sys.stderr.write( "Path %s ( %s ) unknown to dependency graph\n" % ( filePath, keypath ))
+			sys.stderr.write( "Path %s ( %s ) unknown to dependency graph\n" % ( filePath, keypath ) )
 			
 		return outlist
 	
@@ -388,17 +392,13 @@ if __name__ == "__main__":
 		
 	# QUERY MODE 
 	###############
-	invalidFiles = set()
 	return_invalid = "-b" in opts
-	if return_invalid:
-		invalidFiles = set( graph.getInvalid() )			# to allow mathing later
-	
-	
 	depth = int( opts.get( "-d", -1 ) )
 	as_edge = "-e" in opts
 	nice_mode = "-n" in opts
 	dotgraph = None
 	dotOutputFile = opts.get( "-o", None )
+	kwargs_query[ 'invalid_only' ] = return_invalid		# if given, filtering for invalid only is enabled
 	
 	if dotOutputFile:
 		dotgraph = MayaFileGraph()
@@ -426,9 +426,6 @@ if __name__ == "__main__":
 			depends = graph.getDepends( filepath, direction = direction, prune = prune, 
 									   	visit_once=1, branch_first=1, depth=depth, 
 										return_unresolved=0, **kwargs_query )
-			if invalidFiles:
-				depends = set( depends ) & invalidFiles
-			
 			
 			# skip empty depends 
 			if not depends:
@@ -471,7 +468,8 @@ if __name__ == "__main__":
 		
 	# ALL INVALID FILES OUTPUT
 	###########################
-	if not queried_files and len( invalidFiles ):
+	if not queried_files and return_invalid:
+		invalidFiles = graph.getInvalid()
 		sys.stdout.writelines( ( iv + "\n" for iv in invalidFiles ) )
 	
 	
