@@ -183,7 +183,13 @@ def main( fileList, **kwargs ):
 	
 def _usageAndExit( msg = None ):
 	print """bpython mdepparse.py [-shortflags ] [--longflags] file_to_parse.ma [file_to_parse, ...]
-	
+
+OUTPUT
+------
+All actual information goes to stdout, everything else to stderr
+
+EDIT
+-----
 -t	Target file used to store the parsed dependency information
 	If not given, the command will automatically be in query mode.
 	The file format is simply a pickle of the underlying Networkx graph
@@ -248,6 +254,7 @@ All values returned in query mode will be new-line separated file paths
 -n 				nice output, designed to be human-readable
 
 -v				enable more verbose output
+
 """
 	if msg:
 		print msg
@@ -373,8 +380,10 @@ if __name__ == "__main__":
 			degreefunc = ( ( direction == MayaFileGraph.kAffects ) and MayaFileGraph.out_degree ) or MayaFileGraph.in_degree 
 			prune = lambda i,g: degreefunc( g, i ) != 0 
 		
+		listcopy = list()			# as we read from iterators ( stdin ), its required to copy it to iterate it again
 		# write information to stdout 
 		for filepath in filelist:
+			listcopy.append( filepath )
 			queried_files = True			# used as flag to determine whether filers have been applied or not 
 			filepath = filepath.strip()		# could be from stdin
 			depends = graph.getDepends( filepath, direction = direction, prune = prune, 
@@ -415,6 +424,12 @@ if __name__ == "__main__":
 				if as_edge:
 					prefix = "%s->" % filepath
 				sys.stdout.writelines( ( prefix + dep + "\n" for dep in depends )  )
+			# END if not nice modd
+		# END for each file in file list
+		
+		# use copy after first iteration
+		filelist = listcopy
+		
 	# END for each direction to search 
 		
 	# ALL INVALID FILES OUTPUT
