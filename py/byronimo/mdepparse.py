@@ -159,11 +159,11 @@ class MayaFileGraph( DiGraph ):
 		kwargs[ 'direction' ] = direction
 		kwargs[ 'ignore_startitem' ] = 1			# default
 		kwargs[ 'branch_first' ] = 1		# default
-		
+		keypath = os_path_to_db_key( to_os_path( filePath ) )
 		try:
-			return list( to_os_path( f ) for f in iterNetworkxGraph( self, os_path_to_db_key( filePath ), **kwargs ) )
+			return list( to_os_path( f ) for f in iterNetworkxGraph( self, keypath, **kwargs ) )
 		except NetworkXError:
-			sys.stderr.write( "Path %s unknown to dependency graph\n" % filePath )
+			sys.stderr.write( "Path %s ( %s ) unknown to dependency graph\n" % ( filePath, keypath ))
 		return list()
 	
 	def getInvalid( self ):
@@ -264,12 +264,8 @@ def tokensToRemapFunc( tokenstring ):
 		raise ValueError( "Invalid map format: %s" % tokenstring )
 	
 	remap_tuples = zip( tokens[0::2], tokens[1::2] )
-		
+	
 	def path_replace( f ):
-		path,ext = os.path.splitext( f )	# mb to ma  
-		if ext == ".mb":
-			f = path + ".ma"
-		
 		for source, dest in remap_tuples:
 			f = f.replace( source, dest )
 		return f
