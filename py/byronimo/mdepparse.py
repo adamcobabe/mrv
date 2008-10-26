@@ -48,6 +48,11 @@ class MayaFileGraph( DiGraph ):
 		return graph
 		
 		
+	def _addInvalid( self, invalidfile ):
+		"""Add an invalid file to our special location
+		@note: we prefix it to assure it does not popup in our results"""
+		self.add_edge( ( self.invalidNodeID, self.invalidPrefix + str( invalidfile ) ) )
+		
 	def _parseDepends( self, mafile, allPaths ):
 		"""@return: list of filepath as parsed from the given mafile.
 		@param allPaths: if True, the whole file will be parsed, if False, only
@@ -59,7 +64,7 @@ class MayaFileGraph( DiGraph ):
 			filehandle = open( os.path.expandvars( mafile ), "r" )
 		except IOError,e:
 			# store as invalid 
-			self.add_edge( ( self.invalidNodeID, self.invalidPrefix + str( mafile ) ) )
+			self._addInvalid( mafile )
 			sys.stderr.write( "Parsing Failed: %s\n" % str( e ) )
 			return outdepends
 		
@@ -120,7 +125,7 @@ class MayaFileGraph( DiGraph ):
 				
 				# ASSURE MA FILE 
 				if os.path.splitext( curfile )[1] != ".ma":
-					sys.stderr.write( "Skipped non--to-fs-mapa file: %s\n" % curfile )
+					sys.stderr.write( "Skipped non-ma file: %s\n" % curfile )
 					continue
 				# END assure ma file 
 				
@@ -132,13 +137,22 @@ class MayaFileGraph( DiGraph ):
 				
 				# create edges
 				curfilestr = str( curfile )
-				for i,depfile in enumerate( curfiledepends ):
-					depfile = to_os_path( depfile )
-					curfiledepends[ i ] = depfile
-					self.add_edge( ( os_path_to_db_key( depfile ), os_path_to_db_key( curfilestr ) ) )
+				valid_depends = list()
+				for depfile in curfiledepends:
+					# only valid files may be adjusted - we keep them as is otherwise
+					dbdepfile = to_os_path( depfile )
+					
+					if os.path.exists( dbdepfile ):
+						valid_depends.append( depfile )				# store the orig path - it will be converted later 
+						dbdepfile = os_path_to_db_key( dbdepfile )		# make it db key path
+					else:
+						dbdepfile = depfile								# invalid - revert it
+						self._addInvalid( depfile )						# store it as invalid, no further processing 
+					
+					self.add_edge( ( dbdepfile, os_path_to_db_key( curfilestr ) ) )
 					
 				# add to stack and go on 
-				depfiles.extend( curfiledepends )
+				depfiles.extend( valid_depends )
 			# END dependency loop
 		# END for each file to parse 
 		
@@ -147,7 +161,7 @@ class MayaFileGraph( DiGraph ):
 	#{ Query 
 	def getDepends( self, filePath, direction = kAffects,
 				   to_os_path = lambda f: os.path.expandvars( f ),
-					os_path_to_db_key = lambda f: f,
+					os_path_to_db_key = lambda f: f, return_unresolved = False,
 				   **kwargs ):
 		"""@return: list of paths ( converted to os paths ) that are related to 
 		the given filePath
@@ -155,16 +169,35 @@ class MayaFileGraph( DiGraph ):
 		kAffects = Files that filePath affects
 		kAffectedBy = Files that affect filePath
 		@param to_os_path,os_path_to_db_key: see L{addFromFiles}
-		@param **kwargs: correspon to L{iterNetworkxGraph}"""
+		@param **kwargs: correspon to L{iterNetworkxGraph}
+		@param return_unresolved: if True, the output paths will not be translated to 
+		an os paths and you get the paths as stored in the graph. 
+		Please not that the to_os_path function is still needed to generate
+		a valid key, depending on the format of filepaths stored in this graph
+		@note: invalid paths will always be returned unresolved to allow matching 
+		with the list returned by getInvalid"""
 		kwargs[ 'direction' ] = direction
 		kwargs[ 'ignore_startitem' ] = 1			# default
 		kwargs[ 'branch_first' ] = 1		# default
-		keypath = os_path_to_db_key( to_os_path( filePath ) )
+		
+		keypath = os_path_to_db_key( to_os_path( filePath ) )	# convert key
+		invalid = set( self.getInvalid() )
+		
+		if return_unresolved:
+			to_os_path = lambda f: f 
+			
+		outlist = list()
+		
 		try:
-			return list( to_os_path( f ) for f in iterNetworkxGraph( self, keypath, **kwargs ) )
+			for f in iterNetworkxGraph( self, keypath, **kwargs ):
+				if f not in invalid:
+					f = to_os_path( f )
+				outlist.append( f )
+			# END for each file in dependencies 
 		except NetworkXError:
 			sys.stderr.write( "Path %s ( %s ) unknown to dependency graph\n" % ( filePath, keypath ))
-		return list()
+			
+		return outlist
 	
 	def getInvalid( self ):
 		"""@return: list of filePaths that could not be parsed, most probably 
@@ -297,7 +330,6 @@ if __name__ == "__main__":
 		
 	opts = dict( opts )
 	fromstdin = "-i" in opts
-	return_invalid = "-b" in opts
 	
 	# PREPARE KWARGS_CREATEGRAPH 
 	#####################
@@ -357,18 +389,21 @@ if __name__ == "__main__":
 	# QUERY MODE 
 	###############
 	invalidFiles = set()
-	queried_files = False
-	dotOutputFile = opts.get( "-o", None )
+	return_invalid = "-b" in opts
 	if return_invalid:
-		invalidFiles = set( graph.getInvalid() )
-		
+		invalidFiles = set( graph.getInvalid() )			# to allow mathing later
+	
+	
 	depth = int( opts.get( "-d", -1 ) )
 	as_edge = "-e" in opts
 	nice_mode = "-n" in opts
 	dotgraph = None
+	dotOutputFile = opts.get( "-o", None )
+	
 	if dotOutputFile:
 		dotgraph = MayaFileGraph()
 	
+	queried_files = False
 	for flag, direction in (	( "--affects", MayaFileGraph.kAffects ),
 								("--affected-by",MayaFileGraph.kAffectedBy ) ):
 		if not flag in opts:
@@ -381,14 +416,16 @@ if __name__ == "__main__":
 			prune = lambda i,g: degreefunc( g, i ) != 0 
 		
 		listcopy = list()			# as we read from iterators ( stdin ), its required to copy it to iterate it again
+		
+		
 		# write information to stdout 
 		for filepath in filelist:
 			listcopy.append( filepath )
 			queried_files = True			# used as flag to determine whether filers have been applied or not 
 			filepath = filepath.strip()		# could be from stdin
 			depends = graph.getDepends( filepath, direction = direction, prune = prune, 
-									   	visit_once=1, branch_first=1, depth=depth, **kwargs_query )
-			
+									   	visit_once=1, branch_first=1, depth=depth, 
+										return_unresolved=0, **kwargs_query )
 			if invalidFiles:
 				depends = set( depends ) & invalidFiles
 			
