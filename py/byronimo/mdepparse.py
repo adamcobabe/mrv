@@ -260,10 +260,10 @@ def tokensToRemapFunc( tokenstring ):
 	@note: it also applies a mapping from mb to ma, no matter what.
 	Thus we currently only store .ma files as keys even though it might be mb files"""
 	tokens = tokenstring.split( "=" )
-	remap_tuples = zip( tokens[0::2], tokens[1::2] )
-		
-	if len( remap_tuples ) % 2 != 0:
+	if len( tokens ) % 2 != 0:
 		raise ValueError( "Invalid map format: %s" % tokenstring )
+	
+	remap_tuples = zip( tokens[0::2], tokens[1::2] )
 		
 	def path_replace( f ):
 		path,ext = os.path.splitext( f )	# mb to ma  
@@ -288,13 +288,13 @@ if __name__ == "__main__":
 	except getopt.GetoptError,e:
 		_usageAndExit( str( e ) )
 		
+	
 	if not opts and not rest:
 		_usageAndExit()
 		
 	opts = dict( opts )
 	fromstdin = "-i" in opts
 	return_invalid = "-b" in opts
-	
 	
 	# PREPARE KWARGS_CREATEGRAPH 
 	#####################

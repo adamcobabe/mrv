@@ -1,3 +1,4 @@
+ECHO OFF
 
 REM set the python path to find out package
 REM we do not have maya support in the moment
