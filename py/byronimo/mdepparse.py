@@ -53,7 +53,7 @@ class MayaFileGraph( DiGraph ):
 		@param allPaths: if True, the whole file will be parsed, if False, only
 		the reference section will be parsed"""
 		outdepends = list()
-		print "Parsing %s" % mafile
+		print "Parsing %s ( all paths = %i )" % ( mafile, allPaths )
 		
 		try:
 			filehandle = open( os.path.expandvars( mafile ), "r" )
@@ -67,21 +67,20 @@ class MayaFileGraph( DiGraph ):
 		for line in filehandle:
 			
 			# take the stupid newlines into account !
-			if not line.endswith( ";\n" ):
+			line = line.strip()
+			if not line.endswith( ";" ):
 				try:
-					line = line.strip() + filehandle.next()
+					line = line + filehandle.next()
 				except StopIteration:
 					break
 			# END newline special handling 
 			
 			match = MayaFileGraph.refpathregex.match( line )
 			
-			if not match:
-				continue
-				
-			outdepends.append( match.group(1) )
+			if match:
+				outdepends.append( match.group(1) )
 			
-			# see whether we can abort early 
+			# see whether we can abort early
 			if not allPaths and line.startswith( "requires" ):
 				break
 		# END for each line 
