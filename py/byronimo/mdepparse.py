@@ -217,6 +217,8 @@ All values returned in query mode will be new-line separated file paths
 				Will be ignored in nice mode
 				
 -n 				nice output, designed to be human-readable
+
+-v				enable more verbose output
 """
 	if msg:
 		print msg
@@ -227,7 +229,7 @@ All values returned in query mode will be new-line separated file paths
 if __name__ == "__main__":
 	# parse the arguments as retrieved from the command line !
 	try:
-		opts, rest = getopt.getopt( sys.argv[1:], "iam:t:s:ld:ben", [ "affects", "affected-by" ] )
+		opts, rest = getopt.getopt( sys.argv[1:], "iam:t:s:ld:benv", [ "affects", "affected-by" ] )
 	except getopt.GetoptError,e:
 		_usageAndExit( str( e ) )
 		
@@ -239,6 +241,7 @@ if __name__ == "__main__":
 	return_invalid = "-b" in opts
 	if not fromstdin and not rest and not return_invalid:
 		_usageAndExit( "Please specify the files you wish to parse or query" )
+	
 	
 	# PREPARE KWARGS 
 	#####################
@@ -288,10 +291,14 @@ if __name__ == "__main__":
 	# GET DEPENDS 
 	##################
 	graph = None
+	nice_mode = "-n" in opts
+	verbose = "-v" in opts
+	
 	if not sourceFile:
 		graph = main( filelist, **kwargs )
 	else:
-		print "Reading dependencies from: %s" % sourceFile
+		if verbose:
+			print "Reading dependencies from: %s" % sourceFile
 		graph = gpickle.read_gpickle( sourceFile )
 	
 
@@ -300,7 +307,8 @@ if __name__ == "__main__":
 	##############
 	# save to target file
 	if targetFile:
-		print  "Saving dependencies to %s" % targetFile 
+		if verbose:
+			print  "Saving dependencies to %s" % targetFile 
 		gpickle.write_gpickle( graph, targetFile )
 		
 	
@@ -313,7 +321,7 @@ if __name__ == "__main__":
 		
 	depth = int( opts.get( "-d", -1 ) )
 	as_edge = "-e" in opts
-	nice_mode = "-n" in opts 
+	
 	
 	for flag, direction in (	( "--affects", MayaFileGraph.kAffects ),
 								("--affected-by",MayaFileGraph.kAffectedBy ) ):
