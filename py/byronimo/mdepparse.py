@@ -387,6 +387,11 @@ if __name__ == "__main__":
 			if invalidFiles:
 				depends = set( depends ) & invalidFiles
 			
+			
+			# skip empty depends 
+			if not depends:
+				continue
+			
 			# FILTERED DOT OUTPUT ?
 			#########################
 			if dotgraph is not None:
@@ -403,7 +408,7 @@ if __name__ == "__main__":
 				if direction == MayaFileGraph.kAffects:
 					affectsstr = "affects: "
 				
-				headline = "%s ( depth = %s, invalid only = %i )\n" % ( filepath, depthstr, return_invalid )
+				headline = "\n%s ( depth = %s, invalid only = %i )\n" % ( filepath, depthstr, return_invalid )
 				sys.stdout.write( headline )
 				sys.stdout.write( "-" * len( headline ) + "\n" )
 				

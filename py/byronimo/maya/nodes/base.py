@@ -612,6 +612,10 @@ class DependNode( Node ):		# parent just for epydoc -
 		if '|' in newname:
 			raise NameError( "new node names may not contain '|' as in %s" % newname )
 		
+		# is it the same name ?
+		if newname == self._mfncls( self.getApiObject() ).name( ):
+			return self
+		
 		# ALREADY EXISTS ? 
 		if not renameOnClash:
 			exists = False
