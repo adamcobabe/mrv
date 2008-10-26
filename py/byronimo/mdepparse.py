@@ -53,7 +53,7 @@ class MayaFileGraph( DiGraph ):
 		@param allPaths: if True, the whole file will be parsed, if False, only
 		the reference section will be parsed"""
 		outdepends = list()
-		print "Parsing %s ( all paths = %i )" % ( mafile, allPaths )
+		print "Parsing %s" % ( mafile )
 		
 		try:
 			filehandle = open( os.path.expandvars( mafile ), "r" )
@@ -89,18 +89,23 @@ class MayaFileGraph( DiGraph ):
 		return outdepends
 	
 	def addFromFiles( self, mafiles, parse_all_paths = False, 
-					path_remapping = lambda f: f, ignorelist=None ):
+					to_os_path = lambda f: os.path.expandvars( f ),
+					os_path_to_db_key = lambda f: f,
+					ignorelist=None ):
 		"""Parse the dependencies from the given maya ascii files and add them to 
 		this graph
 		@note: the more files are given, the more efficient the method can be
 		@param parse_all_paths: if True, default False, all paths found in the file will be used.
 		This will slow down the parsing as the whole file will be searched for references
 		instead of just the header of the file
-		@param path_remapping: functor returning a matching MA file for the given 
-		MB file ( type Path ) or a valid path from a possibly invalid path.
-		This parser can parse references only from MA files, and the path_remapping 
-		function should ensure that the given file can be read. It will always 
-		be applied 
+		@param to_os_path: functor returning an MA file from given posssibly parsed file
+		that should be existing on the system parsing the files.
+		The passed in file could also be an mb file ( which cannot be parsed ), thus it 
+		would be advantageous to return a corresponding ma file
+		This is required as references can have environment variables inside of them
+		@param os_path_to_db_key: converts the given path as used in the filesystem into 
+		a path to be used as key in the database. It should be general.
+		Ideally, os_path_to_db_key is the inverse as to_os_path.
 		@param ignorelist: global ignore list that can be passed in to allow us 
 		to skip files that have already been proecss
 		@note: if the parsed path contain environment variables you must start the 
@@ -111,11 +116,11 @@ class MayaFileGraph( DiGraph ):
 		for mafile in mafiles:
 			depfiles = [ mafile.strip() ]
 			while depfiles:
-				curfile = path_remapping( depfiles.pop() )
+				curfile = to_os_path( depfiles.pop() )
 				
 				# ASSURE MA FILE 
 				if os.path.splitext( curfile )[1] != ".ma":
-					sys.stderr.write( "Skipped non-ma file: %s\n" % curfile )
+					sys.stderr.write( "Skipped non--to-fs-mapa file: %s\n" % curfile )
 					continue
 				# END assure ma file 
 				
@@ -127,8 +132,10 @@ class MayaFileGraph( DiGraph ):
 				
 				# create edges
 				curfilestr = str( curfile )
-				for depfile in curfiledepends:
-					self.add_edge( ( path_remapping( depfile ), curfilestr ) )
+				for i,depfile in enumerate( curfiledepends ):
+					depfile = to_os_path( depfile )
+					curfiledepends[ i ] = depfile
+					self.add_edge( ( os_path_to_db_key( depfile ), os_path_to_db_key( curfilestr ) ) )
 					
 				# add to stack and go on 
 				depfiles.extend( curfiledepends )
@@ -138,17 +145,23 @@ class MayaFileGraph( DiGraph ):
 		#} END edit 
 		
 	#{ Query 
-	def getDepends( self, filePath, direction = kAffects, **kwargs ):
-		"""@return: list of paths that are related to the given filePath
+	def getDepends( self, filePath, direction = kAffects,
+				   to_os_path = lambda f: os.path.expandvars( f ),
+					os_path_to_db_key = lambda f: f,
+				   **kwargs ):
+		"""@return: list of paths ( converted to os paths ) that are related to 
+		the given filePath
 		@param direction: specifies search direction, either :
 		kAffects = Files that filePath affects
 		kAffectedBy = Files that affect filePath
+		@param to_os_path,os_path_to_db_key: see L{addFromFiles}
 		@param **kwargs: correspon to L{iterNetworkxGraph}"""
 		kwargs[ 'direction' ] = direction
 		kwargs[ 'ignore_startitem' ] = 1			# default
-		kwargs[ 'branch_first' ] = 1		# default 	
+		kwargs[ 'branch_first' ] = 1		# default
+		
 		try:
-			return list( iterNetworkxGraph( self, filePath, **kwargs ) )
+			return list( to_os_path( f ) for f in iterNetworkxGraph( self, os_path_to_db_key( filePath ), **kwargs ) )
 		except NetworkXError:
 			sys.stderr.write( "Path %s unknown to dependency graph\n" % filePath )
 		return list()
@@ -169,7 +182,7 @@ def main( fileList, **kwargs ):
 	
 	
 def _usageAndExit( msg = None ):
-	print """bpython mdepparse.py [-i] file_to_parse.ma [file_to_parse, ...]
+	print """bpython mdepparse.py [-shortflags ] [--longflags] file_to_parse.ma [file_to_parse, ...]
 	
 -t	Target file used to store the parsed dependency information
 	If not given, the command will automatically be in query mode.
@@ -188,10 +201,26 @@ def _usageAndExit( msg = None ):
 	than just parsing references as the whole file needs to be read
 	TODO: actual implementation
 	
--m	map one value in the string to another, i.e:
-	-m source=target[=...]
-	-m c:\\=/mnt/data/
-	sort it with the longest remapping first to assure no accidential matches
+--to-fs-map	tokenmap
+	map one part of the path to another in order to make it a valid path 
+	in the filesystem, i.e:
+	--to-fs-map source=target[=...]
+	--to-fs-map c:\\=/mnt/data/
+	sort it with the longest remapping first to assure no accidential matches.
+	Should be used if environment variables are used which are not set in the system 
+	or if there are other path inconsistencies
+	
+--to-db-map tokenmap	
+	map one part of the fs path previously remapped by --to-fs-map to a 
+	more general one suitable to be a key in the dependency database.
+ 	The format is equal to the one used in --to-fs-map
+
+-o	output the dependency database as dot file at the given path, so it can 
+	be read by any dot reader and interpreted that way.
+	If input arguments are given, only the affected portions of the database 
+	will be available in the dot file. Also, the depths of the dependency information 
+	is lost, thus there are only direct connections, although it might in 
+	fact be a sub-reference.
 
 QUERY
 -----
@@ -226,10 +255,36 @@ All values returned in query mode will be new-line separated file paths
 	sys.exit( 1 )
 	
 	
+def tokensToRemapFunc( tokenstring ):
+	"""Return a function applying remapping as defined by tokenstring
+	@note: it also applies a mapping from mb to ma, no matter what.
+	Thus we currently only store .ma files as keys even though it might be mb files"""
+	tokens = tokenstring.split( "=" )
+	remap_tuples = zip( tokens[0::2], tokens[1::2] )
+		
+	if len( remap_tuples ) % 2 != 0:
+		raise ValueError( "Invalid map format: %s" % tokenstring )
+		
+	def path_replace( f ):
+		path,ext = os.path.splitext( f )	# mb to ma  
+		if ext == ".mb":
+			f = path + ".ma"
+		
+		for source, dest in remap_tuples:
+			f = f.replace( source, dest )
+		return f
+		
+	return path_replace
+	
+	
+	
+# COMMAND LINE INTERFACE 
+############################
 if __name__ == "__main__":
 	# parse the arguments as retrieved from the command line !
 	try:
-		opts, rest = getopt.getopt( sys.argv[1:], "iam:t:s:ld:benv", [ "affects", "affected-by" ] )
+		opts, rest = getopt.getopt( sys.argv[1:], "iat:s:ld:benvo:", [ "affects", "affected-by",
+								   										"to-fs-map=","to-db-map=" ] )
 	except getopt.GetoptError,e:
 		_usageAndExit( str( e ) )
 		
@@ -239,42 +294,27 @@ if __name__ == "__main__":
 	opts = dict( opts )
 	fromstdin = "-i" in opts
 	return_invalid = "-b" in opts
-	if not fromstdin and not rest and not return_invalid:
-		_usageAndExit( "Please specify the files you wish to parse or query" )
 	
 	
-	# PREPARE KWARGS 
+	# PREPARE KWARGS_CREATEGRAPH 
 	#####################
 	allpaths = "-a" in opts
-	kwargs = dict( ( ( "parse_all_paths", allpaths ), ) )
-	
+	kwargs_creategraph = dict( ( ( "parse_all_paths", allpaths ), ) )
+	kwargs_query = dict()
 	
 	# PATH REMAPPING 
 	##################
 	# prepare ma to mb conversion
 	# by default, we convert from mb to ma hoping there is a corresponding 
 	# ma file in the same directory 
-	def mb_to_ma( f ):
-		path,ext = os.path.splitext( f ) 
-		if ext == ".mb":
-			return path + ".ma"
-		return f
-	
-	remap_func = mb_to_ma
-	if "-m" in opts:
-		tokens = opts.get( "-m" ).split( "=" )
-		remap_tuples = zip( tokens[0::2], tokens[1::2] )
+	for kw,flag in ( "to_os_path","--to-fs-map" ),( "os_path_to_db_key", "--to-db-map" ):
+		if flag not in opts:
+			continue
 		
-		def path_replace( f ):
-			f = mb_to_ma( f )
-			for source, dest in remap_tuples:
-				f = f.replace( source, dest )
-			return f
-		remap_func = path_replace
-	# END remap func 
-	
-	kwargs[ 'path_remapping' ] = remap_func
-	
+		remap_func = tokensToRemapFunc( opts.get( flag ) )
+		kwargs_creategraph[ kw ] = remap_func
+		kwargs_query[ kw ] = remap_func			# required in query mode as well
+	# END for each kw,flag pair 
 	
 	
 	# PREPARE FILELIST 
@@ -291,11 +331,10 @@ if __name__ == "__main__":
 	# GET DEPENDS 
 	##################
 	graph = None
-	nice_mode = "-n" in opts
 	verbose = "-v" in opts
 	
 	if not sourceFile:
-		graph = main( filelist, **kwargs )
+		graph = main( filelist, **kwargs_creategraph )
 	else:
 		if verbose:
 			print "Reading dependencies from: %s" % sourceFile
@@ -303,25 +342,29 @@ if __name__ == "__main__":
 	
 
 
-	# WRITE MODE ? 
-	##############
+	# SAVE ALL DEPENDENCIES ? 
+	#########################
 	# save to target file
 	if targetFile:
 		if verbose:
 			print  "Saving dependencies to %s" % targetFile 
 		gpickle.write_gpickle( graph, targetFile )
 		
-	
+		
 	# QUERY MODE 
 	###############
 	invalidFiles = set()
-	used_invalid_as_filter = False
+	queried_files = False
+	dotOutputFile = opts.get( "-o", None )
 	if return_invalid:
 		invalidFiles = set( graph.getInvalid() )
 		
 	depth = int( opts.get( "-d", -1 ) )
 	as_edge = "-e" in opts
-	
+	nice_mode = "-n" in opts
+	dotgraph = None
+	if dotOutputFile:
+		dotgraph = MayaFileGraph()
 	
 	for flag, direction in (	( "--affects", MayaFileGraph.kAffects ),
 								("--affected-by",MayaFileGraph.kAffectedBy ) ):
@@ -336,14 +379,20 @@ if __name__ == "__main__":
 		
 		# write information to stdout 
 		for filepath in filelist:
+			queried_files = True			# used as flag to determine whether filers have been applied or not 
 			filepath = filepath.strip()		# could be from stdin
 			depends = graph.getDepends( filepath, direction = direction, prune = prune, 
-									   	visit_once=1, branch_first=1, depth=depth )
+									   	visit_once=1, branch_first=1, depth=depth, **kwargs_query )
 			
 			if invalidFiles:
 				depends = set( depends ) & invalidFiles
-				used_invalid_as_filter = True		# prevents that we print all of them later
-				
+			
+			# FILTERED DOT OUTPUT ?
+			#########################
+			if dotgraph is not None:
+				for dep in depends:
+					dotgraph.add_edge( ( filepath, dep ) ) 
+			
 			# match with invalid files if required
 			if nice_mode:
 				depthstr = "unlimited"
@@ -367,6 +416,24 @@ if __name__ == "__main__":
 				sys.stdout.writelines( ( prefix + dep + "\n" for dep in depends )  )
 	# END for each direction to search 
 		
-	if not used_invalid_as_filter and len( invalidFiles ):
+	# ALL INVALID FILES OUTPUT
+	###########################
+	if not queried_files and len( invalidFiles ):
 		sys.stdout.writelines( ( iv + "\n" for iv in invalidFiles ) )
 	
+	
+	# DOT OUTPUT 
+	###################
+	if dotOutputFile:
+		if verbose:
+			print "Saving dot file to %s" % dotOutputFile
+		try:
+			import networkx.drawing.nx_pydot as pydot
+		except ImportError:
+			sys.stderr.write( "Required pydot module not installed" )
+		else:
+			if queried_files and dotgraph is not None:
+				pydot.write_dot( dotgraph, dotOutputFile )
+			else:
+				pydot.write_dot( graph, dotOutputFile )
+	# END dot writing 
