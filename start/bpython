@@ -23,4 +23,4 @@ export PYTHONPATH=$PYTHONPATH:$byronimobase
 
 # execute the interpreter 
 # TODO: parse an optional option to specify the python version or just the maya version
-python2.4 $@
+/usr/bin/python2.4 $@
