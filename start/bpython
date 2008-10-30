@@ -16,7 +16,7 @@ export PYTHONPATH=$MAYA_LOCATION/lib/python*/site-packages
 
 
 # set the python path to find out package
-base=`dirname $0`
+base=`/usr/bin/dirname $0`
 byronimobase=$base/../py
 export PYTHONPATH=$PYTHONPATH:$byronimobase
 
