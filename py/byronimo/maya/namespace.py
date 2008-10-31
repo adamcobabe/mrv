@@ -80,13 +80,14 @@ class Namespace( unicode, iDagItem ):
 		return unicode.__new__( cls, namespacepath )
 		
 	def __add__( self, other ):
-		"""Properly catenate namespace objects - other must be relative namespace
-		@return: new namespace object """
+		"""Properly catenate namespace objects - other must be relative namespace or 
+		object name ( with or without namespace )
+		@return: new string objec """
 		inbetween = self._sep
-		if self.endswith( self._sep ) or other.endswith( self._sep ):
+		if self.endswith( self._sep ) or other.startswith( self._sep ):
 			inbetween = ''
 			
-		return Namespace( "%s%s%s" % ( self, inbetween, other ) )
+		return "%s%s%s" % ( self, inbetween, other )
 		
 	def __repr__( self ):
 		return "Namespace(%s)" % str( self ) 
@@ -279,6 +280,17 @@ class Namespace( unicode, iDagItem ):
 		
 		return out
 
+	def toRelative( self ):
+		"""@return: a relative version of self, thus it does not start with a colon
+		@raise ValueError: if self it the root namespace"""
+		if self == self.rootNamespace:
+			raise ValueError( "The root namespace cannot be relative" )
+			
+		if not self.startswith( ":" ):
+			return Namespace( self )	# create a copy 
+			
+		return Namespace( self[1:], absolute=False ) 
+
 	def getRelativeTo( self, basenamespace ):
 		"""@return: this namespace relative to the given basenamespace 
 		@param basenamespace: the namespace to which the returned one should be 
@@ -316,8 +328,8 @@ class Namespace( unicode, iDagItem ):
 		"""@return: name with duplicated : removed"""
 		return self.re_find_duplicate_sep.sub( self._sep, name )
 		
-	def subsitute( self, find_in, replacement ):
-		"""@return: string with our namespace properly subsituted with replacement such 
+	def substitute( self, find_in, replacement ):
+		"""@return: string with our namespace properly substituted with replacement such 
 		that the result is a properly formatted object name ( with or without namespace 
 		depenging of the value of replacement
 		As this method is based on string replacement, self might as well match sub-namespaces 
