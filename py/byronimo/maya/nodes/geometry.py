@@ -78,8 +78,11 @@ class Shape:
 		just a list( setapiobj )"""
 		 
 		sets = api.MObjectArray()
+		ioarray = self.iog
 		
-		iogplug = self.iog[ self.getInstanceNumber() ]
+		# this will never fail - logcical index creates the plug as needed
+		# and drops it if it is no longer required 
+		iogplug = self.iog.getByLogicalIndex( self.getInstanceNumber() )
 		if allow_compoents:
 			components = api.MObjectArray()
 			
