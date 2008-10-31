@@ -669,6 +669,8 @@ class TestNodeBase( unittest.TestCase ):
 	def test_addremoveAttr( self ):
 		"""byronimo.maya.nodes.base: add and remove attributes with undo"""
 		trans = nodes.createNode( "trans", "transform" )
+		trans2 = nodes.createNode( "trans2", "transform" )
+		
 		nattr = api.MFnNumericAttribute( )
 		attr = nattr.create( "longnumattr", "sna", api.MFnNumericData.kLong, 5 )
 		
@@ -676,6 +678,13 @@ class TestNodeBase( unittest.TestCase ):
 		attrplug = trans.longnumattr
 		attrplug.setInt( 10 )
 		self.failUnless( attrplug.asInt() == 10 )
+		
+		# adding same attribute to several objects - DOES NOT WORK
+		# CREATE A NEW ONE
+		attrnew = nattr.create( "longnumattr", "sna", api.MFnNumericData.kLong, 5 )
+		trans2.addAttribute( attrnew )
+		trans2.sna.setInt( 20 )
+		self.failUnless( trans2.sna.asInt() == 20 and trans.sna.asInt() == 10 )
 		
 		# remove the attribute - with Attribute class this time  
 		trans.removeAttribute( attrplug.getAttribute() )
