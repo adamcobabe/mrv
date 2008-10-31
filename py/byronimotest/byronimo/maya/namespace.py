@@ -113,3 +113,32 @@ class TestReferenceRunner( unittest.TestCase ):
 		# empty namespace must come out as root 
 		ns = Namespace( "" )
 		self.failUnless( ns == Namespace.rootNamespace )
+		
+		# TEST SPLIT
+		###########
+		t = Namespace.splitNamespace( "hello:world" )
+		self.failUnless( t[0] == ":hello" and t[1] == "world" )
+		
+		t = Namespace.splitNamespace( ":hello:world:there" )
+		self.failUnless( t[0] == ":hello:world" and t[1] == "there" )
+		
+		# TEST REPLACEMENT 
+		#####################
+		rootrel,rootabs,nsrel,nsabs,multins,multinabs = "rootnsrel", ":rootnsabs", "ns:relns", "ns:absolutens", "ns1:ns2:multinsrel",":ns1:ns2:ns3:ns2:multinabs"
+		rootns,ns,ns2 = Namespace( "" ),Namespace("ns",absolute=False),Namespace( "ns2",absolute=False )
+		newnssingle = Namespace( "nns" )
+		newnsmulti = Namespace( "nns1:nns2" )
+		
+		self.failUnless( rootns.subsitute( rootrel, newnssingle ) == ":nns:rootnsrel" )
+		self.failUnless( rootns.subsitute( rootrel, newnsmulti ) == ":nns1:nns2:rootnsrel" )
+		
+		self.failUnless( rootns.subsitute( rootabs, newnssingle ) == ":nns:rootnsabs" )
+		self.failUnless( rootns.subsitute( rootabs, newnsmulti ) == ":nns1:nns2:rootnsabs" )
+		
+		self.failUnless( ns2.subsitute( multins, newnssingle ) == "ns1:nns:multinsrel" )
+		self.failUnless( ns2.subsitute( multins, newnsmulti ) == "ns1:nns1:nns2:multinsrel" )
+		
+		self.failUnless( ns2.subsitute( multinabs, newnssingle ) == ":ns1:nns:ns3:nns:multinabs" )
+		self.failUnless( ns2.subsitute( multinabs, newnsmulti ) == ":ns1:nns1:nns2:ns3:nns1:nns2:multinabs" )
+		
+		

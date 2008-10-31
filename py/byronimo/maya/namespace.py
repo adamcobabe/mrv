@@ -21,6 +21,7 @@ from byronimo.maya.util import noneToList, MuteUndo
 from byronimo.util import iDagItem, CallOnDeletion, Call
 import maya.cmds as cmds
 import maya.OpenMaya as api
+import re
 
 
 #{ Static Access
@@ -50,7 +51,7 @@ class Namespace( unicode, iDagItem ):
 	   - Paths starting with a column are absolute
 	      - :absolute:path
 	   - Path separator is ':'"""
-	
+	re_find_duplicate_sep = re.compile( ":{2,}" )
 	_sep = ':'
 	rootNamespace = ':'
 	_defaultns = [ 'UI','shared' ]			# default namespaces that we want to ignore in our listings  
@@ -64,7 +65,7 @@ class Namespace( unicode, iDagItem ):
 		relative namespaces will not be interpreted in an unforseen manner ( as they 
 		are relative to the currently set namespace
 		Set it ":" ( or "" ) to describe the root namespace 
-		@param force_absolute: if True, incoming namespace names will be made absolute if not yet the case 
+		@param absolute: if True, incoming namespace names will be made absolute if not yet the case 
 		@note: the namespace does not need to exist, but many methods will not work if so.
 		NamespaceObjects returned by methods of this class are garantueed to exist"""
 		
@@ -81,13 +82,14 @@ class Namespace( unicode, iDagItem ):
 	def __add__( self, other ):
 		"""Properly catenate namespace objects - other must be relative namespace
 		@return: new namespace object """
-		if other.startswith( self._sep ):
-			raise ValueError( "RHS namespace operant is expected to be relative, but was " + other )
 		inbetween = self._sep
-		if self.endswith( self._sep ):
+		if self.endswith( self._sep ) or other.endswith( self._sep ):
 			inbetween = ''
 			
 		return Namespace( "%s%s%s" % ( self, inbetween, other ) )
+		
+	def __repr__( self ):
+		return "Namespace(%s)" % str( self ) 
 	#}END Overridden Methods
 
 	#{Edit Methods
@@ -295,6 +297,46 @@ class Namespace( unicode, iDagItem ):
 			raise ValueError( str( basenamespace ) + " is no base of " + str( self ) )
 			
 		return Namespace( relnamespace, absolute = False )
+		
+	@staticmethod
+	def splitNamespace( objectname ):
+		"""Cut the namespace from the given  name and return a tuple( namespacename, objectname )
+		@note: method assumes that the namespace starts at the beginning of the object"""
+		if objectname.find( '|' ) > -1:
+			raise AssertionError( "Dagpath given where object name is required" ) 
+			
+		rpos = objectname.rfind( Namespace._sep )
+		if rpos == -1:
+			return ( Namespace.rootNamespace, objectname )
+		
+		return ( Namespace( objectname[:rpos] ), objectname[rpos+1:] )
+		
+		
+	def _removeDuplicateSep( self, name ):
+		"""@return: name with duplicated : removed"""
+		return self.re_find_duplicate_sep.sub( self._sep, name )
+		
+	def subsitute( self, find_in, replacement ):
+		"""@return: string with our namespace properly subsituted with replacement such 
+		that the result is a properly formatted object name ( with or without namespace 
+		depenging of the value of replacement
+		As this method is based on string replacement, self might as well match sub-namespaces 
+		if it is relative
+		@note: if replacement is an empty string, it will effectively cut the matched namespace
+		off the object name
+		@note: handles replacement of subnamespaces correctly as well
+		@note: as it operates on strings, the actual namespaces do not need to exist"""
+		# special case : we are root
+		if self == Namespace.rootNamespace:
+			return self._removeDuplicateSep( Namespace( replacement, absolute=False ) + find_in ) 
+		
+		# do the replacement 
+		return self._removeDuplicateSep( find_in.replace( self, replacement ) )
+		
+	@staticmethod
+	def substituteNamespace( thisns, find_in, replacement ):
+		"""Same as L{substitute}, but signature might feel more natural"""
+		return thisns.substitute( find_in, replacement )
 	
 	#} END query methods
 	
