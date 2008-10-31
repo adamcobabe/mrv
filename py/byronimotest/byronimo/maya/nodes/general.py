@@ -27,6 +27,7 @@ from byronimo.util import capitalize
 from byronimo.maya.util import StandinClass
 import maya.cmds as cmds
 import byronimotest.byronimo.maya as common
+import maya.OpenMaya as api
 
 class TestGeneral( unittest.TestCase ):
 	""" Test general maya framework """
@@ -664,6 +665,24 @@ class TestNodeBase( unittest.TestCase ):
 		cmds.undo()
 		self.failUnless( mesh.getDisplayOverrideValue( 'ovdt' ) == None )
 		
+		
+	def test_addremoveAttr( self ):
+		"""byronimo.maya.nodes.base: add and remove attributes with undo"""
+		trans = nodes.createNode( "trans", "transform" )
+		nattr = api.MFnNumericAttribute( )
+		attr = nattr.create( "longnumattr", "sna", api.MFnNumericData.kLong, 5 )
+		
+		trans.addAttribute( attr )
+		attrplug = trans.longnumattr
+		attrplug.setInt( 10 )
+		self.failUnless( attrplug.asInt() == 10 )
+		
+		# remove the attribute - with Attribute class this time  
+		trans.removeAttribute( attrplug.getAttribute() )
+		
+		# have to use find plug as our transform has cached the plug which might 
+		# have gone out of scope
+		self.failUnlessRaises( RuntimeError, trans.findPlug, "sna" )
 		
 		
 	def test_mfncachebuilder( sself ):

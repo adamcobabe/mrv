@@ -613,7 +613,7 @@ class DependNode( Node ):		# parent just for epydoc -
 			raise NameError( "new node names may not contain '|' as in %s" % newname )
 		
 		# is it the same name ?
-		if newname == self._mfncls( self.getApiObject() ).name( ):
+		if newname == api.MFnDependencyNode( self.getObject() ).name():
 			return self
 		
 		# ALREADY EXISTS ? 
@@ -680,7 +680,34 @@ class DependNode( Node ):		# parent just for epydoc -
 		mod.deleteNode( self._apiobj )
 		mod.doIt()
 		
+	def _addRemoveAttr( self, attr, add ):
+		"""DoIt function adding or removing attributes with undo"""
+		attrobj = attr
+		if isinstance( attr, Attribute ):
+			attrobj = attr._apiobj
 		
+		mfninst = self._mfncls( self.getObject() )
+		doitfunc = mfninst.addAttribute
+		
+		if not add:
+			doitfunc = mfninst.removeAttribute
+		
+		doitfunc( attrobj )
+		
+	def addAttribute( self, attr ):
+		"""Add the given attribute to the node as local dynamic attribute
+		@param attr: MObject of attribute or Attribute instance as retrieved from 
+		a plug
+		@note: This method is explicitly not undoable as attributes are being deleted 
+		in memory right in the moment they are being removed, thus they cannot 
+		reside on the undo queue"""
+		self._addRemoveAttr( attr, True )
+		
+	def removeAttribute( self, attr ):
+		"""Remove the given attribute from the node
+		@param attr: see L{addAttribute}"""
+		self._addRemoveAttr( attr, False )
+	
 	#} END edit
 		
 	#{ Connections and Attributes 
