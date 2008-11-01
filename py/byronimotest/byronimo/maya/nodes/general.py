@@ -27,6 +27,7 @@ from byronimo.util import capitalize
 from byronimo.maya.util import StandinClass
 import maya.cmds as cmds
 import byronimotest.byronimo.maya as common
+import byronimotest.byronimo.maya.nodes as ownpackage
 import maya.OpenMaya as api
 
 class TestGeneral( unittest.TestCase ):
@@ -36,6 +37,8 @@ class TestGeneral( unittest.TestCase ):
 		"""byronimo.maya.nodes: test wrapper class creation
 		@note: we coulld dynamically create the nodes for testing using ls -nt, 
 		but using a filecache is much faster - speed matters"""
+		if not ownpackage.mayRun( "general" ): return 
+		
 		filename = "allnodetypes_%s.mb" % env.getAppVersion( )[0] 
 		bmaya.Scene.open( get_maya_file( filename ), force=True )
 		
@@ -71,6 +74,7 @@ class TestGeneral( unittest.TestCase ):
 
 	def test_createNodes( self ):
 		"""byronimo.maya.nodes: create nodes with long names and namespaces"""
+		if not ownpackage.mayRun( "general" ): return
 		names = ["hello","bla|world","this|world|here","that|this|world|here" ]
 		nsnames = ["a:hello","blab|b:world","c:this|b:world","d:that|c:this|b:world|a:b:c:d:here"]
 		types = [ "facade", "nurbsCurve", "nurbsSurface", "subdiv" ]
@@ -150,6 +154,7 @@ class TestGeneral( unittest.TestCase ):
 		
 	def test_objectExistance( self ):
 		"""byronimo.maya.nodes: check whether we can properly handle node exist checks"""
+		if not ownpackage.mayRun( "general" ): return
 		depnode = nodes.createNode( "node", "facade" )
 		self.failUnless( nodes.objExists( str( depnode ) ) )
 		
@@ -166,6 +171,7 @@ class TestGeneral( unittest.TestCase ):
 		
 	def test_dagPathVSMobjects( self ):
 		"""byronimo.maya.nodes: if mobjects where used internally, this test would fail"""
+		if not ownpackage.mayRun( "general" ): return
 		node = nodes.createNode( "parent|middle|child", "transform" )
 		nodem = nodes.Node( "parent|middle" )
 		
@@ -191,10 +197,12 @@ class TestNodeBase( unittest.TestCase ):
 	
 	def setUp( self ):
 		"""Create a new scene to assure we do not resue nodes or configuration"""
+		if not ownpackage.mayRun( "general" ): return
 		cmds.file( new=1,force=1 )
 	
 	def test_customTypes( self ):
 		"""byronimo.maya.nodes: add a custom type to the system"""
+		if not ownpackage.mayRun( "general" ): return
 		nodes.addCustomType( "MyNewCls",parentClsName = "dependNode" )
 		# standin class should be there 
 		cls = nodes.MyNewCls
@@ -204,6 +212,7 @@ class TestNodeBase( unittest.TestCase ):
 	
 	def test_wrapDepNode( self ):
 		"""byronimo.maya.nodes: create and access dependency nodes ( not being dag nodes )"""
+		if not ownpackage.mayRun( "general" ): return
 		node = nodes.Node( "defaultRenderGlobals" )
 		
 		# string should be name		
@@ -300,6 +309,7 @@ class TestNodeBase( unittest.TestCase ):
 		
 	def test_reparentAndInstances( self ):
 		"""byronimo.maya.nodes: see of reparenting is responding when instances are involved"""
+		if not ownpackage.mayRun( "general" ): return
 		mesh = nodes.createNode( "trans|mesh", "mesh" )
 		base = nodes.createNode( "base", "transform" )
 		obase = nodes.createNode( "obase", "transform" )
@@ -323,6 +333,7 @@ class TestNodeBase( unittest.TestCase ):
 		
 	def test_duplicateInstances( self ):
 		"""byronimo.maya.nodes: handle duplication of instances"""
+		if not ownpackage.mayRun( "general" ): return
 		base = nodes.createNode( "base", "transform" )
 		obase = nodes.createNode( "obase", "transform" )
 		basemesh = nodes.createNode( "base|mesh", "mesh" )
@@ -338,6 +349,7 @@ class TestNodeBase( unittest.TestCase ):
 		
 	def test_wrapDagNode( self ):
 		"""byronimo.maya.nodes: create and access dag nodes"""
+		if not ownpackage.mayRun( "general" ): return
 		mesh = nodes.createNode( "parent|mesh", "mesh" )
 		parent = mesh.getParent( )
 		
@@ -462,6 +474,7 @@ class TestNodeBase( unittest.TestCase ):
 
 	def test_removeChild( self ):
 		"""byronimo.maya.nodes: test how remove child responds"""
+		if not ownpackage.mayRun( "general" ): return
 		base = nodes.createNode( "base" , "transform" )
 		trans = nodes.createNode( "base|trans", "transform" )
 		mesh = nodes.createNode( "base|mesh", "mesh" )
@@ -479,6 +492,7 @@ class TestNodeBase( unittest.TestCase ):
 		
 	def test_dependnode_getitem( self ):
 		"""byronimo.nodes.maya: DependeNode.__getitem__"""
+		if not ownpackage.mayRun( "general" ): return
 		mesh = nodes.createNode( "p1|p2|mesh", "mesh" )
 		self.failUnless( len( list( mesh.iterParents() ) ) == 2 )
 		p2 = mesh.getParent()
@@ -489,6 +503,7 @@ class TestNodeBase( unittest.TestCase ):
 
 	def test_childEditing( self ):
 		"""byronimo.maya.nodes: tests the add and remove children"""
+		if not ownpackage.mayRun( "general" ): return
 		base = nodes.createNode( "basenode", "transform" )
 		obase = nodes.createNode( "otherbasenode", "transform" )
 		
@@ -558,6 +573,7 @@ class TestNodeBase( unittest.TestCase ):
 		
 	def test_instancesAndParenting( self ):
 		"""byronimo.maya.nodes.base: test instances and parenting, also instanced attributes"""
+		if not ownpackage.mayRun( "general" ): return
 		bmaya.Scene.open( get_maya_file( "instancetest.ma" ), force=True )
 		m = nodes.Node( "m" )			# mesh, two direct and two indirect instances
 		c1 = nodes.createNode( "|c1", "transform" )
@@ -594,6 +610,7 @@ class TestNodeBase( unittest.TestCase ):
 		
 	def test_instanceTraversal( self ):
 		"""byronimo.maya.nodes.base: traverse instances"""
+		if not ownpackage.mayRun( "general" ): return
 		base = nodes.createNode( "base", "transform" )
 		obase = nodes.createNode( "obase", "transform" )
 		abase = nodes.createNode( "abase", "transform" )
@@ -641,6 +658,7 @@ class TestNodeBase( unittest.TestCase ):
 				
 	def test_displaySettings( self ):
 		"""byronimo.maya.nodes.base: test how display type and display overrides work hierarchically"""
+		if not ownpackage.mayRun( "general" ): return
 		bmaya.Scene.new( force = 1 )
 		mesh = nodes.createNode( "a1|b1|c1|d1|mesh", "mesh" )
 		mesh.tmp.setInt( 1 )
@@ -672,6 +690,7 @@ class TestNodeBase( unittest.TestCase ):
 		
 	def test_addremoveAttr( self ):
 		"""byronimo.maya.nodes.base: add and remove attributes with undo"""
+		if not ownpackage.mayRun( "general" ): return
 		trans = nodes.createNode( "trans", "transform" )
 		trans2 = nodes.createNode( "trans2", "transform" )
 		
@@ -698,7 +717,62 @@ class TestNodeBase( unittest.TestCase ):
 		self.failUnlessRaises( RuntimeError, trans.findPlug, "sna" )
 		
 		
-	def test_mfncachebuilder( sself ):
+	def test_keepWorldSpace( self ):
+		"""byronimo.maya.nodes.base: keep ws transformation when reparenting"""
+		if not ownpackage.mayRun( "general" ): return
+		g = nodes.createNode( "g", "transform" )
+		t = nodes.createNode( "t", "transform" )
+		t.setParent( g )
+		
+		mainattrs = ( "t","s" )
+		subattrs = ( "x","y","z" )
+		
+		count = 0.0
+		for ma in mainattrs:
+			for sa in subattrs:
+				getattr( getattr( g, ma ), ma+sa ).setFloat( count )
+				count += 1.0
+			# END for each sa
+		# END for each ma
+		
+		common._saveTempFile( "beforereparent.ma" )
+		
+		# REPARENT TO WORLD
+		###################
+		t = t.reparent( None, keepWorldSpace = 1 )
+		
+		common._saveTempFile( "afterreparentw.ma" )
+		count = 0.0
+		for ma in mainattrs:
+			for sa in subattrs:
+				value = getattr( getattr( t, ma ), ma+sa ).asFloat( )
+				self.failUnless( value == count )
+				count += 1.0
+			# end
+		#end 
+		
+		# TODO: discover how to fix this  - WELL, its because the asData().matrix() function 
+		# does not return the scale x channel !!
+		# self.failUnless( t.s.sx.asFloat() == 3.0 ) # TODO: This fails in batch mode, works in UI mode ( as expected )
+		
+		
+		# REPARENT TO PARENT NODE
+		###########################
+		t = t.reparent( g, keepWorldSpace = 1 )
+		common._saveTempFile( "afterreparentg.ma" )
+		
+		self.failUnless( t.t.tx.asFloat() == 0.0 )
+		self.failUnless( t.t.ty.asFloat() == 0.0 )
+		self.failUnless( t.t.tz.asFloat() == 0.0 )
+		self.failUnless( t.t.rx.asFloat() == 0.0 )
+		self.failUnless( t.t.ry.asFloat() == 0.0 )
+		self.failUnless( t.t.rz.asFloat() == 0.0 )
+		self.failUnless( t.s.sx.asFloat() == 1.0 )
+		self.failUnless( t.s.sy.asFloat() == 1.0 )
+		self.failUnless( t.s.sz.asFloat() == 1.0 )
+		
+		
+	def test_mfncachebuilder( self ):
 		"""byroniom.maya.nodes.base: write a generated cache using the builder function
 		should be redone for maya 8.5 perhaps ... or in fact its enough to have one for all maya versions
 		and just merge them

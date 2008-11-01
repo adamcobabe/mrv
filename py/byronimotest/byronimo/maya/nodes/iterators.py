@@ -22,7 +22,7 @@ from byronimo.maya.nodes.iterators import *
 import byronimotest.byronimo.maya as common
 import byronimo.maya as bmaya
 import byronimo.maya.nodes as nodes
-
+import byronimotest.byronimo.maya.nodes as ownpackage
 
 class TestGeneral( unittest.TestCase ):
 	""" Test general maya framework """
@@ -35,6 +35,7 @@ class TestGeneral( unittest.TestCase ):
 		
 	def test_dagIter( self ):
 		"""byronimo.maya.nodes.iterators: simple DAG iteration"""
+		if not ownpackage.mayRun( "iterators" ): return 
 		bmaya.Scene.new( force=1 )
 		trans = nodes.createNode( "trans", "transform" )
 		trans2 = nodes.createNode( "trans2", "transform" )
@@ -89,6 +90,7 @@ class TestGeneral( unittest.TestCase ):
 		
 	def test_iterSelectionList( self ):
 		"""byronimo.maya.nodes.iterators: Iterate selection lists"""
+		if not ownpackage.mayRun( "iterators" ): return
 		bmaya.Scene.open( common.get_maya_file( "perComponentAssignments.ma" ), force = 1 )
 		
 		p1 = nodes.Node( "|p1trans|p1" )
@@ -145,6 +147,7 @@ class TestGeneral( unittest.TestCase ):
 	
 	def test_dggraph( self ):
 		"""byronimo.maya.nodes.iterators: simple dg graph iteration"""
+		if not ownpackage.mayRun( "iterators" ): return
 		bmaya.Scene.new( force=1 )
 		persp = nodes.Node( "persp" )
 		front = nodes.Node( "front" )
@@ -177,6 +180,7 @@ class TestGeneral( unittest.TestCase ):
 		
 	def test_dgiter( self ):
 		"""byronimo.maya.nodes.iterators: simple DG iteration"""
+		if not ownpackage.mayRun( "iterators" ): return
 		bmaya.Scene.new( force=1 )
 		trans = nodes.createNode( "trans", "transform" )
 		mesh = nodes.createNode( "trans|mesh", "mesh" )

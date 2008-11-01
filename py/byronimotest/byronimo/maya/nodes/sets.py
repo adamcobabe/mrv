@@ -24,12 +24,14 @@ import maya.OpenMaya as api
 import byronimotest.byronimo.maya as common
 import byronimo.maya as bmaya 
 import byronimo.maya.nodes.sets as sets
+import byronimotest.byronimo.maya.nodes as ownpackage
 
 class TestSets( unittest.TestCase ):
 	""" Test set and partition handling """
 	
 	def test_createAddRemove( self ):
 		"""byronimo.maya.nodes.sets: create,add and remove"""
+		if not ownpackage.mayRun( "sets" ): return 
 		set1 = nodes.createNode( "set1", "objectSet" )
 		set2 = nodes.createNode( "set2", "objectSet" )
 		set3 = nodes.createNode( "set3", "objectSet" )
@@ -88,6 +90,7 @@ class TestSets( unittest.TestCase ):
 		
 	def test_memberHandling( self ):
 		"""byronimo.maya.nodes.sets: add/remove members from all kinds of inputs"""
+		if not ownpackage.mayRun( "sets" ): return
 		s = nodes.createNode( "memberSet", "objectSet" )
 		
 		# ADD/REMOVE SINGLE MEMBER 
@@ -180,6 +183,7 @@ class TestSets( unittest.TestCase ):
 
 	def test_setOperations( self ):
 		"""byroniom.maya.nodes.sets: unions, intersections, difference, overloaded ops"""
+		if not ownpackage.mayRun( "sets" ): return
 		memberlist = self._getMemberList( )
 		s3 = nodes.createNode( "anotherObjectSet", "objectSet" )
 		s = nodes.Node( "memberSet" )
@@ -253,6 +257,7 @@ class TestSets( unittest.TestCase ):
 		
 	def test_partitions( self ):
 		"""byronimo.maya.nodes.sets: test partition constraints"""
+		if not ownpackage.mayRun( "sets" ): return
 		# one transform, two sets, one partition 
 		s1 = nodes.createNode( "s1", "objectSet" )
 		s2 = nodes.createNode( "s2", "objectSet" )
@@ -297,6 +302,7 @@ class TestSets( unittest.TestCase ):
 		
 	def test_z_memberHandlingComps( self ):
 		"""byronimo.maya.nodes.sets: member handling with components - needs to run last"""
+		if not ownpackage.mayRun( "sets" ): return
 		bmaya.Scene.open( common.get_maya_file( "perComponentAssignments.ma" ), force = 1 )
 		p1 = nodes.Node( "|p1trans|p1" )
 		s1 = nodes.Node( "s1" )					# sphere with face shader assignments 

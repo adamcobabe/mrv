@@ -25,6 +25,7 @@ import maya.cmds as cmds
 import tempfile
 from byronimo.path import Path
 import sys
+import byronimotest.byronimo.maya.nodes as ownpackage
 
 class TestStorage( unittest.TestCase ):
 	""" Test general maya framework """
@@ -32,6 +33,7 @@ class TestStorage( unittest.TestCase ):
 	
 	def test_storagePickleData( self ):
 		"""byronimo.maya.nodes.storage: test pickle data"""
+		if not ownpackage.mayRun( "storage" ): return 
 		tmpdir = Path( tempfile.gettempdir() )
 		
 		def setTestValue( mydict ):
@@ -123,6 +125,7 @@ class TestStorage( unittest.TestCase ):
 	
 	def test_storageAttributeHanlding( self ):
 		"""byronimo.maya.nodes.storage: test of the attribute accesss on storages is working"""
+		if not ownpackage.mayRun( "storage" ): return
 		bmaya.Scene.new( force = True )
 		snode = nodes.createNode( "storage",  "StorageNode" )
 		
@@ -171,6 +174,7 @@ class TestStorage( unittest.TestCase ):
 		
 	def test_storageSetHandling( self ):
 		"""byronimo.maya.nodes.storage: test built-in sethandling"""
+		if not ownpackage.mayRun( "storage" ): return
 		bmaya.Scene.new( force = True )
 		snode = nodes.createNode( "storage",  "StorageNode" )
 		

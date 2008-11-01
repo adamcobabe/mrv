@@ -22,6 +22,7 @@ import byronimo.maya.nodes as nodes
 import maya.OpenMaya as api
 import byronimo.maya as bmaya
 import byronimotest.byronimo.maya as common
+import byronimotest.byronimo.maya.nodes as ownpackage
 
 class TestGeometry( unittest.TestCase ):
 	""" Test general maya framework """
@@ -29,6 +30,7 @@ class TestGeometry( unittest.TestCase ):
 	
 	def test_setHandling( self ):
 		"""byronimo.maya.nodes.geometry: set handling tests for different types"""
+		if not ownpackage.mayRun( "geometry" ): return
 		bmaya.Scene.open( common.get_maya_file( "shadertest.ma" ), force = 1 )
 		
 		# these are all shapes

@@ -921,7 +921,7 @@ class DagNode( Entity, iDagItem ):	# parent just for epydoc
 	
 	#{ Hierarchy Modification
 	@undoable
-	def reparent( self, parentnode, renameOnClash=True, raiseOnInstance=True ):
+	def reparent( self, parentnode, renameOnClash=True, raiseOnInstance=True, keepWorldSpace = False ):
 		""" Change the parent of all nodes ( also instances ) to be located below parentnode
 		@param parentnode: Node instance of transform under which this node should be parented to
 		if None, node will be reparented under the root ( which only works for transforms )
@@ -929,6 +929,9 @@ class DagNode( Entity, iDagItem ):	# parent just for epydoc
 		@param instanceCheck: if True, this method will raise if you try to reparent an instanced object.
 		If false, instanced objects will be merged into the newly created path under parentnode, effectively 
 		eliminating all other paths , keeping the newly created one 
+		@param keepWorldSpace: if True and node to be reparented is a transform, the world space position 
+		will be kept by adjusting the transformation accordingly.
+		WARNNG: Currently we reset pivots when doing so
 		@return : copy of self pointing to the new dag path self                    
 		@note: will remove all instance of this object and leave this object at only one path - 
 		if this is not what you want, use the addChild method instead as it can properly handle this case  
@@ -944,6 +947,22 @@ class DagNode( Entity, iDagItem ):	# parent just for epydoc
 			if objExists( testforobject ):
 				raise RuntimeError( "Object %s did already exist" % testforobject )
 		# END rename on clash handling 
+		
+		# keep existing transformation ? Set the transformation accordingly beforehand  
+		if keepWorldSpace and isinstance( self, Transform ):
+			nwm = self.wm.getByLogicalIndex( self.getInstanceNumber() ).asData().matrix()
+			
+			# compenstate for new parents transformation ?
+			if parentnode is not None:
+				# use world - inverse matrix
+				parentInverseMatrix = parentnode.wim.getByLogicalIndex( parentnode.getInstanceNumber( ) ).asData().matrix()
+				#nwm = nwm * parentInverseMatrix
+				nwm = nwm * parentInverseMatrix
+			# END if there is a new parent 
+			
+			self.set( api.MTransformationMatrix( nwm ) )
+		# END if keep worldspace 
+			
 			
 		thispathobj = self._apidagpath.getApiObj()
 		# As stupid dagmodifier cannot handle instances right ( as it works on MObjects
@@ -963,6 +982,9 @@ class DagNode( Entity, iDagItem ):	# parent just for epydoc
 			mod.reparentNode( thispathobj )
 		
 		mod.doIt()
+		
+			
+			
 		
 		# UPDATE DAG PATH
 		# find it in parentnodes children

@@ -123,14 +123,20 @@ class PatchIteratblePrimitives( Abstract ):
 			""" Number of components in Maya api iterable """
 			return self.length
 		# END __len__
-		type.__setattr__( cls.__bases__[0], '__len__', __len__)
+		type.__setattr__( cls.__bases__[0], '__len__', __len__ )
 		
 		def __iter__(self):
 			""" Iterates on all components of a Maya base iterable """
-			for i in xrange( self.length ) :
+			for i in range( self.length ) :
 				yield self.__getitem__( i )
 		# END __iter__
 		type.__setattr__( cls.__bases__[0], '__iter__', __iter__)
+		
+		def __str__( self ):
+			return "[ %s ]" % " ".join( str( f ) for f in self )
+		# END __str__
+		
+		type.__setattr__( cls.__bases__[0], '__str__', __str__)
 		
 		# allow the class members to be used ( required as we are using them )
 		return True
@@ -143,13 +149,21 @@ class PatchMatrix( Abstract, PatchIteratblePrimitives ):
 		PatchIteratblePrimitives._applyPatch.im_func( cls )
 		def __iter__(self):
 			""" Iterates on all 4 rows of a Maya api MMatrix """
-			for r in xrange( self.length ) :
-				yield [ self.scriptutil(self.__getitem__( r ), c) for c in xrange(self.length) ]
+			for r in range( self.length ) :
+				row = self.__getitem__( r )
+				yield [ self.scriptutil( row, c ) for c in range( self.length ) ]
 		# END __iter__
 		type.__setattr__( cls.__bases__[0], '__iter__', __iter__ )
+		
+		
+		def __str__( self ):
+			return "\n".join( str( v ) for v in self )
+		# END __str__
+		
+		type.__setattr__( cls.__bases__[0], '__str__', __str__)
+		
 		return True
 		
-
 
 
 class MVector( api.MVector, PatchIteratblePrimitives ):
@@ -194,6 +208,32 @@ class MTransformationMatrix( api.MTransformationMatrix, PatchMatrix ):
 		# END __iter__
 		type.__setattr__( cls.__bases__[0], '__iter__', __iter__ )
 		return True
+		
+	def getScale( self , space = api.MSpace.kTransform ):
+		ms = api.MScriptUtil()
+		ms.createFromDouble( 1.0, 1.0, 1.0 )
+		p = ms.asDoublePtr()
+		self._api_getScale( p, space );
+		return MVector( *( ms.getDoubleArrayItem (p, i) for i in range(3) ) )
+		
+	def setScale( self, value, space = api.MSpace.kTransform ):
+		ms = api.MScriptUtil()
+		ms.createFromDouble( *value )
+		p = ms.asDoublePtr()
+		self._api_setScale ( p, space )
+
+	def getRotate(self):  
+		return self.rotation()
+		
+	def setRotate(self, v ):
+		self.setRotationQuaternion( v[0], v[1], v[2], v[3] )
+	
+	def getTranslation( self, space = api.MSpace.kTransform ):
+		return self._api_getTranslation( space )
+		
+	def setTranslation( self, vector, space = api.MSpace.kTransform ):
+		return self._api_setTranslation( vector, space )
+	
 #} 
 
 #############################
@@ -686,7 +726,9 @@ class MPlug( api.MPlug, util.iDagItem ):
 	getNumChildren = api.MPlug.numChildren
 	#} END name remapping 
 	
-#}
+	
+	
+#} END basic types 
 
 
 

@@ -20,14 +20,14 @@ import unittest
 import byronimo.maya.nodes as nodes
 import maya.cmds as cmds
 import maya.OpenMaya as api
-
-import time
+import byronimotest.byronimo.maya.nodes as ownpackage
 
 class TestDataBase( unittest.TestCase ):
 	""" Test data classes  """
 	
 	def test_primitives( self ):
 		"""byronimo.maya.nodes: test primitive types"""
+		if not ownpackage.mayRun( "apipatch" ): return 
 		for apicls in [ api.MTime, api.MDistance, api.MAngle ]:
 			inst = apicls( )
 			str( inst )
@@ -44,6 +44,7 @@ class TestDataBase( unittest.TestCase ):
 	
 	def test_MPlug( self ):
 		"""byronimo.maya.nodes: Test plug abilities( node.attribute ) """
+		if not ownpackage.mayRun( "apipatch" ): return
 		persp = nodes.Node( "persp" )
 		front	 = nodes.Node( "front" )
 		side	 = nodes.Node( "side" )
@@ -187,6 +188,7 @@ class TestDataBase( unittest.TestCase ):
 	
 	def test_matrixData( self ):
 		"""byronimo.maya.nodes: test matrix data"""
+		if not ownpackage.mayRun( "apipatch" ): return
 		node = nodes.Node( "persp" )
 		matplug = node.getPlug( "worldMatrix" )
 		self.failUnless( not matplug.isNull() )
@@ -204,10 +206,30 @@ class TestDataBase( unittest.TestCase ):
 		mmatrix = matdata.matrix( )
 		self.failUnless( isinstance( mmatrix, api.MMatrix ) )
 		
+	def test_matrix( self ):
+		"""byronimo.maya.nodes: Test the matrices"""
+		if not ownpackage.mayRun( "apipatch" ): return
+		tmat = api.MTransformationMatrix()
+			
+		tmat.setScale( ( 2.0, 4.0, 6.0 ) )
+		
+		s = tmat.getScale()
+		self.failUnless( s.x == 2.0 )
+		self.failUnless( s.y == 4.0 )
+		self.failUnless( s.z == 6.0 )
+		
+		t = api.MVector( 1.0, 2.0, 3.0 )
+		tmat.setTranslation( t )
+		self.failUnless( t == tmat.getTranslation( ) )
+		
+		tmat.setRotate( ( 20, 40, 90, 1.0 ) )
+		
+		
 			
 	def test_MPlugArray( self ):
 		"""byronimo.maya.nodes: test the plugarray wrapper
 		NOTE: plugarray can be wrapped, but the types stored will always be"""
+		if not ownpackage.mayRun( "apipatch" ): return
 		node = nodes.Node( "defaultRenderGlobals" )
 		pa = node.getConnections( )
 		
