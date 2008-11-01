@@ -305,6 +305,10 @@ class TestNodeBase( unittest.TestCase ):
 		obase = nodes.createNode( "obase", "transform" )
 		rbase = nodes.createNode( "reparentBase", "transform" )
 		
+		# test basic functions 
+		self.failUnless( rbase.getApiType() == api.MFn.kTransform )
+		self.failUnless( rbase.hasFn( api.MFn.kTransform ) )
+		
 		baseinst = base.addInstancedChild( mesh )
 		obaseinst = obase.addInstancedChild( mesh )
 		

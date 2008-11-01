@@ -591,6 +591,11 @@ class Node( object ):
 	def getApiType( self ):
 		"""@return: the MFn Type id of the wrapped object"""
 		return self.getApiObject().apiType()
+		
+	def hasFn( self, mfntype ):
+		"""@return: True if our object supports the given function set type"""
+		return self.getApiObject().hasFn( mfntype )
+		
 	#} END interface 
 	
 
