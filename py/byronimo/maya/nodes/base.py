@@ -795,10 +795,12 @@ class DependNode( Node ):		# parent just for epydoc -
 		"""Add the given attribute to the node as local dynamic attribute
 		@param attr: MObject of attribute or Attribute instance as retrieved from 
 		a plug
+		@return: plug to the newly added attribute 
 		@note: This method is explicitly not undoable as attributes are being deleted 
 		in memory right in the moment they are being removed, thus they cannot 
 		reside on the undo queue"""
 		self._addRemoveAttr( attr, True )
+		return self.findPlug( api.MFnAttribute( attr ).name() )
 		
 	def removeAttribute( self, attr ):
 		"""Remove the given attribute from the node
