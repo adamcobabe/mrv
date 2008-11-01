@@ -34,40 +34,11 @@ class Shape:
 	__metaclass__ = base.nodes.MetaClassCreatorNodes
 	
 	
-	class SetFilter( tuple ):
-		"""Utility Class  returning True or False on call, latter one if 
-		the passed object does not match the filter"""
-		def __new__( cls, apitype, exactTypeFlag, deformerSet ):
-			return tuple.__new__( cls, ( apitype, exactTypeFlag, deformerSet ) )
-			
-		def __call__( self, apiobj ):
-			"""@return: True if given api object matches our specifications """
-			if self[ 2 ]:			# deformer sets 
-				setnode = base.Node( apiobj )
-				for elmplug in setnode.usedBy:	# find connected deformer 
-					iplug = elmplug.getInput()
-					if iplug.isNull():
-						continue
-						
-					if iplug.getNodeApiObj().hasFn( api.MFn.kGeometryFilt ):
-						return True						
-				# END for each connected plug in usedBy array
-				
-				return False		# no deformer found 
-			# deformer set handling
-			
-			if self[ 1 ]:			# exact type 
-				return apiobj.apiType() == self[ 0 ]
-				
-			# not exact type 
-			return apiobj.hasFn( self[ 0 ] )
-	# END SetFilter 
+	
 	
 	#{ preset type filters
-	fSetsRenderable = SetFilter( api.MFn.kShadingEngine, False, 0 )	# shading engines only 
-	fSetsObject = SetFilter( api.MFn.kSet, True, 0 )				# object fSets only
-	fSetsDeformer = SetFilter( api.MFn.kSet, True , 1)				# deformer sets only 
-	fSets = SetFilter( api.MFn.kSet, False, 0 )			 		# all set types 
+	fSetsRenderable = base.SetFilter( api.MFn.kShadingEngine, False, 0 )	# shading engines only
+	fSetsDeformer = base.SetFilter( api.MFn.kSet, True , 1)				# deformer sets only 
 	#} END type filters 
 	
 	#{ Sets Interface
@@ -76,9 +47,8 @@ class Shape:
 		"""Manually parses the set connections from self
 		@return: tuple( MObjectArray( setapiobj ), MObjectArray( compapiobj ) ) if allow_compoents, otherwise
 		just a list( setapiobj )"""
-		 
 		sets = api.MObjectArray()
-		ioarray = self.iog
+		iogplug = self._getIOGPlug()			# from DependNode
 		
 		# this will never fail - logcical index creates the plug as needed
 		# and drops it if it is no longer required 
@@ -112,33 +82,6 @@ class Shape:
 				sets.append( dplug.getNodeApiObj() )
 			return sets 
 		# END for each object grouop connection in iog
-		
-		
-	
-	def getConnectedSets( self, setFilter = fSetsObject ):
-		"""@return: list of object set compatible Nodes having self as member
-		@param setFilter: tuple( apiType, use_exact_type ) - the combination of the 
-		desired api type and the exact type flag allow precise control whether you which 
-		to get only renderable shading engines, only objectfSets ( tuple[1] = True ), 
-		or all objects supporting the given object type. 
-		Its preset to only return shading engines
-		@note: the returned sets order is defined by the order connections to instObjGroups
-		@note: only sets will be returned that have the whole object as member, thus you will not 
-		see sets having component assignments like per-compoent shader assignments or deformer sets
-		@note: this method ignores"""
-		
-		# have to parse the connections to fSets manually, finding fSets matching the required
-		# type and returning them
-		outlist = list()
-		setapiobjs = self._parseSetConnections( False )
-		
-		for setobj in setapiobjs:
-			if not setFilter( setobj ):
-				continue
-			outlist.append( base.Node( api.MObject( setobj ) ) )
-		# END for each connected set
-		
-		return outlist
 		
 	
 	def getComponentAssignments( self, setFilter = fSetsRenderable ):

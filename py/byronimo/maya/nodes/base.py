@@ -484,6 +484,39 @@ def _createInstByPredicate( apiobj, cls, basecls, predicate ):
 ##########################
 
 
+#{ Utilities 
+class SetFilter( tuple ):
+	"""Utility Class  returning True or False on call, latter one if 
+	the passed object does not match the filter"""
+	def __new__( cls, apitype, exactTypeFlag, deformerSet ):
+		return tuple.__new__( cls, ( apitype, exactTypeFlag, deformerSet ) )
+		
+	def __call__( self, apiobj ):
+		"""@return: True if given api object matches our specifications """
+		if self[ 2 ]:			# deformer sets 
+			setnode = Node( apiobj )
+			for elmplug in setnode.usedBy:	# find connected deformer 
+				iplug = elmplug.getInput()
+				if iplug.isNull():
+					continue
+					
+				if iplug.getNodeApiObj().hasFn( api.MFn.kGeometryFilt ):
+					return True						
+			# END for each connected plug in usedBy array
+			
+			return False		# no deformer found 
+		# deformer set handling
+		
+		if self[ 1 ]:			# exact type 
+			return apiobj.apiType() == self[ 0 ]
+			
+		# not exact type 
+		return apiobj.hasFn( self[ 0 ] )
+	# END SetFilter 
+
+
+#}
+
 
 #{ Base 
 class Node( object ):
@@ -598,6 +631,65 @@ class DependNode( Node ):		# parent just for epydoc -
 	#}
 	
 	
+	#{ Sets Handling
+	
+	#{ preset type filters
+	fSetsObject = SetFilter( api.MFn.kSet, True, 0 )				# object fSets only
+	fSets = SetFilter( api.MFn.kSet, False, 0 )			 		# all set types 
+	#} END type filters
+	
+	def _getIOGPlug( self ):
+		"""@return: the iogplug properly initialized for self
+		@note: there was a bug in it previously so i want to have this code
+		in exactly one spot"""
+		return self.iog.getByLogicalIndex( self.getInstanceNumber() )
+	
+	def getConnectedSets( self, setFilter = fSetsObject ):
+		"""@return: list of object set compatible Nodes having self as member
+		@param setFilter: tuple( apiType, use_exact_type ) - the combination of the 
+		desired api type and the exact type flag allow precise control whether you which 
+		to get only renderable shading engines, only objectfSets ( tuple[1] = True ), 
+		or all objects supporting the given object type. 
+		Its preset to only return shading engines
+		@note: the returned sets order is defined by the order connections to instObjGroups
+		@note: only sets will be returned that have the whole object as member, thus you will not 
+		see sets having component assignments like per-compoent shader assignments or deformer sets
+		@note: this method ignores"""
+		
+		# have to parse the connections to fSets manually, finding fSets matching the required
+		# type and returning them
+		outlist = list()
+		iogplug = self._getIOGPlug()
+		
+		for dplug in iogplug.getOutputs():
+			setapiobj = dplug.getNodeApiObj()
+			
+			if not setFilter( setapiobj ):
+				continue
+			outlist.append( Node( api.MObject( setapiobj ) ) )
+		# END for each connected set
+		
+		return outlist
+	
+	def isMemberOf( self, setnode, component = api.MObject() ):
+		"""@return: True if self is part of setnode
+		@note: method is undoable 
+		@see: L{ObjectSet}"""
+		return setnode.isMember( self, component = component )
+		
+	def addTo( self, setnode, component = api.MObject(), **kwargs ):
+		"""Add ourselves to the given set
+		@note: method is undoable 
+		@see: L{ObjectSet}"""
+		return setnode.addMember( self, component = component, **kwargs )
+	
+	def removeFrom( self, setnode, component = api.MObject() ):
+		"""remove ourselves to the given set
+		@note: method is undoable 
+		@see: L{ObjectSet}"""
+		return setnode.removeMember( self, component = component )
+	
+	#} END sets handling 
 	
 	#{ Edit
 	@undoable
@@ -1412,28 +1504,6 @@ class DagNode( Entity, iDagItem ):	# parent just for epydoc
 	
 	
 	#}
-	
-		
-	#{ Sets Utilities 
-	def isMemberOf( self, setnode, component = api.MObject() ):
-		"""@return: True if self is part of setnode
-		@note: method is undoable 
-		@see: L{ObjectSet}"""
-		return setnode.isMember( self, component = component )
-		
-	def addTo( self, setnode, component = api.MObject, **kwargs ):
-		"""Add ourselves to the given set
-		@note: method is undoable 
-		@see: L{ObjectSet}"""
-		return setnode.addMember( self, component = component, **kwargs )
-	
-	def removeFrom( self, setnode, component = api.MObject ):
-		"""remove ourselves to the given set
-		@note: method is undoable 
-		@see: L{ObjectSet}"""
-		return setnode.removeMember( self, component = component )
-	
-	#} END sets utilities 
 	
 	
 	#{ Name Remapping 

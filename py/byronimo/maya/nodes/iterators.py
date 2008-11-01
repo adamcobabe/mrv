@@ -242,7 +242,8 @@ def iterGraph( nodeOrPlug, *args, **kwargs ):
 		Types are specified as Maya API types.
 		The following keywords will affect order and behavior of traversal:
 		@param nodeOrPlug: node or plug to start the iteration at
-		@param intput: if True connections will be followed from destination to source,
+		@param *args: list of MFn node types 
+		@param input: if True connections will be followed from destination to source,
 				  if False from source to destination
 				  default is False (downstream)
 		@param breadth: if True nodes will be returned as a breadth first traversal of the connection graph,
@@ -251,13 +252,13 @@ def iterGraph( nodeOrPlug, *args, **kwargs ):
 		@param plug: if True traversal will be at plug level (no plug will be traversed more than once),
 			  if False at node level (no node will be traversed more than once),
 			  default is False (node level)
-		@param prune : if True will stop the iteration on nodes than do not fit the types list,
+		@param prune : if True will stop the iteration on nodes that do not fit the types list,
 				if False these nodes will be traversed but not returned
 				default is False (do not prune) 
 		@param asNode: if the iteration is on node level, Nodes ( wrapped MObjects ) will be returned
 						If False, MObjects will be returned
 						default False
-		@param predicate: method returninng True if passed in iteration element can be yielded
+		@param predicate: method returning True if passed in iteration element can be yielded
 			default: lambda x: True
 		@yield: MObject, Node or Plug depending on the configuration flags
 		@node: based on pymel"""
