@@ -716,7 +716,19 @@ class TestNodeBase( unittest.TestCase ):
 		# have gone out of scope
 		self.failUnlessRaises( RuntimeError, trans.findPlug, "sna" )
 		
-		
+	
+	def _checkIdentity( self, t ):
+		"""Assure that t is identity"""
+		self.failUnless( t.t.tx.asFloat() == 0.0 )
+		self.failUnless( t.t.ty.asFloat() == 0.0 )
+		self.failUnless( t.t.tz.asFloat() == 0.0 )
+		self.failUnless( t.r.rx.asFloat() == 0.0 )
+		self.failUnless( t.r.ry.asFloat() == 0.0 )
+		self.failUnless( t.r.rz.asFloat() == 0.0 )
+		self.failUnless( t.s.sx.asFloat() == 1.0 )
+		self.failUnless( t.s.sy.asFloat() == 1.0 )
+		self.failUnless( t.s.sz.asFloat() == 1.0 )
+	
 	def test_keepWorldSpace( self ):
 		"""byronimo.maya.nodes.base: keep ws transformation when reparenting"""
 		if not ownpackage.mayRun( "general" ): return
@@ -735,8 +747,6 @@ class TestNodeBase( unittest.TestCase ):
 			# END for each sa
 		# END for each ma
 		
-		common._saveTempFile( "beforereparent.ma" )
-		
 		# REPARENT TO WORLD
 		###################
 		t = t.reparent( None, keepWorldSpace = 1 )
@@ -751,25 +761,21 @@ class TestNodeBase( unittest.TestCase ):
 			# end
 		#end 
 		
-		# TODO: discover how to fix this  - WELL, its because the asData().matrix() function 
-		# does not return the scale x channel !!
-		# self.failUnless( t.s.sx.asFloat() == 3.0 ) # TODO: This fails in batch mode, works in UI mode ( as expected )
-		
+		# undo - everything should be back to normal
+		cmds.undo()
+		self._checkIdentity( t )
+		cmds.redo()
 		
 		# REPARENT TO PARENT NODE
 		###########################
 		t = t.reparent( g, keepWorldSpace = 1 )
 		common._saveTempFile( "afterreparentg.ma" )
 		
-		self.failUnless( t.t.tx.asFloat() == 0.0 )
-		self.failUnless( t.t.ty.asFloat() == 0.0 )
-		self.failUnless( t.t.tz.asFloat() == 0.0 )
-		self.failUnless( t.t.rx.asFloat() == 0.0 )
-		self.failUnless( t.t.ry.asFloat() == 0.0 )
-		self.failUnless( t.t.rz.asFloat() == 0.0 )
-		self.failUnless( t.s.sx.asFloat() == 1.0 )
-		self.failUnless( t.s.sy.asFloat() == 1.0 )
-		self.failUnless( t.s.sz.asFloat() == 1.0 )
+		self._checkIdentity( t )
+		
+		
+		
+		
 		
 		
 	def test_mfncachebuilder( self ):

@@ -950,12 +950,12 @@ class DagNode( Entity, iDagItem ):	# parent just for epydoc
 		
 		# keep existing transformation ? Set the transformation accordingly beforehand  
 		if keepWorldSpace and isinstance( self, Transform ):
-			nwm = self.wm.getByLogicalIndex( self.getInstanceNumber() ).asData().matrix()
+			nwm = self.wm.getByLogicalIndex( self.getInstanceNumber() ).asData().transformation().asMatrix()
 			
 			# compenstate for new parents transformation ?
 			if parentnode is not None:
 				# use world - inverse matrix
-				parentInverseMatrix = parentnode.wim.getByLogicalIndex( parentnode.getInstanceNumber( ) ).asData().matrix()
+				parentInverseMatrix = parentnode.wim.getByLogicalIndex( parentnode.getInstanceNumber( ) ).asData().transformation().asMatrix()
 				#nwm = nwm * parentInverseMatrix
 				nwm = nwm * parentInverseMatrix
 			# END if there is a new parent 
@@ -1813,10 +1813,27 @@ class DagPath( api.MDagPath, iDagItem ):
 #{ Foreward created types
 
 class Transform:
-	"""Precreated class to allow isinstance checking against their types 
-	@note: bases determined by metaclass """
+	"""Precreated class to allow isinstance checking against their types and 
+	to add undo support to MFnTransform functions, as well as for usability
+	@note: bases determined by metaclass
+	@note: to have undoable set* functions , get the ( improved ) transformation matrix
+	make your changes to it and use the L{set} method """
 	__metaclass__ = nodes.MetaClassCreatorNodes 
 
+	#{ MFnTransform Overrides 
+	
+	@undoable
+	def set( self, transformation ):
+		"""Set the transformation of this Transform node"""
+		curtransformation = self.transformation()
+		mfninst = api.MFnTransform( self._apidagpath )
+		
+		op = undo.GenericOperation()
+		op.addDoit( mfninst.set, transformation )
+		op.addUndoit( mfninst.set, curtransformation )
+		op.doIt()
+		
+	#} END mfntransform overrides 
 
 #} END foreward created types
 
