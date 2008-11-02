@@ -643,11 +643,10 @@ class DependNode( Node ):		# parent just for epydoc -
 	fSets = SetFilter( api.MFn.kSet, False, 0 )			 		# all set types 
 	#} END type filters
 	
-	def _getIOGPlug( self ):
-		"""@return: the iogplug properly initialized for self
-		@note: there was a bug in it previously so i want to have this code
-		in exactly one spot"""
-		return self.iog.getByLogicalIndex( self.getInstanceNumber() )
+	def _getSetPlug( self ):
+		"""@return: message plug - for non dag nodes, this will be connected """
+		return self.message
+		
 	
 	def getConnectedSets( self, setFilter = fSetsObject ):
 		"""@return: list of object set compatible Nodes having self as member
@@ -664,7 +663,7 @@ class DependNode( Node ):		# parent just for epydoc -
 		# have to parse the connections to fSets manually, finding fSets matching the required
 		# type and returning them
 		outlist = list()
-		iogplug = self._getIOGPlug()
+		iogplug = self._getSetPlug()
 		
 		for dplug in iogplug.getOutputs():
 			setapiobj = dplug.getNodeApiObj()
@@ -919,7 +918,14 @@ class DagNode( Entity, iDagItem ):	# parent just for epydoc
 			# END for each parent 
 			raise IndexError( "Parent with index %i did not exist for %r" % ( index, self ) )
 		
-	#}
+	#} END overridden from objects 
+	
+	#{ Set Handling 
+	def _getSetPlug( self ):
+		"""@return: the iogplug properly initialized for self 
+		Dag Nodes have the iog plug as they support instancing """
+		return self.iog.getByLogicalIndex( self.getInstanceNumber() )
+	#} END set handling 
 	
 	#{ Hierarchy Modification
 	@undoable

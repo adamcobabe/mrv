@@ -48,11 +48,10 @@ class Shape:
 		@return: tuple( MObjectArray( setapiobj ), MObjectArray( compapiobj ) ) if allow_compoents, otherwise
 		just a list( setapiobj )"""
 		sets = api.MObjectArray()
-		iogplug = self._getIOGPlug()			# from DependNode
+		iogplug = self._getSetPlug()			# from DagNode , usually iog plug 
 		
 		# this will never fail - logcical index creates the plug as needed
 		# and drops it if it is no longer required 
-		iogplug = self.iog.getByLogicalIndex( self.getInstanceNumber() )
 		if allow_compoents:
 			components = api.MObjectArray()
 			

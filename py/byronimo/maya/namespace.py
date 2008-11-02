@@ -282,9 +282,11 @@ class Namespace( unicode, iDagItem ):
 
 	def toRelative( self ):
 		"""@return: a relative version of self, thus it does not start with a colon
-		@raise ValueError: if self it the root namespace"""
-		if self == self.rootNamespace:
-			raise ValueError( "The root namespace cannot be relative" )
+		@note: the root namespace cannot be relative - if this is of interest for you, 
+		you have to check for it. This method gracefully ignores that fact to make 
+		it more convenient to use as one does not have to be afraid of exceptions"""
+		#if self == self.rootNamespace:
+		#	raise ValueError( "The root namespace cannot be relative" )
 			
 		if not self.startswith( ":" ):
 			return Namespace( self )	# create a copy 
