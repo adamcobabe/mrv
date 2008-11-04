@@ -18,7 +18,8 @@ __revision__="$Revision: 50 $"
 __id__="$Id: configuration.py 50 2008-08-12 13:33:55Z byron $"
 __copyright__='(c) 2008 Sebastian Thiel'
 
-from networkx import DiGraph, NetworkXError, XDiGraph
+from networkx import DiGraph, NetworkXError
+from networkx.xdigraph import XDiGraph
 from collections import deque
 import inspect
 import weakref
