@@ -38,10 +38,13 @@ __date__="$Date: 2008-05-29 02:30:46 +0200 (Thu, 29 May 2008) $"
 __revision__="$Revision: 16 $"
 __id__="$Id: configuration.py 16 2008-05-29 00:30:46Z byron $"
 
-
-
-
-import sys, warnings, os, fnmatch, glob, shutil, codecs
+import sys
+import warnings
+import os
+import fnmatch
+import glob
+import shutil
+import codecs
 
 __version__ = '2.1'
 __all__ = ['Path']
@@ -346,6 +349,17 @@ class Path(_base):
 		else:
 			relpath = os.path.join(*segments)
 		return self.__class__(relpath)
+
+	def tonative( self ):
+		"""Convert the path separator to the type required by the current operating
+		system - on windows / becomes \ and on linux \ becomes /
+		@return: native version of self"""
+		s = "\\"
+		d = "/"
+		if sys.platform.startswith( "win" ):
+			s = "/"
+			d = "\\"
+		return Path( self.replace( s, d ) )
 
 	#} END Operations on path strings
 	
