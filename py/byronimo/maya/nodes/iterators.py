@@ -191,7 +191,11 @@ def iterDagNodes( *args, **kwargs ):
 def getGraphIterator( nodeOrPlug, *args, **kwargs ):
 	"""@return: MItDependencyGraph configured according to args - see docs at 
 	L{iterGraph}.
-	@note: use this method if you want to use more advanced features of the iterator"""
+	@note: use this method if you want to use more advanced features of the iterator
+	@raise RuntimeError: if the filter types does not allow any nodes to be returned.
+	This is a bug in that sense as it should just return nothing. It also shows that 
+	maya pre-parses the result and then just iterates over a list with the iterator in 
+	question"""
 	startObj = startPlug = None
 	
 	pa = api.MPlugArray( )			# have to pass a proper empty plug pointer
@@ -262,7 +266,12 @@ def iterGraph( nodeOrPlug, *args, **kwargs ):
 			default: lambda x: True
 		@yield: MObject, Node or Plug depending on the configuration flags
 		@node: based on pymel"""
-	iterObj = getGraphIterator( nodeOrPlug, *args, **kwargs )
+	try:
+		iterObj = getGraphIterator( nodeOrPlug, *args, **kwargs )
+	except RuntimeError:
+		# may raise if iteration would yield no results 
+		raise StopIteration()
+		
 	retrievePlugs = not iterObj.atNodeLevel( )
 	asNode = kwargs.get( "asNode", False )
 	predicate = kwargs.get( 'predicate', lambda x: True )
