@@ -210,6 +210,28 @@ class TestNodeBase( unittest.TestCase ):
 		self.failUnlessRaises( TypeError, cls, "persp" )	# class has incorrect type for persp 
 		# NOTE: needed actual plugin type for proper test
 	
+	def test_hashfunc( self ):
+		"""byroimo.maya.nodes: should be possible to use objects as keys in hashes"""
+		# they must compare their objects for equality, not their own instance
+		ddg = dict()
+		for i in range( 10 ):		# dg nodes 
+			ddg[ nodes.Node( "initialShadingGroup" ) ] = i
+
+		self.failUnless( len( ddg ) == 1 )
+		
+		ddag = dict()
+		for i in range( 10 ):		# dg nodes 
+			ddag[ nodes.Node( "persp" ) ] = i
+		
+		self.failUnless( len( ddag ) == 1 )
+		
+		# merge both together
+		dall = dict()
+		dall.update( ddg )
+		dall.update( ddag )
+		self.failUnless( len( dall ) == 2 )
+		
+	
 	def test_wrapDepNode( self ):
 		"""byronimo.maya.nodes: create and access dependency nodes ( not being dag nodes )"""
 		if not ownpackage.mayRun( "general" ): return

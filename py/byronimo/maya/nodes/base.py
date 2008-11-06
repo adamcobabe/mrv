@@ -575,6 +575,13 @@ class Node( object ):
 	def __ne__( self, other ):
 		return not Node.__eq__( self, other )
 	
+	def __hash__( self ):
+		"""@return: our name as hash - as python keeps a pool, each name will 
+		correspond to the exact object. 
+		@note: using asHashable of openMayaMPx did not work as it returns addresses
+		to instances - this does not work for MObjects though"""
+		return str( self ).__hash__()
+		
 	#} END overridden methods 
 	
 	#{ Interface 
