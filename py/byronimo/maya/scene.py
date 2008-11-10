@@ -166,7 +166,7 @@ class Scene( util.Singleton ):
 		@note: this method will only work with files that can also be referenced - use the default
 		file -import command for other file types 
 		@param filepath: path to file to import 
-		@param **kwargs: arguments supported by L{FileReference.create}
+		@param **kwargs: arguments supported by L{createReference}
 		@raise RuntimeError: On failure"""
 		reference = Scene.createReference( filepath, **kwargs )
 		reference.importRef( depth = 0 )
