@@ -1,20 +1,972 @@
-ERROR: Failed initialize maya
-Error executing the modules main function: 
+Initializing byronimo.maya.undo
+Initializing byronimo.maya.nodes.storage
+File read in 0 seconds.
+Undo: byronimoUndo -pop -id "create"
+Redo: byronimoUndo -pop -id "create"
+Undo: byronimoUndo -pop -id "setCurrent"
+Undo: byronimoUndo -pop -id "create"
+Redo: byronimoUndo -pop -id "create"
+Undo: byronimoUndo -pop -id "setCurrent"
+Undo: byronimoUndo -pop -id "create"
+Redo: byronimoUndo -pop -id "create"
+Undo: byronimoUndo -pop -id "setCurrent"
+Undo: byronimoUndo -pop -id "create"
+Redo: byronimoUndo -pop -id "create"
+Undo: byronimoUndo -pop -id "setCurrent"
+Warning: The current namespace is now ":".
+Warning: The current namespace is now ":".
+Warning: The current namespace is now ":".
+Warning: The current namespace is now ":".
+Warning: The current namespace is now ":".
+Warning: The current namespace is now ":".
+Warning: The current namespace is now ":".
+Warning: The current namespace is now ":".
+Warning: The current namespace is now ":".
+Warning: The current namespace is now ":".
+Warning: The current namespace is now ":".
+Warning: The current namespace is now ":".
+Warning: The current namespace is now ":".
+Warning: The current namespace is now ":".
+Warning: The current namespace is now ":".
+Warning: The current namespace is now ":".
+Warning: The current namespace is now ":".
+Warning: The current namespace is now ":".
+Warning: The current namespace is now ":".
+Warning: The current namespace is now ":".
+Warning: The current namespace is now ":".
+Warning: The current namespace is now ":".
+Warning: The current namespace is now ":".
+Warning: The current namespace is now ":".
+Warning: The current namespace is now ":".
+Warning: file: /home/sebastian/ws_repository/src/whitesharkstd/trunk/ext/byronimo/py/byronimotest/byronimo/maya/ma/refbase.ma line 12: Reference file path remapped from '$MAYAFILEBASE/ma/cube.ma' to '/home/sebastian/ws_repository/src/whitesharkstd/trunk/ext/byronimo/py/byronimotest/byronimo/maya/ma/cube.ma'.
+Warning: file: /home/sebastian/ws_repository/src/whitesharkstd/trunk/ext/byronimo/py/byronimotest/byronimo/maya/ma/refbase.ma line 13: Reference file path remapped from '$MAYAFILEBASE/ma/cylinder.ma' to '/home/sebastian/ws_repository/src/whitesharkstd/trunk/ext/byronimo/py/byronimotest/byronimo/maya/ma/cylinder.ma'.
+Warning: file: /home/sebastian/ws_repository/src/whitesharkstd/trunk/ext/byronimo/py/byronimotest/byronimo/maya/ma/refbase.ma line 14: Reference file path remapped from '$MAYAFILEBASE/ma/sphere.ma' to '/home/sebastian/ws_repository/src/whitesharkstd/trunk/ext/byronimo/py/byronimotest/byronimo/maya/ma/sphere.ma'.
+Warning: file: /home/sebastian/ws_repository/src/whitesharkstd/trunk/ext/byronimo/py/byronimotest/byronimo/maya/ma/refbase.ma line 15: Reference file path remapped from '$MAYAFILEBASE/ma/subrefbase.ma' to '/home/sebastian/ws_repository/src/whitesharkstd/trunk/ext/byronimo/py/byronimotest/byronimo/maya/ma/subrefbase.ma'.
+File read in 0 seconds.
+File read in 0 seconds.
+File read in 0 seconds.
+File read in 0 seconds.
+Warning: file: /home/sebastian/ws_repository/src/whitesharkstd/trunk/ext/byronimo/py/byronimotest/byronimo/maya/ma/subrefbase.ma line 12: Reference file path remapped from '$MAYAFILEBASE/ma/cube.ma' to '/home/sebastian/ws_repository/src/whitesharkstd/trunk/ext/byronimo/py/byronimotest/byronimo/maya/ma/cube.ma'.
+Warning: file: /home/sebastian/ws_repository/src/whitesharkstd/trunk/ext/byronimo/py/byronimotest/byronimo/maya/ma/subrefbase.ma line 13: Reference file path remapped from '$MAYAFILEBASE/ma/cylinder.ma' to '/home/sebastian/ws_repository/src/whitesharkstd/trunk/ext/byronimo/py/byronimotest/byronimo/maya/ma/cylinder.ma'.
+Warning: file: /home/sebastian/ws_repository/src/whitesharkstd/trunk/ext/byronimo/py/byronimotest/byronimo/maya/ma/subrefbase.ma line 14: Reference file path remapped from '$MAYAFILEBASE/ma/sphere.ma' to '/home/sebastian/ws_repository/src/whitesharkstd/trunk/ext/byronimo/py/byronimotest/byronimo/maya/ma/sphere.ma'.
+Warning: file: /home/sebastian/ws_repository/src/whitesharkstd/trunk/ext/byronimo/py/byronimotest/byronimo/maya/ma/subrefbase.ma line 15: Reference file path remapped from '$MAYAFILEBASE/ma/subsubrefbase.ma' to '/home/sebastian/ws_repository/src/whitesharkstd/trunk/ext/byronimo/py/byronimotest/byronimo/maya/ma/subsubrefbase.ma'.
+File read in 0 seconds.
+Warning: file: /home/sebastian/ws_repository/src/whitesharkstd/trunk/ext/byronimo/py/byronimotest/byronimo/maya/ma/subsubrefbase.ma line 8: Reference file path remapped from '$MAYAFILEBASE/ma/cube.ma' to '/home/sebastian/ws_repository/src/whitesharkstd/trunk/ext/byronimo/py/byronimotest/byronimo/maya/ma/cube.ma'.
+Warning: file: /home/sebastian/ws_repository/src/whitesharkstd/trunk/ext/byronimo/py/byronimotest/byronimo/maya/ma/subsubrefbase.ma line 9: Reference file path remapped from '$MAYAFILEBASE/ma/cylinder.ma' to '/home/sebastian/ws_repository/src/whitesharkstd/trunk/ext/byronimo/py/byronimotest/byronimo/maya/ma/cylinder.ma'.
+Warning: file: /home/sebastian/ws_repository/src/whitesharkstd/trunk/ext/byronimo/py/byronimotest/byronimo/maya/ma/subsubrefbase.ma line 10: Reference file path remapped from '$MAYAFILEBASE/ma/sphere.ma' to '/home/sebastian/ws_repository/src/whitesharkstd/trunk/ext/byronimo/py/byronimotest/byronimo/maya/ma/sphere.ma'.
+File read in 0 seconds.
+Warning: file: /home/sebastian/ws_repository/src/whitesharkstd/trunk/ext/byronimo/py/byronimotest/byronimo/maya/ma/refbase.ma line 12: Reference file path remapped from '$MAYAFILEBASE/ma/cube.ma' to '/home/sebastian/ws_repository/src/whitesharkstd/trunk/ext/byronimo/py/byronimotest/byronimo/maya/ma/cube.ma'.
+Warning: file: /home/sebastian/ws_repository/src/whitesharkstd/trunk/ext/byronimo/py/byronimotest/byronimo/maya/ma/refbase.ma line 13: Reference file path remapped from '$MAYAFILEBASE/ma/cylinder.ma' to '/home/sebastian/ws_repository/src/whitesharkstd/trunk/ext/byronimo/py/byronimotest/byronimo/maya/ma/cylinder.ma'.
+Warning: file: /home/sebastian/ws_repository/src/whitesharkstd/trunk/ext/byronimo/py/byronimotest/byronimo/maya/ma/refbase.ma line 14: Reference file path remapped from '$MAYAFILEBASE/ma/sphere.ma' to '/home/sebastian/ws_repository/src/whitesharkstd/trunk/ext/byronimo/py/byronimotest/byronimo/maya/ma/sphere.ma'.
+Warning: file: /home/sebastian/ws_repository/src/whitesharkstd/trunk/ext/byronimo/py/byronimotest/byronimo/maya/ma/refbase.ma line 15: Reference file path remapped from '$MAYAFILEBASE/ma/subrefbase.ma' to '/home/sebastian/ws_repository/src/whitesharkstd/trunk/ext/byronimo/py/byronimotest/byronimo/maya/ma/subrefbase.ma'.
+File read in 0 seconds.
+File read in 0 seconds.
+File read in 0 seconds.
+File read in 0 seconds.
+Warning: file: /home/sebastian/ws_repository/src/whitesharkstd/trunk/ext/byronimo/py/byronimotest/byronimo/maya/ma/subrefbase.ma line 12: Reference file path remapped from '$MAYAFILEBASE/ma/cube.ma' to '/home/sebastian/ws_repository/src/whitesharkstd/trunk/ext/byronimo/py/byronimotest/byronimo/maya/ma/cube.ma'.
+Warning: file: /home/sebastian/ws_repository/src/whitesharkstd/trunk/ext/byronimo/py/byronimotest/byronimo/maya/ma/subrefbase.ma line 13: Reference file path remapped from '$MAYAFILEBASE/ma/cylinder.ma' to '/home/sebastian/ws_repository/src/whitesharkstd/trunk/ext/byronimo/py/byronimotest/byronimo/maya/ma/cylinder.ma'.
+Warning: file: /home/sebastian/ws_repository/src/whitesharkstd/trunk/ext/byronimo/py/byronimotest/byronimo/maya/ma/subrefbase.ma line 14: Reference file path remapped from '$MAYAFILEBASE/ma/sphere.ma' to '/home/sebastian/ws_repository/src/whitesharkstd/trunk/ext/byronimo/py/byronimotest/byronimo/maya/ma/sphere.ma'.
+Warning: file: /home/sebastian/ws_repository/src/whitesharkstd/trunk/ext/byronimo/py/byronimotest/byronimo/maya/ma/subrefbase.ma line 15: Reference file path remapped from '$MAYAFILEBASE/ma/subsubrefbase.ma' to '/home/sebastian/ws_repository/src/whitesharkstd/trunk/ext/byronimo/py/byronimotest/byronimo/maya/ma/subsubrefbase.ma'.
+File read in 0 seconds.
+Warning: file: /home/sebastian/ws_repository/src/whitesharkstd/trunk/ext/byronimo/py/byronimotest/byronimo/maya/ma/subsubrefbase.ma line 8: Reference file path remapped from '$MAYAFILEBASE/ma/cube.ma' to '/home/sebastian/ws_repository/src/whitesharkstd/trunk/ext/byronimo/py/byronimotest/byronimo/maya/ma/cube.ma'.
+Warning: file: /home/sebastian/ws_repository/src/whitesharkstd/trunk/ext/byronimo/py/byronimotest/byronimo/maya/ma/subsubrefbase.ma line 9: Reference file path remapped from '$MAYAFILEBASE/ma/cylinder.ma' to '/home/sebastian/ws_repository/src/whitesharkstd/trunk/ext/byronimo/py/byronimotest/byronimo/maya/ma/cylinder.ma'.
+Warning: file: /home/sebastian/ws_repository/src/whitesharkstd/trunk/ext/byronimo/py/byronimotest/byronimo/maya/ma/subsubrefbase.ma line 10: Reference file path remapped from '$MAYAFILEBASE/ma/sphere.ma' to '/home/sebastian/ws_repository/src/whitesharkstd/trunk/ext/byronimo/py/byronimotest/byronimo/maya/ma/sphere.ma'.
+File read in 0 seconds.
+File read in 0 seconds.
+File read in 0 seconds.
+File read in 0 seconds.
+File read in 0 seconds.
+Warning: file: /home/sebastian/ws_repository/src/whitesharkstd/trunk/ext/byronimo/py/byronimotest/byronimo/maya/ma/subrefbase.ma line 12: Reference file path remapped from '$MAYAFILEBASE/ma/cube.ma' to '/home/sebastian/ws_repository/src/whitesharkstd/trunk/ext/byronimo/py/byronimotest/byronimo/maya/ma/cube.ma'.
+Warning: file: /home/sebastian/ws_repository/src/whitesharkstd/trunk/ext/byronimo/py/byronimotest/byronimo/maya/ma/subrefbase.ma line 13: Reference file path remapped from '$MAYAFILEBASE/ma/cylinder.ma' to '/home/sebastian/ws_repository/src/whitesharkstd/trunk/ext/byronimo/py/byronimotest/byronimo/maya/ma/cylinder.ma'.
+Warning: file: /home/sebastian/ws_repository/src/whitesharkstd/trunk/ext/byronimo/py/byronimotest/byronimo/maya/ma/subrefbase.ma line 14: Reference file path remapped from '$MAYAFILEBASE/ma/sphere.ma' to '/home/sebastian/ws_repository/src/whitesharkstd/trunk/ext/byronimo/py/byronimotest/byronimo/maya/ma/sphere.ma'.
+Warning: file: /home/sebastian/ws_repository/src/whitesharkstd/trunk/ext/byronimo/py/byronimotest/byronimo/maya/ma/subrefbase.ma line 15: Reference file path remapped from '$MAYAFILEBASE/ma/subsubrefbase.ma' to '/home/sebastian/ws_repository/src/whitesharkstd/trunk/ext/byronimo/py/byronimotest/byronimo/maya/ma/subsubrefbase.ma'.
+File read in 0 seconds.
+File read in 0 seconds.
+File read in 0 seconds.
+File read in 0 seconds.
+Warning: file: /home/sebastian/ws_repository/src/whitesharkstd/trunk/ext/byronimo/py/byronimotest/byronimo/maya/ma/subsubrefbase.ma line 8: Reference file path remapped from '$MAYAFILEBASE/ma/cube.ma' to '/home/sebastian/ws_repository/src/whitesharkstd/trunk/ext/byronimo/py/byronimotest/byronimo/maya/ma/cube.ma'.
+Warning: file: /home/sebastian/ws_repository/src/whitesharkstd/trunk/ext/byronimo/py/byronimotest/byronimo/maya/ma/subsubrefbase.ma line 9: Reference file path remapped from '$MAYAFILEBASE/ma/cylinder.ma' to '/home/sebastian/ws_repository/src/whitesharkstd/trunk/ext/byronimo/py/byronimotest/byronimo/maya/ma/cylinder.ma'.
+Warning: file: /home/sebastian/ws_repository/src/whitesharkstd/trunk/ext/byronimo/py/byronimotest/byronimo/maya/ma/subsubrefbase.ma line 10: Reference file path remapped from '$MAYAFILEBASE/ma/sphere.ma' to '/home/sebastian/ws_repository/src/whitesharkstd/trunk/ext/byronimo/py/byronimotest/byronimo/maya/ma/sphere.ma'.
+File read in 0 seconds.
+Warning: Reference file path remapped from '/home/sebastian/ws_repository/src/whitesharkstd/trunk/ext/byronimo/py/byronimotest/byronimo/maya/ma/cube.ma' to '/home/sebastian/ws_repository/src/whitesharkstd/trunk/ext/byronimo/py/byronimotest/byronimo/maya/ma/cube.ma'.
+File read in 0 seconds.
+Warning: Reference file path remapped from '/home/sebastian/ws_repository/src/whitesharkstd/trunk/ext/byronimo/py/byronimotest/byronimo/maya/ma/sphere.ma' to '/home/sebastian/ws_repository/src/whitesharkstd/trunk/ext/byronimo/py/byronimotest/byronimo/maya/ma/sphere.ma'.
+File read in 0 seconds.
+Warning: Reference file path remapped from '/home/sebastian/ws_repository/src/whitesharkstd/trunk/ext/byronimo/py/byronimotest/byronimo/maya/ma/cylinder.ma' to '/home/sebastian/ws_repository/src/whitesharkstd/trunk/ext/byronimo/py/byronimotest/byronimo/maya/ma/cylinder.ma'.
+File read in 0 seconds.
+Warning: Reference file path remapped from '/home/sebastian/ws_repository/src/whitesharkstd/trunk/ext/byronimo/py/byronimotest/byronimo/maya/ma/empty.ma' to '/home/sebastian/ws_repository/src/whitesharkstd/trunk/ext/byronimo/py/byronimotest/byronimo/maya/ma/empty.ma'.
+File read in 0 seconds.
+File read in 0 seconds.
+Undo: byronimoUndo -pop
+Redo: byronimoUndo -pop
+Undo: byronimoUndo -pop
+Redo: byronimoUndo -pop
+Undo: byronimoUndo -pop
+Undo: byronimoUndo -pop
+Undo: byronimoUndo -pop
+Undo: byronimoUndo -pop
+Redo: byronimoUndo -pop
+File read in 0 seconds.
+Randomized 8997 node translations in 2.370000 s ( 3796.202532 / s )
+SAVED TMP FILE TO: /usr/tmp/randomscene.mb
+Average position of 8997 nodes is: <-0.224742,-0.270090,0.105035> in 1.930000 s
+Set 8997 nodes to average position in 0.510000 s ( 17641.176471 / s )
+SAVED TMP FILE TO: /usr/tmp/averaged.mb
+
+
+Created 100 nodes in 0.270000 s ( 370.370370 / s )
+Undo: byronimoUndo -pop
+Undone Operation in 0.000000 s
+Created 2500 nodes in 7.040000 s ( 355.113636 / s )
+Undo: byronimoUndo -pop
+Undone Operation in 0.160000 s
+Redo: byronimoUndo -pop
+Created 7584 Nodes ( from STRING ) in 1.510000 s ( 5022.516556 / s )
+Created 7584 Nodes ( from APIOBJ ) in 0.630000 s ( 12038.095238 / s ) -> 239.682540 % faster
+File read in 0 seconds.
+Walked 2500 nodes in 0.430000 s ( 5813.953488 / s )
+Walked 2500 WRAPPED nodes in 1.270000 s ( 1968.503937 / s )
+Walked 2500 nodes BREADTH FIRST in 0.670000 s ( 3731.343284 / s )
+File read in 7 seconds.
+Walked 25000 nodes in 4.420000 s ( 5656.108597 / s )
+Walked 25000 WRAPPED nodes in 12.920000 s ( 1934.984520 / s )
+Walked 25000 nodes BREADTH FIRST in 29.260000 s ( 854.408749 / s )
+10 MULTI PLUG Connected in 0.250000 s ( 40.000000 / s )
+Undo: byronimoUndo -pop
+Redo: byronimoUndo -pop
+UNDO / REDO Time = 0.180000 / 0.190000 ( 1.315789 * faster than initial creation )
+50 MULTI PLUG Connected in 1.060000 s ( 47.169811 / s )
+Undo: byronimoUndo -pop
+Redo: byronimoUndo -pop
+UNDO / REDO Time = 0.650000 / 0.720000 ( 1.472222 * faster than initial creation )
+100 MULTI PLUG Connected in 1.540000 s ( 64.935065 / s )
+Undo: byronimoUndo -pop
+Redo: byronimoUndo -pop
+UNDO / REDO Time = 0.740000 / 0.900000 ( 1.711111 * faster than initial creation )
+200 MULTI PLUG Connected in 3.040000 s ( 65.789474 / s )
+Undo: byronimoUndo -pop
+Redo: byronimoUndo -pop
+UNDO / REDO Time = 1.590000 / 1.720000 ( 1.767442 * faster than initial creation )
+10 SINGLE PLUGS Connected in 0.030000 s ( 333.333333 / s )
+Undo: byronimoUndo -pop
+Redo: byronimoUndo -pop
+UNDO / REDO Time = 0.000000 / 0.000000 ( 30.000000 * faster than initial creation )
+50 SINGLE PLUGS Connected in 0.200000 s ( 250.000000 / s )
+Undo: byronimoUndo -pop
+Redo: byronimoUndo -pop
+UNDO / REDO Time = 0.010000 / 0.000000 ( 200.000000 * faster than initial creation )
+100 SINGLE PLUGS Connected in 0.280000 s ( 357.142857 / s )
+Undo: byronimoUndo -pop
+Redo: byronimoUndo -pop
+UNDO / REDO Time = 0.000000 / 0.010000 ( 28.000000 * faster than initial creation )
+200 SINGLE PLUGS Connected in 0.690000 s ( 289.855072 / s )
+Undo: byronimoUndo -pop
+Redo: byronimoUndo -pop
+UNDO / REDO Time = 0.000000 / 0.000000 ( 690.000000 * faster than initial creation )
+
+
+UNDO: DECORATED Undo disabled: 44135 ops in 1.460000 s ( 30229.452055 / s )
+UNDO: MANUAL Undo disabled: 44135 ops in 1.520000 s ( 29036.184211 / s )
+UNDO: DECORATED is 3.947368 % faster than manually implemented functions !
+UNDO: DECORATED : 44135 ops in 1.810000 s ( 24383.977901 / s )
+UNDO: MANUAL : 44135 ops in 1.810000 s ( 24383.977901 / s )
+UNDO: DECORATED is 0.000000 % faster than manually implemented functions !
+Undo: byronimoUndo -pop
+Undo: byronimoUndo -pop -id "_recurseUndoDeco"
+Redo: byronimoUndo -pop -id "_recurseUndoDeco"
+Redo: byronimoUndo -pop
+UNDO: CALL TIME: 176540 operations in 0.110000 s ( 1604909.090909 / s )
+UNDO: RATIO UNDO QUEUE ON/OFF: 1.810000 s (on) vs 1.460000 s (off) = 19.337017 % speedup on disabled queue ( difference [s] = 0.290000 )
+Undo: byronimoUndo -pop
+Redo: byronimoUndo -pop
+Undo: byronimoUndo -pop
+Redo: byronimoUndo -pop
+Undo: byronimoUndo -pop
+Undo: byronimoUndo -pop
+Undo: byronimoUndo -pop
+Undo: byronimoUndo -pop
+Redo: byronimoUndo -pop
+SETTING WrappedWorkflow._FP_3_TestProcessTarget_inUni
+WILL QUERY: WrappedWorkflow._FP_3_TestProcessTarget_outString
+this10.020202020202020202020202020202020
+SETTING 3_TestProcessTarget.inUni
+WILL QUERY: 3_TestProcessTarget.outString
+SETTING 1_WrappedWorkflow._FP_1_TestProcess_inChain
+WILL QUERY: 2_WrappedWorkflow._FP_3_TestProcessTarget_outChain
+MULTI WRAPPED WORKFLOW
+1. 1_TestProcess provides [15] through outChain to TestProcess
+2. 2_TestProcess provides [25] through outChain to OtherTestProcess
+3. 3_TestProcessTarget provides [35] through outChain to TestProcess
+4. 1_TestProcess provides [45] through outChain to TestProcess
+5. 2_TestProcess provides [55] through outChain to OtherTestProcess
+6. 3_TestProcessTarget computes [65] when asked for outChain
+SETTING 3_TestProcessTarget.inUni
+WILL QUERY: 3_TestProcessTarget.outString
+unicode workflow test
+1. 1_TestProcess provides 8 through outInt to TestProcess
+2. 2_TestProcess provides 16 through outInt to OtherTestProcess
+3. 1_TestProcess provides 5.0 through outFloat to TestProcess
+4. 2_TestProcess provides 10.0 through outFloat to OtherTestProcess
+5. 3_TestProcessTarget computes u'this10.020202020202020202020202020202020' when asked for outString
+SETTING TestProcess0.inInt
+WILL QUERY: TestProcess1.outInt
+SETTING TestProcess0.inFloat
+WILL QUERY: TestProcess1.outFloat
+SETTING 3_TestProcessTarget.inUni
+WILL QUERY: 3_TestProcessTarget.outString
+SETTING TestProcess0.inFloat
+WILL QUERY: TestProcess1.outFloat
+SETTING TestProcess0.inFloat
+WILL QUERY: TestProcess1.outFloat
+SETTING TestProcess0.inFloat
+WILL QUERY: TestProcess1.outFloat
+SETTING TestProcess0.inFloat
+WILL QUERY: TestProcess1.outFloat
+SETTING TestProcess0.inFloat
+WILL QUERY: TestProcess1.outFloat
+SETTING TestProcess0.inFloat
+WILL QUERY: TestProcess1.outFloat
+SETTING TestProcess0.inFloat
+WILL QUERY: TestProcess1.outFloat
+SETTING TestProcess0.inFloat
+WILL QUERY: TestProcess1.outFloat
+SETTING TestProcess0.inFloat
+WILL QUERY: TestProcess1.outFloat
+SETTING TestProcess0.inFloat
+WILL QUERY: TestProcess1.outFloat
+SETTING TestProcess0.inFloat
+WILL QUERY: TestProcess1.outFloat
+SETTING TestProcess0.inFloat
+WILL QUERY: TestProcess1.outFloat
+SETTING TestProcess0.inFloat
+WILL QUERY: TestProcess1.outFloat
+SETTING TestProcess0.inFloat
+WILL QUERY: TestProcess1.outFloat
+SETTING TestProcess0.inFloat
+WILL QUERY: TestProcess1.outFloat
+SETTING TestProcess0.inFloat
+WILL QUERY: TestProcess1.outFloat
+SETTING TestProcess0.inFloat
+WILL QUERY: TestProcess1.outFloat
+SETTING TestProcess0.inFloat
+WILL QUERY: TestProcess1.outFloat
+SETTING TestProcess0.inFloat
+WILL QUERY: TestProcess1.outFloat
+SETTING TestProcess0.inFloat
+WILL QUERY: TestProcess1.outFloat
+SETTING TestProcess0.inFloat
+WILL QUERY: TestProcess1.outFloat
+SETTING TestProcess0.inFloat
+WILL QUERY: TestProcess1.outFloat
+SETTING TestProcess0.inFloat
+WILL QUERY: TestProcess1.outFloat
+SETTING TestProcess0.inFloat
+WILL QUERY: TestProcess1.outFloat
+SETTING TestProcess0.inFloat
+WILL QUERY: TestProcess1.outFloat
+SETTING TestProcess0.inFloat
+WILL QUERY: TestProcess1.outFloat
+SETTING TestProcess0.inFloat
+WILL QUERY: TestProcess1.outFloat
+SETTING TestProcess0.inInt
+WILL QUERY: TestProcess1.outInt
+SETTING TestProcess0.inInt
+WILL QUERY: TestProcess1.outInt
+SETTING TestProcess0.inText
+WILL QUERY: TestProcess1.outText
+SETTING TestProcess0.inInt
+WILL QUERY: TestProcess1.outInt
+SETTING TestProcess0.inFloat
+WILL QUERY: TestProcess1.outFloat
+SETTING TestProcess0.inFloat
+WILL QUERY: TestProcess1.outFloat
+100.0
+Undo: byronimoUndo -pop -id "connectTo"
+Redo: byronimoUndo -pop -id "connectTo"
+Undo: byronimoUndo -pop -id "connectTo"
+Undo: byronimoUndo -pop -id "disconnectInput"
+Undo: byronimoUndo -pop -id "disconnectOutputs"
+Undo: byronimoUndo -pop -id "disconnectFrom"
+Undo: byronimoUndo -pop -id "wrappedSetAttr"
+Redo: byronimoUndo -pop -id "wrappedSetAttr"
+Undo: byronimoUndo -pop -id "wrappedSetAttr"
+Redo: byronimoUndo -pop -id "wrappedSetAttr"
+Undo: byronimoUndo -pop -id "createNode"
+Redo: byronimoUndo -pop -id "createNode"
+Undo: byronimoUndo -pop -id "createNode"
+Redo: byronimoUndo -pop -id "createNode"
+Undo: byronimoUndo -pop -id "createNode"
+Redo: byronimoUndo -pop -id "createNode"
+Undo: byronimoUndo -pop -id "createNode"
+Redo: byronimoUndo -pop -id "createNode"
+Undo: byronimoUndo -pop -id "createNode"
+Redo: byronimoUndo -pop -id "createNode"
+Undo: byronimoUndo -pop -id "createNode"
+Redo: byronimoUndo -pop -id "createNode"
+Undo: byronimoUndo -pop -id "createNode"
+Redo: byronimoUndo -pop -id "createNode"
+Undo: byronimoUndo -pop -id "createNode"
+Redo: byronimoUndo -pop -id "createNode"
+File read in 1 seconds.
+Warning: This file contains an uncached fluid; rewind and playback to see correct current state.
+ 
+Found a resolution node; these are being phased out.
+Please add an entry to a file named userImageFormats.mel such as the following:
+global string   $gUserImageFormatData[] =
+    { "resolution1  640  480  1.33333" };
+These values have been added to the Render Settings Resolution menu.
+Warning: Please check the Script Editor for details.
+Error: Ignoring attempt to open a new IFF file before previous one was closed
+Error: Specified file, , is not a valid image file.
+Undo: byronimoUndo -pop -id "wrappedSetAttr"
+Undo: byronimoUndo -pop -id "wrappedSetAttr"
+Undo: byronimoUndo -pop -id "wrappedSetAttr"
+Undo: byronimoUndo -pop -id "wrappedSetAttr"
+mental ray for Maya 8.5 
+// mental ray for Maya: using startup file /usr/autodesk/maya8.5-x64/mentalray/maya.rayrc
+mental ray for Maya: setup
+mental ray for Maya: initialize
+mental ray: version 3.5.6.8, 14 Feb 2007, revision 20433
+mental ray for Maya: using 1 license
+mental ray for Maya: register extensions
+// mental ray Node Factory: loaded
+// parsing /usr/autodesk/maya8.5-x64/mentalray/include/architectural.mi
+// loading /usr/autodesk/maya8.5-x64/mentalray/lib/architectural.so
+// generating Maya nodes...
+// parsing /usr/autodesk/maya8.5-x64/mentalray/include/base.mi
+// loading /usr/autodesk/maya8.5-x64/mentalray/lib/base.so
+// generating Maya nodes...
+// parsing /usr/autodesk/maya8.5-x64/mentalray/include/contour.mi
+// loading /usr/autodesk/maya8.5-x64/mentalray/lib/contour.so
+// generating Maya nodes...
+// parsing /usr/autodesk/maya8.5-x64/mentalray/include/paint.mi
+// loading /usr/autodesk/maya8.5-x64/mentalray/lib/paint.so
+// generating Maya nodes...
+// parsing /usr/autodesk/maya8.5-x64/mentalray/include/physics.mi
+// loading /usr/autodesk/maya8.5-x64/mentalray/lib/physics.so
+// generating Maya nodes...
+// parsing /usr/autodesk/maya8.5-x64/mentalray/include/subsurface.mi
+// loading /usr/autodesk/maya8.5-x64/mentalray/lib/subsurface.so
+// generating Maya nodes...
+// parsing /usr/autodesk/maya8.5-x64/mentalray/include/surfaceSampler.mi
+// loading /usr/autodesk/maya8.5-x64/mentalray/lib/surfaceSampler.so
+// generating Maya nodes...
+mental ray for Maya: successfully registered
+mental ray for Maya: loading startup file: /usr/autodesk/maya8.5-x64/mentalray/maya.rayrc
+mental ray: mental ray for Maya - startup done
+Warning: file: /home/sebastian/ws_repository/src/whitesharkstd/trunk/ext/byronimo/py/byronimotest/byronimo/maya/ma/instancetest.ma line 270: Unrecognized node type 'vectorRenderGlobals'; preserving node information during this session.
+File read in 0 seconds.
+Warning: Errors have occurred while reading this scene that may result in data loss.
+Error: line 1: Plug-in, "VectorRender.so", was not found on MAYA_PLUG_IN_PATH.
+Undo: byronimoUndo -pop -id "removeChild"
+Error: Attribute 'getChildCount' does not exist on '|base', neither as function not as attribute
+# Traceback (most recent call last):
+#   File "/home/sebastian/ws_repository/src/whitesharkstd/trunk/ext/byronimo/py/byronimo/maya/undo.py", line 135, in undoIt
+#     self._operations[ index ].undoIt()
+#   File "/home/sebastian/ws_repository/src/whitesharkstd/trunk/py/whiteshark/../../ext/byronimo/py/byronimo/maya/undo.py", line 321, in undoIt
+#     self._undofunc( *self._undoargs, **self._undokwargs )
+#   File "/home/sebastian/ws_repository/src/whitesharkstd/trunk/py/whiteshark/../../ext/byronimo/py/byronimo/maya/undo.py", line 201, in undoableDecoratorWrapFunc
+#     rval = func( *args, **kwargs )
+#   File "/home/sebastian/ws_repository/src/whitesharkstd/trunk/ext/byronimo/py/byronimo/maya/nodes/base.py", line 1167, in addChild
+#     dagIndex = self.getChildCount() - 1	# last entry as child got added
+#   File "/home/sebastian/ws_repository/src/whitesharkstd/trunk/ext/byronimo/py/byronimo/maya/nodes/types.py", line 232, in meta_getattr_lazy
+#     return getattrorigfunc( self, attr )
+#   File "/home/sebastian/ws_repository/src/whitesharkstd/trunk/ext/byronimo/py/byronimo/maya/nodes/base.py", line 628, in __getattr__
+#     raise AttributeError( "Attribute '%s' does not exist on '%s', neither as function not as attribute" % ( attr, self.name() ) )
+# AttributeError: Attribute 'getChildCount' does not exist on '|base', neither as function not as attribute
+Undo: byronimoUndo -pop -id "removeChild"
+Error: Attribute 'getChildCount' does not exist on '|base', neither as function not as attribute
+# Traceback (most recent call last):
+#   File "/home/sebastian/ws_repository/src/whitesharkstd/trunk/ext/byronimo/py/byronimo/maya/undo.py", line 135, in undoIt
+#     self._operations[ index ].undoIt()
+#   File "/home/sebastian/ws_repository/src/whitesharkstd/trunk/py/whiteshark/../../ext/byronimo/py/byronimo/maya/undo.py", line 321, in undoIt
+#     self._undofunc( *self._undoargs, **self._undokwargs )
+#   File "/home/sebastian/ws_repository/src/whitesharkstd/trunk/py/whiteshark/../../ext/byronimo/py/byronimo/maya/undo.py", line 201, in undoableDecoratorWrapFunc
+#     rval = func( *args, **kwargs )
+#   File "/home/sebastian/ws_repository/src/whitesharkstd/trunk/ext/byronimo/py/byronimo/maya/nodes/base.py", line 1167, in addChild
+#     dagIndex = self.getChildCount() - 1	# last entry as child got added
+#   File "/home/sebastian/ws_repository/src/whitesharkstd/trunk/ext/byronimo/py/byronimo/maya/nodes/types.py", line 232, in meta_getattr_lazy
+#     return getattrorigfunc( self, attr )
+#   File "/home/sebastian/ws_repository/src/whitesharkstd/trunk/ext/byronimo/py/byronimo/maya/nodes/base.py", line 628, in __getattr__
+#     raise AttributeError( "Attribute '%s' does not exist on '%s', neither as function not as attribute" % ( attr, self.name() ) )
+# AttributeError: Attribute 'getChildCount' does not exist on '|base', neither as function not as attribute
+Undo: byronimoUndo -pop -id "rename"
+Redo: byronimoUndo -pop -id "rename"
+Undo: byronimoUndo -pop -id "rename"
+Redo: byronimoUndo -pop -id "rename"
+File read in 0 seconds.
+Result: sine1Set
+Result: sine1Set
+Result: sine1Set
+Result: tweakSet1
+Result: tweakSet1
+Result: squash1Set
+Result: squash1Set
+Result: squash1Set
+Result: sine1Set
+Result: sine1Set
+Result: sine1Set
+Result: tweakSet2
+Result: tweakSet2
+Result: squash1Set
+Result: squash1Set
+Result: squash1Set
+File read in 0 seconds.
+Result: memberSet
+Undo: byronimoUndo -pop -id "addMember"
+Redo: byronimoUndo -pop -id "addMember"
+Result: memberSet
+Undo: byronimoUndo -pop -id "addMember"
+Redo: byronimoUndo -pop -id "addMember"
+Result: memberSet
+Undo: byronimoUndo -pop -id "addMember"
+Redo: byronimoUndo -pop -id "addMember"
+Result: memberSet
+Undo: byronimoUndo -pop -id "addMember"
+Redo: byronimoUndo -pop -id "addMember"
+Result: memberSet
+Undo: byronimoUndo -pop -id "addMember"
+Redo: byronimoUndo -pop -id "addMember"
+Result: memberSet
+Undo: byronimoUndo -pop -id "addMember"
+Redo: byronimoUndo -pop -id "addMember"
+Undo: byronimoUndo -pop -id "addMember"
+Undo: byronimoUndo -pop -id "addMember"
+Undo: byronimoUndo -pop -id "addMember"
+Undo: byronimoUndo -pop -id "addMember"
+Undo: byronimoUndo -pop -id "addMember"
+Undo: byronimoUndo -pop -id "addMember"
+Redo: byronimoUndo -pop -id "addMember"
+Redo: byronimoUndo -pop -id "addMember"
+Redo: byronimoUndo -pop -id "addMember"
+Redo: byronimoUndo -pop -id "addMember"
+Redo: byronimoUndo -pop -id "addMember"
+Redo: byronimoUndo -pop -id "addMember"
+Result: memberSet
+Undo: byronimoUndo -pop -id "removeMembers"
+Redo: byronimoUndo -pop -id "removeMembers"
+Result: memberSet
+Result: set4
+Result: set4
+Undo: byronimoUndo -pop -id "addMembers"
+Redo: byronimoUndo -pop -id "addMembers"
+Result: memberSet
+Result: memberSet
+Result: memberSet
+Result: memberSet
+Result: memberSet
+Result: memberSet
+Result: memberSet
+Result: set4
+Result: set4
+Result: memberSet
+Result: memberSet
+Result: set4
+Result: set4
+Result: memberSet
+Undo: byronimoUndo -pop -id "removeMembers"
+Redo: byronimoUndo -pop -id "removeMembers"
+Result: memberSet
+Result: set4
+Result: set4
+Result: memberSet
+Undo: byronimoUndo -pop -id "clear"
+Result: s3
+Error: Cannot add the following items to the set since they would break the exclusivity constraint: trans
+Error: Cannot add the following items to the set since they would break the exclusivity constraint: trans
+Error: Cannot add the following items to the set since they would break the exclusivity constraint: trans
+Result: s3
+Result: s4
+Error: Cannot add the following items to the set since they would break the exclusivity constraint: trans
+Result: set4
+Result: set4
+Result: s3
+Result: set4
+Result: set4
+Error: Cannot add the following items to the set since they would break the exclusivity constraint: trans
+Result: set4
+Result: set4
+Result: set4
+Result: set4
+Result: s3
+Result: set4
+Result: set4
+Result: s4
+Result: s3
+Result: set4
+Result: set4
+Error: Cannot add set "s3" to set "s3" as it would cause a cycle
+Result: memberSet
+Result: memberSet
+Result: set4
+Result: set4
+Result: memberSet2
+Result: set4
+Result: set4
+Result: memberSet2
+Result: set4
+Result: set4
+Result: set4
+Result: set4
+Result: anotherObjectSet
+Result: set4
+Result: set4
+Result: memberSet2
+Result: memberSet
+Result: memberSet
+Result: set4
+Result: set4
+Result: set4
+Result: memberSet
+Result: memberSet
+Result: set5
+Result: set5
+Result: set4
+Result: set4
+Result: memberSet
+Result: memberSet
+Result: set5
+Result: set5
+Result: set4
+Result: anotherObjectSet
+Result: anotherObjectSet
+Result: memberSet
+Result: memberSet
+Result: memberSet
+Result: set4
+Result: set4
+Result: memberSet
+Result: set4
+Result: set4
+Result: memberSet
+Result: memberSet
+Result: memberSet
+Result: set4
+Result: set4
+Result: memberSet
+Result: set4
+Result: set4
+Result: memberSet
+Result: memberSet
+Result: memberSet
+Result: set4
+Result: set4
+Result: memberSet
+Result: set4
+Result: set4
+File read in 0 seconds.
+Result: sg4
+Result: sg4
+Result: sg1
+Result: sg1
+Result: sg2
+Result: sg2
+Result: sg3
+Result: sg3
+Error: Cannot add the following items to the set since they would break the exclusivity constraint: pSphere1.f[0:2]
+Error: Cannot add the following items to the set since they would break the exclusivity constraint: pSphere1.f[0:2]
+Result: sg3
+Result: sg4
+Result: sg1
+Error: Cannot add the following items to the set since they would break the exclusivity constraint: pSphere1.f[0:2]
+Error: Cannot add the following items to the set since they would break the exclusivity constraint: pSphere1.f[3:5]
+Result: sg1
+Result: sg3
+Result: sg4
+Result: sg2
+File read in 0 seconds.
+Undo: byronimoUndo -pop -id "clearData"
+File read in 0 seconds.
+File read in 0 seconds.
+File read in 0 seconds.
+File read in 0 seconds.
+Undo: byronimoUndo -pop -id "clearData"
+File read in 0 seconds.
+File read in 0 seconds.
+File read in 0 seconds.
+Undo: byronimoUndo -pop
+Redo: byronimoUndo -pop
+Undo: byronimoUndo -pop -id "deleteObjectSet"
+Redo: byronimoUndo -pop -id "deleteObjectSet"
+Undo: byronimoUndo -pop -id "deleteObjectSet"
+Undo: byronimoUndo -pop -id "setPartition"
+Redo: byronimoUndo -pop -id "setPartition"
+Undo: byronimoUndo -pop -id "deleteObjectSet"
+Undo: byronimoUndo -pop
+Redo: byronimoUndo -pop
+Undo: byronimoUndo -pop -id "setPartition"
+Redo: byronimoUndo -pop -id "setPartition"
+my message
+my message
+my message
+my message
+my message
+my message
+my message
+my message
+my message
+my message
+0%
+100%
+100.0
+my message
+my message
+my message
+my message
+my message
+my message
+my message
+my message
+my message
+my message
+0/10
+10/10
+byronimo.maya.namespace: test all namespace functionality ... ok
+byronimo.maya.reference: list some references and query their information ... ERROR
+byronimo.maya.reference: create , delete and replace references ... ERROR
+byronimo.maya.scene: check file callback ... ok
+byronimo.maya.scene: Test ordinary scene callbacks ... ok
+byronimo.maya.scene: use group 0 check callbacks ... ok
+byronimo.maya.scene: force a new scene ... ok
+byronimo.maya.scene: open file ... ok
+byronimo.maya.scene: safe a file under new names and with different formats ... ok
+byronimo.maya.undo: test DAG modifier capabilities ... ok
+byronimo.maya.undo: test dg modifier capabilities ... ok
+byronimo.maya.undo: basic assertions ... ok
+byronimo.maya.util: test optionvars dict ... ok
+byronimo.maya.nodes.benchmark: simply randomize the transformations of dag nodes on a scene ... ok
+byronimo.maya.nodes.benchmark: compute the center point of all  dagnodes in scene ... ok
+byronimo.maya.benchmark.general: test random node creation performance ... ok
+byronimo.maya.benchmark.general.dagWalking: see how many nodes per second we walk ... ok
+byronimo.maya.apipatch: test plug performance ... ok
+byronimo.maya.undo: recursive undo including decorator ... ok
+byronimo.maya.undo: test DAG modifier capabilities ... ok
+byronimo.maya.undo: test dg modifier capabilities ... ok
+byronimo.maya.undo: basic assertions ... ok
+byronimo.automation.process: check workflow nested into process ... ok
+byronimo.automation.report: test plan report ... ok
+byronimo.automation.workflow: assure callgraph can be generated properly ... ok
+byronimo.automation.workflow: test multiple targets at once ... ok
+byronimo.automation.workflow: test a simple dirtycheck ... ok
+byronimo.automation.workflow: create a simple workflow from a dot file ... ok
+byronimo.automation.workflow:  test facades of workflows ... ok
+byronimo.maya.ui: test callbacks and handling - needs user interaction ... ok
+byronimo.maya.ui: create some windows ... ok
+byronimo.maya.ui: test basic layout functions ... ok
+byronimo.maya.ui: test progress window functionality ... ok
+byronimo.maya.nodes: Test plug abilities( node.attribute ) ... ok
+byronimo.maya.nodes: test the plugarray wrapper ... ok
+byronimo.maya.nodes: Test the matrices ... ok
+byronimo.maya.nodes: test matrix data ... ok
+byronimo.maya.nodes: test primitive types ... ok
+byronimo.maya.nodes: create nodes with long names and namespaces ... ok
+byronimo.maya.nodes: if mobjects where used internally, this test would fail ... ERROR
+byronimo.maya.nodes: check whether we can properly handle node exist checks ... ok
+byronimo.maya.nodes: test wrapper class creation ... ok
+byronimo.maya.nodes.base: add and remove attributes with undo ... ok
+byronimo.maya.nodes: tests the add and remove children ... ERROR
+byronimo.maya.nodes: add a custom type to the system ... ok
+byronimo.nodes.maya: DependeNode.__getitem__ ... ok
+byronimo.maya.nodes.base: test how display type and display overrides work hierarchically ... ok
+byronimo.maya.nodes: handle duplication of instances ... ERROR
+byroimo.maya.nodes: should be possible to use objects as keys in hashes ... ok
+byronimo.maya.nodes.base: traverse instances ... ERROR
+byronimo.maya.nodes.base: test instances and parenting, also instanced attributes ... ERROR
+byronimo.maya.nodes.base: keep ws transformation when reparenting ... ERROR
+byroniom.maya.nodes.base: write a generated cache using the builder function ... ok
+byronimo.maya.nodes: test how remove child responds ... ok
+byronimo.maya.nodes: see of reparenting is responding when instances are involved ... ERROR
+byronimo.maya.nodes: create and access dag nodes ... ERROR
+byronimo.maya.nodes: create and access dependency nodes ( not being dag nodes ) ... ok
+byronimo.maya.nodes.geometry: set handling tests for different types ... ok
+byronimo.maya.nodes.iterators: simple DAG iteration ... ERROR
+byronimo.maya.nodes.iterators: simple dg graph iteration ... ok
+byronimo.maya.nodes.iterators: simple DG iteration ... ok
+byronimo.maya.nodes.iterators: Iterate selection lists ... ok
+byronimo.maya.nodes.sets: create,add and remove ... ok
+byronimo.maya.nodes.sets: add/remove members from all kinds of inputs ... ok
+byronimo.maya.nodes.sets: test partition constraints ... ERROR
+byroniom.maya.nodes.sets: unions, intersections, difference, overloaded ops ... ok
+byronimo.maya.nodes.sets: member handling with components - needs to run last ... ok
+byronimo.maya.nodes.storage: test of the attribute accesss on storages is working ... ok
+byronimo.maya.nodes.storage: test pickle data ... ok
+byronimo.maya.nodes.storage: test built-in sethandling ... ok
+ConfigAccessor: assure that the provided iterators for sections and keys work ... ok
+ConfigAccessor.Properties: Assure that key properties can be parsed ... ok
+ConfigAccessor:If a configuration gets flattened several times, the result must always match with the original ... ok
+ConfigAccessor: see if ca['keyname'] works ... ok
+ConfigAccessor.Properties: if properties are set at runtime, the propertysections might need long names for qualification when written ... ok
+ConfigAccessor.Properties: Property attribute of property must not be set ... ok
+ConfigAccessor: Tests whether malformed INI files raise ... FAIL
+ConfigAccessor: Tests whether non-malformed INI files can be read ( single and multi ) ... ok
+ConfigAccessor.Properties: Assure that section and key properties can be parsed ... ok
+ConfigAccessor.Properties: Assure that section properties can be parsed ... ok
+ConfigDiffer: Assure added keys are detected ... ok
+ConfigDiffer: Assure removed keys are detected ... ok
+ConfigDiffer: Assure added key-values are detected ... ok
+ConfigDiffer: Assure changed key-values are detected as a removed and added value ... ok
+ConfigDiffer: Assure removed key-values are detected ... ok
+ConfigDiffer: Assure that changes in properties are being detected ... ok
+ConfigDiffer: Assure diffing will detect removed sections ... ok
+ConfigDiffer: Assure diffing will detect removed and added sections ... ok
+ConfigDiffer: Assure diffing will detect removed and added sections, no unchanged sections ... ok
+ConfigManager: Simple read and alter values in the Configuration Manager, and write them back ... ok
+ConfigManager: check if filedescriptor parsing is generally working ... ok
+DictToINIFile:Tests whether default dicts can actually be handled by the converter ... FAIL
+DictToINIFile:Tests whether malformed strings trigger exceptions if malformed ... ok
+Decorators: Tests whether methods using both, rval and parameter type checking works as expected ... ok
+Decorators: Assure that the typecheck param is able to send type error exceptions ... ok
+Decorators: Assure that people do not set kv type checks that do not match any actual method variable ... ok
+Decorators: Assure that the rval test decorator is able to catch these kinds of  type errors ... ok
+dgengine: duplicate a graph ... ok
+dgengine: Test full feature set ... ok
+dgengine: graphFacadeNodes: full facade test ... ok
+dgending: graphnode configuration ... ok
+path: test intatiation ... ok
+byronimo.util.DAGTree: Test general methods ... ok
+byronimo.util: test generalized filters ... ok
+byronimo.util: test IntKeygenerator ... ok
+byronimo.util: interface base testing of main functionality ... ok
+byronimo.utils.iProgressIndicator: do some simple progress testing ... ok
+
+======================================================================
+ERROR: byronimo.maya.reference: list some references and query their information
+----------------------------------------------------------------------
 Traceback (most recent call last):
-  File "/home/sebastian/ws_repository/src/whitesharkstd/trunk/py/start.py", line 41, in ?
-    main()
-  File "/home/sebastian/ws_repository/src/whitesharkstd/trunk/py/start.py", line 31, in main
-    module.main( *args )
-  File "/home/sebastian/ws_repository/src/whitesharkstd/trunk/ext/byronimo/py/byronimotest/__init__.py", line 92, in main
-    run_all()
-  File "/home/sebastian/ws_repository/src/whitesharkstd/trunk/ext/byronimo/py/byronimotest/__init__.py", line 84, in run_all
-    testrunner.run( get_suite( ) )
-  File "/home/sebastian/ws_repository/src/whitesharkstd/trunk/ext/byronimo/py/byronimotest/__init__.py", line 60, in get_suite
-    import byronimotest.byronimo.maya as maya
-  File "/home/sebastian/ws_repository/src/whitesharkstd/trunk/ext/byronimo/py/byronimotest/byronimo/maya/__init__.py", line 19, in ?
-    import byronimo.maya as bmaya
-  File "/home/sebastian/ws_repository/src/whitesharkstd/trunk/ext/byronimo/py/byronimo/maya/__init__.py", line 290, in ?
-    init_system( )
-  File "/home/sebastian/ws_repository/src/whitesharkstd/trunk/ext/byronimo/py/byronimo/maya/__init__.py", line 245, in init_system
-    import maya.standalone
-KeyboardInterrupt
+  File "/home/sebastian/ws_repository/src/whitesharkstd/trunk/ext/byronimo/py/byronimotest/byronimo/maya/reference.py", line 43, in test_listAndQuery
+    ref.getChildrenDeep( )		# try function
+  File "/home/sebastian/ws_repository/src/whitesharkstd/trunk/ext/byronimo/py/byronimo/util.py", line 250, in getChildrenDeep
+    children = item.getChildren( predicate = predicate )
+  File "/home/sebastian/ws_repository/src/whitesharkstd/trunk/py/whiteshark/../../ext/byronimo/py/byronimo/maya/reference.py", line 363, in getChildren
+    return self.ls( referenceFile = self.getFullPath(), predicate = predicate )
+  File "/home/sebastian/ws_repository/src/whitesharkstd/trunk/py/whiteshark/../../ext/byronimo/py/byronimo/maya/reference.py", line 201, in ls
+    for reffile in cmds.file( str( referenceFile ), q=1, r=1, un=1 ):
+RuntimeError: Cannot find the reference file.
+
+
+======================================================================
+ERROR: byronimo.maya.reference: create , delete and replace references
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/home/sebastian/ws_repository/src/whitesharkstd/trunk/ext/byronimo/py/byronimotest/byronimo/maya/reference.py", line 157, in test_referenceCreation
+    childrefs = firstsubref.importRef( depth = 1 )
+  File "/home/sebastian/ws_repository/src/whitesharkstd/trunk/py/whiteshark/../../ext/byronimo/py/byronimo/maya/reference.py", line 268, in importRef
+    return importRecursive( self, 0, depth )
+  File "/home/sebastian/ws_repository/src/whitesharkstd/trunk/py/whiteshark/../../ext/byronimo/py/byronimo/maya/reference.py", line 255, in importRecursive
+    children = reference.getChildren()
+  File "/home/sebastian/ws_repository/src/whitesharkstd/trunk/py/whiteshark/../../ext/byronimo/py/byronimo/maya/reference.py", line 363, in getChildren
+    return self.ls( referenceFile = self.getFullPath(), predicate = predicate )
+  File "/home/sebastian/ws_repository/src/whitesharkstd/trunk/py/whiteshark/../../ext/byronimo/py/byronimo/maya/reference.py", line 201, in ls
+    for reffile in cmds.file( str( referenceFile ), q=1, r=1, un=1 ):
+RuntimeError: Cannot find the reference file.
+
+
+======================================================================
+ERROR: byronimo.maya.nodes: if mobjects where used internally, this test would fail
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/home/sebastian/ws_repository/src/whitesharkstd/trunk/ext/byronimo/py/byronimotest/byronimo/maya/nodes/general.py", line 179, in test_dagPathVSMobjects
+    instnode = duplnodemiddle.addInstancedChild( node )
+  File "/home/sebastian/ws_repository/src/whitesharkstd/trunk/py/whiteshark/../../ext/byronimo/py/byronimo/maya/undo.py", line 201, in undoableDecoratorWrapFunc
+    rval = func( *args, **kwargs )
+  File "/home/sebastian/ws_repository/src/whitesharkstd/trunk/ext/byronimo/py/byronimo/maya/nodes/base.py", line 1021, in addInstancedChild
+    return self.addChild( childNode, position = position, keepExistingParent=True )
+  File "/home/sebastian/ws_repository/src/whitesharkstd/trunk/py/whiteshark/../../ext/byronimo/py/byronimo/maya/undo.py", line 201, in undoableDecoratorWrapFunc
+    rval = func( *args, **kwargs )
+  File "/home/sebastian/ws_repository/src/whitesharkstd/trunk/ext/byronimo/py/byronimo/maya/nodes/base.py", line 1167, in addChild
+    dagIndex = self.getChildCount() - 1	# last entry as child got added
+  File "/home/sebastian/ws_repository/src/whitesharkstd/trunk/ext/byronimo/py/byronimo/maya/nodes/types.py", line 232, in meta_getattr_lazy
+    return getattrorigfunc( self, attr )
+  File "/home/sebastian/ws_repository/src/whitesharkstd/trunk/ext/byronimo/py/byronimo/maya/nodes/base.py", line 628, in __getattr__
+    raise AttributeError( "Attribute '%s' does not exist on '%s', neither as function not as attribute" % ( attr, self.name() ) )
+AttributeError: Attribute 'getChildCount' does not exist on '|parent|middle1', neither as function not as attribute
+
+======================================================================
+ERROR: byronimo.maya.nodes: tests the add and remove children
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/home/sebastian/ws_repository/src/whitesharkstd/trunk/ext/byronimo/py/byronimotest/byronimo/maya/nodes/general.py", line 544, in test_childEditing
+    baseiteminst = base.addInstancedChild( item )
+  File "/home/sebastian/ws_repository/src/whitesharkstd/trunk/py/whiteshark/../../ext/byronimo/py/byronimo/maya/undo.py", line 201, in undoableDecoratorWrapFunc
+    rval = func( *args, **kwargs )
+  File "/home/sebastian/ws_repository/src/whitesharkstd/trunk/ext/byronimo/py/byronimo/maya/nodes/base.py", line 1021, in addInstancedChild
+    return self.addChild( childNode, position = position, keepExistingParent=True )
+  File "/home/sebastian/ws_repository/src/whitesharkstd/trunk/py/whiteshark/../../ext/byronimo/py/byronimo/maya/undo.py", line 201, in undoableDecoratorWrapFunc
+    rval = func( *args, **kwargs )
+  File "/home/sebastian/ws_repository/src/whitesharkstd/trunk/ext/byronimo/py/byronimo/maya/nodes/base.py", line 1167, in addChild
+    dagIndex = self.getChildCount() - 1	# last entry as child got added
+  File "/home/sebastian/ws_repository/src/whitesharkstd/trunk/ext/byronimo/py/byronimo/maya/nodes/types.py", line 232, in meta_getattr_lazy
+    return getattrorigfunc( self, attr )
+  File "/home/sebastian/ws_repository/src/whitesharkstd/trunk/ext/byronimo/py/byronimo/maya/nodes/base.py", line 628, in __getattr__
+    raise AttributeError( "Attribute '%s' does not exist on '%s', neither as function not as attribute" % ( attr, self.name() ) )
+AttributeError: Attribute 'getChildCount' does not exist on '|basenode', neither as function not as attribute
+
+======================================================================
+ERROR: byronimo.maya.nodes: handle duplication of instances
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/home/sebastian/ws_repository/src/whitesharkstd/trunk/ext/byronimo/py/byronimotest/byronimo/maya/nodes/general.py", line 363, in test_duplicateInstances
+    obasemeshinst = obase.addInstancedChild( basemesh )
+  File "/home/sebastian/ws_repository/src/whitesharkstd/trunk/py/whiteshark/../../ext/byronimo/py/byronimo/maya/undo.py", line 201, in undoableDecoratorWrapFunc
+    rval = func( *args, **kwargs )
+  File "/home/sebastian/ws_repository/src/whitesharkstd/trunk/ext/byronimo/py/byronimo/maya/nodes/base.py", line 1021, in addInstancedChild
+    return self.addChild( childNode, position = position, keepExistingParent=True )
+  File "/home/sebastian/ws_repository/src/whitesharkstd/trunk/py/whiteshark/../../ext/byronimo/py/byronimo/maya/undo.py", line 201, in undoableDecoratorWrapFunc
+    rval = func( *args, **kwargs )
+  File "/home/sebastian/ws_repository/src/whitesharkstd/trunk/ext/byronimo/py/byronimo/maya/nodes/base.py", line 1167, in addChild
+    dagIndex = self.getChildCount() - 1	# last entry as child got added
+  File "/home/sebastian/ws_repository/src/whitesharkstd/trunk/ext/byronimo/py/byronimo/maya/nodes/types.py", line 232, in meta_getattr_lazy
+    return getattrorigfunc( self, attr )
+  File "/home/sebastian/ws_repository/src/whitesharkstd/trunk/ext/byronimo/py/byronimo/maya/nodes/base.py", line 628, in __getattr__
+    raise AttributeError( "Attribute '%s' does not exist on '%s', neither as function not as attribute" % ( attr, self.name() ) )
+AttributeError: Attribute 'getChildCount' does not exist on '|obase', neither as function not as attribute
+
+======================================================================
+ERROR: byronimo.maya.nodes.base: traverse instances
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/home/sebastian/ws_repository/src/whitesharkstd/trunk/ext/byronimo/py/byronimotest/byronimo/maya/nodes/general.py", line 648, in test_instanceTraversal
+    b.addInstancedChild( inst )
+  File "/home/sebastian/ws_repository/src/whitesharkstd/trunk/py/whiteshark/../../ext/byronimo/py/byronimo/maya/undo.py", line 201, in undoableDecoratorWrapFunc
+    rval = func( *args, **kwargs )
+  File "/home/sebastian/ws_repository/src/whitesharkstd/trunk/ext/byronimo/py/byronimo/maya/nodes/base.py", line 1021, in addInstancedChild
+    return self.addChild( childNode, position = position, keepExistingParent=True )
+  File "/home/sebastian/ws_repository/src/whitesharkstd/trunk/py/whiteshark/../../ext/byronimo/py/byronimo/maya/undo.py", line 201, in undoableDecoratorWrapFunc
+    rval = func( *args, **kwargs )
+  File "/home/sebastian/ws_repository/src/whitesharkstd/trunk/ext/byronimo/py/byronimo/maya/nodes/base.py", line 1167, in addChild
+    dagIndex = self.getChildCount() - 1	# last entry as child got added
+  File "/home/sebastian/ws_repository/src/whitesharkstd/trunk/ext/byronimo/py/byronimo/maya/nodes/types.py", line 232, in meta_getattr_lazy
+    return getattrorigfunc( self, attr )
+  File "/home/sebastian/ws_repository/src/whitesharkstd/trunk/ext/byronimo/py/byronimo/maya/nodes/base.py", line 628, in __getattr__
+    raise AttributeError( "Attribute '%s' does not exist on '%s', neither as function not as attribute" % ( attr, self.name() ) )
+AttributeError: Attribute 'getChildCount' does not exist on '|base', neither as function not as attribute
+
+======================================================================
+ERROR: byronimo.maya.nodes.base: test instances and parenting, also instanced attributes
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/home/sebastian/ws_repository/src/whitesharkstd/trunk/ext/byronimo/py/byronimotest/byronimo/maya/nodes/general.py", line 603, in test_instancesAndParenting
+    self.failUnless( m.getInstanceCount( 0 ) == 2 )
+  File "/home/sebastian/ws_repository/src/whitesharkstd/trunk/ext/byronimo/py/byronimo/maya/nodes/types.py", line 232, in meta_getattr_lazy
+    return getattrorigfunc( self, attr )
+  File "/home/sebastian/ws_repository/src/whitesharkstd/trunk/ext/byronimo/py/byronimo/maya/nodes/base.py", line 628, in __getattr__
+    raise AttributeError( "Attribute '%s' does not exist on '%s', neither as function not as attribute" % ( attr, self.name() ) )
+AttributeError: Attribute 'getInstanceCount' does not exist on '|a1|a2|a3|m', neither as function not as attribute
+
+======================================================================
+ERROR: byronimo.maya.nodes.base: keep ws transformation when reparenting
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/home/sebastian/ws_repository/src/whitesharkstd/trunk/ext/byronimo/py/byronimotest/byronimo/maya/nodes/general.py", line 759, in test_keepWorldSpace
+    t.setParent( g )
+  File "/home/sebastian/ws_repository/src/whitesharkstd/trunk/py/whiteshark/../../ext/byronimo/py/byronimo/maya/undo.py", line 201, in undoableDecoratorWrapFunc
+    rval = func( *args, **kwargs )
+  File "/home/sebastian/ws_repository/src/whitesharkstd/trunk/ext/byronimo/py/byronimo/maya/nodes/base.py", line 1194, in setParent
+    return parentnode.addChild( self, position = position, keepExistingParent = False )
+  File "/home/sebastian/ws_repository/src/whitesharkstd/trunk/py/whiteshark/../../ext/byronimo/py/byronimo/maya/undo.py", line 201, in undoableDecoratorWrapFunc
+    rval = func( *args, **kwargs )
+  File "/home/sebastian/ws_repository/src/whitesharkstd/trunk/ext/byronimo/py/byronimo/maya/nodes/base.py", line 1087, in addChild
+    if not keepExistingParent and childNode.getInstanceCount( 0 ) == 1:	# direct only
+  File "/home/sebastian/ws_repository/src/whitesharkstd/trunk/ext/byronimo/py/byronimo/maya/nodes/types.py", line 232, in meta_getattr_lazy
+    return getattrorigfunc( self, attr )
+  File "/home/sebastian/ws_repository/src/whitesharkstd/trunk/ext/byronimo/py/byronimo/maya/nodes/base.py", line 628, in __getattr__
+    raise AttributeError( "Attribute '%s' does not exist on '%s', neither as function not as attribute" % ( attr, self.name() ) )
+AttributeError: Attribute 'getInstanceCount' does not exist on '|t', neither as function not as attribute
+
+======================================================================
+ERROR: byronimo.maya.nodes: see of reparenting is responding when instances are involved
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/home/sebastian/ws_repository/src/whitesharkstd/trunk/ext/byronimo/py/byronimotest/byronimo/maya/nodes/general.py", line 344, in test_reparentAndInstances
+    baseinst = base.addInstancedChild( mesh )
+  File "/home/sebastian/ws_repository/src/whitesharkstd/trunk/py/whiteshark/../../ext/byronimo/py/byronimo/maya/undo.py", line 201, in undoableDecoratorWrapFunc
+    rval = func( *args, **kwargs )
+  File "/home/sebastian/ws_repository/src/whitesharkstd/trunk/ext/byronimo/py/byronimo/maya/nodes/base.py", line 1021, in addInstancedChild
+    return self.addChild( childNode, position = position, keepExistingParent=True )
+  File "/home/sebastian/ws_repository/src/whitesharkstd/trunk/py/whiteshark/../../ext/byronimo/py/byronimo/maya/undo.py", line 201, in undoableDecoratorWrapFunc
+    rval = func( *args, **kwargs )
+  File "/home/sebastian/ws_repository/src/whitesharkstd/trunk/ext/byronimo/py/byronimo/maya/nodes/base.py", line 1167, in addChild
+    dagIndex = self.getChildCount() - 1	# last entry as child got added
+  File "/home/sebastian/ws_repository/src/whitesharkstd/trunk/ext/byronimo/py/byronimo/maya/nodes/types.py", line 232, in meta_getattr_lazy
+    return getattrorigfunc( self, attr )
+  File "/home/sebastian/ws_repository/src/whitesharkstd/trunk/ext/byronimo/py/byronimo/maya/nodes/base.py", line 628, in __getattr__
+    raise AttributeError( "Attribute '%s' does not exist on '%s', neither as function not as attribute" % ( attr, self.name() ) )
+AttributeError: Attribute 'getChildCount' does not exist on '|base', neither as function not as attribute
+
+======================================================================
+ERROR: byronimo.maya.nodes: create and access dag nodes
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/home/sebastian/ws_repository/src/whitesharkstd/trunk/ext/byronimo/py/byronimotest/byronimo/maya/nodes/general.py", line 384, in test_wrapDagNode
+    copy = duplbase.duplicate( "parent|this|other|duplcopy" )
+  File "/home/sebastian/ws_repository/src/whitesharkstd/trunk/py/whiteshark/../../ext/byronimo/py/byronimo/maya/undo.py", line 201, in undoableDecoratorWrapFunc
+    rval = func( *args, **kwargs )
+  File "/home/sebastian/ws_repository/src/whitesharkstd/trunk/ext/byronimo/py/byronimo/maya/nodes/base.py", line 1329, in duplicate
+    reparent_node.reparent( parentnode, renameOnClash=renameOnClash )
+  File "/home/sebastian/ws_repository/src/whitesharkstd/trunk/py/whiteshark/../../ext/byronimo/py/byronimo/maya/undo.py", line 201, in undoableDecoratorWrapFunc
+    rval = func( *args, **kwargs )
+  File "/home/sebastian/ws_repository/src/whitesharkstd/trunk/ext/byronimo/py/byronimo/maya/nodes/base.py", line 954, in reparent
+    if raiseOnInstance and self.getInstanceCount( False ) > 1:
+  File "/home/sebastian/ws_repository/src/whitesharkstd/trunk/ext/byronimo/py/byronimo/maya/nodes/types.py", line 232, in meta_getattr_lazy
+    return getattrorigfunc( self, attr )
+  File "/home/sebastian/ws_repository/src/whitesharkstd/trunk/ext/byronimo/py/byronimo/maya/nodes/base.py", line 628, in __getattr__
+    raise AttributeError( "Attribute '%s' does not exist on '%s', neither as function not as attribute" % ( attr, self.name() ) )
+AttributeError: Attribute 'getInstanceCount' does not exist on '|parent|this|duplbase|duplbase', neither as function not as attribute
+
+======================================================================
+ERROR: byronimo.maya.nodes.iterators: simple DAG iteration
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/home/sebastian/ws_repository/src/whitesharkstd/trunk/ext/byronimo/py/byronimotest/byronimo/maya/nodes/iterators.py", line 42, in test_dagIter
+    transinst = trans.addInstancedChild( trans2 )
+  File "/home/sebastian/ws_repository/src/whitesharkstd/trunk/py/whiteshark/../../ext/byronimo/py/byronimo/maya/undo.py", line 201, in undoableDecoratorWrapFunc
+    rval = func( *args, **kwargs )
+  File "/home/sebastian/ws_repository/src/whitesharkstd/trunk/ext/byronimo/py/byronimo/maya/nodes/base.py", line 1021, in addInstancedChild
+    return self.addChild( childNode, position = position, keepExistingParent=True )
+  File "/home/sebastian/ws_repository/src/whitesharkstd/trunk/py/whiteshark/../../ext/byronimo/py/byronimo/maya/undo.py", line 201, in undoableDecoratorWrapFunc
+    rval = func( *args, **kwargs )
+  File "/home/sebastian/ws_repository/src/whitesharkstd/trunk/ext/byronimo/py/byronimo/maya/nodes/base.py", line 1167, in addChild
+    dagIndex = self.getChildCount() - 1	# last entry as child got added
+  File "/home/sebastian/ws_repository/src/whitesharkstd/trunk/ext/byronimo/py/byronimo/maya/nodes/types.py", line 232, in meta_getattr_lazy
+    return getattrorigfunc( self, attr )
+  File "/home/sebastian/ws_repository/src/whitesharkstd/trunk/ext/byronimo/py/byronimo/maya/nodes/base.py", line 628, in __getattr__
+    raise AttributeError( "Attribute '%s' does not exist on '%s', neither as function not as attribute" % ( attr, self.name() ) )
+AttributeError: Attribute 'getChildCount' does not exist on '|trans', neither as function not as attribute
+
+======================================================================
+ERROR: byronimo.maya.nodes.sets: test partition constraints
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/home/sebastian/ws_repository/src/whitesharkstd/trunk/ext/byronimo/py/byronimotest/byronimo/maya/nodes/sets.py", line 283, in test_partitions
+    s1.addMember( o1 )
+  File "/home/sebastian/ws_repository/src/whitesharkstd/trunk/py/whiteshark/../../ext/byronimo/py/byronimo/maya/undo.py", line 201, in undoableDecoratorWrapFunc
+    rval = func( *args, **kwargs )
+  File "/home/sebastian/ws_repository/src/whitesharkstd/trunk/ext/byronimo/py/byronimo/maya/nodes/sets.py", line 236, in addMember
+    return self._addRemoveMember( member, component, mode, ignore_failure )
+  File "/home/sebastian/ws_repository/src/whitesharkstd/trunk/ext/byronimo/py/byronimo/maya/nodes/sets.py", line 186, in _addRemoveMember
+    return self._checkMemberAddResult( member, component, mode, ignore_failure, True )
+  File "/home/sebastian/ws_repository/src/whitesharkstd/trunk/ext/byronimo/py/byronimo/maya/nodes/sets.py", line 152, in _checkMemberAddResult
+    raise ConstraintError( "At least some members of %r could not be added to %r due to violation of exclusivity constraint" % (member,self) )
+ConstraintError: At least some members of ObjectSet("s3") could not be added to ObjectSet("s3") due to violation of exclusivity constraint
+
+======================================================================
+FAIL: ConfigAccessor: Tests whether malformed INI files raise
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/home/sebastian/ws_repository/src/whitesharkstd/trunk/ext/byronimo/py/byronimotest/byronimo/configuration.py", line 137, in test_readInvalidINI
+    self.failUnlessRaises( ConfigParsingError, ca.readfp, ini )
+AssertionError: ConfigParsingError not raised
+
+======================================================================
+FAIL: DictToINIFile:Tests whether default dicts can actually be handled by the converter
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/home/sebastian/ws_repository/src/whitesharkstd/trunk/ext/byronimo/py/byronimotest/byronimo/configuration.py", line 60, in test_allValidDicts
+    self.failUnless( cp.get( head, k ) == str(dictionary[k]).strip() )
+AssertionError
+
+----------------------------------------------------------------------
+Ran 107 tests in 130.480s
+
+FAILED (failures=2, errors=12)
+
