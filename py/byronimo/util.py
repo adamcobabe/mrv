@@ -456,6 +456,26 @@ class iProgressIndicator( object ):
 		be interrupted"""
 		self.__may_abort = state
 		
+	def setup( self, range=None, relative=None, abortable=None, begin=True ):
+		"""Multifunctional, all in one convenience method setting all important attributes
+		at once. This allows setting up the progress indicator with one call instead of many
+		@note: If a kw argument is None, it will not be set
+		@param range: Tuple( min, max ) - start ane end of progress indicator range
+		@param relative: equivalent to L{setRelative}
+		@param abortable: equivalent to L{setAbortable}
+		@param begin: if True, L{begin} will be called as well"""
+		if range is not None:
+			self.setRange( range[0], range[1] )
+			
+		if relative is not None:
+			self.setRelative( relative )
+		
+		if abortable is not None:
+			self.setAbortable( abortable )
+			
+		if begin:
+			self.begin()
+		
 	#} END edit  
 	
 	#{ Query

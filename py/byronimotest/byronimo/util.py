@@ -173,3 +173,7 @@ class TestDAGTree( unittest.TestCase ):
 		
 		progress.set( maxrange * 2 )
 		self.failUnless( progress.get() == maxrange )
+		
+		# use setup
+		progress.setup( (0,99), True, False, True )
+		progress.setup( (0,99), relative=None, abortable=True, begin=False )
