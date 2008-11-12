@@ -80,7 +80,7 @@ class ConfirmDialog( Dialog ):
 				
 		cancelValue = cancelButton or middleButton or confirmButton
 		self._ret = cmds.confirmDialog( t = title,	m = message, b = buttons, 
-										db = ( defaultToConfirm and confirmButton or cancelButton or confirmButton or middleButton ), 
+										db = ( defaultToConfirm or confirmButton or cancelButton or confirmButton or middleButton ), 
 										ma = align, cb = cancelValue, ds = cancelValue )
 		self._isConfirmed = self._ret == confirmButton
 	
