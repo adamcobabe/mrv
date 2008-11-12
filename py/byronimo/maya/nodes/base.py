@@ -805,12 +805,27 @@ class DependNode( Node ):		# parent just for epydoc -
 		@note: This method is explicitly not undoable as attributes are being deleted 
 		in memory right in the moment they are being removed, thus they cannot 
 		reside on the undo queue"""
+		# return it if it already exists
+		attrname = api.MFnAttribute( attr ).name()
+		try:
+			return self.findPlug( attrname, False )
+		except RuntimeError:
+			pass 
+			
 		self._addRemoveAttr( attr, True )
 		return self.findPlug( api.MFnAttribute( attr ).name() )
 		
 	def removeAttribute( self, attr ):
 		"""Remove the given attribute from the node
 		@param attr: see L{addAttribute}"""
+		# don't do anyting if it does not exist 
+		attrname = api.MFnAttribute( attr ).name()
+		try:
+			self.findPlug( attrname, False )
+		except RuntimeError:
+			# it does not exist, that's what was requested
+			return  
+			
 		self._addRemoveAttr( attr, False )
 	
 	#} END edit
