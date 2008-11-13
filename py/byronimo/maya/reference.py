@@ -17,10 +17,13 @@ __id__="$Id: configuration.py 16 2008-05-29 00:30:46Z byron $"
 __copyright__='(c) 2008 Sebastian Thiel'
 
 from byronimo.path import Path
+from byronimo.util import And
 from byronimo.exceptions import *
 from byronimo.maya.namespace import Namespace
+from byronimo.maya.util import noneToList
 import maya.cmds as cmds
 from byronimo.util import iDagItem
+from itertools import ifilter
 
 
 ################
@@ -267,6 +270,74 @@ class FileReference( Path, iDagItem ):
 		
 		return importRecursive( self, 0, depth )
 		
+	#}
+	
+	
+	#{ Nodes Query 
+	def iterNodes( self, asNode = True, dag=True, dg=True,
+				  assemblies=False, assembilesInReference=False,
+				  predicate = None):
+		"""Creates iterator over nodes in this reference
+		@param asNode: if True, return wrapped Nodes, if False string names will 
+		be returned 
+		@param dag: if True, return dag nodes
+		@param dg: if True, return dg nodes
+		@param assemblies: if True, return only dagNodes with no parent 
+		@param assembilesInReference: if True, return only dag nodes that have no 
+		parent in their own reference. They may have a parent not coming from their 
+		reference though. This flag causes a big negative performance impact. Only works
+		if asNode = 1
+		@param predicate: if function returns True for Mode|string n, n will be yielded
+		@raise ValueError: if incompatible arguments have been given """
+		allnodes = noneToList( cmds.referenceQuery( self.getFullPath(), n=1, dp=1 ) )
+		
+		# additional ls filtering 
+		filterargs = dict()
+		if not dag:
+			filterargs[ 'dep' ] = 1
+			
+		if not dg:
+			filterargs[ 'type' ] = "dagNode"
+			
+		if assemblies:
+			filterargs[ 'assemblies' ] = 1
+			
+		
+		# APPLY ADDITIONAL FILTER
+		if filterargs:
+			allnodes = noneToList( cmds.ls( allnodes, **filterargs ) )
+			
+	
+		myfilter = And( ) 
+		# ASSEMBILES IN REFERENCE ?
+		if assembilesInReference:
+			if not asNode:
+				raise ValueError( "assembliesInReference requires asNode to be 1" )
+				
+			rns = self.getNamespace()
+			
+			def isRootInReference( n ):
+				parent = n.getParent()
+				if parent is None:
+					return False
+					
+				return not rns.isRootOf( parent.getNamespace() )
+			# END filter method 	
+			
+			myfilter.functions.append( isRootInReference )
+		# END assembliesInReference	
+		
+		if predicate:
+			myfilter.functions.append( predicate )
+		
+		nodesIter = None
+		if asNode:
+			import byronimo.maya.nodes as nodes
+			nodesIter = ( nodes.Node( name ) for name in allnodes )
+		else:
+			nodesIter = iter( allnodes )
+			
+		return ifilter( myfilter, nodesIter )
 	#}
 	
 	#{Edit Methods	

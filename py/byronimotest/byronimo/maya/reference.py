@@ -101,6 +101,11 @@ class TestReferenceRunner( unittest.TestCase ):
 			for filename in filenames:
 				newreffile = common.get_maya_file( filename )
 				ref = FileReference.create( newreffile , load = load )
+				
+				# quick iteration
+				for node in ref.iterNodes( asNode = 1 ):
+					pass
+				
 				self.failUnless( ref.p_loaded == load )
 				self.failUnless( ref == newreffile )
 				self.failUnless( ref.exists() )
