@@ -275,7 +275,7 @@ class FileReference( Path, iDagItem ):
 	
 	#{ Nodes Query 
 	def iterNodes( self, asNode = True, dag=True, dg=True,
-				  assemblies=False, assembilesInReference=False,
+				  assemblies=False, assembliesInReference=False,
 				  predicate = None):
 		"""Creates iterator over nodes in this reference
 		@param asNode: if True, return wrapped Nodes, if False string names will 
@@ -283,7 +283,7 @@ class FileReference( Path, iDagItem ):
 		@param dag: if True, return dag nodes
 		@param dg: if True, return dg nodes
 		@param assemblies: if True, return only dagNodes with no parent 
-		@param assembilesInReference: if True, return only dag nodes that have no 
+		@param assembliesInReference: if True, return only dag nodes that have no 
 		parent in their own reference. They may have a parent not coming from their 
 		reference though. This flag causes a big negative performance impact. Only works
 		if asNode = 1
@@ -310,7 +310,7 @@ class FileReference( Path, iDagItem ):
 	
 		myfilter = And( ) 
 		# ASSEMBILES IN REFERENCE ?
-		if assembilesInReference:
+		if assembliesInReference:
 			if not asNode:
 				raise ValueError( "assembliesInReference requires asNode to be 1" )
 				
@@ -319,7 +319,7 @@ class FileReference( Path, iDagItem ):
 			def isRootInReference( n ):
 				parent = n.getParent()
 				if parent is None:
-					return False
+					return True
 					
 				return not rns.isRootOf( parent.getNamespace() )
 			# END filter method 	

@@ -47,7 +47,9 @@ class MetaClassCreatorNodes( MetaClassCreator ):
 	"""Builds the base hierarchy for the given classname based on our typetree
 	@todo: build classes with slots only as members are pretermined"""
 	
-	nameToTreeMap = set( [ 'FurAttractors', 'FurCurveAttractors', 'FurGlobals', 'FurDescription','FurFeedback' ] ) # special name handling 
+	# special name handling - we assume lower case names, these are capitalized though
+	nameToTreeMap = set( [ 'FurAttractors', 'FurCurveAttractors', 'FurGlobals', 'FurDescription','FurFeedback' ] ) 
+	forceInitWithMObject = ( api.MFnMesh , )	# need initialization with MObject although dag path is available	
 	targetModule = None				# must be set in intialization to tell this class where to put newly created classes
 	mfnclsattr = '_mfncls'
 	mfndbattr = '_mfndb'
@@ -112,10 +114,12 @@ class MetaClassCreatorNodes( MetaClassCreator ):
 		mfnfunc = mfncls.__dict__[ mfnfuncname ]			# will just raise on error 
 		newfunc = None
 		
+		needs_MObject = mfncls in MetaClassCreatorNodes.forceInitWithMObject
+		
 		# bound to class, self will be attached on class instantiation
 		if rvalfunc:	# wrap rval function around
 			# INITIALIZED DAG NODES WITH DAG PATH !
-			if api.MFnDagNode in mfncls.mro():			# yes, we duplicate code here to keep it fast !!
+			if api.MFnDagNode in mfncls.mro() and not needs_MObject:			# yes, we duplicate code here to keep it fast !!
 				def wrapMfnFunc( self, *args, **kwargs ):
 					mfninst = mfncls( self._apidagpath )
 					return rvalfunc( getattr( mfninst, mfnfuncname )( *args, **kwargs ) )
@@ -126,7 +130,7 @@ class MetaClassCreatorNodes( MetaClassCreator ):
 					return rvalfunc( getattr( mfninst, mfnfuncname )( *args, **kwargs ) )
 				newfunc = wrapMfnFunc
 		else:
-			if api.MFnDagNode in mfncls.mro():			# yes, we duplicate code here to keep it fast !!
+			if api.MFnDagNode in mfncls.mro() and not needs_MObject:			# yes, we duplicate code here to keep it fast !!
 				def wrapMfnFunc( self, *args, **kwargs ):
 					mfninst = mfncls( self._apidagpath )
 					return getattr( mfninst, mfnfuncname )( *args, **kwargs )
