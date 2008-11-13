@@ -368,6 +368,38 @@ class MPlug( api.MPlug, util.iDagItem ):
 	
 	#} END hierarcy query 
 	
+	#{ Attributes ( Edit )
+	
+	def _handleAttrSet( self, state, getfunc, setfunc ):
+		"""Generic attribute handling"""
+		op = undo.GenericOperation()
+		op.addDoit( setfunc, state )
+		op.addUndoit( setfunc, getfunc( ) )
+		op.doIt()
+	
+	@undoable 
+	def setLocked( self, state ):
+		"""If True, the plug's value may not be changed anymore"""
+		self._handleAttrSet( state, self.isLocked, self._api_setLocked )
+		
+	@undoable
+	def setKeyable( self, state ):
+		"""if True, the plug may be set using animation curves"""
+		self._handleAttrSet( state, self.isKeyable, self._api_setKeyable )
+		
+	@undoable
+	def setCaching( self, state ):
+		"""if True, the plug's value will be cached, preventing unnecessary computations"""
+		self._handleAttrSet( state, self.isCachingFlagSet, self._api_setCaching )
+		
+	@undoable 
+	def setChannelBox( self, state ):
+		"""if True, the plug will be visible in the channelbox, even though it might not 
+		be keyable or viceversa """
+		self._handleAttrSet( state, self.isChannelBoxFlagSet, self._api_setChannelBox )
+	
+	#} END attributes edit 
+	
 	
 	#{ Connections ( Edit )
 	

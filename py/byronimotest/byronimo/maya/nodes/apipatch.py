@@ -112,6 +112,39 @@ class TestDataBase( unittest.TestCase ):
 		self.failUnless( len( affectedPlugs ) > 1  )
 		
 		
+		# ATTRIBUTES AND UNDO 
+		#######################
+		funcs = ( 	( "isLocked", "setLocked" ), ( "isKeyable", "setKeyable" ),
+				 	( "isCachingFlagSet", "setCaching" ), ( "isChannelBoxFlagSet", "setChannelBox" ) )
+		
+		plugnames =( "t", "tx", "r","rx", "s", "sy" )
+		for p in plugnames:
+			plug = getattr( persp, p )
+			
+			for ( getname, setname ) in funcs:
+				fget = getattr( plug, getname )
+				fset = getattr( plug, setname )
+				
+				curval = fget()
+				oval = bool( 1 - curval ) 
+				fset( oval )
+				
+				# SPECIAL HANDLING as things cannot be uncached
+				if setname == "setCaching":
+					continue
+				
+				self.failUnless( fget() == oval )
+				
+				cmds.undo()
+				self.failUnless( fget() == curval )
+				
+				cmds.redo() 
+				self.failUnless( fget() == oval )
+				
+				fset( curval )	# reset 
+			# END for each function 
+		# END for each plugname 
+		
 		# QUERY
 		############################
 		# ELEMENT ITERATION
