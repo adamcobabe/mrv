@@ -697,7 +697,14 @@ class MPlug( api.MPlug, util.iDagItem ):
 		setattrfunc = getattr( api.MPlug, "set"+dataTypeId )
 		
 		def wrappedSetAttr( self, data ):
-			curdata = getattrfunc( self )
+			# asMObject can fail instead of returning a null object !
+			if dataTypeId == "MObject":
+				try:
+					curdata = getattrfunc( self )
+				except RuntimeError:
+					curdata = api.MObject()
+			else:
+				curdata = getattrfunc( self )
 			op = undo.GenericOperation( )
 			
 			op.addDoit( setattrfunc, self, data )
