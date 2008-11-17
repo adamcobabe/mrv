@@ -311,7 +311,10 @@ class StorageBase( iDuplicatable ):
 			object.__setattr__( self, '_pydata', pythondata )
 			object.__setattr__( self, '_isReferenced', valueplug.getNode( ).isReferenced( ) )
 			object.__setattr__( self, '_updateCalled', False )
-			
+		
+		def __len__( self ):
+			return len( self._pydata )
+		
 		def __iter__( self ):
 			return iter( self._pydata )
 		

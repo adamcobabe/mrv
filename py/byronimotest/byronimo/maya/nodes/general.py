@@ -381,7 +381,7 @@ class TestNodeBase( unittest.TestCase ):
 		
 	def test_wrapDagNode( self ):
 		"""byronimo.maya.nodes: create and access dag nodes"""
-		if not ownpackage.mayRun( "general" ): return
+		if not ownpackage.mayRun( "dagnode" ): return
 		mesh = nodes.createNode( "parent|mesh", "mesh" )
 		parent = mesh.getParent( )
 		

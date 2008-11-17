@@ -62,12 +62,11 @@ class MetaClassCreatorNodes( MetaClassCreator ):
 		"""@return: mfn database describing how to handle the functions in the 
 		function set described by mfnclsname
 		If no explicit information exists, the db will be empty"""
-		db = MfnMemberMap( )
 		try:
-			db.initFromFile( nodes.getMfnDBPath( mfnclsname ) )
+			return MfnMemberMap( nodes.getMfnDBPath( mfnclsname ) )
 		except IOError:
 			pass 
-		return db
+		return MfnMemberMap()
 		
 
 	@staticmethod
@@ -98,19 +97,20 @@ class MetaClassCreatorNodes( MetaClassCreator ):
 			
 		rvalfunc = None
 		# adjust function according to DB
+		# print "%s.%s : %s" % ( mfncls, funcname, funcMutatorDB )
 		if funcMutatorDB: 
-			entry = funcMutatorDB.get( funcname, None )
-			if entry:
+			try:
+				mfnfuncname, entry = funcMutatorDB.getEntry( funcname )
 				# delete function ?
 				if entry.flag == MfnMemberMap.kDelete:
 					return None
 					
 				rvalfunc = entry.rvalfunc
-				if entry.newname and entry.newname != '':		# item has been renamed, get original mfn function
-					mfnfuncname = mfndb.getMfnFunc( funcname )
-				# END name remap handling 
+			except KeyError:
+				pass # could just be working
 			# END if entry available 
 		# END if db available 
+		
 		mfnfunc = mfncls.__dict__[ mfnfuncname ]			# will just raise on error 
 		newfunc = None
 		
@@ -173,15 +173,14 @@ class MetaClassCreatorNodes( MetaClassCreator ):
 					continue 
 					
 				mfndb = None
-				
 				# GET MFNDB allowing automated method mutations
-				if not hasattr( basecls, thiscls.mfndbattr ):
-					if mfncls :
-						mfndb = thiscls._readMfnDB( mfncls.__name__ )
-					setattr( basecls, thiscls.mfndbattr, mfndb )
+				# TO BE WRITTEN ON CLASS LEVEL !
+				if not basecls.__dict__.has_key( thiscls.mfndbattr ):
+					mfndb = thiscls._readMfnDB( mfncls.__name__ )
+					type.__setattr__( basecls, thiscls.mfndbattr, mfndb )
 				else:
-					mfndb = getattr( basecls,thiscls.mfndbattr )
-				# END mfndb handling 
+					mfndb = basecls.__dict__[ thiscls.mfndbattr ]
+				# END mfndb handling
 				
 				# get function as well as its possibly changed name 
 				try:
@@ -203,7 +202,7 @@ class MetaClassCreatorNodes( MetaClassCreator ):
 				object.__setattr__( self, attr, newinstfunc )
 				type.__setattr__( actualcls, attr, newclsfunc )		# setattr would do too, but its more dramatic this way :)
 				return newinstfunc
-			
+			# END newclsfunc exists
 			
 			# ORIGINAL ATTRIBUTE HANDLING
 			###############################
@@ -232,7 +231,7 @@ class MetaClassCreatorNodes( MetaClassCreator ):
 				raise AttributeError( "Could not find mfn function for attribute '%s'" % attr )
 				
 			# pass on the call - if this method produces an output, its responsible for caching 
-			# it in the isntance dict 
+			# it in the instance dict 
 			return getattrorigfunc( self, attr )
 			# EMD orig getattr handling 
 			
@@ -455,8 +454,19 @@ class MfnMemberMap( UserDict.UserDict ):
 			if self.rvalfunc is None: return 'None'
 			return self.rvalfunc.__name__
 	
-	
-	def initFromFile( self, filepath ):
+	def __init__( self, filepath = None ):
+		"""intiialize self from a file if not None"""
+		UserDict.UserDict.__init__( self )
+		
+		self._filepath = filepath
+		if filepath:
+			self._initFromFile( filepath )
+		
+
+	def __str__( self ):
+		return "MfnMemberMap(%s)" % self._filepath
+
+	def _initFromFile( self, filepath ):
 		""" Initialize the database with values from the given file
 		@note: the file must have been written using the L{writeToFile} method"""
 		self.clear()
@@ -490,39 +500,29 @@ class MfnMemberMap( UserDict.UserDict ):
 		
 		fobj.close()
 	
-	def __getitem__( self, key ):
-		"""Try to find the method in our original method name dict, and if not 
-		available search all entries for a renamed method with name == key """
+	def getEntry( self, funcname ):
+		"""@return: Tuple( mfnfuncname, entry )
+		original mfnclass function name paired with the  
+		db entry containing more information 
+		@raise KeyError: if no such function exists"""
 		try:
-			return UserDict.UserDict.__getitem__(  self, key  )
+			return ( funcname, self[ funcname ] )
 		except KeyError:
-			for entry in self.itervalues():
-				if entry.newname == key:
-					return entry
-			# END for each entry
-			raise KeyError( "Function named '%s' did not exist in db" % key )
-	
-	def get( self, key, *args ):
-		""" Overridden to assure the advanced key search is used"""
-		try:
-			return self[ key ]
-		except KeyError:
-			if args: return args[0]
-	
+			for mfnfuncname,entry in self.iteritems():
+				if entry.newname == funcname:
+					return ( mfnfuncname, entry )
+			# END for each item 
+			
+		raise KeyError( "Function named '%s' did not exist in db" % funcname )
+		
 	def createEntry( self, funcname ):
 		""" Create an entry for the given function, or return the existing one 
 		@return: Entry object for funcname"""
 		return self.setdefault( funcname, self.Entry() )
 		
 	def getMfnFunc( self, funcname ):
-		"""@return: functionname corresponding to the ( possibly renamed ) funcname """
-		if self.has_key( funcname ): return funcname
-		for mfnfuncname,entry in self.iteritems():
-			if entry.newname == funcname:
-				return mfnfuncname
-		# END for each key, value
-		raise KeyError( "Function named '%s' did not exist in db" % key )
-	
+		"""@return: mfn functionname corresponding to the ( possibly renamed ) funcname """
+		return self.getEntry( funcname )[0]
 
 def writeMfnDBCacheFiles( ):
 	"""Create a simple Memberlist of available mfn classes and their members 
@@ -544,9 +544,9 @@ def writeMfnDBCacheFiles( ):
 			if not len( mfnfuncs ):
 				continue
 			
-			db = MfnMemberMap( )
+			db = MfnMemberMap()
 			if mfnfile.exists():
-				db.initFromFile( mfnfile )
+				db = MfnMemberMap( mfnfile )
 				
 			# assure folder exists
 			folder = mfnfile.dirname() 

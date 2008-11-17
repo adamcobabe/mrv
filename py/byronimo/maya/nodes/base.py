@@ -1254,16 +1254,33 @@ class DagNode( Entity, iDagItem ):	# parent just for epydoc
 		mod = undo.DagModifier( )
 		mod.deleteNode( self._apiobj )
 		mod.doIt()
-		
+	
+	def _getUniqueName( self, dagpath ):
+		"""Create a unique name based on the given dagpath by appending numbers"""
+		copynumber = 1
+		newpath = str( dagpath ) 
+		while cmds.objExists( newpath ):
+			newpath = "%s%i" % ( dagpath, copynumber )
+			copynumber += 1
+		# END while dagpath does exist
+		return newpath
+	
 	@undoable
-	def duplicate( self, newpath, autocreateNamespace=True, renameOnClash=True, **kwargs ):
+	def duplicate( self, newpath='', autocreateNamespace=True, renameOnClash=True, 
+				   newTransform = False, **kwargs ):
 		"""Duplciate the given node to newpath
 		@param newpath: result depends on its format
-		   - 'newname' - relative path, the node will be duplicated not changing its current parent
+		   - '' - empty string, creates a unique name based on the actual node name by appending a copy number 
+		   to it, if newTransform is True, the newly created shape/transform will keep its name, but receives a new parent
+		   - 'newname' - relative path, the node will be duplicated not changing its current parent if newTransform is False
 		   - '|parent|newname' - absolute path, the node will be duplicated and reparented under the given path
+		   if newTransform is True, a new transform name will be created based on your name by appending a unique copy number
 		@param autocreateNamespace: if true, namespaces given in newpath will be created automatically, otherwise 
 		a RuntimeException will be thrown if a required namespace does not exist 
 		@param renameOnClash: if true, clashing names will automatically be resolved by adjusting the name
+		@param newTransform: if True, a new transform will be created based on the name of the parent transform 
+		of this node, appending a unique copy number to it.
+		If 
 		@return: newly create Node 
 		@note: duplicate performance could be improved by checking more before doing work that does not 
 		really change the scene, but adds undo operations
@@ -1272,6 +1289,18 @@ class DagNode( Entity, iDagItem ):	# parent just for epydoc
 		@note: instancing can be realized using the L{addChild} function"""
 		# print "-"*5+"DUPLICATE: %r to %s" % (self,newpath)+"-"*5
 		thisNodeIsShape = isinstance( self, nodes.Shape )
+		
+		# NAME HANDLING 
+		# if there is no name given, create a name
+		if not newpath:
+			if newTransform:
+				newpath = "%s|%s" % ( self._getUniqueName( self.getTransform( ) ), self.getBasename() )
+			else:
+				newpath = self._getUniqueName( self )
+			# END newTransform if there is no new path given 
+		elif newTransform:
+			newpath = "%s|%s" % ( self._getUniqueName( self.getTransform( ) ), newpath.split('|')[-1] )
+		# END path name handling  
 		
 		# Instance Parent Check
 		dagtokens = newpath.split( '|' )
@@ -1291,7 +1320,7 @@ class DagNode( Entity, iDagItem ):	# parent just for epydoc
 		
 		# TARGET EXISTS ?
 		#####################
-		if objExists( newpath ):
+		if '|' in newpath and objExists( newpath ):
 			exnode = Node( newpath )
 			if not isinstance( exnode, self.__class__ ):
 				raise RuntimeError( "Existing object at path %s was of type %s, should be %s" 
@@ -1347,7 +1376,7 @@ class DagNode( Entity, iDagItem ):	# parent just for epydoc
 		###############
 		# create requested parents up to transform
 		parenttokens = dagtokens[:-1]
-		leafobjectname = dagtokens[-1:][0]		# the basename of the dagpath
+		leafobjectname = dagtokens[-1]		# the basename of the dagpath
 		
 		if len( parenttokens ):			# could be [''] too if newpath = '|newpath'
 			parentnodepath = '|'.join( parenttokens )
@@ -1378,7 +1407,7 @@ class DagNode( Entity, iDagItem ):	# parent just for epydoc
 		
 		# rename target must be the child matching our name
 		if thisNodeIsShape:	# want shape, have transform
-			final_node = rename_target = self_shape_duplicated				
+			final_node = rename_target = self_shape_duplicated		
 		
 		
 		# DELETE INTERMEDIATE PARENTS 
