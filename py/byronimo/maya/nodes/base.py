@@ -1265,7 +1265,7 @@ class DagNode( Entity, iDagItem ):	# parent just for epydoc
 		# END while dagpath does exist
 		return newpath
 	
-	@undoable
+	@notundoable
 	def duplicate( self, newpath='', autocreateNamespace=True, renameOnClash=True, 
 				   newTransform = False, **kwargs ):
 		"""Duplciate the given node to newpath
@@ -1286,7 +1286,9 @@ class DagNode( Entity, iDagItem ):	# parent just for epydoc
 		really change the scene, but adds undo operations
 		@note: inbetween parents are always required as needed
 		@todo: add example for each version of newpath 
-		@note: instancing can be realized using the L{addChild} function"""
+		@note: instancing can be realized using the L{addChild} function
+		@todo: Undo implementation - every undoable operation must in fact be based on strings to really work, all 
+		this is far too much - dagNode.duplicate must be undoable by itself"""
 		# print "-"*5+"DUPLICATE: %r to %s" % (self,newpath)+"-"*5
 		selfIsShape = isinstance( self, nodes.Shape )
 		
@@ -1339,19 +1341,14 @@ class DagNode( Entity, iDagItem ):	# parent just for epydoc
 		
 
 		
-		# DUPLICATE IT WITH UNDO 
+		# DUPLICATE IT WITHOUT UNDO 
 		############################
 		# it will always duplicate the transform and return it
-		# in case of instances, its the only way we have to get it below an own parent 
-		op = undo.GenericOperationStack( )
-		doitcmd = Call( api.MFnDagNode( self._apidagpath ).duplicate, False, False )
-		undoitcmd = Call( None )												# placeholder, have to change it soon
-		duplicate_node_parent = Node( op.addCmdAndCall( doitcmd, undoitcmd ) )		# get the duplicate
-		# bake the object to a string for deletion - adjust undocmd
-		undoitcmd.func = cmds.delete
-		undoitcmd.args = [ str( duplicate_node_parent ) ]
-		
-		
+		# in case of instances, its the only way we have to get it below an own parent
+		# bake all names into strings for undo and redo
+		duplicate_node_parent = Node( api.MFnDagNode( self._apidagpath ).duplicate( False, False ) )		# get the duplicate
+
+
 		# RENAME DUPLICATE CHILDREN
 		###########################
 		#

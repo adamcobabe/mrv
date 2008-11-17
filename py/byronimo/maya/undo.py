@@ -40,6 +40,7 @@ __copyright__='(c) 2008 Sebastian Thiel'
 
 import maya.cmds as cmds
 import maya.mel as mel
+from util import MuteUndo
 
 #{ Initialization 
 
@@ -54,6 +55,7 @@ def __initialize():
 	# assure our decorator is available !
 	import __builtin__
 	setattr( __builtin__, 'undoable', undoable )
+	setattr( __builtin__, 'notundoable', notundoable )
 	
 	
 #} END initialization
@@ -209,6 +211,21 @@ def undoable( func ):
 	
 	undoableDecoratorWrapFunc.__name__ = func.__name__
 	return undoableDecoratorWrapFunc	
+	
+def notundoable( func ):
+	"""Decorator wrapping a function into a muteUndo call, thus all undoable operations
+	called from this method will not enter the undostack and thus pollute it.
+	@note: use it if your method cannot support undo, butcalls undoable operations itself
+	@note: all functions using a notundoable should be notundoable themselves"""
+	def notundoableDecoratorWrapFunc( *args, **kwargs ):
+		"""This is the long version of the method as it is slightly faster than
+		simply using the StartUndo helper"""
+		muteundo = MuteUndo()
+		return func( *args, **kwargs )
+	# END wrapFunc
+	
+	notundoableDecoratorWrapFunc.__name__ = func.__name__
+	return notundoableDecoratorWrapFunc	
 	
 
 class StartUndo:

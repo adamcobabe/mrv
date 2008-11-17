@@ -405,6 +405,15 @@ class TestNodeBase( unittest.TestCase ):
 			ocopy = duplbase.duplicate( newTransform=1 )
 			self.failUnless( ocopy.getBasename( ) == duplbase.getBasename() )
 			self.failUnless( str( ocopy.getParent() ) == str( duplbase.getParent() ) + str( i + 1 ) )
+			
+			# undo both duplications and redo
+			# CRASHES MAYA AFTER REDO 
+			# and if someone tries to access an object already created
+			#cmds.undo()
+			#cmds.undo()
+			#self.failUnless( duplbase.isValid() )
+			#cmds.redo()
+			#cmds.redo()
 		# END for each copy
 		
 		
@@ -794,7 +803,7 @@ class TestNodeBase( unittest.TestCase ):
 		###################
 		t = t.reparent( None, keepWorldSpace = 1 )
 		
-		common._saveTempFile( "afterreparentw.ma" )
+		# common._saveTempFile( "afterreparentw.ma" )
 		count = 0.0
 		for ma in mainattrs:
 			for sa in subattrs:
@@ -812,7 +821,7 @@ class TestNodeBase( unittest.TestCase ):
 		# REPARENT TO PARENT NODE
 		###########################
 		t = t.reparent( g, keepWorldSpace = 1 )
-		common._saveTempFile( "afterreparentg.ma" )
+		# common._saveTempFile( "afterreparentg.ma" )
 		
 		self._checkIdentity( t )
 		
