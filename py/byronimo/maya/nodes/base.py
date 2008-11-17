@@ -478,6 +478,16 @@ def _createInstByPredicate( apiobj, cls, basecls, predicate ):
 	# END for each known attr type
 	return None
 	
+	
+def _getUniqueName( dagpath ):
+	"""Create a unique name based on the given dagpath by appending numbers"""
+	copynumber = 1
+	newpath = str( dagpath ) 
+	while cmds.objExists( newpath ):
+		newpath = "%s%i" % ( dagpath, copynumber )
+		copynumber += 1
+	# END while dagpath does exist
+	return newpath
 
 ############################
 #### Classes		  	####
@@ -645,21 +655,35 @@ class DependNode( Node, iDuplicatable ):		# parent just for epydoc -
 	
 	#( iDuplicatable
 	
-	@undoable
-	def duplicate( self, *args, **kwargs ):
+	@notundoable
+	def duplicate( self, name = None, *args, **kwargs ):
 		"""Duplicate our node and return a wrapped version to it
+		@param name: if given, the newly created node will use the given name
+		@param renameOnClash: if Trrue, default True, clashes are prevented by renaming the new node 
+		@param autocreateNamespace: if True, default True, namespaces will be created if mentioned in the name 
 		@note: the copyTo method may not have not-undoable side-effects to be a proper 
-		implementation"""
-		op = undo.GenericOperation()
-		op.addDoit( cmds.duplicate, str( self ) )
-		
+		implementation
+		@note: undo could be implemented for dg nodes - but for reasons of consistency, its disabled here - 
+		who knows how much it will crap out after a while as duplicate is not undoable ( mel command )  - 
+		it never really worked to undo a mel command from within python, executed using a dgmodifier - unfortunately 
+		it does not return any result making it hard to find the newly duplicated object !"""
 		# returns name of duplicated node 
-		duplnode = Node( op.doIt( )[0] )
+		duplnode = Node( cmds.duplicate( str( self ) )[0] )
 		
-		# create undoit
-		dgmod = api.MDGModifier( )
-		dgmod.deleteNode( duplnode.getObject() )
-		op.addUndoit( dgmod.doIt )
+		# RENAME 
+		###########
+		# find a good name based on our own one - the default name is just not nice 
+		if not name:
+			name = _getUniqueName( self )  
+		else:
+			if '|' in name:
+				raise ValueError( "Names for dependency nodes my not contain pipes: %s" % name )
+		# END name handling 
+		
+		rkwargs = dict()
+		rkwargs[ 'renameOnClash' ] = kwargs.pop( 'renameOnClash', True )
+		rkwargs[ 'autocreateNamespace' ] = kwargs.pop( 'autocreateNamespace', True )
+		duplnode = duplnode.rename( name, **rkwargs )
 		
 		# call our base class to copy additional information
 		# NOTE: this might not be undoable, but we do not care as the whole duplicate
@@ -1255,15 +1279,6 @@ class DagNode( Entity, iDagItem ):	# parent just for epydoc
 		mod.deleteNode( self._apiobj )
 		mod.doIt()
 	
-	def _getUniqueName( self, dagpath ):
-		"""Create a unique name based on the given dagpath by appending numbers"""
-		copynumber = 1
-		newpath = str( dagpath ) 
-		while cmds.objExists( newpath ):
-			newpath = "%s%i" % ( dagpath, copynumber )
-			copynumber += 1
-		# END while dagpath does exist
-		return newpath
 	
 	@notundoable
 	def duplicate( self, newpath='', autocreateNamespace=True, renameOnClash=True, 
@@ -1297,12 +1312,12 @@ class DagNode( Entity, iDagItem ):	# parent just for epydoc
 		# if there is no name given, create a name
 		if not newpath:		# "" or None
 			if newTransform:
-				newpath = "%s|%s" % ( self._getUniqueName( self.getTransform( ) ), self.getBasename() )
+				newpath = "%s|%s" % ( _getUniqueName( self.getTransform( ) ), self.getBasename() )
 			else:
-				newpath = self._getUniqueName( self )
+				newpath = _getUniqueName( self )
 			# END newTransform if there is no new path given 
 		elif newTransform and selfIsShape:	
-			newpath = "%s|%s" % ( self._getUniqueName( self.getTransform( ) ), newpath.split('|')[-1] )
+			newpath = "%s|%s" % ( _getUniqueName( self.getTransform( ) ), newpath.split('|')[-1] )
 		elif '|' not in newpath:
 			myparent = self.getParent()
 			parentname = ""
