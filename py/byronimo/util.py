@@ -314,7 +314,9 @@ class iDagItem( object ):
 
 
 class iDuplicatable( object ):
-	"""Simple interface allowing any class to be properly duplicated"""
+	"""Simple interface allowing any class to be properly duplicated
+	@note: to implement this interface, implement L{createInstance} and 
+	L{copyFrom} in your class """
 	#{ Interface 
 	
 	def createInstance( self, *args, **kwargs ):
@@ -336,7 +338,7 @@ class iDuplicatable( object ):
 	
 	def duplicate( self, *args, **kwargs ):
 		"""Implements a c-style copy constructor by creating a new instance of self
-		and applying the copy from methods from base to all classes implementing the copyfrom 
+		and applying the L{copyFrom} methods from base to all classes implementing the copyfrom 
 		method. Thus we will call the method directly on the class
 		@param *args,**kwargs : passed to copyFrom and createInstance method to give additional directions"""
 		try:

@@ -158,6 +158,16 @@ class TestGeneral( unittest.TestCase ):
 		depnode = nodes.createNode( "node", "facade" )
 		self.failUnless( nodes.objExists( str( depnode ) ) )
 		
+		# TEST DUPLICATION
+		duplnode = depnode.duplicate( )
+		self.failUnless( duplnode.isValid( ) )
+		cmds.undo()
+		self.failUnless( not duplnode.isValid( ) )
+		cmds.redo()
+		# after redo, the object is invalid as we duplicate without proper undo
+		# the result will be the same, but pointers are unusable afterwards 
+		self.failUnless( not duplnode.isValid( ) )
+		
 		dagnode = nodes.createNode( "parent|node", "mesh" )
 		self.failUnless( nodes.objExists( str( dagnode ) ) )
 		

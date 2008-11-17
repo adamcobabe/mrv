@@ -120,6 +120,18 @@ class TestStorage( unittest.TestCase ):
 			sval = pyval[ 'refchange' ]
 			self.failUnless( sval == "changed in reference" )
 			
+			
+			# DUPLICATION 
+			###############
+			for is_shallow in range( 2 ):
+				duplicate = refstoragenode.duplicate( shallow = is_shallow )
+				ddata = duplicate.getPythonData( "test" )
+				checkTestValue( self, ddata )
+			# END for each copy type 
+			
+			
+			 
+			
 		# END for each filetype 
 		
 	
@@ -136,6 +148,8 @@ class TestStorage( unittest.TestCase ):
 		val = snode.getPythonData( "test", autoCreate=True )
 		oval = snode.getPythonData( "othertest", autoCreate=True )
 		self.failUnless( len( data ) == 2 )
+		# have two right now, no prefix 
+		self.failUnless( len( snode.getDataIDs() ) == 2 )
 		
 		# CLEAR EMPTY DATA
 		######################
@@ -149,6 +163,8 @@ class TestStorage( unittest.TestCase ):
 		self.failUnless( len( data ) == 3 )
 		self.failUnless( pval._plug.getParent().id.asString() == "prefixothertest" )
 		
+		# now that we have a prefix, we only see prefixed attributes 
+		self.failUnless( len( snode.getDataIDs() ) == 1 )
 		
 		# STORAGE PLUGS ( MAIN PLUG )
 		# contains connection plug too 
@@ -167,10 +183,6 @@ class TestStorage( unittest.TestCase ):
 			self.failUnless( persp.message >= nextplug )
 		self.failUnless( len( conarray ) == 10 )
 		self.failUnless( len( persp.message.p_outputs ) == 10 )
-		
-		# list ids 
-		self.failUnless( len( snode.getDataIDs() ) == 3 )
-		
 		
 	def test_storageSetHandling( self ):
 		"""byronimo.maya.nodes.storage: test built-in sethandling"""

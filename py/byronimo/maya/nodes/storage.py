@@ -17,7 +17,8 @@ __revision__="$Revision: 16 $"
 __id__="$Id: configuration.py 16 2008-05-29 00:30:46Z byron $"
 __copyright__='(c) 2008 Sebastian Thiel'
 
-import byronimo.maya.undo as undo 
+import byronimo.maya.undo as undo
+from byronimo.util import iDuplicatable
 import maya.cmds as cmds
 nodes = __import__( "byronimo.maya.nodes", globals(), locals(), [ 'nodes' ] )
 
@@ -50,7 +51,7 @@ import cPickle
 import cStringIO
 import binascii
 import struct
-
+import copy
 
 #{ Storage Plugin
 
@@ -265,7 +266,7 @@ def uninitializePlugin( mobject ):
 
 #{ Storage Access
 
-class StorageBase( object ):
+class StorageBase( iDuplicatable ):
 	"""A storage node contains a set of attributes allowing it to store 
 	python data and objects being stored in a pickled format upon file save.
 	Additionally you can store connections.
@@ -361,6 +362,52 @@ class StorageBase( object ):
 			self._node = self
 		# END no maya node given handling
 	
+	#} END overridden methods 
+	
+	#( iDuplicatable 
+	def createInstance( self, *args, **kwargs ):
+		"""Create a new instance with our type"""
+		return self.__class__( self._attrprefix, self._node )
+	
+	def copyFrom( self, other, *args, **kwargs ):
+		"""Copy all values from other to ourselves
+		@param shallow: kwargument, if True, default False, only a shallow copy will 
+		be made. If False, a deep copy will be made
+		@note: only does so if the attribute prefixes actually match ( which should be 
+		the case if we get here, checking for it anyway
+		@todo: copy connections to our messages as well, make it an option at least"""
+		if self.getAttributePrefix() != other.getAttributePrefix():
+			raise AssertionError( "Attribute prefixes between self and other did not match" )
+			
+		shallow = kwargs.pop( "shallow", False )
+		for dataid in other.getDataIDs():
+			othervalplug = other.getStoragePlug( dataid, plugType = self.kValue, autoCreate = False )
+			ownvalplug = self.getStoragePlug( dataid, plugType = self.kValue, autoCreate = True )
+			
+			if shallow:
+				ownvalplug.setMObject( othervalplug.asMObject() )
+			else:
+				owndict = self.getPythonDataFromPlug( ownvalplug )
+				otherdict = other.getPythonDataFromPlug( othervalplug )
+				
+				# copy each value 
+				for key in otherdict:
+					val = otherdict[ key ]
+					if isinstance( val, iDuplicatable ):
+						owndict[ key ] = val.duplicate( )
+					else:
+						# try deep copy, use shallow copy on error
+						try: 
+							owndict[ key ] = copy.deepcopy( val )
+						except copy.Error:
+							owndict[ key ] = val 
+					# END copy operation 
+				# END for each key to deep copy 
+			# END shallow/deep copy 
+		# END for each dataid 
+			
+	#) END iDuplicatable 
+	
 	#{ Edit
 	def __makePlug( self, dataID ):
 		"""Find an empty logical plug index and return the newly created 
@@ -427,12 +474,14 @@ class StorageBase( object ):
 		return None
 		
 	def getDataIDs( self ):
-		"""@return: list of all dataids available in the storage node"""
+		"""@return: list of all dataids available in the storage node
+		@note: respects attribute prefix, and will only see ids with matching prefix"""
 		outids = list()
 		for compoundplug in self._node.dta:
 			did = compoundplug.id.asString( )
-			if did:
+			if did and did.startswith( self._attrprefix ):
 				outids.append( did )
+			# END if is valid id 
 		# END for each compound plug element 
 		return outids
 		
@@ -625,7 +674,8 @@ class StorageBase( object ):
 	
 	#} END set handling 
 	
-	# Query General 
+	# Query General
+	
 	def getStorageNode( self ):
 		"""@return: Node actually being used as storage"""
 		return self._node
@@ -634,7 +684,13 @@ class StorageBase( object ):
 		"""Set ourselves to use the given storage compatible node
 		@note: use this if the path of our instance has changed - otherwise 
 		trying to access functions will fail as the path of our node might be invalid"""
-		self._node = node 
+		self._node = node
+		
+	def getAttributePrefix( self ):
+		"""@return: our attribute prefix
+		@note: it is read-only to assure we will never 'forget' about our data"""
+		return self._attrprefix
+		
 	# END query general
 	
 

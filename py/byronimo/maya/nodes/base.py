@@ -29,7 +29,7 @@ __id__="$Id: configuration.py 16 2008-05-29 00:30:46Z byron $"
 __copyright__='(c) 2008 Sebastian Thiel'
 
 
-from byronimo.util import uncapitalize, capitalize, IntKeyGenerator, getPythonIndex, iDagItem, Call
+from byronimo.util import uncapitalize, capitalize, IntKeyGenerator, getPythonIndex, iDagItem, Call, iDuplicatable
 from byronimo.maya.util import StandinClass
 nodes = __import__( "byronimo.maya.nodes", globals(), locals(), ['nodes'] )
 from types import nodeTypeToMfnClsMap, nodeTypeTree
@@ -606,7 +606,7 @@ class Node( object ):
 	#} END interface 
 	
 
-class DependNode( Node ):		# parent just for epydoc - 
+class DependNode( Node, iDuplicatable ):		# parent just for epydoc - 
 	""" Implements access to dependency nodes 
 	
 	Depdency Nodes are manipulated using an MObjectHandle which is safest to go with, 
@@ -640,20 +640,45 @@ class DependNode( Node ):		# parent just for epydoc -
 		"""@return: class call syntax"""
 		import traceback
 		return '%s("%s")' % ( self.__class__.__name__, DependNode.__str__( self ) )
-	#}
+	#} END overridden methods 
 	
 	
-	#{ Sets Handling
+	#( iDuplicatable
+	
+	@undoable
+	def duplicate( self, *args, **kwargs ):
+		"""Duplicate our node and return a wrapped version to it
+		@note: the copyTo method may not have not-undoable side-effects to be a proper 
+		implementation"""
+		op = undo.GenericOperation()
+		op.addDoit( cmds.duplicate, str( self ) )
+		
+		# returns name of duplicated node 
+		duplnode = Node( op.doIt( )[0] )
+		
+		# create undoit
+		dgmod = api.MDGModifier( )
+		dgmod.deleteNode( duplnode.getObject() )
+		op.addUndoit( dgmod.doIt )
+		
+		# call our base class to copy additional information
+		# NOTE: this might not be undoable, but we do not care as the whole duplicate
+		# node will be deleted on undo
+		self.copyTo( duplnode, *args, **kwargs )
+		return duplnode
+	
+	#) END iDuplicatable
 	
 	#{ preset type filters
 	fSetsObject = SetFilter( api.MFn.kSet, True, 0 )				# object fSets only
 	fSets = SetFilter( api.MFn.kSet, False, 0 )			 		# all set types 
 	#} END type filters
 	
+	#{ Sets Handling
+	
 	def _getSetPlug( self ):
 		"""@return: message plug - for non dag nodes, this will be connected """
 		return self.message
-		
 	
 	def getConnectedSets( self, setFilter = fSetsObject ):
 		"""@return: list of object set compatible Nodes having self as member
@@ -703,6 +728,7 @@ class DependNode( Node ):		# parent just for epydoc -
 	#} END sets handling 
 	
 	#{ Edit
+	
 	@undoable
 	def rename( self, newname, autocreateNamespace=True, renameOnClash = True ):
 		"""Rename this node to newname
@@ -1230,7 +1256,7 @@ class DagNode( Entity, iDagItem ):	# parent just for epydoc
 		mod.doIt()
 		
 	@undoable
-	def duplicate( self, newpath, autocreateNamespace=True, renameOnClash=True ):
+	def duplicate( self, newpath, autocreateNamespace=True, renameOnClash=True, **kwargs ):
 		"""Duplciate the given node to newpath
 		@param newpath: result depends on its format
 		   - 'newname' - relative path, the node will be duplicated not chaning its current parent, isInstance must be false
@@ -1373,6 +1399,10 @@ class DagNode( Entity, iDagItem ):	# parent just for epydoc
 		#print "RENAME TARGET AFTER: %r"  % rename_target	
 		#print "FinalName: %r ( %r )" % ( final_node, self )
 		
+		# call our base class to copy additional information
+		# NOTE: this might not be undoable, but we do not care as the whole duplicate
+		# node will be deleted on undo
+		self.copyTo( final_node, **kwargs )
 		return final_node
 		
 	#} END edit
