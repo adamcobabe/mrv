@@ -1259,14 +1259,14 @@ class DagNode( Entity, iDagItem ):	# parent just for epydoc
 	def duplicate( self, newpath, autocreateNamespace=True, renameOnClash=True, **kwargs ):
 		"""Duplciate the given node to newpath
 		@param newpath: result depends on its format
-		   - 'newname' - relative path, the node will be duplicated not chaning its current parent, isInstance must be false
-		   - '|parent|newname' - absolut path, the node will be duplicated and reparented under the given path
+		   - 'newname' - relative path, the node will be duplicated not changing its current parent
+		   - '|parent|newname' - absolute path, the node will be duplicated and reparented under the given path
 		@param autocreateNamespace: if true, namespaces given in newpath will be created automatically, otherwise 
 		a RuntimeException will be thrown if a required namespace does not exist 
 		@param renameOnClash: if true, clashing names will automatically be resolved by adjusting the name
 		@return: newly create Node 
 		@note: duplicate performance could be improved by checking more before doing work that does not 
-		really change the scene, but adds an undo options
+		really change the scene, but adds undo operations
 		@note: inbetween parents are always required as needed
 		@todo: add example for each version of newpath 
 		@note: instancing can be realized using the L{addChild} function"""

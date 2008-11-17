@@ -475,12 +475,13 @@ class StorageBase( iDuplicatable ):
 		
 	def getDataIDs( self ):
 		"""@return: list of all dataids available in the storage node
-		@note: respects attribute prefix, and will only see ids with matching prefix"""
+		@note: respects attribute prefix, and will only see ids with matching prefix.
+		The prefix itself is transparent and will not bre returned"""
 		outids = list()
 		for compoundplug in self._node.dta:
 			did = compoundplug.id.asString( )
 			if did and did.startswith( self._attrprefix ):
-				outids.append( did )
+				outids.append( did[ len( self._attrprefix ) : ] )
 			# END if is valid id 
 		# END for each compound plug element 
 		return outids
