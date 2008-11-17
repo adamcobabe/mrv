@@ -126,7 +126,13 @@ class TestStorage( unittest.TestCase ):
 			for is_shallow in range( 2 ):
 				duplicate = refstoragenode.duplicate( shallow = is_shallow )
 				ddata = duplicate.getPythonData( "test" )
+				data = refstoragenode.getPythonData( "test" )
 				checkTestValue( self, ddata )
+				
+				# assure that its a real copy , not just something shallow
+				if not is_shallow:
+					data[ 'other' ] = 2 
+					self.failUnless( not ddata.has_key( 'other' ) )
 			# END for each copy type 
 			
 			

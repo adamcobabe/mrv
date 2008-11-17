@@ -378,6 +378,8 @@ class StorageBase( iDuplicatable ):
 		be made. If False, a deep copy will be made
 		@note: only does so if the attribute prefixes actually match ( which should be 
 		the case if we get here, checking for it anyway
+		@note: as pickle data always copies by reference to be efficient, we have to explicitly 
+		create new data to assure we really copy it 
 		@todo: copy connections to our messages as well, make it an option at least"""
 		if self.getAttributePrefix() != other.getAttributePrefix():
 			raise AssertionError( "Attribute prefixes between self and other did not match" )
@@ -386,6 +388,8 @@ class StorageBase( iDuplicatable ):
 		for dataid in other.getDataIDs():
 			othervalplug = other.getStoragePlug( dataid, plugType = self.kValue, autoCreate = False )
 			ownvalplug = self.getStoragePlug( dataid, plugType = self.kValue, autoCreate = True )
+			
+			self._clearData( ownvalplug )
 			
 			if shallow:
 				ownvalplug.setMObject( othervalplug.asMObject() )
