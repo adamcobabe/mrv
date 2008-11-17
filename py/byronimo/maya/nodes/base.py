@@ -1300,7 +1300,7 @@ class DagNode( Entity, iDagItem ):	# parent just for epydoc
 			# END newTransform if there is no new path given 
 		elif newTransform:
 			newpath = "%s|%s" % ( self._getUniqueName( self.getTransform( ) ), newpath.split('|')[-1] )
-		# END path name handling  
+		# END path name handling
 		
 		# Instance Parent Check
 		dagtokens = newpath.split( '|' )
@@ -1337,8 +1337,7 @@ class DagNode( Entity, iDagItem ):	# parent just for epydoc
 		op = undo.GenericOperationStack( )
 		doitcmd = Call( api.MFnDagNode( self._apidagpath ).duplicate, False, False )
 		undoitcmd = Call( None )												# placeholder, have to change it soon
-		duplicate_node_parent = Node( op.addCmdAndCall( doitcmd, undoitcmd ) )		# get the duplicate 
-		
+		duplicate_node_parent = Node( op.addCmdAndCall( doitcmd, undoitcmd ) )		# get the duplicate
 		# bake the object to a string for deletion - adjust undocmd
 		undoitcmd.func = cmds.delete
 		undoitcmd.args = [ str( duplicate_node_parent ) ]
@@ -1347,62 +1346,79 @@ class DagNode( Entity, iDagItem ):	# parent just for epydoc
 		# RENAME DUPLICATE CHILDREN
 		###########################
 		#
-		childsourceparent = self.getTransform()			# good if we are transform
+		childsourceparent = self.getTransform()			# works if we are a transform as well
 		self_shape_duplicated = None		# store Node of duplicates that corresponds to us ( only if self is shape ) 
 	
 		srcchildren = childsourceparent.getChildrenDeep( )
 		destchildren = duplicate_node_parent.getChildrenDeep( )
 		
+		
 		if len( srcchildren ) != len( destchildren ):
-			raise AssertionError( "childcount of source and duplicate must match" )
-	
-		# this is the only part where we have a one-one relationship between the original children
-		# and their copies - store the id the current basename once we encounter it
-		selfbasename = self.getBasename()
-		for i,targetchild in enumerate( destchildren ):
-			#print "RENAME %r to %s" % ( targetchild, srcchildren[ i ].getBasename( ) )
-			srcchildbasename = srcchildren[ i ].getBasename( )
-			targetchild.rename( srcchildbasename )
-			# HACK: we should only check the intermediate children, but actually conisder them deep
-			# trying to reduce risk of problem by only setting duplicate_shape_index once
-			if not self_shape_duplicated and selfbasename == srcchildbasename:
-				self_shape_duplicated = targetchild
-					
+			# Happens if we have duplicated a shape, whose transform hat several shapes
+			# To find usually, there should be only one shape which is our duplicated shape
+			if len( destchildren ) != 1:
+				raise AssertionError( "Expected %s to have exactly one child, but it had %i" % ( duplicate_node_parent, len( destchildren ) ) )
+			self_shape_duplicated = destchildren[0].rename( self.getBasename() )
+		else:
+			# this is the only part where we have a one-one relationship between the original children
+			# and their copies - store the id the current basename once we encounter it
+			selfbasename = self.getBasename()
+			for i,targetchild in enumerate( destchildren ):
+				#print "RENAME %r to %s" % ( targetchild, srcchildren[ i ].getBasename( ) )
+				srcchildbasename = srcchildren[ i ].getBasename( )
+				targetchild.rename( srcchildbasename )
+				# HACK: we should only check the intermediate children, but actually conisder them deep
+				# trying to reduce risk of problem by only setting duplicate_shape_index once
+				if not self_shape_duplicated and selfbasename == srcchildbasename:
+					self_shape_duplicated = targetchild
+			# END for each child to rename 
 		# END CHILD RENAME 
 		
-		dupparent_for_deletion = None			 # might later be filled to delete intermediate transform
 			
 		# REPARENT 
 		###############
 		# create requested parents up to transform
-		parenttokens = dagtokens[:-1]
-		leafobjectname = dagtokens[-1]		# the basename of the dagpath
+		parenttokens = None
+		leafobjectname = None
 		
-		if len( parenttokens ):			# could be [''] too if newpath = '|newpath'
+		if thisNodeIsShape:
+			parenttokens = dagtokens[:-1]
+			leafobjectname = dagtokens[-1]		# the basename of the dagpath
+		else:
+			parenttokens = dagtokens
+			
+		
+		if parenttokens:			# could be [''] too if newpath = '|newpath'
 			parentnodepath = '|'.join( parenttokens )
 			parentnode = childsourceparent			# in case we have a relative name 		
 			
-			# happens on input like "|name"
-			if parentnodepath != '': 
+			# happens on input like "|name",
+			# handle case that we are duplicating a transform and end up with a name 
+			# that already exists
+			if parentnodepath != '' and parentnodepath not in str( duplicate_node_parent ): 
 				parentnode = createNode( parentnodepath, "transform", 
-										renameOnClash=renameOnClash,
-										autocreateNamespace=autocreateNamespace )
+			     						  renameOnClash=renameOnClash,
+										  autocreateNamespace=autocreateNamespace )
+				
+				# get all children
+				nodes_for_parenting = duplicate_node_parent.getChildren()
+				
+				# DO THE REPARENT - parent can be none to indicate parenting below root, okay for transforms
+				for reparent_node in nodes_for_parenting:
+					reparent_node.reparent( parentnode, renameOnClash=renameOnClash )
+					
+				# DELETE INTERMEDIATE PARENTS 
+				################################
+				# assure we do not delete ourselves if the target path is a shape below our 
+				# own transform 
+				if str( duplicate_node_parent ) not in newpath:
+					#print "DUP FOR DELETION %r" % dupparent_for_deletion
+					duplicate_node_parent.delete()
 			# END create parent handling
-			
-			# get all children
-			nodes_for_parenting = duplicate_node_parent.getChildren()
-			dupparent_for_deletion = duplicate_node_parent				# remove the parent - its not required anymore
-			
-			 
-			# DO THE REPARENT - parent can be none to indicate parenting below root, okay for transforms
-			for reparent_node in nodes_for_parenting:
-				reparent_node.reparent( parentnode, renameOnClash=renameOnClash )
-			
-		# END parent handling 
+		# END PARENT CREATION  
 		
 		# FIND RETURN NODE
 		######################
-		
 		final_node = rename_target = duplicate_node_parent		# item that is to be renamed to the final name later
 		
 		# rename target must be the child matching our name
@@ -1410,21 +1426,14 @@ class DagNode( Entity, iDagItem ):	# parent just for epydoc
 			final_node = rename_target = self_shape_duplicated		
 		
 		
-		# DELETE INTERMEDIATE PARENTS 
-		################################
-		# assure we do not delete ourselves if the target path is a shape below our 
-		# own transform 
-		selfparent = self.getParent()
-		if dupparent_for_deletion and selfparent and dupparent_for_deletion != selfparent:
-			#print "DUP FOR DELETION %r" % dupparent_for_deletion
-			dupparent_for_deletion.delete()
-		
-		
 		# RENAME TARGET
 		# rename the target to match the leaf of the path
+		# we currently do not check whether the name is already set 
+		# - the rename method does that for us  
 		#print "RENAME TARGET BEFORE: %r"  % rename_target
-		rename_target.rename( leafobjectname, autocreateNamespace = autocreateNamespace, 
-							  renameOnClash=renameOnClash )
+		if leafobjectname:
+			rename_target.rename( leafobjectname, autocreateNamespace = autocreateNamespace, 
+								  renameOnClash=renameOnClash )
 		#print "RENAME TARGET AFTER: %r"  % rename_target	
 		#print "FinalName: %r ( %r )" % ( final_node, self )
 		

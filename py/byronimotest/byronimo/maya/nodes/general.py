@@ -391,10 +391,21 @@ class TestNodeBase( unittest.TestCase ):
 		
 		# simple dupl test 
 		duplbase = nodes.createNode( "parent|this|other|duplbase", "mesh" )
+		transcopy = duplbase.getTransform( ).duplicate()
 		copy = duplbase.duplicate( "parent|this|other|duplcopy" )
 		self.failUnless( copy != duplbase )
 		self.failUnless( str( copy ) != str( duplbase ) )
 		self.failUnless( str( copy ) == "|parent|this|other|duplcopy" )
+		
+		# TEST ADDITIONAL OPTIONS 
+		for i in range( 1,3 ):
+			ocopy = duplbase.duplicate(  )
+			self.failUnless( str( ocopy ) == str( duplbase ) + str( i ) )
+			
+			ocopy = duplbase.duplicate( newTransform=1 )
+			self.failUnless( ocopy.getBasename( ) == duplbase.getBasename() )
+			self.failUnless( str( ocopy.getParent() ) == str( duplbase.getParent() ) + str( i + 1 ) )
+		# END for each copy
 		
 		
 		# simple reparent 
