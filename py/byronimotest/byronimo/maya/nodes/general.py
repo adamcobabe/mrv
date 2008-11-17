@@ -400,12 +400,9 @@ class TestNodeBase( unittest.TestCase ):
 		# TEST ADDITIONAL OPTIONS 
 		for i in range( 1,3 ):
 			ocopy = duplbase.duplicate(  )
-			print ocopy
 			self.failUnless( str( ocopy ) == str( duplbase ) + str( i ) )
 			
 			ocopy = duplbase.duplicate( newTransform=1 )
-			print duplbase
-			print ocopy
 			self.failUnless( ocopy.getBasename( ) == duplbase.getBasename() )
 			self.failUnless( str( ocopy.getParent() ) == str( duplbase.getParent() ) + str( i + 1 ) )
 		# END for each copy

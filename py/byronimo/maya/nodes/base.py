@@ -1312,7 +1312,6 @@ class DagNode( Entity, iDagItem ):	# parent just for epydoc
 		# Instance Parent Check
 		dagtokens = newpath.split( '|' )
 		
-		print "NEWPATH = %s" % newpath
 		
 		# ASSERT NAME
 		#############
