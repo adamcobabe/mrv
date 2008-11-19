@@ -184,6 +184,12 @@ class iDagItem( object ):
 	
 	kOrder_DepthFirst, kOrder_BreadthFirst = range(2)
 	
+	#{ Configuration
+	# separator as appropriate for your class if it can be treated as string
+	# if string treatment is not possibly, override the respective method
+	_sep = None
+	#} END configuration 
+	
 	#{ Query Methods 
 	
 	def isRoot( self ):
@@ -597,7 +603,7 @@ class CallbackBase( iDuplicatable ):
 		def __get__( self, inst, cls = None ):
 			"""Always return the set itself so that one can iterate it
 			on class level, return self"""
-			if inst is None:
+			if cls is not None:
 				return self
 				
 			if not hasattr( inst, self.eventname ):
@@ -606,11 +612,12 @@ class CallbackBase( iDuplicatable ):
 			return getattr( inst, self.eventname )
 			
 		def remove( self, inst, eventfunc ):
-			"""Remove eventfunc as listener for this event from the instance"""
+			"""Remove eventfunc as listener for this event from the instance, i.e
+			CallbackBaseCls.event.remove( inst, func )"""
 			inst.removeEvent( self, eventfunc )
 		
 		def duplicate( self ):
-			inst = Event( "" )
+			inst = self.__class__( "" )
 			inst._name = self._name
 			inst.eventname = self.eventname
 			return inst
@@ -657,14 +664,16 @@ class CallbackBase( iDuplicatable ):
 		
 	def listEventNames( self ):
 		"""@return: list of event ids that exist on our class"""
-		return [ name for name,member in inspect.getmembers( self, predicate = lambda m: isinstance( m, self.Event ) ) ]
+		return [ name for name,member in inspect.getmembers( self, lambda m: isinstance( m, self.Event ) ) ]
 			
 		
 	#{ iDuplicatable 
 	def copyFrom( self, other, *args, **kwargs ):
 		"""Copy callbacks from other to ourselves"""
-		for event in other.listEventNames():
-			setattr( self.__class__, event.eventname, event.duplicate( ) )
+		eventlist = inspect.getmembers( self, lambda m: isinstance( m, self.Event ) )
+		for eventname,event in eventlist:
+			event = self._toEventInst( eventname )
+			setattr( self.__class__, eventname, event.duplicate( ) )
 	
 	#} END iDuplicatable
 		

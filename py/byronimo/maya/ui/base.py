@@ -21,7 +21,7 @@ __copyright__='(c) 2008 Sebastian Thiel'
 ui = __import__( "byronimo.maya.ui",globals(), locals(), ['ui'] )
 import weakref
 import maya.cmds as cmds
-from byronimo.util import capitalize
+from byronimo.util import capitalize, iDagItem, CallbackBase
 import byronimo.maya.util as mutil
 from byronimo.exceptions import ByronimoError
 
@@ -110,7 +110,7 @@ class BaseUI( object ):
 		return object.__init__( self , *args, **kwargs )
 		
 
-class NamedUI( unicode, BaseUI ):
+class NamedUI( unicode, BaseUI , iDagItem ):
 	"""Implements a simple UI element having a name  and most common methods one 
 	can apply to it. Derived classes should override these if they can deliver a
 	faster implementation. 
@@ -119,6 +119,9 @@ class NamedUI( unicode, BaseUI ):
 	similar except for a changing flag, they are hand-written to provide proper docs for them"""
 	__metaclass__ = ui.MetaClassCreatorUI
 	
+	#( Configurtation 
+	_sep = "|" 
+	#) end configuration 
 	
 	#{ Overridden Methods 
 	def __new__( cls, name=None, *args, **kwargs ):

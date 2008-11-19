@@ -27,7 +27,9 @@ import byronimo.util as util
 import byronimo.maya.util as mutil
 
 class Layout( ui.NamedUI ):
-	""" Structural base  for all Layouts allowing general queries and name handling """
+	""" Structural base  for all Layouts allowing general queries and name handling
+	Layouts may track their children
+	"""
 	__metaclass__ = ui.MetaClassCreatorUI
 	
 	def __init__( self, *args, **kwargs ):
