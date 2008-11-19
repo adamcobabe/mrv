@@ -82,7 +82,8 @@ class FrameLayout( Layout ):
 	_properties_ = (	"borderVisible", "borderStyle", "collapse", "collapsable",
 					   "label", "labelWidth", "labelVisible", "labelAlign", "labelIndent", "labelFont",
 					   "marginWidth", "marginHeight" )
-	
+
+	_events_ = ( "collapseCommand", "expandCommand", "preCollapseCommand", "preExpandCommand" )
 
 class ColumnLayout( Layout ):
 	"""Wrapper class for a simple column layout"""

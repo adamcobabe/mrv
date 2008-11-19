@@ -50,7 +50,7 @@ class TestGeneralUI( unittest.TestCase ):
 			self.failUnless( isinstance( inst, ui.BaseUI ) )
 			if not isinstance( inst, ui.BaseUI ):
 				self.failUnless( isinstance( inst, ui.NamedUI ) )
-			
+				
 			self.failUnless( hasattr( inst, '__melcmd__' ) )
 			
 			# layouts should not stay open
@@ -114,7 +114,7 @@ class TestGeneralUI( unittest.TestCase ):
 		win.p_menubarvisible = True
 		win.p_menubarvisible = False
 		self.failUnless( win.p_menubarvisible == False )
-		
+
 		tlc = win.p_topleftcorner
 		win.p_topleftcorner = ( tlc[1], tlc[0] )
 		
@@ -155,21 +155,29 @@ class TestGeneralUI( unittest.TestCase ):
 		"""byronimo.maya.ui: test callbacks and handling - needs user interaction"""
 		if cmds.about( batch=1 ):
 			return
+			
 		win = ui.Window( title="Test Window" )
 		col = ui.ColumnLayout( adj=1 )
+		import sys
+		def func( *args ):
+			b = args[0]
+			b.p_label = "pressed"
+			b.p_actionissubstitute = 1
+			sys.stdout.write( str( args ) )
+			
+		sys.__mytestfunc = func		# to keep it alive, it will be weakly bound
 		
 		if col:
 			b = ui.Button( l="b with cb" )
-			print b
-			import sys
-			b.setCommand( ui.Callback( sys.stdout.write, "hello" ) )
+			b.e_onpress = func
+			sys.__mytestbutton = b
 		col.setParentActive()
 		
 		win.show()
 		
 	def test_progressWindow( self ):
 		"""byronimo.maya.ui: test progress window functionality"""
-		maxrange = 100
+		maxrange = 10
 		import time
 		progress = ui.ProgressWindow( min = 0, max = maxrange, is_relative = 1 )
 		

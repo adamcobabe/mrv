@@ -571,6 +571,12 @@ class CallbackBase( iDuplicatable ):
 	@note: using weak-references to ensure one does not keep objects alive, 
 	see L{use_weakref}"""
 	
+	#{ Configuration 
+	# if True, the sender, thus self of an instance of this class, will be put 
+	# as first arguments to functions when called for a specific event
+	sender_as_argument = False
+	#} END configuration 
+	
 	class Event( object ):
 		"""Descriptor allowing to easily setup callbacks for classes derived from 
 		CallbackBase"""
@@ -659,7 +665,12 @@ class CallbackBase( iDuplicatable ):
 			try:
 				func = eventinst._keyToFunc( function ) 
 				if func:
-					func( *args, **kwargs )
+					if self.sender_as_argument:
+						func( self, *args, **kwargs )
+					else:
+						func( *args, **kwargs )
+					# END sendder as argument 
+				# END func is valid 
 			except Exception:
 				success = False
 				#print "Error: Exception thrown by function %s during event %s" % ( func, eventname )

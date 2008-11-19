@@ -21,7 +21,8 @@ __copyright__='(c) 2008 Sebastian Thiel'
 ui = __import__( "byronimo.maya.ui",globals(), locals(), ['ui'] )
 import weakref
 import maya.cmds as cmds
-from byronimo.util import capitalize, iDagItem, CallbackBase
+from byronimo.util import capitalize, iDagItem
+from util import CallbackBaseUI
 import byronimo.maya.util as mutil
 from byronimo.exceptions import ByronimoError
 
@@ -110,11 +111,23 @@ class BaseUI( object ):
 		return object.__init__( self , *args, **kwargs )
 		
 
-class NamedUI( unicode, BaseUI , iDagItem ):
+class NamedUI( unicode, BaseUI , iDagItem, CallbackBaseUI ):
 	"""Implements a simple UI element having a name  and most common methods one 
 	can apply to it. Derived classes should override these if they can deliver a
 	faster implementation. 
 	If the 'name' keyword is supplied, an existing UI element will be wrapped
+	
+	Events 
+	-------
+	As subclass of CallbackBaseUI, it can provide events that are automatically 
+	added by the metaclass as described by the _events_ attribute list.
+	This allows any number of clients to register for one maya event. Derived classes
+	may also use their own events which is useful if you create components
+	
+	Register for an event like:K 
+	uiinstance.e_eventlongname = yourFunction( sender, *args, **kwargs )
+	*args and **kwargs are determined by maya
+	
 	@note: although many access methods look quite 'repeated' as they are quite
 	similar except for a changing flag, they are hand-written to provide proper docs for them"""
 	__metaclass__ = ui.MetaClassCreatorUI
@@ -253,6 +266,9 @@ class Window( NamedUI ):
 	_properties_ = (	"title", "iconify", "sizeable", "iconName", "titleBar",
 					   	"minimizeButton", "maximizeButton", "toolbox", "titleBarMenu", 
 						"menuBarVisible", "topLeftCorner" )
+	
+	_events_ = ( "restoreCommand", "minimizeCommand" )
+	
 	#{ Window Specific Methods
 	
 	def show( self ):

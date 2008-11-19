@@ -21,6 +21,7 @@ import byronimo.maya.util as mutil
 from byronimo.path import Path
 _thismodule = __import__( "byronimo.maya.ui", globals(), locals(), ['ui'] )
 import maya.cmds as mcmds
+from util import CallbackBaseUI
 
 
 
@@ -44,7 +45,15 @@ class MetaClassCreatorUI( mutil.MetaClassCreator ):
 	  - Properties will be available as:
 	  	inst.p_myproperty to access myProperty ( equivalent to cmd -q|e -myProperty
 	  - This only works if our class knows it's mel command in the __melcmd__ member 
-		variable - inheritance for it does not work 
+		variable - inheritance for it does not work
+		
+	* AUTOMATIC UI-EVENT GENERATION *
+	  - define names of mel events in _events_ as list of names 
+	  - these will be converted into UIEvents sitting at attribute names like 
+	  	e_eventname ( lowercase )
+	  - assign an event:
+	    windowinstance.e_restorecommand = func
+		whereas func takes: func( windowinstance, *args, **kwargs )
 	  """
 	
 	melcmd_attrname = '__melcmd__'
@@ -60,26 +69,39 @@ class MetaClassCreatorUI( mutil.MetaClassCreator ):
 		cmdname = uncapitalize( name )
 		melcmd = None
 		if hasattr( mcmds, cmdname ):
-			clsdict['__melcmd__'] = staticmethod( getattr( mcmds, cmdname ) ) 
+			melcmd = getattr( mcmds, cmdname )
+			clsmelcmd = staticmethod( melcmd ) 
+			clsdict['__melcmd__'] = clsmelcmd
 		else:
 			pass # don't bother, can be one of our own classes that will 
 			#raise UIError( "Did not find command for " + cmdname ) 	
 				
-		# HANDLE PROPERTIES 
-		####################
-		# read the properties attribute to find names to automatically create 
-		# query and edit properties 
-		propertynames = clsdict.get( "_properties_", list() )
+		 
 		if melcmd:
+			# HANDLE PROPERTIES 
+			####################
+			# read the properties attribute to find names to automatically create 
+			# query and edit properties
+			propertynames = clsdict.get( "_properties_", list() )
 			for pname in propertynames:
 				attrname = "p_%s" % pname.lower()
 				clsdict[ attrname ] = mutil.propertyQE( melcmd, pname )
 			# END for each property
-		# END if we have a mel command 
 			
+			# HANDLE EVENTS 
+			##################
+			# read the event description and create UIEvent instances that will 
+			# register themselves on first use, allowing multiple listeners per maya event
+			eventnames = clsdict.get( "_events_", list() )
+			for ename in eventnames:
+				attrname = "e_%s" % ename.lower()
+				clsdict[ attrname ] = CallbackBaseUI.UIEvent( ename )
+			# END for each event name 
+		# END if we have a mel command 
+
 		newcls = super( MetaClassCreatorUI, metacls ).__new__( _typetree, _thismodule, 
 																metacls, name, bases, clsdict )
-				
+		
 		# print newcls.mro()
 		return newcls
 
