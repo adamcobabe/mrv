@@ -77,31 +77,15 @@ class FormLayout( Layout ):
 class FrameLayout( Layout ):
 	"""Simple wrapper for a frame layout"""
 	__metaclass__ = ui.MetaClassCreatorUI
-	
-	p_bordervisible = mutil.propertyQE( cmds.frameLayout, 'borderVisible' )
-	p_borderstyle = mutil.propertyQE( cmds.frameLayout, 'borderStyle' )
-	p_collapse = mutil.propertyQE( cmds.frameLayout, 'collapse' )
-	p_collapsable = mutil.propertyQE( cmds.frameLayout, 'collapsable' )
-	
-	p_label = mutil.propertyQE( cmds.frameLayout, 'label' )
-	p_labelvisible = mutil.propertyQE( cmds.frameLayout, 'labelVisible' )
-	p_labelalign = mutil.propertyQE( cmds.frameLayout, 'labelAlign' )
-	p_labelvisible = mutil.propertyQE( cmds.frameLayout, 'labelVisible' )
-	p_labelindent = mutil.propertyQE( cmds.frameLayout, 'labelIndent' )
-	p_labelfont = mutil.propertyQE( cmds.frameLayout, 'labelFont' )
-	
-	p_marginwidth = mutil.propertyQE( cmds.frameLayout, 'mw' )
-	p_marginheight = mutil.propertyQE( cmds.frameLayout, 'mh' )
+	_properties_ = (	"borderVisible", "borderStyle", "collapse", "collapsable",
+					   "label", "labelWidth", "labelVisible", "labelAlign", "labelIndent", "labelFont",
+					   "marginWidth", "marginHeight" )
 	
 
 class ColumnLayout( Layout ):
 	"""Wrapper class for a simple column layout"""
 	__metaclass__ = ui.MetaClassCreatorUI
 	
-	p_adjustable = mutil.propertyQE( cmds.columnLayout, 'adjustableColumn' )
-	p_align = mutil.propertyQE( cmds.columnLayout, 'columnAlign' )
-	p_attach = mutil.propertyQE( cmds.columnLayout, 'columnAttach' )
-	p_offset = mutil.propertyQE( cmds.columnLayout, 'columnOffset' )
-	p_width = mutil.propertyQE( cmds.columnLayout, 'columnWidth' )
-	p_rowspacing = mutil.propertyQE( cmds.columnLayout, 'rowSpacing' )
+	_properties_ = ( 	"adjustableColumn", "columnAlign", "columnAttach", "columnOffset", 
+						"columnWidth", "rowSpacing" )
 	

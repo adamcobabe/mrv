@@ -247,7 +247,9 @@ class NamedUI( unicode, BaseUI ):
 class Window( NamedUI ):
 	"""Simple Window Wrapper"""
 	__metaclass__ = ui.MetaClassCreatorUI
-	
+	_properties_ = (	"title", "iconify", "sizeable", "iconName", "titleBar",
+					   	"minimizeButton", "maximizeButton", "toolbox", "titleBarMenu", 
+						"menuBarVisible", "topLeftCorner" )
 	#{ Window Specific Methods
 	
 	def show( self ):
@@ -264,16 +266,3 @@ class Window( NamedUI ):
 		
 	#} END window speciic
 	
-	#{ Properties
-	p_title = mutil.propertyQE( cmds.window, 'title' )
-	p_iconify = mutil.propertyQE( cmds.window, 'iconify' )
-	p_sizeable = mutil.propertyQE( cmds.window, 'sizeable' )
-	p_iconname = mutil.propertyQE( cmds.window, 'iconName' )
-	p_titlebar = mutil.propertyQE( cmds.window, 'titleBar' )
-	p_minimizebutton = mutil.propertyQE( cmds.window, 'mnb' )
-	p_maximizebutton = mutil.propertyQE( cmds.window, 'mxb' )
-	p_toolbox = mutil.propertyQE( cmds.window, 'toolbox' )
-	p_titlebarmenu = mutil.propertyQE( cmds.window, 'tbm' )
-	p_menubarvisible = mutil.propertyQE( cmds.window, 'mbv' )
-	p_topleftcorner = mutil.propertyQE( cmds.window, 'tlc' )
-	#}

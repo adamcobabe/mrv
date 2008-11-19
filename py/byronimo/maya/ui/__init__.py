@@ -17,7 +17,7 @@ __copyright__='(c) 2008 Sebastian Thiel'
 
 import byronimo.maya as bmaya
 from byronimo.util import capitalize, uncapitalize
-from byronimo.maya.util import MetaClassCreator
+import byronimo.maya.util as mutil
 from byronimo.path import Path
 _thismodule = __import__( "byronimo.maya.ui", globals(), locals(), ['ui'] )
 import maya.cmds as mcmds
@@ -34,24 +34,49 @@ import maya.cmds as mcmds
 #### META 		####
 ##################
 
-class MetaClassCreatorUI( MetaClassCreator ):
+class MetaClassCreatorUI( mutil.MetaClassCreator ):
 	""" Builds the base hierarchy for the given classname based on our
-	typetree """
+	typetree 
+	Additional support for : 
+	* AUTOMATIC PROPERTY GENERATION * 
+	  - if flags are simple get and set properties, these can be listed in the 
+	    _properties_ attribute ( list ). These must be queriable and editable
+	  - Properties will be available as:
+	  	inst.p_myproperty to access myProperty ( equivalent to cmd -q|e -myProperty
+	  - This only works if our class knows it's mel command in the __melcmd__ member 
+		variable - inheritance for it does not work 
+	  """
 	
 	melcmd_attrname = '__melcmd__'
+	
 	
 	def __new__( metacls, name, bases, clsdict ):
 		""" Called to create the class with name """
 		global _typetree
 		global _thismodule
 
+		# HANDLE MEL COMMAND 
+		#######################
 		cmdname = uncapitalize( name )
+		melcmd = None
 		if hasattr( mcmds, cmdname ):
 			clsdict['__melcmd__'] = staticmethod( getattr( mcmds, cmdname ) ) 
 		else:
 			pass # don't bother, can be one of our own classes that will 
 			#raise UIError( "Did not find command for " + cmdname ) 	
 				
+		# HANDLE PROPERTIES 
+		####################
+		# read the properties attribute to find names to automatically create 
+		# query and edit properties 
+		propertynames = clsdict.get( "_properties_", list() )
+		if melcmd:
+			for pname in propertynames:
+				attrname = "p_%s" % pname.lower()
+				clsdict[ attrname ] = mutil.propertyQE( melcmd, pname )
+			# END for each property
+		# END if we have a mel command 
+			
 		newcls = super( MetaClassCreatorUI, metacls ).__new__( _typetree, _thismodule, 
 																metacls, name, bases, clsdict )
 				
