@@ -74,6 +74,26 @@ class FormLayout( Layout ):
 		pass 
 
 
+class FrameLayout( Layout ):
+	"""Simple wrapper for a frame layout"""
+	__metaclass__ = ui.MetaClassCreatorUI
+	
+	p_bordervisible = mutil.propertyQE( cmds.frameLayout, 'borderVisible' )
+	p_borderstyle = mutil.propertyQE( cmds.frameLayout, 'borderStyle' )
+	p_collapse = mutil.propertyQE( cmds.frameLayout, 'collapse' )
+	p_collapsable = mutil.propertyQE( cmds.frameLayout, 'collapsable' )
+	
+	p_label = mutil.propertyQE( cmds.frameLayout, 'label' )
+	p_labelvisible = mutil.propertyQE( cmds.frameLayout, 'labelVisible' )
+	p_labelalign = mutil.propertyQE( cmds.frameLayout, 'labelAlign' )
+	p_labelvisible = mutil.propertyQE( cmds.frameLayout, 'labelVisible' )
+	p_labelindent = mutil.propertyQE( cmds.frameLayout, 'labelIndent' )
+	p_labelfont = mutil.propertyQE( cmds.frameLayout, 'labelFont' )
+	
+	p_marginwidth = mutil.propertyQE( cmds.frameLayout, 'mw' )
+	p_marginheight = mutil.propertyQE( cmds.frameLayout, 'mh' )
+	
+
 class ColumnLayout( Layout ):
 	"""Wrapper class for a simple column layout"""
 	__metaclass__ = ui.MetaClassCreatorUI

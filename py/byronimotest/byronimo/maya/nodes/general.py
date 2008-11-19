@@ -231,7 +231,6 @@ class TestGeneral( unittest.TestCase ):
 		self.failUnless( persp == nodes.Node( "persp" ) )
 		
 		
-		
 class TestNodeBase( unittest.TestCase ):
 	""" Test node base functionality  """
 	

@@ -19,6 +19,7 @@ __copyright__='(c) 2008 Sebastian Thiel'
 
 
 ui = __import__( "byronimo.maya.ui",globals(), locals(), ['ui'] )
+import weakref
 import maya.cmds as cmds
 from byronimo.util import capitalize
 import byronimo.maya.util as mutil
@@ -98,27 +99,6 @@ def lsUI( **kwargs ):
 #### Classes		  	####
 ##########################
 
-class Callback(object):
-    """ Enables deferred function evaulation with 'baked' arguments.
-    Useful where lambdas won't work as they bind to the free variables instead of 
-	to their values.
-    Example: 
-        def addRigger(rigger):
-            ...
-            
-        for rigger in riggers:
-            pm.menuItem(
-                label = "Add " + str(rigger),
-                c = Callback(addRigger,rigger,p=1))   # will run: addRigger(rigger,p=1)
-	@note: from pymel """
-    def __init__(self,func,*args,**kwargs):
-        self.func = func
-        self.args = args
-        self.kwargs = kwargs
-    def __call__(self,*args):
-        return self.func(*self.args,**self.kwargs)
-		
-
 class BaseUI( object ):
 	
 	__melcmd__	= None					# every class deriving directly from it must define this !
@@ -127,7 +107,7 @@ class BaseUI( object ):
 		if self.__class__ == BaseUI:
 			raise ByronimoError( "Cannot instantiate" + self.__class__.__name__ + " directly - it can only be a base class" )
 		
-		return object.__init__(self, *args, **kwargs )
+		return object.__init__( self , *args, **kwargs )
 		
 
 class NamedUI( unicode, BaseUI ):
