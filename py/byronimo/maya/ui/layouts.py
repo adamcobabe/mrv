@@ -21,7 +21,7 @@ __copyright__='(c) 2008 Sebastian Thiel'
 
 
 ui = __import__( "byronimo.maya.ui",globals(), locals(), ['ui'] )
-uibase = __import__( "byronimo.maya.ui.base",globals(), locals(), ['base'] )
+import base as uibase
 import maya.cmds as cmds
 import byronimo.util as util
 import byronimo.maya.util as mutil
@@ -73,3 +73,15 @@ class FormLayout( Layout ):
 		""" Add layout as child, kwargs specify the binding of the layout"""
 		pass 
 
+
+class ColumnLayout( Layout ):
+	"""Wrapper class for a simple column layout"""
+	__metaclass__ = ui.MetaClassCreatorUI
+	
+	p_adjustable = mutil.propertyQE( cmds.columnLayout, 'adjustableColumn' )
+	p_align = mutil.propertyQE( cmds.columnLayout, 'columnAlign' )
+	p_attach = mutil.propertyQE( cmds.columnLayout, 'columnAttach' )
+	p_offset = mutil.propertyQE( cmds.columnLayout, 'columnOffset' )
+	p_width = mutil.propertyQE( cmds.columnLayout, 'columnWidth' )
+	p_rowspacing = mutil.propertyQE( cmds.columnLayout, 'rowSpacing' )
+	
