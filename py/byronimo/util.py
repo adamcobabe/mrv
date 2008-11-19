@@ -558,51 +558,95 @@ class CallbackBase( iDuplicatable ):
 	and deregister using 
 	yourclass.removeEvent( eventname, callable )
 	
-	@note: using weak-references to ensure one does not keep objects alive"""
+	@note: using weak-references to ensure one does not keep objects alive, 
+	see L{use_weakref}"""
 	
 	class Event( object ):
 		"""Descriptor allowing to easily setup callbacks for classes derived from 
 		CallbackBase"""
+		#{ Configuration 
+		# if true, functions will be weak-referenced - its useful if you use instance 
+		# variables as callbacks 
+		use_weakref = True
+		#} END configuration 
+		
+		
 		def __init__( self, eventname ):
+			self._name = eventname					# original name 					
 			self.eventname = eventname + "_set"	# set attr going to keep events 
 			
+		def _toKeyFunc( self, eventfunc ):
+			"""@return: an eventfunction suitable to be used as key in our instance 
+			event set"""
+			if self.use_weakref:
+				eventfunc = weakref.ref( eventfunc )
+			return eventfunc
+		
+		def _keyToFunc( self, eventkey ):
+			"""@return: event function from the given eventkey as stored in 
+			our events set.
+			@note: this is required as the event might be weakreffed or not"""
+			if self.use_weakref:
+				return eventkey()
+			return eventkey
+		
 		def __set__( self, inst, eventfunc ):
 			"""Set a new event to our object"""
-			self.__get__( inst ).add( weakref.ref( eventfunc ) )
+			self.__get__( inst ).add( self._toKeyFunc( eventfunc ) )
 			
 		def __get__( self, inst, cls = None ):
-			"""Always return the set itself so that one can iterate it"""
+			"""Always return the set itself so that one can iterate it
+			on class level, return self"""
 			if inst is None:
-				raise TypeError( "The attribute %s cannot be accessed on class level" % self.eventname )
+				return self
 				
 			if not hasattr( inst, self.eventname ):
 				setattr( inst, self.eventname, set() )
 			
 			return getattr( inst, self.eventname )
 			
+		def remove( self, inst, eventfunc ):
+			"""Remove eventfunc as listener for this event from the instance"""
+			inst.removeEvent( self, eventfunc )
+		
 		def duplicate( self ):
 			inst = Event( "" )
+			inst._name = self._name
 			inst.eventname = self.eventname
 			return inst
 		
 	# END event class 
 	
-	def removeEvent( self, eventname, eventfunc ):
-		"""remove the given event function from the event identified by eventname
+	def _toEventInst( self, event ):
+		"""@return: event instance for eventname or instance"""
+		eventinst = event 
+		if isinstance( event, basestring ):
+			eventinst = getattr( self.__class__, event )
+		return eventinst
+		
+	def removeEvent( self, event, eventfunc ):
+		"""remove the given event function from the event identified by event
+		@param event: either the name of the event as given upon creation or the event 
+		or the event instance being a class variable of CallbackBase
 		@note: will not raise if it does not exist"""
+		eventinst = self._toEventInst( event )
+		eventfunc = eventinst._toKeyFunc( eventfunc )
 		try:
-			getattr( self, eventname ).remove( weakref.ref( eventfunc ) )
+			eventinst.__get__( self ).remove( eventfunc )
 		except KeyError:
 			pass 
 			
-	def sendEvent( self, eventname, *args, **kwargs ):
+	def sendEvent( self, event, *args, **kwargs ):
 		"""Send the given event to all registered event listeners
 		@note: will catch all event exceptions trown by the methods called
+		@param event: either name of event on self or the event instance itself
 		@return: False if at least one event call threw an exception, true otherwise"""
+		eventinst = self._toEventInst( event )
+		callbackset = eventinst.__get__( self )
 		success = True
-		for funcref in getattr( self, eventname ):
+		for function in callbackset:
 			try:
-				func = funcref()	# its a weak reference 
+				func = eventinst._keyToFunc( function ) 
 				if func:
 					func( *args, **kwargs )
 			except Exception:
