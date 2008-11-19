@@ -135,12 +135,9 @@ class Path(_base):
 	def __eq__( self, other ):
 		"""Comparison method with expanded variables, just to assure 
 		the comparison yields the results we would expect"""
-		if isinstance( other, Path ):
-			other = other._expandvars( )
-		
-		return unicode( self._expandvars() ) == unicode( other )
-		return str( self._expandvars() ).__eq__( str( other ) )
-		return unicode.__cmp__( unicode( self._expandvars() ), unicode( other ) ) == 0
+		if not isinstance( other, basestring ):
+			return False
+		return unicode( os.path.expandvars( self ) ) == unicode( os.path.expandvars( other ) )
 	
 	def __ne__( self, other ):
 		return not self.__eq__( other )
