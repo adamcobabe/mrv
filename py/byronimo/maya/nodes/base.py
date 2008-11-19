@@ -209,7 +209,36 @@ def fromSelectionList( sellist, handlePlugs=1, **kwargs ):
 	"""@return: list of Nodes and MPlugs stored in the given selection list
 	@param **kwargs: passed to selectionListIterator"""
 	import iterators
-	return list( iterators.iterSelectionList( asNode=1, handlePlugs=1, **kwargs ) )
+	kwargs.pop( "asNode", None )	# remove our overridden warg
+	handlePlugs = kwargs.pop( "handlePlugs", handlePlugs )
+	return list( iterators.iterSelectionList( sellist, asNode=1, handlePlugs = handlePlugs, **kwargs ) )
+	
+def toNodesFromNames( nodenames, **kwargs ):
+	"""@return: list of wrapped nodes from the given list of node names
+	@note: this function is supposed to be faster for multiple nodes compared to 
+	just creating a Node directly as we optimize the process due to the intermediate 
+	selection list getting the api objects for the given names
+	@param **kwargs: passed to L{fromSelectionList}"""
+	return fromSelectionList( toSelectionListFromNames( nodenames ), **kwargs )	
+
+def getSelection( **kwargs ):
+	"""@return: list of Nodes from the current selection
+	@param **kwargs: passed to L{fromSelectionList}"""
+	sellist = api.MSelectionList()
+	api.MGlobal.getActiveSelectionList( sellist )
+	
+	return fromSelectionList( sellist, **kwargs ) 
+
+def getByName( name , **kwargs ):
+	"""@return: list of node matching name, whereas simple regex using * can be used 
+	to describe a pattern
+	@param name: string like pcube, or pcube*, or pcube*|*Shape
+	@param **kwargs: passed to L{fromSelectionList}"""
+	sellist = api.MSelectionList()
+	api.MGlobal.getSelectionListByName( name, sellist )
+	
+	return fromSelectionList( sellist, **kwargs )
+		
 #} END conversions 
 
 
@@ -233,12 +262,37 @@ def delete( *args ):
 		mod.deleteNode( node._apiobj )
 	mod.doIt()
 	
-def select( nodelist ):
-	"""Select the nodes on the given nodelist ( list(Node,...) or MSelectionList ) in maya
-	Components are only supported if a selection list is given though
-	@todo: implementation"""
-	raise NotImplementedError()
+def select( *nodesOrSelectionList , **kwargs ):
+	"""Select the given list of wrapped nodes or selection list in maya
+	@param nodesOrSelectionList: single selection list or multiple wrapped nodes 
+	, or multiple names 
+	@param listAdjustment: default api.MGlobal.kReplaceList
+	@note: as this is a convenience function that is not required by the api itself, 
+	but for interactive sessions, it will be undoable
+	@note: Components are only supported if a selection list is given though"""
+	nodenames = list()
+	other = list()
 	
+	for item in nodesOrSelectionList:
+		if isinstance( item, basestring ):
+			nodenames.append( item )
+		else:
+			other.append( item )
+	# END for each item 
+	
+	if len( other ) == 1 and isinstance( other[0], api.MSelectionList ):
+		other = other[0]
+		
+	sellist = toSelectionList( other )
+	
+	if nodenames:
+		sellistnames = toSelectionListFromNames( nodenames )
+		sellist.merge( sellistnames )
+	
+	
+	adjustment = kwargs.get( "listAdjustment", api.MGlobal.kReplaceList )
+	api.MGlobal.selectCommand( sellist , adjustment )
+
 
 @undoable
 def createNode( nodename, nodetype, autocreateNamespace=True, renameOnClash = True, 

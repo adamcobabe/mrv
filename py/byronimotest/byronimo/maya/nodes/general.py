@@ -200,6 +200,38 @@ class TestGeneral( unittest.TestCase ):
 		ipath = instnode.getDagPath( )
 		
 		
+	def test_convenienceFunctions( self ):
+		"""byronimo.maya.nodes: test convenience and conversion functions"""
+		if not ownpackage.mayRun( "util" ): return
+		
+		# SELECTION 
+		############
+		nodes.select( "persp" )
+		persp = nodes.getSelection()[0]
+		self.failUnless( persp == nodes.Node( "persp" ) )
+		
+		# clear selection 
+		nodes.select( )
+		self.failUnless( not nodes.getSelection() )
+		
+		# select object and selection list  
+		nodes.select( persp )
+		self.failUnless( len( nodes.getSelection( ) ) == 1 )
+		nodes.select( nodes.toSelectionList( nodes.getSelection( ) ) )
+		self.failUnless( len( nodes.getSelection( ) ) == 1 )
+		
+		# select mixed
+		nodes.select( persp, "front" )
+		self.failUnless( len( nodes.getSelection( ) ) == 2 )
+		
+		
+		# GET BY NAME 
+		###############
+		persp = nodes.getByName( "pers*" )[0]
+		self.failUnless( persp == nodes.Node( "persp" ) )
+		
+		
+		
 class TestNodeBase( unittest.TestCase ):
 	""" Test node base functionality  """
 	
