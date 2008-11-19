@@ -30,5 +30,5 @@ class Button( uibase.NamedUI ):
 	together apparently do not work"""
 	_properties_ = ( "label", "align", "recomputeSize", "actionIsSubstitute" ) 
 	
-	e_onpress = uiutil.CallbackBaseUI.UIEvent( "command", actOnPress=True )
-	e_onrelease = uiutil.CallbackBaseUI.UIEvent( "command", actOnPress=False )
+	e_pressed = uiutil.CallbackBaseUI.UIEvent( "command", actOnPress=True )
+	e_released = uiutil.CallbackBaseUI.UIEvent( "command", actOnPress=False )

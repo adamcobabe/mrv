@@ -24,6 +24,7 @@ import maya.cmds as cmds
 from byronimo.util import capitalize, iDagItem
 from util import CallbackBaseUI
 import byronimo.maya.util as mutil
+import util as uiutil
 from byronimo.exceptions import ByronimoError
 
 
@@ -108,7 +109,8 @@ class BaseUI( object ):
 		if self.__class__ == BaseUI:
 			raise ByronimoError( "Cannot instantiate" + self.__class__.__name__ + " directly - it can only be a base class" )
 		
-		return object.__init__( self , *args, **kwargs )
+		# return object.__init__( self , *args, **kwargs )
+		super( BaseUI, self ).__init__( *args, **kwargs )
 		
 
 class NamedUI( unicode, BaseUI , iDagItem, CallbackBaseUI ):
@@ -159,7 +161,8 @@ class NamedUI( unicode, BaseUI , iDagItem, CallbackBaseUI ):
 			# END if key found in kwargs
 		# END for each forbidden key
 		
-		return BaseUI.__init__( self, *args, **kwargs )
+		super( NamedUI, self ).__init__( *args, **kwargs )
+		#return BaseUI.__init__( self, *args, **kwargs )
 	#} END overridden methods
 			
 	#{ Hierachy Handling
@@ -179,6 +182,12 @@ class NamedUI( unicode, BaseUI , iDagItem, CallbackBaseUI ):
 	def getParent( self ):
 		"""@return: parent instance of this ui element"""
 		return wrapUI( '|'.join( self.split('|')[:-1] ) )
+		
+	@staticmethod
+	def getCurrentParent( ):
+		"""@return: NameUI of the currently set parent"""
+		return wrapUI( cmds.setParent( q=1 ) ) 
+		
 	#}	END hierarchy handling
 	
 	#{ Query Methods 
@@ -260,7 +269,7 @@ class NamedUI( unicode, BaseUI , iDagItem, CallbackBaseUI ):
 		
 		
 
-class Window( NamedUI ):
+class Window( NamedUI, uiutil.UIContainerBase ):
 	"""Simple Window Wrapper"""
 	__metaclass__ = ui.MetaClassCreatorUI
 	_properties_ = (	"title", "iconify", "sizeable", "iconName", "titleBar",
@@ -268,6 +277,7 @@ class Window( NamedUI ):
 						"menuBarVisible", "topLeftCorner" )
 	
 	_events_ = ( "restoreCommand", "minimizeCommand" )
+	
 	
 	#{ Window Specific Methods
 	

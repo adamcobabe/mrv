@@ -25,8 +25,10 @@ import base as uibase
 import maya.cmds as cmds
 import byronimo.util as util
 import byronimo.maya.util as mutil
+import util as uiutil
 
-class Layout( ui.NamedUI ):
+
+class Layout( ui.NamedUI, uiutil.UIContainerBase ):
 	""" Structural base  for all Layouts allowing general queries and name handling
 	Layouts may track their children
 	"""
@@ -51,10 +53,6 @@ class Layout( ui.NamedUI ):
 		@note: can safely be called several times """
 		cmds.setParent( self.getParent( ) )
 		
-	def setActive( self ):
-		"""Set this layout active, such that newly created items will be children 
-		of this layout"""
-		cmds.setParent( self )
 	#} END Layout Hierarchy
 	
 	

@@ -20,6 +20,7 @@ import unittest
 import byronimo.maya.ui as ui
 from byronimo.util import capitalize
 import maya.cmds as cmds
+import sys
 	
 class TestGeneralUI( unittest.TestCase ):
 	""" Test general user interace functionality """
@@ -127,19 +128,27 @@ class TestGeneralUI( unittest.TestCase ):
 		if cmds.about( batch=1 ):
 			return
 		win = ui.Window( title="Test Window" )
-		col = ui.ColumnLayout( adj=1 )
+		sys.___layoutwin = win
+		col = win.add( ui.ColumnLayout( adj=1 ) )
 		
 		if col:
-			ui.Button( l="one" )
-			ui.Button( l="two" )
+			b1 = col.add( ui.Button( l="one" ) )
+			b2 = col.add( ui.Button( l="two" ) )
 			
-			grid = ui.GridLayout( )
+			def func( b ):
+				b.p_label = "pressed"
+				b2.p_label = "affected"
+				
+			sys.___layoutfunc = func
+			b1.e_released = func
+			
+			grid = col.add( ui.GridLayout( ) )
 			if grid:
-				ui.Button( l="gone" )
-				ui.Button( l="gtwo" )
+				grid.add( ui.Button( l="gone" ) )
+				grid.add( ui.Button( l="gtwo" ) )
 			grid.setParentActive( )
 			
-			ui.Button( l="two" )
+			col.add( ui.Button( l="two" ) )
 			
 			self.failUnless( len( col.getChildren( ) ) == 4 )
 			self.failUnless( len( col.getChildrenDeep( ) ) == 6 )
@@ -157,8 +166,9 @@ class TestGeneralUI( unittest.TestCase ):
 			return
 			
 		win = ui.Window( title="Test Window" )
-		col = ui.ColumnLayout( adj=1 )
-		import sys
+		sys.___callbackwin = win				# keep it
+		
+		col = win.add( ui.ColumnLayout( adj=1 ) )
 		def func( *args ):
 			b = args[0]
 			b.p_label = "pressed"
@@ -168,9 +178,8 @@ class TestGeneralUI( unittest.TestCase ):
 		sys.__mytestfunc = func		# to keep it alive, it will be weakly bound
 		
 		if col:
-			b = ui.Button( l="b with cb" )
-			b.e_onpress = func
-			sys.__mytestbutton = b
+			b = col.add( ui.Button( l="b with cb" ), set_self_active=1 )
+			b.e_pressed = func
 		col.setParentActive()
 		
 		win.show()

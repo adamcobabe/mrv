@@ -19,6 +19,7 @@ __copyright__='(c) 2008 Sebastian Thiel'
 
 
 from byronimo.util import CallbackBase, Call
+import maya.cmds as cmds 
 import weakref
 
 class CallbackBaseUI( CallbackBase ):
@@ -65,7 +66,7 @@ class CallbackBaseUI( CallbackBase ):
 		def __call__( self, *args, **kwargs ):
 			inst = self._weakinst()
 			if not inst:	# went out of scope
-				print "Instance to be called has been deleted as it is weakly bound"
+				print "Instance for call has been deleted as it is weakly bound"
 				return 
 			
 			return self._clsfunc( inst, *args, **kwargs )
@@ -115,3 +116,68 @@ class CallbackBaseUI( CallbackBase ):
 		raise RuntimeError( "A CallbackBaseUI instance cannot be copied" )
 		
 	#) end iduplicatable deactivated
+	
+	
+class UIContainerBase( object ):
+	"""A ui container is a base for all classes that can have child controls or 
+	other containers. 
+	This class is just supposed to keep references to it's children so that additional 
+	information stored in python will not get lost
+	Child-Instances are always unique, thus adding them several times will not 
+	keep them several times , but just once"""
+	
+	
+	def __init__( self, *args, **kwargs ):
+		self._children = list()
+		super( UIContainerBase, self ).__init__( *args, **kwargs )
+	
+	def add( self, child, set_self_active = False, revert_to_previous_parent = True ):
+		"""Add the given child UI item to our list of children
+		@param set_self_active: if True, we explicitly make ourselves the current parent 
+		for newly created UI elements
+		@param revert_to_previous_parent: if True, the previous parent will be restored 
+		once we are done, if Fales we stay the parent - only effective if set_self_active is True
+		@return: the newly added child, allowing contructs like 
+		button = layout.addChild( Button( ) )"""
+		if child in self._children:
+			return child 
+			
+		prevparent = None
+		if set_self_active:
+			prevparent = self.getCurrentParent()
+			self.setActive( )
+		# END set active handling
+		
+		self._children.append( child )
+		
+		if revert_to_previous_parent and prevparent:
+			cmds.setParent( prevparent )
+			
+		return child
+		
+	def remove( self, child ):
+		"""Remove the given child from our list
+		@return: True if the child was found and has been removed, False otherwise"""
+		try:
+			self._children.remove( child )
+			return True
+		except ValueError:
+			return False
+	
+	def deleteChild( self, child ):
+		"""Delete the given child ui physically so it will not be shown anymore
+		after removing it from our list of children"""
+		if self.removeChild( child ):
+			child.delete()
+			
+	def listChildren( self ):
+		"""@return: list with our child instances
+		@note: it's a copy, so you can freely act on the list
+		@note: children will be returned in the order in which they have been added"""
+		return self._children[:]
+		
+	def setActive( self ):
+		"""Set this container active, such that newly created items will be children 
+		of this layout
+		@note: always use the addChild function to add the children !"""
+		cmds.setParent( self )
