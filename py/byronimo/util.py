@@ -555,7 +555,11 @@ class CallbackBase( iDuplicatable ):
 	Derive from this class and define your callbacks like :
 	eventname = CallbackBase.Event( "eventname" )
 	Call it using 
-	self.sendEvent( "eventname", [ args [ kwargs ] ] )
+	self.sendEvent( "eventname", [ args [ ,kwargs ] ] )
+	 - depends on the assumption that eventname is also the name of the atttribute 
+	   where the event class can be found 
+	self.sendEvent( owncls.eventname [ args [, kwargs ] ] )
+	 - will always work as no string id is being used
 	If more args are given during your call, this has to be documented 
 	
 	Users register using 
@@ -672,7 +676,6 @@ class CallbackBase( iDuplicatable ):
 		"""Copy callbacks from other to ourselves"""
 		eventlist = inspect.getmembers( self, lambda m: isinstance( m, self.Event ) )
 		for eventname,event in eventlist:
-			event = self._toEventInst( eventname )
 			setattr( self.__class__, eventname, event.duplicate( ) )
 	
 	#} END iDuplicatable
