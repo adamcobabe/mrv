@@ -437,7 +437,7 @@ class MetaClassCreator( type ):
 		except networkxexc.NetworkXError:
 			# should we allow key errors ?
 			if clsdict.get( 'isNodeTypeTreeMember', 1 ):
-				raise KeyError( "Class %s is required to be part of the nodetypetree to be created" % name )
+				raise KeyError( "Class %s is required to be part of the nodetypetree to be created, set isNodeTypeTreeMember = 0 on your class to circumvent" % name )
 		# END parent name handling 
 		
 		parentcls = None
