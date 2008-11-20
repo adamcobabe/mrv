@@ -62,7 +62,7 @@ def wrapUI( uinameOrList ):
 		
 		try:
 			out.append( getattr( ui, clsname )( name=uiname ) )
-		except:
+		except AttributeError:
 			RuntimeError( ui.__name__ + " has no class named " + clsname )
 	# END for each uiname
 	
@@ -138,13 +138,26 @@ class NamedUI( unicode, BaseUI , iDagItem, CallbackBaseUI ):
 	_sep = "|" 
 	#) end configuration 
 	
-	#{ Overridden Methods 
-	def __new__( cls, name=None, *args, **kwargs ):
+	#{ Overridden Methods
+	@staticmethod
+	def _exists( uiname ):
+		"""@return: True if the given UI element exists"""
+		try:
+			cmds.objectTypeUI( uiname )
+		except RuntimeError:
+			return False
+		else:
+			return True 
+			
+	def __new__( cls, *args, **kwargs ):
 		"""If name is given, the newly created UI will wrap the UI with the given name.
-		Otherwise the UIelement will be created"""
-		if name is None:
+		Otherwise the UIelement will be created
+		@note: if name is set but does not name a valid user interface, a new one 
+		will be created, and passed to the constructor instead"""
+		name = kwargs.pop( "name", None )
+		if name is None or not NamedUI._exists( name ):
 			name = cls.__melcmd__( *args, **kwargs )
-	
+		
 		return unicode.__new__( cls, name )
 		
 	def __repr__( self ):
