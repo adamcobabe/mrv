@@ -133,7 +133,10 @@ class TestGeneralUI( unittest.TestCase ):
 		
 		if col:
 			b1 = col.add( ui.Button( l="one" ) )
-			b2 = col.add( ui.Button( l="two" ) )
+			b2 = col.add( ui.Button( name="mybutton", l="two" ) )
+			self.failUnless( "mybutton" in b2 )
+			
+			self.failUnless( col[ str( b1 ) ] == b1 )
 			
 			def func( b ):
 				b.p_label = "pressed"
@@ -158,8 +161,6 @@ class TestGeneralUI( unittest.TestCase ):
 		win.show()
 		# win.delete()	# does not really work as windows stays as zombie
 		
-		pass 
-		
 	def test_callbacks( self ):
 		"""byronimo.maya.ui: test callbacks and handling - needs user interaction"""
 		if cmds.about( batch=1 ):
@@ -169,6 +170,7 @@ class TestGeneralUI( unittest.TestCase ):
 		sys.___callbackwin = win				# keep it
 		
 		col = win.add( ui.ColumnLayout( adj=1 ) )
+		self.failUnless( win.getChildByName( str( col ) ) == col )
 		def func( *args ):
 			b = args[0]
 			b.p_label = "pressed"

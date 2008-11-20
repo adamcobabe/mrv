@@ -546,7 +546,30 @@ class Call( object ):
 		@note: having *args and **kwargs set makes it more versatile"""
 		return self.func( *self.args, **self.kwargs )
 		
+
+
+class WeakInstFunction( object ):
+	"""Create a proper weak instance to an instance function by weakly binding 
+	the instance, not the bound function object.
+	When called, the weakreferenced instance pointer will be retrieved, if possible, 
+	to finally make the call. If it could not be retrieved, the call 
+	will do nothing."""
+	__slots__ = ( "_weakinst", "_clsfunc" )
+	
+	def __init__( self, instancefunction ):
+		self._weakinst = weakref.ref( instancefunction.im_self )
+		self._clsfunc = instancefunction.im_func
 		
+		
+	def __call__( self, *args, **kwargs ):
+		inst = self._weakinst()
+		if not inst:	# went out of scope
+			print "Instance for call has been deleted as it is weakly bound"
+			return 
+		
+		return self._clsfunc( inst, *args, **kwargs )
+	
+	
 class CallbackBase( iDuplicatable ):
 	"""Base class for all classes that want to provide a common callback interface
 	to supply event information to clients.
@@ -567,6 +590,9 @@ class CallbackBase( iDuplicatable ):
 	
 	and deregister using 
 	yourclass.removeEvent( eventname, callable )
+	
+	@note: if use_weak_ref is True, we will weakref the eventfunction, and deal 
+	properly with instance methods which would go out of scope immediatly otherwise
 	
 	@note: using weak-references to ensure one does not keep objects alive, 
 	see L{use_weakref}"""
@@ -595,7 +621,12 @@ class CallbackBase( iDuplicatable ):
 			"""@return: an eventfunction suitable to be used as key in our instance 
 			event set"""
 			if self.use_weakref:
-				eventfunc = weakref.ref( eventfunc )
+				if inspect.ismethod( eventfunc ):
+					eventfunc = WeakInstFunction( eventfunc )
+				else:
+					eventfunc = weakref.ref( eventfunc )
+				# END instance function special handling 
+			# END if use weak ref 
 			return eventfunc
 		
 		def _keyToFunc( self, eventkey ):
@@ -603,7 +634,12 @@ class CallbackBase( iDuplicatable ):
 			our events set.
 			@note: this is required as the event might be weakreffed or not"""
 			if self.use_weakref:
-				return eventkey()
+				if isinstance( eventkey, WeakInstFunction ):
+					return eventkey
+				else:
+					return eventkey()
+				# END instance method handling 
+			# END weak ref handling 
 			return eventkey
 		
 		def __set__( self, inst, eventfunc ):
@@ -671,6 +707,8 @@ class CallbackBase( iDuplicatable ):
 						func( *args, **kwargs )
 					# END sendder as argument 
 				# END func is valid 
+				else:
+					print "Listener for callback of %s was not available anymore" % self 
 			except Exception:
 				success = False
 				#print "Error: Exception thrown by function %s during event %s" % ( func, eventname )

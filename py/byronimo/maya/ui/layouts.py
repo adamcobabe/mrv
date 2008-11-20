@@ -41,6 +41,10 @@ class Layout( ui.NamedUI, uiutil.UIContainerBase ):
 		layout. """
 		ui.NamedUI.__init__( self, *args, **kwargs )
 	
+	def __getitem__( self, key ):
+		"""@return: child matching key"""
+		return self.getChildByName( key )
+	
 	#{ Layout Hierarchy  
 	def getChildren( self ):
 		""" @return: children of this layout """

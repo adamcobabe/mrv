@@ -37,7 +37,8 @@ def noneToList( res ):
 #{ MEL Function Wrappers
  
 def makeEditOrQueryMethod( inCmd, flag, isEdit=False, methodName=None ):
-	"""Create a function calling inFunc with an edit or query flag set. 
+	"""Create a function calling inFunc with an edit or query flag set.
+	@note: THIS CODE HAS BEEN DUPLICATED TO MAYA.UI.UTIL !
 	@param inCmd: maya command to call 
 	@param flag: name of the query or edit flag
 	@param isEdit: If not False, the method returned will be an edit function

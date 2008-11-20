@@ -21,7 +21,7 @@ import byronimo.maya.util as mutil
 from byronimo.path import Path
 _thismodule = __import__( "byronimo.maya.ui", globals(), locals(), ['ui'] )
 import maya.cmds as mcmds
-from util import CallbackBaseUI
+from util import CallbackBaseUI, propertyQE
 
 
 
@@ -67,7 +67,6 @@ class MetaClassCreatorUI( mutil.MetaClassCreator ):
 		# HANDLE MEL COMMAND 
 		#######################
 		cmdname = uncapitalize( name )
-		melcmd = None
 		if hasattr( mcmds, cmdname ):
 			melcmd = getattr( mcmds, cmdname )
 			clsmelcmd = staticmethod( melcmd ) 
@@ -77,27 +76,25 @@ class MetaClassCreatorUI( mutil.MetaClassCreator ):
 			#raise UIError( "Did not find command for " + cmdname ) 	
 				
 		 
-		if melcmd:
-			# HANDLE PROPERTIES 
-			####################
-			# read the properties attribute to find names to automatically create 
-			# query and edit properties
-			propertynames = clsdict.get( "_properties_", list() )
-			for pname in propertynames:
-				attrname = "p_%s" % pname.lower()
-				clsdict[ attrname ] = mutil.propertyQE( melcmd, pname )
-			# END for each property
-			
-			# HANDLE EVENTS 
-			##################
-			# read the event description and create UIEvent instances that will 
-			# register themselves on first use, allowing multiple listeners per maya event
-			eventnames = clsdict.get( "_events_", list() )
-			for ename in eventnames:
-				attrname = "e_%s" % ename.lower()
-				clsdict[ attrname ] = CallbackBaseUI.UIEvent( ename )
-			# END for each event name 
-		# END if we have a mel command 
+		# HANDLE PROPERTIES 
+		####################
+		# read the properties attribute to find names to automatically create 
+		# query and edit properties
+		propertynames = clsdict.get( "_properties_", list() )
+		for pname in propertynames:
+			attrname = "p_%s" % pname.lower()
+			clsdict[ attrname ] = propertyQE( pname )
+		# END for each property
+		
+		# HANDLE EVENTS 
+		##################
+		# read the event description and create UIEvent instances that will 
+		# register themselves on first use, allowing multiple listeners per maya event
+		eventnames = clsdict.get( "_events_", list() )
+		for ename in eventnames:
+			attrname = "e_%s" % ename.lower()
+			clsdict[ attrname ] = CallbackBaseUI.UIEvent( ename )
+		# END for each event name 
 
 		newcls = super( MetaClassCreatorUI, metacls ).__new__( _typetree, _thismodule, 
 																metacls, name, bases, clsdict )

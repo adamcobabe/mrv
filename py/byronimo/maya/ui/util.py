@@ -18,9 +18,61 @@ __id__="$Id: configuration.py 16 2008-05-29 00:30:46Z byron $"
 __copyright__='(c) 2008 Sebastian Thiel'
 
 
-from byronimo.util import CallbackBase, Call
+from byronimo.util import CallbackBase, Call, WeakInstFunction
 import maya.cmds as cmds 
 import weakref
+
+#{ MEL Function Wrappers
+ 
+def makeEditOrQueryMethod( flag, isEdit=False, methodName=None ):
+	"""Create a function calling inFunc with an edit or query flag set.
+	@note: only works on byronimo wrapped ui elements
+	@note: THIS IS MOSTLY A DUPLICATION OF PROVEN CODE FROM MAYA.UTIL !
+	@param flag: name of the query or edit flag
+	@param isEdit: If not False, the method returned will be an edit function
+	@param methoName: the name of the method returned, defaults to inCmd name  """
+	
+	func = None
+	if isEdit:
+		def editFunc(self, val, **kwargs): 
+			kwargs[ 'edit' ] = True
+			kwargs[ flag ] = val
+			return self.__melcmd__( self, **kwargs )
+			
+		func = editFunc
+	# END if edit 
+	else:
+		def queryFunc(self, **kwargs): 
+			kwargs[ 'query' ] = True
+			kwargs[ flag ] = True
+			return self.__melcmd__( self, **kwargs )
+			
+		func = queryFunc
+	# END if query 
+	
+	if not methodName:
+		methodName = flag 
+	func.__name__ = methodName
+			 
+	return func
+
+
+def queryMethod( flag, methodName = None ):
+	""" Shorthand query version of makeEditOrQueryMethod """
+	return makeEditOrQueryMethod( flag, isEdit=False, methodName=methodName )
+
+def editMethod( flag, methodName = None ):
+	""" Shorthand edit version of makeEditOrQueryMethod """
+	return makeEditOrQueryMethod( flag, isEdit=True, methodName=methodName )
+
+def propertyQE( flag, methodName = None ):
+	""" Shorthand for simple query and edit properties """
+	editFunc = editMethod( flag, methodName = methodName )
+	queryFunc = queryMethod( flag, methodName = methodName )
+	return property( queryFunc, editFunc )
+	
+#} 
+
 
 class CallbackBaseUI( CallbackBase ):
 	"""Allows registration of a typical UI callback
@@ -36,8 +88,8 @@ class CallbackBaseUI( CallbackBase ):
 	instead.
 	If you want to add your own events, use your own events, use the L{Event} class instead
 	
-	As the class uses weakreferences for the main callback, the main class can always 
-	go out of scope without being held by maya
+	The class does NOT use weakreferences for the main callbacks to make it easier to use.
+	Use the WeakFunction to properly and weakly bind an instance function
 	
 	When registered for an event, the sender will be provided to each callback as first 
 	argument.
@@ -51,30 +103,10 @@ class CallbackBaseUI( CallbackBase ):
 	sender_as_argument = True
 	#} END configuration 
 	
-	class WeakFunction( object ):
-		"""Keeps an instance and a class level member function. When called, 
-		the weakreferenced instance pointer will be retrieved, if possible, 
-		to finally make the call. If it could not be retrieved, the call 
-		will do nothing"""
-		__slots__ = ( "_weakinst", "_clsfunc" )
-		
-		def __init__( self, instance, clsfunction ):
-			self._weakinst = weakref.ref( instance )
-			self._clsfunc = clsfunction
-			
-			
-		def __call__( self, *args, **kwargs ):
-			inst = self._weakinst()
-			if not inst:	# went out of scope
-				print "Instance for call has been deleted as it is weakly bound"
-				return 
-			
-			return self._clsfunc( inst, *args, **kwargs )
-	
 	class UIEvent( CallbackBase.Event ):
 		"""Event suitable to deal with user interface callback"""
 		#( Configuration 
-		use_weakref = True
+		use_weakref = False
 		#) END configuration
 		
 		def __init__( self, eventname, **kwargs ):
@@ -87,17 +119,17 @@ class CallbackBaseUI( CallbackBase ):
 			"""Set the given event to be called when this event is being triggered"""
 			eventset = self.__get__( inst )
 			
-			# REGISTER IF THIS IS THE FIRST EVENT 
+			# REGISTE TO MEL IF THIS IS THE FIRST EVENT 
 			# do we have to register the callback ?
 			if not eventset:
 				kwargs = dict()
 				# generic call that will receive maya's own arguments and pass them on
-				weakSendEvent = CallbackBaseUI.WeakFunction( inst, getattr( inst.__class__, "sendEvent" ) )
+				weakSendEvent = WeakInstFunction( inst.sendEvent )
 				call = Call( weakSendEvent, self )
 				dyncall =  lambda *args, **kwargs: call( *args, **kwargs )
 				
 				kwargs[ 'e' ] = 1
-				kwargs[ self._name ] =dyncall
+				kwargs[ self._name ] = dyncall
 				kwargs.update( self._kwargs )		# allow user kwargs 
 				inst.__melcmd__( str( inst ) , **kwargs )
 			# END create event 
@@ -131,6 +163,10 @@ class UIContainerBase( object ):
 		self._children = list()
 		super( UIContainerBase, self ).__init__( *args, **kwargs )
 	
+	def __getitem__( self, key ):
+		"""@return: the child with the given name, see L{getChildByName}"""
+		return self.getChildByName( key )
+			
 	def add( self, child, set_self_active = False, revert_to_previous_parent = True ):
 		"""Add the given child UI item to our list of children
 		@param set_self_active: if True, we explicitly make ourselves the current parent 
@@ -176,6 +212,25 @@ class UIContainerBase( object ):
 		@note: children will be returned in the order in which they have been added"""
 		return self._children[:]
 		
+	def getChildByName( self, childname ):
+		"""@return: stored child instance, specified either as short name ( without pipes ) 
+		or fully qualified ( i.e. mychild or parent|subparent|mychild" )
+		@raise KeyError: if a child with that name does not exist"""
+		is_fqn = "|" in childname
+		if is_fqn:
+			for child in self._children:
+				if child == childname:
+					return child
+			# END for each chld 
+		else:
+			for child in self._children:
+				if child.getBasename() == childname:
+					return child
+			# END for each child 
+		# END fqn handling
+		
+		raise KeyError( "Child named %s could not be found below %s" % ( childname, self ) )
+	
 	def setActive( self ):
 		"""Set this container active, such that newly created items will be children 
 		of this layout

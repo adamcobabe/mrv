@@ -16,47 +16,61 @@ baseUI
 			rowLayout
 			gridLayout
 			menuBarLayout
-		attrColorSliderGrp
-		attrControlGrp
+		groupBase
+			sliderGroupBase
+				floatSliderGrp
+				intSliderGrp
+			booleanGroupBase
+				checkBoxGrp
+				radioButtonGrp
+			attrColorSliderGrp
+			attrControlGrp
+			attrEnumOptionMenuGrp
+			attrFieldGrp
+			attrFieldSliderGrp
+			attrNavigationControlGrp
+			colorIndexSliderGrp
+			floatFieldGrp
+			colorSliderGrp
+			intFieldGrp
+			colorSliderButtonGrp
+			floatSliderButtonGrp
+			textFieldButtonGrp
+			textFieldGrp
+			optionMenuGrp
+		sliderBase
+			floatSlider
+			intSlider
+		fieldBase
+			floatField
+			intField
+			textField
+			scrollField
+			shellField
+			nameField
+		labelBase
+			booleanBase
+				iconTextCheckBox
+				checkBox
+				iconTextRadioButton
+				radioButton
+			iconTextButton
+			button
 		attrEnumOptionMenu
-		attrEnumOptionMenuGrp
-		attrFieldGrp
-		attrFieldSliderGrp
-		attrNavigationControlGrp
 		attributeMenu
-		colorIndexSliderGrp
-		colorSliderButtonGrp
-		colorSliderGrp
 		colorEditor
-		floatField
-		floatFieldGrp
 		floatScrollBar
-		floatSlider
 		floatSlider2
-		floatSliderButtonGrp
-		floatSliderGrp
-		iconTextButton
-		iconTextCheckBox
-		iconTextRadioButton
 		iconTextRadioCollection
 		iconTextScrollList
 		iconTextStaticLabel
-		intField
-		intFieldGrp
 		intScrollBar
-		intSlider
-		intSliderGrp
 		panel
-		radioButton
-		radioButtonGrp
 		radioCollection
 		radioMenuItemCollection
 		symbolButton
 		symbolCheckBox
 		textCurves
-		textField
-		textFieldButtonGrp
-		textFieldGrp
 		text
 		textScrollList
 		toolButton
@@ -64,14 +78,10 @@ baseUI
 		window
 		blendShapeEditor
 		blendShapePanel
-		button
-		checkBox
-		checkBoxGrp
 		menu
 		menuEditor
 		menuItem
 		menuSet
-		scrollField
 		scriptedPanel
 		scriptedPanelType
 		shelfButton
@@ -80,7 +90,6 @@ baseUI
 		outlinerEditor
 		optionMenu
 		outlinerPanel
-		optionMenuGrp
 		animCurveEditor
 		animDisplay
 		separator
@@ -112,7 +121,6 @@ baseUI
 		progressBar
 		defaultLightListCheckBox
 		exclusiveLightCheckBox
-		shellField
 		clipSchedulerOutliner
 		clipEditor
 		deviceEditor
@@ -120,10 +128,8 @@ baseUI
 		dynRelEdPanel
 		dynRelEditor
 		dynPaintEditor
-		nameField
 		cmdScrollFieldExecuter
 		cmdScrollFieldReporter
 		cmdShell
-		nameField
 		palettePort
 		componentEditor
