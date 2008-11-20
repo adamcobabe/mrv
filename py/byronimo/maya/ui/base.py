@@ -152,12 +152,19 @@ class NamedUI( unicode, BaseUI , iDagItem, CallbackBaseUI ):
 	def __new__( cls, *args, **kwargs ):
 		"""If name is given, the newly created UI will wrap the UI with the given name.
 		Otherwise the UIelement will be created
+		@note: you can use args safely for your own purposes 
 		@note: if name is set but does not name a valid user interface, a new one 
-		will be created, and passed to the constructor instead"""
+		will be created, and passed to the constructor"""
 		name = kwargs.pop( "name", None )
-		if name is None or not NamedUI._exists( name ):
-			name = cls.__melcmd__( *args, **kwargs )
-		
+		exists = NamedUI._exists( str( name ) )	# could be None
+		if name is None or not exists:
+			if name:	# use name 
+				name = cls.__melcmd__( name, **kwargs )
+			else:
+				name = cls.__melcmd__( **kwargs )
+			# END name handling 
+		# END auto-creation as required 
+			
 		return unicode.__new__( cls, name )
 		
 	def __repr__( self ):
