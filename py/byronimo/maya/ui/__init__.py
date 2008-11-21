@@ -75,7 +75,6 @@ class MetaClassCreatorUI( mutil.MetaClassCreator ):
 			pass # don't bother, can be one of our own classes that will 
 			#raise UIError( "Did not find command for " + cmdname ) 	
 				
-		print name 
 		# HANDLE PROPERTIES 
 		####################
 		# read the properties attribute to find names to automatically create 
@@ -150,6 +149,8 @@ if not init_done:
 	from controls import *
 	from dialogs import *
 	from layouts import *
+	from panels import *
+	from editors import *
 	
 	
 init_done = True

@@ -19,8 +19,6 @@ __id__="$Id: configuration.py 16 2008-05-29 00:30:46Z byron $"
 __copyright__='(c) 2008 Sebastian Thiel'
 
 
-
-ui = __import__( "byronimo.maya.ui",globals(), locals(), ['ui'] )
 import base as uibase
 import maya.cmds as cmds
 import byronimo.util as util
@@ -28,11 +26,10 @@ import byronimo.maya.util as mutil
 import util as uiutil
 
 
-class Layout( ui.SizedControl, uiutil.UIContainerBase ):
+class Layout( uibase.SizedControl, uiutil.UIContainerBase ):
 	""" Structural base  for all Layouts allowing general queries and name handling
 	Layouts may track their children
 	"""
-	__metaclass__ = ui.MetaClassCreatorUI
 	_properties_ = ( "nch", "numberOfChildren" )
 	
 	def __init__( self, *args, **kwargs ):
@@ -40,7 +37,7 @@ class Layout( ui.SizedControl, uiutil.UIContainerBase ):
 		@param name: name of layout, several class instances can exist with the
 		same name - it will be adjusted for maya as it requires unique names for each 
 		layout. """
-		ui.NamedUI.__init__( self, *args, **kwargs )
+		uibase.NamedUI.__init__( self, *args, **kwargs )
 	
 	def __getitem__( self, key ):
 		"""@return: child matching key"""
@@ -70,7 +67,6 @@ class Layout( ui.SizedControl, uiutil.UIContainerBase ):
 
 class FormLayout( Layout ):
 	""" Wrapper class for maya form layout """
-	__metaclass__ = ui.MetaClassCreatorUI
 	
 	class FormConstraint( object ): 
 		""" defines the way a child is constrained, possibly to other children """ 
@@ -83,7 +79,6 @@ class FormLayout( Layout ):
 
 class FrameLayout( Layout ):
 	"""Simple wrapper for a frame layout"""
-	__metaclass__ = ui.MetaClassCreatorUI
 	_properties_ = (	"bw", "borderVisible", "bs",  "borderStyle", "cl", "collapse", "cll", "collapsable",
 					   "l", "label", "lw", "labelWidth", "lv", "labelVisible", "la", "labelAlign", "li", "labelIndent", "fn", "font",
 					   "mw", "marginWidth", "mh", "marginHeight" )
@@ -92,7 +87,6 @@ class FrameLayout( Layout ):
 
 class ColumnLayout( Layout ):
 	"""Wrapper class for a simple column layout"""
-	__metaclass__ = ui.MetaClassCreatorUI
 	
 	_properties_ = ( 	"adjustableColumn", "columnAlign", "columnAttach", "columnOffset", 
 						"columnWidth", "rowSpacing" )

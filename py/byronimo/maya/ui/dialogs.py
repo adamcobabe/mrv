@@ -1,4 +1,4 @@
-"""B{byronimo.ui.dialogs}
+"""B{byronimo.uibase.dialogs}
 
 Contains some default dialogs as well as layouts suitable for layout dialogs 
 
@@ -12,13 +12,12 @@ __author__='$Author: byron $'
 __contact__='byron@byronimo.de'
 __version__=1
 __license__='MIT License'
-__date__="$Date: 2008-05-29 02:30:46 +0200 (Thu, 29 May 2008) $"
 __revision__="$Revision: 16 $"
 __id__="$Id: configuration.py 16 2008-05-29 00:30:46Z byron $"
 __copyright__='(c) 2008 Sebastian Thiel'
 
 
-ui = __import__( "byronimo.maya.ui",globals(), locals(), ['ui'] )
+import base as uibase
 import maya.cmds as cmds
 import maya.utils as mutils
 import byronimo.util as util
@@ -31,7 +30,7 @@ import byronimo.maya.util as mutil
 #} End Exceptions
 
 
-class Dialog( ui.BaseUI ):
+class Dialog( uibase.BaseUI ):
 	""" Base for all dialog classes """
 	
 	#{ Overridden Methods
@@ -41,7 +40,6 @@ class Dialog( ui.BaseUI ):
 	
 class PromptDialog( Dialog ):
 	""" Wrapper class for maya prompt dialog"""
-	__metaclass__ = ui.MetaClassCreatorUI
 	
 	def __init__( self, title, message, okText, cancelText, **kwargs ):
 		""" Create a prompt dialog and allow to query the result 
