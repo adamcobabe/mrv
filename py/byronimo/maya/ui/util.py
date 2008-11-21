@@ -164,8 +164,13 @@ class UIContainerBase( object ):
 		super( UIContainerBase, self ).__init__( *args, **kwargs )
 	
 	def __getitem__( self, key ):
-		"""@return: the child with the given name, see L{getChildByName}"""
-		return self.getChildByName( key )
+		"""@return: the child with the given name, see L{getChildByName}
+		@param key: if integer, will return the given list index, if string, the child 
+		matching the id"""
+		if isinstance( key, basestring ):
+			return self.getChildByName( key )
+		else:
+			return self._children[ key ]
 			
 	def add( self, child, set_self_active = False, revert_to_previous_parent = True ):
 		"""Add the given child UI item to our list of children
@@ -216,18 +221,18 @@ class UIContainerBase( object ):
 		"""@return: stored child instance, specified either as short name ( without pipes ) 
 		or fully qualified ( i.e. mychild or parent|subparent|mychild" )
 		@raise KeyError: if a child with that name does not exist"""
-		is_fqn = "|" in childname
-		if is_fqn:
+		if "|" in childname:
 			for child in self._children:
 				if child == childname:
 					return child
-			# END for each chld 
-		else:
-			for child in self._children:
-				if child.getBasename() == childname:
-					return child
-			# END for each child 
-		# END fqn handling
+			# END for each chld
+		# END fqn handling 
+		
+		childname = childname.split( '|' )[-1]		# |hello|world -> world 
+		for child in self._children:
+			if child.getBasename() == childname:
+				return child
+		# END non- fqn handling
 		
 		raise KeyError( "Child named %s could not be found below %s" % ( childname, self ) )
 	

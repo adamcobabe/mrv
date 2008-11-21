@@ -40,10 +40,11 @@ class Layout( uibase.SizedControl, uiutil.UIContainerBase ):
 		uibase.NamedUI.__init__( self, *args, **kwargs )
 	
 	def __getitem__( self, key ):
-		"""@return: child matching key"""
-		return self.getChildByName( key )
+		"""Implemented by L{UIContainerBase}"""
+		return uiutil.UIContainerBase.__getitem__( self, key ) 
 	
 	#{ Layout Hierarchy  
+	
 	def getChildren( self ):
 		""" @return: children of this layout """
 		childnames = mutil.noneToList( cmds.layout( self, q=1, ca=1 ) )
