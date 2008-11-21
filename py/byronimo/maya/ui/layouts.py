@@ -28,11 +28,12 @@ import byronimo.maya.util as mutil
 import util as uiutil
 
 
-class Layout( ui.NamedUI, uiutil.UIContainerBase ):
+class Layout( ui.SizedControl, uiutil.UIContainerBase ):
 	""" Structural base  for all Layouts allowing general queries and name handling
 	Layouts may track their children
 	"""
 	__metaclass__ = ui.MetaClassCreatorUI
+	_properties_ = ( "nch", "numberOfChildren" )
 	
 	def __init__( self, *args, **kwargs ):
 		"""  Initialize the layout
@@ -62,6 +63,8 @@ class Layout( ui.NamedUI, uiutil.UIContainerBase ):
 	
 	#{ Properties
 	p_children = property( getChildren )			# overwrite super class property
+	p_ca = p_children
+	p_childArray = p_children
 	#} End Properties
 
 
@@ -81,11 +84,11 @@ class FormLayout( Layout ):
 class FrameLayout( Layout ):
 	"""Simple wrapper for a frame layout"""
 	__metaclass__ = ui.MetaClassCreatorUI
-	_properties_ = (	"borderVisible", "borderStyle", "collapse", "collapsable",
-					   "label", "labelWidth", "labelVisible", "labelAlign", "labelIndent", "labelFont",
-					   "marginWidth", "marginHeight" )
+	_properties_ = (	"bw", "borderVisible", "bs",  "borderStyle", "cl", "collapse", "cll", "collapsable",
+					   "l", "label", "lw", "labelWidth", "lv", "labelVisible", "la", "labelAlign", "li", "labelIndent", "fn", "font",
+					   "mw", "marginWidth", "mh", "marginHeight" )
 
-	_events_ = ( "collapseCommand", "expandCommand", "preCollapseCommand", "preExpandCommand" )
+	_events_ = ( "cc", "collapseCommand", "ec", "expandCommand", "pcc", "preCollapseCommand", "pec", "preExpandCommand" )
 
 class ColumnLayout( Layout ):
 	"""Wrapper class for a simple column layout"""

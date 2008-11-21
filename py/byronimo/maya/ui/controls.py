@@ -27,11 +27,11 @@ import util as uiutil
 
 #{ Bases
 
-class LabelBase( uibase.NamedUI ):
+class LabelBase( uibase.SizedControl ):
 	"""Base class for elements having labels"""
 	_properties_ = ( "l", "label", "al", "align" , "rs", "recomputeSize" )
 
-class SliderBase( uibase.NamedUI ):
+class SliderBase( uibase.SizedControl ):
 	"""Class contributing Simple Slider Events"""
 	_events_ = ( "cc", "changeCommand", "dc", "dragCommand" )
 	_properties_ = ( 	"min", "minValue", "max", "maxValue", "v", "value", 
@@ -41,7 +41,7 @@ class BooleanBase( LabelBase ):
 	"""Base class for boolean controls"""
 	_events_ = ( "onCommand", "offCommand", "changeCommand", "cc", "onc", "ofc" )
 
-class GroupBase( uibase.NamedUI ):
+class GroupBase( uibase.SizedControl ):
 	"""Base allowing access to all grouped controls
 	@note: using short property names to ... keep it sane """
 	

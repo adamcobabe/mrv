@@ -210,58 +210,6 @@ class NamedUI( unicode, BaseUI , iDagItem, CallbackBaseUI ):
 		
 	#}	END hierarchy handling
 	
-	#{ Query Methods 
-	def isVisible( self ):
-		"""@return : True if the UI element is visible """
-		return self.__melcmd__( self, q=1, v=1 )
-	
-	def isManaged( self ):
-		"""@return : True if the UI element is managed """
-		return self.__melcmd__( self, q=1, m=1 )
-	
-	def isEnabled( self ):
-		"""@return : True if the UI element is enabled """
-		return self.__melcmd__( self, q=1, en=1 )
-
-	def getAnnotation( self ):
-		"""@return : the annotation string """
-		try:
-			return self.__melcmd__( self, q=1, ann=1 )
-		except TypeError:
-			return ""
-			
-	def getDimension( self ):
-		"""@return: (x,y) tuple of x and y dimensions of the UI element""" 
-		return ( self.__melcmd__( self, q=1, w=1 ), self.__melcmd__( self, q=1, h=1 ) )
-		
-	#}END query methods
-	
-	#{ Edit Methods 
-	def setVisible( self, state ):
-		"""Set the UI element (in)visible"""
-		self.__melcmd__( self, e=1, v=state )
-	
-	def setManaged( self, state ):
-		"""Set the UI element (un)managed"""
-		self.__melcmd__( self, e=1, m=state )
-		
-	def setEnabled( self, state ):
-		"""Set the UI element enabled"""
-		self.__melcmd__( self, e=1, en=state )
-	
-	def setAnnotation( self, ann ):
-		"""Set the UI element's annotation
-		@note: not all named UI elements can have their annotation set"""
-		self.__melcmd__( self, e=1, ann=ann )
-	
-	def setDimension( self, dimension ):
-		"""Set the UI elements dimension
-		@param dimension: (x,y) : tuple holding desired x and y dimension""" 
-		self.__melcmd__( self, e=1, w=dimension[0] ) 
-		self.__melcmd__( self, e=1, h=dimension[1] )
-		
-	#}END edit methods 
-	
 	
 	def type( self ):
 		"""@return: the python class able to create this class 
@@ -277,26 +225,94 @@ class NamedUI( unicode, BaseUI , iDagItem, CallbackBaseUI ):
 		"""Delete this UI - the wrapper instance must not be used after this call"""
 		cmds.deleteUI( self )
 		
-	#{ Properties
-	p_visible = property( isVisible, setVisible )
-	p_managed = property( isManaged, setManaged )
-	p_enabled = property( isEnabled, setEnabled )
-	p_annotation = property( getAnnotation, setAnnotation )
-	p_dimension = property( getDimension, setDimension )
+	#{ Properties 
 	p_parent = property( getParent )
 	p_children = property( getChildren )
-	#} END properties
+	#} END properties 
 		
-		
-
-class Window( NamedUI, uiutil.UIContainerBase ):
-	"""Simple Window Wrapper"""
+class SizedControl( NamedUI ):
+	"""Base Class for all controls having a dimension""" 
 	__metaclass__ = ui.MetaClassCreatorUI
-	_properties_ = (	"title", "iconify", "sizeable", "iconName", "titleBar",
-					   	"minimizeButton", "maximizeButton", "toolbox", "titleBarMenu", 
-						"menuBarVisible", "topLeftCorner" )
+	_properties_ = ( 	"dt", "defineTemplate", 
+					  	"ut", "useTemplate", 
+						"w","width", 
+						"h", "height", 
+						"v", "visible", 
+						"m", "manage", 
+						"en", "enable", 
+						"io", "isObscured", 
+						"npm", "numberOfPopupMenus", 
+						"po", "preventOverride", 
+						"bgc", "backgroundColor", 
+						"dt", "doctTag" )
+
+	_events_ = ( 	"dgc", "dragCallback" ,
+					"dpc", "dropCallback" )
 	
-	_events_ = ( "restoreCommand", "minimizeCommand" )
+	#{ Query Methods 
+	
+	def getAnnotation( self ):
+		"""@return : the annotation string """
+		try:
+			return self.__melcmd__( self, q=1, ann=1 )
+		except TypeError:
+			return ""
+			
+	def getDimension( self ):
+		"""@return: (x,y) tuple of x and y dimensions of the UI element""" 
+		return ( self.__melcmd__( self, q=1, w=1 ), self.__melcmd__( self, q=1, h=1 ) )
+		
+	def getPopupMenuArray( self ):
+		"""@return: popup menus attached to this control"""
+		return wrapUI( self.__melcmd__( self, q=1, pma=1 ) )
+		
+	#}END query methods
+	
+	#{ Edit Methods 
+	
+	def setAnnotation( self, ann ):
+		"""Set the UI element's annotation
+		@note: not all named UI elements can have their annotation set"""
+		self.__melcmd__( self, e=1, ann=ann )
+	
+	def setDimension( self, dimension ):
+		"""Set the UI elements dimension
+		@param dimension: (x,y) : tuple holding desired x and y dimension""" 
+		self.__melcmd__( self, e=1, w=dimension[0] ) 
+		self.__melcmd__( self, e=1, h=dimension[1] )
+		
+	#}END edit methods
+	
+	p_annotation = property( getAnnotation, setAnnotation )
+	p_ann = p_annotation
+	p_dimension = property( getDimension, setDimension )
+	p_pma = property( getPopupMenuArray )
+	p_popupMenuArray = property( getPopupMenuArray )
+		
+	
+
+class Window( SizedControl, uiutil.UIContainerBase ):
+	"""Simple Window Wrapper
+	@note: Window does not support some of the properties provided by sizedControl"""
+	__metaclass__ = ui.MetaClassCreatorUI
+	_properties_ = (	"t", "title", 
+					   	"i", "iconify", 
+						"s", "sizeable", 
+						"iconName", 
+						"tb","titleBar",
+					   	"mnb", "minimizeButton",
+						"mxb", "maximizeButton", 
+						"tlb", "toolbox", 
+						"tbm", "titleBarMenu", 
+						"mbv", "menuBarVisible",
+						"tlc", "topLeftCorner", 
+						"te", "topEdge",
+						"tl", "leftEdge",
+						"mw", "mainWindow", 
+						"rt", "resizeToFitChildren", 
+						"dt", "docTag" )
+	
+	_events_ = ( "rc", "restoreCommand", "mnc", "minimizeCommand" )
 	
 	
 	#{ Window Specific Methods
@@ -309,9 +325,26 @@ class Window( NamedUI, uiutil.UIContainerBase ):
 		""" Delete window """
 		cmds.deleteUI( self )
 	
+	def getNumberOfMenus( self ):
+		"""@return: number of menus in the menu array"""
+		return int( self.__melcmd__( self, q=1, numberOfMenus=1 ) )
+	
 	def getMenuArray( self ):
 		"""@return: Menu instances attached to this window"""
 		return wrapUI( self.__melcmd__( self, q=1, menuArray=1 ) )
 		
+	def isFrontWindow( self ):
+		"""@return: True if we are the front window """
+		return bool( self.__melcmd__( self, q=1, frontWindow=1 ) )
+		
+	def setMenuIndex( self, menu, index ):
+		"""Set the menu index of the specified menu
+		@param menu: name of child menu to set 
+		@param index: new index at which the menu should appear"""
+		return self.__melcmd__( self, e=1, menuIndex=( menu, index ) )
+		
 	#} END window speciic
+	
+	p_numberOfMenus = property( getNumberOfMenus )
+	p_nm = p_numberOfMenus
 	

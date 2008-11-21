@@ -75,7 +75,7 @@ class MetaClassCreatorUI( mutil.MetaClassCreator ):
 			pass # don't bother, can be one of our own classes that will 
 			#raise UIError( "Did not find command for " + cmdname ) 	
 				
-		 
+		print name 
 		# HANDLE PROPERTIES 
 		####################
 		# read the properties attribute to find names to automatically create 
