@@ -918,7 +918,7 @@ class Key( PropertyHolder ):
 	@staticmethod
 	def _parseObject( valuestr ):
 		""" @return: int,float or str from valuestring """
-		types = [ long, float ]
+		types = ( long, float )
 		for numtype in types:
 			try:
 				val = numtype( valuestr )

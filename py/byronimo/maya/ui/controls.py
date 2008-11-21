@@ -40,6 +40,7 @@ class SliderBase( uibase.SizedControl ):
 class BooleanBase( LabelBase ):
 	"""Base class for boolean controls"""
 	_events_ = ( "onCommand", "offCommand", "changeCommand", "cc", "onc", "ofc" )
+	
 
 class GroupBase( uibase.SizedControl ):
 	"""Base allowing access to all grouped controls
@@ -100,6 +101,12 @@ class BooleanGroupBase( GroupBase, BooleanBase ):
 #} END bases
 
 
+class RadioButton( BooleanBase ):
+	_properties_ = ( "sl", "select" )
+	
+class RadioButtonGrp( BooleanGroupBase, RadioButton ):
+	"""Warning: inherits booleanBase multiple times """
+	pass 
 
 class Button( LabelBase ):
 	""" Simple button interface 

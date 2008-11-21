@@ -23,6 +23,39 @@ import inspect
 #### Methods 		  	####
 ##########################
 
+def decodeString( valuestr ):
+	""" @return: int,float or str from string valuestr - a string that encodes a 
+	numeric value or a string
+	@raise TypeError: if the type could not be determined"""
+	# put this check here intentionally - want to allow
+	if not isinstance( valuestr, basestring ):
+		raise TypeError( "Invalid value type: only int, long, float and str are allowed", valuestr )
+		
+	types = ( long, float )
+	for numtype in types:
+		try:
+			val = numtype( valuestr )
+			
+			# truncated value ?
+			if val != float( valuestr ):
+				continue
+				
+			return val
+		except ( ValueError,TypeError ):
+			continue
+	# END for each numeric type 
+	
+	# its just a string and not a numeric type  
+	return valuestr
+	
+def decodeStringOrList( valuestrOrList ):
+	"""@return: as L{decodeString}, but returns a list of appropriate values if 
+	the input argument is a list or tuple type"""
+	if isinstance( valuestrOrList , ( list, tuple ) ):
+		return [ decodeString( valuestr ) for valuestr in valuestrOrList ]
+	
+	return decodeString( valuestrOrList )
+
 def capitalize(s):
 	"""@return: s with first letter capitalized"""
 	return s[0].upper() + s[1:]
