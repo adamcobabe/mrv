@@ -84,7 +84,12 @@ class TextFieldBase( object ):
 						"fi", "fileName", 
 						"tx", "text" )
 	
-	
+class TextFieldGroupBase( TextFieldBase ):
+	"""Common base for the group text fields"""
+	isNodeTypeTreeMember = False
+	_events_ = ( 	"cc", "changeCommand" ,
+					"fcc", "forceChangeCommand" )
+
 class SliderGroupBase( GroupBase, SliderBase ):
 	"""base class for all sliders"""
 	pass
@@ -149,15 +154,15 @@ class TextField( FieldBase, TextFieldBase ):
 	file"""
 	pass 
 	
-class TextFieldGrp( GroupBase, TextFieldBase ):
+	
+class TextFieldGrp( GroupBase, TextFieldGroupBase ):
 	"""Class just multiple inheritance - this cannot be expressed in the hierarchy 
 	file"""
-	pass
+	
 
-class TextFieldButtonGrp( ButtonGroupBase, TextFieldBase ):
+class TextFieldButtonGrp( ButtonGroupBase, TextFieldGroupBase ):
 	"""Class just multiple inheritance - this cannot be expressed in the hierarchy 
 	file"""
-		
-		
+	
 	
 	

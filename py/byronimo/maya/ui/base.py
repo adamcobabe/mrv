@@ -158,10 +158,13 @@ class NamedUI( unicode, BaseUI , iDagItem, CallbackBaseUI ):
 		name = kwargs.pop( "name", None )
 		exists = NamedUI._exists( str( name ) )	# could be None
 		if name is None or not exists:
-			if name:	# use name 
-				name = cls.__melcmd__( name, **kwargs )
-			else:
-				name = cls.__melcmd__( **kwargs )
+			try:
+				if name:	# use name 
+					name = cls.__melcmd__( name, **kwargs )
+				else:
+					name = cls.__melcmd__( **kwargs )
+			except (RuntimeError,TypeError), e:
+				raise RuntimeError( "Creation of %s using melcmd %s failed: %s" % ( cls, cls.__melcmd__, str( e ) ) )
 			# END name handling 
 		# END auto-creation as required 
 			
