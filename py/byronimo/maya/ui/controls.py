@@ -65,6 +65,26 @@ class GroupBase( uibase.SizedControl ):
 	# END for each flag 
 				   	
 	
+class FieldBase( uibase.SizedControl ):
+	_events_ = 		( 	"rfc", "receiveFocusCommand",
+						"ec", "enterCommand", 
+						"cc", "changeCommand" )
+	
+	_properties_ = ( "ed", "editable" )
+	
+
+class TextFieldBase( object ):
+	"""Base just containing properties and events"""
+	__metaclass__ = uibase.ui.MetaClassCreatorUI
+	isNodeTypeTreeMember = False
+	
+	_properties_ = ( 	"fn", "font", 
+						"it", "insertText", 
+						"ip", "insertPosition"
+						"fi", "fileName", 
+						"tx", "text" )
+	
+	
 class SliderGroupBase( GroupBase, SliderBase ):
 	"""base class for all sliders"""
 	pass
@@ -98,6 +118,13 @@ class BooleanGroupBase( GroupBase, BooleanBase ):
 	# END for event each flag
 	
 	
+class ButtonGroupBase( GroupBase ):
+	"""Base class for all button groups"""
+	_properties_ = ( 	"bl", "buttonLabel",
+						"eb", "enableButton" )
+	
+	_events_ = ( "bc", "buttonCommand" )
+	
 #} END bases
 
 
@@ -117,7 +144,20 @@ class Button( LabelBase ):
 	e_pressed = uiutil.CallbackBaseUI.UIEvent( "command", actOnPress=True )
 	e_released = uiutil.CallbackBaseUI.UIEvent( "command", actOnPress=False )
 	
+class TextField( FieldBase, TextFieldBase ):
+	"""Class just multiple inheritance - this cannot be expressed in the hierarchy 
+	file"""
+	pass 
 	
+class TextFieldGrp( GroupBase, TextFieldBase ):
+	"""Class just multiple inheritance - this cannot be expressed in the hierarchy 
+	file"""
+	pass
+
+class TextFieldButtonGrp( ButtonGroupBase, TextFieldBase ):
+	"""Class just multiple inheritance - this cannot be expressed in the hierarchy 
+	file"""
 		
 		
+	
 	

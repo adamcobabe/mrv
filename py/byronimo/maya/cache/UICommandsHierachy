@@ -34,9 +34,10 @@ baseUI
 				floatFieldGrp
 				colorSliderGrp
 				intFieldGrp
-				colorSliderButtonGrp
-				floatSliderButtonGrp
-				textFieldButtonGrp
+				buttonGroupBase
+					colorSliderButtonGrp
+					floatSliderButtonGrp
+					textFieldButtonGrp
 				textFieldGrp
 				optionMenuGrp
 			sliderBase
