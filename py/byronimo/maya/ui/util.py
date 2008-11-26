@@ -112,7 +112,7 @@ class CallbackBaseUI( CallbackBase ):
 		def __init__( self, eventname, **kwargs ):
 			"""Allows to set additional arguments to be given when a callback 
 			is actually set"""
-			super( CallbackBaseUI.UIEvent, self ).__init__( eventname )
+			super( CallbackBaseUI.UIEvent, self ).__init__( eventname, **kwargs )
 			self._kwargs = kwargs
 		
 		def __set__(  self, inst, eventfunc ):
@@ -124,8 +124,11 @@ class CallbackBaseUI( CallbackBase ):
 			if not eventset:
 				kwargs = dict()
 				# generic call that will receive maya's own arguments and pass them on
-				weakSendEvent = WeakInstFunction( inst.sendEvent )
-				call = Call( weakSendEvent, self )
+				sendfunction = inst.sendEvent
+				if self.use_weakref: 
+					sendfunction = WeakInstFunction( sendfunction )
+					
+				call = Call( sendfunction, self )
 				dyncall =  lambda *args, **kwargs: call( *args, **kwargs )
 				
 				kwargs[ 'e' ] = 1
@@ -192,7 +195,7 @@ class UIContainerBase( object ):
 		self._children.append( child )
 		
 		if revert_to_previous_parent and prevparent:
-			cmds.setParent( prevparent )
+			prevparent.setActive()
 			
 		return child
 		

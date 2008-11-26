@@ -369,7 +369,7 @@ class MenuBase( NamedUI ):
 				)
 	
 	
-class Menu( MenuBase ):
+class Menu( MenuBase, uiutil.UIContainerBase ):
 	_properties_ = ( 	
 					  	"hm", "helpMenu", 
 						"ia", "itemArray",
@@ -377,6 +377,15 @@ class Menu( MenuBase ):
 						"dai", "deleteAllItems",
 						"fi", "familyImage" 
 					)
+	
+	@classmethod
+	def getCurrentParent( cls ):
+		"""@return: menu showing being the current parent"""
+		curparentmenu = cmds.setParent( q=1, m=1 )
+		if not curparentmenu:
+			raise AssertionError( "No current menu parent set" )
+			
+		return self.__class__( name=curparentmenu )
 	
 	def setActive( self ):
 		"""Make ourselves the active menu"""
@@ -386,7 +395,6 @@ class Menu( MenuBase ):
 		"""Make our parent the active menu layout
 		@note: only useful self is a submenu"""
 		cmds.setParent( ".." , m=1 )
-	
 	
 class MenuItem( MenuBase ):
 	

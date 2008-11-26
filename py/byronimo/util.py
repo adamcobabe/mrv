@@ -646,9 +646,13 @@ class CallbackBase( iDuplicatable ):
 		#} END configuration 
 		
 		
-		def __init__( self, eventname ):
+		def __init__( self, eventname, **kwargs ):
+			"""@param weak: if True, default class configuration use_weak_ref, weak 
+			references will be created for event handlers, if False it will be strong 
+			references"""
 			self._name = eventname					# original name 					
-			self.eventname = eventname + "_set"	# set attr going to keep events 
+			self.eventname = eventname + "_set"	# set attr going to keep events
+			self.use_weakref = kwargs.get( "weak", self.__class__.use_weakref )
 			
 		def _toKeyFunc( self, eventfunc ):
 			"""@return: an eventfunction suitable to be used as key in our instance 

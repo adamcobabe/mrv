@@ -54,6 +54,10 @@ class MetaClassCreatorUI( mutil.MetaClassCreator ):
 	  - assign an event:
 	    windowinstance.e_restorecommand = func
 		whereas func takes: func( windowinstance, *args, **kwargs )
+		
+	* ADDITIONAL CONFIGURAITON *
+		- strong_event_handlers
+		 	- if True, defeault class default, events will use strong references to their handlers
 	  """
 	
 	melcmd_attrname = '__melcmd__'
@@ -90,9 +94,14 @@ class MetaClassCreatorUI( mutil.MetaClassCreator ):
 		# read the event description and create UIEvent instances that will 
 		# register themselves on first use, allowing multiple listeners per maya event
 		eventnames = clsdict.get( "_events_", list() )
+		strong_event_handlers = clsdict.get( "strong_event_handlers", False )
+		event_kwargs = dict() 
+		if strong_event_handlers:
+			event_kwargs[ "weak" ] = False
+			
 		for ename in eventnames:
 			attrname = "e_%s" % ename.lower()
-			clsdict[ attrname ] = CallbackBaseUI.UIEvent( ename )
+			clsdict[ attrname ] = CallbackBaseUI.UIEvent( ename, **event_kwargs )
 		# END for each event name 
 
 		newcls = super( MetaClassCreatorUI, metacls ).__new__( _typetree, _thismodule, 
