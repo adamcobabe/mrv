@@ -199,7 +199,10 @@ class TestGeneralUI( unittest.TestCase ):
 			# END submenu
 			smmenu.setParentActive()
 			
-			ui.MenuItem( l = "otherMenuItem" )
+			mi = ui.MenuItem( l = "otherMenuItem" )
+			def cb( self ):
+				self.p_label = "pressed"
+			mi.e_command = cb
 		# END main menu
 		menu.setParentActive( )
 		

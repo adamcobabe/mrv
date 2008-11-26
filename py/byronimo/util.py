@@ -580,6 +580,28 @@ class Call( object ):
 		return self.func( *self.args, **self.kwargs )
 		
 
+class CallAdv( Call ):
+	"""Advanced call class providing additional options:
+	merge_args : if True, default True, incoming arguments will be prepended before the static ones
+	merge_kwargs: if True, default True, incoming kwargs will be merged into the static ones """
+	def __init__( self, func, *args, **kwargs ):
+		self.merge_args = kwargs.pop( "merge_args", True )
+		self.merge_kwargs = kwargs.pop( "merge_kwargs", True )
+		
+		super( CallAdv, self ).__init__( func, *args, **kwargs )
+		
+	def __call__( self, *inargs, **inkwargs ):
+		"""Call with merge support"""
+		args = self.args
+		if self.merge_args:
+			args = list( inargs )
+			args.extend( self.args )
+			
+		if self.merge_kwargs:
+			self.kwargs.update( inkwargs )
+			
+		return self.func( *args, **self.kwargs )
+		
 
 class WeakInstFunction( object ):
 	"""Create a proper weak instance to an instance function by weakly binding 
@@ -737,16 +759,17 @@ class CallbackBase( iDuplicatable ):
 		for function in callbackset:
 			try:
 				func = eventinst._keyToFunc( function ) 
-				if func:
-					if self.sender_as_argument:
-						func( self, *args, **kwargs )
-					else:
-						func( *args, **kwargs )
-					# END sendder as argument 
-				# END func is valid 
+				if func is None:
+					print "Listener for callback of %s was not available anymore" % self
+					continue
+					
+				if self.sender_as_argument:
+					func( self, *args, **kwargs )
 				else:
-					print "Listener for callback of %s was not available anymore" % self 
-			except Exception:
+					func( *args, **kwargs )
+				# END sendder as argument 
+			except Exception, e :
+				print str( e ) 
 				success = False
 				#print "Error: Exception thrown by function %s during event %s" % ( func, eventname )
 		# END for each registered event
