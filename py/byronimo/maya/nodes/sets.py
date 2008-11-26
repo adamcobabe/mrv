@@ -326,7 +326,8 @@ class ObjectSet:
 			dgmod.doIt()
 		
 		
-	def _toValidSetOpInput( self, objects, sets_are_members = False ):
+	@classmethod
+	def _toValidSetOpInput( cls, objects, sets_are_members = False ):
 		"""Method creating valid input for the union/intersection or difference methods
 		@note: it may return a temporary set that will delete itself once the wrapper object
 		is being destroyed
@@ -345,16 +346,19 @@ class ObjectSet:
 			else:
 				# create selection list from nodes and use a tmpSet 
 				sellist = nodes.toSelectionList( objects )
-				return self._TmpSet( sellist )
+				return cls._TmpSet( sellist )
 		# END list handling
 		
 		# still here, handle a single object
 		singleobj = objects
 		if isinstance( singleobj, api.MSelectionList ):	# Selection List ?
-			return self._TmpSet( singleobj )
+			return cls._TmpSet( singleobj )
 			
 		if not sets_are_members and isinstance( singleobj, ObjectSet ):				# Single Object Set ?
 			return singleobj._apiobj
+			
+		if isinstance( singleobj, cls._TmpSet ):										# single set object 
+			return singleobj.setobj
 			
 		if isinstance( singleobj, api.MObject ) and singleobj.hasFn( api.MFn.kSet ):	# MObject object set ?
 			return singleobj
@@ -364,7 +368,7 @@ class ObjectSet:
 			return singleobj
 		
 		# Can be Node, MDagPath or plug or MObject ( not set )
-		return self._toValidSetOpInput( ( singleobj, ), sets_are_members = sets_are_members ) # will create a tmpset then
+		return cls._toValidSetOpInput( ( singleobj, ), sets_are_members = sets_are_members ) # will create a tmpset then
 		
 		raise TypeError( "Type InputObjects for set operation ( %r ) was not recognized" % objects )
 		
@@ -387,6 +391,18 @@ class ObjectSet:
 			raise AssertionError( "Invalid Set Operation: %s" % opid )
 			
 		return outlist
+
+	@classmethod
+	def getTmpSet( cls, objects, sets_are_members = False ):
+		"""@return: temporary set that will delete itself once it's reference count
+		reaches 0. Use rval.setobj to access the actual set, as the returned object is 
+		just a hanlde to it. The handle is a valid input to the set functions as well
+		@param objects, sets_are_members: see L{getUnion} 
+		@note: useful if you want to use the set member union, intersection or substraction 
+		methods efficiently on many sets in a row - these internally operate on a set, thus 
+		it is faster to use them with another set from the beginning to prevent creation of intermediate 
+		sets"""
+		return cls._toValidSetOpInput( objects, sets_are_members = sets_are_members )
 
 	def getUnion( self, objects, sets_are_members = False  ):
 		"""Create a union of the given items with the members of this set
