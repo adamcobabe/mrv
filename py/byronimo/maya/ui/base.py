@@ -351,3 +351,79 @@ class Window( SizedControl, uiutil.UIContainerBase ):
 	p_numberOfMenus = property( getNumberOfMenus )
 	p_nm = p_numberOfMenus
 	
+	
+class MenuBase( NamedUI ):
+	"""Common base for all menus"""
+	
+	_properties_ = (	
+					   "en", "enable", 
+					   	"l", "label", 
+						"mn", "mnemonic", 
+						"aob", "allowOptionBoxes", 
+						"dt", "docTag"
+					 )
+	
+	_events_ = ( 		
+					 	"pmc", "postMenuCommand", 
+						"pmo", "postMenuCommandOnce"	
+				)
+	
+	
+class Menu( MenuBase ):
+	_properties_ = ( 	
+					  	"hm", "helpMenu", 
+						"ia", "itemArray",
+						"ni", "numberOfItems",
+						"dai", "deleteAllItems",
+						"fi", "familyImage" 
+					)
+	
+	def setActive( self ):
+		"""Make ourselves the active menu"""
+		cmds.setParent( self, m=1 )
+		
+	def setParentActive( self ):
+		"""Make our parent the active menu layout
+		@note: only useful self is a submenu"""
+		cmds.setParent( ".." , m=1 )
+	
+	
+class MenuItem( MenuBase ):
+	
+	_properties_ = (
+						"d", "divider", 
+						"cb", "checkBox", 
+						"icb", "isCheckBox", 
+						"rb", "radioButton", 
+						"irb", "isRadioButton", 
+						"iob", "isOptionBox", 
+						"cl", "collection", 
+						"i", "image", 
+						"iol", "imageOverlayLabel", 
+						"sm", "subMenu", 
+						"ann", "annotation", 
+						"da", "data", 
+						"rp", "radialPosition", 
+						"ke", "keyEquivalent", 
+						"opt", "optionModifier", 
+						"ctl", "controlModifier", 
+						"sh", "shiftModifier", 
+						"ecr", "enableCommandRepeat", 
+						"ec", "echoCommand", 
+						"it", "italicized", 
+						"bld", "boldFont" 
+					)
+	
+	_events_ = ( 
+						"dmc", "dragMenuCommand", 
+						"ddc", "dragDoubleClickCommand",
+						"c", "command"
+				)
+	
+	def toMenu( self ):
+		"""@return: Menu representing self if it is a submenu
+		@raise TypeError: if self i no submenu"""
+		if not self.p_sm:
+			raise TypeError( "%s is not a submenu and cannot be used as menu" )
+			
+		return Menu( name = self ) 

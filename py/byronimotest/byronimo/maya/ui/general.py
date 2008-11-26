@@ -185,7 +185,31 @@ class TestGeneralUI( unittest.TestCase ):
 		col.setParentActive()
 		
 		win.show()
+
+	def test_menus( self ):
+		"""byronimo.maya.ui: use menu bars and menuItems"""
+		win = ui.Window( title="Menu Window", menuBar=1 )
+		menu = ui.Menu( l = "first" )
+		if menu:
+			ui.MenuItem( l = "item" )
+			sm = ui.MenuItem( l = "submenu", sm=1, aob=1 )
+			if sm:
+				smmenu = sm.toMenu()
+				ui.MenuItem( l = "smmenu" )
+			# END submenu
+			smmenu.setParentActive()
+			
+			ui.MenuItem( l = "otherMenuItem" )
+		# END main menu
+		menu.setParentActive( )
 		
+		
+		ui.Menu( l = "second" )
+		
+		
+		
+		win.show()
+
 	def test_progressWindow( self ):
 		"""byronimo.maya.ui: test progress window functionality"""
 		maxrange = 10
