@@ -407,7 +407,6 @@ def iterSelectionList( sellist, filterType = api.MFn.kInvalid, predicate = lambd
 	else:
 		# ITERATOR MODE 
 		iterator = getSelectionListIterator( sellist, filterType = filterType )
-		predicate = kwargs.get( 'predicate', lambda x: True )
 		
 		while not iterator.isDone():
 			# try dag object
