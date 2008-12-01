@@ -84,7 +84,7 @@ class CallbackBaseUI( CallbackBase ):
 	To make this work it is essential that you work with one and the same instance of your 
 	class.
 	
-	To use this class , see the documentation of L{CallbackBase}, but use the UIEvent 
+	To use this class , see the documentation of L{CallbackBase}, but use the _UIEvent 
 	instead.
 	If you want to add your own events, use your own events, use the L{Event} class instead
 	
@@ -103,7 +103,7 @@ class CallbackBaseUI( CallbackBase ):
 	sender_as_argument = True
 	#} END configuration 
 	
-	class UIEvent( CallbackBase.Event ):
+	class _UIEvent( CallbackBase.Event ):
 		"""Event suitable to deal with user interface callback"""
 		#( Configuration 
 		use_weakref = False
@@ -112,7 +112,7 @@ class CallbackBaseUI( CallbackBase ):
 		def __init__( self, eventname, **kwargs ):
 			"""Allows to set additional arguments to be given when a callback 
 			is actually set"""
-			super( CallbackBaseUI.UIEvent, self ).__init__( eventname, **kwargs )
+			super( CallbackBaseUI._UIEvent, self ).__init__( eventname, **kwargs )
 			self._kwargs = kwargs
 		
 		def __set__(  self, inst, eventfunc ):
@@ -137,7 +137,7 @@ class CallbackBaseUI( CallbackBase ):
 				inst.__melcmd__( str( inst ) , **kwargs )
 			# END create event 
 			
-			super( CallbackBaseUI.UIEvent, self ).__set__( inst, eventfunc )
+			super( CallbackBaseUI._UIEvent, self ).__set__( inst, eventfunc )
 			
 	# END uievent
 	

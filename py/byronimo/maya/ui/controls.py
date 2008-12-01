@@ -144,10 +144,11 @@ class Button( LabelBase ):
 	""" Simple button interface 
 	@note: you can only use either the onpress or the onrelease event, both 
 	together apparently do not work"""
-	_properties_ = ( "actionIsSubstitute" ) 
+	_properties_ = ( "actionIsSubstitute" )
+	_events_ = ( "c", "command" )
 	
-	e_pressed = uiutil.CallbackBaseUI.UIEvent( "command", actOnPress=True )
-	e_released = uiutil.CallbackBaseUI.UIEvent( "command", actOnPress=False )
+	e_pressed = uiutil.CallbackBaseUI._UIEvent( "command", actOnPress=True )
+	e_released = uiutil.CallbackBaseUI._UIEvent( "command", actOnPress=False )
 	
 class TextField( FieldBase, TextFieldBase ):
 	"""Class just multiple inheritance - this cannot be expressed in the hierarchy 

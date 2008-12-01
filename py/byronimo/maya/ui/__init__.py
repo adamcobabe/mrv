@@ -49,7 +49,7 @@ class MetaClassCreatorUI( mutil.MetaClassCreator ):
 		
 	* AUTOMATIC UI-EVENT GENERATION *
 	  - define names of mel events in _events_ as list of names 
-	  - these will be converted into UIEvents sitting at attribute names like 
+	  - these will be converted into _UIEvents sitting at attribute names like 
 	  	e_eventname ( lowercase )
 	  - assign an event:
 	    windowinstance.e_restorecommand = func
@@ -91,7 +91,7 @@ class MetaClassCreatorUI( mutil.MetaClassCreator ):
 		
 		# HANDLE EVENTS 
 		##################
-		# read the event description and create UIEvent instances that will 
+		# read the event description and create _UIEvent instances that will 
 		# register themselves on first use, allowing multiple listeners per maya event
 		eventnames = clsdict.get( "_events_", list() )
 		strong_event_handlers = clsdict.get( "strong_event_handlers", False )
@@ -101,7 +101,7 @@ class MetaClassCreatorUI( mutil.MetaClassCreator ):
 			
 		for ename in eventnames:
 			attrname = "e_%s" % ename.lower()
-			clsdict[ attrname ] = CallbackBaseUI.UIEvent( ename, **event_kwargs )
+			clsdict[ attrname ] = CallbackBaseUI._UIEvent( ename, **event_kwargs )
 		# END for each event name 
 
 		newcls = super( MetaClassCreatorUI, metacls ).__new__( _typetree, _thismodule, 
