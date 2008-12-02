@@ -1389,12 +1389,14 @@ class DagNode( Entity, iDagItem ):	# parent just for epydoc
 		@note: inbetween parents are always required as needed
 		@todo: add example for each version of newpath 
 		@note: instancing can be realized using the L{addChild} function
-		@note: with some combinations of frozen transforms and some mesh operations, the duplicated mesh 
-		will have different object space orientations than the original if using the API in general.
-		Using MEL works in that case ... and perhaps I should just go for mel instead I am not undoable anyway
+		@note: If meshes have tweaks applied, the duplicate will not have these tweaks and the meshes will look 
+		mislocated.
+		Using MEL works in that case ... ( they fixed it there obviously ) , but creates invalid objects
 		@todo: Undo implementation - every undoable operation must in fact be based on strings to really work, all 
 		this is far too much - dagNode.duplicate must be undoable by itself
-		@todo: use mel instead as the API does not give actual copies in case of some meshes"""
+		@todo: duplicate should be completely reimplemented to support all mel options and actually work with 
+		meshes and tweaks - the underlying api duplication would still be used of course, as well as 
+		connections ( to sets ) and so on ... """
 		# print "-"*5+"DUPLICATE: %r to %s" % (self,newpath)+"-"*5
 		selfIsShape = isinstance( self, nodes.Shape )
 		
@@ -1750,7 +1752,6 @@ class DagNode( Entity, iDagItem ):	# parent just for epydoc
 				yield Node( dagpath )
 		# END for each instance 
 	
-	
 	#}
 	
 	
@@ -1818,7 +1819,7 @@ class Data( api.MObject ):
 		 
 
 
-class ComponentListData:
+class ComponentListData( Data ):
 	"""Improves the default wrap by adding some required methods to deal with
 	component lists"""
 	__metaclass__ = nodes.MetaClassCreatorNodes
@@ -1828,7 +1829,7 @@ class ComponentListData:
 		return self._mfncls( self._apiobj )[ index ]
 
 	
-class PluginData: 
+class PluginData( Data ): 
 	"""Wraps plugin data as received by a plug. If plugin's registered their data
 	types and tracking dictionaries using the L{registerPluginDataTrackingDict}, 
 	the original self pointer can easily be retrieved using this classes interface"""
@@ -1883,7 +1884,7 @@ class Component( api.MObject ):
 		# END for each known attr type
 	
 
-class DoubleIndexedComponent:
+class DoubleIndexedComponent( Component ):	# derived just for epydoc 
 	"""Fixes some functions that would not work usually """
 	__metaclass__ = nodes.MetaClassCreatorNodes
 	
@@ -2033,7 +2034,7 @@ class DagPath( api.MDagPath, iDagItem ):
 
 #{ Foreward created types
 
-class Transform:
+class Transform( DagNode ):		# derived just for epydoc
 	"""Precreated class to allow isinstance checking against their types and 
 	to add undo support to MFnTransform functions, as well as for usability
 	@note: bases determined by metaclass
@@ -2058,4 +2059,4 @@ class Transform:
 
 #} END foreward created types
 
-	
+

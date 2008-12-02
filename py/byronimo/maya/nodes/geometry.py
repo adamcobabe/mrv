@@ -21,8 +21,7 @@ import types
 import maya.OpenMaya as api
 import iterators
 
-	
-class Shape:
+class Shape( base.DagNode ):	 # base for epydoc !
 	"""Interface providing common methods to all geometry shapes as they can be shaded.
 	They usually support per object and per component shader assignments
 	
@@ -114,7 +113,7 @@ class Shape:
 		################## 
 		# QUERY SETS AND COMPONENTS 
 		# for non-meshes, we have to parse the components manually 
-		if not self._apiobj.hasFn( api.MFn.kMesh ):
+		if not self._apiobj.hasFn( api.MFn.kMesh ) or not self.isValidMesh():
 			# check full membership
 			sets,components = self._parseSetConnections( True )
 		# END non-mesh handling 
@@ -145,8 +144,59 @@ class Shape:
 	#} END set interface 
 
 
+class GeometryShape( Shape ):	# base for epydoc !
+	pass 
+	
+	
+class DeformableShape( GeometryShape ):	# base for epydoc !
+	pass
 
-class Mesh:
+
+class ControlPoint( DeformableShape ):		# base for epydoc !
+	pass
+
+
+class SurfaceShape( ControlPoint ):	# base for epydoc !
+	pass 
+
+
+class Mesh( SurfaceShape ):		# base for epydoc !
 	"""Implemnetation of mesh related methods to make its handling more 
 	convenient"""
 	__metaclass__ = base.nodes.MetaClassCreatorNodes
+	
+	def copyTweaksTo( self, other ):
+		"""Copy our tweaks onto another mesh
+		@note: we do not check topology for maximum flexibility"""
+		opnts = other.pnts
+		pnts = self.pnts
+		for splug in pnts:
+			opnts.getByLogicalIndex( splug.logicalIndex() ).setMObject( splug.asMObject() )
+		# END for each source plug in pnts
+	
+	def isValidMesh( self ):
+		"""@return: True if we are nonempty and valid - emptry meshes do not work with the mfnmesh 
+		although it should ! Have to catch that case ourselves"""
+		try:
+			self.numVertices()
+			return True
+		except RuntimeError:
+			return False 
+	
+	def copyAssignmentsTo( self, other, setFilter = Shape.fSetsRenderable ):
+		"""Copy set assignments including component assignments to other"""
+		for sg, comp in self.getComponentAssignments( setFilter = setFilter ):
+			sg.addMember( other, comp )
+		
+	#( iDuplicatable 
+	def copyFrom( self, other, *args, **kwargs ):
+		"""Copy tweaks and sets from other onto self
+		@param setFilter: if given, default is fSets, you may specify the types of sets to copy
+		if None, no set conenctions will be copied """
+		other.copyTweaksTo( self )
+		
+		setfilter = kwargs.pop( "setFilter", Mesh.fSets )		# copy all sets by default
+		if setfilter is not None:
+			other.copyAssignmentsTo( self, setFilter = setfilter )
+	
+	#) END iDuplicatable 
