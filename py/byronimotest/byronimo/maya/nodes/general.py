@@ -849,7 +849,7 @@ class TestNodeBase( unittest.TestCase ):
 		
 		# REPARENT TO PARENT NODE
 		###########################
-		t = t.reparent( g, keepWorldSpace = 1 )
+		t = t.setParent( g, keepWorldSpace = 1 )
 		# common._saveTempFile( "afterreparentg.ma" )
 		
 		self._checkIdentity( t )

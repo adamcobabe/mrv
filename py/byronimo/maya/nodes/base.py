@@ -1054,6 +1054,29 @@ class DagNode( Entity, iDagItem ):	# parent just for epydoc
 	#} END set handling 
 	
 	#{ Hierarchy Modification
+	
+	def _setWorldspaceTransform( self, parentnode ):
+		"""Set ourselve's transformation matrix to our absolute worldspace transformation, 
+		possibly relative to the optional parentnode
+		@param parentnode: if not None, it is assumed to be the future parent of the node, 
+		our transformation will be set such that we retain our worldspace position if parented below
+		parentnode"""
+		if not isinstance( self, Transform ):
+			return 
+		
+		nwm = self.wm.getByLogicalIndex( self.getInstanceNumber() ).asData().transformation().asMatrix()
+			
+		# compenstate for new parents transformation ?
+		if parentnode is not None:
+			# use world - inverse matrix
+			parentInverseMatrix = parentnode.wim.getByLogicalIndex( parentnode.getInstanceNumber( ) ).asData().transformation().asMatrix()
+			nwm = nwm * parentInverseMatrix
+		# END if there is a new parent 
+		
+		self.set( api.MTransformationMatrix( nwm ) )
+	
+		
+	
 	@undoable
 	def reparent( self, parentnode, renameOnClash=True, raiseOnInstance=True, keepWorldSpace = False ):
 		""" Change the parent of all nodes ( also instances ) to be located below parentnode
@@ -1083,18 +1106,9 @@ class DagNode( Entity, iDagItem ):	# parent just for epydoc
 		# END rename on clash handling 
 		
 		# keep existing transformation ? Set the transformation accordingly beforehand  
-		if keepWorldSpace and isinstance( self, Transform ):
-			nwm = self.wm.getByLogicalIndex( self.getInstanceNumber() ).asData().transformation().asMatrix()
-			
-			# compenstate for new parents transformation ?
-			if parentnode is not None:
-				# use world - inverse matrix
-				parentInverseMatrix = parentnode.wim.getByLogicalIndex( parentnode.getInstanceNumber( ) ).asData().transformation().asMatrix()
-				#nwm = nwm * parentInverseMatrix
-				nwm = nwm * parentInverseMatrix
-			# END if there is a new parent 
-			
-			self.set( api.MTransformationMatrix( nwm ) )
+		if keepWorldSpace:
+			# transform check done in method 
+			self._setWorldspaceTransform( parentnode )
 		# END if keep worldspace 
 			
 			
@@ -1179,7 +1193,7 @@ class DagNode( Entity, iDagItem ):	# parent just for epydoc
 		
 	@undoable
 	def addChild( self, childNode, position=api.MFnDagNode.kNextPos, keepExistingParent=False,
-				 renameOnClash=True):
+				 renameOnClash=True, keepWorldSpace = False ):
 		"""Add the given childNode as child to this Node. Allows instancing !
 		@param childNode: Node you wish to add
 		@param position: the index to which to add the new child, kNextPos will add it as last child.
@@ -1188,7 +1202,9 @@ class DagNode( Entity, iDagItem ):	# parent just for epydoc
 		have its previous parent and this one, if False, the previous parent will be removed 
 		from the child's parent list
 		@param renameOnClash: resolve nameclashes by automatically renaming the node to make it unique
-		@return: childNode whose path is pointing to the new child location 
+		@param keepWorldSpace: see L{reparent}, only effective if the node is not instanced
+		@return: childNode whose path is pointing to the new child location
+		@raise ValueError: if keepWorldSpace is requested with directly instanced nodes
 		@note: the keepExistingParent flag is custom implemented as it would remove all existng parentS, 
 		not just the one of the path behind the object ( it does not use a path, so it must remove all existing 
 		parents unfortunatly ! )
@@ -1203,8 +1219,11 @@ class DagNode( Entity, iDagItem ):	# parent just for epydoc
 		# print "( %i/%i ) ADD CHILD (keep=%i): %r to %r"  % ( api.MGlobal.isUndoing(),api.MGlobal.isRedoing(), keepExistingParent, DependNode( childNode._apiobj ) , self )
 		
 		# should we use reparent to get around an instance bug ?
-		if not keepExistingParent and childNode.getInstanceCount( 0 ) == 1:	# direct only 
-			return childNode.reparent( self, renameOnClash=renameOnClash, raiseOnInstance=False )
+		is_direct_instance = childNode.getInstanceCount( 0 ) > 1
+		if not keepExistingParent and not is_direct_instance:	# direct only 
+			return childNode.reparent( self, renameOnClash=renameOnClash, raiseOnInstance=False, 
+									  	keepWorldSpace = keepWorldSpace )
+		# END reparent if not-instanced
 		
 		# CHILD ALREADY THERE ?
 		#########################
@@ -1231,7 +1250,7 @@ class DagNode( Entity, iDagItem ):	# parent just for epydoc
 			if objExists( testforobject ):
 				raise RuntimeError( "Object %s did already exist below %r" % ( testforobject , self ) )
 		# END rename on clash handling 
-			
+		
 		
 		# ADD CHILD 
 		###############
@@ -1301,16 +1320,20 @@ class DagNode( Entity, iDagItem ):	# parent just for epydoc
 		return newChildNode
 		
 	@undoable
-	def addParent( self, parentnode, position=api.MFnDagNode.kNextPos ):
-		"""Adds ourselves as instance to the given parentnode at position 
+	def addParent( self, parentnode, **kwargs ):
+		"""Adds ourselves as instance to the given parentnode at position
+		@param **kwargs: see L{addChild}
 		@return: self with updated dag path"""
-		return parentnode.addChild( self, position = position, keepExistingParent = True )
+		kwargs.pop( "keepExistingParent", None )
+		return parentnode.addChild( self, keepExistingParent = True, **kwargs )
 		
 	@undoable
-	def setParent( self, parentnode, position=api.MFnDagNode.kNextPos ):
-		"""Change the parent of self to parentnode being placed at position 
+	def setParent( self, parentnode, **kwargs ):
+		"""Change the parent of self to parentnode being placed at position
+		@param **kwargs: see L{addChild}
 		@return: self with updated dag path"""
-		return parentnode.addChild( self, position = position, keepExistingParent = False )
+		kwargs.pop( "keepExistingParent", None )	# knock off our changed attr 
+		return parentnode.addChild( self, keepExistingParent = False,  **kwargs )
 		
 	@undoable
 	def removeParent( self, parentnode  ):
