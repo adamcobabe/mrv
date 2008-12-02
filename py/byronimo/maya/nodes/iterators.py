@@ -66,7 +66,7 @@ def iterDgNodes( *args, **kwargs ):
 	while not iterObj.isDone() :
 		obj = iterObj.thisNode()
 		if asNode:
-			node = nodes.Node( obj )
+			node = nodes.Node( obj, 1 )
 			if predicate( node ):
 				yield node
 		else:
@@ -160,7 +160,7 @@ def iterDagNodes( *args, **kwargs ):
 			dPath = api.MDagPath( )
 			iterObj.getPath( dPath )
 			if asNode:
-				node = nodes.Node( dPath )
+				node = nodes.Node( dPath, 1 )
 				if predicate( node ):
 					yield node
 			else:
@@ -285,7 +285,7 @@ def iterGraph( nodeOrPlug, *args, **kwargs ):
 		else:
 			obj = iterObj.currentItem()
 			if asNode:
-				node = nodes.Node( obj ) 
+				node = nodes.Node( obj, 1 ) 
 				if predicate( node ):
 					yield node
 			else:
@@ -385,7 +385,7 @@ def iterSelectionList( sellist, filterType = api.MFn.kInvalid, predicate = lambd
 				# END filter handling
 				
 				if asNode:
-					node = nodes.Node( iterobj )
+					node = nodes.Node( iterobj, 1 )
 					if handleComponents:
 						if not component.isNull():
 							component = nodes.Component( component )
@@ -420,7 +420,7 @@ def iterSelectionList( sellist, filterType = api.MFn.kInvalid, predicate = lambd
 					iterator.getDagPath( path )
 					
 				if asNode:
-					node = nodes.Node( path )
+					node = nodes.Node( path, 1 )
 					if handleComponents:
 						if not component.isNull():
 							component = nodes.Component( component )
@@ -438,7 +438,7 @@ def iterSelectionList( sellist, filterType = api.MFn.kInvalid, predicate = lambd
 				obj = api.MObject()
 				iterator.getDependNode( obj )
 				if asNode:
-					node = nodes.Node( obj )
+					node = nodes.Node( obj, 1 )
 					if predicate( node ):
 						yield node
 				else:

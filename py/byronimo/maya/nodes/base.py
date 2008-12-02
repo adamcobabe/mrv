@@ -596,6 +596,13 @@ class Node( object ):
 			- MObject
 			- MObjectHandle
 			- MDagPath
+		@param args[1]: if True, default unset and False, the input 
+		object will not verified before using it. This is useful if you want to 
+		wrap an object that is not yet valid as it is freshly duplicated, or on the undo-stack
+		after deletion.
+		The original purpose of using this flag is to make duplicated objects after adding 
+		them to a set and retrieving them work - they appear to be invalid, although they 
+		are ... its purely odd
 		@todo: assure support for instances of Nodes ( as kind of copy constructure ) 
 		@note: this area must be optimized for speed"""
 		
@@ -618,8 +625,12 @@ class Node( object ):
 			raise ValueError( "objects of type %s cannot be handled" % type( objorname ) )
 			
 		
-		if not apiobj_or_dagpath or ( isinstance( apiobj_or_dagpath, api.MDagPath ) and not apiobj_or_dagpath.isValid() ) or ( isinstance( apiobj_or_dagpath, api.MObject ) and apiobj_or_dagpath.isNull() ):
+		skip_checks = ( len( args ) > 1 and args[1] ) or False
+		if ( not skip_checks and ( not apiobj_or_dagpath 
+			or ( isinstance( apiobj_or_dagpath, api.MDagPath ) and not apiobj_or_dagpath.isValid() ) 
+			or ( isinstance( apiobj_or_dagpath, api.MObject ) and apiobj_or_dagpath.isNull() ) ) ):
 			raise ValueError( "object does not exist: %s" % objorname )
+		# END evil validity checking
 		
 		# CREATE INSTANCE 
 		return _checkedInstanceCreationDagPathSupport( apiobj_or_dagpath, cls, Node ) 
@@ -740,8 +751,6 @@ class DependNode( Node, iDuplicatable ):		# parent just for epydoc -
 		duplnode = duplnode.rename( name, **rkwargs )
 		
 		# call our base class to copy additional information
-		# NOTE: this might not be undoable, but we do not care as the whole duplicate
-		# node will be deleted on undo
 		self.copyTo( duplnode, *args, **kwargs )
 		return duplnode
 	
@@ -1543,14 +1552,12 @@ class DagNode( Entity, iDagItem ):	# parent just for epydoc
 		# we currently do not check whether the name is already set 
 		# - the rename method does that for us  
 		#print "RENAME TARGET BEFORE: %r"  % rename_target
-		rename_target.rename( leafobjectname, autocreateNamespace = autocreateNamespace, 
-							  renameOnClash=renameOnClash )
+		final_node = rename_target.rename( leafobjectname, autocreateNamespace = autocreateNamespace, 
+										  	renameOnClash=renameOnClash )
 		#print "RENAME TARGET AFTER: %r"  % rename_target	
 		#print "FinalName: %r ( %r )" % ( final_node, self )
 		
 		# call our base class to copy additional information
-		# NOTE: this might not be undoable, but we do not care as the whole duplicate
-		# node will be deleted on undo
 		self.copyTo( final_node, **kwargs )
 		return final_node
 		

@@ -276,6 +276,10 @@ class TestNodeBase( unittest.TestCase ):
 		if not ownpackage.mayRun( "general" ): return
 		node = nodes.Node( "defaultRenderGlobals" )
 		
+		# SKIP CHECKS TEST
+		self.failUnlessRaises( ValueError, nodes.Node, "this" )	# does not exist
+		self.failUnlessRaises( TypeError, nodes.Node, "this", 1 )  # skip check , maya throws
+		
 		# string should be name		
 		self.failUnless( str( node ) == node.getName( ) )
 		repr( node )
