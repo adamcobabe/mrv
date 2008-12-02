@@ -188,6 +188,9 @@ class TestGeneralUI( unittest.TestCase ):
 
 	def test_menus( self ):
 		"""byronimo.maya.ui: use menu bars and menuItems"""
+		if cmds.about( batch=1 ):
+			return
+			
 		win = ui.Window( title="Menu Window", menuBar=1 )
 		menu = ui.Menu( l = "first" )
 		if menu:
@@ -215,6 +218,9 @@ class TestGeneralUI( unittest.TestCase ):
 
 	def test_progressWindow( self ):
 		"""byronimo.maya.ui: test progress window functionality"""
+		if cmds.about( batch=1 ):
+			return
+			
 		maxrange = 10
 		import time
 		progress = ui.ProgressWindow( min = 0, max = maxrange, is_relative = 1 )
