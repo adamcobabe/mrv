@@ -1388,8 +1388,12 @@ class DagNode( Entity, iDagItem ):	# parent just for epydoc
 		@note: inbetween parents are always required as needed
 		@todo: add example for each version of newpath 
 		@note: instancing can be realized using the L{addChild} function
+		@note: with some combinations of frozen transforms and some mesh operations, the duplicated mesh 
+		will have different object space orientations than the original if using the API in general.
+		Using MEL works in that case ... and perhaps I should just go for mel instead I am not undoable anyway
 		@todo: Undo implementation - every undoable operation must in fact be based on strings to really work, all 
-		this is far too much - dagNode.duplicate must be undoable by itself"""
+		this is far too much - dagNode.duplicate must be undoable by itself
+		@todo: use mel instead as the API does not give actual copies in case of some meshes"""
 		# print "-"*5+"DUPLICATE: %r to %s" % (self,newpath)+"-"*5
 		selfIsShape = isinstance( self, nodes.Shape )
 		
