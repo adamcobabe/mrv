@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 """B{byronimo.maya.nodes.iterators}
 
 Contains different multi-purpose iterators allowing to conveniently walk the dg and 

@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 """B{byronimo.configuration}
 
 Contains implementation of the configuration system allowing to flexibly control

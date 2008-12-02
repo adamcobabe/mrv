@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 """B{byronimotset.byronimo.path}
 Test path methods
 

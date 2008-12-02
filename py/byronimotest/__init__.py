@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 """B{tests}
 Initialize the test framework
 

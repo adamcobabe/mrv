@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 """B{byronimo.ui.controls}
 
 Contains the most controls like buttons and sliders for more convenient use 

@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 """B{byronimotest.byronimo.maya.ui}
 
 Intialize the byronimo maya UI testing suite

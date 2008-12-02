@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 """B{byronimo.automation.dgfacadeengine}
 Contains nodes supporting facading within a dependency graph  - this can be used 
 for container tyoes or nodes containing their own subgraph even

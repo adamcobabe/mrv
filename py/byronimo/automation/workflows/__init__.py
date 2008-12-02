@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 """B{byronimo.automation.workflows}
 Keeps all workflows specific to maya  
 

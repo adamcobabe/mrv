@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 """B{byronimo.path}
 path.py - An object representing a path to a file or directory.
 

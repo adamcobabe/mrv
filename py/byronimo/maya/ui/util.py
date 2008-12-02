@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 """B{byronimo.ui.util}
 
 Utilities and classes useful for user interfaces 

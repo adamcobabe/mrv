@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 """B{byronimotest.byronimo.automation.workflows}
 
 Intialize suite checking all workflows

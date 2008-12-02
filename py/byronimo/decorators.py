@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 """B{byronimo.decorators}
 
 Contains all decorator functions 

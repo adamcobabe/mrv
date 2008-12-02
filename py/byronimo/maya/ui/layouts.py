@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 """B{byronimo.ui.layouts}
 
 Contains the most important mel-layouts wrapped into easy to use python classes

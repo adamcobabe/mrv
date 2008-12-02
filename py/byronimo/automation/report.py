@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 """B{byronimo.automation.report}
 contains report implementations allowing to analyse the callgraph of   
 

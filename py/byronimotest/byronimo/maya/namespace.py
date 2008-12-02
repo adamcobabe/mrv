@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 """B{byronimo.maya.test.namespace}
 
 Test the namespace methods  

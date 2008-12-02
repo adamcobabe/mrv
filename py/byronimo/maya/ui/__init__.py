@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 """B{byronimo.maya.ui}
 Initialize the UI framework allowing convenient access to most common user interfaces
 

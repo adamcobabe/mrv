@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 """B{byronimotest.byronimo.maya.nodes.geometry}
 
 Tests the geometric nodes, focussing on the set handling 

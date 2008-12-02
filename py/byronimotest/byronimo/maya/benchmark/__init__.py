@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 """B{byronimotest.byronimo.maya.benchmark}
 
 Intialize and run all benchmark - the system is currently unittest based and 

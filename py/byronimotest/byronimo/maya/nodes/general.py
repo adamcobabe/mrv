@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 """B{byronimotest.byronimo.maya.nodes.general}
 
 Test general nodes features

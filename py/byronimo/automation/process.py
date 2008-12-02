@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 """B{byronimo.automation.process}
 Contains base class and common methods for all processes  
 

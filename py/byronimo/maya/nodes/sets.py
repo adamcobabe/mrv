@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 """B{byronimo.nodes.sets}
 
 Contains improved clases for set and partition editing 

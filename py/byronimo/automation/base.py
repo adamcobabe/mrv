@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 """B{byronimo.automation.base}
 general methods and classes   
 

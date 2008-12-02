@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 """B{byronimo.maya.reference}
 
 Allows convenient access and handling of references in an object oriented manner

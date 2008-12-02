@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 """B{byronimo.nodes.types}
 
 Deals with types of objects and mappings between them 

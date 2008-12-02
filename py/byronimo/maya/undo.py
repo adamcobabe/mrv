@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 """B{byronimo.nodes.undo}
 
 Contains the undo engine allowing to adjust the scene with api commands while 

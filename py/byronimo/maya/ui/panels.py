@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 """B{byronimo.ui.panels}
 
 Contains implementations of maya editors

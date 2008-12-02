@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 """B{byronimo.nodes.geometry}
 
 Contains implementations ( or improvements ) to mayas geometric shapes

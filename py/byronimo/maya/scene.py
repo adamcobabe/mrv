@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 """B{byronimo.maya.scene}
 
 Provides methodes to query and alter the currently loaded scene. It covers 

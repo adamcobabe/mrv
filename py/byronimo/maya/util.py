@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 """B{byronimo.maya.utils}
 All kinds of utility methods and classes that are used in more than one modules
 

@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 """B{byronimo.init}
 
 Initialize Byronimo system assisting development, debugging and maintenance 

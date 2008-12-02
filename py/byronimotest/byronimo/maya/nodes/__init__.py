@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 """B{byronimotest.byronimo.maya.nodes}
 
 Intialize the byronimo maya nodes testing suite

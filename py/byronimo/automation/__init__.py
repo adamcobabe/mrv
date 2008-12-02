@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 """B{byronimo.automation}
 Intiailize the automation and process framework for maya 
 
