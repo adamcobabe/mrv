@@ -65,9 +65,11 @@ class GroupBase( uibase.SizedControl ):
 			_properties_.append( flag + str( i ) )
 	# END for each flag 
 
-class OptionMenuBase( object ):
+class OptionMenuBase( uibase.ContainerMenuBase ):
 	"""base class for all optionMenu like controls"""
+	__metaclass__ = uibase.ui.MetaClassCreatorUI
 	isNodeTypeTreeMember = False
+	
 	_events_ = ( "cc", "changeCommand" )
 	_properties_ = ( 	"ils", "itemListShort", 
 						"ill", "itemListLong", 
@@ -184,10 +186,15 @@ class TextFieldButtonGrp( ButtonGroupBase, TextFieldGroupBase ):
 class OptionMenu( uibase.SizedControl, OptionMenuBase ):
 	"""Class just multiple inheritance - this cannot be expressed in the hierarchy 
 	file"""
+	#( Configuration
+	_is_menu = True
+	#) END configuration
 
 
 class OptionMenuGrp( GroupBase, OptionMenuBase ):
 	"""Class just multiple inheritance - this cannot be expressed in the hierarchy 
 	file"""
-	
+	#( Configuration
+	_is_menu = True
+	#) END configuration
 

@@ -44,7 +44,7 @@ class MetaClassCreatorUI( mutil.MetaClassCreator ):
 	  - if flags are simple get and set properties, these can be listed in the 
 	    _properties_ attribute ( list ). These must be queriable and editable
 	  - Properties will be available as:
-	  	inst.p_myproperty to access myProperty ( equivalent to cmd -q|e -myProperty
+	  	inst.p_myProperty to access myProperty ( equivalent to cmd -q|e -myProperty
 	  - This only works if our class knows it's mel command in the __melcmd__ member 
 		variable - inheritance for it does not work
 		
@@ -86,7 +86,7 @@ class MetaClassCreatorUI( mutil.MetaClassCreator ):
 		# query and edit properties
 		propertynames = clsdict.get( "_properties_", list() )
 		for pname in propertynames:
-			attrname = "p_%s" % pname.lower()
+			attrname = "p_%s" % pname
 			clsdict[ attrname ] = propertyQE( pname )
 		# END for each property
 		

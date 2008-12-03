@@ -136,7 +136,8 @@ class NamedUI( unicode, BaseUI , iDagItem, CallbackBaseUI ):
 	__metaclass__ = ui.MetaClassCreatorUI
 	
 	#( Configurtation 
-	_sep = "|" 
+	_sep = "|"			# separator for ui elements in their name, same as for dag paths 
+	_is_menu = False	# if True, some methods will handle special cases for menus
 	#) end configuration 
 	
 	#{ Overridden Methods
@@ -207,10 +208,19 @@ class NamedUI( unicode, BaseUI , iDagItem, CallbackBaseUI ):
 		"""@return: parent instance of this ui element"""
 		return wrapUI( '|'.join( self.split('|')[:-1] ) )
 		
-	@staticmethod
-	def getCurrentParent( ):
+	@classmethod
+	def getCurrentParent( cls ):
 		"""@return: NameUI of the currently set parent"""
-		return wrapUI( cmds.setParent( q=1 ) ) 
+		# MENU 
+		if cls._is_menu:
+			curparentmenu = cmds.setParent( q=1, m=1 )
+			if not curparentmenu:
+				raise AssertionError( "No current menu parent set" )
+				
+			return wrapUI( name=curparentmenu )
+		else:
+			# NON-MENU 
+			return wrapUI( cmds.setParent( q=1 ) ) 
 		
 	#}	END hierarchy handling
 	
@@ -356,6 +366,10 @@ class Window( SizedControl, uiutil.UIContainerBase ):
 class MenuBase( NamedUI ):
 	"""Common base for all menus"""
 	
+	#( Configuration
+	_is_menu = True
+	#) END configuration
+	
 	_properties_ = (	
 					   "en", "enable", 
 					   	"l", "label", 
@@ -370,23 +384,8 @@ class MenuBase( NamedUI ):
 				)
 	
 	
-class Menu( MenuBase, uiutil.UIContainerBase ):
-	_properties_ = ( 	
-					  	"hm", "helpMenu", 
-						"ia", "itemArray",
-						"ni", "numberOfItems",
-						"dai", "deleteAllItems",
-						"fi", "familyImage" 
-					)
-	
-	@classmethod
-	def getCurrentParent( cls ):
-		"""@return: menu showing being the current parent"""
-		curparentmenu = cmds.setParent( q=1, m=1 )
-		if not curparentmenu:
-			raise AssertionError( "No current menu parent set" )
-			
-		return self.__class__( name=curparentmenu )
+class ContainerMenuBase( uiutil.UIContainerBase ):
+	"""Implements the container abilities of all menu types"""
 	
 	def setActive( self ):
 		"""Make ourselves the active menu"""
@@ -396,6 +395,17 @@ class Menu( MenuBase, uiutil.UIContainerBase ):
 		"""Make our parent the active menu layout
 		@note: only useful self is a submenu"""
 		cmds.setParent( ".." , m=1 )
+	
+
+class Menu( MenuBase, ContainerMenuBase ):
+	_properties_ = ( 	
+					  	"hm", "helpMenu", 
+						"ia", "itemArray",
+						"ni", "numberOfItems",
+						"dai", "deleteAllItems",
+						"fi", "familyImage" 
+					)
+	
 	
 class MenuItem( MenuBase ):
 	
