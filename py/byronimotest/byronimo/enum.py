@@ -17,6 +17,9 @@ __copyright__='(c) 2003 Don Garret'
 
 import unittest
 import byronimo.enum as Enumeration
+import pickle
+from cStringIO import StringIO
+
 
 class ElementTestCase(unittest.TestCase):
 	def testElementComparisons(self):
@@ -162,33 +165,6 @@ class EnumerateTestCase(unittest.TestCase):
 		except:
 			pass
 
-	def testAttachValuesTo(self):
-		"""byronimo.enum: testAttachValuesTo"""
-		e = Enumeration.create('George', 'John',
-							   ('Paul', 2), ('Ringo', 'drummer'))
-
-		def validateObject(o):
-			self.failUnless(e.George == o.George)
-			self.failUnless(e.John == o.John)
-			self.failUnless(2 == o.Paul)
-			self.failUnless('drummer' == o.Ringo)
-	   
-		class TestOldClassInstance(object):
-			pass
-
-		# We can't attach to a new class instance after it is created.
-		class TestNewClassInstance(object):
-			def __init__(self):
-				e.attachValuesTo(self)
-
-		old = TestOldClassInstance()
-		e.attachValuesTo(old)
-		
-		new = TestNewClassInstance()
-
-		validateObject(old)
-		validateObject(new)
-
 
 	def testNameLookup(self):
 		"""byronimo.enum: testNameLookup"""
@@ -217,7 +193,6 @@ class EnumerateTestCase(unittest.TestCase):
 		
 		self.failUnless( e( "George" ) == e.George )
 		
-		
 	def testNextAndPrevious( self ):
 		"""byronimo.enum: testNextAndPrevious"""
 		e2 = Enumeration.create('joe', 'bob')
@@ -234,7 +209,25 @@ class EnumerateTestCase(unittest.TestCase):
 		self.failUnless( e1.next( e1[0], wrap_around = 1 ) == e1[0] )
 		self.failUnless( e1.previous( e1[0], wrap_around = 1 ) == e1[0] )
 		
-if __name__ == '__main__':
+	def testPickleUnpickle( self ):
+		"""byronimo.enum: test pickling and unpiclking results
+		
+		This test actually shows that the cycle in the """
+		src = StringIO()
+		p = pickle.Pickler(src)
+		
+		e1 = Enumeration.create( "hello" )
+		
+		# remove cycle ! Hangs otherwise 
+		e1[0].enumeration = None
+		
+		p.dump( e1[0] )
+		
+		dst = StringIO( src.getvalue() )
+		up = pickle.Unpickler( dst )
 
-	unittest.main()
+		elm = up.load( )
+		self.failUnless( elm == e1[0] ) 
+		
+
 		

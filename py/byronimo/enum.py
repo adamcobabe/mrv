@@ -57,8 +57,7 @@ class Element(object):
 	They assume that the enumeration member will be filled in before any
 	comparisons are used. This is done by the Enumeration constructor.
 	"""
-	__slots__ = ( "__name", "__value", "enumeration" )
-	
+	# we do not define slots to stay pickable ( without reimplementing things )
 	def __init__(self, name, value):
 		self.__name = name
 		self.__value = value
@@ -83,6 +82,7 @@ class Element(object):
 	def getValue( self ):
 		"""@return: own value - it is strictly read-only"""
 		return self.__value
+		
 
 class Enumeration(tuple):
 	"""This class represents an enumeration. You should not normally create
@@ -98,13 +98,33 @@ class Enumeration(tuple):
 	ordered based on the order of the elements in the enumeration. They also
 	are _repr_'d by the name of the element, which is convenient for testing,
 	debugging, and generation text output.
+	
+	@note: pickling this class with Elements will fail as they contain cyclic 
+	references that it cannot deal with
+	@todo: implement proper pickle __getstate__ and __setstate__ that deal with 
+	that problem
 	"""
+	_slots_ = ( "_nameMap", "_valueMap" )
 
 	def __new__(self, names, values):
 		"""This method is needed to get the tuple parent class to do the
-		Right Thing(tm).
-		"""
+		Right Thing(tm). """
 		return tuple.__new__(self, values)
+
+	def __setattr__( self, name, value ):
+		"""Do not allow to change this instance"""
+		if name in self._slots_:
+			return super( Enumeration, self ).__setattr__( name, value )
+			
+		raise AttributeError( "No assignments allowed" )
+
+	def __getattr__( self , attr ):
+		"""Prefer to return value from our value map"""
+		try:
+			return self.valueFromName( attr )
+		except KeyError:
+			raise AttributeError( "Element %s is not part of the enumeration" % attr )
+	
 
 	def __init__(self, names, values):
 		"""The arguments needed to construct this class are a list of
@@ -121,11 +141,9 @@ class Enumeration(tuple):
 		# We are a tuple of our values, plus more....
 		tuple.__init__(self, values)
 
-		self.__nameMap = {}
-		self.__valueMap = {}
+		self._nameMap = {}
+		self._valueMap = {}
 
-		# Store each enum value as a named attribute
-		self.__slots__ = names
 
 		for i in xrange(len(names)):
 			name = names[i]
@@ -136,35 +154,21 @@ class Enumeration(tuple):
 				value.enumeration = self
 			
 			# Prove that all names are unique
-			assert not name in self.__nameMap
+			assert not name in self._nameMap
 
 			# create mappings from name to value, and vice versa
-			self.__nameMap[name] = value
-			self.__valueMap[value] = name
+			self._nameMap[name] = value
+			self._valueMap[value] = name
 
-		# create named attributes on ourself.
-		self.attachValuesTo(self)
 
-		# Force this instance to be read only
-		def noset(name, value): raise "No assignments allowed"
-		self.__setattr__ = noset
+	def _initSelfWithNamesAndValues( self, names, values ):
+		"""Initilize our maps"""
 
-	def attachValuesTo(self, other):
-		"""create named values on an object to match our elements.
-
-		This is appropriate for use in a constructor, against a class
-		object, or a module object.
-
-		Cannot be used on a new style class instance after initialization
-		is complete.
-		"""
-		for name, value in self.__nameMap.items():
-			setattr(other, name, value)
 
 	def valueFromName(self, name):
 		"""Look up the enumeration value for a given element name.
 		"""
-		return self.__nameMap[name]
+		return self._nameMap[name]
 		
 	def nameFromValue(self, value):
 		"""Look up the name of an enumeration element, given it's value.
@@ -172,7 +176,7 @@ class Enumeration(tuple):
 		If there are multiple elements with the same value, you will only
 		get a single matching name back. Which name is undefined.
 		"""
-		return self.__valueMap[value]
+		return self._valueMap[value]
 		
 	def _nextOrPrevious( self, element, direction, wrap_around ):
 		"""do-it method, see L{next} and L{previous}
@@ -216,18 +220,37 @@ class Enumeration(tuple):
 		@raise ValueError: if wrap_around is False and there is no previous element"""
 		return self._nextOrPrevious( element, -1, wrap_around )
 		
-		
+	
+	#{ Pickle Protocol  
+	def __getnewargs__( self ):
+		"""Allows us to properly recreate ourselves"""
+		print "CALLLED ME"
+		return self._nameMap.keys(), self._valueMap.keys()
+	#} END pickle protocol 
+			
+	
 	__call__ = valueFromName
+	
 
-	__getattr__ = valueFromName
 
-def create(*elements):
+def create(*elements, **kwargs ):
 	"""Factory method for Enumerations. Accepts of list of values that
 	can either be strings or (name, value) tuple pairs. Strings will
 	have an Element created for use as their value.
 
 	Example:  Enumeration.create('fred', 'bob', ('joe', 42))
+	Example:  Enumeration.create('fred', cls = EnumerationSubClass )
+	
+	@param cls: The class to create an enumeration with, must be an instance of 
+	Enumeration
+	@param elmcls: The class to create elements from, must be instance of Element
 	"""
+	cls = kwargs.get( "cls", Enumeration )
+	elmcls = kwargs.get( "elmcls", Element )
+	
+	assert Enumeration in cls.mro()
+	assert Element in elmcls.mro()
+	
 	names = []
 	values = []
 
@@ -245,5 +268,5 @@ def create(*elements):
 		else:
 			raise "Unsupported element type"
 
-	return Enumeration(names, values)
+	return cls( names, values )
 
