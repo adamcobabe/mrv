@@ -173,7 +173,50 @@ class Enumeration(tuple):
 		get a single matching name back. Which name is undefined.
 		"""
 		return self.__valueMap[value]
-
+		
+	def _nextOrPrevious( self, element, direction, wrap_around ):
+		"""do-it method, see L{next} and L{previous}
+		@param direction: -1 = previous, 1 = next """
+		curindex = -1
+		for i,elm in enumerate( self ):
+			if elm == element:
+				curindex = i
+				break
+			# END if elms match
+		# END for each element 
+		
+		assert curindex != -1
+		
+		nextindex = curindex + direction
+		validnextindex = nextindex
+		
+		if nextindex >= len( self ):
+			validnextindex = 0 
+		elif nextindex < 0:
+			validnextindex = len( self ) - 1
+		
+		if not wrap_around and ( validnextindex != nextindex ):
+			raise ValueError( "'%s' has no element in direction %i" % ( element, direction ) )
+			
+		return self[ validnextindex ]
+		
+	
+	def next( self, element, wrap_around = False ):
+		"""@return: element following after given element
+		@param element: element whose successor to return
+		@param wrap_around: if True, the first Element will be returned if there is 
+		no next element
+		@raise ValueError: if wrap_around is False and there is no next element"""
+		return self._nextOrPrevious( element, 1, wrap_around )
+		
+	def previous( self, element, wrap_around = False ):
+		"""@return: element coming before the given element
+		@param element: element whose predecessor to return 
+		@param wrap_around: see L{next}
+		@raise ValueError: if wrap_around is False and there is no previous element"""
+		return self._nextOrPrevious( element, -1, wrap_around )
+		
+		
 	__call__ = valueFromName
 
 	__getattr__ = valueFromName
@@ -196,8 +239,8 @@ def create(*elements):
 			values.append(element[1])
 
 		elif type(element) in (str, unicode):
+			values.append(Element(element, len(names)))		# zero based ids 
 			names.append(element)
-			values.append(Element(element, len(names)))
 				
 		else:
 			raise "Unsupported element type"

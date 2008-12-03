@@ -216,6 +216,24 @@ class EnumerateTestCase(unittest.TestCase):
 		self.failUnless('Ringo' == e.nameFromValue('drummer'))
 		
 		self.failUnless( e( "George" ) == e.George )
+		
+		
+	def testNextAndPrevious( self ):
+		"""byronimo.enum: testNextAndPrevious"""
+		e2 = Enumeration.create('joe', 'bob')
+		e1 = Enumeration.create( 'joe' )
+		
+		self.failUnless( e2.next( e2[0] ) == e2[1] )	# next
+		self.failUnlessRaises( ValueError, e2.next, e2[-1], wrap_around=0 )	# next - wraparound
+		self.failUnless( e2.next( e2[-1], wrap_around=1 ) == e2[0] )	# next + wraparound 
+		
+		self.failUnless( e2.previous( e2[-1] ) == e2[-2] )	# previous
+		self.failUnlessRaises( ValueError, e2.previous, e2[0], wrap_around=0 )	# previous - wraparound
+		self.failUnless( e2.previous( e2[0], wrap_around=1 ) == e2[-1] )	# previous + wraparound
+		
+		self.failUnless( e1.next( e1[0], wrap_around = 1 ) == e1[0] )
+		self.failUnless( e1.previous( e1[0], wrap_around = 1 ) == e1[0] )
+		
 if __name__ == '__main__':
 
 	unittest.main()
