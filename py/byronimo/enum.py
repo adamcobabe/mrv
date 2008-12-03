@@ -79,6 +79,10 @@ class Element(object):
 		else:
 			# Otherwise, fall back to the default
 			return NotImplemented
+			
+	def getValue( self ):
+		"""@return: own value - it is strictly read-only"""
+		return self.__value
 
 class Enumeration(tuple):
 	"""This class represents an enumeration. You should not normally create
@@ -172,6 +176,7 @@ class Enumeration(tuple):
 
 	__call__ = valueFromName
 
+	__getattr__ = valueFromName
 
 def create(*elements):
 	"""Factory method for Enumerations. Accepts of list of values that

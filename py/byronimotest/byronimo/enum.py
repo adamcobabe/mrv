@@ -215,6 +215,7 @@ class EnumerateTestCase(unittest.TestCase):
 		self.failUnless('Paul' == e.nameFromValue(2))
 		self.failUnless('Ringo' == e.nameFromValue('drummer'))
 		
+		self.failUnless( e( "George" ) == e.George )
 if __name__ == '__main__':
 
 	unittest.main()
