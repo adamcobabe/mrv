@@ -59,6 +59,12 @@ baseUI
 				iconTextButton
 				button
 			window
+			optionMenu
+			intScrollBar
+			floatScrollBar
+			floatSlider2
+			text
+			textScrollList
 		editorBase
 			colorEditor
 			blendShapeEditor
@@ -88,26 +94,20 @@ baseUI
 			menuItem
 		attrEnumOptionMenu
 		attributeMenu
-		floatScrollBar
-		floatSlider2
 		iconTextRadioCollection
 		iconTextScrollList
 		iconTextStaticLabel
-		intScrollBar
 		radioCollection
 		radioMenuItemCollection
 		symbolButton
 		symbolCheckBox
 		textCurves
-		text
-		textScrollList
 		toolButton
 		toolCollection
 		menuSet
 		shelfButton
 		shelfLayout
 		shelfTabLayout
-		optionMenu
 		animDisplay
 		separator
 		visor

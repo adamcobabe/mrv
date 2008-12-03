@@ -64,7 +64,17 @@ class GroupBase( uibase.SizedControl ):
 		for i in range( start, 7 ):
 			_properties_.append( flag + str( i ) )
 	# END for each flag 
-				   	
+
+class OptionMenuBase( object ):
+	"""base class for all optionMenu like controls"""
+	isNodeTypeTreeMember = False
+	_events_ = ( "cc", "changeCommand" )
+	_properties_ = ( 	"ils", "itemListShort", 
+						"ill", "itemListLong", 
+						"l", "label", 
+						"ni", "numberOfItems",
+						"sl", "select", 
+						"v", "value" )
 	
 class FieldBase( uibase.SizedControl ):
 	_events_ = 		( 	"rfc", "receiveFocusCommand",
@@ -94,6 +104,7 @@ class TextFieldGroupBase( TextFieldBase ):
 class SliderGroupBase( GroupBase, SliderBase ):
 	"""base class for all sliders"""
 	pass
+
 
 class BooleanGroupBase( GroupBase, BooleanBase ):
 	"""base class for all boolean groups"""
@@ -136,10 +147,12 @@ class ButtonGroupBase( GroupBase ):
 
 class RadioButton( BooleanBase ):
 	_properties_ = ( "sl", "select" )
-	
+
+
 class RadioButtonGrp( BooleanGroupBase, RadioButton ):
 	"""Warning: inherits booleanBase multiple times """
 	pass 
+
 
 class Button( LabelBase ):
 	""" Simple button interface 
@@ -150,7 +163,8 @@ class Button( LabelBase ):
 	
 	e_pressed = uiutil.CallbackBaseUI._UIEvent( "command", actOnPress=True )
 	e_released = uiutil.CallbackBaseUI._UIEvent( "command", actOnPress=False )
-	
+
+
 class TextField( FieldBase, TextFieldBase ):
 	"""Class just multiple inheritance - this cannot be expressed in the hierarchy 
 	file"""
@@ -166,5 +180,14 @@ class TextFieldButtonGrp( ButtonGroupBase, TextFieldGroupBase ):
 	"""Class just multiple inheritance - this cannot be expressed in the hierarchy 
 	file"""
 	
+
+class OptionMenu( uibase.SizedControl, OptionMenuBase ):
+	"""Class just multiple inheritance - this cannot be expressed in the hierarchy 
+	file"""
+
+
+class OptionMenuGrp( GroupBase, OptionMenuBase ):
+	"""Class just multiple inheritance - this cannot be expressed in the hierarchy 
+	file"""
 	
-	
+
