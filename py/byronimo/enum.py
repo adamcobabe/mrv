@@ -32,7 +32,8 @@ assert x == Colors('red')
 assert Borders.FLAT == 2:
 assert 1 in Borders
 
-@note: slightly modified by Sebastian Thiel
+@note: slightly modified by Sebastian Thiel to be more flexible and suitable as
+base class 
 @newfield revision: Revision
 @newfield id: SVN Id
 """
@@ -59,12 +60,12 @@ class Element(object):
 	"""
 	# we do not define slots to stay pickable ( without reimplementing things )
 	def __init__(self, name, value):
-		self.__name = name
-		self.__value = value
+		self._name = name
+		self._value = value
 		self.enumeration = None # Will be filled in later
 		
 	def __repr__(self):
-		return self.__name
+		return self._name
 
 	def __cmp__(self, other):
 		"""We override cmp only because we want the ordering of elements
@@ -74,14 +75,14 @@ class Element(object):
 			self.enumeration is other.enumeration):
 			# If we are both elements in the same enumeration, compare
 			#	values for ordering
-			return cmp(self.__value, other.__value)
+			return cmp(self._value, other._value)
 		else:
 			# Otherwise, fall back to the default
 			return NotImplemented
 			
 	def getValue( self ):
 		"""@return: own value - it is strictly read-only"""
-		return self.__value
+		return self._value
 		
 
 class Enumeration(tuple):
@@ -106,7 +107,7 @@ class Enumeration(tuple):
 	"""
 	_slots_ = ( "_nameMap", "_valueMap" )
 
-	def __new__(self, names, values):
+	def __new__(self, names, values, **kwargs ):
 		"""This method is needed to get the tuple parent class to do the
 		Right Thing(tm). """
 		return tuple.__new__(self, values)
@@ -126,7 +127,7 @@ class Enumeration(tuple):
 			raise AttributeError( "Element %s is not part of the enumeration" % attr )
 	
 
-	def __init__(self, names, values):
+	def __init__(self, names, values, **kwargs ):
 		"""The arguments needed to construct this class are a list of
 		element names (which must be unique strings), and element values
 		(which can be any type of value). If you don't have special needs,
@@ -150,7 +151,7 @@ class Enumeration(tuple):
 			value = values[i]
 
 			# Tell the elements which enumeration they belong too
-			if type(value) == Element:
+			if isinstance( value, Element ):
 				value.enumeration = self
 			
 			# Prove that all names are unique
@@ -159,10 +160,6 @@ class Enumeration(tuple):
 			# create mappings from name to value, and vice versa
 			self._nameMap[name] = value
 			self._valueMap[value] = name
-
-
-	def _initSelfWithNamesAndValues( self, names, values ):
-		"""Initilize our maps"""
 
 
 	def valueFromName(self, name):
@@ -245,8 +242,8 @@ def create(*elements, **kwargs ):
 	Enumeration
 	@param elmcls: The class to create elements from, must be instance of Element
 	"""
-	cls = kwargs.get( "cls", Enumeration )
-	elmcls = kwargs.get( "elmcls", Element )
+	cls = kwargs.pop( "cls", Enumeration )
+	elmcls = kwargs.pop( "elmcls", Element )
 	
 	assert Enumeration in cls.mro()
 	assert Element in elmcls.mro()
@@ -262,11 +259,11 @@ def create(*elements, **kwargs ):
 			values.append(element[1])
 
 		elif type(element) in (str, unicode):
-			values.append(Element(element, len(names)))		# zero based ids 
+			values.append( elmcls(element, len(names)))		# zero based ids 
 			names.append(element)
 				
 		else:
 			raise "Unsupported element type"
 
-	return cls( names, values )
+	return cls( names, values, **kwargs )
 
