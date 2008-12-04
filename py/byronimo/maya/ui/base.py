@@ -239,6 +239,14 @@ class NamedUI( unicode, BaseUI , iDagItem, CallbackBaseUI ):
 		"""Delete this UI - the wrapper instance must not be used after this call"""
 		cmds.deleteUI( self )
 		
+	def exists( self ):
+		"""@return: True if this instance still exists in maya"""
+		try:
+			return self.__melcmd__( self, e=1 )
+		except RuntimeError:
+			# although it should just return False if it does NOT exist, it raises
+			return False
+		
 	#{ Properties 
 	p_parent = property( getParent )
 	p_children = property( getChildren )

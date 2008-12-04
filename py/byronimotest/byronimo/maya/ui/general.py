@@ -76,6 +76,7 @@ class TestGeneralUI( unittest.TestCase ):
 		self.failUnless( win.p_title == "Another Title" )
 		
 		col = ui.ColumnLayout( adj=1 )
+		self.failUnless( col.exists() )
 		ui.Button( l="first" )
 		ui.Button( l="second" )
 		ui.Button( l="third" )
@@ -121,6 +122,7 @@ class TestGeneralUI( unittest.TestCase ):
 		win.p_topleftcorner = ( tlc[1], tlc[0] )
 		
 		win.getMenuArray()
+		self.failUnless( win.exists() )
 		# win.delete()
 
 	
@@ -136,6 +138,7 @@ class TestGeneralUI( unittest.TestCase ):
 			b1 = col.add( ui.Button( l="one" ) )
 			b2 = col.add( ui.Button( name="mybutton", l="two" ) )
 			self.failUnless( "mybutton" in b2 )
+			self.failUnless( b1.exists() )
 			
 			self.failUnless( col[ str( b1 ) ] == b1 )
 			
