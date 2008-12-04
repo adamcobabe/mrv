@@ -175,6 +175,13 @@ class NamedUI( unicode, BaseUI , iDagItem, CallbackBaseUI ):
 	def __repr__( self ):
 		return u"%s('%s')" % ( self.__class__.__name__, self )
 	
+	def __setattr__( self, attr, value ):
+		"""Prevent properties or events that do not exist to be used by anyone, 
+		everything else is allowed though"""
+		if ( attr.startswith( "p_" ) or attr.startswith( "e_" ) ) and not hasattr( self, attr ):
+			raise AttributeError( "Cannot create per-instance properties or events: %s ( did you misspell an existing one ? )" % attr )
+		
+		return super( NamedUI, self ).__setattr__( attr, value )
 		
 	def __init__( self , *args, **kwargs ):
 		""" Initialize instance and check arguments """

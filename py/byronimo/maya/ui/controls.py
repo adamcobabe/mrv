@@ -105,7 +105,8 @@ class TextFieldGroupBase( TextFieldBase ):
 
 class SliderGroupBase( GroupBase, SliderBase ):
 	"""base class for all sliders"""
-	pass
+	isNodeTypeTreeMember = False
+	_properties_ = ( "el", "extraLabel" )
 
 
 class BooleanGroupBase( GroupBase, BooleanBase ):

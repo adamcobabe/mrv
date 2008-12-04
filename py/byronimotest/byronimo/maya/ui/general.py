@@ -94,32 +94,32 @@ class TestGeneralUI( unittest.TestCase ):
 		if not cmds.about( linux = 1 ): 
 			self.failUnless( win.p_sizeable == False )
 		
-		win.p_iconname = "testicon"
-		self.failUnless( win.p_iconname == "testicon" )
+		win.p_iconName = "testicon"
+		self.failUnless( win.p_iconName == "testicon" )
 		
-		win.p_minimizebutton = False
-		win.p_minimizebutton = True
-		self.failUnless( win.p_minimizebutton == True )
+		win.p_minimizeButton = False
+		win.p_minimizeButton = True
+		self.failUnless( win.p_minimizeButton == True )
 		
-		win.p_maximizebutton = False
-		win.p_maximizebutton = True
-		self.failUnless( win.p_maximizebutton == True )
+		win.p_maximizeButton = False
+		win.p_maximizeButton = True
+		self.failUnless( win.p_maximizeButton == True )
 		
 		win.p_toolbox = False
 		win.p_toolbox = True
 		self.failUnless( win.p_toolbox == True )
 		
-		win.p_titlebarmenu = True
-		win.p_titlebarmenu = False
+		win.p_titleBarMenu = True
+		win.p_titleBarMenu = False
 		if not cmds.about( linux = 1 ):
-			self.failUnless( win.p_titlebarmenu == False )
+			self.failUnless( win.p_titleBarMenu == False )
 		
-		win.p_menubarvisible = True
-		win.p_menubarvisible = False
-		self.failUnless( win.p_menubarvisible == False )
+		win.p_menuBarVisible = True
+		win.p_menuBarVisible = False
+		self.failUnless( win.p_menuBarVisible == False )
 
-		tlc = win.p_topleftcorner
-		win.p_topleftcorner = ( tlc[1], tlc[0] )
+		tlc = win.p_topLeftCorner
+		win.p_topLeftCorner = ( tlc[1], tlc[0] )
 		
 		win.getMenuArray()
 		self.failUnless( win.exists() )
