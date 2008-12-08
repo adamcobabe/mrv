@@ -37,14 +37,14 @@ class MayaFileGraph( DiGraph ):
 	invalidPrefix = ":_iv_:"
 	
 	#{ Edit 
-	@staticmethod
-	def createFromFiles( fileList, **kwargs ):
+	@classmethod
+	def createFromFiles( cls, fileList, **kwargs ):
 		"""@return: MayaFileGraph providing dependency information about the files 
 		in fileList and their subReference.
 		@param fileList: iterable providing the filepaths to be parsed and added 
 		to this graph
 		@param **kwargs: alll arguemnts of L{addFromFiles} are supported """
-		graph = MayaFileGraph( )
+		graph = cls( )
 		graph.addFromFiles( fileList, **kwargs )
 		return graph
 		
@@ -81,7 +81,7 @@ class MayaFileGraph( DiGraph ):
 					break
 			# END newline special handling 
 			
-			match = MayaFileGraph.refpathregex.match( line )
+			match = self.__class__.refpathregex.match( line )
 			
 			if match:
 				outdepends.append( match.group(1) )
