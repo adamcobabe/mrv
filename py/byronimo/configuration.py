@@ -71,8 +71,8 @@ class DictToINIFile( StringIO.StringIO ):
 	@note: the current implementation caches the dict's INI representation, data
 	is not generated on demand
 	@note: implementation speed has been preferred over runtime speed """
-	@staticmethod
-	def _checkstr( string ):
+	@classmethod
+	def _checkstr( cls, string ):
 		"""
 		@return: unaltered string if there was not issue
 		@raise ValueError: if string contains newline """
@@ -93,7 +93,7 @@ class DictToINIFile( StringIO.StringIO ):
 		
 		self.write( '[' + str(section) + ']\n' )
 		if len(description):
-			self.write( '#'+ DictToINIFile._checkstr( description ) + "\n" )
+			self.write( '#'+ self._checkstr( description ) + "\n" )
 		for k in option_dict:
 			self.write( str(k) + " = " + str( option_dict[k] ) + "\n" )
 
@@ -163,13 +163,13 @@ class ConfigAccessor( object ):
 		fca.write( close_fp = False )
 		return stream.getvalue()
 	
-	@staticmethod
-	def _isProperty( propname ):
+	@classmethod
+	def _isProperty( cls, propname ):
 		""" @return: true if propname appears to be an attribute """
 		return propname.startswith( '+' )
 		
-	@staticmethod 
-	def _getNameTuple( propname ):
+	@classmethod 
+	def _getNameTuple( cls, propname ):
 		"""@return: [sectionname,keyname], sectionname can be None"""
 		tokens = propname[1:].split( ':' )	# cut initial + sign
 		
@@ -188,12 +188,12 @@ class ConfigAccessor( object ):
 		sectioniter = self._configChain.getSectionIterator()
 		exc = ConfigParsingPropertyError( ) 
 		for section in sectioniter:
-			if not ConfigAccessor._isProperty( section.name ):
+			if not self._isProperty( section.name ):
 				continue
 				
 			# handle attributes
 			propname = section.name
-			targetkeytokens = ConfigAccessor._getNameTuple( propname ) # fully qualified property name
+			targetkeytokens = self._getNameTuple( propname ) # fully qualified property name
 			
 			# find all keys matching the keyname !
 			keymatchtuples = self.getKeysByName( targetkeytokens[1] )
@@ -555,8 +555,8 @@ class ConfigManager( object ):
 	
 		
 	#{ Utilities
-	@staticmethod
-	def getTaggedFileDescriptors( directories, taglist, pattern=None ):
+	@classmethod
+	def getTaggedFileDescriptors( cls, directories, taglist, pattern=None ):
 		"""
 		Will list all files in directories, directory after directory, applies the prefix and postfix 
 		regex to the file for initial filtering.
@@ -773,21 +773,21 @@ class ConfigChain( list ):
 		""" Assures we can only create plain instances """
 		list.__init__( self )
 	
-	@staticmethod
-	def _checktype( node ):	
+	@classmethod
+	def _checktype( cls, node ):	
 		if not isinstance( node, ConfigNode ):
 			raise TypeError( "A ConfigNode instance is required", node )
 		
 		
 	def append( self, node ):
 		""" Append a L{ConfigNode} """	
-		ConfigChain._checktype( node )
+		self._checktype( node )
 		list.append( self, node )
 		
 		
 	def insert( self, node, index ):
 		""" Insert L?{ConfigNode} before index """
-		ConfigChain._checktype( node )
+		self._checktype( node )
 		list.insert( self, node, index )
 		
 	def extend( self, *args, **kwargs ):
@@ -916,8 +916,8 @@ class Key( PropertyHolder ):
 		""" @return: key name """
 		return self._name
 		
-	@staticmethod
-	def _parseObject( valuestr ):
+	@classmethod
+	def _parseObject( cls, valuestr ):
 		""" @return: int,float or str from valuestring """
 		types = ( long, float )
 		for numtype in types:
@@ -935,7 +935,7 @@ class Key( PropertyHolder ):
 		if not isinstance( valuestr, basestring ):
 			raise TypeError( "Invalid value type: only int, long, float and str are allowed", valuestr )
 		
-		return _checkString( valuestr, Key._re_checkValue )	
+		return _checkString( valuestr, cls._re_checkValue )	
 	
 	
 	def _excPrependNameAndRaise( self ):
@@ -948,7 +948,7 @@ class Key( PropertyHolder ):
 		if not len( name ):
 			raise ValueError( "Key names must not be empty" )
 		try:
-			self._name = _checkString( name, Key._re_checkName )
+			self._name = _checkString( name, self._re_checkName )
 		except (TypeError,ValueError):
 			self._excPrependNameAndRaise()
 			
@@ -966,7 +966,7 @@ class Key( PropertyHolder ):
 		
 		for i in xrange( 0, len( validvalues ) ):
 			try:
-				validvalues[i] = Key._parseObject( validvalues[i] )
+				validvalues[i] = self._parseObject( validvalues[i] )
 			except (ValueError,TypeError):
 				 self._excPrependNameAndRaise()
 				
@@ -1224,8 +1224,8 @@ class ConfigNode( object ):
 			
 		# cache whether we can possibly write to that destination x
 		
-	@staticmethod
-	def _check_and_append( sectionsforwriting, section ):
+	@classmethod
+	def _check_and_append( cls, sectionsforwriting, section ):
 		"""Assure we ignore empty sections
 		@return: True if section has been appended, false otherwise"""
 		if section != None and len( section.keys ):
@@ -1393,8 +1393,8 @@ class DiffKey( DiffData ):
 	def __str__( self ):
 		return self.toStr( "Key-Value" )
 	
-	@staticmethod
-	def _subtractLists( a, b ):
+	@classmethod
+	def _subtractLists( cls, a, b ):
 		"""Subtract the values of b from a, return the list with the differences"""
 		acopy = a[:]
 		for val in b:
@@ -1405,11 +1405,11 @@ class DiffKey( DiffData ):
 				
 		return acopy
 		
-	@staticmethod
-	def _matchLists( a, b ):
+	@classmethod
+	def _matchLists( cls, a, b ):
 		"""@return: list of values that are common to both lists"""
-		badded = DiffKey._subtractLists( b, a )
-		return DiffKey._subtractLists( b, badded )
+		badded = cls._subtractLists( b, a )
+		return cls._subtractLists( b, badded )
 		
 	@typecheck_param( object, Key, Key )
 	def _populate( self, A, B ):
@@ -1422,9 +1422,9 @@ class DiffKey( DiffData ):
 		bvals = frozenset( str( val ) for val in B._values  )
 		
 		# we store real 
-		self.added = DiffKey._subtractLists( B._values, A._values )
-		self.removed = DiffKey._subtractLists( A._values, B._values )
-		self.unchanged = DiffKey._subtractLists( B._values, self.added )	# this gets the commonalities
+		self.added = self._subtractLists( B._values, A._values )
+		self.removed = self._subtractLists( A._values, B._values )
+		self.unchanged = self._subtractLists( B._values, self.added )	# this gets the commonalities
 		self.changed = list()			# always empty -
 		self.name = A.name
 		
@@ -1483,8 +1483,8 @@ class DiffSection( DiffData ):
 			if dkey.hasDifferences( ): self.changed.append( dkey )
 			else: self.unchanged.append( key )
 		
-	@staticmethod
-	def _getNewKey( section, keyname ):
+	@classmethod
+	def _getNewKey( cls, section, keyname ):
 		"""@return: key from section - either existing or properly initialized without default value"""
 		key,created = section.getKeyDefault( keyname, "dummy" )
 		if created: key._values = []			# reset value if created to assure we have no dummy values in there
@@ -1498,7 +1498,7 @@ class DiffSection( DiffData ):
 		
 		# add added keys - they could exist already, which is why they are being merged
 		for addedkey in self.added:
-			key = DiffSection._getNewKey( targetSection, addedkey.name )
+			key = self._getNewKey( targetSection, addedkey.name )
 			key.mergeWith( addedkey )
 			
 		# remove moved keys - simply delete them from the list
@@ -1508,7 +1508,7 @@ class DiffSection( DiffData ):
 				
 		# handle changed keys - we will create a new key if this is required
 		for changedKeyDiff in self.changed:
-			key = DiffSection._getNewKey( targetSection, changedKeyDiff.name )
+			key = self._getNewKey( targetSection, changedKeyDiff.name )
 			changedKeyDiff.applyTo( key ) 
 			
 		# apply section property diff
@@ -1548,8 +1548,8 @@ class ConfigDiffer( DiffData ):
 		""" Print its own delta information - useful for debugging purposes """
 		return self.toStr( 'section' )
 	
-	@staticmethod 
-	def _getMergedSections( configaccessor ):
+	@classmethod 
+	def _getMergedSections( cls, configaccessor ):
 		""" NOTE: within config nodes, sections must be unique, between nodes, 
 		this is not the case - sets would simply drop keys with the same name
 		leading to invalid results - thus we have to merge equally named sections
@@ -1588,8 +1588,8 @@ class ConfigDiffer( DiffData ):
 		# diff sections  - therefore we actually have to treat the chains 
 		#  in a flattened manner 
 		# built section sets !
-		asections = BasicSet( ConfigDiffer._getMergedSections( A ) )
-		bsections = BasicSet( ConfigDiffer._getMergedSections( B ) )
+		asections = BasicSet( self._getMergedSections( A ) )
+		bsections = BasicSet( self._getMergedSections( B ) )
 		
 		# assure we do not work on references !
 		self.added = list( copy.deepcopy( bsections - asections ) )

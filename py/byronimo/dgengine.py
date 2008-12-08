@@ -1245,8 +1245,8 @@ class NodeBase( iDuplicatable ):
 		
 		return outConnections
 		
-	@staticmethod
-	def filterCompatiblePlugs( plugs, attrOrValue, raise_on_ambiguity = False, attr_affinity = False,
+	@classmethod
+	def filterCompatiblePlugs( cls, plugs, attrOrValue, raise_on_ambiguity = False, attr_affinity = False,
 							  	attr_as_source=True ):
 		"""@return: sorted list of (rate,plug) tuples suitable to deal with the given attribute.
 		Thus they could connect to it as well as get their value set.

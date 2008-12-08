@@ -92,8 +92,8 @@ class Scene( util.Singleton ):
 	
 	
 	#{ Edit Methods 
-	@staticmethod
-	def open( filePath, loadReferenceDepth="all", force=False, **kwargs ):
+	@classmethod
+	def open( cls, filePath, loadReferenceDepth="all", force=False, **kwargs ):
 		""" Open a scene 
 		@param filePath: The path to the file to be opened
 		If None or "", the currently loaded file will reopened
@@ -104,41 +104,41 @@ class Scene( util.Singleton ):
 		loaded contains unsaved changes 
 		@return: a path object to the loaded scene"""
 		if filePath is None or filePath == "":
-			filePath = Scene.getName()
+			filePath = cls.getName()
 			
 		# NOTE: it will return the last loaded reference instead of the loaded file - lets fix this !
 		sourcePath = Path( filePath )
 		lastReference = cmds.file( sourcePath.abspath(), open=1, loadReferenceDepth=loadReferenceDepth, force=force, **kwargs )
 		return Path( sourcePath )
 		
-	@staticmethod
-	def new( force = False, **kwargs ):
+	@classmethod
+	def new( cls, force = False, **kwargs ):
 		""" Create a new scene 
 		@param force: if True, the new scene will be created even though there 
 		are unsaved modifications
 		@return: Path object with name of current file"""
 		return Path( cmds.file( new = True, force = force, **kwargs ) )
 		
-	@staticmethod
-	def save( scenepath, autodelete_unknown = False, **kwargs ):
+	@classmethod
+	def save( cls, scenepath, autodelete_unknown = False, **kwargs ):
 		"""The save the currently opened scene under scenepath in the respective format
 		@param scenepath: if None or "", the currently opened scene will be used
 		@param autodelete_unknown: if true, unknown nodes will automatically be deleted
 		before an attempt is made to change the maya file type 
 		@param **kwargs: passed to cmds.file """
 		if scenepath is None or scenepath == "":
-			scenepath = Scene.getName( )
+			scenepath = cls.getName( )
 			
 		scenepath = Path( scenepath )
-		curscene = Scene.getName()
+		curscene = cls.getName()
 		try :
-			filetype = Scene._fileTypeMap[ scenepath.p_ext ]
-			curscenetype = Scene._fileTypeMap[ curscene.p_ext ]
+			filetype = cls._fileTypeMap[ scenepath.p_ext ]
+			curscenetype = cls._fileTypeMap[ curscene.p_ext ]
 		except KeyError:
 			raise RuntimeError( "Unsupported filetype of: " + scenepath  )
 			
 		# is it a safe as ?
-		if Scene.getName() != scenepath:
+		if cls.getName() != scenepath:
 			cmds.file( rename=scenepath.expandvars() )
 			
 		# assure path exists
@@ -148,36 +148,36 @@ class Scene( util.Singleton ):
 			
 		# delete unknown before changing types ( would result in an error otherwise )
 		if autodelete_unknown and curscenetype != filetype:
-			Scene.deleteUnknownNodes()
+			cls.deleteUnknownNodes()
 			
 		# safe the file	
 		return Path( cmds.file( save=True, type=filetype, **kwargs ) )
 		
-	@staticmethod
-	def createReference( filepath, **kwargs ):
+	@classmethod
+	def createReference( cls, filepath, **kwargs ):
 		"""Create a reference
 		@param filepath: filepath of the reference you wish to create
 		@param **kwargs: all arguments supported by L{FileReference.create} 
 		@return: newly created FileReference"""
 		return refmod.FileReference.create( filepath, **kwargs )
 	
-	@staticmethod
-	def importReference( filepath, **kwargs ):
+	@classmethod
+	def importReference( cls, filepath, **kwargs ):
 		"""Import a reference ( straight away )
 		@note: this method will only work with files that can also be referenced - use the default
 		file -import command for other file types 
 		@param filepath: path to file to import 
 		@param **kwargs: arguments supported by L{createReference}
 		@raise RuntimeError: On failure"""
-		reference = Scene.createReference( filepath, **kwargs )
+		reference = cls.createReference( filepath, **kwargs )
 		reference.importRef( depth = 0 )
 		
 		
 	#} END edit methods
 	
 	#{ Utilities
-	@staticmethod
-	def deleteUnknownNodes( ):
+	@classmethod
+	def deleteUnknownNodes( cls ):
 		"""Deletes all unknown nodes in the scene
 		@note: only do this if you are about to change the type of the scene during 
 		save or export - otherwise the operation would fail if there are still unknown nodes 
@@ -189,24 +189,24 @@ class Scene( util.Singleton ):
 	#} END utilities 
 	
 	#{ Query Methods
-	@staticmethod
-	def getName(  ):
+	@classmethod
+	def getName( cls ):
 		return Path( cmds.file( q=1, exn=1 ) )
 		
-	@staticmethod
-	def isModified(  ):
+	@classmethod
+	def isModified( cls ):
 		return cmds.file( q=1, amf=True )
 		
-	@staticmethod
-	def lsReferences( **kwargs ):
+	@classmethod
+	def lsReferences( cls, **kwargs ):
 		""" list all references in the scene or in referenceFile
 		@param referenceFile: if not empty, the references below the given reference file will be returned
 		@param predicate: method returning true for each valid file reference object
 		@return: list of L{FileReference}s objects"""
 		return refmod.FileReference.ls( **kwargs )
 	
-	@staticmethod
-	def lsReferencesDeep( **kwargs ):
+	@classmethod
+	def lsReferencesDeep( cls, **kwargs ):
 		""" Return all references recursively 
 		@param **kwargs: support for arguments as in lsReferences"""
 		return refmod.FileReference.lsDeep( **kwargs )
@@ -214,8 +214,8 @@ class Scene( util.Singleton ):
 	
 	
 	#{ Properties 
-	p_name = property( lambda self: self.__class__.getName( ) )
-	p_anyModified = property( lambda self: self.__class__.isModified( ) )
+	p_name = property( lambda self: self.getName() )
+	p_anyModified = property( lambda self: self.isModified() )
 	#} END Properties 
 
  

@@ -96,15 +96,15 @@ class Namespace( unicode, iDagItem ):
 
 	#{Edit Methods
 		
-	@staticmethod
+	@classmethod
 	@undo.undoable
-	def create( namespaceName ):
+	def create( cls, namespaceName ):
 		"""Create a new namespace
 		@param namespaceName: the name of the namespace, absolute or relative - 
 		it may contain subspaces too, i.e. :foo:bar.
 		fred:subfred is a relative namespace, created in the currently active namespace
 		@return: the create Namespace object"""
-		newns = Namespace( namespaceName )
+		newns = cls( namespaceName )
 		
 		if newns.exists():		 # skip work
 			return newns
@@ -112,13 +112,13 @@ class Namespace( unicode, iDagItem ):
 		cleanup = CallOnDeletion( None )
 		if newns.isAbsolute():	# assure root is current if we are having an absolute name
 			previousns = Namespace.getCurrent()
-			Namespace( Namespace.rootNamespace ).setCurrent( )
+			cls( Namespace.rootNamespace ).setCurrent( )
 			cleanup.callableobj = lambda : previousns.setCurrent()
 		
 		# create each token accordingly ( its not root here )
 		tokens = newns.split( newns._sep )
 		for i,token in enumerate( tokens ):		# skip the root namespac
-			base = Namespace( ':'.join( tokens[:i+1] ) )
+			base = cls( ':'.join( tokens[:i+1] ) )
 			if base.exists( ):
 				continue
 				
@@ -141,7 +141,7 @@ class Namespace( unicode, iDagItem ):
 		@param newName: the absolute name of the new namespace
 		@return: Namespace with the new name
 		@todo: Implement undo !"""
-		newnamespace = Namespace( newName )
+		newnamespace = self.__class__( newName )
 		
 		
 		# recursively move children
@@ -160,7 +160,7 @@ class Namespace( unicode, iDagItem ):
 		possible clashes would result in an error
 		@param autocreate: if True, targetNamespace will be created if it does not exist yet
 		@todo: Implement undo !"""
-		targetNamespace = Namespace( targetNamespace )
+		targetNamespace = self.__class__( targetNamespace )
 		if autocreate and not targetNamespace.exists( ):
 			targetNamespace = Namespace.create( targetNamespace )
 			
@@ -183,7 +183,7 @@ class Namespace( unicode, iDagItem ):
 		
 		# assure we have a namespace type
 		if move_to_namespace:
-			move_to_namespace = Namespace( move_to_namespace )
+			move_to_namespace = self.__class__( move_to_namespace )
 			
 		# assure we do not loose the current namespace - the maya methods could easily fail
 		previousns = Namespace.getCurrent( )
@@ -220,17 +220,17 @@ class Namespace( unicode, iDagItem ):
 	
 	#{Query Methods
 	
-	@staticmethod
-	def getCurrent( ):
+	@classmethod
+	def getCurrent( cls ):
 		"""@return: the currently set absolute namespace """
 		# will return namespace relative to the root - thus is absolute in some sense
 		nsname = cmds.namespaceInfo( cur = 1 )
 		if not nsname.startswith( ':' ):		# assure we return an absoslute namespace
 			nsname = ":" + nsname
-		return Namespace( nsname )
+		return cls( nsname )
 		
-	@staticmethod
-	def getUnique( basename, incrementFunc = defaultIncrFunc ):
+	@classmethod
+	def getUnique( cls, basename, incrementFunc = defaultIncrFunc ):
 		"""Create a unique namespace
 		@param basename: the base name of the namespace, like ":mynamespace"
 		@param incrementFunc: func( basename, index ), returns a unique name generated
@@ -239,7 +239,7 @@ class Namespace( unicode, iDagItem ):
 		namespace"""
 		i = 0
 		while True:
-			testns = Namespace( incrementFunc( basename, i ) )
+			testns = cls( incrementFunc( basename, i ) )
 			i += 1
 			
 			if not testns.exists():
@@ -264,7 +264,7 @@ class Namespace( unicode, iDagItem ):
 		parent = iDagItem.getParent( self )	# considers children like ":bar" being a root
 		if parent == None:	# we are just child of the root namespcae
 			parent = self.rootNamespace
-		return Namespace( parent )
+		return self.__class__( parent )
 		
 	def getChildren( self, predicate = lambda x: True ):
 		"""@return: list of child namespaces
@@ -275,7 +275,7 @@ class Namespace( unicode, iDagItem ):
 		for ns in noneToList( cmds.namespaceInfo( lon=1 ) ):		# returns root-relative names !
 			if ns in self._defaultns or not predicate( ns ):
 				continue
-			out.append( Namespace( ns ) )
+			out.append( self.__class__( ns ) )
 		# END for each subspace
 		lastcurrent.setCurrent( )
 		
@@ -290,9 +290,9 @@ class Namespace( unicode, iDagItem ):
 		#	raise ValueError( "The root namespace cannot be relative" )
 			
 		if not self.startswith( ":" ):
-			return Namespace( self )	# create a copy 
+			return self.__class__( self )	# create a copy 
 			
-		return Namespace( self[1:], absolute=False ) 
+		return self.__class__( self[1:], absolute=False ) 
 
 	def getRelativeTo( self, basenamespace ):
 		"""@return: this namespace relative to the given basenamespace 
@@ -311,10 +311,10 @@ class Namespace( unicode, iDagItem ):
 		if relnamespace == self:
 			raise ValueError( str( basenamespace ) + " is no base of " + str( self ) )
 			
-		return Namespace( relnamespace, absolute = False )
+		return self.__class__( relnamespace, absolute = False )
 		
-	@staticmethod
-	def splitNamespace( objectname ):
+	@classmethod
+	def splitNamespace( cls, objectname ):
 		"""Cut the namespace from the given  name and return a tuple( namespacename, objectname )
 		@note: method assumes that the namespace starts at the beginning of the object"""
 		if objectname.find( '|' ) > -1:
@@ -324,7 +324,7 @@ class Namespace( unicode, iDagItem ):
 		if rpos == -1:
 			return ( Namespace.rootNamespace, objectname )
 		
-		return ( Namespace( objectname[:rpos] ), objectname[rpos+1:] )
+		return ( cls( objectname[:rpos] ), objectname[rpos+1:] )
 		
 		
 	def _removeDuplicateSep( self, name ):
@@ -343,13 +343,13 @@ class Namespace( unicode, iDagItem ):
 		@note: as it operates on strings, the actual namespaces do not need to exist"""
 		# special case : we are root
 		if self == Namespace.rootNamespace:
-			return self._removeDuplicateSep( Namespace( replacement, absolute=False ) + find_in ) 
+			return self._removeDuplicateSep( self.__class__( replacement, absolute=False ) + find_in ) 
 		
 		# do the replacement 
 		return self._removeDuplicateSep( find_in.replace( self, replacement ) )
 		
-	@staticmethod
-	def substituteNamespace( thisns, find_in, replacement ):
+	@classmethod
+	def substituteNamespace( cls, thisns, find_in, replacement ):
 		"""Same as L{substitute}, but signature might feel more natural"""
 		return thisns.substitute( find_in, replacement )
 	
@@ -358,8 +358,8 @@ class Namespace( unicode, iDagItem ):
 	
 	#{ Iterators
 	
-	@staticmethod
-	def _getNamespaceObjects( namespace, sellist, curdepth, maxdepth, asStrings ):
+	@classmethod
+	def _getNamespaceObjects( cls, namespace, sellist, curdepth, maxdepth, asStrings ):
 		"""if as strings is given, the sellist returned will be a list of strings"""
 		if maxdepth and not ( curdepth < maxdepth ):
 			return 

@@ -330,8 +330,8 @@ class iDagItem( object ):
 	#} END Iterators 
 
 	#{ Name Generation
-	@staticmethod
-	def addSep( item, sep ):
+	@classmethod
+	def addSep( cls, item, sep ):
 		"""@return: item with separator added to it ( just once )
 		@note: operates best on strings
 		@param item: item to add separator to

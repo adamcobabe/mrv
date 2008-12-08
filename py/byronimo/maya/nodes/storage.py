@@ -540,11 +540,11 @@ class StorageBase( iDuplicatable ):
 		@param **kwargs: all arguments supported by L{getStoragePlug}"""
 		storagePlug = self.getStoragePlug( dataID, plugType = StorageBase.kStorage, **kwargs )
 		valplug = storagePlug.dval
-		return StorageBase.getPythonDataFromPlug( valplug )
+		return self.getPythonDataFromPlug( valplug )
 		
 		
-	@staticmethod
-	def getPythonDataFromPlug( valplug ):
+	@classmethod
+	def getPythonDataFromPlug( cls, valplug ):
 		"""Exract the python data using the given plug directly
 		@param valplug: data value plug containing the plugin data 
 		@return: PyPickleData object allowing data access"""

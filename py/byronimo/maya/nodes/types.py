@@ -58,8 +58,8 @@ class MetaClassCreatorNodes( MetaClassCreator ):
 	apipathattr = '_apidagpath'
 	getattrorigname = '__getattr_orig'
 	
-	@staticmethod
-	def _readMfnDB( mfnclsname ):
+	@classmethod
+	def _readMfnDB( cls, mfnclsname ):
 		"""@return: mfn database describing how to handle the functions in the 
 		function set described by mfnclsname
 		If no explicit information exists, the db will be empty"""
@@ -70,8 +70,8 @@ class MetaClassCreatorNodes( MetaClassCreator ):
 		return MfnMemberMap()
 		
 
-	@staticmethod
-	def _wrapMfnFunc( mfncls, funcname, funcMutatorDB = None ):
+	@classmethod
+	def _wrapMfnFunc( cls, mfncls, funcname, funcMutatorDB = None ):
 		""" Create a function that makes a Node natively use its associated Maya 
 		function set on calls.
 		
@@ -115,7 +115,7 @@ class MetaClassCreatorNodes( MetaClassCreator ):
 		mfnfunc = mfncls.__dict__[ mfnfuncname ]			# will just raise on error 
 		newfunc = None
 		
-		needs_MObject = mfncls in MetaClassCreatorNodes.forceInitWithMObject
+		needs_MObject = mfncls in cls.forceInitWithMObject
 		
 		# bound to class, self will be attached on class instantiation
 		if rvalfunc:	# wrap rval function around

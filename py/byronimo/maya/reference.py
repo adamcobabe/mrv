@@ -60,8 +60,8 @@ class FileReference( Path, iDagItem ):
 	
 	editTypes = [	'setAttr','addAttr','deleteAttr','connectAttr','disconnectAttr','parent' ]
 	
-	@staticmethod
-	def _splitCopyNumber( path ):
+	@classmethod
+	def _splitCopyNumber( cls, path ):
 		"""@return: ( path, copynumber ), copynumber is at least 0 """
 		buf = path.split( '{' )
 		cpn = 0
@@ -106,8 +106,8 @@ class FileReference( Path, iDagItem ):
 	#} END object overrides 
 	
 	#{ Static Methods 
-	@staticmethod
-	def create( filepath, namespace=None, load = True ):
+	@classmethod
+	def create( cls, filepath, namespace=None, load = True ):
 		"""Create a reference with the given namespace
 		@param filename: path describing the reference file location 
 		@param namespace: if None, a unique namespace will be generated for you
@@ -115,7 +115,7 @@ class FileReference( Path, iDagItem ):
 		@param load: 
 		@raise ValueError: if the namespace does already exist 
 		@raise RuntimeError: if the reference could not be created"""
-		filepath = Path( FileReference._splitCopyNumber( filepath )[0] )
+		filepath = Path( cls._splitCopyNumber( filepath )[0] )
 		
 		def nsfunc( base, i ):
 			if not i: return base
@@ -139,8 +139,8 @@ class FileReference( Path, iDagItem ):
 		
 		return FileReference( createdRefpath )
 		
-	@staticmethod
-	def find( paths, **kwargs ):
+	@classmethod
+	def find( cls, paths, **kwargs ):
 		"""Find the reference for each path in paths
 		@param **kwargs: all supported by L{ls}
 		@param ignore_extension: if True, default False, the extension will be ignored, 
@@ -155,7 +155,7 @@ class FileReference( Path, iDagItem ):
 			raise TypeError( "paths must be tuple, was %s" % type( paths ) )
 			
 		ignore_ext = kwargs.pop( "ignore_extension", False )
-		refs = FileReference.ls( **kwargs )
+		refs = cls.ls( **kwargs )
 		
 		# build dict for fast lookup 
 		lut = dict()
@@ -195,8 +195,8 @@ class FileReference( Path, iDagItem ):
 		# END for each path to find 
 		return outlist
 		
-	@staticmethod
-	def ls( referenceFile = "", predicate = lambda x: True ):
+	@classmethod
+	def ls( cls, referenceFile = "", predicate = lambda x: True ):
 		""" list all references in the scene or in referenceFile
 		@param referenceFile: if not empty, the references below the given reference file will be returned
 		@param predicate: method returning true for each valid file reference object
@@ -209,11 +209,11 @@ class FileReference( Path, iDagItem ):
 		# END for each reference file
 		return out
 		
-	@staticmethod
-	def lsDeep( predicate = lambda x: True, **kwargs ):
+	@classmethod
+	def lsDeep( cls, predicate = lambda x: True, **kwargs ):
 		""" Return all references recursively 
 		@param **kwargs: support for arguments as in lsReferences"""
-		refs = FileReference.ls( **kwargs )
+		refs = cls.ls( **kwargs )
 		out = refs
 		for ref in refs:
 			out.extend( ref.getChildrenDeep( order = iDagItem.kOrder_BreadthFirst, predicate=predicate ) )
@@ -241,7 +241,7 @@ class FileReference( Path, iDagItem ):
 		@return: FileReference with the updated reference
 		@note: you should not use the original ref instance anymore as its unicode 
 		path still uses the old path"""
-		filepath = Path( FileReference._splitCopyNumber( filepath )[0] )
+		filepath = Path( self._splitCopyNumber( filepath )[0] )
 		cmds.file( filepath, lr=self._refnode )
 		return FileReference( refnode = self._refnode )		# return update object
 		
