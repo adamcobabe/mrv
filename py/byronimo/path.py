@@ -145,7 +145,6 @@ class Path(_base):
 		
 	def __hash__( self ):
 		"""Expanded hash method"""
-		print "hash called: %s" % self
 		return unicode( self._expandvars() ).__hash__()
 	
 	#} END Special Python methods
