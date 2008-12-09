@@ -20,13 +20,21 @@ __copyright__='(c) 2008 Sebastian Thiel'
 
 import os
 import unittest
-import byronimo.path
+from byronimo.path import Path
 
 class TestPath( unittest.TestCase ):
 	
 	
 	def test_instantiate( self ):
 		"""path: test intatiation"""
-		p = byronimo.path.Path( os.path.expanduser( "~" ) ) 
+		p = Path( os.path.expanduser( "~" ) ) 
 		
-	
+	def test_set( self ):
+		"""path: test set interaction""" 
+		# paths pointing to the same object after all should 
+		# compare equal in sets, thus they will not allow to be duplicated in it
+		user = Path( "$HOME" )
+		userexp = user.expandvars()
+		
+		s = set( ( user, userexp ) )	# same path after all
+		self.failUnless( len( s ) == 1 )

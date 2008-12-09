@@ -143,6 +143,11 @@ class Path(_base):
 	def __ne__( self, other ):
 		return not self.__eq__( other )
 		
+	def __hash__( self ):
+		"""Expanded hash method"""
+		print "hash called: %s" % self
+		return unicode( self._expandvars() ).__hash__()
+	
 	#} END Special Python methods
 	
 	def _expandvars( self ):
