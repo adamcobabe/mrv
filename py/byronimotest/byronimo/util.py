@@ -142,11 +142,11 @@ class TestDAGTree( unittest.TestCase ):
 		"""byronimo.utils.iChoiceDialog: quick choicebox test"""
 		c1 = "single choice"
 		choice_dialog = iChoiceDialog( t = "my title", m = "my message", c = c1 )
-		self.failUnless( choice_dialog.choice() == c1 )
+		self.failUnless( choice_dialog.getChoice() == c1 )
 		
 		c2 = "other choice"
 		choice_dialog = iChoiceDialog( t = "my title", m = "my message", c = (c1,c2) )
-		self.failUnless( choice_dialog.choice() == c1 )
+		self.failUnless( choice_dialog.getChoice() == c1 )
 		
 		
 	

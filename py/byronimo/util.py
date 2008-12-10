@@ -461,9 +461,9 @@ class iChoiceDialog( object ):
 		self.cancel_choice = kwargs.get( "cc", kwargs.get( "cancelChoice", self.choices[-1] ) )
 		
 		
-	def choice( self ):
+	def getChoice( self ):
 		"""Make the choice 
-		@return: the name of the choice made by the user, the type shall equal the type given 
+		@return: name of the choice made by the user, the type shall equal the type given 
 		as button names
 		@note: this implementation always returns the default choice"""
 		print self.title

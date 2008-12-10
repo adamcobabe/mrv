@@ -62,7 +62,7 @@ class PromptDialog( Dialog ):
 class ChoiceDialog( util.iChoiceDialog ):
 	"""Maya implementation of the generic choice dialog interface"""
 	
-	def choice( self ):
+	def getChoice( self ):
 		"""Return the choice made by the user"""
 		# don't do anything inbatch mode 
 		if cmds.about( b=1 ):
@@ -72,6 +72,7 @@ class ChoiceDialog( util.iChoiceDialog ):
 								  	m = self.message,
 									b = [ str( c ) for c in self.choices ],
 									db = self.default_choice,
+									cb = self.cancel_choice,
 									ds = self.cancel_choice )
 			   
 		
