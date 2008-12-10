@@ -59,39 +59,6 @@ class PromptDialog( Dialog ):
 		return self._text
 		
 		
-class ConfirmDialog( Dialog ):
-	""" Wrapper class for maya confirm dialog"""
-	def __init__( self, title, message, confirmButton="Confirm", middleButton=None, 
-				 	cancelButton="Cancel", defaultToConfirm = True, align = "center" ):
-		""" Prompt for confirmation. Call isConfirmed or isCancelled afterwards. Call getReturnValue
-		to get the exact return value ( could be middleButton string )
-		@note: if a button is None, it will not appear, current button maximum is 3
-		@note: in batch mode, it will always confirm"""
-		if cmds.about( batch=1 ):
-			self._ret = confirmButton
-			self._isConfirmed = True
-			return
-			
-		buttons = [confirmButton]
-		for b in middleButton, cancelButton:
-			if b:
-				buttons.append( b )
-				
-		cancelValue = cancelButton or middleButton or confirmButton
-		self._ret = cmds.confirmDialog( t = title,	m = message, b = buttons, 
-										db = ( defaultToConfirm or confirmButton or cancelButton or confirmButton or middleButton ), 
-										ma = align, cb = cancelValue, ds = cancelValue )
-		self._isConfirmed = self._ret == confirmButton
-	
-	def isConfirmed( self ):
-		return self._isConfirmed
-		
-	def isCancelled( self ):
-		return not self._isConfirmed
-		
-	def getReturnValue( self ):
-		return self._ret
-		
 class ChoiceDialog( util.iChoiceDialog ):
 	"""Maya implementation of the generic choice dialog interface"""
 	
