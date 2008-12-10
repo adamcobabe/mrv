@@ -137,6 +137,17 @@ class TestDAGTree( unittest.TestCase ):
 		
 		imaster.setInterface( "iTest", None )
 		self.failUnless( len( imaster.listInterfaces( ) ) == 0 )
+
+	def test_choiceDialog( self ):
+		"""byronimo.utils.iChoiceDialog: quick choicebox test"""
+		c1 = "single choice"
+		choice_dialog = iChoiceDialog( t = "my title", m = "my message", c = c1 )
+		self.failUnless( choice_dialog.choice() == c1 )
+		
+		c2 = "other choice"
+		choice_dialog = iChoiceDialog( t = "my title", m = "my message", c = (c1,c2) )
+		self.failUnless( choice_dialog.choice() == c1 )
+		
 		
 	
 	def test_progressIndicator( self ):

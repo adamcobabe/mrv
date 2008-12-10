@@ -429,6 +429,50 @@ class iDuplicatable( object ):
 		# return the result !
 		return instance
 		
+		
+class iChoiceDialog( object ):
+	"""Interface allowing access to a simple confirm dialog allowing the user 
+	to pick between a selection of choices, one of which he has to confirm
+	@note: for convenience, this interface contains a brief implementation as a 
+	basis for subclasses """
+	
+	def __init__( self, *args, **kwargs ):
+		"""Allow the user to pick a choice
+		@note: all paramaters exist in a short and a long version for convenience, given 
+		in the form short/long 
+		@param t/title: optional title of the choice box, quickly saying what this choice is about 
+		@param m/message: message to be shown, informing the user in detail what the choice is about 
+		@param c/choices: single item or list of items identifying the choices if used as string
+		@param dc/defaultChoice: choice in set of choices to be used as default choice, default is first choice
+		@param cc/cancelChoice: choice in set of choices to be used if the dialog is cancelled using esc, 
+		default is last choice"""
+		self.title = kwargs.get( "t", kwargs.get( "title", "Choice Dialog" ) )
+		self.message = kwargs.get( "m", kwargs.get( "message", None ) )
+		assert self.message
+		
+		self.choices = kwargs.get( "c", kwargs.get( "choices", None ) )
+		assert self.choices
+		
+		# internally we store a choice list 
+		if not isinstance( self.choices, ( list, tuple ) ):
+			self.choices = [ self.choices ]
+			
+		self.default_choice = kwargs.get( "dc", kwargs.get( "defaultChoice", self.choices[0] ) )
+		self.dismiss_choice = kwargs.get( "cc", kwargs.get( "cancelChoice", self.choices[-1] ) )
+		
+		
+	def choice( self ):
+		"""Make the choice 
+		@return: the name of the choice made by the user, the type shall equal the type given 
+		as button names
+		@note: this implementation always returns the default choice"""
+		print self.title
+		print "-"*len( self.title )
+		print self.message
+		print " | ".join( ( str( c ) for c in self.choices ) ) 
+		
+		return self.default_choice
+		
 	
 class iProgressIndicator( object ):
 	"""Interface allowing to submit progress information
