@@ -92,6 +92,21 @@ class ConfirmDialog( Dialog ):
 	def getReturnValue( self ):
 		return self._ret
 		
+class ChoiceDialog( util.iChoiceDialog ):
+	"""Maya implementation of the generic choice dialog interface"""
+	
+	def choice( self ):
+		"""Return the choice made by the user"""
+		# don't do anything inbatch mode 
+		if cmds.about( b=1 ):
+			return self.default_choice
+			
+		return cmds.confirmDialog( 	t = self.title, 
+								  	m = self.message,
+									b = [ str( c ) for c in self.choices ],
+									db = self.default_choice,
+									ds = self.cancel_choice )
+			   
 		
 class ProgressWindow( util.iProgressIndicator ):
 	"""Simple progress window wrpping the default maya progress window"""

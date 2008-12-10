@@ -458,7 +458,7 @@ class iChoiceDialog( object ):
 			self.choices = [ self.choices ]
 			
 		self.default_choice = kwargs.get( "dc", kwargs.get( "defaultChoice", self.choices[0] ) )
-		self.dismiss_choice = kwargs.get( "cc", kwargs.get( "cancelChoice", self.choices[-1] ) )
+		self.cancel_choice = kwargs.get( "cc", kwargs.get( "cancelChoice", self.choices[-1] ) )
 		
 		
 	def choice( self ):
@@ -470,6 +470,7 @@ class iChoiceDialog( object ):
 		print "-"*len( self.title )
 		print self.message
 		print " | ".join( ( str( c ) for c in self.choices ) ) 
+		print "answer: %s" % self.default_choice
 		
 		return self.default_choice
 		
