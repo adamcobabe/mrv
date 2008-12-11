@@ -249,4 +249,17 @@ class EnumerateTestCase(unittest.TestCase):
 		# mixed args 
 		self.failUnlessRaises( TypeError, Enumeration.create, "hello", ( "this", "fails" ), bitflag = 1 )
 		
+	def test_dict( self ):
+		"""byronimo.enum: assure that sets and dicts work properly"""
+		# should always work as elements or global items 
+		e1 = Enumeration.create( "foo", "bar", "this" )
+		e2 = Enumeration.create( "foo1", "bar2", "this3" )
 		
+		d = dict()
+		d[ e1.foo ] = 1
+		assert e1.foo in d
+		
+		d[ e1.bar ] = 2
+		assert e1.bar in d
+		
+		assert len( d ) == 2
