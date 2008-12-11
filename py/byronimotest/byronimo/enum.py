@@ -17,6 +17,7 @@ __copyright__='(c) 2003 Don Garret'
 
 import unittest
 import byronimo.enum as Enumeration
+import operator
 import pickle
 from cStringIO import StringIO
 
@@ -230,4 +231,22 @@ class EnumerateTestCase(unittest.TestCase):
 		self.failUnless( elm == e1[0] ) 
 		
 
+	def testBitFlags( self ):
+		"""byronimo.enum: test bitflag capabilities"""
+		e1 = Enumeration.create( "foo", "bar", "this", bitflag = 1 )
+		
+		orres = e1.foo | e1.bar
+		assert isinstance( orres, int )
+		self.failUnlessRaises( TypeError, operator.or_, e1.foo, 4 )
+		
+		self.failUnless( e1.foo & orres )
+		self.failUnless( e1.bar & orres )
+		self.failUnless( not e1.this & orres )
+		
+		# try to pass too many 
+		self.failUnlessRaises( ValueError, Enumeration.create, *[ str( e ) for e in range( 150 ) ], **{ "bitflag" : 1 } )
+		
+		# mixed args 
+		self.failUnlessRaises( TypeError, Enumeration.create, "hello", ( "this", "fails" ), bitflag = 1 )
+		
 		
