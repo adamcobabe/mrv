@@ -91,8 +91,7 @@ class Element(object):
 	def _checkBitflag( self ):
 		if not self.enumeration._supports_bitflags:
 			raise TypeError( "Enumeration %s of element %s has no bitflag support" % ( self.enumeration, self ) )
-		
-		
+	
 	def __or__( self, other ):
 		"""Allows oring values together - only works if the values are actually orable
 		integer values
@@ -101,7 +100,16 @@ class Element(object):
 		self._checkType( other )
 		self._checkBitflag()
 		return self.getValue() | other.getValue()
+
+	def __xor__( self, other ):
+		"""Allows to x-or values together - only works if element's values are xorable 
+		integer values.
+		@param other: integer   
+		@return: integer with the xored result"""
+		self._checkBitflag()
+		return self.getValue() ^ other
 		
+
 	def __and__( self, other ):
 		"""Allow and with integers
 		@return: self if self & other == self or None if our bit is not set in other
@@ -254,10 +262,7 @@ class Enumeration(tuple):
 		
 	
 	#{ Pickle Protocol  
-	def __getnewargs__( self ):
-		"""Allows us to properly recreate ourselves"""
-		print "CALLLED ME"
-		return self._nameMap.keys(), self._valueMap.keys()
+	
 	#} END pickle protocol 
 			
 	
@@ -279,8 +284,7 @@ def create(*elements, **kwargs ):
 	@param bitflag: if True, default False, the values created will be suitable as bitflags.
 	This will fail if you passed more items in than supported by the OS ( 32 , 64, etc ) or if 
 	you pass in tuples and thus define the values yourself.
-	@raise TypeError,ValueError: if bitflags cannot be supported in your case
-	"""
+	@raise TypeError,ValueError: if bitflags cannot be supported in your case """
 	cls = kwargs.pop( "cls", Enumeration )
 	elmcls = kwargs.pop( "elmcls", Element )
 	bitflag = kwargs.pop( "bitflag", False )

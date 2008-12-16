@@ -249,6 +249,9 @@ class EnumerateTestCase(unittest.TestCase):
 		# mixed args 
 		self.failUnlessRaises( TypeError, Enumeration.create, "hello", ( "this", "fails" ), bitflag = 1 )
 		
+		# xor
+		assert e1.foo ^ e1.foo.getValue() == 0  
+		
 	def test_dict( self ):
 		"""byronimo.enum: assure that sets and dicts work properly"""
 		# should always work as elements or global items 
