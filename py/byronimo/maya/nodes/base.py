@@ -1883,6 +1883,9 @@ class Component( api.MObject ):
 		return newinst
 		# END for each known attr type
 	
+class SingleIndexedComponent( Component ):
+	"""precreated class for ease-of-use"""
+	pass 
 
 class DoubleIndexedComponent( Component ):	# derived just for epydoc 
 	"""Fixes some functions that would not work usually """
@@ -1893,6 +1896,9 @@ class DoubleIndexedComponent( Component ):	# derived just for epydoc
 		return api.MFn.kDoubleIndexedComponent
 	type = getType
 	
+class TripleIndexedComponent( Component ):
+	"""precreated class for ease-of-use"""
+	pass 
 
 #} END additional classes 
 

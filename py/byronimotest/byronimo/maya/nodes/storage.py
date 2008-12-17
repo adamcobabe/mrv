@@ -204,7 +204,7 @@ class TestStorage( unittest.TestCase ):
 		
 		# does not exist anymore
 		cmds.undo()
-		self.failUnlessRaises( ValueError, snode.getObjectSet, did, 0, autoCreate = False )
+		self.failUnlessRaises( AttributeError, snode.getObjectSet, did, 0, autoCreate = False )
 		
 		# objset should be valid again
 		cmds.redo()

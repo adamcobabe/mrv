@@ -183,10 +183,13 @@ class Mesh( SurfaceShape ):		# base for epydoc !
 		except RuntimeError:
 			return False 
 	
-	def copyAssignmentsTo( self, other, setFilter = Shape.fSetsRenderable ):
-		"""Copy set assignments including component assignments to other"""
+	def copyAssignmentsTo( self, other, **kwargs ):
+		"""Copy set assignments including component assignments to other
+		@param setFilter: default is fSetsRenderable
+		@param **kwargs: passed to set.addMember"""
+		setFilter = kwargs.pop( "setFilter", Shape.fSetsRenderable )
 		for sg, comp in self.getComponentAssignments( setFilter = setFilter ):
-			sg.addMember( other, comp )
+			sg.addMember( other, comp, **kwargs )
 		
 	#( iDuplicatable 
 	def copyFrom( self, other, *args, **kwargs ):

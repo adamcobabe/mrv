@@ -584,7 +584,7 @@ class StorageBase( iDuplicatable ):
 		inputplug = setplug.p_input
 		if inputplug.isNull():
 			if not autoCreate:
-				raise ValueError( "Set at %s[%i] did not exist on %r" % ( self._attrprefix + dataID, setIndex, self ) )
+				raise AttributeError( "Set at %s[%i] did not exist on %r" % ( self._attrprefix + dataID, setIndex, self ) )
 			su = undo.StartUndo()			# make the following operations atomic
 			objset = nodes.createNode( dataID + "Set", "objectSet", forceNewLeaf = True )
 			inputplug = objset.message 
@@ -608,7 +608,7 @@ class StorageBase( iDuplicatable ):
 		@note: operation is implicitly undoable"""
 		try:
 			objset = self.getObjectSet( dataID, setIndex, autoCreate = False )
-		except ValueError, AttributeError:
+		except ( ValueError, AttributeError ):
 			# did not exist, its fine
 			return 
 		else:
