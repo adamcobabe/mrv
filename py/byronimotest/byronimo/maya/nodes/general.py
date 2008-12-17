@@ -370,6 +370,16 @@ class TestNodeBase( unittest.TestCase ):
 		othernode = nodes.createNode( "othernode", "groupId" )
 		self.failUnlessRaises( RuntimeError, node.rename, "othernode", renameOnClash = False )
 		
+		# locking 
+		othernode.setLocked( 1 )
+		assert othernode.isLocked()
+		cmds.undo( )
+		assert not othernode.isLocked()
+		cmds.redo() 
+		assert othernode.isLocked()
+		othernode.setLocked( 0 )
+		assert not othernode.isLocked()
+		
 		# works if rename enabeld though
 		node.rename( "othernode" )
 		

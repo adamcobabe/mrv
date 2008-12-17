@@ -944,6 +944,27 @@ class DependNode( Node, iDuplicatable ):		# parent just for epydoc -
 	
 	#} END edit
 		
+	#{ Locking 
+	
+	
+	#} END locking 
+	
+	@undoable	
+	def setLocked( self, state ):
+		"""Lock or unloack this node 
+		@param state: if True, the node is locked. Locked nodes cannot be deleted, 
+		renamed or reparented
+		@note: you can query the lock state with L{isLocked}"""
+		curstate = self.isLocked()
+		# also works for dag nodes !
+		depfn = api.MFnDependencyNode( self.getObject() )
+		
+		op = undo.GenericOperation( )
+		op.addDoit( depfn.setLocked, state )
+		op.addUndoit( depfn.setLocked, curstate )
+		op.doIt()
+		
+		
 	#{ Connections and Attributes 
 	
 	def getConnections( self ):
