@@ -396,12 +396,25 @@ class ConfigAccessor( object ):
 	#} END GROUP
 	
 	#{ Operators 
-	def __getitem__( self, keyname ):
+	def __getitem__( self, key ):
 		""" @return: value of first key with keyname
+			@param key: string idenfifying the name of the key to look for, alternatively
+			a tuple( keyname, defaultvalue ), where defaultvalue will be returned if key does not exist
+			Call latter one like config[ keyname, defaultvalue ]
 			@raise KeyError: if keyname does not exist """
-		for key,section in self._configChain.iterateKeysByName( keyname ):
-			return key.value
-		raise KeyError( "Key '"+keyname+"' not found" )
+		defaultvalue = None
+		if isinstance( key, tuple ):
+			defaultvalue = key[1]
+			key = key[0]
+		# END default value handling 
+		
+		for k,s in self._configChain.iterateKeysByName( key ):
+			return k.value
+			
+		if defaultvalue is None:
+			raise KeyError( "Key '"+key+"' not found" )
+		else:
+			return defaultvalue
 		
 	def __setitem__( self, keyname, value ):
 		""" Assigns value to key with keyname

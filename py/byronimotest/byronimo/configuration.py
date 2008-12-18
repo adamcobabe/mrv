@@ -202,7 +202,10 @@ class TestConfigAccessor( unittest.TestCase ):
 		ca['key_with_property'] = [ 1,2,3, "foo", "bar" ]	# complex list assignment
 		
 		# invalid key 
-		self.failUnlessRaises( KeyError, ConfigAccessor.__getitem__, ca,'doesntexist' ) 
+		self.failUnlessRaises( KeyError, ca.__getitem__, 'doesntexist' )
+		
+		# now with default value 
+		assert ca['doesntexist',2] == 2
 		
 		
 class TestConfigManager( unittest.TestCase ):
