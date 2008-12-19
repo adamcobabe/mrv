@@ -196,13 +196,15 @@ class FileReference( Path, iDagItem ):
 		return outlist
 		
 	@classmethod
-	def ls( cls, referenceFile = "", predicate = lambda x: True ):
+	def ls( cls, referenceFile = "", predicate = lambda x: True, unresolved = True ):
 		""" list all references in the scene or in referenceFile
 		@param referenceFile: if not empty, the references below the given reference file will be returned
 		@param predicate: method returning true for each valid file reference object
+		@param unresolved: if True, paths will not be resolved, thus you will see environment variables , 
+		but positive effects of the dirmap will not be visible as well
 		@return: list of L{FileReference}s objects"""
 		out = []
-		for reffile in cmds.file( str( referenceFile ), q=1, r=1, un=1 ):
+		for reffile in cmds.file( str( referenceFile ), q=1, r=1, un=unresolved ):
 			refobj = FileReference( filepath = reffile )
 			if predicate( refobj ):
 				out.append( refobj )
