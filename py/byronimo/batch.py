@@ -8,6 +8,7 @@ from the commandline, possibly wrapped by a shell script to specialize its usae
 @newfield id: SVN Id
 """
 import sys,os
+import signal
 from collections import deque
 import subprocess
 import time
@@ -60,6 +61,15 @@ def superviseJobs( jobs, returnIfLessThan, cmdinput, errorstream, donestream ):
 		time.sleep( sleeptime )
 	# END endless loop
 	
+def killProcess( process ):
+	"""Kill the given process
+	@note: raises if kill is not supported by the os module"""
+	if not hasattr( os, "kill" ):
+		raise NotImplementedError( "os module does not support 'kill'ing of processes on your platform" )
+		
+	os.kill( process.pid, signal.SIGKILL )
+	
+	
 		
 def process( cmd, args, inputList, errorstream = None, donestream = None, inputsPerProcess = 1, 
 			 numJobs=1):
@@ -103,7 +113,14 @@ def process( cmd, args, inputList, errorstream = None, donestream = None, inputs
 			raise AssertionError( "invalid job count" )
 		
 		# we have a full queue now - get a new one asap
-		superviseJobs( jobs, numJobs, cmdinput, errorstream, donestream )
+		try:
+			superviseJobs( jobs, numJobs, cmdinput, errorstream, donestream )
+		except KeyboardInterrupt:
+			# kill all processes - we do not know which one hangs 
+			for process in jobs:
+				killProcess( process )
+			jobs = list()
+			print "Aborted all running processes - continueing"
 	# END for each chunk of inputs 
 
 	# queue is empty, finalize our pending jobs
