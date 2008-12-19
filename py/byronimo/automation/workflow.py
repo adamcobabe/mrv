@@ -255,6 +255,7 @@ class Workflow( Graph ):
 			except Exception, e:
 				# except all 
 				msg = "--> UNHANDLED EXCEPTION: " + str( e ) + "\n"
+				msg += traceback.format_exc( )
 				if errstream:
 					errstream.write( msg )
 				else:
@@ -284,7 +285,7 @@ class Workflow( Graph ):
 			report[ 1 ] = e					# remember report as well
 		except Exception:
 			# Renember normal errors , put them into a dirty report, as well as stacktrace
-			excformat = traceback.format_exception( *sys.exc_info() )
+			excformat = traceback.format_exc( )
 			report[ 1 ] = DirtyException( report = ''.join( excformat ) )					 
 		
 		return tuple( report )
