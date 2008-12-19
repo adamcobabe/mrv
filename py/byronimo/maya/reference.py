@@ -73,9 +73,10 @@ class FileReference( Path, iDagItem ):
 	#{ Object Overrides
 	
 	def __new__( cls, filepath = None, refnode = None, **kwargs ):
-		def handleCreation(  refnode ):
+		def handleCreation( refnode , **kwargs ):
 			""" Initialize the instance by a reference node - lets not trust paths """
-			path = cmds.referenceQuery( refnode, filename=1, un=1 )
+			unresolved = kwargs.pop( "unresolved", False )
+			path = cmds.referenceQuery( refnode, filename=1, un=unresolved )
 			path,cpn = cls._splitCopyNumber( path )
 			self = Path.__new__( cls, path )
 			self._refnode = refnode					# keep it for now 
@@ -83,9 +84,9 @@ class FileReference( Path, iDagItem ):
 		# END creation handler 
 		
 		if refnode:
-			return handleCreation( refnode )
+			return handleCreation( refnode, **kwargs )
 		if filepath:
-			return handleCreation( cmds.referenceQuery( filepath, rfn=1 ) )
+			return handleCreation( cmds.referenceQuery( filepath, rfn=1 ), **kwargs )
 		raise ValueError( "Specify either filepath or refnode" )
 	
 	def __init__( self, *args, **kwargs ):
@@ -196,7 +197,7 @@ class FileReference( Path, iDagItem ):
 		return outlist
 		
 	@classmethod
-	def ls( cls, referenceFile = "", predicate = lambda x: True, unresolved = True ):
+	def ls( cls, referenceFile = "", predicate = lambda x: True, unresolved = False ):
 		""" list all references in the scene or in referenceFile
 		@param referenceFile: if not empty, the references below the given reference file will be returned
 		@param predicate: method returning true for each valid file reference object
@@ -205,7 +206,7 @@ class FileReference( Path, iDagItem ):
 		@return: list of L{FileReference}s objects"""
 		out = []
 		for reffile in cmds.file( str( referenceFile ), q=1, r=1, un=unresolved ):
-			refobj = FileReference( filepath = reffile )
+			refobj = FileReference( filepath = reffile, unresolved = unresolved )
 			if predicate( refobj ):
 				out.append( refobj )
 		# END for each reference file
@@ -453,11 +454,12 @@ class FileReference( Path, iDagItem ):
 			
 		return Namespace( ":" + parentspace + refspace )
 			
-	def getFullPath( self ):
+	def getFullPath( self , unresolved = False ):
 		"""@return: string with full path including copy number
+		@param unresolved: see L{ls}
 		@note: we always query it from maya as our numbers change if some other 
 		reference is being removed and cannot be trusted"""
-		return cmds.referenceQuery( self._refnode, f=1, un=1 )
+		return cmds.referenceQuery( self._refnode, f=1, un=unresolved )
 		
 	def getReferenceNode( self ):
 		"""@return: byronimo wrapped reference node managing this reference"""
