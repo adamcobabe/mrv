@@ -1843,7 +1843,6 @@ class Data( api.MObject ):
 class ComponentListData( Data ):
 	"""Improves the default wrap by adding some required methods to deal with
 	component lists"""
-	__metaclass__ = nodes.MetaClassCreatorNodes
 	
 	def __getitem__( self, index ):
 		"""@return: the item at the given index"""
@@ -1854,7 +1853,6 @@ class PluginData( Data ):
 	"""Wraps plugin data as received by a plug. If plugin's registered their data
 	types and tracking dictionaries using the L{registerPluginDataTrackingDict}, 
 	the original self pointer can easily be retrieved using this classes interface"""
-	__metaclass__ = nodes.MetaClassCreatorNodes
 	
 		
 	def getData( self ):
@@ -1878,6 +1876,23 @@ class PluginData( Data ):
 			except KeyError:
 				raise RuntimeError( "Could not find data associated with plugin data pointer at %r" % dataptrkey )
 			
+class GeometryData( Data ):
+	"""Wraps geometry data providing additional convenience methods"""
+	
+	def getUniqueObjectId( self ):
+		"""@return: an object id that is guaranteed to be unique
+		@note: use it with addObjectGroup to create a new unique group"""
+		# find a unique object group id 
+		objgrpid = 0
+		for ogid in range( self.objectGroupCount() ):
+			exog = self.objectGroup( ogid )
+			while exog == objgrpid:
+				objgrpid += 1
+		# END for each existing object group
+		return objgrpid
+		
+		
+	
 			
 class Component( api.MObject ):
 	"""Represents a shape component - its derivates can be used to handle component lists
