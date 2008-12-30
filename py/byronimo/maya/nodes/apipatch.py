@@ -471,8 +471,8 @@ class MPlug( api.MPlug, util.iDagItem ):
 	def disconnect( self ):
 		"""Completely disconnect all inputs and outputs of this plug
 		@return: self, allowing chained commands"""
-		self.disconnectInput
-		self.disconnectOutputs
+		self.disconnectInput()
+		self.disconnectOutputs()
 		return self 
 	
 	@undoable	
