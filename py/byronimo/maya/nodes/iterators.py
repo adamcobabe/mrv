@@ -293,7 +293,13 @@ def iterGraph( nodeOrPlug, *args, **kwargs ):
 				if predicate( obj ):
 					yield obj
 		# END if return on node level
-		iterObj.next()
+		
+		# if node filters are used, it easily throws NULL Object returned errors
+		# just because the iteration is depleted - catching this now
+		try:
+			iterObj.next()
+		except RuntimeError:
+			raise StopIteration()
 	# END of iteration 
 	
 def getSelectionListIterator( sellist, **kwargs ):
