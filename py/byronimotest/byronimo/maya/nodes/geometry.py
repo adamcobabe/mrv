@@ -67,6 +67,7 @@ class TestGeometry( unittest.TestCase ):
 		
 		
 		# TEST OBJECT ASSIGNMENTS
+		#########################
 		# simple assignments
 		for obj in noncomplist:
 			# shaders - object assignment method 
@@ -93,6 +94,7 @@ class TestGeometry( unittest.TestCase ):
 		
 		
 		# TEST COMPONENT ASSIGNMENT QUERY 
+		#################################
 		# SHADERS - components method
 		for obj in complist:
 			
@@ -156,5 +158,26 @@ class TestGeometry( unittest.TestCase ):
 			
 			self.failUnless( len( setcomps ) == 3 )
 		# END for each deformed surface 
+		
+		
+		# TEST TWEAK HANDLING
+		# make tweak
+		ptweak = p1.pnts.getByLogicalIndex( 0 )
+		ptweak.px.setFloat( 1.0 )
+		ptweak.py.setFloat( 1.0 )
+		ptweak.pz.setFloat( 1.0 )
+		
+		p1.resetTweaks( p1.eComponentType.vertex )
+		assert ptweak.px.asFloat() == 0.0
+		assert ptweak.py.asFloat() == 0.0
+		assert ptweak.pz.asFloat() == 0.0
+		
+		puvtweak = p1.uvpt.getByLogicalIndex( 0 )
+		puvtweak.ux.setFloat( 1.0 )
+		puvtweak.uy.setFloat( 1.0 )
+		
+		p1.resetTweaks( p1.eComponentType.uv )
+		assert puvtweak.ux.asFloat() == 0.0
+		assert puvtweak.uy.asFloat() == 0.0
 		
 		

@@ -20,6 +20,7 @@ import base
 import types
 import maya.OpenMaya as api
 import iterators
+from byronimo.enum import create as enum
 
 class Shape( base.DagNode ):	 # base for epydoc !
 	"""Interface providing common methods to all geometry shapes as they can be shaded.
@@ -164,6 +165,8 @@ class Mesh( SurfaceShape ):		# base for epydoc !
 	"""Implemnetation of mesh related methods to make its handling more 
 	convenient"""
 	__metaclass__ = base.nodes.MetaClassCreatorNodes
+	# component types that make up a mesh
+	eComponentType = enum( "vertex", "edge", "face", "uv" )
 	
 	def copyTweaksTo( self, other ):
 		"""Copy our tweaks onto another mesh
@@ -183,6 +186,7 @@ class Mesh( SurfaceShape ):		# base for epydoc !
 		except RuntimeError:
 			return False 
 	
+	@undoable
 	def copyAssignmentsTo( self, other, **kwargs ):
 		"""Copy set assignments including component assignments to other
 		@param setFilter: default is fSetsRenderable
@@ -190,7 +194,35 @@ class Mesh( SurfaceShape ):		# base for epydoc !
 		setFilter = kwargs.pop( "setFilter", Shape.fSetsRenderable )
 		for sg, comp in self.getComponentAssignments( setFilter = setFilter ):
 			sg.addMember( other, comp, **kwargs )
+	
+	@undoable
+	def resetTweaks( self, tweak_type = eComponentType.vertex ):
+		"""Reset the tweaks on the given mesh shape
+		@param eComponentType: the component type whose tweaks are to be removed, 
+		valid values are 'vertex' and 'uv' enum members"""
+		attrname, datatype = {
+						self.eComponentType.vertex : ( "pnts", api.MFnNumericData.k3Float ),
+						self.eComponentType.uv : ( "uvpt", api.MFnNumericData.k2Float )
+					}.get( tweak_type, None )
 		
+		if attrname is None:
+			raise ValueError( "Tweak type %s is not supported" % tweak_type )
+			
+		arrayplug = getattr( self, attrname )
+		dataobj = api.MFnNumericData().create( datatype )
+		
+		# reset values, do it for all components at once using a data object
+		try:
+			for p in arrayplug:
+				p.setMObject( dataobj )
+		except RuntimeError:
+			# especially uvtweak array plugs return incorrect lengths, thus we may
+			# fail once we reach the end of the iteration.
+			# uvpt appears to display a lenght equalling the number of uvpoints in the mesh
+			# possibly only for the current uvset
+			pass 
+		
+	
 	#( iDuplicatable 
 	def copyFrom( self, other, *args, **kwargs ):
 		"""Copy tweaks and sets from other onto self
