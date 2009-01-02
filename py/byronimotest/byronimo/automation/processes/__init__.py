@@ -22,7 +22,7 @@ import byronimo.automation.process as process
 import byronimo.automation.processes as processes
 from byronimo.dgengine import plug, Attribute as A
 from byronimo.path import Path
-from byronimo.automation.qa import QAProcess, QACheck, QACheckResult
+from byronimo.automation.qa import QAProcessBase, QACheck, QACheckResult
 
 def get_suite( ):
 	""" @return: testsuite with all tests of this package
@@ -151,7 +151,7 @@ class WorkflowWrapTestProcess( process.WorkflowProcessBase ):
 
 
 #{ QA Processes
-class QACheckProcess( QAProcess ):
+class QACheckProcess( QAProcessBase ):
 	""" Simple test process """
 	
 	# tests 

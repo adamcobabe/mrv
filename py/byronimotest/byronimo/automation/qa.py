@@ -31,7 +31,7 @@ class TestQualityAssurance( unittest.TestCase ):
 		checks = qawfl.listChecks( )
 		assert checks
 		
-		for mode in qa.QAProcess.eMode:
+		for mode in qa.QAProcessBase.eMode:
 			
 			results = qawfl.runChecks( checks, mode = mode )
 			assert len( results ) == len( checks )
@@ -42,11 +42,11 @@ class TestQualityAssurance( unittest.TestCase ):
 				assert cshell == oshell
 				
 				attr = "failed_items"
-				if mode == qa.QAProcess.eMode.fix:
+				if mode == qa.QAProcessBase.eMode.fix:
 					attr = "fixed_items"
 					
 				assert getattr( result, attr )
 			# END for each result/checkshell 
 		# END for each check mode 
 			
-		
+		assert qawfl.QACheckProcess.listChecks()

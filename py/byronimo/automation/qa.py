@@ -10,7 +10,7 @@ the checks.
 
 The quality assurance framework is defined by:
 	L{QAWorkflow}
-	L{QAProcess}
+	L{QAProcessBase}
 	L{QACheckResult}
 	L{QACheckAttribute}
 	
@@ -38,18 +38,22 @@ from byronimo.enum import create as enum
 
 event = CallbackBase.Event
 
-
+#{ Exceptions 
 class CheckIncompatibleError( ComputeFailed ):
 	"""Raised if a check cannot accomdate the requested mode and thus cannot run"""
 	pass 
 	
 	
-class QAProcess( ProcessBase ):
+#} END exceptions 
+	
+	
+	
+class QAProcessBase( ProcessBase ):
 	"""Quality Assurance Process including a specialized QA interface"""
 	
 	# query: find issues and report them using L{QACheckResult}, but do not attempt to fix
 	# fix: find issues and fix them, report fixed ( and possibly failed ) items by
-	eMode = enum( "query", "fix" )	# computation mode for QAProcesses
+	eMode = enum( "query", "fix" )	# computation mode for QAProcessBasees
 	
 	#( Configuration
 	# QA Processes do not require this feature due to their quite simplistic call structure
@@ -59,23 +63,28 @@ class QAProcess( ProcessBase ):
 	
 	
 	#{ Interface 
-	def assureQuality( self, check, mode ):
+	def assureQuality( self, check, mode, *args, **kwargs ):
 		"""Called when the test identified by plug should be handled
 		@param check: QACheck to be checked for issues
-		@param mode: mode of the computation, see L{QAProcess.eMode} 
+		@param mode: mode of the computation, see L{QAProcessBase.eMode} 
 		@return: QACheckResult instance keeping information about the outcome of the test"""
 		raise NotImplementedError( "To be implemented by subclass" )
 	
+	def listChecks( self, **kwargs ):
+		"""@return: list( QACheck, ... ) list of our checks
+		@param **kwargs: see L{QAWorkflow.filterChecks}"""
+		return self.getWorkflow().filterChecks( [ self ], **kwargs ) 
+		
 	#} END interface 
 	
 	#{ Overridden from Process Base 
-	def evaluateState( self, plug, mode ):
+	def evaluateState( self, plug, mode, *args, **kwargs ):
 		"""Prepares the call to the actual quality check implemenetation and assuring 
 		test identified by plug can actually be run in the given mode"""
 		if mode is self.eMode.fix and not plug.attr.implements_fix:
 			raise CheckIncompatibleError( "Plug %s does not implement issue fixing" % plug )
 			
-		return self.assureQuality( plug, mode )
+		return self.assureQuality( plug, mode, *args, **kwargs )
 		
 		
 	#} END overridden from process base 
@@ -84,7 +93,7 @@ class QAProcess( ProcessBase ):
 	
 class QACheckAttribute( Attribute ):
 	"""The Test Attribute represents an interface to a specific test as implemented 
-	by the parent L{QAProcess}.
+	by the parent L{QAProcessBase}.
 	The QA Attribute returns specialized quality assurance results and provides
 	additional information about the respective test
 	@note: as this class holds meta information about the respective test ( see L{QACheck} ) 
@@ -105,7 +114,7 @@ class QACheckAttribute( Attribute ):
 		
 		
 class QACheck( plug ):
-	"""Defines a test suitable to be run and computed by a L{QAProcess}
+	"""Defines a test suitable to be run and computed by a L{QAProcessBase}
 	It's nothing more than a convenience class as the actual information is held by the 
 	respective L{QACheckAttribute}.
 	All non-plug calls are passed on to the underlying attribute, allowing it to 
@@ -119,33 +128,45 @@ class QACheck( plug ):
 	
 
 class QAWorkflow( Workflow, CallbackBase ):
-	"""Represents a workflow of QAProcess instances and allows to query them more 
+	"""Represents a workflow of QAProcessBase instances and allows to query them more 
 	conveniently"""
 	
 	#( Configuration 
-	sender_as_argument = False 
+	sender_as_argument = False
+	
+	# if True, we will abort once the first error has been raised during check execution
+	# It is also held as instance variable so it can be set on per instance basis, allowing 
+	# error check callbacks to adjust the error handling behaviour and abort the operation 
+	abort_on_error = False			
 	#) END configuration 
 	
 	#( Filters 
-	fIsQAProcess = staticmethod( lambda n: isinstance( n, QAProcess ) )
+	fIsQAProcessBase = staticmethod( lambda n: isinstance( n, QAProcessBase ) )
 	fIsQAPlug = staticmethod( lambda p: isinstance( p, QACheck ) )
 	#) END filters 
 	
 	#{ Events 
-	# called before a check is run as func: func( check )
-	preCheck = event( "preCheck" )
+	# called before a check is run as func: func( event, check )
+	e_preCheck = event( "e_preCheck" )
 	
-	# called if a check fails with an error: func( check, exception )
-	checkError = event( "checkError" )
+	# called if a check fails with an error: func( event, workflow, check, exception )
+	e_checkError = event( "e_checkError" )
 	
-	# called after a check has been run: func( check )
-	postCheck = event( "postCheck" )
+	# called after a check has been run: func( event, check )
+	e_postCheck = event( "e_postCheck" )
 	#} 
 	
-	def listQAProcesses( self, predicate = lambda p: True ):
+	def __init__( self, *args, **kwargs ):
+		"""Initialize our instance"""
+		super( QAWorkflow, self ).__init__( *args, **kwargs )
+		
+		# store abort on error as instance variable so that it can easily be overwritten
+		self.abort_on_error = QAWorkflow.abort_on_error
+	
+	def listQAProcessBasees( self, predicate = lambda p: True ):
 		"""@return: list( Process, ... ) list of QA Processes known to this QA Workflow
 		@param predicate: include process p in result if func( p ) returns True"""
-		return self.iterNodes( predicate = lambda n: self.fIsQAProcess( n ) and predicate( n ) )
+		return self.iterNodes( predicate = lambda n: self.fIsQAProcessBase( n ) and predicate( n ) )
 	
 	def filterChecks( self, processes, predicate = lambda c: True ):
 		"""As L{listChecks}, but allows you do define the processes to use"""
@@ -155,26 +176,30 @@ class QAWorkflow( Workflow, CallbackBase ):
 		return outchecks
 	
 	def listChecks( self, predicate = lambda c: True  ):
-		"""List all checks as supported by L{QAProcess}es in this QA Workflow
+		"""List all checks as supported by L{QAProcessBase}es in this QA Workflow
 		@param predicate: include check c in result if func( c ) returns True"""
-		return self.filterChecks( self.listQAProcesses( ), predicate = predicate )
+		return self.filterChecks( self.listQAProcessBasees( ), predicate = predicate )
 		
-	def runChecks( self, checks, mode = QAProcess.eMode.query, clear_result = True ):
+	def runChecks( self, checks, mode = QAProcessBase.eMode.query, clear_result = True ):
 		"""Run the given checks in the given mode and return their results
 		@param checks: list( QACheckShell, ... ) as retrieved by L{listChecks}
-		@param mode: L{QAProcess.eMode} 
+		@param mode: L{QAProcessBase.eMode} 
 		@param clear_result: if True, the plug's cache will be removed forcing a computation
 		if False, you might get a cached value depending on the plug's setup
 		@return: list( tuple( QACheckShell ), ... ) list of pairs of 
 		QACheckShells and the test result. The test result will be empty if the test 
 		did not run or failed with an exception
-		@events: preCheck and postCheck"""
+		@events: e_preCheck , e_postCheck, e_checkError
+		e_checkError may set the abort_on_error variable to True to cause the operation 
+		not to proceed with other checks """
 		
+		# reset abort on error to class default
+		self.abort_on_error = self.__class__.abort_on_error
 		self._clearState( mode )	# assure we get a new callgraph
 		
 		outresult = list()
 		for checkshell in checks:
-			self.sendEvent( self.preCheck, checkshell )
+			self.sendEvent( self.e_preCheck, self.__class__.e_preCheck, checkshell )
 			
 			result = QACheckResult()	 	# null value 
 			if clear_result:
@@ -183,11 +208,15 @@ class QAWorkflow( Workflow, CallbackBase ):
 			try:
 				result = checkshell.get( mode ) 
 			except Exception, e:
-				self.sendEvent( self.checkError, checkshell, e )
+				self.sendEvent( self.e_checkError, self.__class__.e_checkError, self, checkshell, e )
+				
+				if self.abort_on_error:
+					raise 
+			# END error handling 
 				
 			# record result 
 			outresult.append( ( checkshell, result ) )
-			self.sendEvent( self.postCheck, checkshell )
+			self.sendEvent( self.e_postCheck, self.__class__.e_postCheck, checkshell )
 		# END for each check to run 
 	
 		return outresult
@@ -201,7 +230,8 @@ class QACheckResult( object ):
 		@param fixed_items: if list of items, the instance is initialized with it
 		@param failed_items: list of items that could not be fixed
 		@param header: optional string giving additional specialized information on the 
-		outcome of the test"""
+		outcome of the test. Tests must supply a header - otherwise the result will be treated 
+		as failed check"""
 		self.header = ""
 		self.fixed_items = ( isinstance( fixed_items, list ) and fixed_items ) or list()
 		self.failed_items = ( isinstance( failed_items, list ) and failed_items ) or list()
@@ -221,7 +251,18 @@ class QACheckResult( object ):
 		"""@return: True if the test result is empty, and thus resembles a null value"""
 		return not self.failed_items and not self.fixed_items
 		
+	def isSuccessful( self ):
+		"""@return: True if the check is successful, and False if there are at least some failed objects"""
+		if not self.header:
+			return False
+			
+		# we are successful if there are no failed items left
+		return not self.failed_items
+		
 	def __str__( self ):
+		if not self.header:
+			return "No check-result available"
+			
 		msg = self.header
 		msg += ", ".join( str( i ) for i in self.fixed_items )
 		msg += ", ".join( str( i ) for i in self.failed_items )
