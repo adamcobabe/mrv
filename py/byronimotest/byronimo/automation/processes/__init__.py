@@ -22,6 +22,7 @@ import byronimo.automation.process as process
 import byronimo.automation.processes as processes
 from byronimo.dgengine import plug, Attribute as A
 from byronimo.path import Path
+from byronimo.automation.qa import QAProcess, QACheck, QACheckResult
 
 def get_suite( ):
 	""" @return: testsuite with all tests of this package
@@ -149,11 +150,26 @@ class WorkflowWrapTestProcess( process.WorkflowProcessBase ):
 #} END processes 
 
 
+#{ QA Processes
+class QACheckProcess( QAProcess ):
+	""" Simple test process """
+	
+	# tests 
+	testalpha = QACheck( "runs testalpha", has_fix = 1 )
+	testbeta = QACheck( "runs testbeta", has_fix = 1 )
+	
+	
+	def assureQuality( self, check, mode ):
+		if mode == self.eMode.query:
+			return QACheckResult( failed_items = [ check ] )
+		else: 
+			return QACheckResult( fixed_items = [ check ] )
+	
+
+#} END QA Processes 
 
 
 #{ Process Initialization
-processes.addProcesses( TestProcess )
-processes.addProcesses( OtherTestProcess )
-processes.addProcesses( WorkflowWrapTestProcess )
+processes.addProcesses( TestProcess, OtherTestProcess, WorkflowWrapTestProcess, QACheckProcess )
 
 #}

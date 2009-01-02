@@ -53,16 +53,19 @@ def _getNodeInfo( node ):
 			
 	return ( typename, args,kwargs )
 
-def loadWorkflowFromDotFile( dotfile ):
+def loadWorkflowFromDotFile( dotfile, workflowcls = None ):
 	"""Create a graph from the given dotfile and create a workflow from it.
 	The workflow will be fully intiialized with connected process instances.
 	The all compatible plugs will automatically be connected for all processes 
 	connected in the dot file 
+	@param workflowcls: if not None, a dgengine.Graph compatible class to be used
+	for workflow creation. Defaults to automation.workflow.Workflow.
 	@return: List of initialized workflow classes - as they can be nested, the 
 	creation of one workflow can actually create several of them"""
 	import pydot
 	import processes
 	from workflow import Workflow
+	wflclass = workflowcls or Workflow
 	dotgraph = pydot.graph_from_dot_file( dotfile )
 	
 	if not dotgraph: 
@@ -71,7 +74,7 @@ def loadWorkflowFromDotFile( dotfile ):
 	
 	# use the filename as name
 	edge_lut = {}									# string -> processinst
-	wfl = Workflow( name=dotfile.p_namebase )
+	wfl = wflclass( name=dotfile.p_namebase )
 	
 	
 	#print "LOADING %s FROM FILE %s" % (wfl,dotfile)
@@ -182,8 +185,9 @@ def loadWorkflowFromDotFile( dotfile ):
 	return wfl
 	
 	
-def addWorkflowsFromDotFiles( module, dotfiles ):
+def addWorkflowsFromDotFiles( module, dotfiles, workflowcls = None ):
 	"""Create workflows from a list of dot-files and add them to the module
+	@param workflowcls: see L{loadWorkflowFromDotFile}
 	@return: list of workflow instances created from the given files"""
 	outwfls = list()
 	for dotfile in dotfiles:
@@ -193,7 +197,7 @@ def addWorkflowsFromDotFiles( module, dotfiles ):
 		if hasattr( module, wflname ):
 			continue 
 			
-		wflinst = loadWorkflowFromDotFile( dotfile )
+		wflinst = loadWorkflowFromDotFile( dotfile, workflowcls = workflowcls )
 		setattr( module, wflname , wflinst )
 		outwfls.append( wflinst )
 		

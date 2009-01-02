@@ -21,6 +21,7 @@ import byronimotest.byronimo.automation.processes as process # assure procs are 
 import byronimotest as common
 import byronimo.automation.base as wflbase
 from byronimo.path import Path
+from byronimo.automation.qa import QAWorkflow
 
 #{ Interface 
 def createWorkflow( workflowName ):
@@ -33,6 +34,7 @@ def createWorkflow( workflowName ):
 def init_loadWorkflows( ):
 	_this_module = __import__( "byronimotest.byronimo.automation.workflows", globals(), locals(), ['workflows'] )
 	wflbase.addWorkflowsFromDotFiles( _this_module, Path( __file__ ).p_parent.glob( "*.dot" ) )
+	wflbase.addWorkflowsFromDotFiles( _this_module, Path( __file__ ).p_parent.glob( "*.dotQA" ), workflowcls = QAWorkflow )
 
 
 # load all the test workflows 

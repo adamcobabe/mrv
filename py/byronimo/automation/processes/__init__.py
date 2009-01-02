@@ -47,7 +47,7 @@ def addProcesses( *args ):
 		if ProcessBase not in pcls.mro():
 			raise TypeError( "%r does not support the process interface" % pcls )
 	
-	setattr( _this_module, pcls.__name__, pcls )
+		setattr( _this_module, pcls.__name__, pcls )
 	# END for each arg 
 
 #} END interface

@@ -35,6 +35,10 @@ def track_output_call( func ):
 	about the call, as well as error statistics"""
 	
 	def track_func( self, plug, mode ):
+		# return simple result if tracking is disabled
+		if not self.track_compute_calls:
+			return func( self, plug, mode )
+			
 		pdata = self.getWorkflow()._trackOutputQueryStart( self, plug, mode )
 		
 		try:
@@ -69,6 +73,11 @@ class ProcessBase( NodeBase ):
 	
 	noun = "Noun ProcessBase,redefine in subclass"	# used in reports 
 	verb = "Verb ProcessBase,redefine in subclass" # used in reports 
+	
+	#{ Configuration
+	# if False, the computation results will not be tracked in a callgraph
+	track_compute_calls = True 
+	#} END configuration 
 	
 	__all__.append( "ProcessBase" )
 	
@@ -194,8 +203,12 @@ class ProcessBase( NodeBase ):
 		finalmode = wfl._mode			# use global mode 
 		
 		# if we are root, we take the mode given by the caller though 
-		if wfl.getCallGraph().getCallRoot().process == self:
-			finalmode = mode 
+		if self.track_compute_calls:
+			if wfl.getCallGraph().getCallRoot().process == self:
+				finalmode = mode 
+		else:
+			# either use the explicit mode or the global one
+			finalmode = mode or wfl._mode
 	
 		# exceptions are handled by dgengine	
 		# call actually implemented method

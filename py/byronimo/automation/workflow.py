@@ -341,6 +341,13 @@ class Workflow( Graph ):
 		return outreports
 		
 		
+	def _clearState( self, global_evaluation_mode ):
+		"""Clear the previous state and re-initialize this instance getting ready
+		for a new instance
+		@param global_evaluation_mode: evaluation mode to be used"""
+		self._callgraph = Workflow.CallGraph( )
+		self._mode = global_evaluation_mode
+		
 	
 	def _setupProcess( self, target, globalmode ):
 		"""Setup the workflow's dg such that the returned output shell can be queried 
@@ -354,8 +361,7 @@ class Workflow( Graph ):
 			raise TargetError( "Cannot handle target %r" % target )
 			
 		# clear previous callgraph
-		self._callgraph = Workflow.CallGraph( )
-		self._mode = globalmode
+		self._clearState( globalmode )
 		
 		# prepare all processes
 		for node in self.iterNodes( ):
