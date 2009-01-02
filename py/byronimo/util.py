@@ -664,8 +664,8 @@ class WeakInstFunction( object ):
 		
 	def __call__( self, *args, **kwargs ):
 		inst = self._weakinst()
-		if not inst:	# went out of scope
-			print "Instance for call has been deleted as it is weakly bound"
+		if inst is None:	# went out of scope
+			print "Instance for call to %s has been deleted as it is weakly bound" % self._clsfunc.__name__
 			return 
 		
 		return self._clsfunc( inst, *args, **kwargs )
