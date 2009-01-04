@@ -22,6 +22,7 @@ __copyright__='(c) 2008 Sebastian Thiel'
 from byronimo.util import CallbackBase, Call, WeakInstFunction
 import maya.cmds as cmds 
 import weakref
+from byronimo.enum import create as enum 
 
 #{ MEL Function Wrappers
  
@@ -245,3 +246,93 @@ class UIContainerBase( object ):
 		of this layout
 		@note: always use the addChild function to add the children !"""
 		cmds.setParent( self )
+		
+class iItemSet( object ):
+	"""Interface allowing to dynamically add, update and remove items to a layout
+	to match a given input set of item ids.
+	Its abstacted to be implemented by subclasses"""
+	
+	# identify the type of event to handle as called during setItems
+	eSetItemCBID = enum( "preCreate", "preUpdate", "preRemove", "postCreate", "postUpdate", "postRemove" )
+	
+	#{ Interface 
+	def setItems( self, item_ids, **kwargs ):
+		"""Set the UI to display items identified by the given item_ids
+		@param item_ids: ids behaving appropriately if put into a set
+		@param kwargs: passed on to the handler methods ( which are implemented by the subclass ).
+		Use these to pass on additional data that you might want to use to keep additional information about 
+		your item ids 
+		@note: you are responsible for generating a list of item_ids and call this 
+		method to trigger the update"""
+		existing_items = set( self.getCurrentItemIds( **kwargs ) )
+		todo_items = set( item_ids )
+		
+		items_to_create = todo_items - existing_items
+		items_to_remove = existing_items - todo_items
+		
+		# REMOVE OBSOLETE 
+		##################
+		if items_to_remove:
+			self.handleEvent( self.eSetItemCBID.preRemove, **kwargs )
+			for item in items_to_remove:
+				self.removeItem( item, **kwargs )
+			self.handleEvent( self.eSetItemCBID.postRemove, **kwargs )
+		# END if there are items to remove 
+		
+		# CREATE NEW 
+		##############
+		if items_to_create:
+			self.handleEvent( self.eSetItemCBID.preCreate, **kwargs )
+			for item in items_to_create:
+				result = self.createItem( item, **kwargs )
+				# something didnt work, assure we do not proceed with this one
+				if result is None:
+					todo_items.remove( item )
+			# END for each item to create
+			self.handleEvent( self.eSetItemCBID.postCreate, **kwargs )
+		# END if there are items to create 
+		
+		# UPDATE EXISTING
+		##################
+		if todo_items:
+			self.handleEvent( self.eSetItemCBID.preUpdate, **kwargs )
+			for item in todo_items:
+				self.updateItem( item, **kwargs )
+			self.handleEvent( self.eSetItemCBID.postUpdate, **kwargs )
+		# END if there are items to update 
+	
+	#} END interace 
+	
+	#{ SubClass Implementation
+	
+	def getCurrentItemIds( self, **kwargs ):
+		"""@return: list of item ids that are currently available in your layout.
+		They will be passed around to the L{createItem}, L{updateItem} andL{removeItem}
+		methods and is the foundation of the L{setItems} method. Ids returned here
+		must be compatible to the ids passed in to L{setItems}"""
+		raise NotImplementedError( "To be implemented by subClass" )
+	
+	def handleEvent( self, eventid, **kwargs ):
+		"""Called whenever a block of items is being handled for an operation identified 
+		by eventid, allowing you to prepare for such a block or finish it
+		@param eventid: eSetItemCBID identifying the event to handle"""
+		pass 
+	
+	def createItem( self, itemid, **kwargs ):
+		"""Create an item identified by the given itemid and add it to your layout
+		@return: created item or None to indicate error. On error, the item will not 
+		be updated anymore"""
+		raise NotImplementedError( "To be implemented by subClass" )
+		
+	def updateItem( self, itemid, **kwargs ):
+		"""Update the item identified by the given itemid so that it represents the 
+		current state of the application"""
+		raise NotImplementedError( "To be implemented by subClass" )
+	
+	def removeItem( self, itemid, **kwargs ):
+		"""Remove the given item identified by itemid so it does not show up in this 
+		layout anymore
+		@note: its up to you how you remove the item, as long as it is not visible anymore"""
+		raise NotImplementedError( "To be implemented by subClass" )
+		
+	#} END subclass implementation
