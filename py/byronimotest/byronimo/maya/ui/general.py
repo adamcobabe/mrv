@@ -19,6 +19,7 @@ __copyright__='(c) 2008 Sebastian Thiel'
 
 import unittest
 import byronimo.maya.ui as ui
+import byronimo.maya.ui.qa as qaui
 from byronimo.util import capitalize
 import maya.cmds as cmds
 import sys
@@ -135,8 +136,10 @@ class TestGeneralUI( unittest.TestCase ):
 		col = win.add( ui.ColumnLayout( adj=1 ) )
 		
 		if col:
+			bname = "mybutton"
 			b1 = col.add( ui.Button( l="one" ) )
-			b2 = col.add( ui.Button( name="mybutton", l="two" ) )
+			b2 = col.add( ui.Button( name=bname, l="two" ) )
+			
 			self.failUnless( "mybutton" in b2 )
 			self.failUnless( b1.exists() )
 			
@@ -151,7 +154,10 @@ class TestGeneralUI( unittest.TestCase ):
 			
 			grid = col.add( ui.GridLayout( ) )
 			if grid:
-				grid.add( ui.Button( l="gone" ) )
+				bduplname = ui.Button( l="gone", name=bname )
+				
+				assert bduplname.getBasename() == b2.getBasename()
+				grid.add( bduplname )	 # different parents may have a child with same name
 				grid.add( ui.Button( l="gtwo" ) )
 			grid.setParentActive( )
 			
@@ -263,3 +269,23 @@ class TestGeneralUI( unittest.TestCase ):
 		
 		progress.set( maxrange * 2 )
 		self.failUnless( progress.get() == maxrange )
+		
+	def test_qa( self ):
+		"""byronimo.maya.ui.qa: test qa interface by setting some checks"""
+		if cmds.about( batch=1 ):
+			return
+			
+		import byronimotest.byronimo.automation.workflows as workflows
+		
+		qawfl = workflows.qualitychecking
+		checks = qawfl.listChecks( )
+		
+		win = ui.Window( title="QA Window" )
+		incol = ui.ColumnLayout( adj = 1 )
+		if incol:
+			qa = qaui.QALayout( )
+			qa.setChecks( checks )
+		# END incol 
+		incol.setParentActive()
+		
+		win.show()

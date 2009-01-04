@@ -7,13 +7,14 @@ baseUI
 	namedUI
 		sizedControl
 			layout
-				columnLayout
+				columnLayoutBase
+					columnLayout
+					rowColumnLayout
 				frameLayout
 				paneLayout
 				formLayout
 				scrollLayout
 				tabLayout
-				rowColumnLayout
 				rowLayout
 				gridLayout
 				menuBarLayout
@@ -52,18 +53,20 @@ baseUI
 				nameField
 			labelBase
 				booleanBase
-					iconTextCheckBox
-					checkBox
-					iconTextRadioButton
-					radioButton
+					checkBoxBase
+						iconTextCheckBox
+						checkBox
+					radioButtonBase
+						iconTextRadioButton
+						radioButton
 				iconTextButton
 				button
+				text
 			window
 			optionMenu
 			intScrollBar
 			floatScrollBar
 			floatSlider2
-			text
 			textScrollList
 		editorBase
 			colorEditor

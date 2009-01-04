@@ -149,10 +149,10 @@ class QAWorkflow( Workflow, CallbackBase ):
 	# called before a check is run as func: func( event, check )
 	e_preCheck = event( "e_preCheck" )
 	
-	# called if a check fails with an error: func( event, workflow, check, exception )
+	# called if a check fails with an error: func( event, check, exception, workflow )
 	e_checkError = event( "e_checkError" )
 	
-	# called after a check has been run: func( event, check )
+	# called after a check has been run: func( event, check, result )
 	e_postCheck = event( "e_postCheck" )
 	#} 
 	
@@ -186,8 +186,8 @@ class QAWorkflow( Workflow, CallbackBase ):
 		@param mode: L{QAProcessBase.eMode} 
 		@param clear_result: if True, the plug's cache will be removed forcing a computation
 		if False, you might get a cached value depending on the plug's setup
-		@return: list( tuple( QACheckShell ), ... ) list of pairs of 
-		QACheckShells and the test result. The test result will be empty if the test 
+		@return: list( tuple( QACheckShell, QACheckResult ), ... ) list of pairs of 
+		QACheckShells and the check's result. The test result will be empty if the test 
 		did not run or failed with an exception
 		@events: e_preCheck , e_postCheck, e_checkError
 		e_checkError may set the abort_on_error variable to True to cause the operation 
@@ -208,7 +208,7 @@ class QAWorkflow( Workflow, CallbackBase ):
 			try:
 				result = checkshell.get( mode ) 
 			except Exception, e:
-				self.sendEvent( self.e_checkError, self.__class__.e_checkError, self, checkshell, e )
+				self.sendEvent( self.e_checkError, self.__class__.e_checkError, checkshell, e, self )
 				
 				if self.abort_on_error:
 					raise 
@@ -216,7 +216,7 @@ class QAWorkflow( Workflow, CallbackBase ):
 				
 			# record result 
 			outresult.append( ( checkshell, result ) )
-			self.sendEvent( self.e_postCheck, self.__class__.e_postCheck, checkshell )
+			self.sendEvent( self.e_postCheck, self.__class__.e_postCheck, checkshell, result )
 		# END for each check to run 
 	
 		return outresult
@@ -232,7 +232,7 @@ class QACheckResult( object ):
 		@param header: optional string giving additional specialized information on the 
 		outcome of the test. Tests must supply a header - otherwise the result will be treated 
 		as failed check"""
-		self.header = ""
+		self.header = header
 		self.fixed_items = ( isinstance( fixed_items, list ) and fixed_items ) or list()
 		self.failed_items = ( isinstance( failed_items, list ) and failed_items ) or list()
 
@@ -249,7 +249,7 @@ class QACheckResult( object ):
 	
 	def isNull( self ):
 		"""@return: True if the test result is empty, and thus resembles a null value"""
-		return not self.failed_items and not self.fixed_items
+		return not self.header or ( not self.failed_items and not self.fixed_items ) 
 		
 	def isSuccessful( self ):
 		"""@return: True if the check is successful, and False if there are at least some failed objects"""
@@ -263,7 +263,8 @@ class QACheckResult( object ):
 		if not self.header:
 			return "No check-result available"
 			
-		msg = self.header
-		msg += ", ".join( str( i ) for i in self.fixed_items )
+		msg = self.header + "\n"
+		if self.fixed_items:
+			msg += ", ".join( str( i ) for i in self.fixed_items ) + "\n"
 		msg += ", ".join( str( i ) for i in self.failed_items )
 		return msg 

@@ -95,9 +95,8 @@ class MetaClassCreatorUI( mutil.MetaClassCreator ):
 		# read the event description and create _UIEvent instances that will 
 		# register themselves on first use, allowing multiple listeners per maya event
 		eventnames = clsdict.get( "_events_", list() )
-		strong_event_handlers = clsdict.get( "strong_event_handlers", False )
 		event_kwargs = dict() 
-		if strong_event_handlers:
+		if clsdict.get( "strong_event_handlers", False ):
 			event_kwargs[ "weak" ] = False
 			
 		for ename in eventnames:

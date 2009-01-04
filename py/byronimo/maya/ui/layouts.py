@@ -38,7 +38,7 @@ class Layout( uibase.SizedControl, uiutil.UIContainerBase ):
 		@param name: name of layout, several class instances can exist with the
 		same name - it will be adjusted for maya as it requires unique names for each 
 		layout. """
-		uibase.NamedUI.__init__( self, *args, **kwargs )
+		super( Layout, self ).__init__( *args, **kwargs )
 	
 	def __getitem__( self, key ):
 		"""Implemented by L{UIContainerBase}"""
@@ -49,7 +49,8 @@ class Layout( uibase.SizedControl, uiutil.UIContainerBase ):
 	def getChildren( self ):
 		""" @return: children of this layout """
 		childnames = mutil.noneToList( cmds.layout( self, q=1, ca=1 ) )
-		return uibase.wrapUI( childnames )
+		# assure we have long names to ensure uniqueness
+		return uibase.wrapUI( [ "%s|%s" % ( self, c ) for c in childnames ] )
 		
 	def setParentActive( self ):
 		"""Set the parent ( layout ) of this layout active - newly created items 
@@ -81,15 +82,58 @@ class FormLayout( Layout ):
 
 class FrameLayout( Layout ):
 	"""Simple wrapper for a frame layout"""
-	_properties_ = (	"bw", "borderVisible", "bs",  "borderStyle", "cl", "collapse", "cll", "collapsable",
-					   "l", "label", "lw", "labelWidth", "lv", "labelVisible", "la", "labelAlign", "li", "labelIndent", "fn", "font",
-					   "mw", "marginWidth", "mh", "marginHeight" )
+	_properties_ = (	"bw", "borderVisible", 
+					   	"bs",  "borderStyle", 
+						"cl", "collapse", 
+						"cll", "collapsable",
+						"l", "label", 
+						"lw", "labelWidth", 
+						"lv", "labelVisible", 
+						"la", "labelAlign", 
+						"li", "labelIndent", 
+						"fn", "font",
+						"mw", "marginWidth", 
+						"mh", "marginHeight" )
 
-	_events_ = ( "cc", "collapseCommand", "ec", "expandCommand", "pcc", "preCollapseCommand", "pec", "preExpandCommand" )
+	_events_ = ( 	"cc", "collapseCommand", 
+					"ec", "expandCommand", 
+					"pcc", "preCollapseCommand", 
+					"pec", "preExpandCommand" )
 
-class ColumnLayout( Layout ):
+
+class RowLayout( Layout ):
+	"""Wrapper for row column layout"""
+	_properties_ = [ 	"columnWidth", "cw", 
+						"columnAttach", "cat", 
+						"rowAttach", "rat", 
+					  	"columnAlign", "cal",
+						"adjustableColumn", "adj",  
+					  	"numberOfColumns", "nc" ]
+	
+	for flag in ( 	"columnWidth", "cw", "columnAttach", "ct", "columnOffset", 
+				  	"co", "columnAlign", "cl", "adjustableColumn", "ad" ): 
+		for i in range( 1, 7 ):
+			_properties_.append( flag + str( i ) )
+
+
+class ColumnLayoutBase( Layout ):
+	_properties_ = (   	"columnAlign", "cal", 
+						"columnAttach", "cat", 
+						"columnOffset", "co" ,
+						"columnWidth", "cw", 
+						"rowSpacing", "rs" )
+
+class RowColumnLayout( ColumnLayoutBase ):
+	"""Wrapper for row column layout"""
+	_properties_ = ( 	"numberOfColumns", "nc",
+					  	"numberOfRows", "nr", 
+						"rowHeight", "rh",
+						"rowOffset", "ro", 
+					  	"rowSpacing", "rs" )
+	
+
+class ColumnLayout( ColumnLayoutBase ):
 	"""Wrapper class for a simple column layout"""
 	
-	_properties_ = ( 	"adjustableColumn", "columnAlign", "columnAttach", "columnOffset", 
-						"columnWidth", "rowSpacing" )
+	_properties_ = ( 	"adjustableColumn", "adj" ) 
 	

@@ -30,18 +30,35 @@ import util as uiutil
 
 class LabelBase( uibase.SizedControl ):
 	"""Base class for elements having labels"""
-	_properties_ = ( "l", "label", "al", "align" , "rs", "recomputeSize" )
+	_properties_ = ( 	"l", "label",
+						"al", "align" , 
+						"rs", "recomputeSize" )
 
 class SliderBase( uibase.SizedControl ):
 	"""Class contributing Simple Slider Events"""
-	_events_ = ( "cc", "changeCommand", "dc", "dragCommand" )
-	_properties_ = ( 	"min", "minValue", "max", "maxValue", "v", "value", 
-						"s", "step", "hr", "horizontal" )
+	_events_ = ( 	"cc", "changeCommand", 
+					"dc", "dragCommand" )
+	
+	_properties_ = ( 	"min", "minValue", 
+					  	"max", "maxValue", 
+						"v", "value", 
+						"s", "step", 
+						"hr", "horizontal" )
 
 class BooleanBase( LabelBase ):
 	"""Base class for boolean controls"""
-	_events_ = ( "onCommand", "offCommand", "changeCommand", "cc", "onc", "ofc" )
+	_events_ = ( 	"onCommand", "onc",
+					"offCommand", "ofc",
+					"changeCommand", "cc" )
 	
+class CheckBoxBase( BooleanBase ):
+	"""Base class for checkboxes"""
+	_properties_ = ( "value", "v" )
+	
+class RadioButtonBase( BooleanBase ):
+	"""Base class for radio buttons"""
+	_properties_ = ( "select", "sl" )
+
 
 class GroupBase( uibase.SizedControl ):
 	"""Base allowing access to all grouped controls
@@ -145,17 +162,40 @@ class ButtonGroupBase( GroupBase ):
 	
 	_events_ = ( "bc", "buttonCommand" )
 	
+class IconTextBase( object ):
+	"""Base class for all icon text like controls"""
+	#{ Configuration 
+	__metaclass__ = uibase.ui.MetaClassCreatorUI
+	isNodeTypeTreeMember = False
+	#} END configuation 
+	
+	_properties_ = ( 	"image", "i",
+					  	"image1", "i1", 
+						"image2", "i2", 
+						"image3", "i3",
+						"disabledImage", "di",
+						"highlightImage", "hi", 
+						"imageOverlayLabel", "iol",
+						"style", "st",
+						"selectionImage", "si", 
+						"highlightImage", "hi", 
+						"labelOffset", "lo", 
+						"font", "fn"
+						)
+	
+	_events_ = ( 		"handleNodeDropCallback", "hnd", 
+					 	"labelEditingCallback", "lec"	)
+
 #} END bases
 
 
-class RadioButton( BooleanBase ):
-	_properties_ = ( "sl", "select" )
-
-
-class RadioButtonGrp( BooleanGroupBase, RadioButton ):
+class RadioButtonGrp( BooleanGroupBase, RadioButtonBase ):
 	"""Warning: inherits booleanBase multiple times """
 	pass 
 
+class CheckBoxGrp( BooleanGroupBase, CheckBoxBase ):
+	"""Warning: inherits booleanBase multiple times """
+	pass
 
 class Button( LabelBase ):
 	""" Simple button interface 
@@ -167,25 +207,42 @@ class Button( LabelBase ):
 	e_pressed = uiutil.CallbackBaseUI._UIEvent( "command", actOnPress=True )
 	e_released = uiutil.CallbackBaseUI._UIEvent( "command", actOnPress=False )
 
+class IconTextButton( LabelBase, IconTextBase ):
+	"""Class just for multiple inheritance - this cannot be expressed in the hierarchy 
+	file"""
+	_events_ = ( "c", "command" )
+
+class IconTextCheckBox( CheckBoxBase, IconTextBase ):
+	"""Class just for multiple inheritance - this cannot be expressed in the hierarchy 
+	file"""
+	pass
+
+class IconTextRadioButton( RadioButtonBase, IconTextBase ):
+	"""Class just for multiple inheritance - this cannot be expressed in the hierarchy 
+	file"""
+	pass
 
 class TextField( FieldBase, TextFieldBase ):
-	"""Class just multiple inheritance - this cannot be expressed in the hierarchy 
+	"""Class just for multiple inheritance - this cannot be expressed in the hierarchy 
 	file"""
 	pass 
 	
 	
 class TextFieldGrp( GroupBase, TextFieldGroupBase ):
-	"""Class just multiple inheritance - this cannot be expressed in the hierarchy 
+	"""Class just for multiple inheritance - this cannot be expressed in the hierarchy 
 	file"""
 	
 
 class TextFieldButtonGrp( ButtonGroupBase, TextFieldGroupBase ):
-	"""Class just multiple inheritance - this cannot be expressed in the hierarchy 
+	"""Class just for multiple inheritance - this cannot be expressed in the hierarchy 
 	file"""
 	
+class Text( LabelBase ):
+	_properties_ = ( "font", "fn" )
+
 
 class OptionMenu( uibase.SizedControl, OptionMenuBase ):
-	"""Class just multiple inheritance - this cannot be expressed in the hierarchy 
+	"""Class just for multiple inheritance - this cannot be expressed in the hierarchy 
 	file"""
 	#( Configuration
 	_is_menu = True
@@ -193,7 +250,7 @@ class OptionMenu( uibase.SizedControl, OptionMenuBase ):
 
 
 class OptionMenuGrp( GroupBase, OptionMenuBase ):
-	"""Class just multiple inheritance - this cannot be expressed in the hierarchy 
+	"""Class just for multiple inheritance - this cannot be expressed in the hierarchy 
 	file"""
 	#( Configuration
 	_is_menu = True

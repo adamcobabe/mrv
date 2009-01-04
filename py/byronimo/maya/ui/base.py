@@ -141,28 +141,53 @@ class NamedUI( unicode, BaseUI , iDagItem, CallbackBaseUI ):
 	#) end configuration 
 	
 	#{ Overridden Methods
-	@staticmethod
-	def _exists( uiname ):
-		"""@return: True if the given UI element exists"""
+	@classmethod
+	def _exists( cls, uiname ):
+		"""@return: 1 if the given UI element exists, 0 if it does not exist 
+		and 2 it exists but the passed in name does not guarantee there are not more 
+		objects with the same name"""
 		try:
-			cmds.objectTypeUI( uiname )
+			uitype = cmds.objectTypeUI( uiname )
 		except RuntimeError:
-			return False
+			return 0
 		else:
-			return True 
+			# short names can only be used with top level items like 
+			# windows - for everything else we cannot know how many items 
+			# with the same name exist and which one we should actually wrap
+			# Claim it does not exist
+			if "Window" not in uitype and cls._sep not in uiname:
+				return 2
+			return 1 
 			
 	def __new__( cls, *args, **kwargs ):
 		"""If name is given, the newly created UI will wrap the UI with the given name.
 		Otherwise the UIelement will be created
+		@param name: name of the user interface to wrap or the target name of a new elf element.
+		Valid names for creation are short names ( without a | in it's path ), valid names 
+		for wrapping are short and preferably long names.
+		@param force_wrap: if True, default False, a wrap will be done even if the passed 
+		in name uses the short form ( for non-window elements ). If it exists, one cannot be sure
+		whether more elements with the given name exist. If False, the system will create a new 
+		element of our type.
 		@note: you can use args safely for your own purposes 
 		@note: if name is set but does not name a valid user interface, a new one 
 		will be created, and passed to the constructor"""
 		name = kwargs.pop( "name", None )
-		exists = NamedUI._exists( str( name ) )	# could be None
+		exists = ( ( name is not None ) and NamedUI._exists( str( name ) ) ) or False
+		
+		# pretend named element does not exist if existance is ambigous
+		if not kwargs.pop( "wrap_only", False ) and exists == 2:
+			exists = 0
+			
 		if name is None or not exists:
 			try:
-				if name:	# use name 
+				if name:	# use name to create named object
 					name = cls.__melcmd__( name, **kwargs )
+					
+					# assure we have a long name - mel sometimes returns short ones 
+					# that are ambigous ... 
+					if cls._sep not in name and cls is not Window:
+						name = "%s|%s" % ( cmds.setParent( q=1 ), name )
 				else:
 					name = cls.__melcmd__( **kwargs )
 			except (RuntimeError,TypeError), e:

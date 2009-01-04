@@ -44,6 +44,9 @@ class TestQualityAssurance( unittest.TestCase ):
 				attr = "failed_items"
 				if mode == qa.QAProcessBase.eMode.fix:
 					attr = "fixed_items"
+					assert result.isSuccessful()
+				else:
+					assert not result.isSuccessful()
 					
 				assert getattr( result, attr )
 			# END for each result/checkshell 

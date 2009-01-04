@@ -161,9 +161,9 @@ class QACheckProcess( QAProcessBase ):
 	
 	def assureQuality( self, check, mode ):
 		if mode == self.eMode.query:
-			return QACheckResult( failed_items = [ check ] )
+			return QACheckResult( failed_items = [ check ], header = "query" )
 		else: 
-			return QACheckResult( fixed_items = [ check ] )
+			return QACheckResult( fixed_items = [ check ], header = "fixed" )
 	
 
 #} END QA Processes 
