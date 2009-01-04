@@ -661,12 +661,12 @@ class WeakInstFunction( object ):
 		self._weakinst = weakref.ref( instancefunction.im_self )
 		self._clsfunc = instancefunction.im_func
 		
-		
 	def __call__( self, *args, **kwargs ):
+		"""@raise LookupError: if the instance referred to by the instance method 
+		does not exist anymore"""
 		inst = self._weakinst()
 		if inst is None:	# went out of scope
-			print "Instance for call to %s has been deleted as it is weakly bound" % self._clsfunc.__name__
-			return 
+			raise LookupError( "Instance for call to %s has been deleted as it is weakly bound" % self._clsfunc.__name__ )
 		
 		return self._clsfunc( inst, *args, **kwargs )
 	
@@ -798,27 +798,41 @@ class CallbackBase( iDuplicatable ):
 		"""Send the given event to all registered event listeners
 		@note: will catch all event exceptions trown by the methods called
 		@param event: either name of event on self or the event instance itself
+		@note: if an event listener is weak referenced and goes out of scope
 		@return: False if at least one event call threw an exception, true otherwise"""
 		eventinst = self._toEventInst( event )
 		callbackset = eventinst.__get__( self )
 		success = True
+		failed_callbacks = list()
 		for function in callbackset:
 			try:
 				func = eventinst._keyToFunc( function ) 
 				if func is None:
 					print "Listener for callback of %s was not available anymore" % self
+					failed_callbacks.append( func )
 					continue
 					
-				if self.sender_as_argument:
-					func( self, *args, **kwargs )
-				else:
-					func( *args, **kwargs )
+				try:
+					if self.sender_as_argument:
+						func( self, *args, **kwargs )
+					else:
+						func( *args, **kwargs )
+				except LookupError, e:
+					# thrown if self in instance methods went out of skope
+					print str( e )
+					failed_callbacks.append( func )
+					
 				# END sendder as argument 
 			except Exception, e :
-				print str( e ) 
+				print str( e )
 				success = False
 				#print "Error: Exception thrown by function %s during event %s" % ( func, eventname )
 		# END for each registered event
+		
+		# remove failed listeners 
+		for func in failed_callbacks:
+			callbackset.remove( func )
+		
 		return success
 		
 	def listEventNames( self ):

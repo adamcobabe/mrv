@@ -263,7 +263,8 @@ class iItemSet( object ):
 		Use these to pass on additional data that you might want to use to keep additional information about 
 		your item ids 
 		@note: you are responsible for generating a list of item_ids and call this 
-		method to trigger the update"""
+		method to trigger the update
+		@return: tuple( SetOfDeletedItemIds, SetOfCreatedItemIds ) """
 		existing_items = set( self.getCurrentItemIds( **kwargs ) )
 		todo_items = set( item_ids )
 		
@@ -299,7 +300,9 @@ class iItemSet( object ):
 			for item in todo_items:
 				self.updateItem( item, **kwargs )
 			self.handleEvent( self.eSetItemCBID.postUpdate, **kwargs )
-		# END if there are items to update 
+		# END if there are items to update
+		
+		return ( items_to_remove, items_to_create )
 	
 	#} END interace 
 	
