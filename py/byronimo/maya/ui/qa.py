@@ -28,8 +28,8 @@ import util as uiutil
 import layouts
 from byronimo.automation.qa import QAWorkflow
 import maya.OpenMaya as api
-from itertools import chain 
-
+from itertools import chain
+import sys
 
 class QACheckLayout( layouts.RowLayout ):
 	"""Row Layout able to display a qa check and related information
@@ -44,7 +44,17 @@ class QACheckLayout( layouts.RowLayout ):
 	# [2] = check failed
 	# [3] = check threw exception
 	icons = [ "offRadioBtnIcon.xpm", "onRadioBtnIcon.xpm", "fstop.xpm", "fstop.xpm" ]	# explicitly a list
+	
+	# height of the UI control 
 	height = 25
+	
+	# number of columns to use - assure to fill the respective slots
+	numcols = 3
+	
+	# as checks can take some time, it might be useful to have realtime results 
+	# to std out in UI mode at least. It accompanies the feedback the workflow 
+	# gives and keeps the default unittest style
+	info_to_stdout = not cmds.about( batch = 1 )
 	#} END configuration 
 	
 	def __new__( cls, *args, **kwargs ):
@@ -52,9 +62,11 @@ class QACheckLayout( layouts.RowLayout ):
 		@param check: the check this instance should attach itself to - it needs to be set"""
 		check = kwargs.pop( "check" )
 		
-		numcols = 3 # without fix
+		numcols = cls.numcols # without fix
 		if check.plug.implements_fix:
-			numcols = 4
+			numcols += 1
+		
+		assert numcols < 7	# more than 6 not supported by underlying layout
 		
 		kwargs[ 'numberOfColumns' ] = numcols
 		kwargs[ 'adj' ] = 1
@@ -76,14 +88,16 @@ class QACheckLayout( layouts.RowLayout ):
 	def _create( self ):
 		"""Create our layout elements according to the details given in check"""
 		# assume we are active
-		self.add( controls.Text( label = self.getCheck().plug.getName() ) )
+		checkplug = self.getCheck().plug
+		self.add( controls.Text( label = checkplug.getName(), ann = checkplug.annotation ) )
+		
 		ibutton = self.add( controls.IconTextButton( 	style="iconOnly", 
 														h = self.height, w = self.height ) )
 		sbutton = self.add( controls.Button( label = "S", w = self.height, 
 												ann = "Select faild or fixed items" ) )
 		
 		# if we can actually fix the item, we add an additional button
-		if self.getCheck().plug.implements_fix:
+		if checkplug.implements_fix:
 			fbutton = self.add( controls.Button( label = "Fix", ann = "Attempt to fix failed items" ) )
 			fbutton.e_pressed = self._runCheck 
 		# END fix button setup
@@ -102,8 +116,9 @@ class QACheckLayout( layouts.RowLayout ):
 		check = self.getCheck()
 		if check.hasCache():
 			result = check.getCache()
+			self.setResult( result )
 		# END if previous result exists
-			
+		
 		
 	def getCheck( self ):
 		"""@return: check we are operating upon"""
@@ -117,6 +132,7 @@ class QACheckLayout( layouts.RowLayout ):
 		whether we have been pressed by the fix button or by the run button
 		@param force_check: if True, default True, a computation will be forced, 
 		otherwise a cached result may be used
+		@param **kwargs: will be passed to the workflow's runChecks method
 		@return: result of our check"""
 		check = self.getCheck()
 		wfl = check.node.getWorkflow()
@@ -145,14 +161,25 @@ class QACheckLayout( layouts.RowLayout ):
 		
 		api.MGlobal.setActiveSelectionList( sellist )
 			
-	
 	def preCheck( self ):
 		"""Runs before the check starts"""
+		if self.info_to_stdout:
+			checkplug = self.getCheck().plug
+			sys.__stdout__.write( "Running %s: %s ... " % ( checkplug.getName(), checkplug.annotation ) )
+		# END extra info
+		
 		text = self.listChildren()[0]
 		text.p_label = "Running ..."
-		
+		 
 	def postCheck( self, result ):
 		"""Runs after the check has finished including the given result"""
+		if self.info_to_stdout:
+			msg = "FAILED"
+			if result.isSuccessful():
+				msg = "OK"
+			sys.__stdout__.write( msg + "\n" )
+		# END extra info 
+			
 		text = self.listChildren()[0]
 		text.p_label = str( self.getCheck().plug.getName() )
 		
@@ -191,7 +218,9 @@ class QALayout( layouts.ColumnLayout, uiutil.iItemSet ):
 	#{ Configuration
 	# class used to create a layout displaying details about the check
 	# it must be compatible to QACheckLayout as a certain API is expected
-	checkuicls = QACheckLayout	
+	checkuicls = QACheckLayout
+
+	# class used to access default workflow events 
 	qaworkflowcls = QAWorkflow
 	#} END configuration 
 	
@@ -295,7 +324,8 @@ class QALayout( layouts.ColumnLayout, uiutil.iItemSet ):
 		if event == self.qaworkflowcls.e_preCheck:
 			checkchild.preCheck( )
 		elif event == self.qaworkflowcls.e_postCheck:
-			checkchild.postCheck( args[0] )			# the result
+			result = args[0]
+			checkchild.postCheck( result )			
 		elif event == self.qaworkflowcls.e_checkError:
 			checkchild.checkError( )
 			
