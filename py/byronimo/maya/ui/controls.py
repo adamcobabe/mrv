@@ -240,6 +240,9 @@ class TextFieldButtonGrp( ButtonGroupBase, TextFieldGroupBase ):
 class Text( LabelBase ):
 	_properties_ = ( "font", "fn" )
 
+class Separator( uibase.SizedControl ):
+	_properties_ = ( 	"style", "st", 
+						"horizontal", "hr" 		)
 
 class OptionMenu( uibase.SizedControl, OptionMenuBase ):
 	"""Class just for multiple inheritance - this cannot be expressed in the hierarchy 
@@ -255,4 +258,5 @@ class OptionMenuGrp( GroupBase, OptionMenuBase ):
 	#( Configuration
 	_is_menu = True
 	#) END configuration
+
 

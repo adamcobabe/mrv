@@ -191,7 +191,7 @@ class QAWorkflow( Workflow, CallbackBase ):
 		did not run or failed with an exception
 		@events: e_preCheck , e_postCheck, e_checkError
 		e_checkError may set the abort_on_error variable to True to cause the operation 
-		not to proceed with other checks """
+		not to proceed with other checks"""
 		
 		# reset abort on error to class default
 		self.abort_on_error = self.__class__.abort_on_error

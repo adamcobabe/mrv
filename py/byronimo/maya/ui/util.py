@@ -216,11 +216,13 @@ class UIContainerBase( object ):
 		if self.removeChild( child ):
 			child.delete()
 			
-	def listChildren( self ):
+	def listChildren( self, predicate = lambda c: True ):
 		"""@return: list with our child instances
+		@param predicate: function returning True for each child to include in result, 
+		allows to easily filter children
 		@note: it's a copy, so you can freely act on the list
 		@note: children will be returned in the order in which they have been added"""
-		return self._children[:]
+		return [ c for c in self._children if predicate( c ) ]
 		
 	def getChildByName( self, childname ):
 		"""@return: stored child instance, specified either as short name ( without pipes ) 

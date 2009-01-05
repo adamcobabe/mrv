@@ -285,6 +285,8 @@ class TestGeneralUI( unittest.TestCase ):
 		if incol:
 			qa = qaui.QALayout( )
 			qa.setChecks( checks )
+			
+			assert len( qa.getChecks() ) == len( checks )
 		# END incol 
 		incol.setParentActive()
 		

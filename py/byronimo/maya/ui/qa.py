@@ -219,6 +219,9 @@ class QALayout( layouts.ColumnLayout, uiutil.iItemSet ):
 	# class used to create a layout displaying details about the check
 	# it must be compatible to QACheckLayout as a certain API is expected
 	checkuicls = QACheckLayout
+	
+	# if True, a button to run all checks at once will be appended
+	run_all_button = True
 
 	# class used to access default workflow events 
 	qaworkflowcls = QAWorkflow
@@ -233,7 +236,8 @@ class QALayout( layouts.ColumnLayout, uiutil.iItemSet ):
 	
 	def setChecks( self, checks ):
 		"""Set the checks this layout should display
-		@param checks: iterable of qa checks as retrieved by L{listChecks}"""
+		@param checks: iterable of qa checks as retrieved by L{listChecks}
+		@raise ValueErorr: if one check is from a different workflow and there is a run_all button"""
 		
 		# map check names to actual checks
 		name_to_check_map = dict( ( ( str( c ), c ) for c in checks ) )
@@ -253,11 +257,42 @@ class QALayout( layouts.ColumnLayout, uiutil.iItemSet ):
 				continue 
 			wfls_done.append( cwfl )
 			
+			if self.run_all_button and len( wfls_done ) > 1:
+				raise ValueError( "This UI can currently only handle checks from only one workflow at a time if run_all_button is set" )
+			
 			cwfl.e_preCheck = self.checkHandler
 			cwfl.e_postCheck = self.checkHandler
 			cwfl.e_checkError = self.checkHandler
 		# END for each check
+		
+		# POSSIBLY ADD BUTTON TO THE END
+		#################################
+		# remove possibly existing button ( ignore the flag, its about the button here )
+		# its stored in a column layout
+		button_layout_name = "additionals_column_layout"
+		layout_child = self.listChildren( predicate = lambda c: c.getBasename() == button_layout_name )
+		if layout_child:
+			layout_child.delete()
+			
+		# create child layout ?
+		if self.run_all_button:
+			layout_child = self.add( layouts.ColumnLayout( adj = 1, name = button_layout_name ) )
+			if layout_child:
+				controls.Separator( style = "single", h = 10 )
+				run_button = controls.Button( label = "Run All", ann = "Run all checks in one go" )
+				run_button.e_pressed = self.runAllPressed
+			# END button layout setup
+			self.setActive()
+			
+		# END if run all button is requested
+		
 	
+	def getChecks( self ):
+		"""@return: list of checks we are currently holding in our layout"""
+		ntcm = dict()
+		self.getCurrentItemIds( name_to_child_map = ntcm )
+		return [ l.getCheck() for l in ntcm.values() ]
+		
 	#} END interface
 	
 	#{ iItemSet Implementation 
@@ -266,7 +301,7 @@ class QALayout( layouts.ColumnLayout, uiutil.iItemSet ):
 		"""@return: current check ids as defined by exsiting children. 
 		@note: additionally fills in the name_to_child_map"""
 		outids = list()
-		for child in self.listChildren():
+		for child in self.listChildren( predicate = lambda c: isinstance( c, QACheckLayout ) ):
 			check = child.getCheck()
 			cid = str( check )
 			outids.append( cid )
@@ -301,6 +336,7 @@ class QALayout( layouts.ColumnLayout, uiutil.iItemSet ):
 		
 	#} END iitemset implementation
 	
+	#{ Eventhandlers 
 	def checkHandler( self, event, check, *args ):
 		"""Called for the given event - it will find the UI element handling the 
 		call respective function on the UI instance
@@ -329,6 +365,22 @@ class QALayout( layouts.ColumnLayout, uiutil.iItemSet ):
 		elif event == self.qaworkflowcls.e_checkError:
 			checkchild.checkError( )
 			
+	def runAllPressed( self, *args ):
+		"""Called once the Run-All button is pressed
+		@note: we assume all checks are from one workflow only as we 
+		do not sort them by workflow
+		@note: currently we only run in query mode as sort of safety measure - check and fix 
+		on all might be too much and lead to unexpected results"""
+		checks = self.getChecks()
+		if not checks:
+			print "No checks found to run"
+			return 
+		# END check assertion
 		
+		wfl = checks[0].node.getWorkflow()
+		wfl.runChecks( checks, clear_result = 1 )
+		
+	
+	#} END Eventhandlers
 	 
 	
