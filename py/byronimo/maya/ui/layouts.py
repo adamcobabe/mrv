@@ -70,14 +70,19 @@ class Layout( uibase.SizedControl, uiutil.UIContainerBase ):
 
 class FormLayout( Layout ):
 	""" Wrapper class for maya form layout """
+	# tuple with side strings - to quickly define your attachments, assign it to letters
+	# like : t,b,l,r = kSides
+	# and use the letters accordingly to save space and make the layout easier to read
+	kSides = ( "top", "bottom", "left", "right" ) 
 	
 	class FormConstraint( object ): 
-		""" defines the way a child is constrained, possibly to other children """ 
+		""" defines the way a child is constrained, possibly to other children 
+		@todo: proper constraint system, but could be complicated to make it really easy to use""" 
 		
-	
-	def add( layout, **kwargs ):
-		""" Add layout as child, kwargs specify the binding of the layout"""
-		pass 
+	def setup( self, **kwargs ):
+		"""Apply the given setup to the form layout, specified using kwargs
+		@param **kwargs: arguments you would set use to setup the form layout"""
+		self.__melcmd__( self, e=1, **kwargs )
 
 
 class FrameLayout( Layout ):
@@ -136,4 +141,15 @@ class ColumnLayout( ColumnLayoutBase ):
 	"""Wrapper class for a simple column layout"""
 	
 	_properties_ = ( 	"adjustableColumn", "adj" ) 
+	
+class ScrollLayout( Layout ):
+	"""Wrapper for a scroll layout"""
+	_properties_ = ( 	"scrollAreaWIdth", "saw", 
+					  	"scrollAreaHeight", "sah", 
+						"scrollAreaValue", "sav", 
+						"minChildWidth", "mcw", 
+						"scrollPage", "sp", 
+						"scrollByPixel", "sbp"	)
+	
+	_event_ = ( "resizeCommand", "rc" )
 	

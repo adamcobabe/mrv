@@ -191,7 +191,7 @@ class TestGeneralUI( unittest.TestCase ):
 		
 		if col:
 			b = col.add( ui.Button( l="b with cb" ), set_self_active=1 )
-			b.e_pressed = func
+			b.e_released = func
 		col.setParentActive()
 		
 		win.show()
@@ -259,7 +259,7 @@ class TestGeneralUI( unittest.TestCase ):
 		progress.begin()
 		for i in range( maxrange ):
 			progress.set( i )
-			time.sleep( 0.025 )
+			time.sleep( 0.01 )
 		progress.end()
 		
 		
@@ -287,6 +287,12 @@ class TestGeneralUI( unittest.TestCase ):
 			qa.setChecks( checks )
 			
 			assert len( qa.getChecks() ) == len( checks )
+			
+			# another layout without runall button
+			incol.setActive()                          
+			qaui.QALayout.run_all_button = False                
+			qa = qaui.QALayout( )
+			qa.setChecks( checks )
 		# END incol 
 		incol.setParentActive()
 		

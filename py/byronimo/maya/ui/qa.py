@@ -71,7 +71,7 @@ class QACheckLayout( layouts.RowLayout ):
 		kwargs[ 'numberOfColumns' ] = numcols
 		kwargs[ 'adj' ] = 1
 		kwargs[ 'h' ] = cls.height
-		kwargs[ 'cw%i' % numcols ] = ( cls.height, ) * numcols
+		kwargs[ 'cw%i' % numcols ] = ( cls.height + 2, ) * numcols
 		self = super( QACheckLayout, cls ).__new__( cls, *args, **kwargs )
 		
 		# create instance variables 
@@ -99,12 +99,12 @@ class QACheckLayout( layouts.RowLayout ):
 		# if we can actually fix the item, we add an additional button
 		if checkplug.implements_fix:
 			fbutton = self.add( controls.Button( label = "Fix", ann = "Attempt to fix failed items" ) )
-			fbutton.e_pressed = self._runCheck 
+			fbutton.e_released = self._runCheck 
 		# END fix button setup
 			
 		# attach callbacks 
 		ibutton.e_command = self._runCheck
-		sbutton.e_pressed = self.selectPressed
+		sbutton.e_released = self.selectPressed
 	
 	def update( self ):
 		"""Update ourselves to match information in our stored check"""
@@ -211,7 +211,7 @@ class QACheckLayout( layouts.RowLayout ):
 		return bicon
 	#} END interface
 
-class QALayout( layouts.ColumnLayout, uiutil.iItemSet ):
+class QALayout( layouts.FormLayout, uiutil.iItemSet ):
 	"""Layout able to dynamically display QAChecks, run them and display their result"""
 	isNodeTypeTreeMember = False 
 	
@@ -229,9 +229,20 @@ class QALayout( layouts.ColumnLayout, uiutil.iItemSet ):
 	
 	def __new__( cls, *args, **kwargs ):
 		"""Set some default arguments"""
-		kwargs[ 'adj' ] = 1
 		return super( QALayout, cls ).__new__( cls, *args, **kwargs )
 	
+	
+	def __init__( self, *args, **kwargs ):
+		"""Initialize our basic interface involving a column layout to store the 
+		actual check widgets"""
+		super( QALayout, self ).__init__( *args, **kwargs )
+		scroll_layout = self.add( layouts.ScrollLayout( cr=1 ) )
+		
+		if scroll_layout:
+			# will contain the checks
+			self.col_layout = scroll_layout.add( layouts.ColumnLayout( adj = 1 ) )
+		# END scroll_layout
+		self.setActive()
 	#{ Interface
 	
 	def setChecks( self, checks ):
@@ -272,7 +283,8 @@ class QALayout( layouts.ColumnLayout, uiutil.iItemSet ):
 		button_layout_name = "additionals_column_layout"
 		layout_child = self.listChildren( predicate = lambda c: c.getBasename() == button_layout_name )
 		if layout_child:
-			layout_child.delete()
+			assert len( layout_child ) == 1
+			self.deleteChild( layout_child[0] )
 			
 		# create child layout ?
 		if self.run_all_button:
@@ -283,15 +295,36 @@ class QALayout( layouts.ColumnLayout, uiutil.iItemSet ):
 				run_button.e_pressed = self.runAllPressed
 			# END button layout setup
 			self.setActive()
-			
 		# END if run all button is requested
 		
+		# setup form layout - depending on the amount of items - we have 1 or two 
+		# children, never more 
+		children = self.listChildren()
+		assert len( children ) < 3
+		o = 2	# offset
+		t,b,l,r = self.kSides 
+		if len( children ) == 1:
+			c = children[0]
+			self.setup( af = ( ( c, b, o ), ( c, t, o ), ( c, l, o ), ( c, r, o ) ) )
+		# END case one child 
+		else:
+			c1 = children[0]
+			c2 = children[1]
+			self.setup( af = ( 	( c1, l, o ), ( c1, r, o ), ( c1, t, o ), 
+							 	( c2, l, o ), ( c2, r, o ), ( c2, b, o ) ), 
+						ac = ( 	( c1, b, o, c2 ) ), 
+						an = (	( c2, t ) ) ) 
+		# END case two children 
+		
+	def getCheckLayouts( self ):
+		"""@return: list of checkLayouts representing our checks"""
+		ntcm = dict()
+		self.getCurrentItemIds( name_to_child_map = ntcm )
+		return ntcm.values()
 	
 	def getChecks( self ):
 		"""@return: list of checks we are currently holding in our layout"""
-		ntcm = dict()
-		self.getCurrentItemIds( name_to_child_map = ntcm )
-		return [ l.getCheck() for l in ntcm.values() ]
+		return [ l.getCheck() for l in self.getCheckLayouts() ]
 		
 	#} END interface
 	
@@ -301,7 +334,7 @@ class QALayout( layouts.ColumnLayout, uiutil.iItemSet ):
 		"""@return: current check ids as defined by exsiting children. 
 		@note: additionally fills in the name_to_child_map"""
 		outids = list()
-		for child in self.listChildren( predicate = lambda c: isinstance( c, QACheckLayout ) ):
+		for child in self.col_layout.listChildren( predicate = lambda c: isinstance( c, QACheckLayout ) ):
 			check = child.getCheck()
 			cid = str( check )
 			outids.append( cid )
@@ -311,18 +344,21 @@ class QALayout( layouts.ColumnLayout, uiutil.iItemSet ):
 		return outids
 		
 	def handleEvent( self, eventid, **kwargs ):
-		"""Assure we are active before we start creating items"""
+		"""Assure we have the proper layouts active"""
 		if eventid == self.eSetItemCBID.preCreate:
+			self.col_layout.setActive()
+		if eventid == self.eSetItemCBID.postCreate:
 			self.setActive()
 	
 	def createItem( self, checkid, name_to_child_map = None, name_to_check_map = None ):
 		"""Create and return a layout displaying the given check instance
 		@note: its using self.checkuicls to create the instance"""
+		self.col_layout.setActive()
+		
 		check_child = self.checkuicls( check = name_to_check_map[ checkid ] )
 		name_to_child_map[ checkid ] = check_child
-		newItem = self.add( check_child )
+		newItem = self.col_layout.add( check_child )
 		
-		self.setActive()		# assure we are active, as we are called in a loop
 		return newItem
 		
 	def updateItem( self, checkid, name_to_child_map = None, **kwargs ):
@@ -332,7 +368,7 @@ class QALayout( layouts.ColumnLayout, uiutil.iItemSet ):
 	
 	def removeItem( self, checkid, name_to_child_map = None, **kwargs ):
 		"""Delete the user interface portion representing the checkid"""
-		self.deleteChild( name_to_child_map[ checkid ] )
+		self.col_layout.deleteChild( name_to_child_map[ checkid ] )
 		
 	#} END iitemset implementation
 	
@@ -345,7 +381,7 @@ class QALayout( layouts.ColumnLayout, uiutil.iItemSet ):
 		# find a child handling the given check
 		# skip ones we do not find 
 		checkchild = None
-		for child in self.listChildren():
+		for child in self.getCheckLayouts():
 			if child.getCheck() == check:
 				checkchild = child
 				break

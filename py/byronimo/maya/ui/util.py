@@ -201,7 +201,7 @@ class UIContainerBase( object ):
 			
 		return child
 		
-	def remove( self, child ):
+	def removeChild( self, child ):
 		"""Remove the given child from our list
 		@return: True if the child was found and has been removed, False otherwise"""
 		try:
@@ -248,6 +248,10 @@ class UIContainerBase( object ):
 		of this layout
 		@note: always use the addChild function to add the children !"""
 		cmds.setParent( self )
+		
+	def clearChildren( self ):
+		"""Clear our child arrays to quickly forget about our children"""
+		self._children = list()
 		
 class iItemSet( object ):
 	"""Interface allowing to dynamically add, update and remove items to a layout
