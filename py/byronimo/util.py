@@ -711,16 +711,23 @@ class CallbackBase( iDuplicatable ):
 		# if true, functions will be weak-referenced - its useful if you use instance 
 		# variables as callbacks 
 		use_weakref = True
+		
+		# if True, callback handlers throwing an exception will emmediately be 
+		# removed from the callback list
+		remove_on_error = True
 		#} END configuration 
 		
 		
 		def __init__( self, eventname, **kwargs ):
 			"""@param weak: if True, default class configuration use_weak_ref, weak 
 			references will be created for event handlers, if False it will be strong 
-			references"""
+			references
+			@param remove_failed: if True, defailt False, failed callback handlers 
+			will be removed silently"""
 			self._name = eventname					# original name 					
 			self.eventname = eventname + "_set"	# set attr going to keep events
 			self.use_weakref = kwargs.get( "weak", self.__class__.use_weakref )
+			self.remove_on_error = kwargs.get( "remove_failed", self.__class__.remove_on_error )
 			
 		def _toKeyFunc( self, eventfunc ):
 			"""@return: an eventfunction suitable to be used as key in our instance 
@@ -809,7 +816,7 @@ class CallbackBase( iDuplicatable ):
 				func = eventinst._keyToFunc( function ) 
 				if func is None:
 					print "Listener for callback of %s was not available anymore" % self
-					failed_callbacks.append( func )
+					failed_callbacks.append( function )
 					continue
 					
 				try:
@@ -820,18 +827,20 @@ class CallbackBase( iDuplicatable ):
 				except LookupError, e:
 					# thrown if self in instance methods went out of skope
 					print str( e )
-					failed_callbacks.append( func )
+					failed_callbacks.append( function )
 					
 				# END sendder as argument 
 			except Exception, e :
+				if eventinst.remove_on_error:
+					failed_callbacks.append( function )
 				print str( e )
 				success = False
 				#print "Error: Exception thrown by function %s during event %s" % ( func, eventname )
 		# END for each registered event
 		
 		# remove failed listeners 
-		for func in failed_callbacks:
-			callbackset.remove( func )
+		for function in failed_callbacks:
+			callbackset.remove( function )
 		
 		return success
 		

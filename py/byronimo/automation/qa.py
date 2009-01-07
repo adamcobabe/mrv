@@ -34,7 +34,8 @@ from workflow import Workflow
 from process import ProcessBase
 from byronimo.util import CallbackBase
 from byronimo.dgengine import Attribute, plug, ComputeFailed
-from byronimo.enum import create as enum 
+from byronimo.enum import create as enum
+import sys
 
 event = CallbackBase.Event
 
@@ -137,7 +138,12 @@ class QAWorkflow( Workflow, CallbackBase ):
 	# if True, we will abort once the first error has been raised during check execution
 	# It is also held as instance variable so it can be set on per instance basis, allowing 
 	# error check callbacks to adjust the error handling behaviour and abort the operation 
-	abort_on_error = False			
+	abort_on_error = False
+	
+	# as checks can take some time, it might be useful to have realtime results 
+	# to std out in UI mode at least. It accompanies the feedback the workflow 
+	# gives and keeps the default unittest style
+	info_to_stdout = True
 	#) END configuration 
 	
 	#( Filters 
@@ -199,6 +205,11 @@ class QAWorkflow( Workflow, CallbackBase ):
 		
 		outresult = list()
 		for checkshell in checks:
+			if self.info_to_stdout:
+				checkplug = checkshell.plug
+				sys.__stdout__.write( "Running %s: %s ... " % ( checkplug.getName(), checkplug.annotation ) )
+			# END extra info
+			
 			self.sendEvent( self.e_preCheck, self.__class__.e_preCheck, checkshell )
 			
 			result = QACheckResult()	 	# null value 
@@ -213,7 +224,14 @@ class QAWorkflow( Workflow, CallbackBase ):
 				if self.abort_on_error:
 					raise 
 			# END error handling 
-				
+			
+			if self.info_to_stdout:
+				msg = "FAILED"
+				if result.isSuccessful():
+					msg = "OK"
+				sys.__stdout__.write( msg + "\n" )
+			# END extra info
+			
 			# record result 
 			outresult.append( ( checkshell, result ) )
 			self.sendEvent( self.e_postCheck, self.__class__.e_postCheck, checkshell, result )

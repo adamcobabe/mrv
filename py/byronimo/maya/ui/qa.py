@@ -29,7 +29,7 @@ import layouts
 from byronimo.automation.qa import QAWorkflow
 import maya.OpenMaya as api
 from itertools import chain
-import sys
+
 
 class QACheckLayout( layouts.RowLayout ):
 	"""Row Layout able to display a qa check and related information
@@ -43,18 +43,13 @@ class QACheckLayout( layouts.RowLayout ):
 	# [1] = check success
 	# [2] = check failed
 	# [3] = check threw exception
-	icons = [ "offRadioBtnIcon.xpm", "onRadioBtnIcon.xpm", "fstop.xpm", "fstop.xpm" ]	# explicitly a list
+	icons = [ "offRadioBtnIcon.xpm", "onRadioBtnIcon.xpm", "fstop.xpm", "fstop.xpm" ]	# explicitly a list to allow assignments
 	
 	# height of the UI control 
 	height = 25
 	
 	# number of columns to use - assure to fill the respective slots
 	numcols = 3
-	
-	# as checks can take some time, it might be useful to have realtime results 
-	# to std out in UI mode at least. It accompanies the feedback the workflow 
-	# gives and keeps the default unittest style
-	info_to_stdout = not cmds.about( batch = 1 )
 	#} END configuration 
 	
 	def __new__( cls, *args, **kwargs ):
@@ -136,7 +131,7 @@ class QACheckLayout( layouts.RowLayout ):
 		@return: result of our check"""
 		check = self.getCheck()
 		wfl = check.node.getWorkflow()
-		force_check = kwargs.get( "force_check", True )
+		force_check = kwargs.pop( "force_check", True )
 		
 		mode = check.node.eMode.query
 		if args and isinstance( args[0], controls.Button ):
@@ -170,23 +165,11 @@ class QACheckLayout( layouts.RowLayout ):
 			
 	def preCheck( self ):
 		"""Runs before the check starts"""
-		if self.info_to_stdout:
-			checkplug = self.getCheck().plug
-			sys.__stdout__.write( "Running %s: %s ... " % ( checkplug.getName(), checkplug.annotation ) )
-		# END extra info
-		
 		text = self.listChildren()[0]
 		text.p_label = "Running ..."
 		 
 	def postCheck( self, result ):
 		"""Runs after the check has finished including the given result"""
-		if self.info_to_stdout:
-			msg = "FAILED"
-			if result.isSuccessful():
-				msg = "OK"
-			sys.__stdout__.write( msg + "\n" )
-		# END extra info 
-			
 		text = self.listChildren()[0]
 		text.p_label = str( self.getCheck().plug.getName() )
 		
@@ -391,6 +374,12 @@ class QALayout( layouts.FormLayout, uiutil.iItemSet ):
 		call respective function on the UI instance
 		@note: find the check using predefined names as they server as unique-enough keys.
 		This would possibly be faster, but might not make a difference after all"""
+		
+		# as we do not track the deletion of the window, our class might actually 
+		# persist even though the window is long gone - throw if we are not existing
+		# to get auto-removed from the handler 
+		assert self.exists()
+		
 		# find a child handling the given check
 		# skip ones we do not find 
 		checkchild = None
