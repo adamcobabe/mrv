@@ -186,8 +186,8 @@ class NamedUI( unicode, BaseUI , iDagItem, CallbackBaseUI ):
 					
 					# assure we have a long name - mel sometimes returns short ones 
 					# that are ambigous ... 
-					if cls._sep not in name and cls is not Window:
-						name = "%s|%s" % ( cmds.setParent( q=1 ), name )
+					if cls._sep not in name and Window not in cls.mro():
+						raise AssertionError( "%s instance named '%s' does not have a long name after creation" % ( cls, name ) )
 				else:
 					name = cls.__melcmd__( **kwargs )
 			except (RuntimeError,TypeError), e:
