@@ -143,12 +143,19 @@ class QACheckLayout( layouts.RowLayout ):
 			mode = check.node.eMode.fix
 		# END fix button handling 
 		
-		return wfl.runChecks( [ check ], mode = mode, clear_result = force_check )[0][1]
+		return wfl.runChecks( [ check ], mode = mode, clear_result = force_check, **kwargs )[0][1]
 	
 	def selectPressed( self, *args ):
 		"""Called if the selected button has been pressed
 		Triggers a workflow run if not yet done"""
-		result = self._runCheck( force_check = False )
+		# use the cache directly to prevent the whole runprocess to be kicked on 
+		# although the result is already known
+		check = self.getCheck()
+		result = None
+		if check.hasCache():
+			result = check.getCache()
+		else:
+			result = self._runCheck( force_check = False )
 		
 		# select items , ignore erorrs if it is not selectable 
 		sellist = api.MSelectionList()
@@ -354,12 +361,14 @@ class QALayout( layouts.FormLayout, uiutil.iItemSet ):
 		if eventid == self.eSetItemCBID.postCreate:
 			self.setActive()
 	
-	def createItem( self, checkid, name_to_child_map = None, name_to_check_map = None ):
+	def createItem( self, checkid, name_to_child_map = None, name_to_check_map = None, **kwargs ):
 		"""Create and return a layout displaying the given check instance
+		@param kwargs: will be passed to checkui class's initializer, allowing subclasses to easily 
+		adjust the paramter list
 		@note: its using self.checkuicls to create the instance"""
 		self.col_layout.setActive()
 		
-		check_child = self.checkuicls( check = name_to_check_map[ checkid ] )
+		check_child = self.checkuicls( check = name_to_check_map[ checkid ], **kwargs )
 		name_to_child_map[ checkid ] = check_child
 		newItem = self.col_layout.add( check_child )
 		
@@ -405,8 +414,9 @@ class QALayout( layouts.FormLayout, uiutil.iItemSet ):
 		elif event == self.qaworkflowcls.e_checkError:
 			checkchild.checkError( )
 			
-	def runAllPressed( self, *args ):
+	def runAllPressed( self, *args, **kwargs ):
 		"""Called once the Run-All button is pressed
+		@param **kwargs: will be passed to runChecks method of workflow
 		@note: we assume all checks are from one workflow only as we 
 		do not sort them by workflow
 		@note: currently we only run in query mode as sort of safety measure - check and fix 
@@ -418,7 +428,7 @@ class QALayout( layouts.FormLayout, uiutil.iItemSet ):
 		# END check assertion
 		
 		wfl = checks[0].node.getWorkflow()
-		wfl.runChecks( checks, clear_result = 1 )
+		wfl.runChecks( checks, clear_result = 1, **kwargs )
 		
 	
 	#} END Eventhandlers

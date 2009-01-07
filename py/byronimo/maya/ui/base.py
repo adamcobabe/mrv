@@ -62,7 +62,7 @@ def wrapUI( uinameOrList ):
 		clsname = capitalize( uitype )
 		
 		try:
-			out.append( getattr( ui, clsname )( name=uiname ) )
+			out.append( getattr( ui, clsname )( name=uiname,  wrap_only = 1 ) )
 		except AttributeError:
 			RuntimeError( ui.__name__ + " has no class named " + clsname )
 	# END for each uiname
@@ -204,7 +204,7 @@ class NamedUI( unicode, BaseUI , iDagItem, CallbackBaseUI ):
 		"""Prevent properties or events that do not exist to be used by anyone, 
 		everything else is allowed though"""
 		if ( attr.startswith( "p_" ) or attr.startswith( "e_" ) ) and not hasattr( self, attr ):
-			raise AttributeError( "Cannot create per-instance properties or events: %s ( did you misspell an existing one ? )" % attr )
+			raise AttributeError( "Cannot create per-instance properties or events: %s.%s ( did you misspell an existing one ? )" % ( self, attr ) )
 		
 		return super( NamedUI, self ).__setattr__( attr, value )
 		
