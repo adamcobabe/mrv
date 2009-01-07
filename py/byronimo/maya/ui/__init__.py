@@ -51,9 +51,9 @@ class MetaClassCreatorUI( mutil.MetaClassCreator ):
 	* AUTOMATIC UI-EVENT GENERATION *
 	  - define names of mel events in _events_ as list of names 
 	  - these will be converted into _UIEvents sitting at attribute names like 
-	  	e_eventname ( lowercase )
+	  	e_eventName ( for even called 'eventName'
 	  - assign an event:
-	    windowinstance.e_restorecommand = func
+	    windowinstance.e_restoreCommand = func
 		whereas func takes: func( windowinstance, *args, **kwargs )
 		
 	* ADDITIONAL CONFIGURAITON *
@@ -100,7 +100,7 @@ class MetaClassCreatorUI( mutil.MetaClassCreator ):
 			event_kwargs[ "weak" ] = False
 			
 		for ename in eventnames:
-			attrname = "e_%s" % ename.lower()
+			attrname = "e_%s" % ename
 			clsdict[ attrname ] = CallbackBaseUI._UIEvent( ename, **event_kwargs )
 		# END for each event name 
 

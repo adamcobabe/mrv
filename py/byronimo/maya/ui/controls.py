@@ -227,7 +227,23 @@ class TextField( FieldBase, TextFieldBase ):
 	file"""
 	pass 
 	
+class ScrollField( uibase.SizedControl ):
+	"""@note: although the class shares some properties of the textfield, it does not share all of them"""
+	_properties_ = ( 	"wordWrap", "ww", 
+					  	"font", 	"fn", 
+						"text", "tx",
+						"insertText", "it", 
+						"insertionPosition", "ip", 
+						"selection", "sl", 
+						"clear", "cl", 
+						"editable", "ed", 
+						"numberOfLines", "nl"	)
 	
+	_events_ = ( 		"enterCommand", "ec", 
+					 	"keyPressCommand", "kpc", 
+						"changeCommand", "cc"		)
+	
+					 
 class TextFieldGrp( GroupBase, TextFieldGroupBase ):
 	"""Class just for multiple inheritance - this cannot be expressed in the hierarchy 
 	file"""
@@ -258,5 +274,6 @@ class OptionMenuGrp( GroupBase, OptionMenuBase ):
 	#( Configuration
 	_is_menu = True
 	#) END configuration
+
 
 

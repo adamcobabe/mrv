@@ -249,6 +249,10 @@ class QALayout( layouts.FormLayout, uiutil.iItemSet ):
 		"""Set the checks this layout should display
 		@param checks: iterable of qa checks as retrieved by L{listChecks}
 		@raise ValueErorr: if one check is from a different workflow and there is a run_all button"""
+		# we might change the layout, so be active
+		# IMPORTANT: if this is not the case, we might easily confuse layouts ... 
+		# figure out why exactly
+		self.setActive()
 		
 		# map check names to actual checks
 		name_to_check_map = dict( ( ( str( c ), c ) for c in checks ) )
