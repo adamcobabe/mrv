@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
-"""B{byronimo.automation}
-Intiailize the automation and process framework 
+"""B{byronimo.maya.automation}
+Intiailize the automation and process framework for maya 
 
 @newfield revision: Revision
 @newfield id: SVN Id

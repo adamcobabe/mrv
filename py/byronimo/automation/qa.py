@@ -48,7 +48,6 @@ class CheckIncompatibleError( ComputeFailed ):
 #} END exceptions 
 	
 	
-	
 class QAProcessBase( ProcessBase ):
 	"""Quality Assurance Process including a specialized QA interface"""
 	
@@ -91,14 +90,16 @@ class QAProcessBase( ProcessBase ):
 	#} END overridden from process base 
 	
 
-	
 class QACheckAttribute( Attribute ):
 	"""The Test Attribute represents an interface to a specific test as implemented 
 	by the parent L{QAProcessBase}.
 	The QA Attribute returns specialized quality assurance results and provides
 	additional information about the respective test
 	@note: as this class holds meta information about the respective test ( see L{QACheck} ) 
-	user interfaces may use it to adjust it's display"""
+	user interfaces may use it to adjust it's display
+	@note: this class depends on unknown mel implementations - on error we abort 
+	but do not throw as this would cause class creation to fail and leave the whole 
+	qa system unusable"""
 	
 	def __init__( 	self, annotation, has_fix = False,  
 				 	flags = Attribute.computable ):
@@ -111,23 +112,27 @@ class QACheckAttribute( Attribute ):
 		super( QACheckAttribute, self ).__init__( QACheckResult, flags ) 
 		self.annotation = annotation
 		self.implements_fix = has_fix
-		
-		
-		
+	
+	
 class QACheck( plug ):
 	"""Defines a test suitable to be run and computed by a L{QAProcessBase}
 	It's nothing more than a convenience class as the actual information is held by the 
 	respective L{QACheckAttribute}.
 	All non-plug calls are passed on to the underlying attribute, allowing it to 
 	be treated like one"""
+	#{ Configuration 
+	
+	# class of the check attribute to use when instanciating this check
+	check_attribute_cls = QACheckAttribute
+	#} END configuration 
+	
 	def __init__( self, *args, **kwargs ):
-		super( QACheck, self ).__init__( QACheckAttribute( *args, **kwargs ) )
+		super( QACheck, self ).__init__( self.check_attribute_cls( *args, **kwargs ) )
 		
 	def __getattr__( self, attrname ):
 		return getattr( self.attr, attrname )
 	
 	
-
 class QAWorkflow( Workflow, CallbackBase ):
 	"""Represents a workflow of QAProcessBase instances and allows to query them more 
 	conveniently"""
@@ -175,10 +180,11 @@ class QAWorkflow( Workflow, CallbackBase ):
 		return self.iterNodes( predicate = lambda n: self.fIsQAProcessBase( n ) and predicate( n ) )
 	
 	def filterChecks( self, processes, predicate = lambda c: True ):
-		"""As L{listChecks}, but allows you do define the processes to use"""
+		"""As L{listChecks}, but allows you do define the processes to use
+		@param predicate: func( p ) for plug p returns True for it to be included in the result"""
 		outchecks = list()
 		for node in processes:
-			outchecks.extend( node.toShells( node.getPlugs( self.fIsQAPlug ) ) )
+			outchecks.extend( node.toShells( node.getPlugs( lambda c: self.fIsQAPlug( c ) and predicate( c ) ) ) )
 		return outchecks
 	
 	def listChecks( self, predicate = lambda c: True  ):
@@ -286,3 +292,5 @@ class QACheckResult( object ):
 			msg += ", ".join( str( i ) for i in self.fixed_items ) + "\n"
 		msg += ", ".join( str( i ) for i in self.failed_items )
 		return msg 
+		
+

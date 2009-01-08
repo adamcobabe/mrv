@@ -1026,26 +1026,28 @@ class _NodeBaseCheckMeta( type ):
 		"""Check:
 			- every plugname must correspond to a node member name
 		"""
-		newcls = type.__new__( metacls, name, bases, clsdict )
+		newcls = super( _NodeBaseCheckMeta, metacls ).__new__( metacls, name, bases, clsdict )
 		
 		# EVERY PLUG NAME MUST MATCH WITH THE ACTUAL NAME IN THE CLASS
 		# set the name according to its slot name in the parent class
 		membersdict = inspect.getmembers( newcls )		# do not filter, as getPlugs could be overridden
 		try:
-			for plug in newcls.getPlugsStatic( ):
-				for name,member in membersdict:
-					if member == plug and plug.getName() != name:	
-						# try to set it
-						if hasattr( plug, 'setName' ):
-							plug.setName( name )
-						else:
-							raise AssertionError( "Plug %r is named %s, but must be named %s as in its class %s" % ( plug, plug.getName(), name, newcls ) )
-						# END setName special handling 
-					# END if member nanme is wrong 
-				# END for each class member
-				
-				# ignore plugs we possibly did not find in the physical class 
-			# END for each plug in class
+			if hasattr( newcls, "getPlugsStatic" ):
+				for plug in newcls.getPlugsStatic( ):
+					for name,member in membersdict:
+						if member == plug and plug.getName() != name:	
+							# try to set it
+							if hasattr( plug, 'setName' ):
+								plug.setName( name )
+							else:
+								raise AssertionError( "Plug %r is named %s, but must be named %s as in its class %s" % ( plug, plug.getName(), name, newcls ) )
+							# END setName special handling 
+						# END if member nanme is wrong 
+					# END for each class member
+					
+					# ignore plugs we possibly did not find in the physical class 
+				# END for each plug in class
+			# END if method exists
 		except TypeError:
 			# it can be that a subclass overrides this method and makes it an instance method
 			# this is valid - the rest of the dgengine always accesses this method 
