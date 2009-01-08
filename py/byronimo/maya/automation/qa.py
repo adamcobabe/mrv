@@ -66,32 +66,44 @@ class QAMetaMel( _NodeBaseCheckMeta ):
 
 class QAMelProcessBase( object ):
 	"""Base class allowing to process MEL baesd plugs as created by our metaclass
-	@note: this class assumes it is used on a process"""
+	@note: this class assumes it is used on a process
+	
+	Configuration 
+	-------------
+	The following variables MUST be used to setup this class once you have derived
+	from it: 
+	
+	mel_index_proc:
+	produdure name with signature func( ) returning string array in following 
+	format 
+	[n*3+0] = checkname : the name of the check, use CamelCase names or names_with_underscore
+	The checkname is also used as id to identify the check lateron
+	[n*3+1] = description: Single sentence desciption of the check targeted at the end user
+	[n*3+2] = can_fix: 	Boolean value indicating whether the check can also fix the issue
+	
+	
+	mel_check_proc
+	procedure called to actually process the given check, signature is 
+	func( check_name, should_fix )
+	returning string[] as follows:
+	[0] = x number of fixed items
+	[1] = header 
+	[1:1+x] = x fixed items 
+	[2+x:n] = n invalid items
+	items are either objects or in general anything you check for. The check is 
+	considered to be failed if there is at least one invalid item.
+	If you fixed items, all previously failed items should now be returned as 
+	valid items
+	"""
 	__metaclass__ = QAMetaMel
 	
 	#{ Configuration 
 	
-	# produdure name with signature func( ) returning string array in following 
-	# format 
-	# [n*3+0] = checkname : the name of the check, use CamelCase names or names_with_underscore
-	# The checkname is also used as id to identify the check lateron
-	# [n*3+1] = description: Single sentence desciption of the check targeted at the end user
-	# [n*3+2] = can_fix: 	Boolean value indicating whether the check can also fix the issue
+	# see class docs
 	mel_index_proc = None
 	
-	# procedure called to actually process the given check, signature is 
-	# func( check_name, should_fix )
-	# returning string[] as follows:
-	# [0] = x number of fixed items
-	# [1] = header 
-	# [1:1+x] = x fixed items 
-	# [2+x:n] = n invalid items
-	# items are either objects or in general anything you check for. The check is 
-	# considered to be failed if there is at least one invalid item.
-	# If you fixed items, all previously failed items should now be returned as 
-	# valid items
+	# see class docs 
 	mel_check_proc = None
-	
 	
 	# qa check result compatible class to be used as container for MEL return values
 	check_result_cls = QACheckResult
