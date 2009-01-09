@@ -50,7 +50,7 @@ class QAMetaMel( _NodeBaseCheckMeta ):
 							continue
 						# END name check
 						
-						plug = check_cls( annotation = description, has_fix = can_fix )
+						plug = check_cls( annotation = description, has_fix = int( can_fix ) )
 						plug.setName( checkname )
 						clsdict[ checkname ] = plug
 					# END for each information tuple
@@ -64,7 +64,7 @@ class QAMetaMel( _NodeBaseCheckMeta ):
 		return newcls
 		
 
-class QAMelProcessBase( object ):
+class QAMELAdapter( object ):
 	"""Base class allowing to process MEL baesd plugs as created by our metaclass
 	@note: this class assumes it is used on a process
 	

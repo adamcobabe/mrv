@@ -43,7 +43,7 @@ check_proc_create = """global proc string[] b_test_check( string $cname, int $sh
 mmel.eval( check_proc_create )
 
 
-class TestMELQAProcess( processes.QACheckProcess, qa.QAMelProcessBase ):
+class TestMELQAProcess( processes.QACheckProcess, qa.QAMELAdapter ):
 	"""Test class providing some configuration"""
 	mel_index_proc = "b_test_index"
 	mel_check_proc = "b_test_check"
