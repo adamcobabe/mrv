@@ -109,7 +109,7 @@ class CallbackBaseUI( CallbackBase ):
 		"""Event suitable to deal with user interface callback"""
 		#( Configuration 
 		use_weakref = False
-		remove_on_error = True
+		remove_on_error = False
 		#) END configuration
 		
 		def __init__( self, eventname, **kwargs ):

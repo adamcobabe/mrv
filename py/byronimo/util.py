@@ -714,7 +714,7 @@ class CallbackBase( iDuplicatable ):
 		
 		# if True, callback handlers throwing an exception will emmediately be 
 		# removed from the callback list
-		remove_on_error = True
+		remove_on_error = False
 		#} END configuration 
 		
 		
