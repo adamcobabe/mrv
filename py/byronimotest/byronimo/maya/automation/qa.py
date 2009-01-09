@@ -28,7 +28,7 @@ import maya.mel as mmel
 #  create test methods 
 index_proc_create = """global proc string[] b_test_index( )
 {
-	return { "test1", "test1descr", 1, "test2", "test2descr", 0 };
+	return { "test1", "test1descr", 1, "test2", "test2descr", 1 };
 }"""
 mmel.eval( index_proc_create )
 

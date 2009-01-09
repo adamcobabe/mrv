@@ -222,8 +222,13 @@ class QAWorkflow( Workflow, CallbackBase ):
 			if clear_result:
 				checkshell.clearCache( clear_affected = False )
 			
+			shellmode = mode
+			# some only can do check mode 
+			if not checkshell.plug.implements_fix:
+				shellmode = checkshell.node.eMode.query
+				
 			try:
-				result = checkshell.get( mode ) 
+				result = checkshell.get( shellmode ) 
 			except Exception, e:
 				self.sendEvent( self.e_checkError, self.__class__.e_checkError, checkshell, e, self )
 				
