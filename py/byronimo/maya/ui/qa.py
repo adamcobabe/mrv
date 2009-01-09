@@ -29,13 +29,15 @@ import layouts
 from byronimo.automation.qa import QAWorkflow
 import maya.OpenMaya as api
 from itertools import chain
-
+import re
+from byronimo.util import capitalize
 
 class QACheckLayout( layouts.RowLayout ):
 	"""Row Layout able to display a qa check and related information
 	@note: currently we make assumptions about the positions of the children in the 
 	RowLayout, thus you may only append new ones"""
 	isNodeTypeTreeMember = False
+	reNiceNamePattern = re.compile( "[A-Z][a-z]" )
 	
 	#{ Configuration
 	# paths to icons to display
@@ -80,11 +82,44 @@ class QACheckLayout( layouts.RowLayout ):
 		# populate 
 		self._create( )
 	
+	@staticmethod 
+	def _replInsSpace( match ):
+		"""Generate a replace string from the match in the match object
+		@note: match should contain only a range of two chars"""
+		assert match.end() - match.start() == 2
+		if match.start() == 0:	# in the beginning , replace by itself
+			return match.string[ match.start() : match.end() ]		
+			
+		# otherwise insert a space between items 
+		return " " + match.string[ match.start() : match.end() ]
+		
+		
+	def _toNiceName( self, name ):
+		"""@return: nice name version of name, replacing underscores by spaces, and
+		separating camel cases, as well as chaning to the capitalizaion of word"""
+		name_tokens = name.split( "_" )
+		
+		# parse camel case
+		for i, token in enumerate( name_tokens ):
+			 repl_token = self.reNiceNamePattern.sub( self._replInsSpace, token )
+			 name_tokens[ i ] = repl_token
+		# END for each token camel case parse
+		
+		final_tokens = list()
+		
+		# split once more on inserted spaces, capitalize
+		for token in name_tokens:
+			final_tokens.extend( capitalize( t ) for t in token.split( " " ) )
+			
+		return " ".join( final_tokens )
+		
+	
 	def _create( self ):
 		"""Create our layout elements according to the details given in check"""
 		# assume we are active
 		checkplug = self.getCheck().plug
-		self.add( controls.Text( label = checkplug.getName(), ann = checkplug.annotation ) )
+		nice_name = self._toNiceName( checkplug.getName() )
+		self.add( controls.Text( label = nice_name, ann = checkplug.annotation ) )
 		
 		ibutton = self.add( controls.IconTextButton( 	style="iconOnly", 
 														h = self.height, w = self.height ) )
@@ -171,14 +206,14 @@ class QACheckLayout( layouts.RowLayout ):
 	def postCheck( self, result ):
 		"""Runs after the check has finished including the given result"""
 		text = self.listChildren()[0]
-		text.p_label = str( self.getCheck().plug.getName() )
+		text.p_label = str( self._toNiceName( self.getCheck().plug.getName() ) )
 		
 		self.setResult( result )
 		
 	def checkError( self ):
 		"""Called if the checks fails with an error"""
 		text = self.listChildren()[0]
-		text.p_label = str( self.getCheck().plug.getName() ) + " ( ERROR )"
+		text.p_label = str( self._toNiceName( self.getCheck().plug.getName() ) + " ( ERROR )" )
 	
 	def setResult( self, result ):
 		"""Setup ourselves to indicate the given check result

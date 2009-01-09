@@ -155,8 +155,8 @@ class QACheckProcess( QAProcessBase ):
 	""" Simple test process """
 	
 	# tests 
-	testalpha = QACheck( "runs testalpha", has_fix = 1 )
-	testbeta = QACheck( "runs testbeta", has_fix = 1 )
+	test_alpha = QACheck( "runs test_alpha", has_fix = 1 )
+	testBeta = QACheck( "runs testbeta", has_fix = 1 )
 	
 	
 	def assureQuality( self, check, mode ):
