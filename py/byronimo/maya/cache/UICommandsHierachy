@@ -63,24 +63,25 @@ baseUI
 				button
 				text
 			window
+			menuEditor
 			optionMenu
 			intScrollBar
 			floatScrollBar
 			floatSlider2
 			textScrollList
 		editorBase
-			colorEditor
+			animEditorBase
+				animCurveEditor
+				clipEditor
 			blendShapeEditor
-			menuEditor
 			outlinerEditor
-			animCurveEditor
-			renderWindowEditor
+			renderEditorBase
+				renderWindowEditor
+				dynPaintEditor
 			glRenderEditor
 			modelEditor
-			clipEditor
 			deviceEditor
 			dynRelEditor
-			dynPaintEditor
 			componentEditor
 		panel
 			blendShapePanel
@@ -95,6 +96,7 @@ baseUI
 		menuBase
 			menu
 			menuItem
+		colorEditor
 		attrEnumOptionMenu
 		attributeMenu
 		iconTextRadioCollection
@@ -139,3 +141,8 @@ baseUI
 		cmdScrollFieldReporter
 		cmdShell
 		palettePort
+		selectionConnection
+		itemFilterBase
+			itemFilter
+			itemFilterAttr
+			itemFilterRender

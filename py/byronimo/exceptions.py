@@ -19,10 +19,7 @@ __copyright__='(c) 2008 Sebastian Thiel'
 
 class ByronimoError( Exception ):
 	""" Base Class for all exceptions that the byronimo framework throws"""
-	def __str__( self ):
-		return self.message
-
-	
+	pass  
 
 #{Decorator Exceptions
 class MethodTypeError( TypeError, ByronimoError ):

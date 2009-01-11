@@ -57,7 +57,7 @@ def _dagTreeFromTupleList( tuplelist ):
 		
 		direction = level - lastlevel 
 		if direction > 1:
-			raise ByronimoError( "Can only change by one down the dag, changed by %i" % direction )
+			raise ByronimoError( "Can only change by one down the dag, changed by %i in item %s" % ( direction, str( item ) ) )
 			
 		lastlevel = level
 		if direction == 0:
