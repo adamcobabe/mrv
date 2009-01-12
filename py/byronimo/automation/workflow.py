@@ -334,7 +334,7 @@ class Workflow( Graph ):
 					continue
 				
 				outputshell = d_pdata.process.toShell( d_pdata.plug )
-				print "Querying %s" % repr( outputshell )
+				# print "Querying %s" % repr( outputshell )
 				outreports.append( self._evaluateDirtyState( outputshell, processmode ) )
 			# END for each s_pdata, d_pdata 
 		# END if multi handling 
@@ -410,7 +410,7 @@ class Workflow( Graph ):
 				shell = inputshell.node.toShell( plug )
 				
 				if is_valid_shell( shell ):
-					print "WARNING:Did not find output plug delivering our target type - fallback to simple affected checks on node"
+					print "WARNING: Did not find output plug delivering our target type - fallback to simple affected checks on node"
 					outputshell = shell
 					break
 				# END valid shell check 
@@ -423,9 +423,9 @@ class Workflow( Graph ):
 		
 		# we do not care about ambiguity, simply pull one
 		# QUESTION: should we warn about multiple affected plugs ?
-		print "SETTING %s" % str( inputshell )
+		# print "SETTING %s" % str( inputshell )
 		inputshell.set( target, ignore_connection = True )
-		print "WILL QUERY: %s" % str( outputshell )
+		# print "WILL QUERY: %s" % str( outputshell )
 		return outputshell
 		
 	
