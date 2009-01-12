@@ -228,7 +228,6 @@ class QACheckLayout( layouts.RowLayout ):
 		# annotate the text with the result
 		children = self.listChildren()
 		text = children[0]
-		text.p_annotation = str( result )
 		
 		bicon = children[1]
 		bicon.p_image = target_icon
