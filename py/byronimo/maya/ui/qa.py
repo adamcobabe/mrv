@@ -268,6 +268,9 @@ class QALayout( layouts.FormLayout, uiutil.iItemSet ):
 			self.col_layout = scroll_layout.add( layouts.ColumnLayout( adj = 1 ) )
 		# END scroll_layout
 		self.setActive()
+		
+		# name of text indicating there are no checks set
+		self.no_checks_text = None
 	#{ Interface
 	
 	def setChecks( self, checks ):
@@ -276,7 +279,7 @@ class QALayout( layouts.FormLayout, uiutil.iItemSet ):
 		@raise ValueErorr: if one check is from a different workflow and there is a run_all button"""
 		# we might change the layout, so be active
 		# IMPORTANT: if this is not the case, we might easily confuse layouts ... 
-		# figure out why exactly
+		# figure out why exactly that happens
 		self.setActive()
 		
 		# map check names to actual checks
@@ -285,6 +288,21 @@ class QALayout( layouts.FormLayout, uiutil.iItemSet ):
 		
 		self.setItems( name_to_check_map.keys(), 	name_to_check_map = name_to_check_map, 
 					  								name_to_child_map = name_to_child_map )
+		
+		# HANDLE NO CHECKS
+		####################
+		if checks and self.no_checks_text:
+			self.no_checks_text.delete()
+			self.no_checks_text = None
+		# END checks text existed
+			
+		if not checks and self.no_checks_text is None:
+			prevparent = self.getParent()
+			self.col_layout.setActive()
+			self.no_checks_text = controls.Text( label = "No checks available" )
+			prevparent.setActive()
+		# END no checks existed handling 
+		
 		
 		# SET EVENTS 
 		#############
@@ -317,10 +335,12 @@ class QALayout( layouts.FormLayout, uiutil.iItemSet ):
 			
 		# create child layout ?
 		if self.run_all_button:
+			self.setActive()
 			layout_child = self.add( layouts.ColumnLayout( adj = 1, name = button_layout_name ) )
 			if layout_child:
 				controls.Separator( style = "single", h = 10 )
-				run_button = controls.Button( label = "Run All", ann = "Run all checks in one go" )
+				run_button = controls.Button( label = "Run All", ann = "Run all checks in one go",
+											 	enable = len( checks ) > 0 )
 				run_button.e_pressed = self.runAllPressed
 			# END button layout setup
 			self.setActive()
