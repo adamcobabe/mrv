@@ -68,14 +68,20 @@
 </node>
 </node>
 </node>
-<node COLOR="#0033ff" CREATED="1231666182546" ID="ID_1179111458" MODIFIED="1231667306331" POSITION="left" TEXT="Modules">
+<node COLOR="#0033ff" CREATED="1231666182546" ID="ID_1179111458" MODIFIED="1231669399060" POSITION="left" TEXT="Modules">
 <richcontent TYPE="NOTE"><html>
   <head>
     
   </head>
   <body>
     <p>
-      Modules have a clear python interface - the interface should be located where one expects it - thus there should be a nice interface for SelectionConnections as well as the various fliters
+      Modules have a clear python interface - the interface should be located where one expects it - thus there should be a nice interface for SelectionConnections as well as the various fliters.
+    </p>
+    <p>
+      
+    </p>
+    <p>
+      It would be nice if modules are reorganizable by the user, but this would require a proper framework that does not exist yet. So I go for the actual modules for now that are combined in a 'hardcoded' way.
     </p>
   </body>
 </html>
