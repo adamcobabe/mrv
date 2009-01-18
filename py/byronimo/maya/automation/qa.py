@@ -26,37 +26,51 @@ class QAMetaMel( _NodeBaseCheckMeta ):
 	"""Metaclass allowing to create plugs based on a MEL implementation, allowing 
 	to decide whether checks are Python or MEL implemented, but still running natively 
 	in python"""
+	@classmethod
+	def _getMelChecks( metacls, index_proc, check_cls ):
+		"""@return: list( checkInstance, ... ) list of checkinstances represeting 
+		mel based checkes
+		@param index_proc: method returning the index declaring the tests
+		@param check_cls: class used to instance new checks"""
+		output = list()
+		try:
+			index = Mel.call( index_proc )
+		except RuntimeError, e:
+			sys.__stdout__.write( str( e ) )
+		else:
+			# assure its working , never fail here 
+			if len( index ) % 3 == 0:
+				iindex = iter( index )
+				for checkname, description, can_fix in zip( iindex, iindex, iindex ):
+					# check name - it may not contain spaces for now
+					if " " in checkname:
+						sys.__stdout__.write( "Invalid name: %s - it may not contain spaces, use CamelCase or underscores" % checkname )
+						continue
+					# END name check
+					
+					plug = check_cls( annotation = description, has_fix = int( can_fix ) )
+					plug.setName( checkname )
+					output.append( plug )
+				# END for each information tuple
+			# END if index is valid 
+			else:
+				sys.__stdout__.write( "Invalid proc index returned by %s" % index_proc )
+			# END index has valid format 
+		# END index could be retrieved
+		
+		return output
 	
 	def __new__( metacls, name, bases, clsdict ):
 		"""Search for configuration attributes allowing to auto-generate plugs 
 		referring to the respective mel implementation"""
 		index_proc = clsdict.get( "mel_index_proc", None )
 		check_cls = clsdict.get( "check_plug_cls", QAMELCheck )
+		static_plugs = clsdict.get( "static_mel_plugs", True )
 		
-		if index_proc and check_cls is not None:
-			try:
-				index = Mel.call( index_proc )
-			except RuntimeError, e:
-				sys.__stdout__.write( str( e ) )
-			else:
-				# assure its working , never fail here 
-				if len( index ) % 3 == 0:
-					iindex = iter( index )
-					for checkname, description, can_fix in zip( iindex, iindex, iindex ):
-						
-						# check name - it may not contain spaces for now
-						if " " in checkname:
-							sys.__stdout__.write( "Invalid name: %s - it may not contain spaces, use CamelCase or underscores" % checkname )
-							continue
-						# END name check
-						
-						plug = check_cls( annotation = description, has_fix = int( can_fix ) )
-						plug.setName( checkname )
-						clsdict[ checkname ] = plug
-					# END for each information tuple
-				# END if index is valid 
-				else:
-					sys.__stdout__.write( "Invalid proc index returned by %s" % index_proc )
+		if static_plugs and index_proc and check_cls is not None:
+			check_list = metacls._getMelChecks( index_proc, check_cls )
+			for check in check_list:
+				clsdict[ check.getName() ] = check
 		# END create plugs 
 		
 		# finally create the class 
@@ -94,6 +108,11 @@ class QAMELAdapter( object ):
 	considered to be failed if there is at least one invalid item.
 	If you fixed items, all previously failed items should now be returned as 
 	valid items
+	
+	static_mel_plugs
+	Please note that your class must implemnent getPlugs and extend the super class
+	result by the result of L{getMelChecks} to dynamically retrieve the available 
+	checks
 	"""
 	__metaclass__ = QAMetaMel
 	
@@ -104,6 +123,12 @@ class QAMELAdapter( object ):
 	
 	# see class docs 
 	mel_check_proc = None
+	
+	# if True, the mel based checks will be created as class members upon class
+	# creation. If False, they will be retrieved on demand whenever plugs are 
+	# queried. The latter one can be slow, but might be required if the indices 
+	# are dynamically generated
+	static_mel_plugs = True
 	
 	# qa check result compatible class to be used as container for MEL return values
 	check_result_cls = QACheckResult
@@ -146,6 +171,12 @@ class QAMELAdapter( object ):
 		
 		return self.check_result_cls( **kwargs ) 
 		
+	
+	@classmethod
+	def getMelChecks( cls, predicate = lambda p: True ):
+		"""@return: list of MEL checks ( plugs ) representing checks defined by MEL
+		@param predicate: only return plug if predicate( item ) yield True"""
+		return [ c for c in QAMetaMel._getMelChecks( cls.mel_index_proc, cls.check_plug_cls ) if predicate( c ) ]
 	
 	def handleMELCheck( self, check, mode ):
 		"""Called to handle the given check in the given mode

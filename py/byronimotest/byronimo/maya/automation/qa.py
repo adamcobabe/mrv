@@ -53,9 +53,19 @@ class TestMELQAProcess( processes.QACheckProcess, qa.QAMELAdapter ):
 		assert self.isMELCheck( check )
 		return self.handleMELCheck( check, mode )
 		
+class TestMELQAProcessDynamic( TestMELQAProcess ):
+	
+	static_mel_plugs = False
+	
+	# implement the method returning the checks 
+	def getPlugs( self, predicate = lambda p: True ):
+		checks = self.getMelChecks( predicate )
+		checks.extend( super( TestMELQAProcessDynamic, self ).getPlugs( predicate ) )
+		return checks
 
 # add instance to the workflow
 workflows.qualitychecking.addNode( TestMELQAProcess( id="TestMELProcess" ) )
+workflows.qualitychecking.addNode( TestMELQAProcessDynamic( id="TestMELProcessDynamic" ) )
 
 
 class TestQualityAssurance( unittest.TestCase ):
@@ -66,12 +76,15 @@ class TestQualityAssurance( unittest.TestCase ):
 		
 		wfl = workflows.qualitychecking
 		tprocess = wfl.TestMELProcess
+		tprocessDynamic = wfl.TestMELProcessDynamic
 		
 		assert len( tprocess.listChecks() ) == 4
 		assert len( tprocess.listMELChecks() ) == 2
+		assert len( tprocessDynamic.listChecks() ) == 6
+		assert len( tprocessDynamic.listMELChecks() ) == 4
 		
 		# run mel checks
-		melchecks = tprocess.listMELChecks()
+		melchecks = tprocess.listMELChecks( )
 		for mode in qa.QAProcessBase.eMode:
 			results = wfl.runChecks( melchecks, mode = mode )
 			assert len( results ) == len( melchecks )
