@@ -46,6 +46,7 @@ import fnmatch
 import glob
 import shutil
 import codecs
+from interfaces import iDagItem
 
 __version__ = '2.1'
 __all__ = ['Path']
@@ -93,7 +94,7 @@ if hasattr(file, 'newlines'):
 class TreeWalkWarning(Warning):
 	pass
 
-class Path(_base):
+class Path( _base, iDagItem ):
 	""" Represents a filesystem path.
 
 	For documentation on individual methods, consult their
@@ -158,6 +159,30 @@ class Path(_base):
 		return cls(_getcwd())
 	getcwd = classmethod( getcwd )
 
+
+	#{ iDagItem Implementation 
+	
+	def getParent( self ):
+		"""@return: the parent directory of this Path or None if this is the root"""
+		parent = self.p_parent
+		if parent == self:
+			return None
+		return parent 
+		
+	def getChildren( self, predicate = lambda p: True, pattern = None ):
+		"""@return: child paths as retrieved by queryiing the file system.
+		@note: files cannot have children, and willl return an empty array accordingly 
+		@param predicate: return p if predicate( p ) returns True
+		@param pattern: list only elements that match the given simple  pattern
+		i.e. *.*"""
+		try:
+			children = self.listdir( pattern )
+		except OSError:
+			return list()
+			
+		return [ c for c in children if predicate( c ) ]
+	
+	#} END idagitem implementation 
 
 	#{ Operations on path strings.
 

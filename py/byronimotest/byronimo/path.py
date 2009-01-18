@@ -38,3 +38,6 @@ class TestPath( unittest.TestCase ):
 		
 		s = set( ( user, userexp ) )	# same path after all
 		self.failUnless( len( s ) == 1 )
+		
+		self.failUnless( len( list( userexp.iterParents() ) ) )
+		self.failUnless( len( list( userexp.getChildren() ) ) )
