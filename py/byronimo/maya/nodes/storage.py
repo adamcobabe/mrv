@@ -160,7 +160,12 @@ class PyPickleData( mpx.MPxData ):
 	def _writeToStream( self, ostream, asBinary ):
 		"""Write our data binary or ascii respectively"""
 		sout = cStringIO.StringIO()
-		cPickle.dump( self.__data, sout, protocol=2 )
+		try:
+			cPickle.dump( self.__data, sout, protocol=2 )
+		except cPickle.PicklingError, e:
+			sys.__stdout__.write( str( e ) )
+			return 
+		# END pickle error handling 
 		
 		if not asBinary:
 			api.MStreamUtils.writeChar( ostream, '"', asBinary )
