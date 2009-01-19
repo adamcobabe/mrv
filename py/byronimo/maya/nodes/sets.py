@@ -536,8 +536,18 @@ class Partition:
 			self.removeMember( m )
 			
 	def getMembers( self ):
-		"""@return: sets being member of this partition"""
-		return [ p.getNode() for p in self.sets.getInputs() ]
+		"""@return: sets being member of this partition
+		@note: have to filter the members as there might be non-set connections 
+		in referenced environments"""
+		out = list()
+		for plug in self.sets.getInputs():
+			node = plug.getNode()
+			if node.getApiType() != api.MFn.kSet:
+				continue
+			out.append( node )
+		# END for each plug in set connections
+		return out
+		
 		
 	#}END set membership
 	
