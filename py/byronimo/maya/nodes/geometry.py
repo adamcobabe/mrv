@@ -84,12 +84,16 @@ class Shape( base.DagNode ):	 # base for epydoc !
 		# END for each object grouop connection in iog
 		
 	
-	def getComponentAssignments( self, setFilter = fSetsRenderable ):
+	def getComponentAssignments( self, setFilter = fSetsRenderable, use_api = True ):
 		"""@return: list of tuples( objectSetNode, Component ) defininmg shader 
 		assignments on per component basis.
 		If a shader is assigned to the whole object, the component would be a null object, otherwise
 		it is an instance of a wrapped IndexedComponent class
 		@param setFilter: see L{getConnectedSets}
+		@param use_api: if True, api methods will be used if possible which is usually faster.
+		If False, a custom non-api implementation will be used instead.
+		This can be required if the apiImplementation is not reliable which happens in 
+		few cases of 'weird' component assignments
 		@note: the sets order will be the order of connections of the respective component list 
 		attributes at instObjGroups.objectGroups
 		@note: currently only meshes and subdees support per component assignment, whereas only 
@@ -114,7 +118,7 @@ class Shape( base.DagNode ):	 # base for epydoc !
 		################## 
 		# QUERY SETS AND COMPONENTS 
 		# for non-meshes, we have to parse the components manually 
-		if not self._apiobj.hasFn( api.MFn.kMesh ) or not self.isValidMesh():
+		if not use_api or not self._apiobj.hasFn( api.MFn.kMesh ) or not self.isValidMesh():
 			# check full membership
 			sets,components = self._parseSetConnections( True )
 		# END non-mesh handling 
