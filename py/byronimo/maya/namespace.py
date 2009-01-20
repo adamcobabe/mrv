@@ -382,7 +382,14 @@ class Namespace( unicode, iDagItem ):
 				sellist.extend( objs )
 			else:
 				for obj in objs:
-					sellist.add( obj )
+					try:
+						sellist.add( obj )
+					except RuntimeError:
+						# sometimes there are invalid or special objects that cannot be put onto 
+						# the list apparently ... nothing will always work here :/
+						pass 
+					# END add exception handling
+				# END for each obj in string object list
 			# END if selection list is required 
 		# END if there are objects 
 		
