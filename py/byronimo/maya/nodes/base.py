@@ -40,6 +40,7 @@ import maya.OpenMayaMPx as OpenMayaMPx
 import byronimo.maya.namespace as namespace
 undo = __import__( "byronimo.maya.undo", globals(), locals(),[ 'undo' ] )
 import sys
+from itertools import chain
 
 
 ############################
@@ -255,13 +256,56 @@ def objExists( objectname ):
 
 
 @undoable
-def delete( *args ):
+def delete( *args, **kwargs ):
 	"""Delete the given Node instances
-	@note: all deletions will be stored on one undo operation"""
-	mod = undo.DGModifier()
-	for node in args:
-		mod.deleteNode( node._apiobj )
-	mod.doIt()
+	@note: all deletions will be stored on one undo operation
+	@param presort: if True, default False, will do alot of pre-work to actually 
+	make the deletion work properly using  the UI, thus we :
+		* sort dag nodes by dag path token length to delete top level ones first 
+		and individually
+		* delete all dependency nodes in a bunch
+	Using this flag will be slower, but yields much better results if deleting complex
+	dag and dependency trees with locked attributes, conversion nodes, transforms and shapes
+	@note: in general , no matter which options have been chosen , api deletion does not work well
+	as the used algorithm is totally different and inferior to the mel implementaiton
+	@note: will not raise in case of an error, but print a notification message"""
+	presort = kwargs.get( "presort", False )
+	
+	# presort - this allows objects high up in the hierarchy to be deleted first 
+	# Otherwise we might have trouble deleting the ones lower in the hierarchy 
+	# We are basically reimplementing the MEL command 'delete' which does the 
+	# same thing internally I assume
+	nodes = args
+	if presort:
+		depnodes = list()
+		dagnodes = list()
+		for node in args:
+			if isinstance( node, DagNode ):
+				dagnodes.append( node )
+			else:
+				depnodes.append( node )
+		# END for each node in args for categorizing
+		
+		# long paths first 
+		dagnodes.sort( key = lambda n: len( str( n ).split( '|' ) ), reverse = True )
+		
+		# use all of these in order 
+		nodes = chain( dagnodes, depnodes )
+	# END presorting 
+	
+	# NOTE: objects really want to be deleted individually - otherwise 
+	# maya might just crash for some reason !!
+	for node in nodes:
+		if not node.isValid():
+			continue
+		
+		try:
+			node.delete()
+		except RuntimeError:
+			print "Deletion of %s failed" % node
+		# END exception handling 
+	# END for each node to delete
+		
 	
 def select( *nodesOrSelectionList , **kwargs ):
 	"""Select the given list of wrapped nodes or selection list in maya

@@ -387,7 +387,7 @@ class Namespace( unicode, iDagItem ):
 					except RuntimeError:
 						# sometimes there are invalid or special objects that cannot be put onto 
 						# the list apparently ... nothing will always work here :/
-						pass 
+						print "Failed to put object '%s' onto selection list" % obj
 					# END add exception handling
 				# END for each obj in string object list
 			# END if selection list is required 
