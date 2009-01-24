@@ -259,15 +259,16 @@ class TestSets( unittest.TestCase ):
 	def test_partitions( self ):
 		"""byronimo.maya.nodes.sets: test partition constraints"""
 		if not ownpackage.mayRun( "setsforce" ): return
+		
 		# one transform, two sets, one partition 
-		s1 = nodes.createNode( "s1", "objectSet" )
-		s2 = nodes.createNode( "s2", "objectSet" )
+		s1 = nodes.createNode( "ms1", "objectSet" )
+		s2 = nodes.createNode( "ms2", "objectSet" )
 		p = nodes.createNode( "p1", "partition" )
 		
-		s3 = nodes.createNode( "s3", "objectSet" )
-		s4 = nodes.createNode( "s4", "objectSet" )
-		t = nodes.createNode( "trans", "transform" )
-		t2 = nodes.createNode( "trans2", "transform" )
+		s3 = nodes.createNode( "ms3", "objectSet" )
+		s4 = nodes.createNode( "ms4", "objectSet" )
+		t = nodes.createNode( "my_trans", "transform" )
+		t2 = nodes.createNode( "my_trans2", "transform" )
 		
 		p.addSets( [ s1, s2 ] )
 		
