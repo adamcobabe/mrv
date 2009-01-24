@@ -98,7 +98,7 @@ class ObjectSet:
 		return memberobj
 		
 	
-	def _forceMembership( self, member, component, is_single_member ):
+	def _forceMembership( self, member, component, is_single_member, ignore_failure ):
 		"""Search all sets connected to our partitions 
 		for intersecting members and remove them.
 		Finally dd the members in question to us again
@@ -116,11 +116,10 @@ class ObjectSet:
 		
 		# finally add the member to our set once more - now it should work 
 		# do not risk recursion though by setting everything to ignore errors 
-		addRemoveFunc = getattr( self, "_addRemoveMember" ) 
 		if isinstance( member, api.MSelectionList ):
-			return self._addRemoveMembers( member, self.kAdd, True )
+			return self._addRemoveMembers( member, self.kAdd, ignore_failure )
 		else:
-			return self._addRemoveMember( member, component, self.kAdd, True )
+			return self._addRemoveMember( member, component, self.kAdd, ignore_failure )
 			
 	
 	def _checkMemberAddResult( self, member, component, mode, ignore_failure, is_single_member ):
@@ -147,7 +146,7 @@ class ObjectSet:
 				
 			if not_all_members_added:
 				if mode == self.kAddForce:
-					return self._forceMembership( member, component, is_single_member )
+					return self._forceMembership( member, component, is_single_member, ignore_failure )
 				
 				# if we are here, we do not ignore failure, and raise  
 				raise ConstraintError( "At least some members of %r could not be added to %r due to violation of exclusivity constraint" % (member,self) )
@@ -206,6 +205,7 @@ class ObjectSet:
 			tmp = undoitfunc
 			undoitfunc = doitfunc
 			doitfunc = tmp
+		# END function swapping
 			
 		op = undo.GenericOperation()	
 		op.addDoit( doitfunc, sellist )
@@ -542,7 +542,7 @@ class Partition:
 		out = list()
 		for plug in self.sets.getInputs():
 			node = plug.getNode()
-			if node.getApiType() != api.MFn.kSet:
+			if not node.hasFn( api.MFn.kSet ):
 				continue
 			out.append( node )
 		# END for each plug in set connections

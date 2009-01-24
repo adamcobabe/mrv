@@ -258,7 +258,7 @@ class TestSets( unittest.TestCase ):
 		
 	def test_partitions( self ):
 		"""byronimo.maya.nodes.sets: test partition constraints"""
-		if not ownpackage.mayRun( "sets" ): return
+		if not ownpackage.mayRun( "setsforce" ): return
 		# one transform, two sets, one partition 
 		s1 = nodes.createNode( "s1", "objectSet" )
 		s2 = nodes.createNode( "s2", "objectSet" )
@@ -298,7 +298,57 @@ class TestSets( unittest.TestCase ):
 			# FORCE all objects into s1 
 			s1.addMembers( multiobj, force = 1 )
 			self.failUnless( s1.getIntersection( multiobj, sets_are_members = 1 ).length() == 2 )
+			
+			
+			# and once more 
+			s1.clear()
+			s2.clear()
+			
+			for s in s1,s2:
+				assert s.getMembers().length() == 0
+			
+			
+			s1.addMembers( multiobj )
+			self.failUnlessRaises( sets.ConstraintError, s2.addMembers, multiobj, force = False, ignore_failure = False )
+			assert s2.getMembers().length() == 0
+			
+			s2.addMembers( multiobj, force = False, ignore_failure = 1 )
+			assert s2.getMembers().length() == 0
+			
+			# now force it
+			s2.addMembers( multiobj, force = 1 )
+			assert s2.getMembers().length() == 2
 		# END for each object
+		
+		
+		# SHADER ASSIGNMENTS
+		######################
+		sphere = nodes.Node( cmds.polySphere( )[0] )[0]
+		cube = nodes.Node( cmds.polyCube()[0] )[0]
+		multi = ( sphere, cube )
+		all_sets = sphere.getConnectedSets( setFilter = sphere.fSets )
+		isg = all_sets[0]			# initial shading group
+		rp = isg.getPartitions()[0]# render partition
+		
+		assert str( isg ).startswith( "initial" )
+		
+		snode = nodes.createNode( "mysg", "shadingEngine" )
+		snode.setPartition( rp, 1 )
+		
+		self.failUnlessRaises( sets.ConstraintError, snode.addMember, sphere )
+		self.failUnlessRaises( sets.ConstraintError, snode.addMembers, multi )
+		
+		# now force it in
+		snode.addMembers( multi, force = 1, ignore_failure = 0 )
+		assert snode.getMembers().length() == 2 
+		assert snode.getIntersection( multi ).length() == 2 
+		
+	def test_renderPartition( self ):
+		"""byronimo.maya.nodes.sets: assure renderpartition works for us"""
+		if not ownpackage.mayRun( "setsrenderpartition" ): return
+		
+		rp = nodes.Node( "renderPartition" )
+		assert len( rp.getSets( ) )		# at least the initial shading group
 	
 		
 	def test_z_memberHandlingComps( self ):
