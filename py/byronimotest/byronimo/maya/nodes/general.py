@@ -387,8 +387,8 @@ class TestNodeBase( unittest.TestCase ):
 		"""byronimo.maya.nodes: see of reparenting is responding when instances are involved"""
 		if not ownpackage.mayRun( "general" ): return
 		mesh = nodes.createNode( "trans|mesh", "mesh" )
-		base = nodes.createNode( "base", "transform" )
-		obase = nodes.createNode( "obase", "transform" )
+		base = nodes.createNode( "base|subbase", "transform" )
+		obase = nodes.createNode( "obase|subbase2", "transform" )
 		rbase = nodes.createNode( "reparentBase", "transform" )
 		
 		# test basic functions 
@@ -397,6 +397,14 @@ class TestNodeBase( unittest.TestCase ):
 		
 		baseinst = base.addInstancedChild( mesh )
 		obaseinst = obase.addInstancedChild( mesh )
+		
+		# try to re-wrap the instanced items
+		assert nodes.Node( str( baseinst ) ) == baseinst
+		assert nodes.Node( str( obaseinst ) ) == obaseinst
+		
+		# use partial name 
+		assert nodes.Node( "subbase|mesh" ) == baseinst
+		assert nodes.Node( "subbase2|mesh" ) == obaseinst	
 		
 		self.failUnless( mesh.isValid() and baseinst.isValid() and obaseinst.isValid() )
 		

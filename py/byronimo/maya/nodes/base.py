@@ -73,8 +73,11 @@ def nodeTypeToNodeTypeCls( nodeTypeName ):
 	return nodeTypeCls
 
 
-def makeAbsolutePath( nodename ):
-	if not nodename.startswith( '|' ):
+def _makeAbsolutePath( nodename ):
+	# if dag paths are passed in, we do nothing as a dag object is obviously meant.
+	# Otherwise prepend a '|' to make it a dag object - the calling method will deal 
+	# with it accordingly 
+	if nodename.count( '|' )  == 0:
 		return '|' + nodename
 	return nodename
 	
@@ -90,17 +93,18 @@ def toDagPath( apiobj ):
 
 def toApiobj( nodename ):
 	""" Convert the given nodename to the respective MObject
-	@note: uses unique names only, and will fail if a non-unique path is given
+	@note: uses unique names only, and will fail if a non-unique path is given, which is
+	as selection lists do not work properly with partial names !
 	@note: even dag objects will end up as MObject
 	@note: code repeats partly in toApiobjOrDagPath as its supposed to be as fast 
 	as possible - this method gets called quite a few times in benchmarks"""
 	global _nameToApiSelList
 	_nameToApiSelList.clear()
 	
-	nodename = makeAbsolutePath( nodename )
+	nodename = _makeAbsolutePath( nodename )
 		
 	objnamelist = [ nodename ]
-	if nodename.count( '|' ) == 1:	# check dep node too !
+	if nodename.startswith( "|" ) and nodename.count( '|' ) == 1:
 		objnamelist.append( nodename[1:] )
 	
 	for name in objnamelist:
@@ -114,6 +118,7 @@ def toApiobj( nodename ):
 			
 			# if we requested a dg node, but got a dag node, fail 
 			if name.count( '|' ) == 0 and obj.hasFn( api.MFn.kDagNode ):
+				print "Skipped %s as a dependency node was expected, but got a dag node" % name
 				continue
 			
 			return obj
@@ -132,12 +137,12 @@ def toApiobjOrDagPath( nodename ):
 	global _nameToApiSelList
 	_nameToApiSelList.clear()
 	
-	nodename = makeAbsolutePath( nodename )
+	nodename = _makeAbsolutePath( nodename )
 		
 	objnamelist = [ nodename ]
-	if nodename.count( '|' ) == 1:	# check dep node too !	 ( "|nodename", but "nodename" could exist too, occupying the "|nodename" name !
+	if nodename.startswith( "|" ) and nodename.count( '|' ) == 1:	# check dep node too !	 ( "|nodename", but "nodename" could exist too, occupying the "|nodename" name !
 		objnamelist.append( nodename[1:] )
-	
+		
 	for name in objnamelist:
 		try:	# DEPEND NODE ?
 			_nameToApiSelList.add( name )
@@ -154,6 +159,7 @@ def toApiobjOrDagPath( nodename ):
 				
 				# if we requested a dg node, but got a dag node, fail 
 				if name.count( '|' ) == 0 and obj.hasFn( api.MFn.kDagNode ):
+					print "Skipped %s as a dependency node was expected, but got a dag node" % name
 					continue
 				
 				return obj
@@ -671,7 +677,7 @@ class Node( object ):
 			
 		
 		skip_checks = ( len( args ) > 1 and args[1] ) or False
-		if ( not skip_checks and ( not apiobj_or_dagpath 
+		if ( not skip_checks and ( apiobj_or_dagpath is None 
 			or ( isinstance( apiobj_or_dagpath, api.MDagPath ) and not apiobj_or_dagpath.isValid() ) 
 			or ( isinstance( apiobj_or_dagpath, api.MObject ) and apiobj_or_dagpath.isNull() ) ) ):
 			raise ValueError( "object does not exist: %s" % objorname )

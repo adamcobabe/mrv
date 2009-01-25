@@ -210,10 +210,13 @@ class QACheckLayout( layouts.RowLayout ):
 		
 		self.setResult( result )
 		
-	def checkError( self ):
-		"""Called if the checks fails with an error"""
+	def checkError( self, exception, workflow ):
+		"""Called if the checks fails with an error
+		@param exception: exception object that was thrown by our check
+		@param workflow: workflow that ran the check"""
 		text = self.listChildren()[0]
 		text.p_label = str( self._toNiceName( self.getCheck().plug.getName() ) + " ( ERROR )" )
+		print str( exception )
 	
 	def setResult( self, result ):
 		"""Setup ourselves to indicate the given check result
@@ -455,7 +458,9 @@ class QALayout( layouts.FormLayout, uiutil.iItemSet ):
 			result = args[0]
 			checkchild.postCheck( result )			
 		elif event == self.qaworkflowcls.e_checkError:
-			checkchild.checkError( )
+			exc = args[0]
+			wfl = args[1]
+			checkchild.checkError( exc, wfl )
 			
 	def runAllPressed( self, *args, **kwargs ):
 		"""Called once the Run-All button is pressed
