@@ -1,6 +1,6 @@
 //Maya ASCII 8.5 scene
 //Name: meshtweaks.ma
-//Last modified: Wed, Jan 28, 2009 09:37:48 PM
+//Last modified: Wed, Jan 28, 2009 09:45:01 PM
 //Codeset: 1252
 requires maya "8.5";
 currentUnit -l centimeter -a degree -t pal;
@@ -11,8 +11,8 @@ fileInfo "cutIdentifier" "200706062232-700503";
 fileInfo "osv" "Microsoft Windows XP Service Pack 3 (Build 2600)\n";
 createNode transform -s -n "persp";
 	setAttr ".v" no;
-	setAttr ".t" -type "double3" 6.0568366107517297 4.3457093272824778 6.142001953521123 ;
-	setAttr ".r" -type "double3" -26.738352729602994 44.599999999999952 0 ;
+	setAttr ".t" -type "double3" 9.3954212333888467 4.4929256219234466 -3.1582904425635374 ;
+	setAttr ".r" -type "double3" -15.938352729587512 111.39999999999655 0 ;
 createNode camera -s -n "perspShape" -p "persp";
 	setAttr -k off ".v" no;
 	setAttr ".fl" 34.999999999999993;
@@ -73,6 +73,9 @@ createNode mesh -n "mesh_with_history" -p "pCube1";
 	setAttr ".dcc" -type "string" "Ambient+Diffuse";
 	setAttr ".covm[0]"  0 1 1;
 	setAttr ".cdvm[0]"  0 1 1;
+	setAttr -s 5 ".pt";
+	setAttr ".pt[2:5]" -type "float3" 0 2.9802322e-008 0  0 2.9802322e-008 
+		0  1.1920929e-007 1.0000001 -1.0000004  1.1920929e-007 1.0000001 -1.0000004 ;
 createNode transform -n "pCube2";
 createNode mesh -n "mesh_without_history" -p "pCube2";
 	setAttr -k off ".v";
@@ -86,6 +89,8 @@ createNode mesh -n "mesh_without_history" -p "pCube2";
 	setAttr ".dcc" -type "string" "Ambient+Diffuse";
 	setAttr ".covm[0]"  0 1 1;
 	setAttr ".cdvm[0]"  0 1 1;
+	setAttr -s 4 ".pt[2:5]" -type "float3"  5.9604645e-008 2.3841858e-007 
+		2.3841858e-007 5.9604645e-008 2.3841858e-007 2.3841858e-007 0 1 -1 0 1 -1;
 	setAttr -s 8 ".vt[0:7]"  -1 -1 1 1 -1 1 -1 1 1 1 1 1 -1 1 -1 1 1 
 		-1 -1 -1 -1 1 -1 -1;
 	setAttr -s 12 ".ed[0:11]"  0 1 0 2 3 0 
