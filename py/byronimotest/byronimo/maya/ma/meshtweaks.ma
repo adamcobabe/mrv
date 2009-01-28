@@ -1,6 +1,6 @@
 //Maya ASCII 8.5 scene
 //Name: meshtweaks.ma
-//Last modified: Wed, Jan 28, 2009 09:45:01 PM
+//Last modified: Wed, Jan 28, 2009 09:47:53 PM
 //Codeset: 1252
 requires maya "8.5";
 currentUnit -l centimeter -a degree -t pal;
@@ -11,8 +11,8 @@ fileInfo "cutIdentifier" "200706062232-700503";
 fileInfo "osv" "Microsoft Windows XP Service Pack 3 (Build 2600)\n";
 createNode transform -s -n "persp";
 	setAttr ".v" no;
-	setAttr ".t" -type "double3" 9.3954212333888467 4.4929256219234466 -3.1582904425635374 ;
-	setAttr ".r" -type "double3" -15.938352729587512 111.39999999999655 0 ;
+	setAttr ".t" -type "double3" 10.19459243354064 3.7064566758636888 -0.52950241753306848 ;
+	setAttr ".r" -type "double3" -11.138352729587302 94.599999999996413 0 ;
 createNode camera -s -n "perspShape" -p "persp";
 	setAttr -k off ".v" no;
 	setAttr ".fl" 34.999999999999993;
@@ -82,7 +82,7 @@ createNode mesh -n "mesh_without_history" -p "pCube2";
 	setAttr ".vir" yes;
 	setAttr ".vif" yes;
 	setAttr ".uvst[0].uvsn" -type "string" "map1";
-	setAttr -s 14 ".uvst[0].uvsp[0:13]" -type "float2" 0.375 0 0.625 0 
+	setAttr -s 14 ".uvst[0].uvsp[0:13]" -type "float2" 0.375 -1 0.625 -1 
 		0.375 0.25 0.625 0.25 0.375 0.5 0.625 0.5 0.375 0.75 0.625 0.75 0.375 1 0.625 1 0.875 
 		0 0.875 0.25 0.125 0 0.125 0.25;
 	setAttr ".cuvs" -type "string" "map1";
