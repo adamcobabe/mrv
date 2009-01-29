@@ -200,32 +200,111 @@ class Mesh( SurfaceShape ):		# base for epydoc !
 			sg.addMember( other, comp, **kwargs )
 	
 	@undoable
-	def resetTweaks( self, tweak_type = eComponentType.vertex ):
+	def resetTweaks( self, tweak_type = eComponentType.vertex, keep_tweak_result = False ):
 		"""Reset the tweaks on the given mesh shape
-		@param eComponentType: the component type whose tweaks are to be removed, 
-		valid values are 'vertex' and 'uv' enum members"""
-		attrname, datatype = {
-						self.eComponentType.vertex : ( "pnts", api.MFnNumericData.k3Float ),
-						self.eComponentType.uv : ( "uvpt", api.MFnNumericData.k2Float )
-					}.get( tweak_type, None )
+		@param eComponentType: the component type(s) whose tweaks are to be removed, 
+		valid values are 'vertex' and 'uv' enum members. Pass in a scalar value or a list 
+		of tweak types 
+		@param keep_tweak_result: if True, the effect of the tweak will be kept. If False, 
+		it will be removed. What actually happens depends on the context:
+		* [ referenced ] mesh without history:
+			* copy outMesh to inMesh, resetTweaks
+			* if referenced, plenty of reference edits are generated, ideally one operates 
+			  on non-referenced geomtry 
+		* [ referenced ] mesh with history 
+			* put tweakNode into mesh history, copy tweaks onto tweak node
+		@note: currently vertex and uv tweaks will be removed if keep is enabled, thus they must 
+		both be specified"""
+		check_types = ( isinstance( tweak_type, ( list, tuple ) ) and tweak_type ) or [ tweak_type ]
+		type_map = {
+							self.eComponentType.vertex : ( "pnts", api.MFnNumericData.k3Float, "polyTweak", api.MFn.kPolyTweak, "tweak" ),
+							self.eComponentType.uv : ( "uvpt", api.MFnNumericData.k2Float, "polyTweakUV", api.MFn.kPolyTweakUV, "uvTweak" )
+					}
 		
-		if attrname is None:
-			raise ValueError( "Tweak type %s is not supported" % tweak_type )
+		for reset_this_type in check_types:
+			try:
+				attrname, datatype, tweak_node_type, tweak_node_type_API, tweakattr = type_map[ reset_this_type ]
+			except KeyError:
+				raise ValueError( "Tweak type %s is not supported" % reset_this_type )
+				
+			# KEEP MODE 
+			#############
+			if keep_tweak_result:
+				input_plug = self.inMesh.p_input
+				
+				# history check  
+				if input_plug.isNull():
+					# assert as we had to make the handling much more complex to allow this to work right as we copy the whole mesh here
+					# containing all tweaks , not only one type
+					if not ( self.eComponentType.vertex in check_types and self.eComponentType.uv in check_types ):
+						print "WARNING: Currently vertex AND uv tweaks will be removed if a mesh has no history and a reset is requested"
+					
+					# take the output mesh, and stuff it into the input, then proceed 
+					# with the reset. This implies that all tweaks have to be removed
+					out_mesh = self.outMesh.asMObject()
+					self.inMesh.setMObject( out_mesh )
+					self.cachedInMesh.setMObject( out_mesh )
+					
+					# finally reset all tweeaks
+					return self.resetTweaks( check_types, keep_tweak_result = False )
+				else:
+					# create node of valid type
+					tweak_node = input_plug.getNode()
+					
+					# create node if there is none as direct input  
+					if not tweak_node.hasFn( tweak_node_type_API ):
+						tweak_node = base.createNode( "polyTweak", tweak_node_type, forceNewLeaf = 1  )
+						
+						# hook the node into the history
+						input_plug >> tweak_node.inputPolymesh
+						tweak_node.output >> self.inMesh
+						
+						# setup uvset tweak location to tell uvset where to get tweaks from
+						if tweak_node_type_API == api.MFn.kPolyTweakUV:
+							names = list()
+							self.getUVSetNames( names )
+							index = names.index( self.getCurrentUVSetName( ) )
+							
+							tweak_node.uvTweak.getByLogicalIndex( index ) >> self.uvSet.getByLogicalIndex( index ).uvSetTweakLocation
+						# END uv special setup
+					# END create tweak node
+					
+					dtweak_plug = getattr( tweak_node, tweakattr )
+					stweak_plug = getattr( self, attrname )
+					
+					# copy the tweak values - iterate manually as the plug tends to
+					# report incorrect values if history is present - its odd
+					nt = len( stweak_plug )
+					for i in xrange( nt ):
+						try:
+							tplug = stweak_plug[ i ]
+						except RuntimeError:
+							continue 
+						else:
+							dtweak_plug.getByLogicalIndex( tplug.getLogicalIndex() ).setMObject( tplug.asMObject() )
+					# END for each tweak plug 
+					
+					
+					
+					# proceed with reset of tweaks 
+					pass
+				# END history handling 
+			# END keep tweak result handling 
 			
-		arrayplug = getattr( self, attrname )
-		dataobj = api.MFnNumericData().create( datatype )
-		
-		# reset values, do it for all components at once using a data object
-		try:
-			for p in arrayplug:
-				p.setMObject( dataobj )
-		except RuntimeError:
-			# especially uvtweak array plugs return incorrect lengths, thus we may
-			# fail once we reach the end of the iteration.
-			# uvpt appears to display a lenght equalling the number of uvpoints in the mesh
-			# possibly only for the current uvset
-			pass 
-		
+			arrayplug = getattr( self, attrname )
+			dataobj = api.MFnNumericData().create( datatype )
+			
+			# reset values, do it for all components at once using a data object
+			try:
+				for p in arrayplug:
+					p.setMObject( dataobj )
+			except RuntimeError:
+				# especially uvtweak array plugs return incorrect lengths, thus we may
+				# fail once we reach the end of the iteration.
+				# uvpt appears to display a lenght equalling the number of uvpoints in the mesh
+				# possibly only for the current uvset
+				pass 
+		# END for tweak type to reset 
 	
 	#( iDuplicatable 
 	def copyFrom( self, other, *args, **kwargs ):

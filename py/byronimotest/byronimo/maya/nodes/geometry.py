@@ -162,10 +162,11 @@ class TestGeometry( unittest.TestCase ):
 		
 		# TEST TWEAK HANDLING
 		# make tweak
+		ofs = ( 1.0, 1.0, 1.0 )						# offset array
 		ptweak = p1.pnts.getByLogicalIndex( 0 )
-		ptweak.px.setFloat( 1.0 )
-		ptweak.py.setFloat( 1.0 )
-		ptweak.pz.setFloat( 1.0 )
+		ptweak.px.setFloat( ofs[0] )
+		ptweak.py.setFloat( ofs[1] )
+		ptweak.pz.setFloat( ofs[2] )
 		
 		p1.resetTweaks( p1.eComponentType.vertex )
 		assert ptweak.px.asFloat() == 0.0
@@ -173,11 +174,61 @@ class TestGeometry( unittest.TestCase ):
 		assert ptweak.pz.asFloat() == 0.0
 		
 		puvtweak = p1.uvpt.getByLogicalIndex( 0 )
-		puvtweak.ux.setFloat( 1.0 )
-		puvtweak.uy.setFloat( 1.0 )
+		puvtweak.ux.setFloat( ofs[0] )
+		puvtweak.uy.setFloat( ofs[1] )
 		
 		p1.resetTweaks( p1.eComponentType.uv )
 		assert puvtweak.ux.asFloat() == 0.0
 		assert puvtweak.uy.asFloat() == 0.0
+		
+		
+		
+		# RESET TWEAKS , keep result
+		###############################
+		# TODO: compete this test, many issues are not tested, uv reset with history
+		# is not verified at all
+		# although tweaks have been removed, from the shape , their effect needs to stay
+		for comptype in nodes.Mesh.eComponentType.vertex,nodes.Mesh.eComponentType.uv : 
+			bmaya.Scene.open( common.get_maya_file( "meshtweaks.ma" ), force = 1 )
+			
+			for mname in ( "mesh_without_history", "mesh_with_history" ):
+				mesh = nodes.Node( mname )
+				try:
+					mesh.resetTweaks( tweak_type = comptype, keep_tweak_result = 1 )
+				except:
+					common._saveTempFile( "tweaktest_%s_%s.ma" % ( mname, comptype ) )
+					raise
+				else:
+					# common._saveTempFile( "tweaktest_%s_%s.ma" % ( mname, comptype ) )
+					pass 
+									 
+				tweaktype = api.MFn.kPolyTweak
+				if comptype == nodes.Mesh.eComponentType.uv:
+					tweaktype = api.MFn.kPolyTweakUV
+					
+				history_mode = "_with_" in mname
+				
+				print " COMPTYPE = %s | HISTORY = %i " % ( comptype, history_mode )
+				
+				# HISTORY CHECK
+				# assure tweak nodes have been created
+				if history_mode:
+					assert mesh.inMesh.p_input.getNode().getApiType() == tweaktype 
+				else:
+					assert mesh.inMesh.p_input.isNull()
+				# END history  check
+				
+				# TODO: Check that the values are truly the same ( as keep_tweak_result is 1 )
+				# NOTE: currently this has only been tested with UI directly
+				if comptype == nodes.Mesh.eComponentType.vertex:
+					pass 
+				# END if vertex check
+				else:
+					pass 
+				# END uv check
+				
+				# two vertices are tweaked
+			# END for each mesh name
+		# END for each component type
 		
 		
