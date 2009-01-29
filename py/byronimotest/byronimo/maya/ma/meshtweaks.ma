@@ -1,6 +1,6 @@
 //Maya ASCII 8.5 scene
 //Name: meshtweaks.ma
-//Last modified: Wed, Jan 28, 2009 09:47:53 PM
+//Last modified: Thu, Jan 29, 2009 09:29:27 AM
 //Codeset: 1252
 requires maya "8.5";
 currentUnit -l centimeter -a degree -t pal;
@@ -11,12 +11,12 @@ fileInfo "cutIdentifier" "200706062232-700503";
 fileInfo "osv" "Microsoft Windows XP Service Pack 3 (Build 2600)\n";
 createNode transform -s -n "persp";
 	setAttr ".v" no;
-	setAttr ".t" -type "double3" 10.19459243354064 3.7064566758636888 -0.52950241753306848 ;
-	setAttr ".r" -type "double3" -11.138352729587302 94.599999999996413 0 ;
+	setAttr ".t" -type "double3" 3.2048841950497131 2.1186744625023 3.2999287836678013 ;
+	setAttr ".r" -type "double3" -24.93835272958593 52.599999999995958 0 ;
 createNode camera -s -n "perspShape" -p "persp";
 	setAttr -k off ".v" no;
 	setAttr ".fl" 34.999999999999993;
-	setAttr ".coi" 9.6589154299862994;
+	setAttr ".coi" 5.3403370822678289;
 	setAttr ".imn" -type "string" "persp";
 	setAttr ".den" -type "string" "persp_depth";
 	setAttr ".man" -type "string" "persp_mask";
@@ -73,9 +73,8 @@ createNode mesh -n "mesh_with_history" -p "pCube1";
 	setAttr ".dcc" -type "string" "Ambient+Diffuse";
 	setAttr ".covm[0]"  0 1 1;
 	setAttr ".cdvm[0]"  0 1 1;
-	setAttr -s 5 ".pt";
-	setAttr ".pt[2:5]" -type "float3" 0 2.9802322e-008 0  0 2.9802322e-008 
-		0  1.1920929e-007 1.0000001 -1.0000004  1.1920929e-007 1.0000001 -1.0000004 ;
+	setAttr -s 6 ".pt[0:5]" -type "float3"  0 1 -1 0 1 -1 0 0 0 0 0 0 
+		0 0 0 0 0 0;
 createNode transform -n "pCube2";
 createNode mesh -n "mesh_without_history" -p "pCube2";
 	setAttr -k off ".v";
@@ -89,8 +88,8 @@ createNode mesh -n "mesh_without_history" -p "pCube2";
 	setAttr ".dcc" -type "string" "Ambient+Diffuse";
 	setAttr ".covm[0]"  0 1 1;
 	setAttr ".cdvm[0]"  0 1 1;
-	setAttr -s 4 ".pt[2:5]" -type "float3"  5.9604645e-008 2.3841858e-007 
-		2.3841858e-007 5.9604645e-008 2.3841858e-007 2.3841858e-007 0 1 -1 0 1 -1;
+	setAttr -s 6 ".pt[0:5]" -type "float3"  0 1 -1 0 1 -1 0 0 0 0 0 0 
+		0 0 0 0 0 0;
 	setAttr -s 8 ".vt[0:7]"  -1 -1 1 1 -1 1 -1 1 1 1 1 1 -1 1 -1 1 1 
 		-1 -1 -1 -1 1 -1 -1;
 	setAttr -s 12 ".ed[0:11]"  0 1 0 2 3 0 
@@ -127,6 +126,9 @@ createNode polyCube -n "polyCube1";
 	setAttr ".h" 2;
 	setAttr ".d" 2;
 	setAttr ".cuv" 4;
+createNode polyTweakUV -n "polyTweakUV1";
+	setAttr ".uopa" yes;
+	setAttr -s 2 ".uvtk[0:1]" -type "float2" 0 -1 0 -1;
 select -ne :time1;
 	setAttr ".o" 1.0416666666666667;
 select -ne :renderPartition;
@@ -148,7 +150,8 @@ select -ne :hardwareRenderGlobals;
 select -ne :defaultHardwareRenderGlobals;
 	setAttr ".fn" -type "string" "im";
 	setAttr ".res" -type "string" "ntsc_4d 646 485 1.333";
-connectAttr "polyCube1.out" "mesh_with_history.i";
+connectAttr "polyTweakUV1.out" "mesh_with_history.i";
+connectAttr "polyTweakUV1.uvtk[0]" "mesh_with_history.uvst[0].uvtw";
 connectAttr ":defaultLightSet.msg" "lightLinker1.lnk[0].llnk";
 connectAttr ":initialShadingGroup.msg" "lightLinker1.lnk[0].olnk";
 connectAttr ":defaultLightSet.msg" "lightLinker1.lnk[1].llnk";
@@ -159,6 +162,7 @@ connectAttr ":defaultLightSet.msg" "lightLinker1.slnk[1].sllk";
 connectAttr ":initialParticleSE.msg" "lightLinker1.slnk[1].solk";
 connectAttr "layerManager.dli[0]" "defaultLayer.id";
 connectAttr "renderLayerManager.rlmi[0]" "defaultRenderLayer.rlid";
+connectAttr "polyCube1.out" "polyTweakUV1.ip";
 connectAttr "lightLinker1.msg" ":lightList1.ln" -na;
 connectAttr "mesh_with_history.iog" ":initialShadingGroup.dsm" -na;
 connectAttr "mesh_without_history.iog" ":initialShadingGroup.dsm" -na;
