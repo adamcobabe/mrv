@@ -647,7 +647,7 @@ class CallOnDeletion( object ):
 		self.callableobj = callableobj
 		
 	def __del__( self ):
-		if self.callableobj:
+		if self.callableobj is not None:
 			self.callableobj( )
 		
 
