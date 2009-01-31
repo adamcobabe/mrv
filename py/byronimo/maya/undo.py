@@ -275,8 +275,8 @@ class Operation:
 		@note: assure subclasses call the superclass init !"""
 		if not om.MGlobal.isUndoing() and cmds.undoInfo( q=1, st=1 ):
 			# sanity check !
-			if sys._maya_stack_depth < 1:
-				raise ValueError( "Undo-Stack was %i, but must be at least 1 before operations can be put - check your code !" % sys._maya_stack_depth )
+			if sys._maya_undo_enabled and sys._maya_stack_depth < 1:
+				raise AssertionError( "Undo-Stack was %i, but must be at least 1 before operations can be put - check your code !" % sys._maya_stack_depth )
 				
 			sys._maya_stack.append( self )
 			
