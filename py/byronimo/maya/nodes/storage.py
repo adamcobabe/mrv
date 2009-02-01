@@ -154,8 +154,13 @@ class PyPickleData( mpx.MPxData ):
 		sys._maya_pyPickleData_trackingDict[ mpx.asHashable( self ) ] = self.__data
 
 	def __del__( self ):
-		"""Remove ourselves from the dictionary to prevent flooding"""
-		del( sys._maya_pyPickleData_trackingDict[ mpx.asHashable( self ) ] )
+		"""Remove ourselves from the dictionary to prevent flooding
+		@note: we can be called even if maya is already unloaded or shutting down"""
+		if mpx.asHashable is not None:
+			del( sys._maya_pyPickleData_trackingDict[ mpx.asHashable( self ) ] )
+		# call super just to be on the safe side in future, currently it appears 
+		# not to be required
+		super( PyPickleData, self ).__del__( )
 
 	def _writeToStream( self, ostream, asBinary ):
 		"""Write our data binary or ascii respectively"""
