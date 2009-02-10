@@ -69,7 +69,7 @@ class TestUndoQueue( unittest.TestCase ):
 		self.failUnless( op.numDoit - 1 == op.numUndoIt )
 		
 		# OP WITHOUT PUSH
-		self.failUnlessRaises( ValueError, TestUndoQueue.TestOperation )
+		self.failUnlessRaises( AssertionError, TestUndoQueue.TestOperation )
 			
 		
 		bmaya.Mel.flushUndo()
