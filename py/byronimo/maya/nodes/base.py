@@ -818,7 +818,7 @@ class DependNode( Node, iDuplicatable ):		# parent just for epydoc -
 		"""@return: message plug - for non dag nodes, this will be connected """
 		return self.message
 	
-	def getConnectedSets( self, setFilter = fSetsObject ):
+	def getConnectedSets( self, setFilter = fSets ):
 		"""@return: list of object set compatible Nodes having self as member
 		@param setFilter: tuple( apiType, use_exact_type ) - the combination of the 
 		desired api type and the exact type flag allow precise control whether you which 
