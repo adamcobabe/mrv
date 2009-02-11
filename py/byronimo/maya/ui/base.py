@@ -165,7 +165,7 @@ class NamedUI( unicode, BaseUI , iDagItem, CallbackBaseUI ):
 		@param name: name of the user interface to wrap or the target name of a new elf element.
 		Valid names for creation are short names ( without a | in it's path ), valid names 
 		for wrapping are short and preferably long names.
-		@param force_wrap: if True, default False, a wrap will be done even if the passed 
+		@param wrap_only: if True, default False, a wrap will be done even if the passed 
 		in name uses the short form ( for non-window elements ). If it exists, one cannot be sure
 		whether more elements with the given name exist. If False, the system will create a new 
 		element of our type.
