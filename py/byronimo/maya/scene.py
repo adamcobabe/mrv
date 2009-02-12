@@ -93,13 +93,10 @@ class Scene( util.Singleton ):
 	
 	#{ Edit Methods 
 	@classmethod
-	def open( cls, filePath, loadReferenceDepth="all", force=False, **kwargs ):
+	def open( cls, filePath, force=False, **kwargs ):
 		""" Open a scene 
 		@param filePath: The path to the file to be opened
 		If None or "", the currently loaded file will reopened
-		@param loadReferenceDepth: 'all' - load all references
-		'topOnly' - only top level references, no subreferences
-		'none' - load no references
 		@param force - if True, the new scene will be loaded although currently 
 		loaded contains unsaved changes 
 		@return: a path object to the loaded scene"""
@@ -108,7 +105,7 @@ class Scene( util.Singleton ):
 			
 		# NOTE: it will return the last loaded reference instead of the loaded file - lets fix this !
 		sourcePath = Path( filePath )
-		lastReference = cmds.file( sourcePath.abspath(), open=1, loadReferenceDepth=loadReferenceDepth, force=force, **kwargs )
+		lastReference = cmds.file( sourcePath.abspath(), open=1, force=force, **kwargs )
 		return Path( sourcePath )
 		
 	@classmethod
