@@ -445,6 +445,16 @@ class Menu( MenuBase, ContainerMenuBase ):
 						"dai", "deleteAllItems",
 						"fi", "familyImage" 
 					)
+
+	def deleteAllItems( self, *args ):
+		"""Delete all items in this menu
+		@param *args: used to allow p_deleteAllItems = 1
+		@note: As this flag cannot be queried, it cannot be set as well due to our test
+		Workaround with manual implementation"""
+		self.__melcmd__( self, e=1, deleteAllItems=1 )
+		
+	p_deleteAllItems = property( lambda *args: False, deleteAllItems )
+	p_dai = p_deleteAllItems
 	
 	
 class MenuItem( MenuBase ):

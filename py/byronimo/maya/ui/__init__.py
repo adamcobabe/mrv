@@ -87,7 +87,9 @@ class MetaClassCreatorUI( mutil.MetaClassCreator ):
 		propertynames = clsdict.get( "_properties_", list() )
 		for pname in propertynames:
 			attrname = "p_%s" % pname
-			clsdict[ attrname ] = propertyQE( pname )
+			# allow user overrides 
+			if attrname not in clsdict:
+				clsdict[ attrname ] = propertyQE( pname )
 		# END for each property
 		
 		# HANDLE EVENTS 
@@ -101,7 +103,9 @@ class MetaClassCreatorUI( mutil.MetaClassCreator ):
 			
 		for ename in eventnames:
 			attrname = "e_%s" % ename
-			clsdict[ attrname ] = CallbackBaseUI._UIEvent( ename, **event_kwargs )
+			# allow user overrides
+			if attrname not in clsdict:
+				clsdict[ attrname ] = CallbackBaseUI._UIEvent( ename, **event_kwargs )
 		# END for each event name 
 
 		newcls = super( MetaClassCreatorUI, metacls ).__new__( _typetree, _thismodule, 
