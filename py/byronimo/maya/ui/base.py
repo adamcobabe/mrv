@@ -203,9 +203,17 @@ class NamedUI( unicode, BaseUI , iDagItem, CallbackBaseUI ):
 	def __setattr__( self, attr, value ):
 		"""Prevent properties or events that do not exist to be used by anyone, 
 		everything else is allowed though"""
-		if ( attr.startswith( "p_" ) or attr.startswith( "e_" ) ) and not hasattr( self, attr ):
-			raise AttributeError( "Cannot create per-instance properties or events: %s.%s ( did you misspell an existing one ? )" % ( self, attr ) )
-		
+		if ( attr.startswith( "p_" ) or attr.startswith( "e_" ) ):
+			try:
+				getattr( self, attr )
+			except AttributeError:
+				raise AttributeError( "Cannot create per-instance properties or events: %s.%s ( did you misspell an existing one ? )" % ( self, attr ) )
+			except Exception:
+				# if there was another exception , then the attribute is at least valid and MEL did not want to 
+				# accept the querying of it 
+				pass 
+			# END exception handling 
+		# END check attribute validity 
 		return super( NamedUI, self ).__setattr__( attr, value )
 		
 	def __init__( self , *args, **kwargs ):
@@ -446,16 +454,6 @@ class Menu( MenuBase, ContainerMenuBase ):
 						"fi", "familyImage" 
 					)
 
-	def deleteAllItems( self, *args ):
-		"""Delete all items in this menu
-		@param *args: used to allow p_deleteAllItems = 1
-		@note: As this flag cannot be queried, it cannot be set as well due to our test
-		Workaround with manual implementation"""
-		self.__melcmd__( self, e=1, deleteAllItems=1 )
-		
-	p_deleteAllItems = property( lambda *args: False, deleteAllItems )
-	p_dai = p_deleteAllItems
-	
 	
 class MenuItem( MenuBase ):
 	
