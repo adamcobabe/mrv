@@ -210,7 +210,8 @@ def undoable( func ):
 			
 	# END wrapFunc
 	
-	undoableDecoratorWrapFunc.__name__ = func.__name__
+	if hasattr( func, "__name__" ):
+		undoableDecoratorWrapFunc.__name__ = func.__name__
 	return undoableDecoratorWrapFunc	
 	
 def notundoable( func ):
@@ -225,7 +226,9 @@ def notundoable( func ):
 		return func( *args, **kwargs )
 	# END wrapFunc
 	
-	notundoableDecoratorWrapFunc.__name__ = func.__name__
+	if hasattr( func, "__name__" ):
+		notundoableDecoratorWrapFunc.__name__ = func.__name__
+		
 	return notundoableDecoratorWrapFunc	
 	
 
