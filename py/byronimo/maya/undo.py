@@ -196,22 +196,25 @@ def undoable( func ):
 	if not sys._maya_undo_enabled:
 		return func
 	
+	name = "unnamed"
+	if hasattr( func, "__name__" ):
+		name = func.__name__
+	
 	def undoableDecoratorWrapFunc( *args, **kwargs ):
 		"""This is the long version of the method as it is slightly faster than
 		simply using the StartUndo helper"""
-		mel.eval( "byronimoUndo -psh -id \""+func.__name__+"\"" )
+		mel.eval( "byronimoUndo -psh -id \""+name+"\"" )
 		try:
 			rval = func( *args, **kwargs )
-			mel.eval( "byronimoUndo -pop -id \""+func.__name__+"\"" )
+			mel.eval( "byronimoUndo -pop -id \""+name+"\"" )
 			return rval
 		except:
-			mel.eval( "byronimoUndo -pop -id \""+func.__name__+"\"" )
+			mel.eval( "byronimoUndo -pop -id \""+name+"\"" )
 			raise 
 			
 	# END wrapFunc
 	
-	if hasattr( func, "__name__" ):
-		undoableDecoratorWrapFunc.__name__ = func.__name__
+	undoableDecoratorWrapFunc.__name__ = name
 	return undoableDecoratorWrapFunc	
 	
 def notundoable( func ):
