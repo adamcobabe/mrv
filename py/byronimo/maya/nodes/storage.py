@@ -722,7 +722,6 @@ class StorageNode( nodes.DependNode, StorageBase ):
 	node type, not per instance of the node type. 
 	Thus it is recommened to use the storage node attribute base on your own custom type that setsup the 
 	generic attributes as it requires during plugin load"""
-	isNodeTypeTreeMember = False			# means we are not in the typetree ( not required in our case )
 	
 	#{ Overrriden Methods 
 	def __init__( self, *args ):

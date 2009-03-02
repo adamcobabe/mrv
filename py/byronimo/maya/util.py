@@ -426,20 +426,16 @@ class MetaClassCreator( type ):
 		@param dagtree: L{byronimo.util.DAGTree} instance with hierarchy information
 		@param module: the module instance to which to add the new classes to
 		@param nameToTreeFunc: convert the class name to a name suitable for dagTree look-up
-		@param treeToNameFunc: convert a value from the dag tree into a valid class name ( used for parent lookup )
-		@note: Special Class attributes to alter creation:
-		- _isNodeTypeTreeMember : if true ( default True ), the class is required to be part fo the 
-		node type tree hierarchy to be created successfully. This allows api-only classes to be handled by this 
-		class creator as well"""
+		@param treeToNameFunc: convert a value from the dag tree into a valid class name ( used for parent lookup )"""
 		# recreate the hierarchy of classes leading to the current type
 		nameForTree = nameToTreeFunc( name )
 		parentname = None
 		try:
 			parentname = dagtree.parent( nameForTree )
 		except networkxexc.NetworkXError:
-			# should we allow key errors ?
-			if clsdict.get( 'isNodeTypeTreeMember', 1 ):
-				raise KeyError( "Class %s is required to be part of the nodetypetree to be created, set isNodeTypeTreeMember = 0 on your class to circumvent" % name )
+			# we can handle and thus ignore key errors, mostly created by subclass
+			# of our wrapped classes 
+			pass 
 		# END parent name handling 
 		
 		parentcls = None

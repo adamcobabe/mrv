@@ -85,7 +85,6 @@ class GroupBase( uibase.SizedControl ):
 class OptionMenuBase( uibase.ContainerMenuBase ):
 	"""base class for all optionMenu like controls"""
 	__metaclass__ = uibase.ui.MetaClassCreatorUI
-	isNodeTypeTreeMember = False
 	
 	_events_ = ( "cc", "changeCommand" )
 	_properties_ = ( 	"ils", "itemListShort", 
@@ -106,7 +105,6 @@ class FieldBase( uibase.SizedControl ):
 class TextFieldBase( object ):
 	"""Base just containing properties and events"""
 	__metaclass__ = uibase.ui.MetaClassCreatorUI
-	isNodeTypeTreeMember = False
 	
 	_properties_ = ( 	"fn", "font", 
 						"it", "insertText", 
@@ -116,13 +114,11 @@ class TextFieldBase( object ):
 	
 class TextFieldGroupBase( TextFieldBase ):
 	"""Common base for the group text fields"""
-	isNodeTypeTreeMember = False
 	_events_ = ( 	"cc", "changeCommand" ,
 					"fcc", "forceChangeCommand" )
 
 class SliderGroupBase( GroupBase, SliderBase ):
 	"""base class for all sliders"""
-	isNodeTypeTreeMember = False
 	_properties_ = ( "el", "extraLabel" )
 
 
@@ -166,7 +162,6 @@ class IconTextBase( object ):
 	"""Base class for all icon text like controls"""
 	#{ Configuration 
 	__metaclass__ = uibase.ui.MetaClassCreatorUI
-	isNodeTypeTreeMember = False
 	#} END configuation 
 	
 	_properties_ = ( 	"image", "i",

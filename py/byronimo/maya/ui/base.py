@@ -33,6 +33,23 @@ from byronimo.exceptions import ByronimoError
 #### Methods		  	####
 ##########################
 
+def precreateTypes( typelist ):
+	"""Assure that the following type's are existing as actual classes. 
+	Call this method if you intend to derive from a byronimo UI class that is 
+	not directly implemented, but auto-created on demand. 
+	Otherwise you might end up deriving yourself from a proxy class
+	@param typelist: iterable( byronimoUIType, ... ) list of types as defined in the 
+	byronimo.maya.ui package
+	@note: this method is safe to be used without checking even if the passed in 
+	types are no proxy classes anymore
+	@note: use like precreateTypes( [ bui.CheckBoxCtrl ] ) where bui is the 
+	byronimo.maya.ui package"""
+	for clstype in typelist:
+		if isinstance( clstype, mutil.StandinClass ):
+			setattr( ui , clstype.clsname, clstype.createCls() )
+		# END if it is a proxy class
+	# END for each give classtype
+
 def getUIType( uiname ):
 	"""@return: uitype string having a corresponding mel command - some types returned do not correspond
 	to the actual name of the command used to manipulate the type """

@@ -36,7 +36,6 @@ class QACheckLayout( layouts.RowLayout ):
 	"""Row Layout able to display a qa check and related information
 	@note: currently we make assumptions about the positions of the children in the 
 	RowLayout, thus you may only append new ones"""
-	isNodeTypeTreeMember = False
 	reNiceNamePattern = re.compile( "[A-Z][a-z]" )
 	
 	#{ Configuration
@@ -240,7 +239,6 @@ class QACheckLayout( layouts.RowLayout ):
 
 class QALayout( layouts.FormLayout, uiutil.iItemSet ):
 	"""Layout able to dynamically display QAChecks, run them and display their result"""
-	isNodeTypeTreeMember = False 
 	
 	#{ Configuration
 	# class used to create a layout displaying details about the check
