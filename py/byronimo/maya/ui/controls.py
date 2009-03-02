@@ -189,8 +189,19 @@ class RadioButtonGrp( BooleanGroupBase, RadioButtonBase ):
 	pass 
 
 class CheckBoxGrp( BooleanGroupBase, CheckBoxBase ):
-	"""Warning: inherits booleanBase multiple times """
-	pass
+	"""Note: inherits booleanBase multiple times, this does no harm"""
+	_properties_ = list()
+	
+	for flag in ( 	"v","value", 
+				  	"va", "valueArray" ):
+		for i in range( 1, 5 ):
+			if flag in ( "va", "valueArray" ) and i == 1:
+				continue 
+				
+			_properties_.append( flag + str( i ) )
+		# END for each numbered item
+	# END for each flagg
+			
 
 class Button( LabelBase ):
 	""" Simple button interface 
