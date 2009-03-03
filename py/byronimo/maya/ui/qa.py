@@ -246,26 +246,46 @@ class QALayout( layouts.FormLayout, uiutil.iItemSet ):
 	checkuicls = QACheckLayout
 	
 	# if True, a button to run all checks at once will be appended
+	# Can be passed in as per-instance value during creation
 	run_all_button = True
 
 	# class used to access default workflow events 
 	qaworkflowcls = QAWorkflow
+	
+	
+	# if True, a scroll layout will be created around the layout containing a 
+	# possibly long list of checks. Set False if you would like to handle the 
+	# scrolling with an own interface
+	# Can be passed in as per-instance value during creation 
+	scrollable = True
 	#} END configuration 
 	
 	def __new__( cls, *args, **kwargs ):
 		"""Set some default arguments"""
-		return super( QALayout, cls ).__new__( cls, *args, **kwargs )
-	
+		scrollable = kwargs.pop( "scrollable", cls.scrollable )
+		run_all_button = kwargs.pop( "run_all_button", cls.run_all_button )
+		self = super( QALayout, cls ).__new__( cls, *args, **kwargs )
+		self.scrollable = scrollable
+		self.run_all_button = run_all_button
+		
+		return self
 	
 	def __init__( self, *args, **kwargs ):
 		"""Initialize our basic interface involving a column layout to store the 
 		actual check widgets"""
 		super( QALayout, self ).__init__( *args, **kwargs )
-		scroll_layout = self.add( layouts.ScrollLayout( cr=1 ) )
+		scroll_layout = None
 		
+		if self.scrollable:
+			scroll_layout = self.add( layouts.ScrollLayout( cr=1 ) )
+		
+		# will contain the checks
+		self.col_layout = layouts.ColumnLayout( adj = 1 )
 		if scroll_layout:
-			# will contain the checks
-			self.col_layout = scroll_layout.add( layouts.ColumnLayout( adj = 1 ) )
+			scroll_layout.add( self.col_layout )
+		else:
+			self.add( self.col_layout )
+			
 		# END scroll_layout
 		self.setActive()
 		
