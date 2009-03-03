@@ -186,17 +186,23 @@ class NamedUI( unicode, BaseUI , iDagItem, CallbackBaseUI ):
 		in name uses the short form ( for non-window elements ). If it exists, one cannot be sure
 		whether more elements with the given name exist. If False, the system will create a new 
 		element of our type.
+		@param force_creation: if True, default False, a new item will be created
+		even if an item with the given name uniquely exists. This might be necessary that 
+		you wish to create the given named item under the current parent, although an item 
+		with that name might already exist below another parent. This is required if 
+		you have a short name only
 		@note: you can use args safely for your own purposes 
 		@note: if name is set but does not name a valid user interface, a new one 
 		will be created, and passed to the constructor"""
 		name = kwargs.pop( "name", None )
 		exists = ( ( name is not None ) and NamedUI._exists( str( name ) ) ) or False
+		force_creation = kwargs.pop( "force_creation", False )
 		
 		# pretend named element does not exist if existance is ambigous
 		if not kwargs.pop( "wrap_only", False ) and exists == 2:
 			exists = 0
-			
-		if name is None or not exists:
+		
+		if name is None or not exists or force_creation:
 			try:
 				if name:	# use name to create named object
 					name = cls.__melcmd__( name, **kwargs )

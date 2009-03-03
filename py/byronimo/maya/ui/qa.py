@@ -300,6 +300,7 @@ class QALayout( layouts.FormLayout, uiutil.iItemSet ):
 		# we might change the layout, so be active
 		# IMPORTANT: if this is not the case, we might easily confuse layouts ... 
 		# figure out why exactly that happens
+		curparent = self.getParent()
 		self.setActive()
 		
 		# map check names to actual checks
@@ -382,8 +383,12 @@ class QALayout( layouts.FormLayout, uiutil.iItemSet ):
 			self.setup( af = ( 	( c1, l, o ), ( c1, r, o ), ( c1, t, o ), 
 							 	( c2, l, o ), ( c2, r, o ), ( c2, b, o ) ), 
 						ac = ( 	( c1, b, o, c2 ) ), 
-						an = (	( c2, t ) ) ) 
+						an = (	( c2, t ) ) )
 		# END case two children 
+		
+		# reset to the previous parent
+		curparent.setActive()
+		
 		
 	def getCheckLayouts( self ):
 		"""@return: list of checkLayouts representing our checks"""
@@ -421,11 +426,10 @@ class QALayout( layouts.FormLayout, uiutil.iItemSet ):
 	
 	def createItem( self, checkid, name_to_child_map = None, name_to_check_map = None, **kwargs ):
 		"""Create and return a layout displaying the given check instance
-		@param kwargs: will be passed to checkui class's initializer, allowing subclasses to easily 
+		@param kwargs: will be passed to checkui class's initializer, allowing subclasses to easily
 		adjust the paramter list
 		@note: its using self.checkuicls to create the instance"""
 		self.col_layout.setActive()
-		
 		check_child = self.checkuicls( check = name_to_check_map[ checkid ], **kwargs )
 		name_to_child_map[ checkid ] = check_child
 		newItem = self.col_layout.add( check_child )
