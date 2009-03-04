@@ -252,6 +252,10 @@ class QALayout( layouts.FormLayout, uiutil.iItemSet ):
 	# class used to access default workflow events 
 	qaworkflowcls = QAWorkflow
 	
+	# if True, there will be an informational text if no checks have been found
+	# otherwiise the layout will simply be empty
+	show_text_if_empty = True
+	
 	
 	# if True, a scroll layout will be created around the layout containing a 
 	# possibly long list of checks. Set False if you would like to handle the 
@@ -317,7 +321,7 @@ class QALayout( layouts.FormLayout, uiutil.iItemSet ):
 			self.no_checks_text = None
 		# END checks text existed
 			
-		if not checks and self.no_checks_text is None:
+		if not checks and self.no_checks_text is None and self.show_text_if_empty:
 			prevparent = self.getParent()
 			self.col_layout.setActive()
 			self.no_checks_text = controls.Text( label = "No checks available" )
