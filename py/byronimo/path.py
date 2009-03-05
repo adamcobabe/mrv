@@ -100,6 +100,8 @@ class Path( _base, iDagItem ):
 	For documentation on individual methods, consult their
 	counterparts in os.path.
 	"""
+	# Configuration 
+	_sep = os.path.sep
 
 	#{ Special Python methods
 
