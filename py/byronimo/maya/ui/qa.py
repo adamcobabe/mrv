@@ -451,7 +451,12 @@ class QALayout( layouts.FormLayout, uiutil.iItemSet ):
 		
 	#} END iitemset implementation
 	
-	#{ Eventhandlers 
+	#{ Eventhandlers
+	
+	def _checkLayoutHasCheck( self, checkLayout, check ):
+		"""@return: True if the given L{QACheckLayout} manages the given check"""
+		return checkLayout.getCheck() == check
+	
 	def checkHandler( self, event, check, *args ):
 		"""Called for the given event - it will find the UI element handling the 
 		call respective function on the UI instance
@@ -467,7 +472,7 @@ class QALayout( layouts.FormLayout, uiutil.iItemSet ):
 		# skip ones we do not find 
 		checkchild = None
 		for child in self.getCheckLayouts():
-			if child.getCheck() == check:
+			if self._checkLayoutHasCheck( child, check ):
 				checkchild = child
 				break
 			# END if check matches

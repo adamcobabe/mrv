@@ -364,7 +364,7 @@ def createNode( nodename, nodetype, autocreateNamespace=True, renameOnClash = Tr
 	If False, you will receive an already existing node if the type matches.
 	@param maxShapesPerTransform: only used when renameOnClash is True, defining the number of 
 	shapes you may have below a transform. If the number would be exeeded by the creation of 
-	a shape below a given transform, a new transform auto-renamed transform will be created automatically.
+	a shape below a given transform, a new auto-renamed transform will be created automatically.
 	This transform is garantueed to be new and will be used as new parent for the shape.
 	@raise RuntimeError: If nodename contains namespaces or parents that may not be created
 	@raise NameError: If name of desired node clashes as existing node has different type
