@@ -291,7 +291,7 @@ class Operation:
 		"""Do whatever you do"""
 		raise NotImplementedError
 		
-	def undoId( self ):
+	def undoIt( self ):
 		"""Undo whatever you did"""
 		raise NotImplementedError
 
