@@ -79,9 +79,7 @@ if not hasattr( sys, "_maya_undo_enabled" ):
 
 # command
 class UndoCmd( mpx.MPxCommand ):
-	kCmdName = "byronimoUndo"
-	fPush = "-psh"
-	fPop = "-pop"
+	kCmdName = "storeAPIUndo"
 	fId = "-id"
 	
 	def __init__(self):
@@ -90,32 +88,18 @@ class UndoCmd( mpx.MPxCommand ):
 	
 	#{ Command Methods 
 	def doIt(self,argList):
-		"""Called on first instantiation of the command
-		Store all information we need
-		During doit, this command will never execute any operation on the buffer, 
-		thus you need to exectute it yourself the first time"""
-		parser = om.MArgParser( self.syntax(), argList )
+		"""Store out undo information on maya's undo stack"""
+		# if we reach the starting level, we can actually store the undo buffer
+		# and allow us to be placed on the undo queue
+		if sys._maya_stack_depth == 0:
+			self._operations = sys._maya_stack
+			sys._maya_stack = list()					# clear the operations list
+			return
+		# END if stack 0
 		
-		
-		# if we push, we increment the stack indicating the current call level
-		# If it reaches zero again, we get take the undo operatiosn
-		if parser.isFlagSet( self.fPush ):
-			# sys._maya_stack_depth += 1
-			return 
-		elif parser.isFlagSet( self.fPop ):
-			# sys._maya_stack_depth -= 1
-			
-			# if we reach the starting level, we can actually store the undo buffer
-			# and allow us to be placed on the undo queue
-			if sys._maya_stack_depth == 0:
-				self._operations = sys._maya_stack
-				sys._maya_stack = []					# clear the operations list 
-			# END if stack 0
-			return 
-		# END stack handling 
 		
 		# still here ?
-		msg = "call with -push or -pop only"
+		msg = "storeAPIUndo may only be called by the top-level function"
 		self.displayError( msg )
 		raise RuntimeError( msg )
 			
@@ -138,7 +122,8 @@ class UndoCmd( mpx.MPxCommand ):
 		
 	def isUndoable( self ):
 		"""@return: True if we are undoable - it depends on the state of our 
-		undo stack """
+		undo stack
+		@note: we are always undoable as doIt is called first and stores operations"""
 		return self._operations is not None
 		
 	# END command methods 
@@ -152,10 +137,6 @@ class UndoCmd( mpx.MPxCommand ):
 	@staticmethod
 	def createSyntax( ):
 		syntax = om.MSyntax()
-		
-		# stack commands - thats all we need
-		syntax.addFlag( UndoCmd.fPush, "-pushStack" )
-		syntax.addFlag( UndoCmd.fPop, "-popStack" )
 		
 		# id - just for information and debugging
 		syntax.addFlag( UndoCmd.fId, "-callInfo", syntax.kString )
@@ -191,7 +172,7 @@ def _decrStack( name = "unnamed" ):
 	
 	# store our stack on the undo queue
 	if sys._maya_stack_depth == 0:
-		mel.eval( "byronimoUndo -pop -id \""+name+"\"" )
+		mel.eval( "storeAPIUndo -id \""+name+"\"" )
 	
 	
 def undoable( func ):
