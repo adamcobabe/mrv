@@ -13,8 +13,7 @@ Features
 
 Limitations
 -----------
-	- You need a rather long undo queue as undo will count the individual byronimo cmds
-	although most of them are actually not undoable 
+	- You cannot mix mel and API proprely unless you use an MDGModifier.commandToExecute 
 	
 Configuration
 -------------
@@ -101,10 +100,10 @@ class UndoCmd( mpx.MPxCommand ):
 		# if we push, we increment the stack indicating the current call level
 		# If it reaches zero again, we get take the undo operatiosn
 		if parser.isFlagSet( self.fPush ):
-			sys._maya_stack_depth += 1
+			# sys._maya_stack_depth += 1
 			return 
 		elif parser.isFlagSet( self.fPop ):
-			sys._maya_stack_depth -= 1
+			# sys._maya_stack_depth -= 1
 			
 			# if we reach the starting level, we can actually store the undo buffer
 			# and allow us to be placed on the undo queue
@@ -179,6 +178,21 @@ def uninitializePlugin(mobject):
 
 
 #{ Utilities
+
+def _incrStack( ):
+	"""Indicate that a new method level was reached"""
+	sys._maya_stack_depth += 1
+	
+def _decrStack( name = "unnamed" ):
+	"""Indicate that a method level was exitted - and cause the 
+	undo queue to be stored on the command if appropriate
+	We try to call the command only if needed"""
+	sys._maya_stack_depth -= 1
+	
+	# store our stack on the undo queue
+	if sys._maya_stack_depth == 0:
+		mel.eval( "byronimoUndo -pop -id \""+name+"\"" )
+	
 	
 def undoable( func ):
 	"""Decorator wrapping func so that it will start undo when it begins and end undo 
@@ -203,13 +217,13 @@ def undoable( func ):
 	def undoableDecoratorWrapFunc( *args, **kwargs ):
 		"""This is the long version of the method as it is slightly faster than
 		simply using the StartUndo helper"""
-		mel.eval( "byronimoUndo -psh -id \""+name+"\"" )
+		_incrStack( )
 		try:
 			rval = func( *args, **kwargs )
-			mel.eval( "byronimoUndo -pop -id \""+name+"\"" )
+			_decrStack( name )
 			return rval
 		except:
-			mel.eval( "byronimoUndo -pop -id \""+name+"\"" )
+			_decrStack( name )
 			raise 
 			
 	# END wrapFunc
@@ -241,26 +255,23 @@ class StartUndo:
 	@note: use this class to assure that you pop undo when your method exists"""
 	def __init__( self, id = None ):
 		self.id = id
-		if id:
-			mel.eval( "byronimoUndo -psh -id \""+id+"\"" )
-		else:
-			mel.eval( "byronimoUndo -psh" )					
+		_incrStack( )					
 
 	def __del__( self ):
 		if self.id:
-			mel.eval( "byronimoUndo -pop -id \""+self.id+"\"" )
+			_decrStack( self.id )
 		else:
-			mel.eval( "byronimoUndo -pop" )
+			_decrStack( )
 
 def startUndo( ):
 	"""Call before you start undoable operations
 	@note: prefer the @undoable decorator"""
-	mel.eval( "byronimoUndo -psh" )
+	_incrStack()
 	
 def endUndo( ):
 	"""Call before your function with undoable operations ends
 	@note: prefer the @undoable decorator"""
-	mel.eval( "byronimoUndo -pop" )
+	_decrStack()
 	
 #} 
 

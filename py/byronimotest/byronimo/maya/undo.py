@@ -44,7 +44,7 @@ class TestUndoQueue( unittest.TestCase ):
 
 	def test_undoBasics( self ):
 		"""byronimo.maya.undo: basic assertions"""
-		bmaya.Mel.eval( "byronimoUndo -psh" )
+		undo.startUndo()
 		
 		# put some undoable operation
 		op = TestUndoQueue.TestOperation()
@@ -54,7 +54,7 @@ class TestUndoQueue( unittest.TestCase ):
 		self.failUnless( sys._maya_stack_depth == 1 )
 		
 		
-		bmaya.Mel.eval( "byronimoUndo -pop" )
+		undo.endUndo()
 		
 		# STACK MUST BE EMPTY#
 		# as it has been taken by the command
@@ -85,7 +85,7 @@ class TestUndoQueue( unittest.TestCase ):
 		# SIMPLE CONNECTION
 		################
 		# start undo 
-		undo.startUndo( )
+		uobj = undo.StartUndo( )
 		dgmod = undo.DGModifier( )
 		self.failUnless( len( sys._maya_stack ) == 1 )
 		
@@ -93,7 +93,7 @@ class TestUndoQueue( unittest.TestCase ):
 		dgmod.doIt( )
 		
 		# create undo step
-		undo.endUndo( )
+		del( uobj )
 		
 		self.failUnless( len( sys._maya_stack ) == 0 )
 		cmds.undo()	# undo connection
@@ -105,12 +105,12 @@ class TestUndoQueue( unittest.TestCase ):
 		self.failUnless( persp.message.isConnectedTo( front.isHistoricallyInteresting ) )
 		
 		# connect and break existing conenction
-		undo.startUndo( )
+		uobj = undo.StartUndo( )
 		dgmod = undo.DGModifier( )
 		dgmod.disconnect( persp.message, front.isHistoricallyInteresting )
 		dgmod.connect( side.message, front.isHistoricallyInteresting )
 		dgmod.doIt( )
-		undo.endUndo( )
+		del( uobj )
 		
 		self.failUnless( side.message.isConnectedTo( front.isHistoricallyInteresting ) )
 		cmds.undo()
