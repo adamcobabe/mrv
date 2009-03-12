@@ -892,7 +892,7 @@ class DependNode( Node, iDuplicatable ):		# parent just for epydoc -
 				if parent:
 					testforobject = parent.getFullChildName( newname )	# append our name to the path
 					if objExists( testforobject ):
-						raise RuntimeError( "Object %s did already exist" % testforobject )
+						raise RuntimeError( "Object %s did already exist - renameOnClash could have resolved this issue" % testforobject )
 				# END if we have a parent 
 			else:
 				exists = objExists( newname )	# depnode: check if object exists
