@@ -89,10 +89,22 @@ class MetaClassCreatorNodes( MetaClassCreator ):
 			- newname: if not None, a new name for the function mfnfuncname
 		
 		@raise KeyError: if the given function does not exist in mfncls
+		@note: if the called function starts with _api_*, a special accellerated method 
+		will be returned and created allowing direct access to the mfn instance method.
+		This is unsafe of the same api object is being renamed. Also it will only be faster if
+		the same method is actually called multiple times. It can be great for speed sensitive code
+		where where the same method(s) are called repeatedly on the same set of objects
 		@return:  wrapped function"""
 		# check the dict for method name - we do not want to see methods of 
 		# base classes - will raise accordingly
 		mfndb = funcMutatorDB
+		direct_api_func = False
+		
+		# rewrite the function name to use the actual one 
+		if funcname.startswith( "_api_" ):
+			direct_api_func = True
+			funcname = funcname[ len( "_api_" ) : ]
+		# END is special api function is requested 
 		mfnfuncname = funcname		# method could be remapped - if so we need to lookup the real name
 		
 			
@@ -118,30 +130,69 @@ class MetaClassCreatorNodes( MetaClassCreator ):
 		needs_MObject = mfncls in cls.forceInitWithMObject
 		
 		# bound to class, self will be attached on class instantiation
-		if rvalfunc:	# wrap rval function around
-			# INITIALIZED DAG NODES WITH DAG PATH !
-			if api.MFnDagNode in mfncls.mro() and not needs_MObject:			# yes, we duplicate code here to keep it fast !!
-				def wrapMfnFunc( self, *args, **kwargs ):
-					mfninst = mfncls( self._apidagpath )
-					return rvalfunc( getattr( mfninst, mfnfuncname )( *args, **kwargs ) )
-				newfunc = wrapMfnFunc
+		if direct_api_func:
+			# bound to class, self will be attached on class instantiation
+			if rvalfunc:	# wrap rval function around
+				# INITIALIZED DAG NODES WITH DAG PATH !
+				if api.MFnDagNode in mfncls.mro() and not needs_MObject:			# yes, we duplicate code here to keep it fast !!
+					def wrapMfnFunc( self, *args, **kwargs ):
+						mfninst = mfncls( self._apidagpath )
+						mfnfunc = getattr( mfninst, mfnfuncname )
+						rvallambda = lambda *args, **kwargs: rvalfunc( mfnfunc( *args, **kwargs ) )
+						object.__setattr__( self, funcname, rvallambda )
+						return rvallambda( *args, **kwargs )
+					newfunc = wrapMfnFunc
+				else:
+					def wrapMfnFunc( self, *args, **kwargs ):
+						mfninst = mfncls( self._apiobj )
+						mfnfunc = getattr( mfninst, mfnfuncname )
+						rvallambda = lambda *args, **kwargs: rvalfunc( mfnfunc( *args, **kwargs ) )
+						object.__setattr__( self, funcname, rvallambda )
+						return rvallambda( *args, **kwargs )
+					newfunc = wrapMfnFunc
 			else:
-				def wrapMfnFunc( self, *args, **kwargs ):
-					mfninst = mfncls( self._apiobj )
-					return rvalfunc( getattr( mfninst, mfnfuncname )( *args, **kwargs ) )
-				newfunc = wrapMfnFunc
+				if api.MFnDagNode in mfncls.mro() and not needs_MObject:			# yes, we duplicate code here to keep it fast !!
+					def wrapMfnFunc( self, *args, **kwargs ):
+						mfninst = mfncls( self._apidagpath )
+						mfnfunc = getattr( mfninst, mfnfuncname )
+						object.__setattr__( self, funcname, mfnfunc )
+						return mfnfunc( *args, **kwargs )
+					newfunc = wrapMfnFunc
+				else:
+					def wrapMfnFunc( self, *args, **kwargs ):
+						mfninst = mfncls( self._apiobj )
+						mfnfunc = getattr( mfninst, mfnfuncname )
+						object.__setattr__( self, funcname, mfnfunc )
+						return mfnfunc( *args, **kwargs )
+					newfunc = wrapMfnFunc
+			# END not rvalfunc
 		else:
-			if api.MFnDagNode in mfncls.mro() and not needs_MObject:			# yes, we duplicate code here to keep it fast !!
-				def wrapMfnFunc( self, *args, **kwargs ):
-					mfninst = mfncls( self._apidagpath )
-					return getattr( mfninst, mfnfuncname )( *args, **kwargs )
-				newfunc = wrapMfnFunc
+			if rvalfunc:	# wrap rval function around
+				# INITIALIZED DAG NODES WITH DAG PATH !
+				if api.MFnDagNode in mfncls.mro() and not needs_MObject:			# yes, we duplicate code here to keep it fast !!
+					def wrapMfnFunc( self, *args, **kwargs ):
+						mfninst = mfncls( self._apidagpath )
+						return rvalfunc( getattr( mfninst, mfnfuncname )( *args, **kwargs ) )
+					newfunc = wrapMfnFunc
+				else:
+					def wrapMfnFunc( self, *args, **kwargs ):
+						mfninst = mfncls( self._apiobj )
+						return rvalfunc( getattr( mfninst, mfnfuncname )( *args, **kwargs ) )
+					newfunc = wrapMfnFunc
 			else:
-				def wrapMfnFunc( self, *args, **kwargs ):
-					mfninst = mfncls( self._apiobj )
-					return getattr( mfninst, mfnfuncname )( *args, **kwargs )
-				newfunc = wrapMfnFunc
-			
+				if api.MFnDagNode in mfncls.mro() and not needs_MObject:			# yes, we duplicate code here to keep it fast !!
+					def wrapMfnFunc( self, *args, **kwargs ):
+						mfninst = mfncls( self._apidagpath )
+						return getattr( mfninst, mfnfuncname )( *args, **kwargs )
+					newfunc = wrapMfnFunc
+				else:
+					def wrapMfnFunc( self, *args, **kwargs ):
+						mfninst = mfncls( self._apiobj )
+						return getattr( mfninst, mfnfuncname )( *args, **kwargs )
+					newfunc = wrapMfnFunc
+			# END not rvalfunc
+		# END api accellerated method
+		
 		newfunc.__name__ = funcname			# rename the method 
 		return newfunc
 

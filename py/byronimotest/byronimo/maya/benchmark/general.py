@@ -251,9 +251,16 @@ class TestGeneralPerformance( unittest.TestCase ):
 		# node wrapped
 		a = time.time()
 		for i in range( 10000 ):
+				p._api_focalLength()  # this wraps the API
+		b = time.time()
+		print "%f s : node._api_focalLength()" % ( b - a )
+		
+		# node speedwrapped
+		a = time.time()
+		for i in range( 10000 ):
 				p.focalLength()  # this wraps the API
 		b = time.time()
-		print "%f s : node.focalLength()" % ( b - a )
+		print "%f s : node._api_focalLength()" % ( b - a )
 		
 		# mfn recreate
 		a = time.time()
