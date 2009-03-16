@@ -23,6 +23,7 @@ import maya.cmds as cmds
 import byronimo.maya.undo as undo
 from byronimotest.byronimo.maya.undo import TestUndoQueue
 import sys
+import byronimotest.byronimo.maya.benchmark as bcommon
 
 class TestUndoPerformance( unittest.TestCase ):
 	"""Test all aspects of the api undo queue"""
@@ -64,6 +65,7 @@ class TestUndoPerformance( unittest.TestCase ):
 	
 	def test_undoPerformance( self ):
 		"byronimo.maya.undo: recursive undo including decorator"
+		if not bcommon.mayRun( "undo" ): return
 		print "\n"			# new line to create some space 
 		import time
 		iterations = 35
@@ -81,24 +83,24 @@ class TestUndoPerformance( unittest.TestCase ):
 			cmds.undoInfo( st=undoEnabled )
 			
 			# decorated !
-			starttime = time.clock()
+			starttime = time.time()
 			numops = TestUndoPerformance._recurseUndoDeco( iterations, 0, maxdepth )
 			totalops += numops
-			elapsed = time.clock() - starttime
+			elapsed = time.time() - starttime
 			all_elapsed[undoEnabled].append( elapsed )
 			
 			print "UNDO: DECORATED %s: %i ops in %f s ( %f / s )" % ( undo, numops, elapsed, numops / elapsed ) 
 			
 			
-			starttime = time.clock()
+			starttime = time.time()
 			numops = TestUndoPerformance._recurseUndo( iterations, 0, maxdepth )
 			totalops += numops
 			elapsed_deco = elapsed
-			elapsed = time.clock() - starttime
+			elapsed = time.time() - starttime
 			all_elapsed[undoEnabled].append( elapsed )
 			
 			print "UNDO: MANUAL %s: %i ops in %f s ( %f / s )" % ( undo, numops, elapsed, numops / elapsed )
-			starttime = time.clock()
+			starttime = time.time()
 			
 			print "UNDO: DECORATED is %f %% faster than manually implemented functions !" % ( 100 - ( elapsed_deco / elapsed ) * 100 )
 			
@@ -107,7 +109,7 @@ class TestUndoPerformance( unittest.TestCase ):
 				cmds.undo()
 				cmds.redo()
 				cmds.redo()
-				elapsed = time.clock() - starttime
+				elapsed = time.time() - starttime
 				
 				print "UNDO: CALL TIME: %i operations in %f s ( %f / s )" % ( totalops, elapsed, totalops / elapsed )
 			#END if undo enabled

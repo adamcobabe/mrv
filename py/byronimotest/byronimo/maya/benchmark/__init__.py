@@ -24,6 +24,23 @@ import byronimo.maya as bmaya
 import byronimotest as common
 import os
 
+
+test_cases = set()
+
+#{ Interface
+def mayRun( testcase ):
+	"""@return: True if the given testcase may run - this helps 
+	to focuse on individual tests"""
+	global test_cases
+	
+	if not test_cases:
+		return True
+		
+	return testcase in test_cases
+#} END interface 
+
+
+
 def get_maya_file( filename ):
 	"""@return: path to specified maya ( test ) file """
 	return os.path.join( os.path.dirname( __file__ ), "ma/"+filename )
@@ -45,11 +62,15 @@ def run( **runner_args ):
 	
 	
 def main( *args ):
-	""" Run the tests if called with the start script """
+	""" required for standalone start up 
+	@param *args: if given, they identify the tests to run. If none 
+	is given, all will run"""
+	global test_cases
+	test_cases = set( args )
 	run( verbosity = 2 )
 	
 
 if __name__ == '__main__':
 	""" run all tests if run directly """
-	main( [] )
+	main( )
 	

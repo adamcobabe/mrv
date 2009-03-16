@@ -29,7 +29,7 @@ import string
 import random
 import time
 import byronimo.maya.nodes.iterators as iterators
-
+import byronimotest.byronimo.maya.benchmark as bcommon
 
 class TestGeneralPerformance( unittest.TestCase ):
 	"""Tests to benchmark general performance"""
@@ -39,7 +39,7 @@ class TestGeneralPerformance( unittest.TestCase ):
 	
 	def _createNodeFromName( self, name ):
 		"""@return: newly created maya node named 'name', using the respective 
-		type depending on its path ( with pipe or without""" 
+		type depending on its path ( with pipe or without"""
 		nodetype = None
 		if '|' in name:			# name decides whether dag or dep node is created
 			nodetype = random.choice( self.dagtypes )
@@ -78,6 +78,8 @@ class TestGeneralPerformance( unittest.TestCase ):
 	
 	def test_plugs( self ):
 		"""byronimo.maya.apipatch: test plug performance"""
+		if not bcommon.mayRun( "plugs" ): return
+		
 		bmaya.Scene.new( force = True )
 		
 		s1 = nodes.createNode( "storage1", "StorageNode" )
@@ -93,22 +95,22 @@ class TestGeneralPerformance( unittest.TestCase ):
 			for numcons in callNumberList:
 				undoObj = undo.StartUndo()
 				
-				starttime = time.clock()
+				starttime = time.time()
 				for i in xrange( numcons ):
 					func( i )
-				elapsed = time.clock( ) - starttime
+				elapsed = time.time( ) - starttime
 				
 				print "%i %s in %f s ( %f / s )" % ( numcons, msg, elapsed, numcons / elapsed )
 				
 				del( undoObj )
 				
-				starttime = time.clock()
+				starttime = time.time()
 				cmds.undo()
-				undoelapsed = time.clock() - starttime
+				undoelapsed = time.time() - starttime
 				
-				starttime = time.clock()
+				starttime = time.time()
 				cmds.redo()
-				redoelapsed = time.clock() - starttime
+				redoelapsed = time.time() - starttime
 				
 				print "UNDO / REDO Time = %f / %f ( %f * faster than initial creation )" % ( undoelapsed, redoelapsed,  elapsed / max( redoelapsed, 0.001) )
 			# END for each amount of plugs to connct
@@ -131,6 +133,8 @@ class TestGeneralPerformance( unittest.TestCase ):
 	
 	def test_dagwalking( self ):
 		"""byronimo.maya.benchmark.general.dagWalking: see how many nodes per second we walk"""
+		if not bcommon.mayRun( "dagwalk" ): return
+		
 		# numnodes = [ 2500, 25000, 100000 ]
 		numnodes = [ 2500, 25000 ]
 		for nodecount in numnodes:
@@ -139,37 +143,38 @@ class TestGeneralPerformance( unittest.TestCase ):
 			
 			
 			# NO NODE CONVERSION
-			starttime = time.clock( )
+			starttime = time.time( )
 			
 			#while not iterdag.isDone( ):
 			for dagpath in iterators.iterDagNodes( dagpath = 1 ):
 				pass 
 				
-			elapsed = time.clock() - starttime
+			elapsed = time.time() - starttime
 			print "Walked %i nodes in %f s ( %f / s )" % ( nodecount, elapsed, nodecount / elapsed )
 			
 			# WITH NODE CONVERSION
-			starttime = time.clock( )
+			starttime = time.time( )
 			
 			for node in iterators.iterDagNodes( asNode = 1 ):
 				pass 
 			
-			elapsed = time.clock() - starttime
+			elapsed = time.time() - starttime
 			print "Walked %i WRAPPED nodes in %f s ( %f / s )" % ( nodecount, elapsed, nodecount / elapsed )
 			
 			
 			# BREADTH
-			starttime = time.clock( )
+			starttime = time.time( )
 			for dagpath in iterators.iterDagNodes( depth = 0 ):
 				pass 
 				
-			elapsed = time.clock() - starttime
+			elapsed = time.time() - starttime
 			print "Walked %i nodes BREADTH FIRST in %f s ( %f / s )" % ( nodecount, elapsed, nodecount / elapsed )
 			
 		# END for each run
 	
 	def test_createNodes( self ):
 		"""byronimo.maya.benchmark.general: test random node creation performance"""
+		if not bcommon.mayRun( "createnode" ): return
 		bmaya.Scene.new( force = True )
 		runs = [ 100,2500 ]
 		all_elapsed = []
@@ -181,7 +186,7 @@ class TestGeneralPerformance( unittest.TestCase ):
 			nslist = genNestedNamesList( numNodes / 100, (0,3), genRandomNames(10,(3,8)),":" )
 			nodenames = genNodeNames( numNodes, (1,5),(3,8),nslist )
 			
-			starttime = time.clock( )
+			starttime = time.time( )
 			undoobj = undo.StartUndo( )
 			for nodename in nodenames:
 				try:	# it can happen that he creates dg and dag nodes with the same name 
@@ -191,14 +196,14 @@ class TestGeneralPerformance( unittest.TestCase ):
 			# END for each node
 			del( undoobj )	# good if we raise runtime errors ( shouldnt happend )
 			
-			elapsed = time.clock() - starttime
+			elapsed = time.time() - starttime
 			all_elapsed.append( elapsed )
 			print "Created %i nodes in %f s ( %f / s )" % ( numNodes, elapsed, numNodes / elapsed )
 			
 			# UNDO OPERATION 
-			starttime = time.clock()
+			starttime = time.time()
 			cmds.undo()
-			elapsed = time.clock() - starttime
+			elapsed = time.time() - starttime
 			print "Undone Operation in %f s" % elapsed 
 			
 		# END for each run
@@ -214,24 +219,73 @@ class TestGeneralPerformance( unittest.TestCase ):
 		nodenames = cmds.ls( l=1 )
 		Nodes = []
 		
-		starttime = time.clock( )
+		starttime = time.time( )
 		for name in nodenames:
 			Nodes.append( nodes.Node( name ) )
 		
-		elapsed = time.clock() - starttime
+		elapsed = time.time() - starttime
 		print "Created %i Nodes ( from STRING ) in %f s ( %f / s )" % ( len( nodenames ), elapsed, len( nodenames ) / elapsed )
 		
 		
 		# CREATE MAYA NODES FROM DAGPATHS AND OBJECTS
-		starttime = time.clock( )
+		starttime = time.time( )
 		for node in Nodes:
 			if isinstance( node, nodes.DagNode ):
 				n = nodes.Node( node._apidagpath )
 			else:
 				n = nodes.Node( node._apiobj )
 		
-		api_elapsed = time.clock() - starttime
+		api_elapsed = time.time() - starttime
 		print "Created %i Nodes ( from APIOBJ ) in %f s ( %f / s ) -> %f %% faster" % ( len( nodenames ), api_elapsed, len( nodenames ) / api_elapsed, (elapsed / api_elapsed) * 100 )
+		
+	
+	def test_wrappedFunctionCall( self ):
+		"""byronimo.maya.benchmark.general: test wrapped funtion calls and compare them"""
+		if not bcommon.mayRun( "funccall" ): return
+		
+		bmaya.Scene.new( force = True )
+		
+		p = nodes.Node('perspShape')
+		camfn = api.MFnCamera( p.getObject() )
+		
+		# node wrapped
+		a = time.time()
+		for i in range( 10000 ):
+				p.focalLength()  # this wraps the API
+		b = time.time()
+		print "%f s : node.focalLength()" % ( b - a )
+		
+		# mfn recreate
+		a = time.time()
+		for i in range( 10000 ):
+				camfn = api.MFnCamera( p.getObject() )
+				camfn.focalLength()  # this wraps the API
+		b = time.time()
+		print "%f s : recreated + call" % ( b - a )
+		
+		# mfn directly
+		camfn = api.MFnCamera( p.getObject() )
+		a = time.time()
+		for i in range( 10000 ):
+				camfn.focalLength()  # this wraps the API
+		b = time.time()
+		print "%f s : mfn.focalLenght()" % ( b - a )
+		
+		# plug wrapped
+		a = time.time()
+		for i in range( 10000 ):
+				p.fl.asFloat()  # this wraps the API
+		b = time.time()
+		print "%f s : node.plug.asFloat()" % ( b - a )
+		
+		# plug cached
+		a = time.time()
+		fl = p.fl
+		for i in range( 10000 ):
+				fl.asFloat()  # this wraps the API
+		b = time.time()
+		print "%f s : plug.asFloat()" % ( b - a )
+	
 		
 
 #{ Name Generators
@@ -287,6 +341,5 @@ def genNodeNames( numNames, dagLevelRange, wordRange, nslist ):
 		nsdagpaths.append( '|'.join( tokens ) )
 	# END for each dagpath 
 	return nsdagpaths
-	
 	
 #} END name generators

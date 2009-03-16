@@ -29,24 +29,26 @@ import string
 import random
 import time
 import byronimo.maya.nodes.iterators as iters
+import byronimotest.byronimo.maya.benchmark as bcommon
 
 
 class TestCalculations( unittest.TestCase ):
 	
 	def test_0randomizeScene( self ):
 		"""byronimo.maya.nodes.benchmark: simply randomize the transformations of dag nodes on a scene"""
+		if not bcommon.mayRun( "randomize" ): return
 		numnodes = 2500
 		benchfile = common.get_maya_file( "large_scene_%i.mb" % 2500 )
 		bmaya.Scene.open( benchfile, force = 1 )
 		
-		starttime = time.clock()
+		starttime = time.time()
 		nodecount = 0
 		for node in iters.iterDagNodes( api.MFn.kTransform, asNode = True ):
 			translation = api.MVector( float( random.randint( -20, 20 ) ), float( random.randint( -20, 20 ) ), float( random.randint( -20, 20 ) ) )
 			node.setTranslation( translation, api.MSpace.kWorld )
 			nodecount += 1
 		# END for each object
-		elapsed = time.clock() - starttime
+		elapsed = time.time() - starttime
 		print "Randomized %i node translations in %f s ( %f / s )" % ( nodecount, elapsed, nodecount / elapsed )
 		
 		# save tmp
@@ -55,8 +57,8 @@ class TestCalculations( unittest.TestCase ):
 
 	def test_1computeCenter( self ):
 		"""byronimo.maya.nodes.benchmark: compute the center point of all  dagnodes in scene"""
-		
-		starttime = time.clock()
+		if not bcommon.mayRun( "center" ): return
+		starttime = time.time()
 		
 		# GET AVERAGE POSITION 
 		pos = api.MVector()
@@ -69,19 +71,19 @@ class TestCalculations( unittest.TestCase ):
 		
 		nodecount = len( nodecache )
 		pos /= float( nodecount )
-		elapsed = time.clock() - starttime
+		elapsed = time.time() - starttime
 		
 		print "Average position of %i nodes is: <%f,%f,%f> in %f s" % ( nodecount, pos.x,pos.y,pos.z, elapsed )
 		
 		
 		# NOW SET ALL NODES TO THE GIVEN VALUE
-		starttime = time.clock()
+		starttime = time.time()
 		
 		for node in nodecache:
 			node.setTranslation( pos, api.MSpace.kWorld )
 		# END for each node 
 		
-		elapsed = time.clock() - starttime
+		elapsed = time.time() - starttime
 		print "Set %i nodes to average position in %f s ( %f / s )" % ( nodecount, elapsed, nodecount / elapsed )
 		
 		common._saveTempFile( "averaged.mb" )
