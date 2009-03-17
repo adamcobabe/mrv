@@ -501,21 +501,26 @@ def _checkedInstanceCreationDagPathSupport( apiobj_or_dagpath, clsToBeCreated, b
 	"""Same purpose and attribtues as L{_checkedInstanceCreation}, but supports 
 	dagPaths as input as well"""
 	global _mfndep
+	# if return is here, you get 5430 ( vs 2000 originally )
 	
 	apiobj = apiobj_or_dagpath
 	dagpath = None
-	nodeTypeName = None
 	if isinstance( apiobj, api.MDagPath ):
-		# we delay this call until we really need it - most function sets require 
-		# a dag path
 		# NO: Need the type, thus need a function set or a non-string typemap to use
-		# apiobj_or_dagpath.apiType() ## fast call 
+		# apiobj_or_dagpath.apiType() ## fast call
+		# It would be good to delay this call, but then there is no way to get the 
+		# type name which is required to get the proper class hierarchy
 		# apiobj = apiobj_or_dagpath.node()	## very expensive call !
 		# use original api method - our one returns wrapped MObject for some reason
-		apiobj = api.MDagPath.node( apiobj_or_dagpath )	## very expensive call !
+		# see tests.maya.benchmark dagwalk to have a good check for the impact of 
+		# changes 
+		# NOTE: this is not the most expensive call which can be seen if 
+		# it is added twice ( 2000 vs 1730 )
+		apiobj = api.MDagPath.node( apiobj_or_dagpath )	## expensive call !
 		dagpath = apiobj_or_dagpath
 	# END if we have a dag path
 	
+	# if return is here, you get 3600 ( vs 2000 originally )
 	_mfndep.setObject( apiobj )
 	nodeTypeName = _mfndep.typeName( )
 	clsinstance = _checkedInstanceCreation( apiobj, nodeTypeName, clsToBeCreated, basecls )
@@ -526,9 +531,12 @@ def _checkedInstanceCreationDagPathSupport( apiobj_or_dagpath, clsToBeCreated, b
 	if not dagpath and isinstance( clsinstance, DagNode ):
 		dagpath = api.MDagPath( )
 		MFnDagNode( apiobj ).getPath( dagpath )
+	# END if no dagpath was available
 	
+	# NOTE: this costs plenty of performance ( with: 2000, without, 2900 ), thus we 
+	# do it on demand when the dagpath is requested
 	if dagpath:
-		object.__setattr__( clsinstance, '_apidagpath', DagPath( dagpath ) )	# add some convenience to it
+		object.__setattr__( clsinstance, '_apidagpath', dagpath )	# add some convenience to it
 		
 	return clsinstance
 
@@ -1201,7 +1209,6 @@ class DagNode( Entity, iDagItem ):	# parent just for epydoc
 		# END if keep worldspace 
 			
 			
-		thispathobj = self._apidagpath.getApiObj()
 		# As stupid dagmodifier cannot handle instances right ( as it works on MObjects
 		mod = None		# create it once we are sure the operation takes place 
 		if parentnode:
@@ -1209,14 +1216,13 @@ class DagNode( Entity, iDagItem ):	# parent just for epydoc
 				raise RuntimeError( "Cannot parent object %s under itself" % self )
 			
 			mod = undo.DagModifier( )
-			parentpathobj = parentnode._apidagpath.getApiObj()
-			mod.reparentNode( thispathobj, parentpathobj )
+			mod.reparentNode( self._apiobj, parentnode._apiobj )
 		else:
 			# sanity check
 			if isinstance( self, nodes.Shape ):
 				raise RuntimeError( "Shape %s cannot be parented under root '|' but needs a transform" % self )
 			mod = undo.DagModifier( )
-			mod.reparentNode( thispathobj )
+			mod.reparentNode( self._apiobj )
 		
 		mod.doIt()
 		
@@ -1392,7 +1398,7 @@ class DagNode( Entity, iDagItem ):	# parent just for epydoc
 		dagIndex = pos
 		if pos == self.kNextPos:
 			dagIndex = self.getChildCount() - 1	# last entry as child got added  
-		newChildNode = Node( self._apidagpath.getChildPath( dagIndex ) )
+		newChildNode = Node( self.getDagPath().getChildPath( dagIndex ) )
 		
 		# update undo cmd to use the newly created child with the respective dag path 
 		undocmd.args = [ newChildNode ]
@@ -1727,42 +1733,54 @@ class DagNode( Entity, iDagItem ):	# parent just for epydoc
 		# back to a Node
 		if isinstance( self, nodes.Transform ):	
 			return self	
-		return Node( self._apidagpath.getTransform( ) )
+		return Node( self._apidagpath.transform( ) )
 	
 	def getParent( self ):
 		"""@return: Maya node of the parent of this instance or None if this is the root"""
-		p = self._apidagpath.getParent( )
-		if not p:
+		# implement raw not using a wrapped path
+		copy = api.MDagPath( self._apidagpath )
+		copy.pop( 1 )
+		if copy.length() == 0:		# ignore world !
 			return None
-		return nodes.Node( p )
+		return nodes.Node( copy )
 	
 	def getChildren( self, predicate = lambda x: True ):
 		"""@return: all child nodes below this dag node if predicate returns True for passed Node"""
-		childNodes = [ Node( p ) for p in self._apidagpath.getChildren() ]
-		return [ p for p in childNodes if predicate( p ) ]
+		out = list()
+		ownpath = self._apidagpath
+		for i in range( ownpath.childCount() ):
+			copy = api.MDagPath( ownpath )
+			copy.push( api.MDagPath.child( ownpath, i ) )
+			child = Node( copy )
+			
+			if not predicate( child ):
+				continue
+			
+			out.append( child )
+		# END for each child
+		return out
 
 	def getChildrenByType( self, nodeType, predicate = lambda x: True ):
 		"""@return: all childnodes below this one matching the given nodeType and the predicate
 		@param nodetype: class of the nodeTyoe, like nodes.Transform"""
-		childNodes = [ Node( p ) for p in self._apidagpath.getChildren() ]
-		return [ p for p in childNodes if isinstance( p, nodeType ) and predicate( p ) ]
+		return [ p for p in self.getChildren() if isinstance( p, nodeType ) and predicate( p ) ]
 		
 	def getShapes( self, predicate = lambda x: True ):
 		"""@return: all our Shape nodes
 		@note: you could use getChildren with a predicate, but this method is more 
 		efficient as it uses dagpath functions to filter shapes"""
-		shapeNodes = [ Node( s ) for s in self._apidagpath.getShapes() ]	# could use getChildrenByType, but this is faster 
+		shapeNodes = [ Node( s ) for s in self.getDagPath().getShapes() ]	# could use getChildrenByType, but this is faster 
 		return [ s for s in shapeNodes if predicate( s ) ]
 		
 	def getChildTransforms( self, predicate = lambda x: True ):
 		"""@return: list of all transform nodes below this one """
-		transformNodes = [ Node( s ) for s in self._apidagpath.getTransforms() ] # could use getChildrenByType, but this is faster
+		transformNodes = [ Node( s ) for s in self.getDagPath().getTransforms() ] # could use getChildrenByType, but this is faster
 		return [ t for t in transformNodes if predicate( t ) ]
 		
 	def getInstanceNumber( self ):
 		"""@return: our instance number
 		@note: 0 does not indicate that this object is not instanced - use getInstanceCount instead"""
-		return self._apidagpath.getInstanceNumber()
+		return self._apidagpath.instanceNumber()
 	
 	def getInstance( self, instanceNumber ):
 		"""@return: Node to the instance identified by instanceNumber
@@ -1775,7 +1793,8 @@ class DagNode( Entity, iDagItem ):	# parent just for epydoc
 			
 		allpaths = api.MDagPathArray()
 		self.getAllPaths( allpaths )
-		return Node( allpaths[ instanceNumber ] )
+		# copy the path as it will be invalidated once the array goes out of scope !
+		return Node( api.MDagPath( allpaths[ instanceNumber ] ) )
 		
 	def hasChild( self, node ):
 		"""@return: True if node is a child of self"""
@@ -1785,17 +1804,26 @@ class DagNode( Entity, iDagItem ):	# parent just for epydoc
 		"""@return: child of self at index
 		@note: this method fixes the MFnDagNode.child method - it returns an MObject, 
 		which doesnt work well with instanced nodes - a dag path is required, which is what 
-		we use to aquire the object"""
-		return Node( self._apidagpath.getChildPath( index ) )
+		we use to aquire the object""" 
+		copy = api.MDagPath( self._apidagpath )
+		copy.push( api.MDagPath.child( self._apidagpath, index ) )
+		return Node( copy )
 		
 	child = getChild 		# assure the mfnmethod cannot be called anymore - its dangerous !
 	#} END hierarchy query
 	
 	#{ General Query  
 	def getDagPath( self ):
-		"""@return: the DagPath attached to this Node"""
+		"""@return: the DagPath attached to this Node
+		@note: it is a wrapped version that can be handled more conveniently, but 
+		wrapping it is rather expensive"""
+		return DagPath( self._apidagpath )
+
+	def getApiDagPath( self ):
+		"""@return: the original DagPath attached to this Node - it's not wrapped 
+		for convenience"""
 		return self._apidagpath
-		
+	
 	def getApiObject( self ):
 		"""@return: our dag path as this is our api object - the object defining this node"""
 		return self.getDagPath()
@@ -1828,7 +1856,7 @@ class DagNode( Entity, iDagItem ):	# parent just for epydoc
 			# index is NOT instance number ! If transforms are instanced, children increase instance number
 			dagpath = allpaths[ i ]
 			if dagpath.instanceNumber() != ownNumber:
-				yield Node( dagpath )
+				yield Node( api.MDagPath( dagpath ) )
 		# END for each instance 
 	
 	#}
@@ -2088,7 +2116,7 @@ class DagPath( api.MDagPath, iDagItem ):
 		"""Get all children below this path supporting the given MFn.type
 		@return: paths to all matched paths below this path
 		@param fn: member of MFn"""
-		isMatch = lambda p: p.getApiObj().hasFn( fn )
+		isMatch = lambda p: p.hasFn( fn )
 		return [ p for p in self.getChildren( predicate = isMatch ) if predicate( p ) ]
 		
 	def getShapes( self, predicate = lambda x: True ):

@@ -731,7 +731,7 @@ class TestNodeBase( unittest.TestCase ):
 		
 		# INSTANCE TRAVERSAL
 		for inst in instances:
-			self.failUnless( inst.getInstanceCount( False ) == 4 )	
+			self.failUnless( inst.getInstanceCount( False ) == 4 )
 			self.failUnless( inst == inst.getInstance( inst.getInstanceNumber( ) ) )
 			for instinst in inst.iterInstances( excludeSelf = True ):
 				self.failUnless( instinst != inst )
