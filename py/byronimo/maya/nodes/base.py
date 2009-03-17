@@ -50,6 +50,9 @@ from itertools import chain
 _nameToApiSelList = api.MSelectionList() 
 _mfndep = api.MFnDependencyNode()
 
+# direct import to safe api. lookup
+from maya.OpenMaya import MFnDagNode
+
 ############################
 #### Methods 		  	####
 ##########################
@@ -87,7 +90,7 @@ def isAbsolutePath( nodename ):
 def toDagPath( apiobj ):
 	"""Find ONE valid dag path to the given dag api object"""
 	dagpath = DagPath( )
-	api.MFnDagNode( apiobj ).getPath( dagpath )
+	MFnDagNode( apiobj ).getPath( dagpath )
 	return dagpath
 	
 
@@ -501,19 +504,28 @@ def _checkedInstanceCreationDagPathSupport( apiobj_or_dagpath, clsToBeCreated, b
 	
 	apiobj = apiobj_or_dagpath
 	dagpath = None
+	nodeTypeName = None
 	if isinstance( apiobj, api.MDagPath ):
-		apiobj = api.MDagPath.node( apiobj_or_dagpath )
+		# we delay this call until we really need it - most function sets require 
+		# a dag path
+		# NO: Need the type, thus need a function set or a non-string typemap to use
+		# apiobj_or_dagpath.apiType() ## fast call 
+		# apiobj = apiobj_or_dagpath.node()	## very expensive call !
+		# use original api method - our one returns wrapped MObject for some reason
+		apiobj = api.MDagPath.node( apiobj_or_dagpath )	## very expensive call !
 		dagpath = apiobj_or_dagpath
-		
+	# END if we have a dag path
+	
 	_mfndep.setObject( apiobj )
 	nodeTypeName = _mfndep.typeName( )
-	clsinstance = _checkedInstanceCreation( apiobj, nodeTypeName, clsToBeCreated, basecls )	
+	clsinstance = _checkedInstanceCreation( apiobj, nodeTypeName, clsToBeCreated, basecls )
 	
 	# ASSURE WE HAVE A DAG PATH
 	# Dag Objects should always have a dag path even if none was passed in 
+	## costs nealy nothing
 	if not dagpath and isinstance( clsinstance, DagNode ):
 		dagpath = api.MDagPath( )
-		api.MFnDagNode( apiobj ).getPath( dagpath )
+		MFnDagNode( apiobj ).getPath( dagpath )
 	
 	if dagpath:
 		object.__setattr__( clsinstance, '_apidagpath', DagPath( dagpath ) )	# add some convenience to it
@@ -528,10 +540,6 @@ def _checkedInstanceCreation( apiobj, typeName, clsToBeCreated, basecls ):
 	@param typeName: the name of the node type to be created
 	@param clsToBeCreated: the cls object as passed in to __new__
 	@param basecls: the class of the caller containing the __new__ method
-	@param addDagPath: if True, the apiobj will is a dag path and will additionally 
-	be attached to the instance, if False it is an api object. The reason why this is 
-	not kwarg is that its supposed to be as fast as possible - many clients are calling 
-	this method, mostly with apiobjs
 	@return: create clsinstance if the proper type ( according to nodeTypeTree"""
 	# get the node type class for the api type object
 	
@@ -1096,7 +1104,7 @@ class DagNode( Entity, iDagItem ):	# parent just for epydoc
 	""" Implements access to DAG nodes """
 	__metaclass__ = nodes.MetaClassCreatorNodes
 	_sep = "|"
-	kNextPos = api.MFnDagNode.kNextPos
+	kNextPos = MFnDagNode.kNextPos
 	
 	
 	#{ Overridden from Object 
@@ -1228,7 +1236,7 @@ class DagNode( Entity, iDagItem ):	# parent just for epydoc
 		raise AssertionError( "Could not find self in children after reparenting" )
 		
 	@undoable
-	def addInstancedChild( self, childNode, position=api.MFnDagNode.kNextPos ):
+	def addInstancedChild( self, childNode, position=MFnDagNode.kNextPos ):
 		"""Add childnode as instanced child to this node
 		@note: for more information, see L{addChild}
 		@note: its a shortcut to addChild allowing to clearly indicate what is happening"""
@@ -1273,7 +1281,7 @@ class DagNode( Entity, iDagItem ):	# parent just for epydoc
 		
 		
 	@undoable
-	def addChild( self, childNode, position=api.MFnDagNode.kNextPos, keepExistingParent=False,
+	def addChild( self, childNode, position=MFnDagNode.kNextPos, keepExistingParent=False,
 				 renameOnClash=True, keepWorldSpace = False ):
 		"""Add the given childNode as child to this Node. Allows instancing !
 		@param childNode: Node you wish to add
