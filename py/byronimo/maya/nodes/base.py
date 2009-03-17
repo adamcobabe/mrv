@@ -1264,7 +1264,7 @@ class DagNode( Entity, iDagItem ):	# parent just for epydoc
 		# reparent if we have a last-instance of something 
 		if not allowZeroParents:
 			if childNode.getInstanceCount( False ) == 1:
-				if isinstance( childNode, nodes.Transform ):
+				if isinstance( childNode, Transform ):
 					return childNode.reparent( None )
 				else:
 					# must be shape - raise 
@@ -1326,7 +1326,7 @@ class DagNode( Entity, iDagItem ):	# parent just for epydoc
 		# check if child is already part of our children
 		children = None
 		# lets speed things up - getting children is expensive
-		if isinstance( childNode, nodes.Transform ):
+		if isinstance( childNode, Transform ):
 			children = self.getChildTransforms( )
 		else:
 			children = self.getShapes( )
@@ -1724,14 +1724,14 @@ class DagNode( Entity, iDagItem ):	# parent just for epydoc
 		uint = sutil.asUint()
 		sutil.setUint( uint , index )
 		
-		return nodes.Node( api.MFnDagNode( self._apidagpath ).parent( uint ) )
+		return Node( api.MFnDagNode( self._apidagpath ).parent( uint ) )
 	
 	def getTransform( self ):
 		"""@return: Node to lowest transform in the path attached to our node
 		@note: for shapes this is the parent, for transforms the transform itself"""
 		# this should be faster than asking maya for the path and converting 
 		# back to a Node
-		if isinstance( self, nodes.Transform ):	
+		if isinstance( self, Transform ):	
 			return self	
 		return Node( self._apidagpath.transform( ) )
 	
@@ -1742,7 +1742,7 @@ class DagNode( Entity, iDagItem ):	# parent just for epydoc
 		copy.pop( 1 )
 		if copy.length() == 0:		# ignore world !
 			return None
-		return nodes.Node( copy )
+		return Node( copy )
 	
 	def getChildren( self, predicate = lambda x: True ):
 		"""@return: all child nodes below this dag node if predicate returns True for passed Node"""
@@ -2054,7 +2054,7 @@ class DagPath( api.MDagPath, iDagItem ):
 	
 	def getNode( self ):
 		"""@return: Node of the node we are attached to"""
-		return nodes.Node( self.getApiObj( ) )
+		return Node( self.getApiObj( ) )
 		
 	def getTransform( self ):
 		"""@return: path of the lowest transform in the path
