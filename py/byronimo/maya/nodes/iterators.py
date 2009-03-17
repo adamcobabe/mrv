@@ -103,8 +103,7 @@ def getDagIterator( *args, **kwargs ):
 		
 	iterObj = api.MItDag( typeFilter, traversal )
 	
-	asNode = kwargs.get('asNode', False )
-	predicate = kwargs.get('predicate', lambda x: True )
+	# set start object 
 	if root is not None :
 		startObj = startPath = None
 		if isinstance( root, api.MDagPath ):

@@ -136,7 +136,7 @@ class TestGeneralPerformance( unittest.TestCase ):
 		if not bcommon.mayRun( "dagwalk" ): return
 		
 		# numnodes = [ 2500, 25000, 100000 ]
-		numnodes = [ 2500, 25000 ]
+		numnodes = [ 2500 ]
 		for nodecount in numnodes:
 			benchfile = common.get_maya_file( "large_scene_%i.mb" % nodecount )
 			bmaya.Scene.open( benchfile, force = 1 )
@@ -144,20 +144,46 @@ class TestGeneralPerformance( unittest.TestCase ):
 			
 			# NO NODE CONVERSION
 			starttime = time.time( )
-			
-			#while not iterdag.isDone( ):
 			for dagpath in iterators.iterDagNodes( dagpath = 1 ):
 				pass 
-				
 			elapsed = time.time() - starttime
 			print "Walked %i nodes in %f s ( %f / s )" % ( nodecount, elapsed, nodecount / elapsed )
 			
+			# DIRECT ITERATOR USE
+			starttime = time.time( )
+			iterObj = api.MItDag( )
+			while not iterObj.isDone( ):
+				dPath = api.MDagPath( )
+				iterObj.getPath( dPath )
+				iterObj.next()
+			# END for each dagpath
+			elapsed = time.time() - starttime
+			print "Walked %i nodes directly in %f s ( %f / s )" % ( nodecount, elapsed, nodecount / elapsed )
+			
+			
+			# from ls
+			starttime = time.time( )
+			sellist = nodes.toSelectionListFromNames( cmds.ls( type="dagNode" ) )
+			for node in iterators.iterSelectionList( sellist, handlePlugs = False, asNode = False ):
+				pass
+			elapsed = time.time() - starttime
+			print "Listed %i nodes with ls in %f s ( %f / s )" % ( nodecount, elapsed, nodecount / elapsed )
+			
+			# from active selection
+			starttime = time.time( )
+			cmds.select( cmds.ls( type="dagNode" ) )
+			sellist = api.MSelectionList()
+			api.MGlobal.getActiveSelectionList( sellist )
+			for node in iterators.iterSelectionList( sellist, handlePlugs = False, asNode = False ):
+				pass
+			elapsed = time.time() - starttime
+			print "Listed %i nodes from active selection in %f s ( %f / s )" % ( nodecount, elapsed, nodecount / elapsed )
+			
+			
 			# WITH NODE CONVERSION
 			starttime = time.time( )
-			
 			for node in iterators.iterDagNodes( asNode = 1 ):
 				pass 
-			
 			elapsed = time.time() - starttime
 			print "Walked %i WRAPPED nodes in %f s ( %f / s )" % ( nodecount, elapsed, nodecount / elapsed )
 			
@@ -166,7 +192,6 @@ class TestGeneralPerformance( unittest.TestCase ):
 			starttime = time.time( )
 			for dagpath in iterators.iterDagNodes( depth = 0 ):
 				pass 
-				
 			elapsed = time.time() - starttime
 			print "Walked %i nodes BREADTH FIRST in %f s ( %f / s )" % ( nodecount, elapsed, nodecount / elapsed )
 			
