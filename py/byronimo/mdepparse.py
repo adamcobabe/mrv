@@ -54,20 +54,12 @@ class MayaFileGraph( DiGraph ):
 		@note: we prefix it to assure it does not popup in our results"""
 		self.add_edge( ( self.invalidNodeID, self.invalidPrefix + str( invalidfile ) ) )
 		
-	def _parseDepends( self, mafile, allPaths ):
-		"""@return: list of filepath as parsed from the given mafile.
-		@param allPaths: if True, the whole file will be parsed, if False, only
-		the reference section will be parsed"""
-		outdepends = list()
-		print "Parsing %s" % ( mafile )
-		
-		try:
-			filehandle = open( os.path.expandvars( mafile ), "r" )
-		except IOError,e:
-			# store as invalid 
-			self._addInvalid( mafile )
-			sys.stderr.write( "Parsing Failed: %s\n" % str( e ) )
-			return outdepends
+	@classmethod
+	def _parseReferences( cls, mafile, allPaths = False ):
+		"""@return: list of reference strings parsed from the given maya ascii file
+		@raise IOError: if the file could not be read"""
+		outrefs = list()
+		filehandle = open( os.path.expandvars( mafile ), "r" )
 		
 		# parse depends 
 		for line in filehandle:
@@ -81,10 +73,10 @@ class MayaFileGraph( DiGraph ):
 					break
 			# END newline special handling 
 			
-			match = self.__class__.refpathregex.match( line )
+			match = cls.refpathregex.match( line )
 			
 			if match:
-				outdepends.append( match.group(1) )
+				outrefs.append( match.group(1) )
 			
 			# see whether we can abort early
 			if not allPaths and line.startswith( "requires" ):
@@ -92,7 +84,24 @@ class MayaFileGraph( DiGraph ):
 		# END for each line 
 		
 		filehandle.close()
+		return outrefs
+		
+	def _parseDepends( self, mafile, allPaths ):
+		"""@return: list of filepath as parsed from the given mafile.
+		@param allPaths: if True, the whole file will be parsed, if False, only
+		the reference section will be parsed"""
+		outdepends = list()
+		print "Parsing %s" % ( mafile )
+		
+		try:
+			outdepends = self._parseReferences( mafile, allPaths )
+		except IOError,e:
+			# store as invalid 
+			self._addInvalid( mafile )
+			sys.stderr.write( "Parsing Failed: %s\n" % str( e ) )
+		# END exception handlign 
 		return outdepends
+		
 	
 	def addFromFiles( self, mafiles, parse_all_paths = False, 
 					to_os_path = lambda f: os.path.expandvars( f ),
