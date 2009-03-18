@@ -33,7 +33,6 @@ class MayaFileGraph( DiGraph ):
 	kAffects,kAffectedBy = range( 2 )
 	
 	refpathregex = re.compile( '.*-r .*"(.*)";' )
-	refrdipathregex = re.compile( '.*-rdi (\d+) .*' )
 	
 	invalidNodeID = "__invalid__"
 	invalidPrefix = ":_iv_:"
@@ -57,14 +56,10 @@ class MayaFileGraph( DiGraph ):
 		self.add_edge( ( self.invalidNodeID, self.invalidPrefix + str( invalidfile ) ) )
 		
 	@classmethod
-	def _parseReferences( cls, mafile, allPaths = False, level = -1 ):
+	def _parseReferences( cls, mafile, allPaths = False ):
 		"""@return: list of reference strings parsed from the given maya ascii file
-		@param level: levels of references to parse.
-		If -1, all reference levels will be returned
-		if 0, only the root level references are returned, 1 only root and subreferences and so on
 		@raise IOError: if the file could not be read"""
 		outrefs = list()
-		path_ids_for_removal = list()	# stores paths that do not match our level constraint
 		filehandle = open( os.path.expandvars( mafile ), "r" )
 		
 		num_rdi_paths = 0		# amount of -rdi paths we found - lateron we have to remove the items 
@@ -87,17 +82,6 @@ class MayaFileGraph( DiGraph ):
 			if match:
 				outrefs.append( match.group(1) )
 			# END -r path match 
-				
-			if level > -1:
-				match = cls.refrdipathregex.match( line )
-				if match:
-					rdi = int( match.group(1) )
-					if rdi-1 > level:
-						path_ids_for_removal.append( num_rdi_paths )
-					# END if level is too high
-					num_rdi_paths += 1
-				# END if we have an rdi line
-			# END level handling 
 			
 			# see whether we can abort early
 			if not allPaths and line.startswith( "requires" ):
@@ -105,16 +89,6 @@ class MayaFileGraph( DiGraph ):
 		# END for each line 
 		
 		filehandle.close()
-		
-		# rebuild paths with for removal path removed
-		if path_ids_for_removal:
-			filtered_output = list()
-			for i, path in enumerate( outrefs ):
-				if i not in path_ids_for_removal:
-					filtered_output.append( path )
-			# END for each path
-			outrefs = filtered_output
-		# END remove path
 		
 		return outrefs
 		
