@@ -772,6 +772,10 @@ class DependNode( Node, iDuplicatable ):		# parent just for epydoc -
 		base.__setattr__( attr, plug )
 		return plug
 	
+	#@return: Plug with the given name
+	#@note: used as alternative to the getattr style"""
+	__getitem__ = __getattr__
+	
 	def __str__( self ):
 		"""@return: name of this object"""
 		#mfn = DependNode._mfncls( self._apiobj )
@@ -1130,8 +1134,14 @@ class DagNode( Entity, iDagItem ):	# parent just for epydoc
 	def __getitem__( self, index ):
 		"""@return: if index >= 0: Node( child )  at index                                   
 		if index < 0: Node parent at  -(index+1)( if walking up the hierarchy )
+		If index is string, use DependNodes implementation 
 		@note: returned child can be transform or shape, use L{getShapes} or 
 		L{getChildTransforms} if you need a quickfilter """
+		if isinstance( index, basestring ):
+			# use method directly for performance, we know that our base classes 
+			# will not change
+			return DependNode.__getitem__( self, basestring ) 
+		# END index is attribute name handling 
 		if index > -1:
 			return self.getChild( index )
 		else:

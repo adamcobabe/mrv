@@ -233,6 +233,7 @@ class TestDataBase( unittest.TestCase ):
 		self.failUnless( len( matplug ) )
 		
 		matelm = matplug[0]
+		assert matelm == matplug[0.0]		# get by logical index 
 		self.failUnless( not matelm.isNull() )
 		
 		matdata = matelm.asData( )

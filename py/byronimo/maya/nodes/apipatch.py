@@ -252,10 +252,14 @@ class MPlug( api.MPlug, util.iDagItem ):
 	
 	#{ Overridden Methods
 	def __getitem__( self, index ):
-		"""@return: Plug at physical index or child plug with given name"""
+		"""@return:	 	Plug at physical integer index or
+						Plug at logical float index or 
+						child plug with given name"""
 		# strings are more probably I think, so lets have it first 
-		if not isinstance( index, int ):
+		if isinstance( index, basestring ):
 			return self.getChildByName( index )
+		elif isinstance( index, float ):
+			return self.getByLogicalIndex( int( index ) )
 		else:
 			return self.getByIndex( index )
 				
