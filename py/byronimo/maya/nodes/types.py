@@ -99,6 +99,7 @@ class MetaClassCreatorNodes( MetaClassCreator ):
 		# base classes - will raise accordingly
 		mfndb = funcMutatorDB
 		direct_api_func = False
+		funcname_orig = funcname	# store the original for later use
 		
 		# rewrite the function name to use the actual one 
 		if funcname.startswith( "_api_" ):
@@ -139,7 +140,7 @@ class MetaClassCreatorNodes( MetaClassCreator ):
 						mfninst = mfncls( self._apidagpath )
 						mfnfunc = getattr( mfninst, mfnfuncname )
 						rvallambda = lambda *args, **kwargs: rvalfunc( mfnfunc( *args, **kwargs ) )
-						object.__setattr__( self, funcname, rvallambda )
+						object.__setattr__( self, funcname_orig, rvallambda )
 						return rvallambda( *args, **kwargs )
 					newfunc = wrapMfnFunc
 				else:
@@ -147,7 +148,7 @@ class MetaClassCreatorNodes( MetaClassCreator ):
 						mfninst = mfncls( self._apiobj )
 						mfnfunc = getattr( mfninst, mfnfuncname )
 						rvallambda = lambda *args, **kwargs: rvalfunc( mfnfunc( *args, **kwargs ) )
-						object.__setattr__( self, funcname, rvallambda )
+						object.__setattr__( self, funcname_orig, rvallambda )
 						return rvallambda( *args, **kwargs )
 					newfunc = wrapMfnFunc
 			else:
@@ -155,14 +156,14 @@ class MetaClassCreatorNodes( MetaClassCreator ):
 					def wrapMfnFunc( self, *args, **kwargs ):
 						mfninst = mfncls( self._apidagpath )
 						mfnfunc = getattr( mfninst, mfnfuncname )
-						object.__setattr__( self, funcname, mfnfunc )
+						object.__setattr__( self, funcname_orig, mfnfunc )
 						return mfnfunc( *args, **kwargs )
 					newfunc = wrapMfnFunc
 				else:
 					def wrapMfnFunc( self, *args, **kwargs ):
 						mfninst = mfncls( self._apiobj )
 						mfnfunc = getattr( mfninst, mfnfuncname )
-						object.__setattr__( self, funcname, mfnfunc )
+						object.__setattr__( self, funcname_orig, mfnfunc )
 						return mfnfunc( *args, **kwargs )
 					newfunc = wrapMfnFunc
 			# END not rvalfunc
@@ -250,7 +251,7 @@ class MetaClassCreatorNodes( MetaClassCreator ):
 			# store the new function on instance level !
 			# ... and on class level
 			if newclsfunc:
-				# assure we do not call overwridden functions 
+				# assure we do not call overwridden functions
 				object.__setattr__( self, attr, newinstfunc )
 				type.__setattr__( actualcls, attr, newclsfunc )		# setattr would do too, but its more dramatic this way :)
 				return newinstfunc

@@ -276,22 +276,22 @@ class TestGeneralPerformance( unittest.TestCase ):
 		# node wrapped
 		a = time.time()
 		for i in range( 10000 ):
-				p._api_focalLength()  # this wraps the API
+			p.focalLength()  # this wraps the API
 		b = time.time()
-		print "%f s : node._api_focalLength()" % ( b - a )
+		print "%f s : node.focalLength()" % ( b - a )
 		
 		# node speedwrapped
 		a = time.time()
 		for i in range( 10000 ):
-				p.focalLength()  # this wraps the API
+			p._api_focalLength()  # this wraps the API directly
 		b = time.time()
 		print "%f s : node._api_focalLength()" % ( b - a )
 		
 		# mfn recreate
 		a = time.time()
 		for i in range( 10000 ):
-				camfn = api.MFnCamera( p.getObject() )
-				camfn.focalLength()  # this wraps the API
+			camfn = api.MFnCamera( p.getObject() )
+			camfn.focalLength()  # this wraps the API
 		b = time.time()
 		print "%f s : recreated + call" % ( b - a )
 		
@@ -299,14 +299,14 @@ class TestGeneralPerformance( unittest.TestCase ):
 		camfn = api.MFnCamera( p.getObject() )
 		a = time.time()
 		for i in range( 10000 ):
-				camfn.focalLength()  # this wraps the API
+			camfn.focalLength()  # this wraps the API
 		b = time.time()
 		print "%f s : mfn.focalLenght()" % ( b - a )
 		
 		# plug wrapped
 		a = time.time()
 		for i in range( 10000 ):
-				p.fl.asFloat()  # this wraps the API
+			p.fl.asFloat()  # this wraps the API
 		b = time.time()
 		print "%f s : node.plug.asFloat()" % ( b - a )
 		
@@ -314,7 +314,7 @@ class TestGeneralPerformance( unittest.TestCase ):
 		a = time.time()
 		fl = p.fl
 		for i in range( 10000 ):
-				fl.asFloat()  # this wraps the API
+			fl.asFloat()  # this wraps the API
 		b = time.time()
 		print "%f s : plug.asFloat()" % ( b - a )
 	
