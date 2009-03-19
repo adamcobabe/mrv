@@ -57,7 +57,7 @@ class TestDataBase( unittest.TestCase ):
 		# CONNECTIONS 
 		#######################
 		# CHECK COMPOUND ACCESS
-		tx = persp.translate.tx	
+		tx = persp.translate['tx']	
 		
 		# DO CONNECTIONS ( test undo/redo )
 		persp.translate >> front.translate
@@ -103,7 +103,7 @@ class TestDataBase( unittest.TestCase ):
 		
 		# COMPARISONS
 		self.failUnless( persp.t != front.t )
-		self.failUnless( persp.t.tx != persp.t.ty )
+		self.failUnless( persp.t['tx'] != persp.t['ty'] )
 		
 		# affected plugs
 		affectedPlugs = persp.t.affects( )
@@ -205,7 +205,7 @@ class TestDataBase( unittest.TestCase ):
 		cmds.undoInfo( swf = 1 )
 		cam = nodes.createNode( "myTrans", "transform" )
 		testdb = [  ( cam.visibility, "Bool", True, False ),
-					( cam.translate.tx, "Double", 0.0, 2.0 ) ]
+					( cam.translate['tx'], "Double", 0.0, 2.0 ) ]
 		# TODO: Add all missing types ! 
 		for plug, typename, initialval, targetval in testdb:
 			getattrfunc = getattr( plug, "as"+typename )

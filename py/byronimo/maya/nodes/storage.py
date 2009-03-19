@@ -431,7 +431,7 @@ class StorageBase( iDuplicatable ):
 		"""Find an empty logical plug index and return the newly created 
 		logical plug with given dataID"""
 		elementPlug = self._node.dta.getNextLogicalPlug( )
-		elementPlug.id.setString( dataID )
+		elementPlug['id'].setString( dataID )
 		return elementPlug
 			
 	def makePlug( self, dataID ):
@@ -464,7 +464,7 @@ class StorageBase( iDuplicatable ):
 		is empty after it has been duplicated ( would usually be done in the 
 		postContructor"""
 		for compoundplug in self._node.dta:
-			self._clearData( compoundplug.dval )
+			self._clearData( compoundplug['dval'] )
 		# END for each element in data compound 
 		
 	@undoable
@@ -486,7 +486,7 @@ class StorageBase( iDuplicatable ):
 		"""@return: compond plug with given dataID or None"""
 		actualID = self._attrprefix + dataID
 		for compoundplug in self._node.dta:
-			if compoundplug.id.asString( ) == actualID: 
+			if compoundplug['id'].asString( ) == actualID: 
 				return compoundplug
 		# END for each elemnt ( in search for mathching dataID )
 		return None
@@ -497,7 +497,7 @@ class StorageBase( iDuplicatable ):
 		The prefix itself is transparent and will not bre returned"""
 		outids = list()
 		for compoundplug in self._node.dta:
-			did = compoundplug.id.asString( )
+			did = compoundplug['id'].asString( )
 			if did and did.startswith( self._attrprefix ):
 				outids.append( did[ len( self._attrprefix ) : ] )
 			# END if is valid id 
@@ -528,13 +528,13 @@ class StorageBase( iDuplicatable ):
 		
 		# return the result 
 		if plugType is None:
-			return ( matchedplug.dval, matchedplug.dmsg )
+			return ( matchedplug['dval'], matchedplug['dmsg'] )
 		elif plugType == StorageBase.kStorage:
 			return matchedplug
 		elif plugType == StorageBase.kValue:
-			return matchedplug.dval
+			return matchedplug['dval']
 		elif plugType == StorageBase.kMessage:
-			return matchedplug.dmsg
+			return matchedplug['dmsg']
 		else:
 			raise TypeError( "Invalid plugType value: %s" % plugType )
 
@@ -549,7 +549,7 @@ class StorageBase( iDuplicatable ):
 		Plugs will always be created, the given index specifies a logical plug index
 		@param **kwargs: all arguments supported by L{getStoragePlug}"""
 		storagePlug = self.getStoragePlug( dataID, plugType = StorageBase.kStorage, **kwargs )
-		valplug = storagePlug.dval
+		valplug = storagePlug['dval']
 		return self.getPythonDataFromPlug( valplug )
 		
 		

@@ -559,7 +559,7 @@ class TestNodeBase( unittest.TestCase ):
 		
 		# connect it, to track the instance by connection 
 		persp = nodes.Node( "persp" )
-		perspplug = persp.t.tx
+		perspplug = persp.t['tx']
 		triplug = meshself.maxTriangles
 		perspplug >> triplug 
 		
@@ -784,8 +784,8 @@ class TestNodeBase( unittest.TestCase ):
 		
 		# DRAWING OVERRIDES 
 		###################
-		a1.do.ove.setInt( 1 )
-		a1.do.ovdt.setInt( 2 )
+		a1.do['ove'].setInt( 1 )
+		a1.do['ovdt'].setInt( 2 )
 		self.failUnless( mesh.getDisplayOverrideValue( 'ovdt' ) == 2 )
 		cmds.undo()
 		cmds.undo()
@@ -823,15 +823,15 @@ class TestNodeBase( unittest.TestCase ):
 	
 	def _checkIdentity( self, t ):
 		"""Assure that t is identity"""
-		self.failUnless( t.t.tx.asFloat() == 0.0 )
-		self.failUnless( t.t.ty.asFloat() == 0.0 )
-		self.failUnless( t.t.tz.asFloat() == 0.0 )
-		self.failUnless( t.r.rx.asFloat() == 0.0 )
-		self.failUnless( t.r.ry.asFloat() == 0.0 )
-		self.failUnless( t.r.rz.asFloat() == 0.0 )
-		self.failUnless( t.s.sx.asFloat() == 1.0 )
-		self.failUnless( t.s.sy.asFloat() == 1.0 )
-		self.failUnless( t.s.sz.asFloat() == 1.0 )
+		self.failUnless( t.t['tx'].asFloat() == 0.0 )
+		self.failUnless( t.t['ty'].asFloat() == 0.0 )
+		self.failUnless( t.t['tz'].asFloat() == 0.0 )
+		self.failUnless( t.r['rx'].asFloat() == 0.0 )
+		self.failUnless( t.r['ry'].asFloat() == 0.0 )
+		self.failUnless( t.r['rz'].asFloat() == 0.0 )
+		self.failUnless( t.s['sx'].asFloat() == 1.0 )
+		self.failUnless( t.s['sy'].asFloat() == 1.0 )
+		self.failUnless( t.s['sz'].asFloat() == 1.0 )
 	
 	def test_keepWorldSpace( self ):
 		"""byronimo.maya.nodes.base: keep ws transformation when reparenting"""
@@ -846,7 +846,7 @@ class TestNodeBase( unittest.TestCase ):
 		count = 0.0
 		for ma in mainattrs:
 			for sa in subattrs:
-				getattr( getattr( g, ma ), ma+sa ).setFloat( count )
+				getattr( g, ma )[ma+sa].setFloat( count )
 				count += 1.0
 			# END for each sa
 		# END for each ma
@@ -859,7 +859,7 @@ class TestNodeBase( unittest.TestCase ):
 		count = 0.0
 		for ma in mainattrs:
 			for sa in subattrs:
-				value = getattr( getattr( t, ma ), ma+sa ).asFloat( )
+				value = getattr( t, ma )[ma+sa].asFloat( )
 				self.failUnless( value == count )
 				count += 1.0
 			# end

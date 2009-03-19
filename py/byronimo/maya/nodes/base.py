@@ -1672,12 +1672,12 @@ class DagNode( Entity, iDagItem ):	# parent just for epydoc
 	def _getDisplayOverrideValue( self, plugName ):
 		"""@return: the given effective display override value or None if display 
 		overrides are disabled"""
-		if self.do.ove.asInt():
+		if self.do['ove'].asInt():
 			return getattr( self.do, plugName ).asInt()
 			
 		for parent in self.iterParents():
-			if parent.do.ove.asInt():
-				return getattr( parent.do, plugName ).asInt()
+			if parent.do['ove'].asInt():
+				return parent.do[ plugName ].asInt()
 				
 		return None
 	

@@ -62,12 +62,12 @@ class Shape( base.DagNode ):	 # base for epydoc !
 				components.append( api.MObject() )
 			# END full objecft assignments 
 			
-			for compplug in iogplug.objectGroups:
+			for compplug in iogplug['objectGroups']:
 				for setplug in compplug.getOutputs():
 					sets.append( setplug.getNodeApiObj() )		# connected set
 					
 					# get the component from the data  
-					compdata = compplug.objectGrpCompList.asData()
+					compdata = compplug['objectGrpCompList'].asData()
 					if compdata.getLength() == 1:			# this is what we can handle 
 						components.append( compdata[0] ) 	# the component itself
 					else:

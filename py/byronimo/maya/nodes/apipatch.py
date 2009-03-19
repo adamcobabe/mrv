@@ -252,8 +252,13 @@ class MPlug( api.MPlug, util.iDagItem ):
 	
 	#{ Overridden Methods
 	def __getitem__( self, index ):
-		"""@return: Plug at physical index """
-		return self.getByIndex( index )
+		"""@return: Plug at physical index or child plug with given name"""
+		# strings are more probably I think, so lets have it first 
+		if not isinstance( index, int ):
+			return self.getChildByName( index )
+		else:
+			return self.getByIndex( index )
+				
 		
 	def __len__( self ):
 		"""@return: number of physical elements in the array """
@@ -274,33 +279,6 @@ class MPlug( api.MPlug, util.iDagItem ):
 		"""@return: our class representation"""
 		return "%s(%s_asAPIObj)" % ( self.__class__.__name__, self.getName() )
 
-	def __getattr__( self, attr ):
-		"""@return: a child plug with the given name or fail
-		@note: if a name is not known to this class, we check for children having 
-		attr as short or long name
-		@note: once an attribute has been found, it will be cached in dict for fast
-		repetitive query"""
-		if attr == 'thisown' or attr == 'this':			# special pointer type usually requested
-			return api.MPlug.__getattr__( self, attr ) 
-		
-		plug = None
-		for child in self.getChildren( ):
-			# short and long name test 
-			if child.partialName( ).split('.')[-1] == attr or child.partialName( 0, 0, 0, 0, 0, 1 ).split('.')[-1] == attr: 
-				plug = child
-				break
-		# END for each child
-		
-		# found something ?
-		if plug is not None:
-			setattr( self, attr, plug )
-			return plug
-			
-		# let default handler do the job 
-		#return super( MPlug, self ).__getattr__( self, attr )
-		raise AttributeError( "'%s' child plug not found in %s" % ( attr, self ) )
-	
-	
 	def __eq__( self, other ):
 		"""Compare plugs,handle elements correctly"""
 		if not api.MPlug._api___eq__( self, other ):
@@ -346,6 +324,28 @@ class MPlug( api.MPlug, util.iDagItem ):
 		# END if is compound 
 		
 		return outchildren
+		
+	def getChildByName( self, childname ):
+		"""@return: childPlug with the given childname
+		@raise AttributeError: if no child plug of the appropriate name could be found
+		@note: reimplemented here to optimize speed"""
+		outchild = None
+		if self.isCompound( ):
+			nc = self.getNumChildren( )
+			for c in xrange( nc ):
+				child = self.getChild( c )
+				if (	child.partialName( ).split('.')[-1] == childname or 
+					   	child.partialName( 0, 0, 0, 0, 0, 1 ).split('.')[-1] == childname ):
+					outchild = child
+					break
+				# END if it is the child we look for
+			# END FOR EACH CHILD
+		# END if is compound
+		
+		if child is None:
+			raise AttributeError( "Plug %s has no child plug called %s" % ( self, childname ) )
+		return child
+		
 		
 	def getSubPlugs( self , predicate = lambda x: True):
 		"""@return: list of intermediate sub-plugs that are either child plugs or elemnt plugs

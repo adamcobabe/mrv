@@ -164,22 +164,22 @@ class TestGeometry( unittest.TestCase ):
 		# make tweak
 		ofs = ( 1.0, 1.0, 1.0 )						# offset array
 		ptweak = p1.pnts.getByLogicalIndex( 0 )
-		ptweak.px.setFloat( ofs[0] )
-		ptweak.py.setFloat( ofs[1] )
-		ptweak.pz.setFloat( ofs[2] )
+		ptweak['px'].setFloat( ofs[0] )
+		ptweak['py'].setFloat( ofs[1] )
+		ptweak['pz'].setFloat( ofs[2] )
 		
 		p1.resetTweaks( p1.eComponentType.vertex )
-		assert ptweak.px.asFloat() == 0.0
-		assert ptweak.py.asFloat() == 0.0
-		assert ptweak.pz.asFloat() == 0.0
+		assert ptweak['px'].asFloat() == 0.0
+		assert ptweak['py'].asFloat() == 0.0
+		assert ptweak['pz'].asFloat() == 0.0
 		
 		puvtweak = p1.uvpt.getByLogicalIndex( 0 )
-		puvtweak.ux.setFloat( ofs[0] )
-		puvtweak.uy.setFloat( ofs[1] )
+		puvtweak['ux'].setFloat( ofs[0] )
+		puvtweak['uy'].setFloat( ofs[1] )
 		
 		p1.resetTweaks( p1.eComponentType.uv )
-		assert puvtweak.ux.asFloat() == 0.0
-		assert puvtweak.uy.asFloat() == 0.0
+		assert puvtweak['ux'].asFloat() == 0.0
+		assert puvtweak['uy'].asFloat() == 0.0
 		
 		
 		

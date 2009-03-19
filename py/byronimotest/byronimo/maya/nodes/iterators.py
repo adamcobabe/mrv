@@ -155,7 +155,7 @@ class TestGeneral( unittest.TestCase ):
 		cam = nodes.Node( "persp|perspShape" )
 		
 		persp.t > front.t
-		front.t.tx > cam.fl
+		front.t['tx'] > cam.fl
 		
 		# NODE LEVEL
 		#############

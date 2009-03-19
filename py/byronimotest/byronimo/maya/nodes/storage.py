@@ -106,7 +106,7 @@ class TestStorage( unittest.TestCase ):
 			
 			# adjust values 
 			pyval[ "refchange" ] = "changed in reference"
-			refcomparator.translate.tx.setFloat( 5.5 )
+			refcomparator.translate['tx'].setFloat( 5.5 )
 
 			# save reference 
 			filewithrefpath = tmpdir / ( "refstoragetest" + filetype )
@@ -168,7 +168,7 @@ class TestStorage( unittest.TestCase ):
 		snode._attrprefix = "prefix"				# must create new one 
 		pval = snode.getPythonData( "othertest", autoCreate=True )
 		self.failUnless( len( data ) == 3 )
-		self.failUnless( pval._plug.getParent().id.asString() == "prefixothertest" )
+		self.failUnless( pval._plug.getParent()['id'].asString() == "prefixothertest" )
 		
 		# now that we have a prefix, we only see prefixed attributes 
 		self.failUnless( len( snode.getDataIDs() ) == 1 )
@@ -183,7 +183,7 @@ class TestStorage( unittest.TestCase ):
 		###################
 		persp = nodes.Node( "persp" )
 		
-		conarray = mainplug.dmsg
+		conarray = mainplug['dmsg']
 		for c in range( 10 ):
 			nextplug = conarray.getByLogicalIndex( c )
 			persp.message >> nextplug 
