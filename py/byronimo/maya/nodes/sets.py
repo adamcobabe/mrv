@@ -192,8 +192,14 @@ class ObjectSet:
 		if not isinstance( sellist, api.MSelectionList ):
 			sellist = nodes.toSelectionList( sellist )
 			
-		if not sellist.length():
+		lsellist = sellist.length()
+		if not lsellist:
 			return self
+			
+		# if there is only one member, use our single member function 
+		# as it will be faster when checking for partition constraints
+		if lsellist == 1:
+			return self._addRemoveMember( iterators.iterSelectionList( sellist, asNode = 0 ).next(), api.MObject(), mode, ignore_failure )
 				
 		# prepare operation
 		mfninst = self._mfncls( self._apiobj )
