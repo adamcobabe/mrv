@@ -20,6 +20,8 @@ __copyright__='(c) 2008 Sebastian Thiel'
 
 
 import maya.OpenMaya as api
+import maya.cmds as cmds 
+
 nodes = __import__( "byronimo.maya.nodes", globals(), locals(), [ 'nodes' ] )
 
 
@@ -331,6 +333,11 @@ def iterSelectionList( sellist, filterType = api.MFn.kInvalid, predicate = lambd
 	component is NullObject ( MObject ) if the whole object is on the list 
 	@todo: get rid of the nullplug array as it will not handle recursion properly or multithreading """
 	if handlePlugs:
+		# version compatibility - maya 8.5 still defines a plug ptr class that maya 2005 lacks
+		plugcheckfunc = lambda obj: isinstance( obj, api.MPlug )
+		if cmds.about( v=1 ).startswith( "8.5" ):
+			plugcheckfunc = lambda obj: isinstance( obj, ( api.MPlug, api.MPlugPtr ) )
+		
 		# SELECTION LIST MODE 
 		for i in xrange( sellist.length() ):
 			# DAG PATH 
@@ -363,7 +370,7 @@ def iterSelectionList( sellist, filterType = api.MFn.kInvalid, predicate = lambd
 			# END its not a dag node 
 			
 			# should have iterobj now 
-			if isinstance( iterobj, ( api.MPlug, api.MPlugPtr ) ):
+			if plugcheckfunc( iterobj ):
 				# apply filter 
 				if filterType != api.MFn.kInvalid and iterobj.node().apiType() != filterType:
 					continue

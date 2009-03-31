@@ -24,6 +24,7 @@ import byronimotest.byronimo.maya as common
 import byronimo.maya as bmaya
 import byronimo.maya.nodes as nodes
 import byronimotest.byronimo.maya.nodes as ownpackage
+import maya.cmds as cmds
 
 class TestGeneral( unittest.TestCase ):
 	""" Test general maya framework """
@@ -142,7 +143,10 @@ class TestGeneral( unittest.TestCase ):
 		
 		pcount = 0
 		for node, component in slist:
-			pcount += isinstance( component, (api.MPlug, api.MPlugPtr) )
+			if cmds.about( v=1 ).startswith( "8.5" ):
+				pcount += isinstance( component, (api.MPlug, api.MPlugPtr) )
+			else:
+				pcount += isinstance( component, api.MPlug )
 		self.failUnless( pcount == 2 )
 		
 	

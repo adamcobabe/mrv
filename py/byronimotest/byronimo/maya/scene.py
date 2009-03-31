@@ -77,7 +77,7 @@ class TestSceneRunner( unittest.TestCase ):
 			return 
 		
 		scenepath = common.get_maya_file( "sphere.ma" ) 
-		triggerFunc = lambda : Scene.open( scenepath )
+		triggerFunc = lambda : Scene.open( scenepath, force = 1 )
 		self._runMessageTest( "test_one", om.MSceneMessage.kBeforeOpenCheck, 
 							 	lambda *args: TestSceneRunner.cbgroup_one( self,*args ), 
 								triggerFunc )

@@ -197,7 +197,13 @@ def init_system( ):
 	# EXTRACT VERSION INFORMATION IF POSSIBLE
 	##########################################
 	mayalocation = os.environ[locvar]
-	mayabasename = os.path.split( mayalocation )[-1]
+	splitpos = -1
+	
+	# OS X special case 
+	if mayalocation.endswith( "Contents" ):
+		splitpos = -3
+		
+	mayabasename = mayalocation.split( os.sep )[ splitpos ]
 	
 	# currently unused 
 	bits = 32
@@ -206,6 +212,7 @@ def init_system( ):
 		
 	mayabasename = mayabasename.replace( "-x64", "" )	# could be mayaxxxx-x64
 	mayaversion = mayabasename[4:]				# could be without version, like "maya"
+	
 	
 	# PYTHON COMPATABILITY CHECK
 	##############################

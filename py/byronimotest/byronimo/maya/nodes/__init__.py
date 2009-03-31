@@ -57,5 +57,6 @@ def main( *args ):
 
 if __name__ == '__main__':
 	""" run all tests if run directly """
-	main( [] )
+	import sys
+	main( *sys.argv )
 	

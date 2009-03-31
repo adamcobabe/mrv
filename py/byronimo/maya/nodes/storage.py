@@ -160,7 +160,12 @@ class PyPickleData( mpx.MPxData ):
 			del( sys._maya_pyPickleData_trackingDict[ mpx.asHashable( self ) ] )
 		# call super just to be on the safe side in future, currently it appears 
 		# not to be required
-		super( PyPickleData, self ).__del__( )
+		try:
+			super( PyPickleData, self ).__del__( )
+		except AttributeError:
+			# Maya 2008 and following do not require this anymore as they 
+			# do not have a del method implemented apparently
+			pass 
 
 	def _writeToStream( self, ostream, asBinary ):
 		"""Write our data binary or ascii respectively"""
