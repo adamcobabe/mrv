@@ -557,6 +557,16 @@ class MPlug( api.MPlug, util.iDagItem ):
 		self.connectedTo( outputs, False, True )
 		return outputs
 		
+	def getOutput( self ):
+		"""@return: out first plug that has this plug as source of a connection
+		@raise IndexError: if the plug has no outputs
+		@note: convenience method"""
+		outputs = self.getOutputs()
+		if len( outputs ) == 0:
+			raise IndexError( "Plug %s was not connected to output plugs" % self )
+		
+		return outputs[0]
+		
 	def getInputs( self ):
 		"""Special handler returning the input plugs of array elements
 		@return: list of plugs connected to the elements of this arrayplug
@@ -744,6 +754,7 @@ class MPlug( api.MPlug, util.iDagItem ):
 	
 	#{ Properties
 	p_outputs = property( getOutputs )
+	p_output = property( getOutput )
 	p_input = property( getInput )
 	p_inputs = property( getInputs )
 	p_connections = property( getConnections )

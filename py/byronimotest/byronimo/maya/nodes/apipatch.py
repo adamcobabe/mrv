@@ -69,6 +69,10 @@ class TestDataBase( unittest.TestCase ):
 		cmds.redo( )
 		self.failUnless( front.translate in persp.translate.p_outputs )
 		
+		# check p_output
+		self.failUnless( persp.translate.p_output == front.translate )
+		self.failUnlessRaises( IndexError, persp.rotate.getOutput )
+		
 		# CHECK CONNECTION FORCING  
 		persp.translate >  front.translate 			# already connected
 		self.failUnlessRaises( RuntimeError, persp.scale.__gt__, front.translate )# lhs > rhs 

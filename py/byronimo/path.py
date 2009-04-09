@@ -725,6 +725,7 @@ class Path( _base, iDagItem ):
 		conversion.
 
 		"""
+		bytes = ""
 		if isinstance(text, unicode):
 			if linesep is not None:
 				# Convert all standard end-of-line sequences to
