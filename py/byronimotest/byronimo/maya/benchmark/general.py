@@ -116,7 +116,7 @@ class TestGeneralPerformance( unittest.TestCase ):
 			# END for each amount of plugs to connct
 		# END measure function
 
-		conlist = [ 10, 50, 100, 200 ]
+		conlist = [ 250, 1000, 2000, 4000 ]
 
 		# CONNECT MULTI PLUGS
 		######################
