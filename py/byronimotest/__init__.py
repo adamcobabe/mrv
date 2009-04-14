@@ -19,7 +19,7 @@ __copyright__='(c) 2008 Sebastian Thiel'
 import unittest
 from cStringIO import StringIO
 
-#{ Utilities 
+#{ Utilities
 
 def get_package_suite( moduleObject ):
 	"""
@@ -29,31 +29,31 @@ def get_package_suite( moduleObject ):
 	"""
 	from glob import glob
 	import os
-	
+
 	# assure we have a directory
 	packageDir = os.path.dirname( moduleObject.__file__ )
-	
+
 	# get all submodules
 	basenameNoExt = lambda n: os.path.splitext( os.path.split( n )[1] )[0]
 	pymodules = glob( os.path.join( packageDir, "*.py" ) )
 	pymodules.sort()
-	pymodules = [ moduleObject.__name__+"."+basenameNoExt( m ) for m in pymodules 
+	pymodules = [ moduleObject.__name__+"."+basenameNoExt( m ) for m in pymodules
 							if not os.path.basename( m ).startswith( '_' ) ]
-	
+
 	# now we have a dotted package notation
 	packagesuite = unittest.TestSuite()
-	subsuites = unittest.defaultTestLoader.loadTestsFromNames( pymodules ) 												
+	subsuites = unittest.defaultTestLoader.loadTestsFromNames( pymodules )
 	packagesuite.addTests( subsuites )
-	
+
 	return packagesuite
-	
+
 #}
 
 
 def get_suite( ):
 	"""@return: all tests in this package"""
-	import inspect 
-	
+	import inspect
+
 	import byronimotest.byronimo as byronimo
 	import byronimotest.byronimo.automation as automation
 	import byronimotest.byronimo.automation.processes as automationproceses
@@ -62,18 +62,18 @@ def get_suite( ):
 	import byronimotest.byronimo.maya.ui as mayaui
 	import byronimotest.byronimo.maya.nodes as Nodes
 	import byronimotest.byronimo.maya.benchmark as benchmark
-	
+
 	testmodules = [ t[1] for t in locals().iteritems() if t[0] != 'inspect' and inspect.ismodule( t[1] ) ]
-	
-	# gather suites 
+
+	# gather suites
 	alltests = unittest.TestSuite()
 	for module in testmodules:
 		try:
 			alltests.addTests( module.get_suite( ) )
 		except AttributeError:
 			print "%s did not define test" % module.__name__
-			raise 
-	
+			raise
+
 	return alltests
 
 def run_all( ):
@@ -83,11 +83,11 @@ def run_all( ):
 	output = StringIO()
 	testrunner = unittest.TextTestRunner( stream = output, verbosity = 2 )
 	testrunner.run( get_suite( ) )
-	
+
 	# print the output ( for now this should be enough )
 	print output.getvalue()
-	
-	
+
+
 def main( *args ):
 	"""Run all tests by default if started from commandline """
 	run_all()

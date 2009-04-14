@@ -19,16 +19,16 @@ __copyright__='(c) 2008 Sebastian Thiel'
 
 import unittest
 import workflows
-from byronimo.automation.report import * 
+from byronimo.automation.report import *
 
 class TestReport( unittest.TestCase ):
 	"""Test workflow class"""
-	
+
 	def test_plan( self ):
 		"""byronimo.automation.report: test plan report"""
 		miwfl = workflows.multiinput
-		
-		# try as real target - stil very simple 
+
+		# try as real target - stil very simple
 		res = miwfl.makeTarget( unicode( "this" ) )
 		plan = miwfl.getReportInstance( Plan )
 		r = plan.getReport( headline = "unicode workflow test" )

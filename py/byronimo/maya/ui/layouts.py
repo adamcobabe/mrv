@@ -2,7 +2,7 @@
 """B{byronimo.ui.layouts}
 
 Contains the most important mel-layouts wrapped into easy to use python classes
-These are specialized and thus more powerful than the default wraps 
+These are specialized and thus more powerful than the default wraps
 
 @todo: more documentation
 
@@ -32,35 +32,35 @@ class Layout( uibase.SizedControl, uiutil.UIContainerBase ):
 	Layouts may track their children
 	"""
 	_properties_ = ( "nch", "numberOfChildren" )
-	
+
 	def __init__( self, *args, **kwargs ):
 		"""  Initialize the layout
 		@param name: name of layout, several class instances can exist with the
-		same name - it will be adjusted for maya as it requires unique names for each 
+		same name - it will be adjusted for maya as it requires unique names for each
 		layout. """
 		super( Layout, self ).__init__( *args, **kwargs )
-	
+
 	def __getitem__( self, key ):
 		"""Implemented by L{UIContainerBase}"""
-		return uiutil.UIContainerBase.__getitem__( self, key ) 
-	
-	#{ Layout Hierarchy  
-	
+		return uiutil.UIContainerBase.__getitem__( self, key )
+
+	#{ Layout Hierarchy
+
 	def getChildren( self ):
 		""" @return: children of this layout """
 		childnames = mutil.noneToList( cmds.layout( self, q=1, ca=1 ) )
 		# assure we have long names to ensure uniqueness
 		return uibase.wrapUI( [ "%s|%s" % ( self, c ) for c in childnames ] )
-		
+
 	def setParentActive( self ):
-		"""Set the parent ( layout ) of this layout active - newly created items 
+		"""Set the parent ( layout ) of this layout active - newly created items
 		will be children of the parent layout
 		@note: can safely be called several times """
 		cmds.setParent( self.getParent( ) )
-		
+
 	#} END Layout Hierarchy
-	
-	
+
+
 	#{ Properties
 	p_children = property( getChildren )			# overwrite super class property
 	p_ca = p_children
@@ -73,12 +73,12 @@ class FormLayout( Layout ):
 	# tuple with side strings - to quickly define your attachments, assign it to letters
 	# like : t,b,l,r = kSides
 	# and use the letters accordingly to save space and make the layout easier to read
-	kSides = ( "top", "bottom", "left", "right" ) 
-	
-	class FormConstraint( object ): 
-		""" defines the way a child is constrained, possibly to other children 
-		@todo: proper constraint system, but could be complicated to make it really easy to use""" 
-		
+	kSides = ( "top", "bottom", "left", "right" )
+
+	class FormConstraint( object ):
+		""" defines the way a child is constrained, possibly to other children
+		@todo: proper constraint system, but could be complicated to make it really easy to use"""
+
 	def setup( self, **kwargs ):
 		"""Apply the given setup to the form layout, specified using kwargs
 		@param **kwargs: arguments you would set use to setup the form layout"""
@@ -87,69 +87,69 @@ class FormLayout( Layout ):
 
 class FrameLayout( Layout ):
 	"""Simple wrapper for a frame layout"""
-	_properties_ = (	"bw", "borderVisible", 
-					   	"bs",  "borderStyle", 
-						"cl", "collapse", 
+	_properties_ = (	"bw", "borderVisible",
+					   	"bs",  "borderStyle",
+						"cl", "collapse",
 						"cll", "collapsable",
-						"l", "label", 
-						"lw", "labelWidth", 
-						"lv", "labelVisible", 
-						"la", "labelAlign", 
-						"li", "labelIndent", 
+						"l", "label",
+						"lw", "labelWidth",
+						"lv", "labelVisible",
+						"la", "labelAlign",
+						"li", "labelIndent",
 						"fn", "font",
-						"mw", "marginWidth", 
+						"mw", "marginWidth",
 						"mh", "marginHeight" )
 
-	_events_ = ( 	"cc", "collapseCommand", 
-					"ec", "expandCommand", 
-					"pcc", "preCollapseCommand", 
+	_events_ = ( 	"cc", "collapseCommand",
+					"ec", "expandCommand",
+					"pcc", "preCollapseCommand",
 					"pec", "preExpandCommand" )
 
 
 class RowLayout( Layout ):
 	"""Wrapper for row column layout"""
-	_properties_ = [ 	"columnWidth", "cw", 
-						"columnAttach", "cat", 
-						"rowAttach", "rat", 
+	_properties_ = [ 	"columnWidth", "cw",
+						"columnAttach", "cat",
+						"rowAttach", "rat",
 					  	"columnAlign", "cal",
-						"adjustableColumn", "adj",  
+						"adjustableColumn", "adj",
 					  	"numberOfColumns", "nc" ]
-	
-	for flag in ( 	"columnWidth", "cw", "columnAttach", "ct", "columnOffset", 
-				  	"co", "columnAlign", "cl", "adjustableColumn", "ad" ): 
+
+	for flag in ( 	"columnWidth", "cw", "columnAttach", "ct", "columnOffset",
+				  	"co", "columnAlign", "cl", "adjustableColumn", "ad" ):
 		for i in range( 1, 7 ):
 			_properties_.append( flag + str( i ) )
 
 
 class ColumnLayoutBase( Layout ):
-	_properties_ = (   	"columnAlign", "cal", 
-						"columnAttach", "cat", 
+	_properties_ = (   	"columnAlign", "cal",
+						"columnAttach", "cat",
 						"columnOffset", "co" ,
-						"columnWidth", "cw", 
+						"columnWidth", "cw",
 						"rowSpacing", "rs" )
 
 class RowColumnLayout( ColumnLayoutBase ):
 	"""Wrapper for row column layout"""
 	_properties_ = ( 	"numberOfColumns", "nc",
-					  	"numberOfRows", "nr", 
+					  	"numberOfRows", "nr",
 						"rowHeight", "rh",
-						"rowOffset", "ro", 
+						"rowOffset", "ro",
 					  	"rowSpacing", "rs" )
-	
+
 
 class ColumnLayout( ColumnLayoutBase ):
 	"""Wrapper class for a simple column layout"""
-	
-	_properties_ = ( 	"adjustableColumn", "adj" ) 
-	
+
+	_properties_ = ( 	"adjustableColumn", "adj" )
+
 class ScrollLayout( Layout ):
 	"""Wrapper for a scroll layout"""
-	_properties_ = ( 	"scrollAreaWIdth", "saw", 
-					  	"scrollAreaHeight", "sah", 
-						"scrollAreaValue", "sav", 
-						"minChildWidth", "mcw", 
-						"scrollPage", "sp", 
+	_properties_ = ( 	"scrollAreaWIdth", "saw",
+					  	"scrollAreaHeight", "sah",
+						"scrollAreaValue", "sav",
+						"minChildWidth", "mcw",
+						"scrollPage", "sp",
 						"scrollByPixel", "sbp"	)
-	
+
 	_event_ = ( "resizeCommand", "rc" )
-	
+

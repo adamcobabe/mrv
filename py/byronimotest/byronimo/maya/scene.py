@@ -1,12 +1,12 @@
 # -*- coding: utf-8 -*-
 """B{byronimotest.byronimo.maya.scene}
 
-Test the scene methods  
+Test the scene methods
 
 @newfield revision: Revision
 @newfield id: SVN Id
 """
-                                            
+
 __author__='$Author: byron $'
 __contact__='byron@byronimo.de'
 __version__=1
@@ -23,79 +23,79 @@ import maya.OpenMaya as om
 import os.path as path
 import byronimo.maya.env as env
 from byronimo.path import Path
-import tempfile 
+import tempfile
 import shutil
 import byronimotest.byronimo.maya as common
-	
+
 class TestSceneRunner( unittest.TestCase ):
 	""" Test the database """
-	
+
 	def setUp( self ):
 		""" Initialize test scene """
 		self.called = False				# reset callback check
-	
-	
+
+
 	#{ Callback methods
 	def cbgroup_zero( self, boolStatusRef, clientData ):
 		self.called = True
-	
+
 	def cbgroup_one( self, retcode, fileobj, clientData ):
 		self.called = True
-	
+
 	def cbgroup_two( self, clientData ):
 		self.called = True
 	#}
-	
+
 	def _runMessageTest( self, listenerID, sceneMessageID, function, callbackTriggerFunc ):
 		""" Run a message test for the given sceneMessageID
 		@param callbackTriggerFunc: called to trigger the callback we are testing"""
 		sid = sceneMessageID
 		ncb = len( Scene.Callbacks._callbacks.get( sid , [] ) )
-		
+
 		Scene.Callbacks.addListener( listenerID, function, sid )
 		self.failUnless( len( Scene.Callbacks._callbacks[ sid ] ) == ncb + 1 )
-		
+
 		# make a new scene - we should be called
 		callbackTriggerFunc()
 		self.failUnless( self.called )
-		
+
 		Scene.Callbacks.removeListener( listenerID, sid )
 		self.failUnless( len( Scene.Callbacks._callbacks[ sid ] ) == ncb )
-	
+
 	def test_cbgroup_zero( self ):
 		"""byronimo.maya.scene: use group 0 check callbacks """
 		if env.getAppVersion( )[0] == 8.5:
-			return 
-		
-		self._runMessageTest( "test_two", om.MSceneMessage.kBeforeNewCheck, 
-							 	lambda *args: TestSceneRunner.cbgroup_zero( self,*args ), 
+			return
+
+		self._runMessageTest( "test_two", om.MSceneMessage.kBeforeNewCheck,
+							 	lambda *args: TestSceneRunner.cbgroup_zero( self,*args ),
 								Scene.new )
-		
+
 	def test_cbgroup_one( self ):
 		"""byronimo.maya.scene: check file callback """
 		if env.getAppVersion( )[0] == 8.5:
-			return 
-		
-		scenepath = common.get_maya_file( "sphere.ma" ) 
+			return
+
+		scenepath = common.get_maya_file( "sphere.ma" )
 		triggerFunc = lambda : Scene.open( scenepath, force = 1 )
-		self._runMessageTest( "test_one", om.MSceneMessage.kBeforeOpenCheck, 
-							 	lambda *args: TestSceneRunner.cbgroup_one( self,*args ), 
+		self._runMessageTest( "test_one", om.MSceneMessage.kBeforeOpenCheck,
+							 	lambda *args: TestSceneRunner.cbgroup_one( self,*args ),
 								triggerFunc )
-		
+
 	def test_cbgroup_twp( self ):
 		"""byronimo.maya.scene: Test ordinary scene callbacks """
-		self._runMessageTest( "test_two", om.MSceneMessage.kBeforeNew, 
-							 	lambda *args: TestSceneRunner.cbgroup_two( self,*args ), 
+		self._runMessageTest( "test_two", om.MSceneMessage.kBeforeNew,
+							 	lambda *args: TestSceneRunner.cbgroup_two( self,*args ),
 								lambda: Scene.new( force = True ) )
-		
+
 	def test_open( self ):
 		"""byronimo.maya.scene: open file"""
 		self.failUnless( isinstance( Scene.open( common.get_maya_file( "empty.ma" ), force=True ), Path ) )
-		
+
 	def test_new( self ):
 		"""byronimo.maya.scene: force a new scene """
 		self.failUnless( isinstance( Scene.new( force=1 ), Path ) )
-		
+
 	def test_saveAs( self ):
 		"""byronimo.maya.scene: safe a file under new names and with different formats"""
 		tmppath = Path( tempfile.gettempdir() ) / "maya_save_test"
@@ -104,16 +104,16 @@ class TestSceneRunner( unittest.TestCase ):
 			mayafile = tmppath / filename
 			Scene.save( mayafile , force=1 )
 			self.failUnless( mayafile.exists() )
-			
+
 		# must work for untitled files as well
 		Scene.new( force = 1 )
 		Scene.save( tmppath / files[-1], force = 1 )
-		
-		shutil.rmtree( tmppath )	# cleanup	
-		
-	
-		
+
+		shutil.rmtree( tmppath )	# cleanup
+
+
+
 	def tearDown( self ):
 		""" Cleanup """
-		pass 
-	
+		pass
+

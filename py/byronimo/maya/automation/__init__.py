@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 """B{byronimo.maya.automation}
-Intiailize the automation and process framework for maya 
+Intiailize the automation and process framework for maya
 
 @newfield revision: Revision
 @newfield id: SVN Id
@@ -17,7 +17,7 @@ __copyright__='(c) 2008 Sebastian Thiel'
 # assure we only do certain things once
 if 'init_done' not in locals():
 	init_done = False
-	
+
 # SYSTEM INITIALIZATIONs
 if not init_done:
 	pass

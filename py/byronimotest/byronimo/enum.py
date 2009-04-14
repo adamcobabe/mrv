@@ -36,14 +36,14 @@ class ElementTestCase(unittest.TestCase):
 		self.failUnless(e.fred <= e.bob)
 		self.failUnless(e.bob > e.fred)
 		self.failUnless(e.bob >= e.bob)
-		
+
 		self.failUnless(element == e.fred)
 		self.failUnless(element < e.bob)
 
 		self.failUnless(e.fred < e.moe)
 		self.failUnless(e.larry > e.bob)
 		self.failUnless(e.joe < e.moe)
-		
+
 		self.failUnless(e.fred != e2.red)
 		self.failUnless(e.fred != e3.fred)
 
@@ -56,7 +56,7 @@ class ElementTestCase(unittest.TestCase):
 		self.failUnless(e == e)
 		self.failUnless(e != e2)
 		self.failUnless(e != e3)
-		
+
 		self.failUnless(e.fred != 'fred')
 
 	def testElementRepresentation(self):
@@ -75,7 +75,7 @@ class ElementTestCase(unittest.TestCase):
 		self.failUnless(i.enumeration is e)
 		self.failUnless(e.bob.enumeration is e)
 
-	
+
 class EnumerateTestCase(unittest.TestCase):
 
 	def testMembers(self):
@@ -124,12 +124,12 @@ class EnumerateTestCase(unittest.TestCase):
 		self.failUnless(e.Paul	 == e[2])
 		self.failUnless(e.Ringo	 == e[3])
 
-		
+
 	def testMultipleEnums(self):
 		"""byronimo.enum: testMultipleEnums"""
 		e  = Enumeration.create('fred', 'bob')
 		e2 = Enumeration.create('joe', 'bob')
-		
+
 		e.fred
 		e.bob
 		e2.joe
@@ -143,7 +143,7 @@ class EnumerateTestCase(unittest.TestCase):
 			self.fail("Value from wrong enum")
 		except:
 			pass
-		
+
 	def testReadOnly(self):
 		"""byronimo.enum: testReadOnly"""
 		e = Enumeration.create('fred', 'bob')
@@ -191,78 +191,78 @@ class EnumerateTestCase(unittest.TestCase):
 		self.failUnless('John' == e.nameFromValue(e.John))
 		self.failUnless('Paul' == e.nameFromValue(2))
 		self.failUnless('Ringo' == e.nameFromValue('drummer'))
-		
+
 		self.failUnless( e( "George" ) == e.George )
-		
+
 	def testNextAndPrevious( self ):
 		"""byronimo.enum: testNextAndPrevious"""
 		e2 = Enumeration.create('joe', 'bob')
 		e1 = Enumeration.create( 'joe' )
-		
+
 		self.failUnless( e2.next( e2[0] ) == e2[1] )	# next
 		self.failUnlessRaises( ValueError, e2.next, e2[-1], wrap_around=0 )	# next - wraparound
-		self.failUnless( e2.next( e2[-1], wrap_around=1 ) == e2[0] )	# next + wraparound 
-		
+		self.failUnless( e2.next( e2[-1], wrap_around=1 ) == e2[0] )	# next + wraparound
+
 		self.failUnless( e2.previous( e2[-1] ) == e2[-2] )	# previous
 		self.failUnlessRaises( ValueError, e2.previous, e2[0], wrap_around=0 )	# previous - wraparound
 		self.failUnless( e2.previous( e2[0], wrap_around=1 ) == e2[-1] )	# previous + wraparound
-		
+
 		self.failUnless( e1.next( e1[0], wrap_around = 1 ) == e1[0] )
 		self.failUnless( e1.previous( e1[0], wrap_around = 1 ) == e1[0] )
-		
+
 	def testPickleUnpickle( self ):
 		"""byronimo.enum: test pickling and unpiclking results
-		
+
 		This test actually shows that the cycle in the """
 		src = StringIO()
 		p = pickle.Pickler(src)
-		
+
 		e1 = Enumeration.create( "hello" )
-		
-		# remove cycle ! Hangs otherwise 
+
+		# remove cycle ! Hangs otherwise
 		e1[0].enumeration = None
-		
+
 		p.dump( e1[0] )
-		
+
 		dst = StringIO( src.getvalue() )
 		up = pickle.Unpickler( dst )
 
 		elm = up.load( )
-		self.failUnless( elm == e1[0] ) 
-		
+		self.failUnless( elm == e1[0] )
+
 
 	def testBitFlags( self ):
 		"""byronimo.enum: test bitflag capabilities"""
 		e1 = Enumeration.create( "foo", "bar", "this", bitflag = 1 )
-		
+
 		orres = e1.foo | e1.bar
 		assert isinstance( orres, int )
 		self.failUnlessRaises( TypeError, operator.or_, e1.foo, 4 )
-		
+
 		self.failUnless( e1.foo & orres )
 		self.failUnless( e1.bar & orres )
 		self.failUnless( not e1.this & orres )
-		
-		# try to pass too many 
+
+		# try to pass too many
 		self.failUnlessRaises( ValueError, Enumeration.create, *[ str( e ) for e in range( 150 ) ], **{ "bitflag" : 1 } )
-		
-		# mixed args 
+
+		# mixed args
 		self.failUnlessRaises( TypeError, Enumeration.create, "hello", ( "this", "fails" ), bitflag = 1 )
-		
+
 		# xor
-		assert e1.foo ^ e1.foo.getValue() == 0  
-		
+		assert e1.foo ^ e1.foo.getValue() == 0
+
 	def test_dict( self ):
 		"""byronimo.enum: assure that sets and dicts work properly"""
-		# should always work as elements or global items 
+		# should always work as elements or global items
 		e1 = Enumeration.create( "foo", "bar", "this" )
 		e2 = Enumeration.create( "foo1", "bar2", "this3" )
-		
+
 		d = dict()
 		d[ e1.foo ] = 1
 		assert e1.foo in d
-		
+
 		d[ e1.bar ] = 2
 		assert e1.bar in d
-		
+
 		assert len( d ) == 2

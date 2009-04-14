@@ -20,36 +20,36 @@ __copyright__='(c) 2008 Sebastian Thiel'
 import unittest
 import workflows
 import byronimo.automation.qa as qa
-from cStringIO import StringIO 
+from cStringIO import StringIO
 
 class TestQualityAssurance( unittest.TestCase ):
 	"""Test qa framework"""
-	
+
 	def test_simpleQAWorkflow( self ):
 		"""byronimo.automation.qa: test how a simple qa workflow handles itself"""
 		qawfl = workflows.qualitychecking
 		checks = qawfl.listChecks( )
 		assert checks
-		
+
 		for mode in qa.QAProcessBase.eMode:
-			
+
 			results = qawfl.runChecks( checks, mode = mode )
 			assert len( results ) == len( checks )
 			assert len( results[0] ) == 2
 			assert isinstance( results[0][1], qa.QACheckResult )
-			
+
 			for ( cshell, result ), oshell in zip( results, checks ):
 				assert cshell == oshell
-				
+
 				attr = "failed_items"
 				if mode == qa.QAProcessBase.eMode.fix:
 					attr = "fixed_items"
 					assert result.isSuccessful()
 				else:
 					assert not result.isSuccessful()
-					
+
 				assert getattr( result, attr )
-			# END for each result/checkshell 
-		# END for each check mode 
-			
+			# END for each result/checkshell
+		# END for each check mode
+
 		assert qawfl.QACheckProcess.listChecks()

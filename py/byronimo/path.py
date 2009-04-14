@@ -100,7 +100,7 @@ class Path( _base, iDagItem ):
 	For documentation on individual methods, consult their
 	counterparts in os.path.
 	"""
-	# Configuration 
+	# Configuration
 	_sep = os.path.sep
 
 	#{ Special Python methods
@@ -135,45 +135,45 @@ class Path( _base, iDagItem ):
 
 	# Make the / operator work even when true division is enabled.
 	__truediv__ = __div__
-	
+
 	def __eq__( self, other ):
-		"""Comparison method with expanded variables, just to assure 
+		"""Comparison method with expanded variables, just to assure
 		the comparison yields the results we would expect"""
 		if not isinstance( other, basestring ):
 			return False
 		return unicode( os.path.expandvars( self ) ) == unicode( os.path.expandvars( other ) )
-	
+
 	def __ne__( self, other ):
 		return not self.__eq__( other )
-		
+
 	def __hash__( self ):
 		"""Expanded hash method"""
 		return unicode( self._expandvars() ).__hash__()
-	
+
 	#} END Special Python methods
-	
+
 	def _expandvars( self ):
 		"""Internal version returning a string only """
 		return os.path.expandvars( self )
-		
+
 	def getcwd(cls):
 		""" Return the current working directory as a path object. """
 		return cls(_getcwd())
 	getcwd = classmethod( getcwd )
 
 
-	#{ iDagItem Implementation 
-	
+	#{ iDagItem Implementation
+
 	def getParent( self ):
 		"""@return: the parent directory of this Path or None if this is the root"""
 		parent = self.p_parent
 		if parent == self:
 			return None
-		return parent 
-		
+		return parent
+
 	def getChildren( self, predicate = lambda p: True, pattern = None ):
 		"""@return: child paths as retrieved by queryiing the file system.
-		@note: files cannot have children, and willl return an empty array accordingly 
+		@note: files cannot have children, and willl return an empty array accordingly
 		@param predicate: return p if predicate( p ) returns True
 		@param pattern: list only elements that match the given simple  pattern
 		i.e. *.*"""
@@ -181,10 +181,10 @@ class Path( _base, iDagItem ):
 			children = self.listdir( pattern )
 		except OSError:
 			return list()
-			
+
 		return [ c for c in children if predicate( c ) ]
-	
-	#} END idagitem implementation 
+
+	#} END idagitem implementation
 
 	#{ Operations on path strings.
 
@@ -197,7 +197,7 @@ class Path( _base, iDagItem ):
 	def expandvars(self):	 return self.__class__(os.path.expandvars(self))
 	def dirname(self):		 return self.__class__(os.path.dirname(self))
 	basename = os.path.basename
-	
+
 	def expand(self):
 		""" Clean up a filename by calling expandvars(),
 		expanduser(), and normpath() on it.
@@ -206,7 +206,7 @@ class Path( _base, iDagItem ):
 		read from a configuration file, for example.
 		"""
 		return self.expandvars().expanduser().normpath()
-		
+
 	def containsvars( self ):
 		"""@return: True if this path contains environment variables"""
 		return self.find( '$' ) != -1 or self.find( '$' ) != -1
@@ -391,7 +391,7 @@ class Path( _base, iDagItem ):
 		return Path( self.replace( s, d ) )
 
 	#} END Operations on path strings
-	
+
 	#{ Listing, searching, walking, and matching
 
 	def listdir(self, pattern=None):
@@ -408,7 +408,7 @@ class Path( _base, iDagItem ):
 		names = os.listdir(self._expandvars())
 		if pattern is not None:
 			names = fnmatch.filter(names, pattern)
-		return [self / child for child in names]	
+		return [self / child for child in names]
 
 	def dirs(self, pattern=None):
 		""" D.dirs() -> List of this directory's subdirectories.
@@ -433,7 +433,7 @@ class Path( _base, iDagItem ):
 		whose names match the given pattern.  For example,
 		d.files('*.pyc').
 		"""
-		
+
 		return [p for p in self.listdir(pattern) if p.isfile()]
 
 	def walk(self, pattern=None, errors='strict'):
@@ -592,8 +592,8 @@ class Path( _base, iDagItem ):
 
 
 	#} END Listing, searching, walking and watching
-	
-	
+
+
 	#{ Reading or writing an entire file at once
 
 	def open(self, mode='r'):
@@ -908,7 +908,7 @@ class Path( _base, iDagItem ):
 			mode - One of the constants os.F_OK, os.R_OK, os.W_OK, os.X_OK
 			"""
 			return os.access(self._expandvars(), mode)
-			
+
 	def stat(self):
 		""" Perform a stat() system call on this path. """
 		return os.stat(self._expandvars())
@@ -956,7 +956,7 @@ class Path( _base, iDagItem ):
 		"""@return: true if the file can be written to"""
 		if not self.exists():
 			return False		# assure we do not create anything not already there
-			
+
 		try:
 			fileobj = self.open( 'a' )
 		except:
@@ -964,7 +964,7 @@ class Path( _base, iDagItem ):
 		else:
 			fileobj.close()
 			return True
-			
+
 
 	#} END Methods for querying the filesystem
 
@@ -988,7 +988,7 @@ class Path( _base, iDagItem ):
 		os.renames(self._expandvars(), new)
 
 
-	
+
 	#} END Modifying operations on files and directories
 
 	#{ Create/delete operations on directories
@@ -1025,7 +1025,7 @@ class Path( _base, iDagItem ):
 		os.unlink(self._expandvars())
 
 
-	
+
 	#} END Modifying operations on files
 
 	#{ Links
@@ -1060,7 +1060,7 @@ class Path( _base, iDagItem ):
 				return (self.p_parent / p).abspath()
 
 
-	
+
 	#} END Links
 
 	#{ High-level functions from shutil
@@ -1076,8 +1076,8 @@ class Path( _base, iDagItem ):
 	rmtree = lambda self, dest, **kwargs: shutil.rmtree( self._expandvars(), dest, **kwargs )
 
 	#} END High-Level
-	
-	
+
+
 	#{ Special stuff from os
 	if hasattr(os, 'chroot'):
 		def chroot(self):

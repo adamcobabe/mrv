@@ -23,16 +23,16 @@ __copyright__='(c) 2008 <Your Name>'
 
 class classname( object ):
 	""" B{single line description}
-	
+
 	MultiLine description """
-	
+
 	x = 20
 	#@cvav x: my class variable
-	
+
 	#{ Overridden Object Methods
 	def __init__(self):
 		""" Single line Method description
-		
+
 		Multi Line Description
 		@param self: this is just for demonstration purposes
 		@type self: L{classname}  """

@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 """B{byronimo.ui.controls}
 
-Contains the most controls like buttons and sliders for more convenient use 
+Contains the most controls like buttons and sliders for more convenient use
 
 @todo: more documentation
 
@@ -31,18 +31,18 @@ import util as uiutil
 class LabelBase( uibase.SizedControl ):
 	"""Base class for elements having labels"""
 	_properties_ = ( 	"l", "label",
-						"al", "align" , 
+						"al", "align" ,
 						"rs", "recomputeSize" )
 
 class SliderBase( uibase.SizedControl ):
 	"""Class contributing Simple Slider Events"""
-	_events_ = ( 	"cc", "changeCommand", 
+	_events_ = ( 	"cc", "changeCommand",
 					"dc", "dragCommand" )
-	
-	_properties_ = ( 	"min", "minValue", 
-					  	"max", "maxValue", 
-						"v", "value", 
-						"s", "step", 
+
+	_properties_ = ( 	"min", "minValue",
+					  	"max", "maxValue",
+						"v", "value",
+						"s", "step",
 						"hr", "horizontal" )
 
 class BooleanBase( LabelBase ):
@@ -50,11 +50,11 @@ class BooleanBase( LabelBase ):
 	_events_ = ( 	"onCommand", "onc",
 					"offCommand", "ofc",
 					"changeCommand", "cc" )
-	
+
 class CheckBoxBase( BooleanBase ):
 	"""Base class for checkboxes"""
 	_properties_ = ( "value", "v" )
-	
+
 class RadioButtonBase( BooleanBase ):
 	"""Base class for radio buttons"""
 	_properties_ = ( "select", "sl" )
@@ -63,55 +63,55 @@ class RadioButtonBase( BooleanBase ):
 class GroupBase( uibase.SizedControl ):
 	"""Base allowing access to all grouped controls
 	@note: using short property names to ... keep it sane """
-	
-	_properties_ = [ 	"cw", "columnWidth", 
-						"cat", "columnAttach", 
+
+	_properties_ = [ 	"cw", "columnWidth",
+						"cat", "columnAttach",
 						"rat", "rowAttach",
 						"cal", "columnAlign",
 						"adj", "adjustableColumn" ]
-	
-	# setup evil multi attributes 
-	for flag in ( 	"cw","columnWidth", "ct", "columnAttach", 
-				  	"co", "columnOffset", "cl", "columnAlign", 
+
+	# setup evil multi attributes
+	for flag in ( 	"cw","columnWidth", "ct", "columnAttach",
+				  	"co", "columnOffset", "cl", "columnAlign",
 					"ad", "adjustableColumn" ):
 		start = 1
 		if flag in ( "cl", "columnAlign", "ad", "adjustableColumn" ):
 			start = 2
-			
+
 		for i in range( start, 7 ):
 			_properties_.append( flag + str( i ) )
-	# END for each flag 
+	# END for each flag
 
 class OptionMenuBase( uibase.ContainerMenuBase ):
 	"""base class for all optionMenu like controls"""
 	__metaclass__ = uibase.ui.MetaClassCreatorUI
-	
+
 	_events_ = ( "cc", "changeCommand" )
-	_properties_ = ( 	"ils", "itemListShort", 
-						"ill", "itemListLong", 
-						"l", "label", 
+	_properties_ = ( 	"ils", "itemListShort",
+						"ill", "itemListLong",
+						"l", "label",
 						"ni", "numberOfItems",
-						"sl", "select", 
+						"sl", "select",
 						"v", "value" )
-	
+
 class FieldBase( uibase.SizedControl ):
 	_events_ = 		( 	"rfc", "receiveFocusCommand",
-						"ec", "enterCommand", 
+						"ec", "enterCommand",
 						"cc", "changeCommand" )
-	
+
 	_properties_ = ( "ed", "editable" )
-	
+
 
 class TextFieldBase( object ):
 	"""Base just containing properties and events"""
 	__metaclass__ = uibase.ui.MetaClassCreatorUI
-	
-	_properties_ = ( 	"fn", "font", 
-						"it", "insertText", 
+
+	_properties_ = ( 	"fn", "font",
+						"it", "insertText",
 						"ip", "insertPosition"
-						"fi", "fileName", 
+						"fi", "fileName",
 						"tx", "text" )
-	
+
 class TextFieldGroupBase( TextFieldBase ):
 	"""Common base for the group text fields"""
 	_events_ = ( 	"cc", "changeCommand" ,
@@ -125,60 +125,60 @@ class SliderGroupBase( GroupBase, SliderBase ):
 class BooleanGroupBase( GroupBase, BooleanBase ):
 	"""base class for all boolean groups"""
 	_events_ = list()
-	
-	# setup evil multi attributes 
-	for flag in ( 	"on","onCommand", 
-				  	"of", "offCommand", 
+
+	# setup evil multi attributes
+	for flag in ( 	"on","onCommand",
+				  	"of", "offCommand",
 					"cc", "changeCommand" ):
-	
+
 		for i in range( 1, 5 ):
 			_events_.append( flag + str( i ) )
-	# END for event each flag 
-	
-	_properties_ = list() 
-	
-	for flag in ( 	"en","enable", 
-				  	"da", "data", 
-					"l", "label", 
+	# END for event each flag
+
+	_properties_ = list()
+
+	for flag in ( 	"en","enable",
+				  	"da", "data",
+					"l", "label",
 					"la","labelArray" ):
-	
+
 		start = 1
 		if flag in ( "la", "labelArray" ):
 			start = 2
-			
+
 		for i in range( start, 5 ):
 			_properties_.append( flag + str( i ) )
 	# END for event each flag
-	
-	
+
+
 class ButtonGroupBase( GroupBase ):
 	"""Base class for all button groups"""
 	_properties_ = ( 	"bl", "buttonLabel",
 						"eb", "enableButton" )
-	
+
 	_events_ = ( "bc", "buttonCommand" )
-	
+
 class IconTextBase( object ):
 	"""Base class for all icon text like controls"""
-	#{ Configuration 
+	#{ Configuration
 	__metaclass__ = uibase.ui.MetaClassCreatorUI
-	#} END configuation 
-	
+	#} END configuation
+
 	_properties_ = ( 	"image", "i",
-					  	"image1", "i1", 
-						"image2", "i2", 
+					  	"image1", "i1",
+						"image2", "i2",
 						"image3", "i3",
 						"disabledImage", "di",
-						"highlightImage", "hi", 
+						"highlightImage", "hi",
 						"imageOverlayLabel", "iol",
 						"style", "st",
-						"selectionImage", "si", 
-						"highlightImage", "hi", 
-						"labelOffset", "lo", 
+						"selectionImage", "si",
+						"highlightImage", "hi",
+						"labelOffset", "lo",
 						"font", "fn"
 						)
-	
-	_events_ = ( 		"handleNodeDropCallback", "hnd", 
+
+	_events_ = ( 		"handleNodeDropCallback", "hnd",
 					 	"labelEditingCallback", "lec"	)
 
 #} END bases
@@ -186,88 +186,88 @@ class IconTextBase( object ):
 
 class RadioButtonGrp( BooleanGroupBase, RadioButtonBase ):
 	"""Warning: inherits booleanBase multiple times """
-	pass 
+	pass
 
 class CheckBoxGrp( BooleanGroupBase, CheckBoxBase ):
 	"""Note: inherits booleanBase multiple times, this does no harm"""
 	_properties_ = list()
-	
-	for flag in ( 	"v","value", 
+
+	for flag in ( 	"v","value",
 				  	"va", "valueArray" ):
 		for i in range( 1, 5 ):
 			if flag in ( "va", "valueArray" ) and i == 1:
-				continue 
-				
+				continue
+
 			_properties_.append( flag + str( i ) )
 		# END for each numbered item
 	# END for each flagg
-			
+
 
 class Button( LabelBase ):
-	""" Simple button interface 
-	@note: you can only use either the onpress or the onrelease event, both 
+	""" Simple button interface
+	@note: you can only use either the onpress or the onrelease event, both
 	together apparently do not work"""
 	_properties_ = ( "actionIsSubstitute" )
 	_events_ = ( "c", "command" )
-	
+
 	e_pressed = uiutil.CallbackBaseUI._UIEvent( "command", actOnPress=True )
 	e_released = uiutil.CallbackBaseUI._UIEvent( "command", actOnPress=False )
 
 class IconTextButton( LabelBase, IconTextBase ):
-	"""Class just for multiple inheritance - this cannot be expressed in the hierarchy 
+	"""Class just for multiple inheritance - this cannot be expressed in the hierarchy
 	file"""
 	_events_ = ( "c", "command" )
 
 class IconTextCheckBox( CheckBoxBase, IconTextBase ):
-	"""Class just for multiple inheritance - this cannot be expressed in the hierarchy 
+	"""Class just for multiple inheritance - this cannot be expressed in the hierarchy
 	file"""
 	pass
 
 class IconTextRadioButton( RadioButtonBase, IconTextBase ):
-	"""Class just for multiple inheritance - this cannot be expressed in the hierarchy 
+	"""Class just for multiple inheritance - this cannot be expressed in the hierarchy
 	file"""
 	pass
 
 class TextField( FieldBase, TextFieldBase ):
-	"""Class just for multiple inheritance - this cannot be expressed in the hierarchy 
+	"""Class just for multiple inheritance - this cannot be expressed in the hierarchy
 	file"""
-	pass 
-	
+	pass
+
 class ScrollField( uibase.SizedControl ):
 	"""@note: although the class shares some properties of the textfield, it does not share all of them"""
-	_properties_ = ( 	"wordWrap", "ww", 
-					  	"font", 	"fn", 
+	_properties_ = ( 	"wordWrap", "ww",
+					  	"font", 	"fn",
 						"text", "tx",
-						"insertText", "it", 
-						"insertionPosition", "ip", 
-						"selection", "sl", 
-						"clear", "cl", 
-						"editable", "ed", 
+						"insertText", "it",
+						"insertionPosition", "ip",
+						"selection", "sl",
+						"clear", "cl",
+						"editable", "ed",
 						"numberOfLines", "nl"	)
-	
-	_events_ = ( 		"enterCommand", "ec", 
-					 	"keyPressCommand", "kpc", 
+
+	_events_ = ( 		"enterCommand", "ec",
+					 	"keyPressCommand", "kpc",
 						"changeCommand", "cc"		)
-	
-					 
+
+
 class TextFieldGrp( GroupBase, TextFieldGroupBase ):
-	"""Class just for multiple inheritance - this cannot be expressed in the hierarchy 
+	"""Class just for multiple inheritance - this cannot be expressed in the hierarchy
 	file"""
-	
+
 
 class TextFieldButtonGrp( ButtonGroupBase, TextFieldGroupBase ):
-	"""Class just for multiple inheritance - this cannot be expressed in the hierarchy 
+	"""Class just for multiple inheritance - this cannot be expressed in the hierarchy
 	file"""
-	
+
 class Text( LabelBase ):
 	_properties_ = ( "font", "fn" )
 
 class Separator( uibase.SizedControl ):
-	_properties_ = ( 	"style", "st", 
+	_properties_ = ( 	"style", "st",
 						"horizontal", "hr" 		)
 
 class OptionMenu( uibase.SizedControl, OptionMenuBase ):
-	"""Class just for multiple inheritance - this cannot be expressed in the hierarchy 
+	"""Class just for multiple inheritance - this cannot be expressed in the hierarchy
 	file"""
 	#( Configuration
 	_is_menu = True
@@ -275,7 +275,7 @@ class OptionMenu( uibase.SizedControl, OptionMenuBase ):
 
 
 class OptionMenuGrp( GroupBase, OptionMenuBase ):
-	"""Class just for multiple inheritance - this cannot be expressed in the hierarchy 
+	"""Class just for multiple inheritance - this cannot be expressed in the hierarchy
 	file"""
 	#( Configuration
 	_is_menu = True

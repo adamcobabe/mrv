@@ -23,11 +23,11 @@ import byronimo.automation.base as wflbase
 from byronimo.path import Path
 from byronimo.automation.qa import QAWorkflow
 
-#{ Interface 
+#{ Interface
 def createWorkflow( workflowName ):
 	"""Create the workflow matching the given name """
 	return wflbase.loadWorkflowFromDotFile( Path( __file__ ).p_parent / workflowName + ".dot" )
-# END interface	
+# END interface
 
 
 #{ Initialize
@@ -37,32 +37,32 @@ def init_loadWorkflows( ):
 	wflbase.addWorkflowsFromDotFiles( _this_module, Path( __file__ ).p_parent.glob( "*.dotQA" ), workflowcls = QAWorkflow )
 
 
-# load all the test workflows 
+# load all the test workflows
 init_loadWorkflows( )
 
 
 #} initialize
 
-	
+
 def get_suite( ):
 	""" @return: testsuite with all tests of this package
 	@note: does some custom setup required for all tests to work"""
 	# custom setup
-	import byronimotest.byronimo.automation.workflows as self	
+	import byronimotest.byronimo.automation.workflows as self
 	return common.get_package_suite( self )
-	
+
 def run( **runner_args ):
 	"""Run all the tests  """
 	testrunner = unittest.TextTestRunner( **runner_args )
 	return testrunner.run( get_suite() )
-	
-	
+
+
 def main( *args ):
 	""" Run the tests if called with the start script """
 	run( verbosity = 2 )
-	
+
 
 if __name__ == '__main__':
 	""" run all tests if run directly """
 	main( [] )
-	
+

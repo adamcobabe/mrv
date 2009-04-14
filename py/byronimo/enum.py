@@ -33,7 +33,7 @@ assert Borders.FLAT == 2:
 assert 1 in Borders
 
 @note: slightly modified by Sebastian Thiel to be more flexible and suitable as
-base class 
+base class
 @newfield revision: Revision
 @newfield id: SVN Id
 """
@@ -50,10 +50,10 @@ import platform
 
 class Element(object):
 	"""Internal helper class used to represent an ordered abstract value.
-	   
+
 	The values have string representations, have strictly defined ordering
 	(inside the set) and are never equal to anything but themselves.
-	
+
 	They are usually created through the create factory method as values
 	for Enumerations.
 
@@ -65,7 +65,7 @@ class Element(object):
 		self._name = name
 		self._value = value
 		self.enumeration = None # Will be filled in later
-		
+
 	def __repr__(self):
 		return self._name
 
@@ -73,7 +73,7 @@ class Element(object):
 		"""@raise TypeError: if other cannot be used with this element"""
 		if ( self.__class__ != other.__class__ ) or ( self.enumeration is not other.enumeration ):
 			raise TypeError( "%s is incompatible with %s" % ( other, self ) )
-		
+
 	def __cmp__(self, other):
 		"""We override cmp only because we want the ordering of elements
 		in an enumeration to reflect their position in the enumeration.
@@ -82,33 +82,33 @@ class Element(object):
 			self._checkType( other )
 		except TypeError:
 			return NotImplemented	# to make cmp fail
-		
+
 		# If we are both elements in the same enumeration, compare
 		#	values for ordering
 		return cmp(self._value, other._value)
-		
-		
+
+
 	def _checkBitflag( self ):
 		if not self.enumeration._supports_bitflags:
 			raise TypeError( "Enumeration %s of element %s has no bitflag support" % ( self.enumeration, self ) )
-	
+
 	def __or__( self, other ):
 		"""Allows oring values together - only works if the values are actually orable
 		integer values
-		@return: integer with the ored result 
+		@return: integer with the ored result
 		@raise TypeError: if we are not a bitflag or other is not an element of our enumeration"""
 		self._checkType( other )
 		self._checkBitflag()
 		return self.getValue() | other.getValue()
 
 	def __xor__( self, other ):
-		"""Allows to x-or values together - only works if element's values are xorable 
+		"""Allows to x-or values together - only works if element's values are xorable
 		integer values.
-		@param other: integer   
+		@param other: integer
 		@return: integer with the xored result"""
 		self._checkBitflag()
 		return self.getValue() ^ other
-		
+
 
 	def __and__( self, other ):
 		"""Allow and with integers
@@ -116,16 +116,16 @@ class Element(object):
 		@raise TypeError: if other is not an int"""
 		if not isinstance( other, int ):
 			raise TypeError( "require integer, got %s" % type( other ) )
-		
+
 		if self.getValue() & other:
 			return self
-			
+
 		return None
-			
+
 	def getValue( self ):
 		"""@return: own value - it is strictly read-only"""
 		return self._value
-		
+
 
 class Enumeration(tuple):
 	"""This class represents an enumeration. You should not normally create
@@ -141,10 +141,10 @@ class Enumeration(tuple):
 	ordered based on the order of the elements in the enumeration. They also
 	are _repr_'d by the name of the element, which is convenient for testing,
 	debugging, and generation text output.
-	
-	@note: pickling this class with Elements will fail as they contain cyclic 
+
+	@note: pickling this class with Elements will fail as they contain cyclic
 	references that it cannot deal with
-	@todo: implement proper pickle __getstate__ and __setstate__ that deal with 
+	@todo: implement proper pickle __getstate__ and __setstate__ that deal with
 	that problem
 	"""
 	_slots_ = ( "_nameMap", "_valueMap", "_supports_bitflags" )
@@ -158,7 +158,7 @@ class Enumeration(tuple):
 		"""Do not allow to change this instance"""
 		if name in self._slots_:
 			return super( Enumeration, self ).__setattr__( name, value )
-			
+
 		raise AttributeError( "No assignments allowed" )
 
 	def __getattr__( self , attr ):
@@ -167,7 +167,7 @@ class Enumeration(tuple):
 			return self.valueFromName( attr )
 		except KeyError:
 			raise AttributeError( "Element %s is not part of the enumeration" % attr )
-	
+
 
 	def __init__(self, names, values, **kwargs ):
 		"""The arguments needed to construct this class are a list of
@@ -186,7 +186,7 @@ class Enumeration(tuple):
 
 		self._nameMap = {}
 		self._valueMap = {}
-		self._supports_bitflags = kwargs.get( "_is_bitflag", False )		# insurance for bitflags 
+		self._supports_bitflags = kwargs.get( "_is_bitflag", False )		# insurance for bitflags
 
 
 		for i in xrange(len(names)):
@@ -196,7 +196,7 @@ class Enumeration(tuple):
 			# Tell the elements which enumeration they belong too
 			if isinstance( value, Element ):
 				value.enumeration = self
-			
+
 			# Prove that all names are unique
 			assert not name in self._nameMap
 
@@ -209,15 +209,15 @@ class Enumeration(tuple):
 		"""Look up the enumeration value for a given element name.
 		"""
 		return self._nameMap[name]
-		
+
 	def nameFromValue(self, value):
 		"""Look up the name of an enumeration element, given it's value.
-			
+
 		If there are multiple elements with the same value, you will only
 		get a single matching name back. Which name is undefined.
 		"""
 		return self._valueMap[value]
-		
+
 	def _nextOrPrevious( self, element, direction, wrap_around ):
 		"""do-it method, see L{next} and L{previous}
 		@param direction: -1 = previous, 1 = next """
@@ -227,47 +227,47 @@ class Enumeration(tuple):
 				curindex = i
 				break
 			# END if elms match
-		# END for each element 
-		
+		# END for each element
+
 		assert curindex != -1
-		
+
 		nextindex = curindex + direction
 		validnextindex = nextindex
-		
+
 		if nextindex >= len( self ):
-			validnextindex = 0 
+			validnextindex = 0
 		elif nextindex < 0:
 			validnextindex = len( self ) - 1
-		
+
 		if not wrap_around and ( validnextindex != nextindex ):
 			raise ValueError( "'%s' has no element in direction %i" % ( element, direction ) )
-			
+
 		return self[ validnextindex ]
-		
-	
+
+
 	def next( self, element, wrap_around = False ):
 		"""@return: element following after given element
 		@param element: element whose successor to return
-		@param wrap_around: if True, the first Element will be returned if there is 
+		@param wrap_around: if True, the first Element will be returned if there is
 		no next element
 		@raise ValueError: if wrap_around is False and there is no next element"""
 		return self._nextOrPrevious( element, 1, wrap_around )
-		
+
 	def previous( self, element, wrap_around = False ):
 		"""@return: element coming before the given element
-		@param element: element whose predecessor to return 
+		@param element: element whose predecessor to return
 		@param wrap_around: see L{next}
 		@raise ValueError: if wrap_around is False and there is no previous element"""
 		return self._nextOrPrevious( element, -1, wrap_around )
-		
-	
-	#{ Pickle Protocol  
-	
-	#} END pickle protocol 
-			
-	
+
+
+	#{ Pickle Protocol
+
+	#} END pickle protocol
+
+
 	__call__ = valueFromName
-	
+
 
 
 def create(*elements, **kwargs ):
@@ -277,55 +277,55 @@ def create(*elements, **kwargs ):
 
 	Example:  Enumeration.create('fred', 'bob', ('joe', 42))
 	Example:  Enumeration.create('fred', cls = EnumerationSubClass )
-	
-	@param cls: The class to create an enumeration with, must be an instance of 
+
+	@param cls: The class to create an enumeration with, must be an instance of
 	Enumeration
 	@param elmcls: The class to create elements from, must be instance of Element
 	@param bitflag: if True, default False, the values created will be suitable as bitflags.
-	This will fail if you passed more items in than supported by the OS ( 32 , 64, etc ) or if 
+	This will fail if you passed more items in than supported by the OS ( 32 , 64, etc ) or if
 	you pass in tuples and thus define the values yourself.
 	@raise TypeError,ValueError: if bitflags cannot be supported in your case """
 	cls = kwargs.pop( "cls", Enumeration )
 	elmcls = kwargs.pop( "elmcls", Element )
 	bitflag = kwargs.pop( "bitflag", False )
-	
-	assert elements 
+
+	assert elements
 	assert Enumeration in cls.mro()
 	assert Element in elmcls.mro()
-	
-	# check range 
+
+	# check range
 	if bitflag:
-		maxbits = int( platform.architecture()[0][:-3] ) 
+		maxbits = int( platform.architecture()[0][:-3] )
 		if maxbits < len( elements ):
 			raise ValueError( "You system can only represent %i bits in one integer, %i tried" % ( maxbits, len( elements ) ) )
-		
+
 		# prepare enum args
-		kwargs[ '_is_bitflag' ] = True 
+		kwargs[ '_is_bitflag' ] = True
 	# END bitflag assertion
-	
+
 	names = []
 	values = []
-	
+
 	for element in elements:
 		# we explicitly check this per element !
 		if isinstance( element, tuple ):
 			assert len(element) == 2
 			if bitflag:
 				raise TypeError( "If bitflag support is required, tuples are not allowed: %s" % str( element ) )
-		
+
 			names.append(element[0])
 			values.append(element[1])
-			
+
 		elif isinstance( element, basestring ):
 			val = len( names )
 			if bitflag:
 				val = 2 ** val
 			# END bitflag value generation
-			values.append( elmcls( element, val ) )		# zero based ids 
+			values.append( elmcls( element, val ) )		# zero based ids
 			names.append(element)
 		else:
 			raise "Unsupported element type: %s" % type( element )
-	# END for each element 
-	
+	# END for each element
+
 	return cls( names, values, **kwargs )
 

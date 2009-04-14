@@ -25,7 +25,7 @@ import byronimotest.byronimo.automation.processes as processes
 from byronimo.maya.util import Mel
 import maya.mel as mmel
 
-#  create test methods 
+#  create test methods
 index_proc_create = """global proc string[] b_test_index( )
 {
 	return { "test1", "test1descr", 1, "test2", "test2descr", 1 };
@@ -52,12 +52,12 @@ class TestMELQAProcess( processes.QACheckProcess, qa.QAMELAdapter ):
 		"""Run mel checks"""
 		assert self.isMELCheck( check )
 		return self.handleMELCheck( check, mode )
-		
+
 class TestMELQAProcessDynamic( TestMELQAProcess ):
-	
+
 	static_mel_plugs = False
-	
-	# implement the method returning the checks 
+
+	# implement the method returning the checks
 	def getPlugs( self, predicate = lambda p: True ):
 		checks = self.getMelChecks( predicate )
 		checks.extend( super( TestMELQAProcessDynamic, self ).getPlugs( predicate ) )
@@ -70,33 +70,33 @@ workflows.qualitychecking.addNode( TestMELQAProcessDynamic( id="TestMELProcessDy
 
 class TestQualityAssurance( unittest.TestCase ):
 	"""Test qa framework"""
-	
+
 	def test_melqa_workflow( self ):
 		"""byronimo.maya.automation.qa: test mel processes"""
-		
+
 		wfl = workflows.qualitychecking
 		tprocess = wfl.TestMELProcess
 		tprocessDynamic = wfl.TestMELProcessDynamic
-		
+
 		assert len( tprocess.listChecks() ) == 4
 		assert len( tprocess.listMELChecks() ) == 2
 		assert len( tprocessDynamic.listChecks() ) == 6
 		assert len( tprocessDynamic.listMELChecks() ) == 4
-		
+
 		# run mel checks
 		melchecks = tprocess.listMELChecks( )
 		for mode in qa.QAProcessBase.eMode:
 			results = wfl.runChecks( melchecks, mode = mode )
 			assert len( results ) == len( melchecks )
-			
+
 			for shell, result in results:
 				if mode == tprocess.eMode.fix:
-					assert result.isSuccessful() 
+					assert result.isSuccessful()
 					assert not result.getFailedItems()
 				else:
 					assert not result.isSuccessful()
 					assert result.getFailedItems()
-			# END for each shell's result 
-		# END for each mode 
-		
-		
+			# END for each shell's result
+		# END for each mode
+
+

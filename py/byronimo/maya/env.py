@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 """B{byronimo.maya.env}
 
-Allows to query the maya environment, like variables, version numbers and system 
+Allows to query the maya environment, like variables, version numbers and system
 paths.
 
 @todo: more documentation
@@ -27,7 +27,7 @@ from maya import cmds
 
 def getAppVersion( ):
 	"""
-	@return: tuple( float( version ), int( bits ), string( versionString ) ), the 
+	@return: tuple( float( version ), int( bits ), string( versionString ) ), the
 	version will be truncated to *not* include sub-versions
 	@note: can be run without maya modules too as long as MAYA_LOCATION is set
 	@note: maya.cmds.about() will crash if called with an external interpreter
@@ -35,12 +35,12 @@ def getAppVersion( ):
 	bits = 32
 	if cmds.about( is64=1 ):
 		bits = 64
-		
+
 	versionString = cmds.about( v=1 )
 	version = versionString.split( ' ' )[0]
 	if version.find( '.' ) != -1:
 		version = version[0:3]
-		
-	# truncate to float 
+
+	# truncate to float
 	version = float( version )
 	return ( version, bits, versionString )
