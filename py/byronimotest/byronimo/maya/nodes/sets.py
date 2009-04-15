@@ -181,6 +181,23 @@ class TestSets( unittest.TestCase ):
 		self.failUnless( s.getMembers().length() == sellist.length() )
 
 
+		# USING SETMEMBERS
+		########################
+		members = self._getMemberList()
+		# replace
+		s.setMembers( members[0:2], 0 )
+		self.failUnless( s.getMembers().length() == 2 )
+		
+		# add
+		s.setMembers( members[-2:-1], 1 )
+		self.failUnless( s.getMembers().length() == 3 )
+		
+		# remove
+		s.setMembers( members[0:2], 2 )
+		self.failUnless( s.getMembers().length() == 1 )
+		
+		cmds.undo()
+		self.failUnless( s.getMembers().length() == 3 )
 
 	def test_setOperations( self ):
 		"""byroniom.maya.nodes.sets: unions, intersections, difference, overloaded ops"""
@@ -255,6 +272,7 @@ class TestSets( unittest.TestCase ):
 
 		self.failUnless( len( list( s.iterDifference( [ s2, s3 ] ) ) ) == s.getDifference( [ s2, s3 ] ).length() )
 		self.failUnless( s.getMembers().length() - s2.getMembers().length() - s3.getMembers().length() == sellist.length() )
+		
 
 	def test_partitions( self ):
 		"""byronimo.maya.nodes.sets: test partition constraints"""
