@@ -275,8 +275,10 @@ class ObjectSet:
 		@param **kwargs: arguments passed to L{addMembers} or L{removeMembers}"""
 		if mode == self.kReplace:
 			self.clear()
+			mode = self.kAdd
+		# END replace 
 			
-		if mode in ( self.kReplace, self.kAdd ):
+		if mode == self.kAdd:
 			return self.addMembers( nodes, **kwargs )
 			
 		# remove 

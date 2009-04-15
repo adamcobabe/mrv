@@ -84,7 +84,7 @@ class FileReference( Path, iDagItem ):
 		# END creation handler
 
 		if refnode:
-			return handleCreation( refnode, **kwargs )
+			return handleCreation( str( refnode ), **kwargs )
 		if filepath:
 			return handleCreation( cmds.referenceQuery( filepath, rfn=1 ), **kwargs )
 		raise ValueError( "Specify either filepath or refnode" )
