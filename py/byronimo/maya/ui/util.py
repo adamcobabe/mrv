@@ -191,7 +191,7 @@ class UIContainerBase( object ):
 
 		prevparent = None
 		if set_self_active:
-			prevparent = self.getCurrentParent()
+			prevparent = self.getActiveParent()
 			self.setActive( )
 		# END set active handling
 

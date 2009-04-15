@@ -272,7 +272,7 @@ class NamedUI( unicode, BaseUI , iDagItem, CallbackBaseUI ):
 		return wrapUI( '|'.join( self.split('|')[:-1] ) )
 
 	@classmethod
-	def getCurrentParent( cls ):
+	def getActiveParent( cls ):
 		"""@return: NameUI of the currently set parent"""
 		# MENU
 		if cls._is_menu:
