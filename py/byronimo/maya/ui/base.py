@@ -72,16 +72,16 @@ def wrapUI( uinameOrList ):
 		else:
 			uinames = [ uinameOrList ]
 	# END input list handling
-
-	out = []
+	out = list()
 	for uiname in uinames:
 		uitype = getUIType( uiname )
 		clsname = capitalize( uitype )
 
 		try:
 			out.append( getattr( ui, clsname )( name=uiname,  wrap_only = 1 ) )
-		except AttributeError:
-			RuntimeError( ui.__name__ + " has no class named " + clsname )
+		except AttributeError, e:
+			print str( e )
+			raise RuntimeError( "%s has no class named %s, failed to wrap %s" % ( ui.__name__, clsname, uiname ) )
 	# END for each uiname
 
 	if islisttype:
@@ -520,3 +520,6 @@ class MenuItem( MenuBase ):
 			raise TypeError( "%s is not a submenu and cannot be used as menu" )
 
 		return Menu( name = self )
+
+# type is returned in some cases by objectTypeUI
+CommandMenuItem = MenuItem

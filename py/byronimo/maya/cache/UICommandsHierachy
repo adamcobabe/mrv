@@ -96,6 +96,7 @@ baseUI
 		menuBase
 			menu
 			menuItem
+			commandMenuItem
 		colorEditor
 		attrEnumOptionMenu
 		attributeMenu

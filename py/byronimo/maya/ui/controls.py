@@ -291,6 +291,7 @@ class OptionMenuGrp( OptionMenuBase, GroupBase ):
 		does not work as it is not a menu"""
 		raise NotImplementedError( "OptionMenuGrp's instances cannot be setActive after creation due to a Maya API logic error" )
 
+	setParentActive = setActive
 	#} special handling overrides
 
 
