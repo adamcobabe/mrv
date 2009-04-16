@@ -57,11 +57,12 @@ def getUIType( uiname ):
 	return ui._typemap.get( uitype, uitype )
 
 
-def wrapUI( uinameOrList ):
+def wrapUI( uinameOrList, ignore_errors = False ):
 	""" @return: a new instance ( or list of instances ) of a suitable python UI wrapper class for the
 	UI with the given uiname(s)
 	@param uinameOrList: if single name, a single instance will be returned, if a list of names is given,
 	a list of respective instances. None will be interpreted as empty list
+	@param ignore_errors: ignore ui items that cannot be wrapped as the type is unknown.
 	@raise RuntimeError: if uiname does not exist or is not wrapped in python """
 	uinames = uinameOrList
 	islisttype = isinstance( uinameOrList, ( tuple, list, set ) )
@@ -80,8 +81,9 @@ def wrapUI( uinameOrList ):
 		try:
 			out.append( getattr( ui, clsname )( name=uiname,  wrap_only = 1 ) )
 		except AttributeError, e:
-			print str( e )
-			raise RuntimeError( "%s has no class named %s, failed to wrap %s" % ( ui.__name__, clsname, uiname ) )
+			if not ignore_errors:
+				print str( e )
+				raise RuntimeError( "%s has no class named %s, failed to wrap %s" % ( ui.__name__, clsname, uiname ) )
 	# END for each uiname
 
 	if islisttype:
@@ -112,7 +114,9 @@ def lsUI( **kwargs ):
 
 	# NOTE: controls and controlLayout will remove duplcate entries - we have to
 	# prune them ! Unfortunately, you need both flags to get all items, even layouts
-	return wrapUI( set( cmds.lsUI( **kwargs ) ) )
+	# NOTE: have to ignore errors as there are still plenty of items that we cannot
+	# wrap
+	return wrapUI( set( cmds.lsUI( **kwargs ) ), ignore_errors = True )
 
 
 ############################
