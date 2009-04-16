@@ -266,20 +266,31 @@ class Separator( uibase.SizedControl ):
 	_properties_ = ( 	"style", "st",
 						"horizontal", "hr" 		)
 
-class OptionMenu( uibase.SizedControl, OptionMenuBase ):
+class OptionMenu( OptionMenuBase, uibase.SizedControl ):
 	"""Class just for multiple inheritance - this cannot be expressed in the hierarchy
-	file"""
+	file
+	@note: Order of inheritance matters due to method resolution order !"""
 	#( Configuration
 	_is_menu = True
 	#) END configuration
 
 
-class OptionMenuGrp( GroupBase, OptionMenuBase ):
+class OptionMenuGrp( OptionMenuBase, GroupBase ):
 	"""Class just for multiple inheritance - this cannot be expressed in the hierarchy
-	file"""
+	file
+	@note: Order of inheritance matters due to method resolution order !"""
 	#( Configuration
 	_is_menu = True
 	#) END configuration
 
+	#{ Special Handling Overrides
+
+	def setActive( self ):
+		"""The optionMenuGrp cannot be set as a parent as it is classified as control layout.
+		A problem arises if you actually try to add new menuItems to it after it's creation which
+		does not work as it is not a menu"""
+		raise NotImplementedError( "OptionMenuGrp's instances cannot be setActive after creation due to a Maya API logic error" )
+
+	#} special handling overrides
 
 

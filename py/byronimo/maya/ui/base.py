@@ -273,17 +273,20 @@ class NamedUI( unicode, BaseUI , iDagItem, CallbackBaseUI ):
 
 	@classmethod
 	def getActiveParent( cls ):
-		"""@return: NameUI of the currently set parent"""
+		"""@return: NameUI of the currently set parent
+		@raise RuntimeError: if no active parent was set"""
 		# MENU
+		wrapuiname = None
 		if cls._is_menu:
-			curparentmenu = cmds.setParent( q=1, m=1 )
-			if not curparentmenu:
-				raise AssertionError( "No current menu parent set" )
-
-			return wrapUI( name=curparentmenu )
+			wrapuiname = cmds.setParent( q=1, m=1 )
 		else:
 			# NON-MENU
-			return wrapUI( cmds.setParent( q=1 ) )
+			wrapuiname = cmds.setParent( q=1 )
+
+		if not wrapuiname or wrapuiname == "NONE":
+			raise RuntimeError( "No current parent set" )
+
+		return wrapUI( wrapuiname )
 
 	#}	END hierarchy handling
 
