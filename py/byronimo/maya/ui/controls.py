@@ -119,7 +119,11 @@ class TextFieldGroupBase( TextFieldBase ):
 
 class SliderGroupBase( GroupBase, SliderBase ):
 	"""base class for all sliders"""
-	_properties_ = ( "el", "extraLabel" )
+	_properties_ = ( 	"el", "extraLabel",
+						"fieldMinValue", "fmn",
+						"fieldMaxValue", "fmx",
+						"fieldStep", "fs",
+						"sliderStep", "ss" )
 
 
 class BooleanGroupBase( GroupBase, BooleanBase ):
