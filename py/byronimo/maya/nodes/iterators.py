@@ -58,14 +58,14 @@ def iterDgNodes( *args, **kwargs ):
 		if no types are specified, all nodes of the scene will be iterated on
 		the types are specified as Maya API types
 		@param asNode: if True, the returned value will be wrapped as nod
-		default False
+		default True
 		@param predicate: returns True for every object that can be returned by the iteration,
 		default : lambda x: True
 		@note: adjusted pymel implementation"""
 
 	iterObj = getDgIterator( *args, **kwargs )
 	predicate = kwargs.get( "predicate", lambda x: True )
-	asNode = kwargs.get( "asNode", False )
+	asNode = kwargs.get( "asNode", True )
 	while not iterObj.isDone() :
 		obj = iterObj.thisNode()
 		if asNode:
@@ -141,7 +141,7 @@ def iterDagNodes( *args, **kwargs ):
 			  				if False underworld will not be traversed,
 							default is False (do not traverse underworld )
 		@param asNode: 	if True, default false, the returned item will be wrapped into a Node ( 2k Nodes/s )
-						default False
+						default True
 		@param root: 	MObject or MDagPath of the object you would like to start iteration on, or None to
 		start on the scene root. The root node will also be returned by the iteration !
 		@param predicate: method returninng True if passed in iteration element can be yielded
@@ -155,7 +155,7 @@ def iterDagNodes( *args, **kwargs ):
 	iterObj = getDagIterator( *args, **kwargs )
 
 	dagpath = kwargs.get('dagpath', True)
-	asNode = kwargs.get('asNode', False )
+	asNode = kwargs.get('asNode', True )
 	predicate = kwargs.get('predicate', lambda x: True )
 	if dagpath:
 		while not iterObj.isDone( ) :
@@ -263,7 +263,7 @@ def iterGraph( nodeOrPlug, *args, **kwargs ):
 				default is False (do not prune)
 		@param asNode: if the iteration is on node level, Nodes ( wrapped MObjects ) will be returned
 						If False, MObjects will be returned
-						default False
+						default True
 		@param predicate: method returning True if passed in iteration element can be yielded
 			default: lambda x: True
 		@yield: MObject, Node or Plug depending on the configuration flags
@@ -275,7 +275,7 @@ def iterGraph( nodeOrPlug, *args, **kwargs ):
 		raise StopIteration()
 
 	retrievePlugs = not iterObj.atNodeLevel( )
-	asNode = kwargs.get( "asNode", False )
+	asNode = kwargs.get( "asNode", True )
 	predicate = kwargs.get( 'predicate', lambda x: True )
 
 	# iterates and yields MObjects
