@@ -96,6 +96,16 @@ def pythonToMel(arg):
 		return u'{%s}' % ','.join( map( pythonToMel, arg) )
 	return unicode(arg)
 
+def padScalar( scalar, padding ):
+	"""@return: string of integer padded with "0" to have at least padvalue characters,
+	i.e. 5 becomes 0005 if padvalue is 4, 1000 will stay 1000 in that case
+	@param scalar: scalar values, like integer or loat
+	@param padding: minimum amount of characters the output string should have"""
+	scalarstr = str( scalar )
+	pad = max( padding - len( scalarstr ), 0 )
+	return "0"*pad + scalarstr
+
+
 
 ############################
 #### Classes		  	####
