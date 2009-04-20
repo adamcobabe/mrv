@@ -56,6 +56,8 @@ def __initialize():
 	import __builtin__
 	setattr( __builtin__, 'undoable', undoable )
 	setattr( __builtin__, 'notundoable', notundoable )
+	setattr( __builtin__, 'forceundoable', forceundoable )
+
 
 
 #} END initialization
@@ -211,6 +213,33 @@ def undoable( func ):
 
 	undoableDecoratorWrapFunc.__name__ = name
 	return undoableDecoratorWrapFunc
+
+def forceundoable( func ):
+	"""As undoable, but will enable the undo queue if it is currently disabled
+	@note: can only be employed reasonably if used in conjunction with L{undoAndClear}
+	as it will restore the old state of the undoqueue afterwards, which might be off, thus
+	rendering attempts to undo impossible"""
+	if not sys._maya_undo_enabled:
+		return func
+
+	undoable_func = undoable( func )
+	def forcedUndo( *args, **kwargs ):
+		disable = False
+		if not cmds.undoInfo( q=1, st=1 ):
+			disable = True
+			cmds.undoInfo( swf=1 )
+		# END undo info handling
+		try:
+			rval = undoable_func( *args, **kwargs )
+			if disable:
+				cmds.undoInfo( swf=0 )
+			return rval
+		except:
+			if disable:
+				cmds.undoInfo( swf=0 )
+		# END exception handling
+	# END forced undo function
+	return forcedUndo
 
 def notundoable( func ):
 	"""Decorator wrapping a function into a muteUndo call, thus all undoable operations
