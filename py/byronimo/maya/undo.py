@@ -254,6 +254,20 @@ def endUndo( ):
 	@note: prefer the @undoable decorator"""
 	_decrStack()
 
+def undoAndClear( ):
+	"""Undo all operations on the undo stack and clear it afterwards. The respective
+	undo command will do nothing once undo, but would undo all future operations.
+	The state of the undoqueue is well defined afterwards, but callers may stop functioning
+	if their changes have been undone.
+	@note: can be used if you need control over undo in very specific operations and in
+	a well defined context"""
+	operations = sys._maya_stack
+	sys._maya_stack = list()
+
+	# run in reversed order !
+	for index in xrange( len( operations )-1, -1, -1 ):
+		operations[ index ].undoIt()
+
 #}
 
 

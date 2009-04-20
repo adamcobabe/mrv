@@ -74,6 +74,20 @@ class TestUndoQueue( unittest.TestCase ):
 
 		bmaya.Mel.flushUndo()
 
+		# handle undo ourselves
+		persp = Node( "persp" )
+		curvalue = persp.tx.asFloat()
+		newvalue = curvalue + 1.0
+
+		undo.startUndo()
+		persp.tx.setFloat( newvalue )
+		assert persp.tx.asFloat() == newvalue
+
+		undo.undoAndClear( )		# end undo must come afterwards, otherwise the comand takes the queue
+		undo.endUndo()
+		assert persp.tx.asFloat() == curvalue	# its back to normal without an official undo
+
+
 
 	def test_dgmod( self ):
 		"""byronimo.maya.undo: test dg modifier capabilities
