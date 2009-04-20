@@ -131,6 +131,40 @@ class TestGeneralPerformance( unittest.TestCase ):
 			persp.message | front.isHistoricallyInteresting
 		measurePlugConnection( "SINGLE PLUGS Connected", singleFunc, conlist )
 
+
+		# SET AND GET
+		##############
+		persp = nodes.Node( "persp" )
+		perspshape = persp[0]
+		plugs = [ persp.t['x'], perspshape.fl ]
+
+		num_iterations = 2500
+		iterations = range( num_iterations )
+
+		undoObj = undo.StartUndo()
+		starttime = time.time()
+		for plug in plugs:
+			for i in iterations:
+				value = plug.asFloat()
+				plug.setFloat( value )
+			# END get set plug
+		# END for each plug
+		elapsed = time.time() - starttime
+		del( undoObj )
+
+		total_count = num_iterations * len( plugs )
+		print "Get/Set %i plugs %i times ( total = %i ) in %f ( %g / s )" % ( len( plugs ), num_iterations, total_count,  elapsed, total_count / elapsed )
+
+		starttime = time.time()
+		cmds.undo()
+		undoelapsed = time.time() - starttime
+
+		starttime = time.time()
+		cmds.redo()
+		redoelapsed = time.time() - starttime
+
+		print "UNDO / REDO Time = %f / %f ( %f * faster than initial set/get )" % ( undoelapsed, redoelapsed,  elapsed / max( redoelapsed, 0.001) )
+
 	def test_dagwalking( self ):
 		"""byronimo.maya.benchmark.general.dagWalking: see how many nodes per second we walk"""
 		if not bcommon.mayRun( "dagwalk" ): return
