@@ -711,26 +711,42 @@ class MPlug( api.MPlug, util.iDagItem ):
 			getattrfunc = getattr( api.MPlug, "as"+dataTypeId )
 		setattrfunc = getattr( api.MPlug, "set"+dataTypeId )
 
-		def wrappedSetAttr( self, data ):
-			# asMObject can fail instead of returning a null object !
-			if dataTypeId == "MObject":
+		# YES, WE DUPLICATE CODE FOR SPEED
+		####################################
+		# Create actual functions
+		finalWrappedSetAttr = None
+		if dataTypeId == "MObject":
+			def wrappedSetAttr( self, data ):
+				# asMObject can fail instead of returning a null object !
 				try:
 					curdata = getattrfunc( self )
 				except RuntimeError:
 					curdata = api.MObject()
-			else:
+				op = undo.GenericOperation( )
+
+				op.addDoit( setattrfunc, self, data )
+				op.addUndoit( setattrfunc, self, curdata )
+
+				op.doIt()
+			# END wrapped method
+			finalWrappedSetAttr = wrappedSetAttr
+		else:
+			def wrappedSetAttr( self, data ):
+				# asMObject can fail instead of returning a null object !
 				curdata = getattrfunc( self )
-			op = undo.GenericOperation( )
+				op = undo.GenericOperation( )
 
-			op.addDoit( setattrfunc, self, data )
-			op.addUndoit( setattrfunc, self, curdata )
+				op.addDoit( setattrfunc, self, data )
+				op.addUndoit( setattrfunc, self, curdata )
 
-			op.doIt()
-		# END wrappedSetAttr method
+				op.doIt()
+			# END wrappedSetAttr method
+			finalWrappedSetAttr = wrappedSetAttr
+		# END MObject special case
 
 		# did undoable do anything ? If not, its disabled
-		wrappedUndoableSetAttr = undoable( wrappedSetAttr )
-		if wrappedUndoableSetAttr == wrappedSetAttr:
+		wrappedUndoableSetAttr = undoable( finalWrappedSetAttr )
+		if wrappedUndoableSetAttr == finalWrappedSetAttr:
 			# return original
 			return setattrfunc
 

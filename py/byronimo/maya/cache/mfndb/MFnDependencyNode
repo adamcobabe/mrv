@@ -1,71 +1,71 @@
 1
-    | MFnDependencyNode_addAttribute          | None                |                                         
-    | MFnDependencyNode_attribute             | None                |                                         
-    | MFnDependencyNode_attributeClass        | None                |                                         
-    | MFnDependencyNode_attributeCount        | None                |                                         
-    | MFnDependencyNode_canBeWritten          | None                |                                         
-    | MFnDependencyNode_create                | None                |                                         
-    | MFnDependencyNode_findAlias             | None                |                                         
-    | MFnDependencyNode_findPlug              | None                |                                         
-    | MFnDependencyNode_getAffectedAttributes | None                |                                         
-    | MFnDependencyNode_getAffectedByAttributes| None                |                                         
-    | MFnDependencyNode_getAliasAttr          | None                |                                         
-    | MFnDependencyNode_getAliasList          | None                |                                         
-    | MFnDependencyNode_getConnections        | None                |                                         
-    | MFnDependencyNode_hasAttribute          | None                |                                         
-    | MFnDependencyNode_hasUniqueName         | None                |                                         
-    | MFnDependencyNode_isDefaultNode         | None                |                                         
-    | MFnDependencyNode_isFlagSet             | None                |                                         
-    | MFnDependencyNode_isFromReferencedFile  | None                |                                         
-    | MFnDependencyNode_isLocked              | None                |                                         
-    | MFnDependencyNode_isNewAttribute        | None                |                                         
-    | MFnDependencyNode_isShared              | None                |                                         
-    | MFnDependencyNode_name                  | None                |                                         
-    | MFnDependencyNode_parentNamespace       | None                |                                         
-    | MFnDependencyNode_plugsAlias            | None                |                                         
-    | MFnDependencyNode_removeAttribute       | None                |                                         
-    | MFnDependencyNode_reorderedAttribute    | None                |                                         
-    | MFnDependencyNode_setAlias              | None                |                                         
-    | MFnDependencyNode_setDoNotWrite         | None                |                                         
-    | MFnDependencyNode_setFlag               | None                |                                         
-    | MFnDependencyNode_setLocked             | None                |                                         
-    | MFnDependencyNode_setName               | None                |                                         
-    | MFnDependencyNode_typeId                | None                |                                         
-    | MFnDependencyNode_typeName              | None                |                                         
-    | MFnDependencyNode_userNode              | None                |                                         
-    | addAttribute                            | None                |                                         
-    | attribute                               | Attribute           | getAttribute                            
-    | attributeClass                          | None                |                                         
-    | attributeCount                          | None                |                                         
-    | canBeWritten                            | None                |                                         
-x   | create                                  | None                |                                         
-    | delete_MFnDependencyNode                | None                |                                         
-    | findAlias                               | None                |                                         
-    | findPlug                                | None                | getPlug                                 
-    | getAffectedAttributes                   | None                |                                         
-    | getAffectedByAttributes                 | None                |                                         
-    | getAliasAttr                            | None                |                                         
-    | getAliasList                            | None                |                                         
-    | getConnections                          | None                |                                         
-    | hasAttribute                            | None                |                                         
-    | hasUniqueName                           | None                |                                         
-    | isDefaultNode                           | None                |                                         
-    | isFlagSet                               | None                |                                         
-    | isFromReferencedFile                    | None                | isReferenced                            
-    | isLocked                                | None                |                                         
-    | isNewAttribute                          | None                |                                         
-    | isShared                                | None                |                                         
-    | name                                    | None                | getName                                 
-    | parentNamespace                         | Namespace           | getNamespace                            
-    | plugsAlias                              | None                | getPlugAlias                            
-    | removeAttribute                         | Attribute           | getReorderedAttribute                   
-    | reorderedAttribute                      | None                |                                         
-    | setAlias                                | None                |                                         
-    | setDoNotWrite                           | None                |                                         
-    | setFlag                                 | None                |                                         
-    | setLocked                               | None                |                                         
-x   | setName                                 | None                |                                         
-    | type                                    | None                | getType                                 
-    | typeId                                  | None                | getTypeId                               
-    | typeName                                | None                | getTypeName                             
-    | userNode                                | None                | getUserNode                             
+    | MFnDependencyNode_addAttribute          | None                |
+    | MFnDependencyNode_attribute             | None                |
+    | MFnDependencyNode_attributeClass        | None                |
+    | MFnDependencyNode_attributeCount        | None                |
+    | MFnDependencyNode_canBeWritten          | None                |
+    | MFnDependencyNode_create                | None                |
+    | MFnDependencyNode_findAlias             | None                |
+    | MFnDependencyNode_findPlug              | None                |
+    | MFnDependencyNode_getAffectedAttributes | None                |
+    | MFnDependencyNode_getAffectedByAttributes| None                |
+    | MFnDependencyNode_getAliasAttr          | None                |
+    | MFnDependencyNode_getAliasList          | None                |
+    | MFnDependencyNode_getConnections        | None                |
+    | MFnDependencyNode_hasAttribute          | None                |
+    | MFnDependencyNode_hasUniqueName         | None                |
+    | MFnDependencyNode_isDefaultNode         | None                |
+    | MFnDependencyNode_isFlagSet             | None                |
+    | MFnDependencyNode_isFromReferencedFile  | None                |
+    | MFnDependencyNode_isLocked              | None                |
+    | MFnDependencyNode_isNewAttribute        | None                |
+    | MFnDependencyNode_isShared              | None                |
+    | MFnDependencyNode_name                  | None                |
+    | MFnDependencyNode_parentNamespace       | None                |
+    | MFnDependencyNode_plugsAlias            | None                |
+    | MFnDependencyNode_removeAttribute       | None                |
+    | MFnDependencyNode_reorderedAttribute    | None                |
+    | MFnDependencyNode_setAlias              | None                |
+    | MFnDependencyNode_setDoNotWrite         | None                |
+    | MFnDependencyNode_setFlag               | None                |
+    | MFnDependencyNode_setLocked             | None                |
+    | MFnDependencyNode_setName               | None                |
+    | MFnDependencyNode_typeId                | None                |
+    | MFnDependencyNode_typeName              | None                |
+    | MFnDependencyNode_userNode              | None                |
+    | addAttribute                            | None                |
+    | attribute                               | Attribute           | getAttribute
+    | attributeClass                          | None                | getAttributeClass
+    | attributeCount                          | None                |	getAttributeCount
+    | canBeWritten                            | None                |
+x   | create                                  | None                |
+    | delete_MFnDependencyNode                | None                |
+    | findAlias                               | None                |
+    | findPlug                                | None                | getPlug
+    | getAffectedAttributes                   | None                |
+    | getAffectedByAttributes                 | None                |
+    | getAliasAttr                            | None                |
+    | getAliasList                            | None                |
+    | getConnections                          | None                |
+    | hasAttribute                            | None                |
+    | hasUniqueName                           | None                |
+    | isDefaultNode                           | None                |
+    | isFlagSet                               | None                |
+    | isFromReferencedFile                    | None                | isReferenced
+    | isLocked                                | None                |
+    | isNewAttribute                          | None                |
+    | isShared                                | None                |
+    | name                                    | None                | getName
+    | parentNamespace                         | Namespace           | getNamespace
+    | plugsAlias                              | None                | getPlugAlias
+    | removeAttribute                         | Attribute           | getReorderedAttribute
+    | reorderedAttribute                      | None                |
+    | setAlias                                | None                |
+    | setDoNotWrite                           | None                |
+    | setFlag                                 | None                |
+    | setLocked                               | None                |
+x   | setName                                 | None                |
+    | type                                    | None                | getType
+    | typeId                                  | None                | getTypeId
+    | typeName                                | None                | getTypeName
+    | userNode                                | None                | getUserNode
