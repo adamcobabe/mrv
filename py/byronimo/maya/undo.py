@@ -14,6 +14,11 @@ Features
 Limitations
 -----------
 	- You cannot mix mel and API proprely unless you use an MDGModifier.commandToExecute
+	- Calling operations that flush the undo queue from within an undoable method
+	  causes the internal python undo stack not to be flushed, leaving dangling objects
+	  that might crash maya once they are undon.
+	  - WORKAROUND: Mark these methods with @notundoable and assure they are not
+	  called by an undoable method
 
 Configuration
 -------------

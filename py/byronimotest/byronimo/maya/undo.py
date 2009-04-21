@@ -87,6 +87,23 @@ class TestUndoQueue( unittest.TestCase ):
 		undo.endUndo()
 		assert persp.tx.asFloat() == curvalue	# its back to normal without an official undo
 
+		# UNDO AND FILE FLUSHES
+		########################
+		# Our stack must be flused once maya's undo queue gets flushed
+		# This is critical if an undoable method causes undo flushes, but also
+		# built up our own intermediate stack which might now contain entries from
+		# a non-existing scene
+		# NOTE: Currently this is a known limitation that could be circumvented
+		# with some pre-scene-callbacks
+		trans = nodes.createNode( "mytrans", "transform" )
+
+		undo.startUndo()
+		trans.tx.setFloat( 10.0 )
+		assert len( sys._maya_stack ) == 1
+		bmaya.Scene.new( force = 1 )
+		assert len( sys._maya_stack ) == 0, "Known Undo-Limitation"
+		undo.endUndo()
+
 
 
 	def test_dgmod( self ):
