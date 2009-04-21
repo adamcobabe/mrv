@@ -117,6 +117,14 @@ class Scene( util.Singleton ):
 		return Path( cmds.file( new = True, force = force, **kwargs ) )
 
 	@classmethod
+	def rename( cls, new_scenepath ):
+		"""Rename the currently loaded file to be the file at new_scenepath
+		@note: as opposed to the normal file -rename it will also adjust the
+		extension which for some annoying reason is not easily done with the default command"""
+		cmds.file( rename = new_scenepath )
+		cmds.file( type = cls._fileTypeMap[ Path( new_scenepath ).p_ext ] )
+
+	@classmethod
 	def save( cls, scenepath, autodelete_unknown = False, **kwargs ):
 		"""The save the currently opened scene under scenepath in the respective format
 		@param scenepath: if None or "", the currently opened scene will be used
