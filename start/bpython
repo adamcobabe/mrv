@@ -1,18 +1,81 @@
 #!/bin/sh
+if [[ $1 == *help* || $1 == "-h" ]] ; 
+then 
+cat <<HELP
+bpython [mayaversion]
+starts a python interpreter using the optionally given maya version 
+where maya version is either 8.5 or 2008 or 2009
+HELP
+exit 1
+fi 
 
-# FOR NOW HARDCODED TO 8.54
-mayapath=/usr/autodesk/maya8.5-x64
-export MAYA_LOCATION=$mayapath
+# get maya version
+mayaversiondefault=8.5
+mayaversion=${1:-$mayaversiondefaul}
+if [[ ! $mayaversion == 8.5 && ! $mayaversion == 20?? ]]; then
+	# conosider id an argument and keep it
+	mayaversion=$mayaversiondefault
+fi
 
-# HARDCODED TO UBUNTU FOR NOW 
-export LD_PRELOAD="/usr/lib64/libstdc++.so.6:/usr/lib/gcc/x86_64-linux-gnu/4.2/libgcc_s.so"
+# get rid of our parameter
+if [[ $1 == $mayaversion ]]; then shift ; fi
 
-# set ldd path to maya directory
-export LD_LIBRARY_PATH=$MAYA_LOCATION/lib:$LD_LIBRARY_PATH
+# determine the basepath to maya
+uname=`uname`
+if [[ $uname == "Darwin" ]]; then 
+	mayaroot=/Applications/Autodesk/maya
+	pylibdir=Frameworks/Python.framework/Versions/Current/lib
+	
+elif [[ $uname == "Linux2" ]]; then 
+	mayaroot=/usr/autodesk/maya
+	pylibdir=lib
+	# determine bits in os
+	if [ -e /lib64 ]; then osbits=-x64; fi
+fi
 
 
+if [[ ! $mayaroot ]]; then
+	echo Could not determine maya location - cannot handle operating system
+	exit 2
+fi
+
+# set MAYA_LOCATION
+MAYA_LOCATION=${mayaroot}${osbits}${mayaversion}
+if [ ! -d $MAYA_LOCATION ]; then
+	echo Did not find maya at $MAYA_LOCATION
+	exit 2
+fi
+
+# determine python version
+for pyversion in 8.52.4 20082.5 20092.6 ; do
+	if [[ $pyversion == ${mayaversion}* ]]; then
+		python_version=${pyversion/$mayaversion/}
+		break
+	fi
+done
+
+test=${python_version:?Python version could not be determined for maya version $mayaversion}
+
+
+# LD LIBARRY CONFIGURAION
+if [[ $uname == "Linux2" ]]; then
+	LD_PRELOAD="/usr/lib64/libstdc++.so.6:/usr/lib/gcc/x86_64-linux-gnu/4.2/libgcc_s.so"
+	LD_LIBRARY_PATH=$MAYA_LOCATION/lib:$LD_LIBRARY_PATH
+	export LD_PRELOAD LD_LIBRARY_PATH 
+elif [[ $uname == "Darwin" ]]; then
+	# fix MAYA_LOCATION
+	MAYA_LOCATION=$MAYA_LOCATION/Maya.app/Contents
+	export DYLD_LIBRARY_PATH=$MAYA_LOCATION/MacOS:$LD_LIBRARY_PATH
+	export DYLD_FRAMEWORK_PATH=$MAYA_LOCATION/Frameworks:$DYLD_FRAMEWORK_PATH
+	
+	# assure we get the default osx interpreter first - otherwise we might get a version mismatch
+	export PATH=/usr/bin:$PATH
+fi 
 # adjust PYTHONPATH to look for maya includes
-export PYTHONPATH=$MAYA_LOCATION/lib/python*/site-packages
+# need to make sure pylibdir gets expanded by filename subsitution which does not 
+# happen if we export things right away
+PYTHONPATH=$MAYA_LOCATION/$pylibdir/python$python_version/site-packages
+export PYTHONPATH MAYA_LOCATION 
 
 
 # set the python path to find out package
@@ -23,4 +86,4 @@ export PYTHONPATH=$PYTHONPATH:$byronimobase
 
 # execute the interpreter 
 # TODO: parse an optional option to specify the python version or just the maya version
-/usr/bin/python2.4 $@
+/usr/bin/env python$python_version $@
