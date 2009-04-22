@@ -704,6 +704,8 @@ class PipeSeparatedFile( object ):
 	val11 | val2 | valn
 	...
 	"""
+	kSeparator = '|'
+
 	def __init__( self, fileobj ):
 		"""Initialize the instance
 		@param fileobj: fileobject where new lines will be written to or read from
@@ -725,7 +727,7 @@ class PipeSeparatedFile( object ):
 			if not len( line.strip() ):
 				continue
 
-			tokens = [ item.strip() for item in line.split( '|' ) ]
+			tokens = [ item.strip() for item in line.split( self.kSeparator ) ]
 			if not self._columncount:
 				self._columncount = len( tokens )
 
@@ -742,7 +744,7 @@ class PipeSeparatedFile( object ):
 		@note: When done writing, you have to close the file object yourself ( there is no endWriting method here )"""
 		self._fileobj.write( "%i\n" % version )		# write version
 		columnTokens = [ "%%-%is" % csize for csize in columnSizes ]
-		self._formatstr = ( "| ".join( columnTokens ) ) + "\n"
+		self._formatstr = ( ( self.kSeparator + " " ).join( columnTokens ) ) + "\n"
 
 	def writeTokens( self, tokens ):
 		"""Write the list of tokens to the file accordingly
