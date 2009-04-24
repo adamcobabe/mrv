@@ -289,6 +289,29 @@ class iChoiceDialog( object ):
 
 		return self.default_choice
 
+class iPrompt( object ):
+	"""Prompt a value from the user, providing a default if no input is retrieved"""
+	#{ Configuration
+	# used as message to the user to confirm the input and provides it to the caller
+	#} Configuration
+
+	def __init__( self, **kwargs ):
+		"""Configure the prompt, all parameters allow short and long names
+		@param m/message: Message to be presented, like "Enter your name", must be set
+		@param d/default: default value to return in case there is no input
+		@param ct/confirmToken: token to enter/hit/press to finish the prompt"""
+		self.msg = kwargs.get( "m", kwargs.get( "message", None ) )
+		assert self.msg is not None, "No Message given"
+		self.default = kwargs.get( "d", kwargs.get( "default", None ) )
+		self.token = kwargs.get( "ct", kwargs.get( "confirmToken", None ) )
+
+	def prompt( self ):
+		"""activate our prompt
+		@return: the prompted value
+		@note: base implementation just prints a sample text and returns the default"""
+		print "%s [ %s ]:" % ( self.msg, self.default )
+		print "Hit %s to confirm" % self.token
+		return self.default
 
 class iProgressIndicator( object ):
 	"""Interface allowing to submit progress information
