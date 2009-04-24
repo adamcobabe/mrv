@@ -59,6 +59,31 @@ class PromptDialog( Dialog ):
 		return self._text
 
 
+class Prompt( util.iPrompt ):
+	"""Implements the prompt interface using a prompt dialog"""
+
+	def prompt( self ):
+		"""Aquire the information using a prompt dialog
+		@return: prompted value if input was confirmed using confirmToken, or the cancelValue
+		if cancelToken was pressed
+		@note: tokens correspond to buttons
+		@note: handles batch mode correctly"""
+		if cmds.about( batch = 1 ):
+			return super( Prompt, self ).prompt( )
+
+		default_text = ( self.confirmDefault is not None and self.confirmDefault ) or ""
+		ret = cmds.promptDialog( t="Prompt", m = self.msg, b = [ self.confirmToken, self.cancelToken ],
+									db = self.confirmToken, cb = self.cancelToken, text = default_text, **self._kwargs )
+
+		if ret == self.cancelToken:
+			return self.cancelDefault
+
+		if ret == self.confirmToken:
+			return cmds.promptDialog( q=1, text = 1 )
+
+		return self.confirmDefault
+
+
 class ChoiceDialog( util.iChoiceDialog ):
 	"""Maya implementation of the generic choice dialog interface"""
 

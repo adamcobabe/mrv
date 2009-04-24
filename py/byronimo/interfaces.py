@@ -296,22 +296,30 @@ class iPrompt( object ):
 	#} Configuration
 
 	def __init__( self, **kwargs ):
-		"""Configure the prompt, all parameters allow short and long names
+		"""Configure the prompt, most parameters allow short and long names
 		@param m/message: Message to be presented, like "Enter your name", must be set
 		@param d/default: default value to return in case there is no input
-		@param ct/confirmToken: token to enter/hit/press to finish the prompt"""
-		self.msg = kwargs.get( "m", kwargs.get( "message", None ) )
+		@param cd/cancelDefault: default value if prompt is cancelled, defaults to default
+		@param confirmToken: token to enter/hit/press to finish the prompt
+		@param cancelToken: token to cancel and abort the prompt, defaults to confirmToken
+		if not set"""
+		self.msg = kwargs.pop( "m", kwargs.pop( "message", None ) )
 		assert self.msg is not None, "No Message given"
-		self.default = kwargs.get( "d", kwargs.get( "default", None ) )
-		self.token = kwargs.get( "ct", kwargs.get( "confirmToken", None ) )
+		self.confirmDefault = kwargs.pop( "d", kwargs.pop( "default", None ) )
+		self.cancelDefault = kwargs.pop( "cd", kwargs.pop( "cancelDefault", self.confirmDefault ) )
+		self.confirmToken = kwargs.pop( "t", kwargs.pop( "confirmToken", None ) )
+		self.cancelToken = kwargs.pop( "ct", kwargs.pop( "cancelToken", self.confirmToken ) )
+
+		# remaining arguments for subclass use
+		self._kwargs = kwargs
 
 	def prompt( self ):
 		"""activate our prompt
 		@return: the prompted value
 		@note: base implementation just prints a sample text and returns the default"""
-		print "%s [ %s ]:" % ( self.msg, self.default )
-		print "Hit %s to confirm" % self.token
-		return self.default
+		print "%s [ %s ]:" % ( self.msg, self.confirmDefault )
+		print "Hit %s to confirm or %s to cancel" % ( self.confirmToken, self.cancelToken )
+		return self.confirmDefault
 
 class iProgressIndicator( object ):
 	"""Interface allowing to submit progress information
