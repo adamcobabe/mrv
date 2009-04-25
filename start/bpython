@@ -1,13 +1,13 @@
-#!/bin/sh
-if [[ $1 == *help* || $1 == "-h" ]] ; 
-then 
+#!/bin/bash
+if [[ $1 == *help* || $1 == "-h" ]] ;
+then
 cat <<HELP
 bpython [mayaversion]
-starts a python interpreter using the optionally given maya version 
+starts a python interpreter using the optionally given maya version
 where maya version is either 8.5 or 2008 or 2009
 HELP
 exit 1
-fi 
+fi
 
 # get maya version
 mayaversiondefault=8.5
@@ -22,11 +22,11 @@ if [[ $1 == $mayaversion ]]; then shift ; fi
 
 # determine the basepath to maya
 uname=`uname`
-if [[ $uname == "Darwin" ]]; then 
+if [[ $uname == "Darwin" ]]; then
 	mayaroot=/Applications/Autodesk/maya
 	pylibdir=Frameworks/Python.framework/Versions/Current/lib
-	
-elif [[ $uname == "Linux2" ]]; then 
+
+elif [[ $uname == "Linux" ]]; then
 	mayaroot=/usr/autodesk/maya
 	pylibdir=lib
 	# determine bits in os
@@ -40,7 +40,7 @@ if [[ ! $mayaroot ]]; then
 fi
 
 # set MAYA_LOCATION
-MAYA_LOCATION=${mayaroot}${osbits}${mayaversion}
+MAYA_LOCATION=${mayaroot}${mayaversion}${osbits}
 if [ ! -d $MAYA_LOCATION ]; then
 	echo Did not find maya at $MAYA_LOCATION
 	exit 2
@@ -58,24 +58,24 @@ test=${python_version:?Python version could not be determined for maya version $
 
 
 # LD LIBARRY CONFIGURAION
-if [[ $uname == "Linux2" ]]; then
+if [[ $uname == "Linux" ]]; then
 	LD_PRELOAD="/usr/lib64/libstdc++.so.6:/usr/lib/gcc/x86_64-linux-gnu/4.2/libgcc_s.so"
 	LD_LIBRARY_PATH=$MAYA_LOCATION/lib:$LD_LIBRARY_PATH
-	export LD_PRELOAD LD_LIBRARY_PATH 
+	export LD_PRELOAD LD_LIBRARY_PATH
 elif [[ $uname == "Darwin" ]]; then
 	# fix MAYA_LOCATION
 	MAYA_LOCATION=$MAYA_LOCATION/Maya.app/Contents
 	export DYLD_LIBRARY_PATH=$MAYA_LOCATION/MacOS:$LD_LIBRARY_PATH
 	export DYLD_FRAMEWORK_PATH=$MAYA_LOCATION/Frameworks:$DYLD_FRAMEWORK_PATH
-	
+
 	# assure we get the default osx interpreter first - otherwise we might get a version mismatch
 	export PATH=/usr/bin:$PATH
-fi 
+fi
 # adjust PYTHONPATH to look for maya includes
-# need to make sure pylibdir gets expanded by filename subsitution which does not 
+# need to make sure pylibdir gets expanded by filename subsitution which does not
 # happen if we export things right away
 PYTHONPATH=$MAYA_LOCATION/$pylibdir/python$python_version/site-packages
-export PYTHONPATH MAYA_LOCATION 
+export PYTHONPATH MAYA_LOCATION
 
 
 # set the python path to find out package
@@ -84,6 +84,6 @@ byronimobase=$base/../py
 export PYTHONPATH=$PYTHONPATH:$byronimobase
 
 
-# execute the interpreter 
+# execute the interpreter
 # TODO: parse an optional option to specify the python version or just the maya version
 /usr/bin/env python$python_version $@
