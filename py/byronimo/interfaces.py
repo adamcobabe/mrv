@@ -299,16 +299,15 @@ class iPrompt( object ):
 		"""Configure the prompt, most parameters allow short and long names
 		@param m/message: Message to be presented, like "Enter your name", must be set
 		@param d/default: default value to return in case there is no input
-		@param cd/cancelDefault: default value if prompt is cancelled, defaults to default
+		@param cd/cancelDefault: default value if prompt is cancelled
 		@param confirmToken: token to enter/hit/press to finish the prompt
-		@param cancelToken: token to cancel and abort the prompt, defaults to confirmToken
-		if not set"""
+		@param cancelToken: token to cancel and abort the prompt"""
 		self.msg = kwargs.pop( "m", kwargs.pop( "message", None ) )
 		assert self.msg is not None, "No Message given"
 		self.confirmDefault = kwargs.pop( "d", kwargs.pop( "default", None ) )
-		self.cancelDefault = kwargs.pop( "cd", kwargs.pop( "cancelDefault", self.confirmDefault ) )
+		self.cancelDefault = kwargs.pop( "cd", kwargs.pop( "cancelDefault", None ) )
 		self.confirmToken = kwargs.pop( "t", kwargs.pop( "confirmToken", None ) )
-		self.cancelToken = kwargs.pop( "ct", kwargs.pop( "cancelToken", self.confirmToken ) )
+		self.cancelToken = kwargs.pop( "ct", kwargs.pop( "cancelToken", None ) )
 
 		# remaining arguments for subclass use
 		self._kwargs = kwargs

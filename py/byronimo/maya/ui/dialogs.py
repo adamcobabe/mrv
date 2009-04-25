@@ -72,8 +72,16 @@ class Prompt( util.iPrompt ):
 			return super( Prompt, self ).prompt( )
 
 		default_text = ( self.confirmDefault is not None and self.confirmDefault ) or ""
-		ret = cmds.promptDialog( t="Prompt", m = self.msg, b = [ self.confirmToken, self.cancelToken ],
-									db = self.confirmToken, cb = self.cancelToken, text = default_text, **self._kwargs )
+
+		tokens = [ self.confirmToken ]
+		token_kwargs = { "db" : self.confirmToken }
+		if self.cancelToken is not None:
+			tokens.append( self.cancelToken )
+			token_kwargs[ "cb" ] = self.cancelToken
+		# END token preparation
+		token_kwargs.update( self._kwargs )
+
+		ret = cmds.promptDialog( t="Prompt", m = self.msg, b = tokens, text = default_text, **token_kwargs )
 
 		if ret == self.cancelToken:
 			return self.cancelDefault
