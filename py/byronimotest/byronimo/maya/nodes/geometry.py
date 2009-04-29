@@ -231,4 +231,19 @@ class TestGeometry( unittest.TestCase ):
 			# END for each mesh name
 		# END for each component type
 
+	def test_lightLinkCopy( self ):
+		"""byronimo.maya.nodes.geometry: test how lightlinks are copied from oen shape to another
+		@note: currently we only call variants of the respective method to run it - verification
+		was made in actual scenes, but is not reproducable"""
+		if not ownpackage.mayRun( "geometry" ): return
+		bmaya.Scene.open( common.get_maya_file( "mesh_lightlinks.ma" ), force = 1 )
+
+		for sourcename in ( "sphere", "torus" ):
+			source = nodes.Node( sourcename )
+			target = nodes.Node( "%s_target" % sourcename )
+			source.copyLightLinks( target, substitute = 1 )	# substitute to target
+			target.copyLightLinks( source, substitute = 1 )	# back to source
+			source.copyLightLinks( target, substitute = 0 )	# copy it to target
+		# END for each source mesh name
+
 

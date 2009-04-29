@@ -150,7 +150,67 @@ class Shape( base.DagNode ):	 # base for epydoc !
 
 
 class GeometryShape( Shape ):	# base for epydoc !
-	pass
+	"""Contains common methods for all geometry types"""
+	@undoable
+	def copyLightLinks( self, other, **kwargs ):
+		"""Copy lightlinks from one meshShape to another
+		@param substitute: if True, default False, the other shape will be put
+		in place of self, effectively receiving it's light-links whereas self losses
+		them. This is practical in case you create a new shape below a transform that
+		had a previously visible and manipulated shape whose external connections you
+		wouuld like to keep"""
+		def getFreeLogicalIndex( parent_plug ):
+			"""@return: a free parent compound index"""
+			ilogical = parent_plug.getLogicalIndex()
+			array_plug = parent_plug.getArray()
+			num_elments = array_plug.getNumElements()
+
+
+			# one of the logical indices must be the highest one - start searching
+			# at the end of the physical array
+			for iphysical in xrange( num_elments - 1, -1, -1 ):
+				p_plug = array_plug[ iphysical ]
+				try_index = p_plug.getLogicalIndex() + 1
+				try_plug = array_plug.getByLogicalIndex( try_index )
+
+				if try_plug.getChild( 0 ).p_input.isNull():
+					return try_index
+			# END endless loop
+
+			raise AssertionError( "Did not find valid free index" )
+		# END helper method
+
+		substitute = kwargs.get( "substitute", False )
+		for input_plug in self.message.p_outputs:
+			node = input_plug.getNode()
+			if node.getApiType() != api.MFn.kLightLink:
+				continue
+
+			# we are always connected to the object portion of the compound model
+			# from there we can conclude it all
+			parent_compound = input_plug.getParent()
+			target_compound_index = -1
+			if substitute:
+				target_compound_index = parent_compound.getLogicalIndex()
+			else:
+				target_compound_index = getFreeLogicalIndex( parent_compound )
+
+			new_parent_compound = parent_compound.getArray().getByLogicalIndex( target_compound_index )
+
+			# retrieve light link, connect other - light is only needed if we do not
+			# substitute
+			if not substitute:
+				light_plug = parent_compound.getChild( 0 ).p_input
+				if not light_plug.isNull():
+					light_plug > new_parent_compound.getChild( 0 )
+				# END if lightplug is connected
+			# END if no substitute required
+
+			# connect object
+			other.message >> new_parent_compound.getChild( 1 )
+
+
+		# END for each output plug
 
 
 class DeformableShape( GeometryShape ):	# base for epydoc !
@@ -198,6 +258,7 @@ class Mesh( SurfaceShape ):		# base for epydoc !
 		setFilter = kwargs.pop( "setFilter", Shape.fSetsRenderable )
 		for sg, comp in self.getComponentAssignments( setFilter = setFilter ):
 			sg.addMember( other, comp, **kwargs )
+
 
 	@undoable
 	def resetTweaks( self, tweak_type = eComponentType.vertex, keep_tweak_result = False ):
