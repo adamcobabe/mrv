@@ -2132,8 +2132,11 @@ class DagPath( api.MDagPath, iDagItem ):
 	def getShapes( self, predicate = lambda x: True ):
 		"""Get all shapes below this path
 		@return: paths to all shapes below this path
-		@param predicate: returns True to include path in result"""
-		return self.getChildrenByFn( api.MFn.kShape, predicate=predicate )
+		@param predicate: returns True to include path in result
+		@note: have to explicitly assure we do not get transforms that are compatible to the shape function
+		set for some reason - this is just odd and shouldn't be, but it happens if a transform has an instanced
+		shape for example, perhaps even if it is not instanced"""
+		return [ shape for shape in self.getChildrenByFn( api.MFn.kShape, predicate=predicate ) if shape.apiType() != api.MFn.kTransform ]
 
 	def getTransforms( self, predicate = lambda x: True ):
 		"""Get all transforms below this path
