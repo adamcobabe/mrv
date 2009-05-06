@@ -254,6 +254,33 @@ class ScrollField( uibase.SizedControl ):
 						"changeCommand", "cc"		)
 
 
+class TextScrollList( uibase.SizedControl ):
+	"""Class defining attributes and events for the text-scroll list"""
+	_properties_ = ( 	"append", "a",
+						"appendPosition", "ap",
+						"allItems", "ai",
+						"allowAutomaticSelection", "aas",
+						"allowMultiSelection", "ams",
+						"numberOfItems", "ni",
+						"numberOfRows", "nr",
+						"numberOfSelectedItems", "nsi",
+						"removeAll", "ra"
+						"removeItem", "ri",
+						"removeIndexedItem", "rii",
+						"selectItem", "si",
+						"selectIndexedItem", "sii",
+						"deselectAll", "da",
+						"deselectItem", "di",
+						"deselectIndexedItem", "dii",
+						"showIndexedItem", "shi",
+						"font", "fn" )
+
+	_events_ = ( 	"doubleClickCommand", "dcc",
+					"deleteKeyCommand", "dkc",
+					"selectCommand", "sc" )
+
+
+
 class TextFieldGrp( GroupBase, TextFieldGroupBase ):
 	"""Class just for multiple inheritance - this cannot be expressed in the hierarchy
 	file"""
