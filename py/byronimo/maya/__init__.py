@@ -225,7 +225,7 @@ def init_system( ):
 
 		if  ( mayaversion == "8.5" and pyminor != 4 ) or \
 			( mayaversion == "2008" and pyminor != 5 ) or \
-			( mayaversion == "2009" and pyminor != 6 ):
+			( mayaversion == "2009" and pyminor != 5 ):
 			raise EnvironmentError( "Maya " + mayaversion + " python interpreter requirements not met" )
 
 
