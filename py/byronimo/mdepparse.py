@@ -223,7 +223,12 @@ class MayaFileGraph( DiGraph ):
 		"""@return: list of filePaths that could not be parsed, most probably
 		because they could not be found by the system"""
 		lenp = len( self.invalidPrefix  )
-		return [ iv[ lenp : ] for iv in self.successors( self.invalidNodeID ) ]
+
+		try:
+			return [ iv[ lenp : ] for iv in self.successors( self.invalidNodeID ) ]
+		except NetworkXError:
+			return list()
+		# END no invalid found exception handling
 	#} END query
 
 
