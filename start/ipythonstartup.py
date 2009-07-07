@@ -4,12 +4,14 @@ maya.standalone.initialize()
 import os
 
 # try to load custom settings
-try: 
+if "PYMAYASTD_CONFIG" in os.environ:
 	filepath = os.environ[ "PYMAYASTD_CONFIG" ]
-	execfile( filepath )
-except:
+	try:
+		execfile( filepath )
+	except Exception:
+		print "Failed to run configuration script"
+else:
 	print "Set PYMAYASTD_CONFIG to point to python script doing additional setup"
-	raise
 
 # init ipython - needs to be available in your local python installation
 try: 

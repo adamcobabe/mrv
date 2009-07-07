@@ -13,7 +13,7 @@ fi
 mayaversiondefault=8.5
 mayaversion=${1:-$mayaversiondefaul}
 if [[ ! $mayaversion == 8.5 && ! $mayaversion == 20?? ]]; then
-	# conosider id an argument and keep it
+	# consider id an argument and keep it
 	mayaversion=$mayaversiondefault
 fi
 

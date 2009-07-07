@@ -1,2 +1,0 @@
-These helper scripts allows to startup the default python installation with maya.standalone loaded. This allows to operate maya from within the python shell, as if it was a maya -prompt mode instance.
-
