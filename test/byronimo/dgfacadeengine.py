@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-"""B{byronimotest.byronimo.dgfacadeengine}
+"""B{mayarvtest.byronimo.dgfacadeengine}
 Test dependency graph engine
 
 

@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-"""B{byronimo.automation.base}
+"""B{mayarv.automation.base}
 general methods and classes
 
 @newfield revision: Revision

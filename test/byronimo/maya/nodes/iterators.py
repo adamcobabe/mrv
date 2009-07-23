@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-"""B{byronimotest.byronimo.maya.nodes.iterators}
+"""B{mayarvtest.byronimo.maya.nodes.iterators}
 
 Test node iterators
 

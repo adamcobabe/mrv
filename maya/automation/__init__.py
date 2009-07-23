@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-"""B{byronimo.maya.automation}
+"""B{mayarv.maya.automation}
 Intiailize the automation and process framework for maya
 
 @newfield revision: Revision

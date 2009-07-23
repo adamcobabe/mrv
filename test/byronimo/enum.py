@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-"""B{byronimotset.byronimo.enum}
+"""B{mayarvtset.byronimo.enum}
 
 @note: adjusted by Sebastian Thiel
 @newfield revision: Revision

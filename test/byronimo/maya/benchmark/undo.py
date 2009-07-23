@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-"""B{byronimotest.byronimo.maya.benchmark.undo}
+"""B{mayarvtest.byronimo.maya.benchmark.undo}
 
 Test undo queue performance
 

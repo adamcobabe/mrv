@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-"""B{byronimotest.byronimo.maya.nodes.storage}
+"""B{mayarvtest.byronimo.maya.nodes.storage}
 
 Test storage system and storage node
 

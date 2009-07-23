@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-"""B{byronimotest.byronimo.util}
+"""B{mayarvtest.byronimo.util}
 Test misc utility classes
 
 

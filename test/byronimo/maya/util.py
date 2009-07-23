@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-"""B{byronimo.maya.util}
+"""B{mayarv.maya.util}
 
 Test utility classes
 

@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-"""B{byronimo.automation}
+"""B{mayarv.automation}
 Intiailize the automation and process framework
 
 @newfield revision: Revision

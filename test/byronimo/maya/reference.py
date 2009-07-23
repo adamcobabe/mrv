@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-"""B{byronimotest.byronimo.maya.reference}
+"""B{mayarvtest.byronimo.maya.reference}
 
 Test the reference methods
 

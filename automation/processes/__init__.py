@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-"""B{byronimo.automation.processes}
+"""B{mayarv.automation.processes}
 Contains all processes
 
 @newfield revision: Revision

@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-"""B{byronimo.automation.attributes}
+"""B{mayarv.automation.attributes}
 Contains specialized attributes that judge value based on different criteria,
 allowing more elaborate typecheckingr
 

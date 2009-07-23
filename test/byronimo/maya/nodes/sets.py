@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-"""B{byronimotest.byronimo.maya.nodes.sets}
+"""B{mayarvtest.byronimo.maya.nodes.sets}
 
 Test sets and partitions
 

@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-"""B{byronimotest.byronimo.maya.automation.qa}
+"""B{mayarvtest.byronimo.maya.automation.qa}
 
 Test the quality assurance framework and it's mel bindings
 

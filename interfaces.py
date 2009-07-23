@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-"""B{byronimo.interfaces}
+"""B{mayarv.interfaces}
 Contains interface definitions
 
 @newfield revision: Revision

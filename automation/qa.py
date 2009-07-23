@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-"""B{byronimo.automation.qa}
+"""B{mayarv.automation.qa}
 Specialization of workflow to provide quality assurance capabilities.
 
 General Idiom of a quality assurance facility is to provide read-only checks for

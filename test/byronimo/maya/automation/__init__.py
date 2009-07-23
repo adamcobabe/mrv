@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-"""B{byronimotest.byronimo.maya.automation}
+"""B{mayarvtest.byronimo.maya.automation}
 
 Intialize the maya automation test suite
 

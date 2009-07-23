@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-"""B{byronimo.automation.workflows}
+"""B{mayarv.automation.workflows}
 Keeps all workflows specific to maya
 
 @note: L{createWorkflow} method must be supported in a module keeping workflows

@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-"""B{byronimo.automation.workflow}
+"""B{mayarv.automation.workflow}
 Contains workflow classes that conenct processes in a di - graph
 
 @newfield revision: Revision

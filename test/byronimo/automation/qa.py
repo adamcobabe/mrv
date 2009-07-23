@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-"""B{byronimotest.byronimo.automation.qa}
+"""B{mayarvtest.byronimo.automation.qa}
 
 Test the quality assurance framework
 

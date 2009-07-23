@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-"""B{byronimotest.byronimo}
+"""B{mayarvtest.byronimo}
 initialize the byronimo main tests
 
 @newfield revision: Revision

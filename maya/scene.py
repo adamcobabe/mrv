@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-"""B{byronimo.maya.scene}
+"""B{mayarv.maya.scene}
 
 Provides methodes to query and alter the currently loaded scene. It covers
 most of the functionality of the 'file' command, but has been renamed to scene

@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-"""B{byronimo.nodes.sets}
+"""B{mayarv.nodes.sets}
 
 Contains improved clases for set and partition editing 
 

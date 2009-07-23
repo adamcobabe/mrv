@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-"""B{byronimotest.byronimo.automation}
+"""B{mayarvtest.byronimo.automation}
 
 Intialize the automation test suite
 

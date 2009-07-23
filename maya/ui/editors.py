@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-"""B{byronimo.ui.editors}
+"""B{mayarv.ui.editors}
 
 Contains implementations of maya editors
 @todo: more documentation

@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-"""B{byronimo.decorators}
+"""B{mayarv.decorators}
 
 Contains all decorator functions
 

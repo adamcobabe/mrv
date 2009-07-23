@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-"""B{byronimo.automation.report}
+"""B{mayarv.automation.report}
 contains report implementations allowing to analyse the callgraph of
 
 @newfield revision: Revision

@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-"""B{byronimo.uibase.dialogs}
+"""B{mayarv.uibase.dialogs}
 
 Contains some default dialogs as well as layouts suitable for layout dialogs
 

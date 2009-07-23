@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-"""B{byronimo.maya.test.namespace}
+"""B{mayarv.maya.test.namespace}
 
 Test the namespace methods
 

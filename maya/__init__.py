@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-"""B{byronimo.maya}
+"""B{mayarv.maya}
 
 Inialize the byronimo.maya sub-system and assure and startup maya natively
 

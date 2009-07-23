@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-"""B{byronimotest.byronimo.maya.nodes.general}
+"""B{mayarvtest.byronimo.maya.nodes.general}
 
 Test general nodes features
 

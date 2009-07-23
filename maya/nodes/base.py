@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-"""B{byronimo.nodes.base}
+"""B{mayarv.nodes.base}
 
 Contains some basic  classes that are required to run the nodes system
 

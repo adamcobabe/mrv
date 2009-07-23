@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-"""B{byronimotest.byronimo.automation.workflow}
+"""B{mayarvtest.byronimo.automation.workflow}
 
 Test the workflow class
 

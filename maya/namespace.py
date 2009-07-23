@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-"""B{byronimo.maya.namespace}
+"""B{mayarv.maya.namespace}
 
 Allows convenient access and handling of namespaces in an object oriented manner
 @todo: more documentation

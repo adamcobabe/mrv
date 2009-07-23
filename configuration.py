@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-"""B{byronimo.configuration}
+"""B{mayarv.configuration}
 
 Contains implementation of the configuration system allowing to flexibly control
 the programs behaviour.

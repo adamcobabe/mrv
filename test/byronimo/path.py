@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-"""B{byronimotset.byronimo.path}
+"""B{mayarvtset.byronimo.path}
 Test path methods
 
 @todo: actual implementation of path tests - currently it is just a placeholder assuring

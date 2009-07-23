@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-"""B{byronimotest.byronimo.maya.ui.general}
+"""B{mayarvtest.byronimo.maya.ui.general}
 
 Test some default ui capababilities
 

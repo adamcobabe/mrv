@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-"""B{byronimo.maya.nodes}
+"""B{mayarv.maya.nodes}
 
 All classes required to wrap maya nodes in an object oriented manner into python objects
 and allow easy handling of them.

@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-"""B{byronimo.init}
+"""B{mayarv.init}
 
 Initialize Byronimo system assisting development, debugging and maintenance
 
@@ -21,7 +21,7 @@ __copyright__='(c) 2008 Sebastian Thiel'
 import __builtin__
 from inspect import isfunction
 
-# EXPORT
+# EXPORTsd
 __all__ = []
 
 
@@ -108,7 +108,7 @@ def _init_decorators( ):
 	"""Installs general decorators
 
 	Decorators will help maintaining the system - this method installs
-	them in the __builtin__ namespace to make them available to all L{byronimo}
+	them in the __builtin__ namespace to make them available to all L{mayarv}
 	classes """
 	import byronimo.decorators
 

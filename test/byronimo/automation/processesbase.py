@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-"""B{byronimotest.byronimo.automation}
+"""B{mayarvtest.byronimo.automation}
 
 Test provided base processes
 @note: this file is here containing all default prcess tests one gets nasty

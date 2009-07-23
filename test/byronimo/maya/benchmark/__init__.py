@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-"""B{byronimotest.byronimo.maya.benchmark}
+"""B{mayarvtest.byronimo.maya.benchmark}
 
 Intialize and run all benchmark - the system is currently unittest based and
 proper benchmarks should be implemented on per test basis.

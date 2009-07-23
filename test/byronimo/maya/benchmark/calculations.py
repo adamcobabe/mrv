@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-"""B{byronimotest.byronimo.maya.benchmark.calculations}
+"""B{mayarvtest.byronimo.maya.benchmark.calculations}
 
 Some more math related tests
 

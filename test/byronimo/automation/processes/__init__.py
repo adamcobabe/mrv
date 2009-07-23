@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-"""B{byronimotest.byronimo.automation.processes}
+"""B{mayarvtest.byronimo.automation.processes}
 
 Intialize suite checking all processes
 

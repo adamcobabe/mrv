@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-"""B{byronimotest.byronimo.maya.scene}
+"""B{mayarvtest.byronimo.maya.scene}
 
 Test the scene methods
 

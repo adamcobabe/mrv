@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-"""B{byronimo.automation.process}
+"""B{mayarv.automation.process}
 Contains base class and common methods for all processes
 
 @newfield revision: Revision

@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-"""B{byronimo.maya.utils}
+"""B{mayarv.maya.utils}
 All kinds of utility methods and classes that are used in more than one modules
 
 @newfield revision: Revision

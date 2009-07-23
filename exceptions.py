@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-"""B{byronimo.exceptions}
+"""B{mayarv.exceptions}
 
 Contains all exceptions used by the byronimo package in general
 

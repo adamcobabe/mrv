@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-"""B{byronimo.nodes.undo}
+"""B{mayarv.nodes.undo}
 
 Contains the undo engine allowing to adjust the scene with api commands while
 providing full undo and redo support.

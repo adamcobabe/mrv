@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-"""B{byronimo.maya.nodes.apipatch}
+"""B{mayarv.maya.nodes.apipatch}
 
 Contains patch classes that are altering their respective api classes
 

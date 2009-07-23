@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-"""B{byronimotest.byronimo.automation.report}
+"""B{mayarvtest.byronimo.automation.report}
 
 Test default report classes
 

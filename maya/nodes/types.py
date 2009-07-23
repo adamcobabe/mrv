@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-"""B{byronimo.nodes.types}
+"""B{mayarv.nodes.types}
 
 Deals with types of objects and mappings between them
 

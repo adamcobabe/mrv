@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-"""B{byronimo.maya.automation.qa}
+"""B{mayarv.maya.automation.qa}
 Specialization of workflow to allow checks to be natively implemented in MEL
 
 

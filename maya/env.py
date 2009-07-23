@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-"""B{byronimo.maya.env}
+"""B{mayarv.maya.env}
 
 Allows to query the maya environment, like variables, version numbers and system
 paths.

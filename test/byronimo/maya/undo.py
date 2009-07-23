@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-"""B{byronimotest.byronimo.maya.undo}
+"""B{mayarvtest.byronimo.maya.undo}
 
 Test ALL features of the undo queue
 

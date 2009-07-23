@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-"""B{byronimotest.byronimo.configuration}
+"""B{mayarvtest.byronimo.configuration}
 Test all aspects of the configuration management system
 
 @newfield revision: Revision

@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-"""B{byronimotest.byronimo.decorators}
+"""B{mayarvtest.byronimo.decorators}
 Test all aspects of decorators
 
 	- use test classes and run test on their possibly decorated functions

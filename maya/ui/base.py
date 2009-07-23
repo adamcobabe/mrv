@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-"""B{byronimo.ui.base}
+"""B{mayarv.ui.base}
 
 Contains some basic  classes that are required to run the UI system
 

@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-"""B{byronimo.batch}
+"""B{mayarv.batch}
 This modules contains utilities to do opeations in batch mode.
 The module can be used from within python if required, but is more commonly used
 from the commandline, possibly wrapped by a shell script to specialize its usae

@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-"""B{byronimo.automation.dgengine}
+"""B{mayarv.automation.dgengine}
 Contains a simple but yet powerful dependency graph engine allowing computations
 to be organized more efficiently.
 
