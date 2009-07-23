@@ -11,7 +11,7 @@ a cache has to be cleared or not ... possibly
 """
 
 __author__='$Author: byron $'
-__contact__='byron@byronimo.de'
+__contact__='byronimo <.a.t.> gmail <.> com'
 __version__=1
 __license__='MIT License'
 __date__="$Date: 2008-08-12 15:33:55 +0200 (Tue, 12 Aug 2008) $"

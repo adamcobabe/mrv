@@ -18,7 +18,7 @@ Decorators are used to
 """
 
 __author__='$Author$'
-__contact__='byron@byronimo.de'
+__contact__='byronimo <.a.t.> gmail <.> com'
 __version__=1
 __license__='MIT License'
 __date__="$Date$"

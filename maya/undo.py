@@ -34,7 +34,7 @@ sys._maya_undo_enabled = False ( default True )
 @newfield id: SVN Id """
 
 __author__='$Author: byron $'
-__contact__='byron@byronimo.de'
+__contact__='byronimo <.a.t.> gmail <.> com'
 __version__=1
 __license__='MIT License'
 __date__="$Date: 2008-05-29 02:30:46 +0200 (Thu, 29 May 2008) $"

@@ -10,7 +10,7 @@ Contains some basic  classes that are required to run the UI system
 """
 
 __author__='$Author: byron $'
-__contact__='byron@byronimo.de'
+__contact__='byronimo <.a.t.> gmail <.> com'
 __version__=1
 __license__='MIT License'
 __date__="$Date: 2008-05-29 02:30:46 +0200 (Thu, 29 May 2008) $"
@@ -38,8 +38,8 @@ def precreateTypes( typelist ):
 	Call this method if you intend to derive from a byronimo UI class that is
 	not directly implemented, but auto-created on demand.
 	Otherwise you might end up deriving yourself from a proxy class
-	@param typelist: iterable( byronimoUIType, ... ) list of types as defined in the
-	byronimo.maya.ui package
+	@param typelist: iterable( mayarvUIType, ... ) list of types as defined in the
+	maya.ui package
 	@note: this method is safe to be used without checking even if the passed in
 	types are no proxy classes anymore
 	@note: use like precreateTypes( [ bui.CheckBoxCtrl ] ) where bui is the
