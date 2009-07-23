@@ -1,1 +1,0 @@
-Contains all python source files - they follow a simplified java packaging scheme, leaving out the distinguished country name as root folder.
