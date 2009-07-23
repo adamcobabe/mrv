@@ -26,7 +26,7 @@ import inspect
 import weakref
 import itertools
 import copy
-from byronimo.util import iDuplicatable
+from util import iDuplicatable
 
 #####################
 ## EXCEPTIONS ######

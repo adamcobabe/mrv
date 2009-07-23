@@ -11,7 +11,6 @@ Decorators are used to
 
 @warn: all methods without a leading underscore will be made available as decorators
 @NOTE: All decorators will return unaltered methods if the DEBUG mode is not enabled
-@see: L{byronimo.test.decorators}
 
 @newfield revision: Revision
 @newfield id: SVN Id
@@ -29,7 +28,7 @@ __copyright__='(c) 2008 Sebastian Thiel'
 
 import sys
 
-from byronimo.exceptions import ( 	TypecheckDecoratorError,
+from exceptions import ( 	TypecheckDecoratorError,
 									MethodTypeError,
 									InterfaceError,
 									InterfaceSetupError,
@@ -188,8 +187,7 @@ def typecheck_param( *args, **kwargs ):
 	@raise MethodTypeError:
 	@raise TypecheckDecoratorError: inidcates incorrect decorator usage
 	@note: Will only work in debug mode - otherwise the method will be returned
-	unaltered
-	@see: L{byronimo.test.decorators.TestTypecheckDecorators} """
+	unaltered"""
 	def _dotypecheck( func ):
 		# if not debug mode return func
 		argtypelist = args

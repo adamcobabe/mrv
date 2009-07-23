@@ -131,7 +131,7 @@ def process( cmd, args, inputList, errorstream = None, donestream = None, inputs
 
 def _usageAndExit( msg = None ):
 	"""Print usage"""
-	print """python ../byronimo/batch.py inputarg [inputarg ...] [-E fileForErrors|-] [-D fileForFinishedOutput|-] [-s numInputsPerProcess] -e cmd [cmdArg ...]
+	print """python batch.py inputarg [inputarg ...] [-E fileForErrors|-] [-D fileForFinishedOutput|-] [-s numInputsPerProcess] -e cmd [cmdArg ...]
 -E|D - 	means to use the default stream, either stderr or stdout
 -I	if specified, arguments will also be read from stdin until it is depleted as
 	newline separated list of names

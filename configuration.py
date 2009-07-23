@@ -36,7 +36,7 @@ from ConfigParser import (	RawConfigParser,
 							NoSectionError,
 							NoOptionError,
 							ParsingError)
-from byronimo.exceptions import ByronimoError
+from exceptions import MayaRVError
 import copy
 import re
 import sys
@@ -45,7 +45,7 @@ import os
 
 #{ Exceptions
 ################################################################################
-class ConfigParsingError( ByronimoError ):
+class ConfigParsingError( MayaRVError ):
 	""" Indicates that the parsing failed """
 	pass
 
@@ -606,7 +606,7 @@ class ConfigManager( object ):
 
 		# GET ALL FILES IN THE GIVEN DIRECTORIES
 		########################################
-		from byronimo.path import Path
+		from path import Path
 		matchedFiles = []
 		for folder in directories:
 			for pattern in workpatterns:

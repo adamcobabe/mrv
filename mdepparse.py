@@ -16,10 +16,10 @@ __revision__="$Revision: 50 $"
 __id__="$Id: configuration.py 50 2008-08-12 13:33:55Z byron $"
 __copyright__='(c) 2008 Sebastian Thiel'
 
-import byronimo				# assure we have the main module !
+import mayarv				# assure we have the main module initialized
 from networkx import DiGraph, NetworkXError
 from networkx.readwrite import gpickle
-from byronimo.util import iterNetworkxGraph
+from util import iterNetworkxGraph
 from itertools import chain
 
 import getopt

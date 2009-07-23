@@ -20,7 +20,7 @@ from networkx import DiGraph, NetworkXError
 from collections import deque
 import inspect
 import weakref
-from byronimo.util import iDuplicatable
+from util import iDuplicatable
 
 from dgengine import NodeBase
 from dgengine import _PlugShell

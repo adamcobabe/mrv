@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 """B{mayarv.init}
 
-Initialize Byronimo system assisting development, debugging and maintenance
+Initialize mayarv system assisting development, debugging and maintenance
 
 	- install general L{decorators} into __builtin__ namespace
 
@@ -84,7 +84,7 @@ def init_modules( filepath, moduleprefix, recurse=False ):
 def _init_syspath( ):
 	""" Initialize the path such that additional modules can be found"""
 	# get external base
-	extbase = os.path.join( os.path.split( __file__ )[0], "../../ext" )
+	extbase = os.path.join( os.path.split( __file__ )[0], "ext" )
 
 	# pyparsing
 	pyparsing = os.path.join( extbase, "pyparsing" )
@@ -110,17 +110,17 @@ def _init_decorators( ):
 	Decorators will help maintaining the system - this method installs
 	them in the __builtin__ namespace to make them available to all L{mayarv}
 	classes """
-	import byronimo.decorators
+	import decorators
 
 	pred = lambda x: isfunction( x ) and not x.func_name.startswith( "_" )
-	decorator_functions = [ func for func in byronimo.decorators.__dict__.itervalues() if pred( func ) ]
+	decorator_functions = [ func for func in decorators.__dict__.itervalues() if pred( func ) ]
 
 	# put decoratrors into __builtin__ namespace
 	for func in decorator_functions:
 		__builtin__.__dict__[ func.func_name ] = func
 
 	# add the interface class to the builtin namespace also
-	__builtin__.__dict__[ 'interface' ] = byronimo.decorators.interface
+	__builtin__.__dict__[ 'interface' ] = decorators.interface
 
 
 def _init_configProvider( ):
@@ -137,11 +137,11 @@ def _init_internationalization( ):
 
 	Will map the '_' function to translate enclosed strings """
 	import gettext
-	gettext.install( "byronimo" )
+	gettext.install( "mayarv" )
 
 
 def _init_logging( ):
-	""" Initialize the default byronimo logging interface
+	""" Initialize the default mayarv logging interface
 
 	The logging interface unifies the way messages for the end user are handled
 	and assure a flexible message handling.
