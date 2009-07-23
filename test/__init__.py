@@ -55,13 +55,13 @@ def get_suite( ):
 	import inspect
 
 	import byronimotest.byronimo as byronimo
-	import byronimotest.byronimo.automation as automation
-	import byronimotest.byronimo.automation.processes as automationproceses
-	import byronimotest.byronimo.automation.workflows as automationworkflows
-	import byronimotest.byronimo.maya as maya
-	import byronimotest.byronimo.maya.ui as mayaui
-	import byronimotest.byronimo.maya.nodes as Nodes
-	import byronimotest.byronimo.maya.benchmark as benchmark
+	import byronimotest.mayarv.automation as automation
+	import byronimotest.mayarv.automation.processes as automationproceses
+	import byronimotest.mayarv.automation.workflows as automationworkflows
+	import byronimotest.mayarv.maya as maya
+	import byronimotest.mayarv.maya.ui as mayaui
+	import byronimotest.mayarv.maya.nodes as Nodes
+	import byronimotest.mayarv.maya.benchmark as benchmark
 
 	testmodules = [ t[1] for t in locals().iteritems() if t[0] != 'inspect' and inspect.ismodule( t[1] ) ]
 

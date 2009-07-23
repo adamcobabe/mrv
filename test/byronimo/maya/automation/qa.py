@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-"""B{mayarvtest.byronimo.maya.automation.qa}
+"""B{mayarvtest.mayarv.maya.automation.qa}
 
 Test the quality assurance framework and it's mel bindings
 
@@ -18,11 +18,11 @@ __copyright__='(c) 2008 Sebastian Thiel'
 
 
 import unittest
-import byronimo.maya.automation.qa as qa
-import byronimo.automation.processes as processes
-import byronimotest.byronimo.automation.workflows as workflows
-import byronimotest.byronimo.automation.processes as processes
-from byronimo.maya.util import Mel
+import mayarv.maya.automation.qa as qa
+import mayarv.automation.processes as processes
+import byronimotest.mayarv.automation.workflows as workflows
+import byronimotest.mayarv.automation.processes as processes
+from mayarv.maya.util import Mel
 import maya.mel as mmel
 
 #  create test methods
@@ -72,7 +72,7 @@ class TestQualityAssurance( unittest.TestCase ):
 	"""Test qa framework"""
 
 	def test_melqa_workflow( self ):
-		"""byronimo.maya.automation.qa: test mel processes"""
+		"""mayarv.maya.automation.qa: test mel processes"""
 
 		wfl = workflows.qualitychecking
 		tprocess = wfl.TestMELProcess

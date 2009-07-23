@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-"""B{mayarvtset.byronimo.enum}
+"""B{mayarvtset.mayarv.enum}
 
 @note: adjusted by Sebastian Thiel
 @newfield revision: Revision
@@ -16,7 +16,7 @@ __id__="$Id:$"
 __copyright__='(c) 2003 Don Garret'
 
 import unittest
-import byronimo.enum as Enumeration
+import mayarv.enum as Enumeration
 import operator
 import pickle
 from cStringIO import StringIO
@@ -24,7 +24,7 @@ from cStringIO import StringIO
 
 class ElementTestCase(unittest.TestCase):
 	def testElementComparisons(self):
-		"""byronimo.enum: testElementComparisons"""
+		"""mayarv.enum: testElementComparisons"""
 		e = Enumeration.create('fred', 'bob', 'joe', 'larry', 'moe')
 		e2 = Enumeration.create('red', 'green', 'blue')
 		e3 = Enumeration.create('fred', 'bob', 'joe', 'larry', 'moe')
@@ -60,14 +60,14 @@ class ElementTestCase(unittest.TestCase):
 		self.failUnless(e.fred != 'fred')
 
 	def testElementRepresentation(self):
-		"""byronimo.enum: testElementRepresentation"""
+		"""mayarv.enum: testElementRepresentation"""
 		e = Enumeration.create('fred', 'bob')
 
 		self.failUnless('fred' == str(e.fred))
 		self.failUnless('bob' == str(e[1]))
 
 	def testElementToEnumeration(self):
-		"""byronimo.enum: testElementToEnumeration"""
+		"""mayarv.enum: testElementToEnumeration"""
 		e = Enumeration.create('fred', 'bob')
 
 		i = e.fred
@@ -79,7 +79,7 @@ class ElementTestCase(unittest.TestCase):
 class EnumerateTestCase(unittest.TestCase):
 
 	def testMembers(self):
-		"""byronimo.enum: testMembers"""
+		"""mayarv.enum: testMembers"""
 		e = Enumeration.create('George',
 							   'John',
 							   ('Paul', 2),
@@ -98,7 +98,7 @@ class EnumerateTestCase(unittest.TestCase):
 
 
 	def testTupleness(self):
-		"""byronimo.enum: testTupleness"""
+		"""mayarv.enum: testTupleness"""
 		e = Enumeration.create('George',
 							   'John',
 							   ('Paul', 2),
@@ -126,7 +126,7 @@ class EnumerateTestCase(unittest.TestCase):
 
 
 	def testMultipleEnums(self):
-		"""byronimo.enum: testMultipleEnums"""
+		"""mayarv.enum: testMultipleEnums"""
 		e  = Enumeration.create('fred', 'bob')
 		e2 = Enumeration.create('joe', 'bob')
 
@@ -145,7 +145,7 @@ class EnumerateTestCase(unittest.TestCase):
 			pass
 
 	def testReadOnly(self):
-		"""byronimo.enum: testReadOnly"""
+		"""mayarv.enum: testReadOnly"""
 		e = Enumeration.create('fred', 'bob')
 
 		try:
@@ -168,7 +168,7 @@ class EnumerateTestCase(unittest.TestCase):
 
 
 	def testNameLookup(self):
-		"""byronimo.enum: testNameLookup"""
+		"""mayarv.enum: testNameLookup"""
 		e = Enumeration.create('George', 'John',
 							   ('Paul', 2), ('Ringo', 'drummer'))
 
@@ -183,7 +183,7 @@ class EnumerateTestCase(unittest.TestCase):
 			pass
 
 	def testValueLookup(self):
-		"""byronimo.enum: testValueLookup"""
+		"""mayarv.enum: testValueLookup"""
 		e = Enumeration.create('George', 'John',
 							   ('Paul', 2), ('Ringo', 'drummer'))
 
@@ -195,7 +195,7 @@ class EnumerateTestCase(unittest.TestCase):
 		self.failUnless( e( "George" ) == e.George )
 
 	def testNextAndPrevious( self ):
-		"""byronimo.enum: testNextAndPrevious"""
+		"""mayarv.enum: testNextAndPrevious"""
 		e2 = Enumeration.create('joe', 'bob')
 		e1 = Enumeration.create( 'joe' )
 
@@ -211,7 +211,7 @@ class EnumerateTestCase(unittest.TestCase):
 		self.failUnless( e1.previous( e1[0], wrap_around = 1 ) == e1[0] )
 
 	def testPickleUnpickle( self ):
-		"""byronimo.enum: test pickling and unpiclking results
+		"""mayarv.enum: test pickling and unpiclking results
 
 		This test actually shows that the cycle in the """
 		src = StringIO()
@@ -232,7 +232,7 @@ class EnumerateTestCase(unittest.TestCase):
 
 
 	def testBitFlags( self ):
-		"""byronimo.enum: test bitflag capabilities"""
+		"""mayarv.enum: test bitflag capabilities"""
 		e1 = Enumeration.create( "foo", "bar", "this", bitflag = 1 )
 
 		orres = e1.foo | e1.bar
@@ -253,7 +253,7 @@ class EnumerateTestCase(unittest.TestCase):
 		assert e1.foo ^ e1.foo.getValue() == 0
 
 	def test_dict( self ):
-		"""byronimo.enum: assure that sets and dicts work properly"""
+		"""mayarv.enum: assure that sets and dicts work properly"""
 		# should always work as elements or global items
 		e1 = Enumeration.create( "foo", "bar", "this" )
 		e2 = Enumeration.create( "foo1", "bar2", "this3" )

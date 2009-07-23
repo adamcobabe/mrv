@@ -18,10 +18,10 @@ __revision__="$Revision: 16 $"
 __id__="$Id: configuration.py 16 2008-05-29 00:30:46Z byron $"
 __copyright__='(c) 2008 Sebastian Thiel'
 
-import byronimo.maya.undo as undo
-from byronimo.util import iDuplicatable
+import mayarv.maya.undo as undo
+from mayarv.util import iDuplicatable
 import maya.cmds as cmds
-nodes = __import__( "byronimo.maya.nodes", globals(), locals(), [ 'nodes' ] )
+nodes = __import__( "mayarv.maya.nodes", globals(), locals(), [ 'nodes' ] )
 
 
 #{ Initialization

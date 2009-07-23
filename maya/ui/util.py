@@ -19,10 +19,10 @@ __id__="$Id: configuration.py 16 2008-05-29 00:30:46Z byron $"
 __copyright__='(c) 2008 Sebastian Thiel'
 
 
-from byronimo.util import CallbackBase, Call, WeakInstFunction
+from mayarv.util import CallbackBase, Call, WeakInstFunction
 import maya.cmds as cmds
 import weakref
-from byronimo.enum import create as enum
+from mayarv.enum import create as enum
 
 #{ MEL Function Wrappers
 

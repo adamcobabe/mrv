@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-"""B{mayarvtest.byronimo.automation.qa}
+"""B{mayarvtest.mayarv.automation.qa}
 
 Test the quality assurance framework
 
@@ -19,14 +19,14 @@ __copyright__='(c) 2008 Sebastian Thiel'
 
 import unittest
 import workflows
-import byronimo.automation.qa as qa
+import mayarv.automation.qa as qa
 from cStringIO import StringIO
 
 class TestQualityAssurance( unittest.TestCase ):
 	"""Test qa framework"""
 
 	def test_simpleQAWorkflow( self ):
-		"""byronimo.automation.qa: test how a simple qa workflow handles itself"""
+		"""mayarv.automation.qa: test how a simple qa workflow handles itself"""
 		qawfl = workflows.qualitychecking
 		checks = qawfl.listChecks( )
 		assert checks

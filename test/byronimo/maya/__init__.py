@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-"""B{mayarvtest.byronimo.maya}
+"""B{mayarvtest.mayarv.maya}
 
 Intialize the byronimo maya testing suite
 
@@ -17,7 +17,7 @@ __id__="$Id: __init__.py 22 2008-07-16 20:41:16Z byron $"
 __copyright__='(c) 2008 Sebastian Thiel'
 
 import unittest
-import byronimo.maya as bmaya
+import mayarv.maya as bmaya
 import byronimotest as common
 import maya.cmds as cmds
 import os
@@ -45,7 +45,7 @@ def get_suite( ):
 	# custom setup
 	bmaya.Mel.putenv( "MAYAFILEBASE", os.path.dirname( __file__ ) )
 	cmds.undoInfo( infinity=1 )
-	import byronimotest.byronimo.maya as self
+	import byronimotest.mayarv.maya as self
 	return common.get_package_suite( self )
 
 def run( **runner_args ):

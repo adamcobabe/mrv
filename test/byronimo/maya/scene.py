@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-"""B{mayarvtest.byronimo.maya.scene}
+"""B{mayarvtest.mayarv.maya.scene}
 
 Test the scene methods
 
@@ -18,14 +18,14 @@ __copyright__='(c) 2008 Sebastian Thiel'
 
 
 import unittest
-from byronimo.maya.scene import Scene
+from mayarv.maya.scene import Scene
 import maya.OpenMaya as om
 import os.path as path
-import byronimo.maya.env as env
-from byronimo.path import Path
+import mayarv.maya.env as env
+from mayarv.path import Path
 import tempfile
 import shutil
-import byronimotest.byronimo.maya as common
+import byronimotest.mayarv.maya as common
 
 class TestSceneRunner( unittest.TestCase ):
 	""" Test the database """
@@ -63,7 +63,7 @@ class TestSceneRunner( unittest.TestCase ):
 		self.failUnless( len( Scene.Callbacks._callbacks[ sid ] ) == ncb )
 
 	def test_cbgroup_zero( self ):
-		"""byronimo.maya.scene: use group 0 check callbacks """
+		"""mayarv.maya.scene: use group 0 check callbacks """
 		if env.getAppVersion( )[0] == 8.5:
 			return
 
@@ -72,7 +72,7 @@ class TestSceneRunner( unittest.TestCase ):
 								Scene.new )
 
 	def test_cbgroup_one( self ):
-		"""byronimo.maya.scene: check file callback """
+		"""mayarv.maya.scene: check file callback """
 		if env.getAppVersion( )[0] == 8.5:
 			return
 
@@ -83,21 +83,21 @@ class TestSceneRunner( unittest.TestCase ):
 								triggerFunc )
 
 	def test_cbgroup_twp( self ):
-		"""byronimo.maya.scene: Test ordinary scene callbacks """
+		"""mayarv.maya.scene: Test ordinary scene callbacks """
 		self._runMessageTest( "test_two", om.MSceneMessage.kBeforeNew,
 							 	lambda *args: TestSceneRunner.cbgroup_two( self,*args ),
 								lambda: Scene.new( force = True ) )
 
 	def test_open( self ):
-		"""byronimo.maya.scene: open file"""
+		"""mayarv.maya.scene: open file"""
 		self.failUnless( isinstance( Scene.open( common.get_maya_file( "empty.ma" ), force=True ), Path ) )
 
 	def test_new( self ):
-		"""byronimo.maya.scene: force a new scene """
+		"""mayarv.maya.scene: force a new scene """
 		self.failUnless( isinstance( Scene.new( force=1 ), Path ) )
 
 	def test_saveAs( self ):
-		"""byronimo.maya.scene: safe a file under new names and with different formats"""
+		"""mayarv.maya.scene: safe a file under new names and with different formats"""
 		tmppath = Path( tempfile.gettempdir() ) / "maya_save_test"
 		files = [ "mafile.ma" , "mb.mb", "ma.ma" ]
 		for filename in files:

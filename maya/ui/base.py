@@ -19,14 +19,14 @@ __id__="$Id: configuration.py 16 2008-05-29 00:30:46Z byron $"
 __copyright__='(c) 2008 Sebastian Thiel'
 
 
-ui = __import__( "byronimo.maya.ui",globals(), locals(), ['ui'] )
+ui = __import__( "mayarv.maya.ui",globals(), locals(), ['ui'] )
 import weakref
 import maya.cmds as cmds
-from byronimo.util import capitalize, iDagItem
+from mayarv.util import capitalize, iDagItem
 from util import CallbackBaseUI
-import byronimo.maya.util as mutil
+import mayarv.maya.util as mutil
 import util as uiutil
-from byronimo.exceptions import ByronimoError
+from mayarv.exceptions import MayaRVError
 
 
 ############################
@@ -43,7 +43,7 @@ def precreateTypes( typelist ):
 	@note: this method is safe to be used without checking even if the passed in
 	types are no proxy classes anymore
 	@note: use like precreateTypes( [ bui.CheckBoxCtrl ] ) where bui is the
-	byronimo.maya.ui package"""
+	mayarv.maya.ui package"""
 	for clstype in typelist:
 		if isinstance( clstype, mutil.StandinClass ):
 			setattr( ui , clstype.clsname, clstype.createCls() )
@@ -129,7 +129,7 @@ class BaseUI( object ):
 
 	def __init__( self, *args, **kwargs ):
 		if self.__class__ == BaseUI:
-			raise ByronimoError( "Cannot instantiate" + self.__class__.__name__ + " directly - it can only be a base class" )
+			raise MayaRVError( "Cannot instantiate" + self.__class__.__name__ + " directly - it can only be a base class" )
 
 		# return object.__init__( self , *args, **kwargs )
 		super( BaseUI, self ).__init__( *args, **kwargs )

@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-"""B{mayarvtest.byronimo.maya.benchmark.calculations}
+"""B{mayarvtest.mayarv.maya.benchmark.calculations}
 
 Some more math related tests
 
@@ -18,24 +18,24 @@ __copyright__='(c) 2008 Sebastian Thiel'
 
 
 import unittest
-import byronimo.maya as bmaya
-import byronimo.maya.nodes as nodes
-import byronimotest.byronimo.maya as common
+import mayarv.maya as bmaya
+import mayarv.maya.nodes as nodes
+import byronimotest.mayarv.maya as common
 import sys
 import maya.cmds as cmds
-import byronimo.maya.undo as undo
+import mayarv.maya.undo as undo
 import maya.OpenMaya as api
 import string
 import random
 import time
-import byronimo.maya.nodes.iterators as iters
-import byronimotest.byronimo.maya.benchmark as bcommon
+import mayarv.maya.nodes.iterators as iters
+import byronimotest.mayarv.maya.benchmark as bcommon
 
 
 class TestCalculations( unittest.TestCase ):
 
 	def test_0randomizeScene( self ):
-		"""byronimo.maya.nodes.benchmark: assign unique transformations to dag nodes in a scene"""
+		"""mayarv.maya.nodes.benchmark: assign unique transformations to dag nodes in a scene"""
 		if not bcommon.mayRun( "randomize" ): return
 		numnodes = 2500
 		benchfile = common.get_maya_file( "large_scene_%i.mb" % 2500 )
@@ -59,7 +59,7 @@ class TestCalculations( unittest.TestCase ):
 
 
 	def test_1computeCenter( self ):
-		"""byronimo.maya.nodes.benchmark: compute the center point of all  dagnodes in scene"""
+		"""mayarv.maya.nodes.benchmark: compute the center point of all  dagnodes in scene"""
 		if not bcommon.mayRun( "center" ): return
 		starttime = time.time()
 

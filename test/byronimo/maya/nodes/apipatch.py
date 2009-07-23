@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-"""B{mayarvtest.byronimo.maya.nodes.general}
+"""B{mayarvtest.mayarv.maya.nodes.general}
 
 Test general nodes features
 
@@ -18,16 +18,16 @@ __copyright__='(c) 2008 Sebastian Thiel'
 
 
 import unittest
-import byronimo.maya.nodes as nodes
+import mayarv.maya.nodes as nodes
 import maya.cmds as cmds
 import maya.OpenMaya as api
-import byronimotest.byronimo.maya.nodes as ownpackage
+import byronimotest.mayarv.maya.nodes as ownpackage
 
 class TestDataBase( unittest.TestCase ):
 	""" Test data classes  """
 
 	def test_primitives( self ):
-		"""byronimo.maya.nodes: test primitive types"""
+		"""mayarv.maya.nodes: test primitive types"""
 		if not ownpackage.mayRun( "apipatch" ): return
 		for apicls in [ api.MTime, api.MDistance, api.MAngle ]:
 			inst = apicls( )
@@ -44,7 +44,7 @@ class TestDataBase( unittest.TestCase ):
 				pass
 
 	def test_MPlug( self ):
-		"""byronimo.maya.nodes: Test plug abilities( node.attribute ) """
+		"""mayarv.maya.nodes: Test plug abilities( node.attribute ) """
 		if not ownpackage.mayRun( "apipatch" ): return
 		persp = nodes.Node( "persp" )
 		front	 = nodes.Node( "front" )
@@ -225,7 +225,7 @@ class TestDataBase( unittest.TestCase ):
 		# END for each tuple in testdb
 
 	def test_matrixData( self ):
-		"""byronimo.maya.nodes: test matrix data"""
+		"""mayarv.maya.nodes: test matrix data"""
 		if not ownpackage.mayRun( "apipatch" ): return
 		node = nodes.Node( "persp" )
 		matplug = node.getPlug( "worldMatrix" )
@@ -246,7 +246,7 @@ class TestDataBase( unittest.TestCase ):
 		self.failUnless( isinstance( mmatrix, api.MMatrix ) )
 
 	def test_matrix( self ):
-		"""byronimo.maya.nodes: Test the matrices"""
+		"""mayarv.maya.nodes: Test the matrices"""
 		if not ownpackage.mayRun( "apipatch" ): return
 		tmat = api.MTransformationMatrix()
 
@@ -266,7 +266,7 @@ class TestDataBase( unittest.TestCase ):
 
 
 	def test_MPlugArray( self ):
-		"""byronimo.maya.nodes: test the plugarray wrapper
+		"""mayarv.maya.nodes: test the plugarray wrapper
 		NOTE: plugarray can be wrapped, but the types stored will always be"""
 		if not ownpackage.mayRun( "apipatch" ): return
 		node = nodes.Node( "defaultRenderGlobals" )

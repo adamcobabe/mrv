@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-"""B{mayarvtest.byronimo.maya.nodes.sets}
+"""B{mayarvtest.mayarv.maya.nodes.sets}
 
 Test sets and partitions
 
@@ -18,20 +18,20 @@ __copyright__='(c) 2008 Sebastian Thiel'
 
 
 import unittest
-import byronimo.maya.nodes as nodes
-import byronimo.maya.nodes.iterators as iterators
+import mayarv.maya.nodes as nodes
+import mayarv.maya.nodes.iterators as iterators
 import maya.cmds as cmds
 import maya.OpenMaya as api
-import byronimotest.byronimo.maya as common
-import byronimo.maya as bmaya
-import byronimo.maya.nodes.sets as sets
-import byronimotest.byronimo.maya.nodes as ownpackage
+import byronimotest.mayarv.maya as common
+import mayarv.maya as bmaya
+import mayarv.maya.nodes.sets as sets
+import byronimotest.mayarv.maya.nodes as ownpackage
 
 class TestSets( unittest.TestCase ):
 	""" Test set and partition handling """
 
 	def test_createAddRemove( self ):
-		"""byronimo.maya.nodes.sets: create,add and remove"""
+		"""mayarv.maya.nodes.sets: create,add and remove"""
 		if not ownpackage.mayRun( "sets" ): return
 		set1 = nodes.createNode( "set1", "objectSet" )
 		set2 = nodes.createNode( "set2", "objectSet" )
@@ -90,7 +90,7 @@ class TestSets( unittest.TestCase ):
 		return [ ik, persp, persp.translate, rg._apiobj, front._apidagpath, s2 ]
 
 	def test_memberHandling( self ):
-		"""byronimo.maya.nodes.sets: add/remove members from all kinds of inputs"""
+		"""mayarv.maya.nodes.sets: add/remove members from all kinds of inputs"""
 		if not ownpackage.mayRun( "sets" ): return
 		s = nodes.createNode( "memberSet", "objectSet" )
 
@@ -275,7 +275,7 @@ class TestSets( unittest.TestCase ):
 		
 
 	def test_partitions( self ):
-		"""byronimo.maya.nodes.sets: test partition constraints"""
+		"""mayarv.maya.nodes.sets: test partition constraints"""
 		if not ownpackage.mayRun( "setsforce" ): return
 
 		# one transform, two sets, one partition
@@ -363,7 +363,7 @@ class TestSets( unittest.TestCase ):
 		assert snode.getIntersection( multi ).length() == 2
 
 	def test_renderPartition( self ):
-		"""byronimo.maya.nodes.sets: assure renderpartition works for us"""
+		"""mayarv.maya.nodes.sets: assure renderpartition works for us"""
 		if not ownpackage.mayRun( "setsrenderpartition" ): return
 
 		rp = nodes.Node( "renderPartition" )
@@ -371,7 +371,7 @@ class TestSets( unittest.TestCase ):
 
 
 	def test_z_memberHandlingComps( self ):
-		"""byronimo.maya.nodes.sets: member handling with components - needs to run last"""
+		"""mayarv.maya.nodes.sets: member handling with components - needs to run last"""
 		if not ownpackage.mayRun( "sets" ): return
 		bmaya.Scene.open( common.get_maya_file( "perComponentAssignments.ma" ), force = 1 )
 		p1 = nodes.Node( "|p1trans|p1" )

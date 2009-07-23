@@ -21,7 +21,7 @@ import base as nodes
 import types
 import maya.OpenMaya as api
 import maya.cmds as cmds
-undo = __import__( "byronimo.maya.undo", globals(), locals(),[ 'undo' ] )
+undo = __import__( "mayarv.maya.undo", globals(), locals(),[ 'undo' ] )
 import iterators
 
 

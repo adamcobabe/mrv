@@ -26,11 +26,11 @@ __id__="$Id: configuration.py 16 2008-05-29 00:30:46Z byron $"
 __copyright__='(c) 2008 Sebastian Thiel'
 
 
-nodes = __import__( "byronimo.maya.nodes", globals(), locals(), [ 'nodes' ] )
-undo = __import__( "byronimo.maya.undo", globals(), locals(), ['undo'] )
+nodes = __import__( "mayarv.maya.nodes", globals(), locals(), [ 'nodes' ] )
+undo = __import__( "mayarv.maya.undo", globals(), locals(), ['undo'] )
 
-import byronimo.util as util
-from byronimo.util import getPythonIndex
+import mayarv.util as util
+from mayarv.util import getPythonIndex
 import maya.OpenMaya as api
 import maya.cmds as cmds
 import inspect
@@ -49,7 +49,7 @@ def init_applyPatches( ):
 
 	@note: overwritten api methods will be renamed to _api_methodname
 	@note: currently this method works not recursively"""
-	module = __import__( "byronimo.maya.nodes.apipatch", globals(), locals(), ['apipatch'] )
+	module = __import__( "mayarv.maya.nodes.apipatch", globals(), locals(), ['apipatch'] )
 	classes = [ r[1] for r in inspect.getmembers( module, predicate = inspect.isclass ) ]
 	forbiddenMembers = [ '__module__','_applyPatch','__dict__','__weakref__','__doc__' ]
 

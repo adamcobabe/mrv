@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-"""B{mayarvtest.byronimo.maya.undo}
+"""B{mayarvtest.mayarv.maya.undo}
 
 Test ALL features of the undo queue
 
@@ -18,10 +18,10 @@ __copyright__='(c) 2008 Sebastian Thiel'
 
 
 import unittest
-import byronimo.maya as bmaya
+import mayarv.maya as bmaya
 import maya.cmds as cmds
-import byronimo.maya.undo as undo
-from byronimo.maya.nodes import *
+import mayarv.maya.undo as undo
+from mayarv.maya.nodes import *
 import maya.OpenMaya as om
 import sys
 
@@ -43,7 +43,7 @@ class TestUndoQueue( unittest.TestCase ):
 
 
 	def test_undoBasics( self ):
-		"""byronimo.maya.undo: basic assertions"""
+		"""mayarv.maya.undo: basic assertions"""
 		undo.startUndo()
 
 		# put some undoable operation
@@ -107,7 +107,7 @@ class TestUndoQueue( unittest.TestCase ):
 
 
 	def test_dgmod( self ):
-		"""byronimo.maya.undo: test dg modifier capabilities
+		"""mayarv.maya.undo: test dg modifier capabilities
 		@note: DGmod is intensively used by MPlug """
 		persp = Node( "persp" )
 		front = Node( "front" )
@@ -164,7 +164,7 @@ class TestUndoQueue( unittest.TestCase ):
 
 
 	def test_dagmod( self ):
-		"""byronimo.maya.undo: test DAG modifier capabilities"""
+		"""mayarv.maya.undo: test DAG modifier capabilities"""
 		undo.startUndo()
 		dagmod = undo.DagModifier()
 		obj = dagmod.createNode( "transform" )

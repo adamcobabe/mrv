@@ -21,8 +21,8 @@ __copyright__='(c) 2008 Sebastian Thiel'
 import base as uibase
 import maya.cmds as cmds
 import maya.utils as mutils
-import byronimo.util as util
-import byronimo.maya.util as mutil
+import mayarv.util as util
+import mayarv.maya.util as mutil
 
 #{ Exceptions
 ################################################################################

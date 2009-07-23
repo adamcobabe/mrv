@@ -308,7 +308,7 @@ def undoAndClear( ):
 
 #{ Operations
 
-from byronimo.util import Call
+from mayarv.util import Call
 
 class Operation:
 	"""Simple command class as base for all operations
@@ -394,7 +394,7 @@ class GenericOperationStack( Operation ):
 	You can have only one command stored, or many if they should be executed in a row.
 	The vital part is that with each do command, you supply an undo command.
 	This way your operations can be undone and redone once undo / redo is requested
-	@note: this class works well with L{byronimo.util.Call}
+	@note: this class works well with L{mayarv.util.Call}
 	@note: to execute the calls added, you must call L{doIt} or L{addCmdAndCall} - otherwise
 	the undoqueue might brake if exceptions occour !
 	@note: your calls may use MEL commands safely as the undo-queue will be torn off during execution

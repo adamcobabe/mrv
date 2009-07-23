@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-"""B{mayarvtest.byronimo.maya.benchmark.undo}
+"""B{mayarvtest.mayarv.maya.benchmark.undo}
 
 Test undo queue performance
 
@@ -18,12 +18,12 @@ __copyright__='(c) 2008 Sebastian Thiel'
 
 
 import unittest
-import byronimo.maya as bmaya
+import mayarv.maya as bmaya
 import maya.cmds as cmds
-import byronimo.maya.undo as undo
-from byronimotest.byronimo.maya.undo import TestUndoQueue
+import mayarv.maya.undo as undo
+from byronimotest.mayarv.maya.undo import TestUndoQueue
 import sys
-import byronimotest.byronimo.maya.benchmark as bcommon
+import byronimotest.mayarv.maya.benchmark as bcommon
 
 class TestUndoPerformance( unittest.TestCase ):
 	"""Test all aspects of the api undo queue"""
@@ -64,7 +64,7 @@ class TestUndoPerformance( unittest.TestCase ):
 		return numops
 
 	def test_undoPerformance( self ):
-		"byronimo.maya.undo: recursive undo including decorator"
+		"mayarv.maya.undo: recursive undo including decorator"
 		if not bcommon.mayRun( "undo" ): return
 		print "\n"			# new line to create some space
 		import time

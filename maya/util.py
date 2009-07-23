@@ -19,8 +19,8 @@ __copyright__='(c) 2008 Sebastian Thiel'
 import maya.mel as mm
 import maya.OpenMaya as om
 import maya.cmds as cmds
-import byronimo.util as util
-from byronimo.util import capitalize,uncapitalize
+import mayarv.util as util
+from mayarv.util import capitalize,uncapitalize
 import networkx.exception as networkxexc
 import os
 
@@ -433,7 +433,7 @@ class MetaClassCreator( type ):
 					nameToTreeFunc=uncapitalize, treeToNameFunc=capitalize ):
 		"""Create a new class from hierarchy information found in dagtree and
 		put it into the module if it not yet exists
-		@param dagtree: L{byronimo.util.DAGTree} instance with hierarchy information
+		@param dagtree: L{mayarv.util.DAGTree} instance with hierarchy information
 		@param module: the module instance to which to add the new classes to
 		@param nameToTreeFunc: convert the class name to a name suitable for dagTree look-up
 		@param treeToNameFunc: convert a value from the dag tree into a valid class name ( used for parent lookup )"""

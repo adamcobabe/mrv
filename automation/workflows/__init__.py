@@ -19,10 +19,10 @@ __id__="$Id: configuration.py 50 2008-08-12 13:33:55Z byron $"
 __copyright__='(c) 2008 Sebastian Thiel'
 
 
-from byronimo.path import Path
-_this_module = __import__( "byronimo.automation.workflows", globals(), locals(), ['workflows'] )
+from mayarv.path import Path
+_this_module = __import__( "mayarv.automation.workflows", globals(), locals(), ['workflows'] )
 import pydot
-import byronimo.automation.processes
+import mayarv.automation.processes
 
 
 #{ Initialization
@@ -34,7 +34,7 @@ if 'init_done' not in locals():
 
 # SYSTEM INITIALIZATIONs
 if not init_done:
-	import byronimo.automation.base as common
+	import mayarv.automation.base as common
 
 	# load all workflows at once
 	common.addWorkflowsFromDotFiles( _this_module, Path( __file__ ).p_parent.glob( "*.dot" ) )

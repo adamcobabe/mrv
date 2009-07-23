@@ -17,14 +17,14 @@ __copyright__='(c) 2008 Sebastian Thiel'
 
 __all__ = list()
 
-from byronimo.dgengine import NodeBase
-from byronimo.dgfacadeengine import GraphNodeBase
-from byronimo.dgengine import plug
-from byronimo.dgengine import Attribute
-import byronimo.automation.base as wflbase
+from mayarv.dgengine import NodeBase
+from mayarv.dgfacadeengine import GraphNodeBase
+from mayarv.dgengine import plug
+from mayarv.dgengine import Attribute
+import mayarv.automation.base as wflbase
 
-from byronimo.path import Path
-from byronimo.util import Or
+from mayarv.path import Path
+from mayarv.util import Or
 
 
 #####################

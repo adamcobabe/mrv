@@ -20,7 +20,7 @@ import base
 import types
 import maya.OpenMaya as api
 import iterators
-from byronimo.enum import create as enum
+from mayarv.enum import create as enum
 
 class Shape( base.DagNode ):	 # base for epydoc !
 	"""Interface providing common methods to all geometry shapes as they can be shaded.

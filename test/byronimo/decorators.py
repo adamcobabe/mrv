@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-"""B{mayarvtest.byronimo.decorators}
+"""B{mayarvtest.mayarv.decorators}
 Test all aspects of decorators
 
 	- use test classes and run test on their possibly decorated functions
@@ -23,7 +23,7 @@ __copyright__='(c) 2008 Sebastian Thiel'
 
 import unittest
 import sys
-from byronimo.exceptions import *
+from mayarv.exceptions import *
 
 
 class TestTypecheckDecorators( unittest.TestCase ):

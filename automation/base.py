@@ -15,9 +15,9 @@ __revision__="$Revision: 50 $"
 __id__="$Id: configuration.py 50 2008-08-12 13:33:55Z byron $"
 __copyright__='(c) 2008 Sebastian Thiel'
 
-from byronimo.path import Path
-from byronimo.dgengine import PlugAlreadyConnected
-from byronimo.dgfacadeengine import GraphNodeBase
+from mayarv.path import Path
+from mayarv.dgengine import PlugAlreadyConnected
+from mayarv.dgfacadeengine import GraphNodeBase
 
 #{ Edit
 

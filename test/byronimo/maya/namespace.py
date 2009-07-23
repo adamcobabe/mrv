@@ -18,10 +18,10 @@ __copyright__='(c) 2008 Sebastian Thiel'
 
 
 import unittest
-import byronimotest.byronimo.maya as common
-from byronimo.maya.scene import Scene
-from byronimo.maya.namespace import *
-import byronimo.maya as bmaya
+import byronimotest.mayarv.maya as common
+from mayarv.maya.scene import Scene
+from mayarv.maya.namespace import *
+import mayarv.maya as bmaya
 import maya.cmds as cmds
 import os
 
@@ -29,7 +29,7 @@ class TestReferenceRunner( unittest.TestCase ):
 	""" Test the database """
 
 	def test_checkNamespaces( self ):
-		"""byronimo.maya.namespace: test all namespace functionality """
+		"""mayarv.maya.namespace: test all namespace functionality """
 		bmaya.Scene.open( common.get_maya_file( "namespace.ma" ), force=True )
 
 		rootns = Namespace( Namespace.rootNamespace )

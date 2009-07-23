@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-"""B{mayarvtest.byronimo.automation}
+"""B{mayarvtest.mayarv.automation}
 
 Intialize the automation test suite
 
@@ -23,7 +23,7 @@ def get_suite( ):
 	""" @return: testsuite with all tests of this package
 	@note: does some custom setup required for all tests to work"""
 	# custom setup
-	import byronimotest.byronimo.automation as self
+	import byronimotest.mayarv.automation as self
 	return common.get_package_suite( self )
 
 def run( **runner_args ):

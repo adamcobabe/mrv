@@ -33,11 +33,11 @@ __id__="$Id: configuration.py 16 2008-05-29 00:30:46Z byron $"
 __copyright__='(c) 2008 Sebastian Thiel'
 
 
-bmaya = __import__( "byronimo.maya", globals(), locals(), ['maya'] )
-_thismodule = __import__( "byronimo.maya.nodes", globals(), locals(), ['nodes'] )
-from byronimo.path import Path
-env =  __import__( "byronimo.maya.env", globals(), locals(), ['env'] )
-bmayautil = __import__( "byronimo.maya.util", globals(), locals(), ['util'] )
+bmaya = __import__( "mayarv.maya", globals(), locals(), ['maya'] )
+_thismodule = __import__( "mayarv.maya.nodes", globals(), locals(), ['nodes'] )
+from mayarv.path import Path
+env =  __import__( "mayarv.maya.env", globals(), locals(), ['env'] )
+bmayautil = __import__( "mayarv.maya.util", globals(), locals(), ['util'] )
 from types import *
 from byronimo import init_modules
 import sys
@@ -146,7 +146,7 @@ def init_package( ):
 	types.init_wrappers( _thismodule )
 
 	# initialize modules
-	init_modules( __file__, "byronimo.maya.nodes" )
+	init_modules( __file__, "mayarv.maya.nodes" )
 
 
 
@@ -162,7 +162,7 @@ if not init_done:
 	from base import *
 	from sets import *
 	# import additional classes required in this module
-	from byronimo.maya.namespace import Namespace
+	from mayarv.maya.namespace import Namespace
 
 
 init_done = True

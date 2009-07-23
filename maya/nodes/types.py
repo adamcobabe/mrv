@@ -18,11 +18,11 @@ __revision__="$Revision: 16 $"
 __id__="$Id: configuration.py 16 2008-05-29 00:30:46Z byron $"
 __copyright__='(c) 2008 Sebastian Thiel'
 
-nodes = __import__( "byronimo.maya.nodes", globals(), locals(), ['nodes'] )
-from byronimo.maya.util import MetaClassCreator, StandinClass
-import byronimo.maya as bmaya
-from byronimo.path import Path
-from byronimo.util import uncapitalize, capitalize, PipeSeparatedFile
+nodes = __import__( "mayarv.maya.nodes", globals(), locals(), ['nodes'] )
+from mayarv.maya.util import MetaClassCreator, StandinClass
+import mayarv.maya as bmaya
+from mayarv.path import Path
+from mayarv.util import uncapitalize, capitalize, PipeSeparatedFile
 import maya.OpenMaya as api
 import maya.OpenMayaAnim as apianim
 import maya.OpenMayaUI	as apiui

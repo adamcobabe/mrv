@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-"""B{mayarvtest.byronimo.maya.benchmark.general}
+"""B{mayarvtest.mayarv.maya.benchmark.general}
 
 Test general performance
 
@@ -18,18 +18,18 @@ __copyright__='(c) 2008 Sebastian Thiel'
 
 
 import unittest
-import byronimo.maya as bmaya
-import byronimo.maya.nodes as nodes
-import byronimotest.byronimo.maya as common
+import mayarv.maya as bmaya
+import mayarv.maya.nodes as nodes
+import byronimotest.mayarv.maya as common
 import sys
 import maya.cmds as cmds
-import byronimo.maya.undo as undo
+import mayarv.maya.undo as undo
 import maya.OpenMaya as api
 import string
 import random
 import time
-import byronimo.maya.nodes.iterators as iterators
-import byronimotest.byronimo.maya.benchmark as bcommon
+import mayarv.maya.nodes.iterators as iterators
+import byronimotest.mayarv.maya.benchmark as bcommon
 
 class TestGeneralPerformance( unittest.TestCase ):
 	"""Tests to benchmark general performance"""
@@ -50,7 +50,7 @@ class TestGeneralPerformance( unittest.TestCase ):
 
 
 	def _test_buildTestScene( self ):
-		"""byronimo.maya.benchmark.general: build test scene with given amount of nodes  """
+		"""mayarv.maya.benchmark.general: build test scene with given amount of nodes  """
 		return 	# disabled
 		numNodes = 100000
 		cmds.undoInfo( st=0 )
@@ -77,7 +77,7 @@ class TestGeneralPerformance( unittest.TestCase ):
 
 
 	def test_plugs( self ):
-		"""byronimo.maya.apipatch: test plug performance"""
+		"""mayarv.maya.apipatch: test plug performance"""
 		if not bcommon.mayRun( "plugs" ): return
 
 		bmaya.Scene.new( force = True )
@@ -166,7 +166,7 @@ class TestGeneralPerformance( unittest.TestCase ):
 		print "UNDO / REDO Time = %f / %f ( %f * faster than initial set/get )" % ( undoelapsed, redoelapsed,  elapsed / max( redoelapsed, 0.001) )
 
 	def test_dagwalking( self ):
-		"""byronimo.maya.benchmark.general.dagWalking: see how many nodes per second we walk"""
+		"""mayarv.maya.benchmark.general.dagWalking: see how many nodes per second we walk"""
 		if not bcommon.mayRun( "dagwalk" ): return
 
 		# numnodes = [ 2500, 25000, 100000 ]
@@ -232,7 +232,7 @@ class TestGeneralPerformance( unittest.TestCase ):
 		# END for each run
 
 	def test_createNodes( self ):
-		"""byronimo.maya.benchmark.general: test random node creation performance"""
+		"""mayarv.maya.benchmark.general: test random node creation performance"""
 		if not bcommon.mayRun( "createnode" ): return
 		bmaya.Scene.new( force = True )
 		runs = [ 100,2500 ]
@@ -299,7 +299,7 @@ class TestGeneralPerformance( unittest.TestCase ):
 
 
 	def test_wrappedFunctionCall( self ):
-		"""byronimo.maya.benchmark.general: test wrapped funtion calls and compare them"""
+		"""mayarv.maya.benchmark.general: test wrapped funtion calls and compare them"""
 		if not bcommon.mayRun( "funccall" ): return
 
 		bmaya.Scene.new( force = True )

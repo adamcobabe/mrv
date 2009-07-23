@@ -16,11 +16,11 @@ __revision__="$Revision: 29 $"
 __id__="$Id: configuration.py 29 2008-07-30 14:59:35Z byron $"
 __copyright__='(c) 2008 Sebastian Thiel'
 
-import byronimo.maya as bmaya
-from byronimo.util import capitalize, uncapitalize
-import byronimo.maya.util as mutil
-from byronimo.path import Path
-_thismodule = __import__( "byronimo.maya.ui", globals(), locals(), ['ui'] )
+import mayarv.maya as bmaya
+from mayarv.util import capitalize, uncapitalize
+import mayarv.maya.util as mutil
+from mayarv.path import Path
+_thismodule = __import__( "mayarv.maya.ui", globals(), locals(), ['ui'] )
 import maya.cmds as mcmds
 from util import CallbackBaseUI, propertyQE
 

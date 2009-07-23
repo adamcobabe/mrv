@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 """B{mayarv.maya}
 
-Inialize the byronimo.maya sub-system and assure and startup maya natively
+Inialize the mayarv.maya sub-system and assure and startup maya natively
 
 @todo: more documentation
 @todo: logger !
@@ -22,10 +22,10 @@ __copyright__='(c) 2008 Sebastian Thiel'
 
 
 import os, sys
-from byronimo import init_modules
-from byronimo.util import capitalize, DAGTree
-from byronimo.exceptions import ByronimoError
-from byronimo.path import Path
+from mayarv import init_modules
+from mayarv.util import capitalize, DAGTree
+from mayarv.exceptions import MayaRVError
+from mayarv.path import Path
 
 ############################
 #### COMMON   			####
@@ -47,7 +47,7 @@ def _dagTreeFromTupleList( tuplelist ):
 
 		if level == 0:
 			if tree != None:
-				raise ByronimoError( "Ui tree must currently be rooted - thus there must only be one root node, found another: " + name )
+				raise MayaRVError( "Ui tree must currently be rooted - thus there must only be one root node, found another: " + name )
 			else:
 				tree = DAGTree(  )		# create root
 				tree.add_node( name )
@@ -57,7 +57,7 @@ def _dagTreeFromTupleList( tuplelist ):
 
 		direction = level - lastlevel
 		if direction > 1:
-			raise ByronimoError( "Can only change by one down the dag, changed by %i in item %s" % ( direction, str( item ) ) )
+			raise MayaRVError( "Can only change by one down the dag, changed by %i in item %s" % ( direction, str( item ) ) )
 
 		lastlevel = level
 		if direction == 0:
@@ -94,7 +94,7 @@ def _initWrappers( module, types, metacreatorcls, force_creation = False ):
 	@param module: module object from which the latter classes will be imported from
 	@param types: iterable containing the names of classnames ( they will be capitalized
 	as classes must begin with a capital letter )"""
-	from byronimo.maya.util import StandinClass
+	from mayarv.maya.util import StandinClass
 
 	# create dummy class that will generate the class once it is first being instatiated
 	for uitype in types:
@@ -279,10 +279,10 @@ def init_singletons( ):
 	global Scene
 	global Mel
 
-	module = __import__( "byronimo.maya.scene" , globals(), locals(), [ "scene" ] )
+	module = __import__( "mayarv.maya.scene" , globals(), locals(), [ "scene" ] )
 	Scene = module.Scene()
 
-	module = __import__( "byronimo.maya.util" , globals(), locals(), [ "util" ] )
+	module = __import__( "mayarv.maya.util" , globals(), locals(), [ "util" ] )
 	Mel = module.Mel()
 
 
@@ -296,7 +296,7 @@ if 'init_done' not in locals():
 if not init_done:
 	# assure we do not run several times
 	init_system( )
-	init_modules( __file__, "byronimo.maya" )
+	init_modules( __file__, "mayarv.maya" )
 	init_singletons( )
 
 

@@ -32,9 +32,9 @@ __copyright__='(c) 2008 Sebastian Thiel'
 
 from workflow import Workflow
 from process import ProcessBase
-from byronimo.util import CallbackBase
-from byronimo.dgengine import Attribute, plug, ComputeFailed
-from byronimo.enum import create as enum
+from mayarv.util import CallbackBase
+from mayarv.dgengine import Attribute, plug, ComputeFailed
+from mayarv.enum import create as enum
 import sys
 
 event = CallbackBase.Event

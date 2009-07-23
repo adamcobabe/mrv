@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-"""B{mayarvtest.byronimo.maya.ui.general}
+"""B{mayarvtest.mayarv.maya.ui.general}
 
 Test some default ui capababilities
 
@@ -18,9 +18,9 @@ __copyright__='(c) 2008 Sebastian Thiel'
 
 
 import unittest
-import byronimo.maya.ui as ui
-import byronimo.maya.ui.qa as qaui
-from byronimo.util import capitalize
+import mayarv.maya.ui as ui
+import mayarv.maya.ui.qa as qaui
+from mayarv.util import capitalize
 import maya.cmds as cmds
 import sys
 
@@ -32,7 +32,7 @@ class TestGeneralUI( unittest.TestCase ):
 		pass
 
 	def disabled_test_createClasses( self ):
-		"""byronimo.maya.ui: Instantiate our pseudoclasses
+		"""mayarv.maya.ui: Instantiate our pseudoclasses
 		@note: this test is not required anymore"""
 		if cmds.about( batch=1 ):
 			return
@@ -68,7 +68,7 @@ class TestGeneralUI( unittest.TestCase ):
 
 
 	def test_createWindows( self ):
-		"""byronimo.maya.ui: create some windows"""
+		"""mayarv.maya.ui: create some windows"""
 		if cmds.about( batch=1 ):
 			return
 
@@ -128,7 +128,7 @@ class TestGeneralUI( unittest.TestCase ):
 
 
 	def test_layouts( self ):
-		"""byronimo.maya.ui: test basic layout functions"""
+		"""mayarv.maya.ui: test basic layout functions"""
 		if cmds.about( batch=1 ):
 			return
 		win = ui.Window( title="Test Window" )
@@ -172,7 +172,7 @@ class TestGeneralUI( unittest.TestCase ):
 		# win.delete()	# does not really work as windows stays as zombie
 
 	def test_callbacks( self ):
-		"""byronimo.maya.ui: test callbacks and handling - needs user interaction"""
+		"""mayarv.maya.ui: test callbacks and handling - needs user interaction"""
 		if cmds.about( batch=1 ):
 			return
 
@@ -197,7 +197,7 @@ class TestGeneralUI( unittest.TestCase ):
 		win.show()
 
 	def test_menus( self ):
-		"""byronimo.maya.ui: use menu bars and menuItems"""
+		"""mayarv.maya.ui: use menu bars and menuItems"""
 		if cmds.about( batch=1 ):
 			return
 
@@ -227,7 +227,7 @@ class TestGeneralUI( unittest.TestCase ):
 		win.show()
 
 	def test_progressWindow( self ):
-		"""byronimo.maya.ui: test progress window functionality"""
+		"""mayarv.maya.ui: test progress window functionality"""
 		if cmds.about( batch=1 ):
 			return
 
@@ -271,11 +271,11 @@ class TestGeneralUI( unittest.TestCase ):
 		self.failUnless( progress.get() == maxrange )
 
 	def test_qa( self ):
-		"""byronimo.maya.ui.qa: test qa interface by setting some checks"""
+		"""mayarv.maya.ui.qa: test qa interface by setting some checks"""
 		if cmds.about( batch=1 ):
 			return
 
-		import byronimotest.byronimo.automation.workflows as workflows
+		import byronimotest.mayarv.automation.workflows as workflows
 
 		qawfl = workflows.qualitychecking
 		checks = qawfl.listChecks( )
@@ -299,5 +299,5 @@ class TestGeneralUI( unittest.TestCase ):
 		win.show()
 
 	def test_prompt( self ):
-		"""byronimo.maya.ui.dialogs: Test prompt window"""
+		"""mayarv.maya.ui.dialogs: Test prompt window"""
 		ui.Prompt( title="test title", m="enter test string", d="this", cd="cthis", t="confirm", ct="cancel" ).prompt()

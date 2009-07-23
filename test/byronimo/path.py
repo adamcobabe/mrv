@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-"""B{mayarvtset.byronimo.path}
+"""B{mayarvtset.mayarv.path}
 Test path methods
 
 @todo: actual implementation of path tests - currently it is just a placeholder assuring
@@ -20,7 +20,7 @@ __copyright__='(c) 2008 Sebastian Thiel'
 
 import os
 import unittest
-from byronimo.path import Path
+from mayarv.path import Path
 
 class TestPath( unittest.TestCase ):
 

@@ -22,15 +22,15 @@ __copyright__='(c) 2008 Sebastian Thiel'
 import base as uibase
 import controls
 import maya.cmds as cmds
-import byronimo.util as util
-import byronimo.maya.util as mutil
+import mayarv.util as util
+import mayarv.maya.util as mutil
 import util as uiutil
 import layouts
-from byronimo.automation.qa import QAWorkflow
+from mayarv.automation.qa import QAWorkflow
 import maya.OpenMaya as api
 from itertools import chain
 import re
-from byronimo.util import capitalize
+from mayarv.util import capitalize
 
 class QACheckLayout( layouts.RowLayout ):
 	"""Row Layout able to display a qa check and related information

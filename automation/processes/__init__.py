@@ -15,9 +15,9 @@ __revision__="$Revision: 50 $"
 __id__="$Id: configuration.py 50 2008-08-12 13:33:55Z byron $"
 __copyright__='(c) 2008 Sebastian Thiel'
 
-_this_module = __import__( "byronimo.automation.processes", globals(), locals(), ['processes'] )
-from byronimo.automation.process import ProcessBase
-import byronimo.util as util
+_this_module = __import__( "mayarv.automation.processes", globals(), locals(), ['processes'] )
+from mayarv.automation.process import ProcessBase
+import mayarv.util as util
 
 #} Interface
 

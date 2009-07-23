@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-"""B{mayarvtest.byronimo.util}
+"""B{mayarvtest.mayarv.util}
 Test misc utility classes
 
 
@@ -18,13 +18,13 @@ __copyright__='(c) 2008 Sebastian Thiel'
 
 
 import unittest
-from byronimo.util import *
+from mayarv.util import *
 import re
 
 class TestDAGTree( unittest.TestCase ):
 
 	def test_dagMethods( self ):
-		"""byronimo.util.DAGTree: Test general methods"""
+		"""mayarv.util.DAGTree: Test general methods"""
 		self.tree = DAGTree( )
 		self.tree.add_edge( (0,1) )
 		self.tree.add_edge( (0,2) )
@@ -37,7 +37,7 @@ class TestDAGTree( unittest.TestCase ):
 		self.failUnless( len( list( self.tree.parent_iter( 5 ) ) ) == 3 )
 
 	def test_filters( self ):
-		"""byronimo.util: test generalized filters"""
+		"""mayarv.util: test generalized filters"""
 		# AND
 		sequence = [ 1,1,1,1,0,1,1 ]
 		self.failUnless( len( filter( And( bool, bool, bool ), sequence ) ) == len( sequence ) - 1 )
@@ -57,13 +57,13 @@ class TestDAGTree( unittest.TestCase ):
 
 
 	def test_intGenerator( self ):
-		"""byronimo.util: test IntKeygenerator"""
+		"""mayarv.util: test IntKeygenerator"""
 		for i in IntKeyGenerator( [ 1,2,3 ] ):
 			self.failUnless( isinstance( i, int ) )
 
 
 	def test_interfaceBase( self ):
-		"""byronimo.util: interface base testing of main functionality"""
+		"""mayarv.util: interface base testing of main functionality"""
 		class IMasterTest( InterfaceMaster ):
 			im_provide_on_instance = True
 
@@ -139,7 +139,7 @@ class TestDAGTree( unittest.TestCase ):
 		self.failUnless( len( imaster.listInterfaces( ) ) == 0 )
 
 	def test_choiceDialog( self ):
-		"""byronimo.interfaces.iChoiceDialog: quick choicebox test"""
+		"""mayarv.interfaces.iChoiceDialog: quick choicebox test"""
 		c1 = "single choice"
 		choice_dialog = iChoiceDialog( t = "my title", m = "my message", c = c1 )
 		self.failUnless( choice_dialog.getChoice() == c1 )
@@ -149,11 +149,11 @@ class TestDAGTree( unittest.TestCase ):
 		self.failUnless( choice_dialog.getChoice() == c1 )
 
 	def test_prompt( self ):
-		"""byronimo.interfaces.iPrompt"""
+		"""mayarv.interfaces.iPrompt"""
 		assert iPrompt( m="Enter your name:", d="test", ct="Enter" ).prompt() == "test"
 
 	def test_progressIndicator( self ):
-		"""byronimo.utils.iProgressIndicator: do some simple progress testing"""
+		"""mayarv.utils.iProgressIndicator: do some simple progress testing"""
 		maxrange = 10
 		progress = iProgressIndicator( min = 0, max = maxrange, is_relative = 1 )
 

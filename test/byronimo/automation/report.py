@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-"""B{mayarvtest.byronimo.automation.report}
+"""B{mayarvtest.mayarv.automation.report}
 
 Test default report classes
 
@@ -19,13 +19,13 @@ __copyright__='(c) 2008 Sebastian Thiel'
 
 import unittest
 import workflows
-from byronimo.automation.report import *
+from mayarv.automation.report import *
 
 class TestReport( unittest.TestCase ):
 	"""Test workflow class"""
 
 	def test_plan( self ):
-		"""byronimo.automation.report: test plan report"""
+		"""mayarv.automation.report: test plan report"""
 		miwfl = workflows.multiinput
 
 		# try as real target - stil very simple

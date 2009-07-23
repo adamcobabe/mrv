@@ -18,14 +18,14 @@ __copyright__='(c) 2008 Sebastian Thiel'
 
 
 import unittest
-import byronimo.maya as bmaya
+import mayarv.maya as bmaya
 import maya.cmds as cmds
-from byronimo.maya.util import *
+from mayarv.maya.util import *
 
 class TestUtil( unittest.TestCase ):
 
 	def test_optionvardict( self ):
-		"""byronimo.maya.util: test optionvars dict"""
+		"""mayarv.maya.util: test optionvars dict"""
 
 		# test whether value get and set is without conversion errors
 		for key in optionvars.keys( ):
@@ -69,7 +69,7 @@ class TestUtil( unittest.TestCase ):
 		# END for each testvalue
 
 	def test_misc( self ):
-		"""byronimo.maya.util: test misc. methods"""
+		"""mayarv.maya.util: test misc. methods"""
 		assert padScalar( 2, 4 ) == "0002"
 		assert padScalar( 2, 1 ) == "2"
 		assert padScalar( 2, 0 ) == "2"

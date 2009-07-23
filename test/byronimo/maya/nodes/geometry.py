@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-"""B{mayarvtest.byronimo.maya.nodes.geometry}
+"""B{mayarvtest.mayarv.maya.nodes.geometry}
 
 Tests the geometric nodes, focussing on the set handling
 
@@ -18,19 +18,19 @@ __copyright__='(c) 2008 Sebastian Thiel'
 
 
 import unittest
-import byronimo.maya.nodes.storage as storage
-import byronimo.maya.nodes as nodes
+import mayarv.maya.nodes.storage as storage
+import mayarv.maya.nodes as nodes
 import maya.OpenMaya as api
-import byronimo.maya as bmaya
-import byronimotest.byronimo.maya as common
-import byronimotest.byronimo.maya.nodes as ownpackage
+import mayarv.maya as bmaya
+import byronimotest.mayarv.maya as common
+import byronimotest.mayarv.maya.nodes as ownpackage
 
 class TestGeometry( unittest.TestCase ):
 	""" Test general maya framework """
 
 
 	def test_setHandling( self ):
-		"""byronimo.maya.nodes.geometry: set handling tests for different types"""
+		"""mayarv.maya.nodes.geometry: set handling tests for different types"""
 		if not ownpackage.mayRun( "geometry" ): return
 		bmaya.Scene.open( common.get_maya_file( "shadertest.ma" ), force = 1 )
 
@@ -232,7 +232,7 @@ class TestGeometry( unittest.TestCase ):
 		# END for each component type
 
 	def test_lightLinkCopy( self ):
-		"""byronimo.maya.nodes.geometry: test how lightlinks are copied from oen shape to another
+		"""mayarv.maya.nodes.geometry: test how lightlinks are copied from oen shape to another
 		@note: currently we only call variants of the respective method to run it - verification
 		was made in actual scenes, but is not reproducable"""
 		if not ownpackage.mayRun( "geometry" ): return

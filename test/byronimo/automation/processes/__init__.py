@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-"""B{mayarvtest.byronimo.automation.processes}
+"""B{mayarvtest.mayarv.automation.processes}
 
 Intialize suite checking all processes
 
@@ -18,17 +18,17 @@ __copyright__='(c) 2008 Sebastian Thiel'
 
 import unittest
 import byronimotest as common
-import byronimo.automation.process as process
-import byronimo.automation.processes as processes
-from byronimo.dgengine import plug, Attribute as A
-from byronimo.path import Path
-from byronimo.automation.qa import QAProcessBase, QACheck, QACheckResult
+import mayarv.automation.process as process
+import mayarv.automation.processes as processes
+from mayarv.dgengine import plug, Attribute as A
+from mayarv.path import Path
+from mayarv.automation.qa import QAProcessBase, QACheck, QACheckResult
 
 def get_suite( ):
 	""" @return: testsuite with all tests of this package
 	@note: does some custom setup required for all tests to work"""
 	# custom setup
-	import byronimotest.byronimo.automation.processes as self
+	import byronimotest.mayarv.automation.processes as self
 	return common.get_package_suite( self )
 
 def run( **runner_args ):

@@ -26,15 +26,15 @@ __copyright__='(c) 2008 Sebastian Thiel'
 __all__ = [ 'Scene' ]
 
 
-#import byronimo.maya.util as util
-mayautil = __import__( "byronimo.maya.util", globals(), locals(), [ "util" ] )
-util = __import__( "byronimo.util", globals(), locals(), [ "util" ] )
-refmod = __import__( "byronimo.maya.reference", globals(), locals(), ['reference'] )
+#import mayarv.maya.util as util
+mayautil = __import__( "mayarv.maya.util", globals(), locals(), [ "util" ] )
+util = __import__( "mayarv.util", globals(), locals(), [ "util" ] )
+refmod = __import__( "mayarv.maya.reference", globals(), locals(), ['reference'] )
 
 import maya.OpenMaya as om
 import maya.cmds as cmds
-from byronimo.path import Path
-from byronimo.util import iDagItem
+from mayarv.path import Path
+from mayarv.util import iDagItem
 
 
 

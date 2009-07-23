@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-"""B{mayarvtest.byronimo.maya.benchmark}
+"""B{mayarvtest.mayarv.maya.benchmark}
 
 Intialize and run all benchmark - the system is currently unittest based and
 proper benchmarks should be implemented on per test basis.
@@ -20,7 +20,7 @@ __id__="$Id: __init__.py 22 2008-07-16 20:41:16Z byron $"
 __copyright__='(c) 2008 Sebastian Thiel'
 
 import unittest
-import byronimo.maya as bmaya
+import mayarv.maya as bmaya
 import byronimotest as common
 import os
 
@@ -52,7 +52,7 @@ def get_suite( ):
 	# custom setup
 	bmaya.Mel.putenv( "MAYAFILEBASE", os.path.dirname( __file__ ) )
 
-	import byronimotest.byronimo.maya.benchmark as self
+	import byronimotest.mayarv.maya.benchmark as self
 	return common.get_package_suite( self )
 
 def run( **runner_args ):

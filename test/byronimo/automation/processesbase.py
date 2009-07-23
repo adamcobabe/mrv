@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-"""B{mayarvtest.byronimo.automation}
+"""B{mayarvtest.mayarv.automation}
 
 Test provided base processes
 @note: this file is here containing all default prcess tests one gets nasty
@@ -21,7 +21,7 @@ __copyright__='(c) 2008 Sebastian Thiel'
 
 import unittest
 import workflows
-from byronimo.automation.report import Plan
+from mayarv.automation.report import Plan
 import processes
 
 
@@ -29,7 +29,7 @@ class TestProcesses( unittest.TestCase ):
 	"""Test workflow class"""
 
 	def test_workflowProcess( self ):
-		"""byronimo.automation.process: check workflow nested into process"""
+		"""mayarv.automation.process: check workflow nested into process"""
 		wfl = workflows.workflowwrap
 		workflows.multiinput.writeDot("/usr/tmp/mygraph.dot" )
 

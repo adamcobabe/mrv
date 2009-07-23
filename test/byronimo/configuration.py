@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-"""B{mayarvtest.byronimo.configuration}
+"""B{mayarvtest.mayarv.configuration}
 Test all aspects of the configuration management system
 
 @newfield revision: Revision
@@ -20,7 +20,7 @@ import unittest
 import os
 import sys
 from ConfigParser import *
-from byronimo.configuration import *
+from mayarv.configuration import *
 from itertools import *
 import shutil
 import tempfile

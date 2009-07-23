@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-"""B{mayarvtest.byronimo.maya.nodes}
+"""B{mayarvtest.mayarv.maya.nodes}
 
 Intialize the byronimo maya nodes testing suite
 
@@ -19,7 +19,7 @@ __copyright__='(c) 2008 Sebastian Thiel'
 import unittest
 import byronimotest as common
 
-import byronimo.maya.nodes as nodes
+import mayarv.maya.nodes as nodes
 
 test_modules = set()
 
@@ -37,7 +37,7 @@ def mayRun( modulename ):
 
 def get_suite( ):
 	""" @return: testsuite with all tests of this package"""
-	import byronimotest.byronimo.maya.nodes as self
+	import byronimotest.mayarv.maya.nodes as self
 
 	# each test has to check whether he can run in batch mode or not
 	return common.get_package_suite( self )

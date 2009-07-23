@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-"""B{mayarvtest.byronimo.automation.workflow}
+"""B{mayarvtest.mayarv.automation.workflow}
 
 Test the workflow class
 
@@ -19,16 +19,16 @@ __copyright__='(c) 2008 Sebastian Thiel'
 
 import unittest
 import workflows
-import byronimo.automation.workflow as workflow
-from byronimo.automation.workflow import Workflow
-from byronimo.automation.process import *
+import mayarv.automation.workflow as workflow
+from mayarv.automation.workflow import Workflow
+from mayarv.automation.process import *
 from cStringIO import StringIO
 
 class TestWorkflow( unittest.TestCase ):
 	"""Test workflow class"""
 
 	def test_simpleworkflowcreation( self ):
-		"""byronimo.automation.workflow: create a simple workflow from a dot file"""
+		"""mayarv.automation.workflow: create a simple workflow from a dot file"""
 		scwfl = workflows.simpleconnection
 		self.failUnless( isinstance( scwfl, Workflow ) )
 
@@ -78,21 +78,21 @@ class TestWorkflow( unittest.TestCase ):
 
 
 	def test_simpleDirtyCheck( self ):
-		"""byronimo.automation.workflow: test a simple dirtycheck"""
+		"""mayarv.automation.workflow: test a simple dirtycheck"""
 		scwfl = workflows.simpleconnection
 		scwfl.getDirtyReport( 5, mode="deep" )
 		d = workflow.DirtyException()
 
 
 	def test_callgraph( self ):
-		"""byronimo.automation.workflow: assure callgraph can be generated properly"""
+		"""mayarv.automation.workflow: assure callgraph can be generated properly"""
 		scwfl = workflows.simpleconnection
 
 		# ONE NODE ONLY
 		####################
 		# target resolved by the actual node - no input needed
 		res = scwfl.makeTarget( 5 )		# computes in-node
-		from byronimo.automation.report import Plan
+		from mayarv.automation.report import Plan
 
 		cg = scwfl._callgraph
 		self.failUnless( len( cg.nodes() ) == 2 )
@@ -115,7 +115,7 @@ class TestWorkflow( unittest.TestCase ):
 		self.failUnless( len( cg.edges() ) == 4 )
 
 	def test_multiTarget( self ):
-		"""byronimo.automation.workflow: test multiple targets at once"""
+		"""mayarv.automation.workflow: test multiple targets at once"""
 		scwfl = workflows.simpleconnection
 		listtypes = ( None, list, StringIO )
 
@@ -136,6 +136,6 @@ class TestWorkflow( unittest.TestCase ):
 
 
 	def test_workflowfacades( self ):
-		"""byronimo.automation.workflow:  test facades of workflows"""
+		"""mayarv.automation.workflow:  test facades of workflows"""
 		wfl = workflows.multiWorkflow
 

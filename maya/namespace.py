@@ -17,9 +17,9 @@ __revision__="$Revision: 16 $"
 __id__="$Id: configuration.py 16 2008-05-29 00:30:46Z byron $"
 __copyright__='(c) 2008 Sebastian Thiel'
 
-from byronimo.maya import undo
-from byronimo.maya.util import noneToList, MuteUndo
-from byronimo.util import iDagItem, CallOnDeletion, Call
+from mayarv.maya import undo
+from mayarv.maya.util import noneToList, MuteUndo
+from mayarv.util import iDagItem, CallOnDeletion, Call
 import maya.cmds as cmds
 import maya.OpenMaya as api
 import re

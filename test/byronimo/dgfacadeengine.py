@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-"""B{mayarvtest.byronimo.dgfacadeengine}
+"""B{mayarvtest.mayarv.dgfacadeengine}
 Test dependency graph engine
 
 
@@ -19,8 +19,8 @@ __copyright__='(c) 2008 Sebastian Thiel'
 
 import unittest
 from networkx import DiGraph
-from byronimo.dgengine import *
-from byronimo.dgfacadeengine import *
+from mayarv.dgengine import *
+from mayarv.dgfacadeengine import *
 from random import randint
 
 A = Attribute

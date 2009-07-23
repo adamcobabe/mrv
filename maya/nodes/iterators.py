@@ -22,7 +22,7 @@ __copyright__='(c) 2008 Sebastian Thiel'
 import maya.OpenMaya as api
 import maya.cmds as cmds
 
-nodes = __import__( "byronimo.maya.nodes", globals(), locals(), [ 'nodes' ] )
+nodes = __import__( "mayarv.maya.nodes", globals(), locals(), [ 'nodes' ] )
 
 
 def _argsToFilter( args ):

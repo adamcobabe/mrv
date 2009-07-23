@@ -17,13 +17,13 @@ __revision__="$Revision: 16 $"
 __id__="$Id: configuration.py 16 2008-05-29 00:30:46Z byron $"
 __copyright__='(c) 2008 Sebastian Thiel'
 
-from byronimo.path import Path
-from byronimo.util import And
-from byronimo.exceptions import *
-from byronimo.maya.namespace import Namespace
-from byronimo.maya.util import noneToList
+from mayarv.path import Path
+from mayarv.util import And
+from mayarv.exceptions import *
+from mayarv.maya.namespace import Namespace
+from mayarv.maya.util import noneToList
 import maya.cmds as cmds
-from byronimo.util import iDagItem
+from mayarv.util import iDagItem
 from itertools import ifilter
 
 
@@ -31,7 +31,7 @@ from itertools import ifilter
 ## FILTERS ###
 ###########
 #{ Exceptions
-class FileReferenceError( ByronimoError ):
+class FileReferenceError( MayaRVError ):
 	pass
 
 #}
@@ -336,7 +336,7 @@ class FileReference( Path, iDagItem ):
 
 		nodesIter = None
 		if asNode:
-			import byronimo.maya.nodes as nodes
+			import mayarv.maya.nodes as nodes
 			nodesIter = ( nodes.Node( name ) for name in allnodes )
 		else:
 			nodesIter = iter( allnodes )
@@ -463,7 +463,7 @@ class FileReference( Path, iDagItem ):
 
 	def getReferenceNode( self ):
 		"""@return: byronimo wrapped reference node managing this reference"""
-		import byronimo.maya.nodes as nodes
+		import mayarv.maya.nodes as nodes
 		return nodes.Node( self._refnode )
 
 	#}END query methods

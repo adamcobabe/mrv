@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-"""B{mayarvtest.byronimo.maya.nodes.storage}
+"""B{mayarvtest.mayarv.maya.nodes.storage}
 
 Test storage system and storage node
 
@@ -18,22 +18,22 @@ __copyright__='(c) 2008 Sebastian Thiel'
 
 
 import unittest
-import byronimo.maya.nodes.storage as storage
-import byronimo.maya.nodes as nodes
+import mayarv.maya.nodes.storage as storage
+import mayarv.maya.nodes as nodes
 import maya.OpenMaya as api
-import byronimo.maya as bmaya
+import mayarv.maya as bmaya
 import maya.cmds as cmds
 import tempfile
-from byronimo.path import Path
+from mayarv.path import Path
 import sys
-import byronimotest.byronimo.maya.nodes as ownpackage
+import byronimotest.mayarv.maya.nodes as ownpackage
 
 class TestStorage( unittest.TestCase ):
 	""" Test general maya framework """
 
 
 	def test_storagePickleData( self ):
-		"""byronimo.maya.nodes.storage: test pickle data"""
+		"""mayarv.maya.nodes.storage: test pickle data"""
 		if not ownpackage.mayRun( "storage" ): return
 		tmpdir = Path( tempfile.gettempdir() )
 
@@ -143,7 +143,7 @@ class TestStorage( unittest.TestCase ):
 
 
 	def test_storageAttributeHanlding( self ):
-		"""byronimo.maya.nodes.storage: test of the attribute accesss on storages is working"""
+		"""mayarv.maya.nodes.storage: test of the attribute accesss on storages is working"""
 		if not ownpackage.mayRun( "storage" ): return
 		bmaya.Scene.new( force = True )
 		snode = nodes.createNode( "storage",  "StorageNode" )
@@ -192,7 +192,7 @@ class TestStorage( unittest.TestCase ):
 		self.failUnless( len( persp.message.p_outputs ) == 10 )
 
 	def test_storageSetHandling( self ):
-		"""byronimo.maya.nodes.storage: test built-in sethandling"""
+		"""mayarv.maya.nodes.storage: test built-in sethandling"""
 		if not ownpackage.mayRun( "storage" ): return
 		bmaya.Scene.new( force = True )
 		snode = nodes.createNode( "storage",  "StorageNode" )

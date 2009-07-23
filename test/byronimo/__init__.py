@@ -37,7 +37,7 @@ def run_generic( packageObj, **runner_args ):
 
 
 def run( **runner_args ):
-	"""Run all the tests defined in L{byronimo.test}
+	"""Run all the tests defined in L{mayarv.test}
 	For more information see L{run_generic}
 	"""
 	import byronimotest.byronimo as self

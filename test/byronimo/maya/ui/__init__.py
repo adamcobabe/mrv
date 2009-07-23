@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-"""B{mayarvtest.byronimo.maya.ui}
+"""B{mayarvtest.mayarv.maya.ui}
 
 Intialize the byronimo maya UI testing suite
 
@@ -19,11 +19,11 @@ __copyright__='(c) 2008 Sebastian Thiel'
 import unittest
 import byronimotest as common
 
-import byronimo.maya.ui as ui
+import mayarv.maya.ui as ui
 
 def get_suite( ):
 	""" @return: testsuite with all tests of this package"""
-	import byronimotest.byronimo.maya.ui as self
+	import byronimotest.mayarv.maya.ui as self
 	import maya.cmds as cmds
 
 	# each test has to check whether he can run in batch mode or not

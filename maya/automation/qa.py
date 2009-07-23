@@ -7,9 +7,9 @@ Specialization of workflow to allow checks to be natively implemented in MEL
 @newfield id: SVN Id
 """
 
-from byronimo.automation.qa import QACheck, QACheckAttribute, QACheckResult, QAProcessBase
-from byronimo.maya.util import Mel
-from byronimo.dgengine import _NodeBaseCheckMeta
+from mayarv.automation.qa import QACheck, QACheckAttribute, QACheckResult, QAProcessBase
+from mayarv.maya.util import Mel
+from mayarv.dgengine import _NodeBaseCheckMeta
 import sys
 
 class QAMELCheckAttribute( QACheckAttribute ):

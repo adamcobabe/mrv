@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-"""B{mayarvtest.byronimo.maya.nodes.general}
+"""B{mayarvtest.mayarv.maya.nodes.general}
 
 Test general nodes features
 
@@ -18,24 +18,24 @@ __copyright__='(c) 2008 Sebastian Thiel'
 
 
 import unittest
-import byronimo.maya as bmaya
-import byronimo.maya.env as env
-import byronimo.maya.namespace as namespace
-import byronimo.maya.nodes as nodes
-import byronimo.maya.nodes.types as types
-from byronimotest.byronimo.maya import get_maya_file
-from byronimo.util import capitalize
-from byronimo.maya.util import StandinClass
+import mayarv.maya as bmaya
+import mayarv.maya.env as env
+import mayarv.maya.namespace as namespace
+import mayarv.maya.nodes as nodes
+import mayarv.maya.nodes.types as types
+from byronimotest.mayarv.maya import get_maya_file
+from mayarv.util import capitalize
+from mayarv.maya.util import StandinClass
 import maya.cmds as cmds
-import byronimotest.byronimo.maya as common
-import byronimotest.byronimo.maya.nodes as ownpackage
+import byronimotest.mayarv.maya as common
+import byronimotest.mayarv.maya.nodes as ownpackage
 import maya.OpenMaya as api
 
 class TestGeneral( unittest.TestCase ):
 	""" Test general maya framework """
 
 	def test_testWrappers( self ):
-		"""byronimo.maya.nodes: test wrapper class creation
+		"""mayarv.maya.nodes: test wrapper class creation
 		@note: we coulld dynamically create the nodes for testing using ls -nt,
 		but using a filecache is much faster - speed matters"""
 		if not ownpackage.mayRun( "general" ): return
@@ -74,7 +74,7 @@ class TestGeneral( unittest.TestCase ):
 
 
 	def test_createNodes( self ):
-		"""byronimo.maya.nodes: create nodes with long names and namespaces"""
+		"""mayarv.maya.nodes: create nodes with long names and namespaces"""
 		if not ownpackage.mayRun( "general" ): return
 		names = ["hello","bla|world","this|world|here","that|this|world|here" ]
 		nsnames = ["a:hello","blab|b:world","c:this|b:world","d:that|c:this|b:world|a:b:c:d:here"]
@@ -154,7 +154,7 @@ class TestGeneral( unittest.TestCase ):
 
 
 	def test_objectExistance( self ):
-		"""byronimo.maya.nodes: check whether we can properly handle node exist checks"""
+		"""mayarv.maya.nodes: check whether we can properly handle node exist checks"""
 		if not ownpackage.mayRun( "general" ): return
 		depnode = nodes.createNode( "node", "facade" )
 		self.failUnless( nodes.objExists( str( depnode ) ) )
@@ -179,7 +179,7 @@ class TestGeneral( unittest.TestCase ):
 
 
 	def test_dagPathVSMobjects( self ):
-		"""byronimo.maya.nodes: if mobjects where used internally, this test would fail"""
+		"""mayarv.maya.nodes: if mobjects where used internally, this test would fail"""
 		if not ownpackage.mayRun( "general" ): return
 		node = nodes.createNode( "parent|middle|child", "transform" )
 		nodem = nodes.Node( "parent|middle" )
@@ -202,7 +202,7 @@ class TestGeneral( unittest.TestCase ):
 
 
 	def test_convenienceFunctions( self ):
-		"""byronimo.maya.nodes: test convenience and conversion functions"""
+		"""mayarv.maya.nodes: test convenience and conversion functions"""
 		if not ownpackage.mayRun( "util" ): return
 
 		# SELECTION
@@ -241,7 +241,7 @@ class TestNodeBase( unittest.TestCase ):
 		cmds.file( new=1,force=1 )
 
 	def test_customTypes( self ):
-		"""byronimo.maya.nodes: add a custom type to the system"""
+		"""mayarv.maya.nodes: add a custom type to the system"""
 		if not ownpackage.mayRun( "general" ): return
 		nodes.addCustomType( "MyNewCls",parentClsName = "dependNode" )
 		# standin class should be there
@@ -273,7 +273,7 @@ class TestNodeBase( unittest.TestCase ):
 
 
 	def test_wrapDepNode( self ):
-		"""byronimo.maya.nodes: create and access dependency nodes ( not being dag nodes )"""
+		"""mayarv.maya.nodes: create and access dependency nodes ( not being dag nodes )"""
 		if not ownpackage.mayRun( "general" ): return
 		node = nodes.Node( "defaultRenderGlobals" )
 
@@ -387,7 +387,7 @@ class TestNodeBase( unittest.TestCase ):
 		node.rename( "othernode" )
 
 	def test_reparentAndInstances( self ):
-		"""byronimo.maya.nodes: see of reparenting is responding when instances are involved"""
+		"""mayarv.maya.nodes: see of reparenting is responding when instances are involved"""
 		if not ownpackage.mayRun( "general" ): return
 		mesh = nodes.createNode( "trans|mesh", "mesh" )
 		base = nodes.createNode( "base|subbase", "transform" )
@@ -419,7 +419,7 @@ class TestNodeBase( unittest.TestCase ):
 		self.failUnless( mesh.isValid() and not baseinst.isValid() and not obaseinst.isValid() )
 
 	def test_duplicateInstances( self ):
-		"""byronimo.maya.nodes: handle duplication of instances"""
+		"""mayarv.maya.nodes: handle duplication of instances"""
 		if not ownpackage.mayRun( "dagnode" ): return
 		base = nodes.createNode( "base", "transform" )
 		obase = nodes.createNode( "obase", "transform" )
@@ -435,7 +435,7 @@ class TestNodeBase( unittest.TestCase ):
 		self.failUnless( baseduplmesh != basemesh )		# its a separate copy
 
 	def test_wrapDagNode( self ):
-		"""byronimo.maya.nodes: create and access dag nodes"""
+		"""mayarv.maya.nodes: create and access dag nodes"""
 		if not ownpackage.mayRun( "dagnode" ): return
 		mesh = nodes.createNode( "parent|mesh", "mesh" )
 		parent = mesh.getParent( )
@@ -580,7 +580,7 @@ class TestNodeBase( unittest.TestCase ):
 		self.failUnless( isinstance( meshinst, nodes.Mesh ) )
 
 	def test_removeChild( self ):
-		"""byronimo.maya.nodes: test how remove child responds"""
+		"""mayarv.maya.nodes: test how remove child responds"""
 		if not ownpackage.mayRun( "general" ): return
 		base = nodes.createNode( "base" , "transform" )
 		trans = nodes.createNode( "base|trans", "transform" )
@@ -598,7 +598,7 @@ class TestNodeBase( unittest.TestCase ):
 
 
 	def test_dependnode_getitem( self ):
-		"""byronimo.nodes.maya: DependeNode.__getitem__"""
+		"""mayarv.nodes.maya: DependeNode.__getitem__"""
 		if not ownpackage.mayRun( "general" ): return
 		mesh = nodes.createNode( "p1|p2|mesh", "mesh" )
 		self.failUnless( len( list( mesh.iterParents() ) ) == 2 )
@@ -609,7 +609,7 @@ class TestNodeBase( unittest.TestCase ):
 		self.failUnlessRaises( IndexError, mesh.__getitem__, -3 )
 
 	def test_childEditing( self ):
-		"""byronimo.maya.nodes: tests the add and remove children"""
+		"""mayarv.maya.nodes: tests the add and remove children"""
 		if not ownpackage.mayRun( "general" ): return
 		base = nodes.createNode( "basenode", "transform" )
 		obase = nodes.createNode( "otherbasenode", "transform" )
@@ -679,7 +679,7 @@ class TestNodeBase( unittest.TestCase ):
 		cmds.redo()
 
 	def test_instancesAndParenting( self ):
-		"""byronimo.maya.nodes.base: test instances and parenting, also instanced attributes"""
+		"""mayarv.maya.nodes.base: test instances and parenting, also instanced attributes"""
 		if not ownpackage.mayRun( "general" ): return
 		bmaya.Scene.open( get_maya_file( "instancetest.ma" ), force=True )
 		m = nodes.Node( "m" )			# mesh, two direct and two indirect instances
@@ -716,7 +716,7 @@ class TestNodeBase( unittest.TestCase ):
 
 
 	def test_instanceTraversal( self ):
-		"""byronimo.maya.nodes.base: traverse instances"""
+		"""mayarv.maya.nodes.base: traverse instances"""
 		if not ownpackage.mayRun( "general" ): return
 		base = nodes.createNode( "base", "transform" )
 		obase = nodes.createNode( "obase", "transform" )
@@ -764,7 +764,7 @@ class TestNodeBase( unittest.TestCase ):
 
 
 	def test_displaySettings( self ):
-		"""byronimo.maya.nodes.base: test how display type and display overrides work hierarchically"""
+		"""mayarv.maya.nodes.base: test how display type and display overrides work hierarchically"""
 		if not ownpackage.mayRun( "general" ): return
 		bmaya.Scene.new( force = 1 )
 		mesh = nodes.createNode( "a1|b1|c1|d1|mesh", "mesh" )
@@ -796,7 +796,7 @@ class TestNodeBase( unittest.TestCase ):
 
 
 	def test_addremoveAttr( self ):
-		"""byronimo.maya.nodes.base: add and remove attributes with undo"""
+		"""mayarv.maya.nodes.base: add and remove attributes with undo"""
 		if not ownpackage.mayRun( "general" ): return
 		trans = nodes.createNode( "trans", "transform" )
 		trans2 = nodes.createNode( "trans2", "transform" )
@@ -837,7 +837,7 @@ class TestNodeBase( unittest.TestCase ):
 		self.failUnless( t.s['sz'].asFloat() == 1.0 )
 
 	def test_keepWorldSpace( self ):
-		"""byronimo.maya.nodes.base: keep ws transformation when reparenting"""
+		"""mayarv.maya.nodes.base: keep ws transformation when reparenting"""
 		if not ownpackage.mayRun( "general" ): return
 		g = nodes.createNode( "g", "transform" )
 		t = nodes.createNode( "t", "transform" )

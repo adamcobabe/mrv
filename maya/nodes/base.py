@@ -30,15 +30,15 @@ __id__="$Id: configuration.py 16 2008-05-29 00:30:46Z byron $"
 __copyright__='(c) 2008 Sebastian Thiel'
 
 
-from byronimo.util import uncapitalize, capitalize, IntKeyGenerator, getPythonIndex, iDagItem, Call, iDuplicatable
-from byronimo.maya.util import StandinClass
-nodes = __import__( "byronimo.maya.nodes", globals(), locals(), ['nodes'] )
+from mayarv.util import uncapitalize, capitalize, IntKeyGenerator, getPythonIndex, iDagItem, Call, iDuplicatable
+from mayarv.maya.util import StandinClass
+nodes = __import__( "mayarv.maya.nodes", globals(), locals(), ['nodes'] )
 from types import nodeTypeToMfnClsMap, nodeTypeTree
 import maya.OpenMaya as api
 import maya.cmds as cmds
 import maya.OpenMayaMPx as OpenMayaMPx
-import byronimo.maya.namespace as namespace
-undo = __import__( "byronimo.maya.undo", globals(), locals(),[ 'undo' ] )
+import mayarv.maya.namespace as namespace
+undo = __import__( "mayarv.maya.undo", globals(), locals(),[ 'undo' ] )
 import sys
 from itertools import chain
 
