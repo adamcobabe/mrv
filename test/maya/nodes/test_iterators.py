@@ -20,10 +20,10 @@ __copyright__='(c) 2008 Sebastian Thiel'
 import unittest
 import maya.OpenMaya as api
 from mayarv.maya.nodes.iterators import *
-import test.maya as common
+import mayarv.test.maya as common
 import mayarv.maya as bmaya
 import mayarv.maya.nodes as nodes
-import test.maya.nodes as ownpackage
+import mayarv.test.maya.nodes as ownpackage
 import maya.cmds as cmds
 
 class TestGeneral( unittest.TestCase ):

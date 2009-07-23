@@ -39,7 +39,7 @@ from mayarv.path import Path
 env =  __import__( "mayarv.maya.env", globals(), locals(), ['env'] )
 bmayautil = __import__( "mayarv.maya.util", globals(), locals(), ['util'] )
 from types import *
-from byronimo import init_modules
+from mayarv import init_modules
 import sys
 
 if not hasattr( sys,"_dataTypeIdToTrackingDictMap" ):

@@ -22,8 +22,8 @@ import mayarv.maya.nodes.storage as storage
 import mayarv.maya.nodes as nodes
 import maya.OpenMaya as api
 import mayarv.maya as bmaya
-import test.maya as common
-import test.maya.nodes as ownpackage
+import mayarv.test.maya as common
+import mayarv.test.maya.nodes as ownpackage
 
 class TestGeometry( unittest.TestCase ):
 	""" Test general maya framework """

@@ -55,13 +55,13 @@ def get_suite( ):
 	import inspect
 
 	import test
-	import test.automation as automation
-	import test.automation.processes as automationproceses
-	import test.automation.workflows as automationworkflows
-	import test.maya as maya
-	import test.maya.ui as mayaui
-	import test.maya.nodes as Nodes
-	import test.maya.benchmark as benchmark
+	import mayarv.test.automation as automation
+	import mayarv.test.automation.processes as automationproceses
+	import mayarv.test.automation.workflows as automationworkflows
+	import mayarv.test.maya as maya
+	import mayarv.test.maya.ui as mayaui
+	import mayarv.test.maya.nodes as Nodes
+	import mayarv.test.maya.benchmark as benchmark
 
 	testmodules = [ t[1] for t in locals().iteritems() if t[0] != 'inspect' and inspect.ismodule( t[1] ) ]
 

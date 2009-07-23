@@ -23,12 +23,12 @@ import mayarv.maya.env as env
 import mayarv.maya.namespace as namespace
 import mayarv.maya.nodes as nodes
 import mayarv.maya.nodes.types as types
-from test.maya import get_maya_file
+from mayarv.test.maya import get_maya_file
 from mayarv.util import capitalize
 from mayarv.maya.util import StandinClass
 import maya.cmds as cmds
-import test.maya as common
-import test.maya.nodes as ownpackage
+import mayarv.test.maya as common
+import mayarv.test.maya.nodes as ownpackage
 import maya.OpenMaya as api
 
 class TestGeneral( unittest.TestCase ):

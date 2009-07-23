@@ -21,7 +21,7 @@ import unittest
 import mayarv.maya.nodes as nodes
 import maya.cmds as cmds
 import maya.OpenMaya as api
-import test.maya.nodes as ownpackage
+import mayarv.test.maya.nodes as ownpackage
 
 class TestDataBase( unittest.TestCase ):
 	""" Test data classes  """

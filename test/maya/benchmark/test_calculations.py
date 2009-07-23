@@ -20,7 +20,7 @@ __copyright__='(c) 2008 Sebastian Thiel'
 import unittest
 import mayarv.maya as bmaya
 import mayarv.maya.nodes as nodes
-import test.maya as common
+import mayarv.test.maya as common
 import sys
 import maya.cmds as cmds
 import mayarv.maya.undo as undo
@@ -29,7 +29,7 @@ import string
 import random
 import time
 import mayarv.maya.nodes.iterators as iters
-import test.maya.benchmark as bcommon
+import mayarv.test.maya.benchmark as bcommon
 
 
 class TestCalculations( unittest.TestCase ):

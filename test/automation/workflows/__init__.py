@@ -49,7 +49,7 @@ def get_suite( ):
 	""" @return: testsuite with all tests of this package
 	@note: does some custom setup required for all tests to work"""
 	# custom setup
-	import test.automation.workflows as self
+	import mayarv.test.automation.workflows as self
 	return common.get_package_suite( self )
 
 def run( **runner_args ):

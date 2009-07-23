@@ -25,7 +25,7 @@ import mayarv.maya.env as env
 from mayarv.path import Path
 import tempfile
 import shutil
-import test.maya as common
+import mayarv.test.maya as common
 
 class TestSceneRunner( unittest.TestCase ):
 	""" Test the database """

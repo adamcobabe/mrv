@@ -17,7 +17,7 @@ __id__="$Id: __init__.py 22 2008-07-16 20:41:16Z byron $"
 __copyright__='(c) 2008 Sebastian Thiel'
 
 import unittest
-import test as common
+import mayarv.test as common
 import mayarv.automation.process as process
 import mayarv.automation.processes as processes
 from mayarv.dgengine import plug, Attribute as A
@@ -28,7 +28,7 @@ def get_suite( ):
 	""" @return: testsuite with all tests of this package
 	@note: does some custom setup required for all tests to work"""
 	# custom setup
-	import test.automation.processes as self
+	import mayarv.test.automation.processes as self
 	return common.get_package_suite( self )
 
 def run( **runner_args ):

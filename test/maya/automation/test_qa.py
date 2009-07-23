@@ -20,8 +20,8 @@ __copyright__='(c) 2008 Sebastian Thiel'
 import unittest
 import mayarv.maya.automation.qa as qa
 import mayarv.automation.processes as processes
-import test.automation.workflows as workflows
-import test.automation.processes as processes
+import mayarv.test.automation.workflows as workflows
+import mayarv.test.automation.processes as processes
 from mayarv.maya.util import Mel
 import maya.mel as mmel
 

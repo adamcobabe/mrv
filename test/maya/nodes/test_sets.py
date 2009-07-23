@@ -22,10 +22,10 @@ import mayarv.maya.nodes as nodes
 import mayarv.maya.nodes.iterators as iterators
 import maya.cmds as cmds
 import maya.OpenMaya as api
-import test.maya as common
+import mayarv.test.maya as common
 import mayarv.maya as bmaya
 import mayarv.maya.nodes.sets as sets
-import test.maya.nodes as ownpackage
+import mayarv.test.maya.nodes as ownpackage
 
 class TestSets( unittest.TestCase ):
 	""" Test set and partition handling """

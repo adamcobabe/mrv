@@ -275,7 +275,7 @@ class TestGeneralUI( unittest.TestCase ):
 		if cmds.about( batch=1 ):
 			return
 
-		import test.automation.workflows as workflows
+		import mayarv.test.automation.workflows as workflows
 
 		qawfl = workflows.qualitychecking
 		checks = qawfl.listChecks( )

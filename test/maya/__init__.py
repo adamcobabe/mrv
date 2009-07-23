@@ -18,7 +18,7 @@ __copyright__='(c) 2008 Sebastian Thiel'
 
 import unittest
 import mayarv.maya as bmaya
-import test as common
+import mayarv.test as common
 import maya.cmds as cmds
 import os
 import tempfile
@@ -45,7 +45,7 @@ def get_suite( ):
 	# custom setup
 	bmaya.Mel.putenv( "MAYAFILEBASE", os.path.dirname( __file__ ) )
 	cmds.undoInfo( infinity=1 )
-	import test.maya as self
+	import mayarv.test.maya as self
 	return common.get_package_suite( self )
 
 def run( **runner_args ):

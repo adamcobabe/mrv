@@ -26,7 +26,7 @@ import maya.cmds as cmds
 import tempfile
 from mayarv.path import Path
 import sys
-import test.maya.nodes as ownpackage
+import mayarv.test.maya.nodes as ownpackage
 
 class TestStorage( unittest.TestCase ):
 	""" Test general maya framework """

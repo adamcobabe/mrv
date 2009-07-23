@@ -18,7 +18,7 @@ __copyright__='(c) 2008 Sebastian Thiel'
 
 
 import unittest
-import test.maya as common
+import mayarv.test.maya as common
 from mayarv.maya.scene import Scene
 from mayarv.maya.namespace import *
 import mayarv.maya as bmaya
