@@ -1,5 +1,0 @@
-digraph qatest {
-ratio=1
-node [style=filled]
-"QACheckProcess" [fillcolor="#ebba66",label="QACheckProcess"];
-}

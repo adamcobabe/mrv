@@ -1,5 +1,0 @@
-digraph WorkflowWrap {
-ratio=1
-node [style=filled]
-"WrappedWorkflow" [ fillcolor="#ebba66",label="WorkflowWrapTestProcess",toplabel="multiinput" ];
-}

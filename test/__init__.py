@@ -54,14 +54,14 @@ def get_suite( ):
 	"""@return: all tests in this package"""
 	import inspect
 
-	import byronimotest.byronimo as byronimo
-	import byronimotest.mayarv.automation as automation
-	import byronimotest.mayarv.automation.processes as automationproceses
-	import byronimotest.mayarv.automation.workflows as automationworkflows
-	import byronimotest.mayarv.maya as maya
-	import byronimotest.mayarv.maya.ui as mayaui
-	import byronimotest.mayarv.maya.nodes as Nodes
-	import byronimotest.mayarv.maya.benchmark as benchmark
+	import test
+	import test.automation as automation
+	import test.automation.processes as automationproceses
+	import test.automation.workflows as automationworkflows
+	import test.maya as maya
+	import test.maya.ui as mayaui
+	import test.maya.nodes as Nodes
+	import test.maya.benchmark as benchmark
 
 	testmodules = [ t[1] for t in locals().iteritems() if t[0] != 'inspect' and inspect.ismodule( t[1] ) ]
 

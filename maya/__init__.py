@@ -21,7 +21,7 @@ __id__="$Id$"
 __copyright__='(c) 2008 Sebastian Thiel'
 
 
-import os, sys
+import os, sys                                                                         
 from mayarv import init_modules
 from mayarv.util import capitalize, DAGTree
 from mayarv.exceptions import MayaRVError
