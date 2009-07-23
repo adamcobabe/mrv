@@ -59,7 +59,8 @@ test=${python_version:?Python version could not be determined for maya version $
 
 # LD LIBARRY CONFIGURAION
 if [[ $uname == "Linux" ]]; then
-	LD_PRELOAD="/usr/lib64/libstdc++.so.6:/usr/lib/gcc/x86_64-linux-gnu/4.2/libgcc_s.so"
+	# not required unless you load special libraries - if required, do this in your own wrapper
+	# LD_PRELOAD="/usr/lib64/libstdc++.so.6:/usr/lib/gcc/x86_64-linux-gnu/4.2/libgcc_s.so"
 	LD_LIBRARY_PATH=$MAYA_LOCATION/lib:$LD_LIBRARY_PATH
 	export LD_PRELOAD LD_LIBRARY_PATH
 elif [[ $uname == "Darwin" ]]; then
