@@ -81,7 +81,7 @@ export PYTHONPATH MAYA_LOCATION
 
 # set the python path to find out package
 base=`/usr/bin/dirname $0`
-byronimobase=$base/../py
+byronimobase=$base/../..
 export PYTHONPATH=$PYTHONPATH:$byronimobase
 
 
