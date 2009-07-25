@@ -24,7 +24,7 @@ import mayarv.maya.namespace as namespace
 import mayarv.maya.nodes as nodes
 import mayarv.maya.nodes.types as types
 from mayarv.test.maya import get_maya_file
-from mayarv.util import capitalize
+from mayarv.util import capitalize, uncapitalize
 from mayarv.maya.util import StandinClass
 import maya.cmds as cmds
 import mayarv.test.maya as common
@@ -43,14 +43,16 @@ class TestGeneral( unittest.TestCase ):
 		filename = "allnodetypes_%s.mb" % env.getAppVersion( )[0]
 		bmaya.Scene.open( get_maya_file( filename ), force=True )
 
-		failedList = []
+		missingTypesList = []
+		invalidInheritanceList = []
 		seen_types = set()		# keeps class names that we have seen already 
 		for nodename in cmds.ls( ):
 			try:
 				node = nodes.Node( nodename )
 				node.getMFnClasses()
-			except TypeError:
-				failedList.append( ( nodename, cmds.nodeType( nodename ) ) )
+			except (TypeError,AttributeError):
+				missingTypesList.append( ( nodename, cmds.nodeType( nodename ) ) )
+				continue
 			except:
 				raise
 
@@ -66,16 +68,45 @@ class TestGeneral( unittest.TestCase ):
 			# assure we have all the parents we need
 			parentClsNames = [ capitalize( typename ) for typename in cmds.nodeType( nodename, i=1 ) ]
 			
-			print parentClsNames
 			for pn in parentClsNames:
-				pcls = getattr( nodes, pn )
-				self.failUnless( isinstance( node, pcls ) )
-
+				token = ( node, parentClsNames )
+				try:
+					pcls = getattr( nodes, pn )
+				except AttributeError:
+					invalidInheritanceList.append( token )
+					break
+				# END AttributeError
+				
+				# if its a standin class, try to create it 
+				try:
+					pcls = pcls.createCls()
+				except AttributeError:
+					pass 
+					
+				if not isinstance( node, pcls ):
+					invalidInheritanceList.append( token )
+					break
+				# END if a parent class is missing
+			# END for each parent class name 
 		# END for each type in file
 
-		if len( failedList ):
+		if len( missingTypesList ):
 			nodecachefile = "nodeHierarchy%s.html" % env.getAppVersion( )[0]
-			raise TypeError( "Add the following node types to the %r cache file at the respective post in the hierarchy: %r" % ( nodecachefile, failedList ) )
+			for fn in missingTypesList:
+				print fn
+			
+			print "Add these lines to the hierarchy file" 
+			for fn in missingTypesList:
+				print '<tt> >  >  > </tt><a href="%s.html" target="subFrame">%s</a><br />' % ( uncapitalize( fn[1] ), uncapitalize( fn[1] ))
+			raise TypeError( "Add the following node types to the %r cache file at the respective post in the hierarchy:" % ( nodecachefile ) )
+		# END missing types handling 
+		
+		if len( invalidInheritanceList ):
+			for ( node, parentClsNames ) in invalidInheritanceList:
+				print "Invalid inheritance of type %s, must be %s" % ( node.typeName(), parentClsNames )
+			# END for each item tuple 
+			raise AssertionError( "Class(es) with invalid inheritance found - see stdout" )
+		# END invalid inheritance handling 
 
 		# try to just use a suberclass directly
 		for transname in cmds.ls( type="transform" ):
