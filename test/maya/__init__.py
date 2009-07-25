@@ -16,7 +16,7 @@ __revision__="$Revision: 22 $"
 __id__="$Id: __init__.py 22 2008-07-16 20:41:16Z byron $"
 __copyright__='(c) 2008 Sebastian Thiel'
 
-import unittest
+from mayarv.test.lib import *
 import mayarv.maya as bmaya
 import mayarv.test as common
 import maya.cmds as cmds
@@ -26,7 +26,7 @@ import tempfile
 #{ Interface
 def get_maya_file( filename ):
 	"""@return: path to specified maya ( test ) file """
-	return os.path.join( os.path.dirname( __file__ ), "ma/"+filename )
+	return fixturePath( "ma/"+filename )
 
 
 def _saveTempFile( filename ):
@@ -50,7 +50,7 @@ def get_suite( ):
 
 def run( **runner_args ):
 	"""Run all the tests  """
-	testrunner = unittest.TextTestRunner( **runner_args )
+	testrunner = TextTestRunner( **runner_args )
 	return testrunner.run( get_suite() )
 
 

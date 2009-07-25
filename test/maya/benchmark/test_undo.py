@@ -21,9 +21,9 @@ import unittest
 import mayarv.maya as bmaya
 import maya.cmds as cmds
 import mayarv.maya.undo as undo
-from mayarv.test.maya.undo import TestUndoQueue
-import sys
+from mayarv.test.maya.test_undo import TestUndoQueue
 import mayarv.test.maya.benchmark as bcommon
+import sys
 
 class TestUndoPerformance( unittest.TestCase ):
 	"""Test all aspects of the api undo queue"""
