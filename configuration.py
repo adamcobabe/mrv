@@ -281,7 +281,6 @@ class ConfigAccessor( object ):
 			self._configChain = ConfigChain()	# undo changes and reraise
 			raise
 
-	@typecheck_rval( list )
 	def write( self, close_fp=True ):
 		""" Write current state back to files.
 		During initialization in L{readfp}, L{ExtendedFileInterface} objects have been passed in - these
@@ -308,9 +307,6 @@ class ConfigAccessor( object ):
 
 
 	#{Transformations
-	# type checking does not work for ourselves as we are not yet defined - need baseclass !
-	# But I cannot introduce it just for that purpose ...
-	# @typecheck_rval( object, ExtendedFileInterface )
 	def flatten( self, fp ):
 		"""Copy all our members into a new ConfigAccessor which only has one node, instead of N nodes
 
@@ -363,7 +359,6 @@ class ConfigAccessor( object ):
 
 		return True
 
-	@typecheck_param( object, basestring )
 	def getSection( self, section ):
 		""" @return: first section with name
 		@note: as there might be several nodes defining the section for inheritance,
@@ -385,8 +380,6 @@ class ConfigAccessor( object ):
 		@return: L{Key}"""
 		return self.getSectionDefault( sectionname ).getKeyDefault(keyname, value )[0]
 
-	@typecheck_rval( list )
-	@typecheck_param( object, basestring )
 	def getKeysByName( self, name ):
 		"""@param name: the name of the key you wish to find
 		@return: List of  (L{Key},L{Section}) tuples of key(s) matching name found in section, or empty list"""
@@ -428,7 +421,6 @@ class ConfigAccessor( object ):
 
 
 	#{ Structure Adjustments Respecting Writable State
-	@typecheck_param( object, basestring )
 	def getSectionDefault( self, section ):
 		"""@return: section with given name.
 		@raise IOError: If section does not exist and it cannot be created as the configuration is readonly
@@ -904,7 +896,6 @@ class Key( PropertyHolder ):
 	_re_checkName = re.compile( validchars+r'+' )			# only word characters are allowed in key names, and paranthesis
 	_re_checkValue = re.compile( r'[^\n\t\r]+' )					# be as open as possible
 
-	@typecheck_param( object, str, object, int )
 	def __init__( self, name, value, order ):
 		""" Basic Field Initialization
 		@param order: -1 = will be written to end of list, or to given position otherwise """
@@ -1066,7 +1057,6 @@ class Section( PropertyHolder ):
 		"""@return: key iterator"""
 		return iter( self.keys )
 
-	@typecheck_param( object, str, int )
 	def __init__( self, name, order ):
 		"""Basic Field Initialization
 		@param order: -1 = will be written to end of list, or to given position otherwise """
@@ -1137,7 +1127,6 @@ class Section( PropertyHolder ):
 
 
 	#{Key Access
-	@typecheck_rval( Key )
 	def getKey( self, name ):
 		"""@return: L{Key} with name
 		@raise NoOptionError: """
@@ -1146,7 +1135,6 @@ class Section( PropertyHolder ):
 		except KeyError:
 			raise NoOptionError( name, self.name )
 
-	@typecheck_rval( ( Key,bool ) )
 	def getKeyDefault( self, name, value ):
 		"""@param value: anything supported by L{setKey}
 		@return: tuple: 0 = L{Key} with name, create it if required with given value, 1 = true if newly created, false otherwise"""
@@ -1183,7 +1171,6 @@ class ConfigNode( object ):
 	Additionally, it is aware of it being element of a chain, and can provide next
 	and previous elements respectively """
 	#{Construction/Destruction
-	@typecheck_param( object, interface( ExtendedFileInterface ) )
 	def __init__( self, fp ):
 		""" Initialize Class Instance"""
 		self._sections	= BasicSet()			# associate sections with key holders
@@ -1216,7 +1203,6 @@ class ConfigNode( object ):
 		self._sections.update( set( validsections ) )
 
 
-	@typecheck_param( object )
 	def parse( self ):
 		""" parse default INI information into the extended structure
 
@@ -1246,7 +1232,6 @@ class ConfigNode( object ):
 			return True
 		return False
 
-	@typecheck_param( object, RawConfigParser )
 	def write( self, rcp, close_fp=True ):
 		""" Write our contents to our file-like object
 		@param rcp: RawConfigParser to use for writing
@@ -1297,7 +1282,6 @@ class ConfigNode( object ):
 
 	#{Section Access
 
-	@typecheck_rval( list )
 	def listSections( self ):
 		""" @return: [] with string names of available sections
 		@todo: return an iterator instead"""
@@ -1306,7 +1290,6 @@ class ConfigNode( object ):
 		return out
 
 
-	@typecheck_rval( Section )
 	def getSection( self, name ):
 		"""@return: L{Section} with name
 		@raise NoSectionError: """
@@ -1319,7 +1302,6 @@ class ConfigNode( object ):
 		"""@return: True if the given section exists"""
 		return name in self._sections
 
-	@typecheck_rval( Section )
 	def getSectionDefault( self, name ):
 		"""@return: L{Section} with name, create it if required"""
 		name = name.strip()
@@ -1424,7 +1406,6 @@ class DiffKey( DiffData ):
 		badded = cls._subtractLists( b, a )
 		return cls._subtractLists( b, badded )
 
-	@typecheck_param( object, Key, Key )
 	def _populate( self, A, B ):
 		""" Find added and removed key values
 		@note: currently the implementation is not index based, but set- and thus value based
@@ -1593,7 +1574,6 @@ class ConfigDiffer( DiffData ):
 			out.add( section_to_add )
 		return out
 
-	@typecheck_param( object, ConfigAccessor, ConfigAccessor )
 	def _populate( self, A, B ):
 		""" Perform the acutal diffing operation to fill our data structures
 		@note: this method directly accesses ConfigAccessors internal datastructures """
@@ -1627,7 +1607,6 @@ class ConfigDiffer( DiffData ):
 
 
 
-	@typecheck_param( object, ConfigAccessor )
 	def applyTo( self, ca ):
 		"""Apply the stored differences in this ConfigDiffer instance to the given ConfigAccessor
 
