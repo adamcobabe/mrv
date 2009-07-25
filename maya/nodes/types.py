@@ -31,6 +31,7 @@ import re
 import inspect
 import new
 import UserDict
+import maya.cmds as cmds
 
 ####################
 ### CACHES ########
@@ -360,16 +361,21 @@ class MetaClassCreatorNodes( MetaClassCreator ):
 #### Initialization Methods   ####
 #################################
 
-def getCacheFilePath( filename, ext ):
-	"""Return path to cache file from which you would initialize data structures"""
+def getCacheFilePath( filename, ext, use_version = False ):
+	"""@Return path to cache file from which you would initialize data structures
+	@param use_version: if true, the maya version will be appended to the filename  """
 	mfile = Path( __file__ ).p_parent.p_parent
-	return mfile / ( "cache/%s.%s" % ( filename, ext ) )
+	version = ""
+	if use_version:
+		version = cmds.about( version=1 ).split( " " )[0]
+	# END use version
+	return mfile / ( "cache/%s%s.%s" % ( filename, version, ext ) )
 
 
 def init_nodehierarchy( ):
 	""" Parse the nodes hiearchy from the maya doc and create an Indexed tree from it
 	@todo: cache the pickled tree and try to load it instead  """
-	mfile = getCacheFilePath( "nodeHierarchy", "html" )
+	mfile = getCacheFilePath( "nodeHierarchy", "html", use_version = 1 )
 	lines = mfile.lines( retain=False )			# just read them in one burst
 
 	hierarchylist = []

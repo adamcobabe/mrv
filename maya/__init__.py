@@ -177,7 +177,7 @@ def moveVarsToEnviron( ):
 #{ Initialization
 def init_system( ):
 	"""
-	Check if we are stuited to import the maya namespace and try to set it
+	Check if we are suited to import the maya namespace and try to set it
 	up such we can use the maya standalone package.
 	If running within maya or whith maya py, this is true, otherwise we have to
 	use the MAYA_LOCATION to get this to work.

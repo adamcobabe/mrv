@@ -29,7 +29,6 @@ def getAppVersion( ):
 	"""
 	@return: tuple( float( version ), int( bits ), string( versionString ) ), the
 	version will be truncated to *not* include sub-versions
-	@note: can be run without maya modules too as long as MAYA_LOCATION is set
 	@note: maya.cmds.about() will crash if called with an external interpreter
 	"""
 	bits = 32

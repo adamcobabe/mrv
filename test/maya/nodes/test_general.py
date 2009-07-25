@@ -44,6 +44,7 @@ class TestGeneral( unittest.TestCase ):
 		bmaya.Scene.open( get_maya_file( filename ), force=True )
 
 		failedList = []
+		seen_types = set()		# keeps class names that we have seen already 
 		for nodename in cmds.ls( ):
 			try:
 				node = nodes.Node( nodename )
@@ -54,9 +55,18 @@ class TestGeneral( unittest.TestCase ):
 				raise
 
 			self.failUnless( not node._apiobj.isNull() )
+			
+			# skip duplicate types - it truly happens that there is the same typename
+			# with a different parent class - we cannot handle this 
+			nodetypename = node.getTypeName()
+			if nodetypename in seen_types:
+				continue
+			seen_types.add( nodetypename )
 
 			# assure we have all the parents we need
 			parentClsNames = [ capitalize( typename ) for typename in cmds.nodeType( nodename, i=1 ) ]
+			
+			print parentClsNames
 			for pn in parentClsNames:
 				pcls = getattr( nodes, pn )
 				self.failUnless( isinstance( node, pcls ) )
@@ -64,7 +74,7 @@ class TestGeneral( unittest.TestCase ):
 		# END for each type in file
 
 		if len( failedList ):
-			nodecachefile = "nodeHierarchy_%s.html" % env.getAppVersion( )[0]
+			nodecachefile = "nodeHierarchy%s.html" % env.getAppVersion( )[0]
 			raise TypeError( "Add the following node types to the %r cache file at the respective post in the hierarchy: %r" % ( nodecachefile, failedList ) )
 
 		# try to just use a suberclass directly
