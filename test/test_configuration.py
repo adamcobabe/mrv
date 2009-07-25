@@ -16,7 +16,7 @@ __id__="$Id$"
 __copyright__='(c) 2008 Sebastian Thiel'
 
 
-import unittest
+from mayarv.test.lib import *
 import os
 import sys
 from ConfigParser import *
@@ -27,7 +27,7 @@ import tempfile
 from glob import glob
 
 def getIniFileDir( base_dir = 'ini' ):
-	return os.path.join( os.path.dirname( __file__ ), base_dir )
+	return os.path.join( fixturePath( base_dir ) )
 
 class _ConverterLibrary( object ):
 	""" For use with Converter Test Cases - contains different dictionaries for INI conversion """
@@ -43,7 +43,7 @@ class _ConverterLibrary( object ):
 
 
 
-class TestDictConverter( unittest.TestCase ):
+class TestDictConverter( TestCase ):
 	""" Tests the DictToINI converter"""
 
 
@@ -73,7 +73,7 @@ class TestDictConverter( unittest.TestCase ):
 
 
 
-class TestConfigAccessor( unittest.TestCase ):
+class TestConfigAccessor( TestCase ):
 	""" Test the ConfigAccessor Class and all its featuers"""
 	#{ Helper Methods
 
@@ -135,7 +135,9 @@ class TestConfigAccessor( unittest.TestCase ):
 		inifps = _getprefixedinifps( 'invalid' )
 
 		for ini in inifps:
+			print "Testing %s" % ini.getName()
 			self.failUnlessRaises( ConfigParsingError, ca.readfp, ini )
+		# END for each ini file
 
 	def test_iterators( self ):
 		"""ConfigAccessor: assure that the provided iterators for sections and keys work """
@@ -208,17 +210,17 @@ class TestConfigAccessor( unittest.TestCase ):
 		assert ca['doesntexist',2] == 2
 
 
-class TestConfigManager( unittest.TestCase ):
+class TestConfigManager( TestCase ):
 	""" Test the ConfigAccessor Class and all its featuers"""
 
 	def __init__( self, testcasenames ):
-		unittest.TestCase.__init__( self , testcasenames )
+		TestCase.__init__( self , testcasenames )
 		self.testpath = os.path.join( tempfile.gettempdir(), "tmp_configman" )
 
 	def setUp( self ):
 		""" Copy valid files into seprate working directory as we want to alter them"""
 
-		dirWithTests = os.path.join( os.path.dirname( __file__ ), "configman_inis" )
+		dirWithTests = fixturePath( "configman_inis" )
 		try:
 			shutil.rmtree( self.testpath, ignore_errors=False )
 		except:
@@ -315,7 +317,7 @@ class TestConfigManager( unittest.TestCase ):
 
 
 
-class TestConfigDiffer( unittest.TestCase ):
+class TestConfigDiffer( TestCase ):
 	""" Test the ConfigDiffer Class and all its featuers"""
 
 
