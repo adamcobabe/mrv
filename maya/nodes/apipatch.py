@@ -802,6 +802,19 @@ class MPlug( api.MPlug, util.iDagItem ):
 #} END basic types
 
 
+#{ Function Sets
+class MFnDependencyNode( api.MFnDependencyNode ):
+	"""Add MFnBase methods to this function set as the base class cannot be instantiated 
+	directly. Its vital for the mayarv wrapping system as the overridden method in the 
+	MFnDependencyNode like type() are now on the base class"""
+	
+	hasObj = api.MFnBase.hasObj
+	object = api.MFnBase.object
+	setObject = api.MFnBase.setObject
+	type = api.MFnBase.type
+
+#}
+
 
 #############################
 #### ARRAYS			    ####

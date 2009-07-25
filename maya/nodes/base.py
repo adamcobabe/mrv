@@ -765,7 +765,7 @@ class DependNode( Node, iDuplicatable ):		# parent just for epydoc -
 			plug = self.findPlug( str(attr) )
 		except RuntimeError:		# perhaps a base class can handle it
 			try:
-				return base.__getattr__( self, attr )
+				return base.__getattr__( attr )
 			except AttributeError:
 				raise AttributeError( "Attribute '%s' does not exist on '%s', neither as function not as attribute" % ( attr, self.name() ) )
 

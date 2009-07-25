@@ -118,6 +118,7 @@ class MetaClassCreatorNodes( MetaClassCreator ):
 				mfnfuncname, entry = funcMutatorDB.getEntry( funcname )
 				# delete function ?
 				if entry.flag == MfnMemberMap.kDelete:
+					print "deleted function"
 					return None
 
 				rvalfunc = entry.rvalfunc
@@ -125,7 +126,14 @@ class MetaClassCreatorNodes( MetaClassCreator ):
 				pass # could just be working
 			# END if entry available
 		# END if db available
-
+		
+		# access it directly from the class, ignoring inheritance. If the class
+		# would have overridden the function, we would get it. If it does not do that, 
+		# we will end up with the first superclass implementing it. 
+		# This is what we want as more specialized Function sets will do more checks
+		# hence will be slower to create. Also in case of geometry, the python api 
+		# is a real bitch with empty shapes on which it does not want to operate at all
+		# as opposed to behaviour of the API.
 		mfnfunc = mfncls.__dict__[ mfnfuncname ]			# will just raise on error
 		newfunc = None
 

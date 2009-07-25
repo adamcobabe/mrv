@@ -4,7 +4,7 @@
     | MFnDependencyNode_attributeClass        | None                |
     | MFnDependencyNode_attributeCount        | None                |
     | MFnDependencyNode_canBeWritten          | None                |
-    | MFnDependencyNode_create                | None                |
+x   | MFnDependencyNode_create                | None                |
     | MFnDependencyNode_findAlias             | None                |
     | MFnDependencyNode_findPlug              | None                |
     | MFnDependencyNode_getAffectedAttributes | None                |
@@ -29,7 +29,7 @@
     | MFnDependencyNode_setDoNotWrite         | None                |
     | MFnDependencyNode_setFlag               | None                |
     | MFnDependencyNode_setLocked             | None                |
-    | MFnDependencyNode_setName               | None                |
+x   | MFnDependencyNode_setName               | None                |
     | MFnDependencyNode_typeId                | None                |
     | MFnDependencyNode_typeName              | None                |
     | MFnDependencyNode_userNode              | None                |
