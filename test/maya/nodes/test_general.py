@@ -30,6 +30,7 @@ import maya.cmds as cmds
 import mayarv.test.maya as common
 import mayarv.test.maya.nodes as ownpackage
 import maya.OpenMaya as api
+from mayarv.path import Path
 
 class TestGeneral( unittest.TestCase ):
 	""" Test general maya framework """
@@ -40,9 +41,11 @@ class TestGeneral( unittest.TestCase ):
 		but using a filecache is much faster - speed matters"""
 		if not ownpackage.mayRun( "general" ): return
 
-		filename = "allnodetypes_%s.mb" % env.getAppVersion( )[0]
-		bmaya.Scene.open( get_maya_file( filename ), force=True )
-
+		filename = get_maya_file( "allnodetypes_%s.mb" % env.getAppVersion( )[0] )
+		if not Path( filename ).isfile():
+			raise AssertionError( "File %s not found for loading" % filename )
+		bmaya.Scene.open( filename, force=True )
+		
 		missingTypesList = []
 		invalidInheritanceList = []
 		seen_types = set()		# keeps class names that we have seen already 
