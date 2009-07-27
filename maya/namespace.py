@@ -369,10 +369,18 @@ class Namespace( unicode, iDagItem ):
 		if objs:
 			# REMOVE INVALID OBJECTS
 			############################
+			# its very annoying that maya wholeheartedly retuns special objects that noone can work with
 			if namespace == Namespace.rootNamespace:
-				forbiddenlist = [ "groundPlane", "groundPlane_transform", "world" ]
+				
+				forbiddenlist = [ "groundPlane", "groundPlane_transform", "world", "CubeCompass", "Manipulator1", "UniversalManip", "defaultCreaseDataSet" ]
 				for item in forbiddenlist:
-					objs.remove( item )
+					try:
+						objs.remove( item )
+					except ValueError:
+						# this list contains objects that might not exist in all scenes or all maya versions 
+						pass 
+					# END exception handling
+				# END for each item to remove
 			# END forbidden object removal
 
 
