@@ -44,7 +44,6 @@ def get_suite( ):
 	@note: does some custom setup required for all tests to work"""
 	# custom setup
 	bmaya.Mel.putenv( "MAYAFILEBASE", os.path.dirname( __file__ ) )
-	cmds.undoInfo( infinity=1 )
 	import mayarv.test.maya as self
 	return common.get_package_suite( self )
 

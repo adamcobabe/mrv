@@ -43,7 +43,7 @@ def makeEditOrQueryMethod( inCmd, flag, isEdit=False, methodName=None ):
 	@param inCmd: maya command to call
 	@param flag: name of the query or edit flag
 	@param isEdit: If not False, the method returned will be an edit function
-	@param methoName: the name of the method returned, defaults to inCmd name  """
+	@param methodName: the name of the method returned, defaults to inCmd name  """
 
 	func = None
 	if isEdit:

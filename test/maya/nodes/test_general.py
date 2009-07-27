@@ -34,7 +34,7 @@ from mayarv.path import Path
 
 class TestGeneral( unittest.TestCase ):
 	""" Test general maya framework """
-
+	
 	def test_testWrappers( self ):
 		"""mayarv.maya.nodes: test wrapper class creation
 		@note: we coulld dynamically create the nodes for testing using ls -nt,

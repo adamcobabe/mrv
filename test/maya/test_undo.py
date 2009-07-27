@@ -40,8 +40,15 @@ class TestUndoQueue( unittest.TestCase ):
 		def undoIt( self ):
 			self.numUndoIt += 1
 
-
-
+	def setUp( self ):
+		assert( sys._maya_stack_depth == 0 )
+		
+	def tearDown( self ):
+		"""basic assertions currently leave the undo queue in an invalid state - clean it"""
+		sys._maya_stack_depth = 0
+		sys._maya_stack = list()
+		# assert( sys._maya_stack_depth == 0 ) # would throw
+	
 	def test_undoBasics( self ):
 		"""mayarv.maya.undo: basic assertions"""
 		undo.startUndo()
