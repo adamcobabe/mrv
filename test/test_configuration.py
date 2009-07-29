@@ -26,7 +26,7 @@ import shutil
 import tempfile
 from glob import glob
 
-def getIniFileDir( base_dir = 'ini' ):
+def _getIniFileDir( base_dir = 'ini' ):
 	return os.path.join( fixturePath( base_dir ) )
 
 class _ConverterLibrary( object ):
@@ -43,7 +43,7 @@ class _ConverterLibrary( object ):
 
 
 
-class TestDictConverter( TestCase ):
+class TestDictConverter( unittest.TestCase ):
 	""" Tests the DictToINI converter"""
 
 
@@ -73,12 +73,11 @@ class TestDictConverter( TestCase ):
 
 
 
-class TestConfigAccessor( TestCase ):
+class TestConfigAccessor( unittest.TestCase ):
 	""" Test the ConfigAccessor Class and all its featuers"""
 	#{ Helper Methods
 
 
-	@typecheck_param( object, ConfigAccessor, list )
 	def _verifiedRead( self, ca, fileobjectlist, close_fp = True ):
 		"""ConfigAccessor: Assure that the given list of file objects can be read properly
 		without loosing information.
@@ -209,11 +208,11 @@ class TestConfigAccessor( TestCase ):
 		assert ca['doesntexist',2] == 2
 
 
-class TestConfigManager( TestCase ):
+class TestConfigManager( unittest.TestCase ):
 	""" Test the ConfigAccessor Class and all its featuers"""
 
 	def __init__( self, testcasenames ):
-		TestCase.__init__( self , testcasenames )
+		unittest.TestCase.__init__( self , testcasenames )
 		self.testpath = os.path.join( tempfile.gettempdir(), "tmp_configman" )
 
 	def setUp( self ):
@@ -292,7 +291,7 @@ class TestConfigManager( TestCase ):
 		"""ConfigManager: check if filedescriptor parsing is generally working"""
 
 		# initialization
-		taggedIniFileDir = getIniFileDir( base_dir = 'taggedINI' )
+		taggedIniFileDir = _getIniFileDir( base_dir = 'taggedINI' )
 		userFileDir = os.path.join( taggedIniFileDir, "user" )
 
 		directories = [ taggedIniFileDir, userFileDir ]
@@ -316,7 +315,7 @@ class TestConfigManager( TestCase ):
 
 
 
-class TestConfigDiffer( TestCase ):
+class TestConfigDiffer( unittest.TestCase ):
 	""" Test the ConfigDiffer Class and all its featuers"""
 
 
@@ -412,7 +411,7 @@ class TestConfigDiffer( TestCase ):
 
 
 
-def _getPrefixedINIFileNames( prefix, dirname = getIniFileDir() ):
+def _getPrefixedINIFileNames( prefix, dirname = _getIniFileDir() ):
 	""" Return full paths to INI files of files with the given prefix
 
 		They must be in the same path as this test file, and end with .ini
@@ -422,7 +421,7 @@ def _getPrefixedINIFileNames( prefix, dirname = getIniFileDir() ):
 def _tofp( filenamelist, mode='r' ):
 	return [ ConfigFile( filename, mode ) for filename in filenamelist ]
 
-def _getprefixedinifps( prefix, mode='r', dirname = getIniFileDir() ):
+def _getprefixedinifps( prefix, mode='r', dirname = _getIniFileDir() ):
 	return _tofp( _getPrefixedINIFileNames( prefix, dirname=dirname ), mode=mode )
 
 

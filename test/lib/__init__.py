@@ -12,4 +12,6 @@ __id__="$Id$"
 __copyright__='(c) 2009 Sebastian Thiel'
 
 from helpers import *
-from unittest import *
+# needs to stay in a module, otherwise nose will pick up the runTest method 
+# from the TestCase class which is just a string - its odd 
+import unittest 
