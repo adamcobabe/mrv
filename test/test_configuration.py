@@ -135,7 +135,6 @@ class TestConfigAccessor( TestCase ):
 		inifps = _getprefixedinifps( 'invalid' )
 
 		for ini in inifps:
-			print "Testing %s" % ini.getName()
 			self.failUnlessRaises( ConfigParsingError, ca.readfp, ini )
 		# END for each ini file
 
