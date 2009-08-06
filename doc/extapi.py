@@ -1,5 +1,3 @@
-
-zooid - software stack to support different capabilities of dive
 # computers.
 #
 # Copyright (C) 2009 by Artur Wroblewski <wrobell@pld-linux.org>

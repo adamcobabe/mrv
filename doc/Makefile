@@ -10,8 +10,9 @@ PAPER         =
 PAPEROPT_a4     = -D latex_paper_size=a4
 PAPEROPT_letter = -D latex_paper_size=letter
 ALLSPHINXOPTS   = -d build/doctrees $(PAPEROPT_$(PAPER)) $(SPHINXOPTS) source
+EPYTARGET       = epydocs
 
-.PHONY: help clean html web pickle htmlhelp latex changes linkcheck
+.PHONY: help clean html web pickle htmlhelp latex changes linkcheck epydoc
 
 help:
 	@echo "Please use \`make <target>' where <target> is one of"
@@ -24,12 +25,21 @@ help:
 
 clean:
 	-rm -rf build/*
+	-rm -rf epydocs/*
 
+epydoc:	epydoc.cfg
+	mkdir -p $EPYTARGET 2>/dev/null
+	./epydoc -o $EPYTARGET > epydoc.log
+	
 html:
 	mkdir -p build/html build/doctrees
 	$(SPHINXBUILD) -b html $(ALLSPHINXOPTS) build/html
 	@echo
 	@echo "Build finished. The HTML pages are in build/html."
+
+full: epydoc html
+
+rebuild: clean full
 
 pickle:
 	mkdir -p build/pickle build/doctrees
