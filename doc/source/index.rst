@@ -1,0 +1,32 @@
+.. Mayarv documentation master file, created by sphinx-quickstart on Sun Jul 12 18:22:51 2009.
+   You can adapt this file completely to your liking, but it should at least
+   contain the root `toctree` directive.
+
+Welcome to the MayaRV documentation!
+===============================================
+
+Contents:
+
+.. toctree::
+   :maxdepth: 2
+   
+   install
+   reference
+   
+Module Summary
+==============
+.. autosummary::
+	:nosignatures:
+	:toctree: generated/
+	
+	mayarv.batch
+	mayarv.configuration
+	mayarv.decorators
+
+Indices and tables
+==================
+
+* :ref:`genindex`
+* :ref:`modindex`
+* :ref:`search`
+

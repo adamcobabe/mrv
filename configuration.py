@@ -113,7 +113,7 @@ class ConfigAccessor( object ):
 	Provides full access to the Configuration
 
 	Differences to ConfigParser
-	===========================
+	
 		As the functionality and featureset is very different from the original
 		ConfigParser implementation, this class does not support the interface directly.
 		It contains functions to create original ConfigParser able to fully write and alter
@@ -122,7 +122,7 @@ class ConfigAccessor( object ):
 		Additional Exceptions have been defined to cover extended functionality.
 
 	Sources and Nodes
-	=================
+	
 		Each input providing configuration data is stored in a node. This node
 		knows about its writable state. Nodes that are not writable can be altered in memory,
 		but the changes cannot be written back to the source.
@@ -131,11 +131,11 @@ class ConfigAccessor( object ):
 		the final configuration result will match the changes applied at runtime.
 
 	Commonalities to ConfigParser
-	=============================
+	
 		Terms used to describe INI files and most exception.
 
 	Additional Information
-	======================
+	
 		The term configuration is rather complex though:
 			- configuration is based on an extended INI file format
 				- its not fully compatible, but slightly more narrow regarding allowed input
@@ -1517,7 +1517,7 @@ class ConfigDiffer( DiffData ):
 	and properties.
 
 	Example Applicance
-	==================
+	
 		- Test use it to verify that reading and writing a ( possibly ) changed
 		  configuration has the expected results
 		- Programs interacting with the User by a GUI can easily determine whether
@@ -1526,7 +1526,7 @@ class ConfigDiffer( DiffData ):
 		  	  items that actually changed
 
 	Data Structure
-	==============
+	
 	- every object in the diffing structure has a 'name' attribute
 	- ConfigDiffer.added|removed|unchanged: L{Section} objects that have been added, removed
 	  or kept unchanged respectively
