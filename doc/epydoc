@@ -1,5 +1,7 @@
 #!/bin/bash
 # set the environment - this is not possible from with in the make file unless its 
 # a submake call
+# Unfortunately, it will fail to import quite a lot of modules
+# TODO: get the path right
 export PYTHONPATH=$PYTHONPATH:../:../ext/pyparsing:../ext/pydot:../ext/networkx
 epydoc $@ --config=epydoc.cfg --inheritance grouped

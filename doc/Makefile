@@ -40,7 +40,7 @@ source/index.rst:
 	
 epydoc:	epydoc.cfg
 	@mkdir -p $EPYTARGET 2>/dev/null
-	./epydoc -o $EPYTARGET > epydoc.log
+	./epydoc -q -q -o $EPYTARGET
 	
 html: source/index.rst
 	mkdir -p build/html build/doctrees
