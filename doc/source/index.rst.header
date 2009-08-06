@@ -19,14 +19,3 @@ Module Summary
 	:nosignatures:
 	:toctree: generated/
 	
-	mayarv.batch
-	mayarv.configuration
-	mayarv.decorators
-
-Indices and tables
-==================
-
-* :ref:`genindex`
-* :ref:`modindex`
-* :ref:`search`
-

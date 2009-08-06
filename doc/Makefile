@@ -26,12 +26,20 @@ help:
 clean:
 	-rm -rf build/*
 	-rm -rf epydocs/*
+	-rm source/index.rst
 
+source/index.rst:
+	@echo Generating $@
+	@find ../ -name "*.py" -not -wholename "*/test*" -not -wholename "*/ext*" -not -wholename "*/doc*" -not -name "__init__.py" | \
+	sort | sed "s#^../#\\tmayarv/#" | sed "s#.py\$$##" | sed "s#/#.#g" > source/index.rst.center
+	@cat source/index.rst.header source/index.rst.center source/index.rst.footer > source/index.rst
+	@rm source/index.rst.center
+	
 epydoc:	epydoc.cfg
 	mkdir -p $EPYTARGET 2>/dev/null
 	./epydoc -o $EPYTARGET > epydoc.log
 	
-html:
+html: source/index.rst
 	mkdir -p build/html build/doctrees
 	$(SPHINXBUILD) -b html $(ALLSPHINXOPTS) build/html
 	@echo
@@ -41,7 +49,7 @@ full: epydoc html
 
 rebuild: clean full
 
-pickle:
+pickle: source/index.rst
 	mkdir -p build/pickle build/doctrees
 	$(SPHINXBUILD) -b pickle $(ALLSPHINXOPTS) build/pickle
 	@echo
@@ -51,14 +59,14 @@ pickle:
 
 web: pickle
 
-htmlhelp:
+htmlhelp: source/index.rst
 	mkdir -p build/htmlhelp build/doctrees
 	$(SPHINXBUILD) -b htmlhelp $(ALLSPHINXOPTS) build/htmlhelp
 	@echo
 	@echo "Build finished; now you can run HTML Help Workshop with the" \
 	      ".hhp project file in build/htmlhelp."
 
-latex:
+latex: source/index.rst
 	mkdir -p build/latex build/doctrees
 	$(SPHINXBUILD) -b latex $(ALLSPHINXOPTS) build/latex
 	@echo
@@ -66,13 +74,13 @@ latex:
 	@echo "Run \`make all-pdf' or \`make all-ps' in that directory to" \
 	      "run these through (pdf)latex."
 
-changes:
+changes: source/index.rst
 	mkdir -p build/changes build/doctrees
 	$(SPHINXBUILD) -b changes $(ALLSPHINXOPTS) build/changes
 	@echo
 	@echo "The overview file is in build/changes."
 
-linkcheck:
+linkcheck: source/index.rst
 	mkdir -p build/linkcheck build/doctrees
 	$(SPHINXBUILD) -b linkcheck $(ALLSPHINXOPTS) build/linkcheck
 	@echo
