@@ -3,7 +3,7 @@
 
 # You can set these variables from the command line.
 SPHINXOPTS    =
-SPHINXBUILD   = sphinx-build
+SPHINXBUILD   = ./sphinx_build
 PAPER         =
 
 # Internal variables.
@@ -30,13 +30,16 @@ clean:
 
 source/index.rst:
 	@echo Generating $@
-	@find ../ -name "*.py" -not -wholename "*/test*" -not -wholename "*/ext*" -not -wholename "*/doc*" -not -name "__init__.py" | \
+	@find ../ -name "*.py" -not -wholename "*/test/*" \
+	-not -wholename "*/start/*" -not -wholename "*/ext/*" \
+	-not -wholename "*/doc/*" -not -wholename "*/templates/*" \
+	-not -name "__init__.py" | \
 	sort | sed "s#^../#\\tmayarv/#" | sed "s#.py\$$##" | sed "s#/#.#g" > source/index.rst.center
 	@cat source/index.rst.header source/index.rst.center source/index.rst.footer > source/index.rst
 	@rm source/index.rst.center
 	
 epydoc:	epydoc.cfg
-	mkdir -p $EPYTARGET 2>/dev/null
+	@mkdir -p $EPYTARGET 2>/dev/null
 	./epydoc -o $EPYTARGET > epydoc.log
 	
 html: source/index.rst

@@ -142,7 +142,7 @@ class NamedUI( unicode, BaseUI , iDagItem, CallbackBaseUI ):
 	If the 'name' keyword is supplied, an existing UI element will be wrapped
 
 	Events
-	-------
+	
 	As subclass of CallbackBaseUI, it can provide events that are automatically
 	added by the metaclass as described by the _events_ attribute list.
 	This allows any number of clients to register for one maya event. Derived classes
