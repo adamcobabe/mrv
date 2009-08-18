@@ -1,6 +1,5 @@
 # -*- coding: utf-8 -*-
-"""B{mayarv.maya.test.namespace}
-
+"""
 Test the namespace methods
 
 @newfield revision: Revision

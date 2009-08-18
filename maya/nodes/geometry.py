@@ -1,6 +1,5 @@
 # -*- coding: utf-8 -*-
-"""B{mayarv.nodes.geometry}
-
+"""
 Contains implementations ( or improvements ) to mayas geometric shapes
 
 @newfield revision: Revision

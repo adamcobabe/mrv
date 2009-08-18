@@ -1,6 +1,5 @@
 # -*- coding: utf-8 -*-
-"""B{mayarv.maya.automation.qa}
-Specialization of workflow to allow checks to be natively implemented in MEL
+"""Specialization of workflow to allow checks to be natively implemented in MEL
 
 
 @newfield revision: Revision

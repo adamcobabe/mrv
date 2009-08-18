@@ -1,6 +1,5 @@
 # -*- coding: utf-8 -*-
-"""B{mayarv.automation.report}
-contains report implementations allowing to analyse the callgraph of
+"""contains report implementations allowing to analyse the callgraph of
 
 @newfield revision: Revision
 @newfield id: SVN Id

@@ -1,6 +1,5 @@
 # -*- coding: utf-8 -*-
-"""B{Full.import.module.path}
-
+"""
 One line module description
 
 More detailled, multi-

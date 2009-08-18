@@ -1,6 +1,5 @@
 # -*- coding: utf-8 -*-
-"""B{mayarv.maya.ui.qa}
-
+"""
 Contains a modular UI able to display quality assurance checks, run them and
 present their results. It should be easy to override and adjust it to suit additional needs
 @todo: more documentation

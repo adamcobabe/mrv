@@ -1,6 +1,5 @@
 # -*- coding: utf-8 -*-
-"""B{tests}
-Initialize the test framework
+"""Initialize the test framework
 
 @newfield revision: Revision
 @newfield id: SVN Id

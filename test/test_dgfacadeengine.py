@@ -1,6 +1,5 @@
 # -*- coding: utf-8 -*-
-"""B{mayarvtest.mayarv.dgfacadeengine}
-Test dependency graph engine
+"""Test dependency graph engine
 
 
 @newfield revision: Revision

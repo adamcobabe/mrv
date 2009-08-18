@@ -1,6 +1,5 @@
 # -*- coding: utf-8 -*-
-"""B{mayarvtest.mayarv.util}
-Test misc utility classes
+"""Test misc utility classes
 
 
 @newfield revision: Revision

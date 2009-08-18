@@ -1,6 +1,5 @@
 # -*- coding: utf-8 -*-
-"""B{mayarv.nodes.sets}
-
+"""
 Contains improved clases for set and partition editing 
 
 @newfield revision: Revision

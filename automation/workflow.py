@@ -1,6 +1,5 @@
 # -*- coding: utf-8 -*-
-"""B{mayarv.automation.workflow}
-Contains workflow classes that conenct processes in a di - graph
+"""Contains workflow classes that conenct processes in a di - graph
 
 @newfield revision: Revision
 @newfield id: SVN Id

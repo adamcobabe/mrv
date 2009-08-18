@@ -1,6 +1,5 @@
 # -*- coding: utf-8 -*-
-"""B{mayarvtest.mayarv.maya.benchmark}
-
+"""
 Intialize and run all benchmark - the system is currently unittest based and
 proper benchmarks should be implemented on per test basis.
 

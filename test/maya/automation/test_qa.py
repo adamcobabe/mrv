@@ -1,6 +1,5 @@
 # -*- coding: utf-8 -*-
-"""B{mayarvtest.mayarv.maya.automation.qa}
-
+"""
 Test the quality assurance framework and it's mel bindings
 
 @newfield revision: Revision

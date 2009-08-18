@@ -1,6 +1,5 @@
 # -*- coding: utf-8 -*-
-"""B{mayarvtest.mayarv.maya.undo}
-
+"""
 Test ALL features of the undo queue
 
 @newfield revision: Revision

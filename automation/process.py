@@ -1,6 +1,5 @@
 # -*- coding: utf-8 -*-
-"""B{mayarv.automation.process}
-Contains base class and common methods for all processes
+"""Contains base class and common methods for all processes
 
 @newfield revision: Revision
 @newfield id: SVN Id

@@ -1,6 +1,5 @@
 # -*- coding: utf-8 -*-
-"""B{mayarv.ui.panels}
-
+"""
 Contains implementations of maya editors
 @todo: more documentation
 

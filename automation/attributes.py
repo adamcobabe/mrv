@@ -1,6 +1,5 @@
 # -*- coding: utf-8 -*-
-"""B{mayarv.automation.attributes}
-Contains specialized attributes that judge value based on different criteria,
+"""Contains specialized attributes that judge value based on different criteria,
 allowing more elaborate typecheckingr
 
 @newfield revision: Revision

@@ -1,6 +1,5 @@
 # -*- coding: utf-8 -*-
-"""B{mayarv.automation.dgfacadeengine}
-Contains nodes supporting facading within a dependency graph  - this can be used
+"""Contains nodes supporting facading within a dependency graph  - this can be used
 for container tyoes or nodes containing their own subgraph even
 
 @newfield revision: Revision

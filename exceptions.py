@@ -1,6 +1,5 @@
 # -*- coding: utf-8 -*-
-"""B{mayarv.exceptions}
-
+"""
 Contains all exceptions used by the mayarv package in general
 
 @newfield revision: Revision

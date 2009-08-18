@@ -1,6 +1,5 @@
 # -*- coding: utf-8 -*-
-"""B{mayarv.maya.automation}
-Intiailize the automation and process framework for maya
+"""Intiailize the automation and process framework for maya
 
 @newfield revision: Revision
 @newfield id: SVN Id

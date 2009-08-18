@@ -1,6 +1,5 @@
 # -*- coding: utf-8 -*-
-"""B{mayarvtest.mayarv.maya.nodes.sets}
-
+"""
 Test sets and partitions
 
 @newfield revision: Revision

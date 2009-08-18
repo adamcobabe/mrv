@@ -1,6 +1,5 @@
 # -*- coding: utf-8 -*-
-"""B{mayarvtest.mayarv.maya.nodes.iterators}
-
+"""
 Test node iterators
 
 @newfield revision: Revision

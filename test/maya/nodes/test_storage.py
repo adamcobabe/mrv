@@ -1,6 +1,5 @@
 # -*- coding: utf-8 -*-
-"""B{mayarvtest.mayarv.maya.nodes.storage}
-
+"""
 Test storage system and storage node
 
 @newfield revision: Revision

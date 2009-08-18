@@ -1,6 +1,5 @@
 # -*- coding: utf-8 -*-
-"""B{mayarvtest.mayarv.maya.ui.general}
-
+"""
 Test some default ui capababilities
 
 @newfield revision: Revision

@@ -1,6 +1,5 @@
 # -*- coding: utf-8 -*-
-"""B{mayarv.path}
-path.py - An object representing a path to a file or directory.
+"""path.py - An object representing a path to a file or directory.
 
 Example:
 

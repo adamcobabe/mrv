@@ -1,6 +1,5 @@
 # -*- coding: utf-8 -*-
-"""B{mayarv.init}
-
+"""
 Initialize mayarv system assisting development, debugging and maintenance
 
 	- install general L{decorators} into __builtin__ namespace

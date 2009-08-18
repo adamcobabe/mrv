@@ -1,6 +1,5 @@
 # -*- coding: utf-8 -*-
-"""B{mayarv.automation.processes}
-Contains all processes
+"""Contains all processes
 
 @newfield revision: Revision
 @newfield id: SVN Id

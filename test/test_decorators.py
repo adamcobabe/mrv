@@ -1,6 +1,5 @@
 # -*- coding: utf-8 -*-
-"""B{mayarvtest.mayarv.decorators}
-Test all aspects of decorators
+"""Test all aspects of decorators
 
 	- use test classes and run test on their possibly decorated functions
 

@@ -1,6 +1,5 @@
 # -*- coding: utf-8 -*-
-"""B{mayarvtest.mayarv.automation.qa}
-
+"""
 Test the quality assurance framework
 
 @newfield revision: Revision

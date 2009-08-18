@@ -1,5 +1,4 @@
-"""B{mayarv.test.lib}
-Imports all utility functions into the same module
+"""Imports all utility functions into the same module
 """
 
 __author__='$Author$'

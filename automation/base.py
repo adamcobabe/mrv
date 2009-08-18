@@ -1,6 +1,5 @@
 # -*- coding: utf-8 -*-
-"""B{mayarv.automation.base}
-general methods and classes
+"""general methods and classes
 
 @newfield revision: Revision
 @newfield id: SVN Id

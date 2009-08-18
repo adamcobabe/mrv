@@ -1,6 +1,5 @@
 # -*- coding: utf-8 -*-
-"""B{mayarv.interfaces}
-Contains interface definitions
+"""Contains interface definitions
 
 @newfield revision: Revision
 @newfield id: SVN Id

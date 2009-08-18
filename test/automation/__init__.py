@@ -1,6 +1,5 @@
 # -*- coding: utf-8 -*-
-"""B{mayarvtest.mayarv.automation}
-
+"""
 Intialize the automation test suite
 
 @newfield revision: Revision

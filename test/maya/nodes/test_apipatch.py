@@ -1,6 +1,5 @@
 # -*- coding: utf-8 -*-
-"""B{mayarvtest.mayarv.maya.nodes.general}
-
+"""
 Test general nodes features
 
 @newfield revision: Revision

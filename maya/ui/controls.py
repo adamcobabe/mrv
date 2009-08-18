@@ -1,6 +1,5 @@
 # -*- coding: utf-8 -*-
-"""B{mayarv.ui.controls}
-
+"""
 Contains the most controls like buttons and sliders for more convenient use
 
 @todo: more documentation

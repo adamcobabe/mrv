@@ -1,6 +1,5 @@
 # -*- coding: utf-8 -*-
-"""B{mayarvtest.mayarv.maya}
-
+"""
 Intialize the byronimo maya testing suite
 
 @newfield revision: Revision

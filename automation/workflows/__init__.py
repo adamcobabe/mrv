@@ -1,6 +1,5 @@
 # -*- coding: utf-8 -*-
-"""B{mayarv.automation.workflows}
-Keeps all workflows specific to maya
+"""Keeps all workflows specific to maya
 
 @note: L{createWorkflow} method must be supported in a module keeping workflows
 @todo: it would be better to have the createWorkflow method in some sort of workflowManager,

@@ -1,6 +1,5 @@
 # -*- coding: utf-8 -*-
-"""B{mayarv.maya.nodes.iterators}
-
+"""
 Contains different multi-purpose iterators allowing to conveniently walk the dg and
 dag.
 @todo: more documentation

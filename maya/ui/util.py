@@ -1,6 +1,5 @@
 # -*- coding: utf-8 -*-
-"""B{mayarv.ui.util}
-
+"""
 Utilities and classes useful for user interfaces
 
 @todo: more documentation

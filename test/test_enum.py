@@ -1,6 +1,5 @@
 # -*- coding: utf-8 -*-
-"""B{mayarvtset.mayarv.enum}
-
+"""
 @note: adjusted by Sebastian Thiel
 @newfield revision: Revision
 @newfield id: SVN Id

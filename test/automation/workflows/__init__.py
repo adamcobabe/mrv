@@ -1,6 +1,5 @@
 # -*- coding: utf-8 -*-
-"""B{mayarvtest.mayarv.automation.workflows}
-
+"""
 Intialize suite checking all workflows
 
 @newfield revision: Revision

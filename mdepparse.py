@@ -1,6 +1,5 @@
 # -*- coding: utf-8 -*-
-"""B{mayarv.automation.mdepparse}
-Contains parser allowing to retrieve dependency information from maya ascii files
+"""Contains parser allowing to retrieve dependency information from maya ascii files
 and convert it into an easy-to-use networkx graph with convenience methods
 
 @newfield revision: Revision

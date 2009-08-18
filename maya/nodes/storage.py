@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-"""B{mayarv.maya.nodes.storage} generic python style storage
+"""generic python style storage
 This module contains a storage interface able to easily handle python-style
 data within maya scenes.
 

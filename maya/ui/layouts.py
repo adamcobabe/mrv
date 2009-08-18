@@ -1,6 +1,5 @@
 # -*- coding: utf-8 -*-
-"""B{mayarv.ui.layouts}
-
+"""
 Contains the most important mel-layouts wrapped into easy to use python classes
 These are specialized and thus more powerful than the default wraps
 

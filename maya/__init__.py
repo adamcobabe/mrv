@@ -1,6 +1,5 @@
 # -*- coding: utf-8 -*-
-"""B{mayarv.maya}
-
+"""
 Inialize the mayarv.maya sub-system and assure and startup maya natively
 
 @todo: more documentation

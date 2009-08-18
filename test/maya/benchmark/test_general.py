@@ -1,6 +1,5 @@
 # -*- coding: utf-8 -*-
-"""B{mayarvtest.mayarv.maya.benchmark.general}
-
+"""
 Test general performance
 
 @newfield revision: Revision

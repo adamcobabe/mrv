@@ -1,6 +1,5 @@
 # -*- coding: utf-8 -*-
-"""B{mayarvtest.mayarv.maya.nodes.geometry}
-
+"""
 Tests the geometric nodes, focussing on the set handling
 
 @newfield revision: Revision

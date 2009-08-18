@@ -1,6 +1,5 @@
 # -*- coding: utf-8 -*-
-"""B{mayarv.automation.qa}
-Specialization of workflow to provide quality assurance capabilities.
+"""Specialization of workflow to provide quality assurance capabilities.
 
 General Idiom of a quality assurance facility is to provide read-only checks for
 possibly quaility issues and possibly a fix for them.

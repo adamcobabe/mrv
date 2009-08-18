@@ -1,6 +1,5 @@
 # -*- coding: utf-8 -*-
-"""B{mayarv.ui.base}
-
+"""
 Contains some basic  classes that are required to run the UI system
 
 @todo: more documentation

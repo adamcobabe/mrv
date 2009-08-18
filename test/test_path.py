@@ -1,6 +1,5 @@
 # -*- coding: utf-8 -*-
-"""B{mayarvtset.mayarv.path}
-Test path methods
+"""Test path methods
 
 @todo: actual implementation of path tests - currently it is just a placeholder assuring
 that the module can at least be imported

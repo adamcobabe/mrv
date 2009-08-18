@@ -1,6 +1,5 @@
 # -*- coding: utf-8 -*-
-"""B{mayarvtest.mayarv.automation}
-
+"""
 Test provided base processes
 @note: this file is here containing all default prcess tests one gets nasty
 dependency probles with the python import system as we always need workflows for testing

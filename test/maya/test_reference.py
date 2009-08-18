@@ -1,6 +1,5 @@
 # -*- coding: utf-8 -*-
-"""B{mayarvtest.mayarv.maya.reference}
-
+"""
 Test the reference methods
 
 @newfield revision: Revision

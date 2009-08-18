@@ -1,6 +1,5 @@
 # -*- coding: utf-8 -*-
-"""B{mayarv.nodes.base}
-
+"""
 Contains some basic  classes that are required to run the nodes system
 
 All classes defined here can replace classes in the node type hierarachy if the name

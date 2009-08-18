@@ -1,6 +1,5 @@
 # -*- coding: utf-8 -*-
-"""B{mayarvtest.mayarv.configuration}
-Test all aspects of the configuration management system
+"""Test all aspects of the configuration management system
 
 @newfield revision: Revision
 @newfield id: SVN Id

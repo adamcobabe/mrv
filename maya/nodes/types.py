@@ -1,6 +1,5 @@
 # -*- coding: utf-8 -*-
-"""B{mayarv.nodes.types}
-
+"""
 Deals with types of objects and mappings between them
 
 @todo: more documentation

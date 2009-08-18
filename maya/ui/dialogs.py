@@ -1,6 +1,5 @@
 # -*- coding: utf-8 -*-
-"""B{mayarv.uibase.dialogs}
-
+"""
 Contains some default dialogs as well as layouts suitable for layout dialogs
 
 @todo: more documentation

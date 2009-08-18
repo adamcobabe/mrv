@@ -1,6 +1,5 @@
 # -*- coding: utf-8 -*-
-"""B{mayarvtest.mayarv.automation.workflow}
-
+"""
 Test the workflow class
 
 @newfield revision: Revision

@@ -1,6 +1,5 @@
 # -*- coding: utf-8 -*-
-"""B{mayarv.automation.dgengine}
-Contains a simple but yet powerful dependency graph engine allowing computations
+"""Contains a simple but yet powerful dependency graph engine allowing computations
 to be organized more efficiently.
 
 @todo: not using the look-up (dict) based networkx can bring performance ( just by linking nodes directly )

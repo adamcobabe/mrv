@@ -1,6 +1,5 @@
 # -*- coding: utf-8 -*-
-"""B{mayarvtest.mayarv.automation.processes}
-
+"""
 Intialize suite checking all processes
 
 @newfield revision: Revision

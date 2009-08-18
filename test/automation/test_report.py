@@ -1,6 +1,5 @@
 # -*- coding: utf-8 -*-
-"""B{mayarvtest.mayarv.automation.report}
-
+"""
 Test default report classes
 
 @newfield revision: Revision

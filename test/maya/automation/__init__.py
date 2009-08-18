@@ -1,6 +1,5 @@
 # -*- coding: utf-8 -*-
-"""B{mayarvtest.mayarv.maya.automation}
-
+"""
 Intialize the maya automation test suite
 
 @newfield revision: Revision

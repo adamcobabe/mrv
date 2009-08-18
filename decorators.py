@@ -1,6 +1,5 @@
 # -*- coding: utf-8 -*-
-"""B{mayarv.decorators}
-
+"""
 Contains all decorator functions
 
 Decorators are used to
@@ -248,13 +247,12 @@ def typecheck_rval( rval_type ):
 	@param rval_type: A list of any combination of iterables or dicts and 'type' references,
 	each of them indicating one of the return types that can be expected by the method.
 
-	B{Examples}
-		1. E{@}typecheck_rval( int )
+			1. E{@}typecheck_rval( int )
 			- expects a simple integer as return value
 		2. E{@}typecheck_rval( int, string )
-			- expects a an int B{or} string as return value
+			- expects a an int or string as return value
 		3. E{@}typecheck_rval( (int,string,myclass),None )
-			- expects a tuple with members int,string,myclass B{or} None
+			- expects a tuple with members int,string,myclass or None
 		4. E{@}typecheck_rval( {a=int,b=string,c=myclass} )
 			- expects a dict to be returned with keys holding classes of the given types
 

@@ -1,6 +1,5 @@
 # -*- coding: utf-8 -*-
-"""B{mayarvtest.mayarv.maya.benchmark.calculations}
-
+"""
 Some more math related tests
 
 @newfield revision: Revision

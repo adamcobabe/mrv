@@ -1,6 +1,5 @@
 # -*- coding: utf-8 -*-
-"""B{mayarv.automation}
-Intiailize the automation and process framework
+"""Intiailize the automation and process framework
 
 @newfield revision: Revision
 @newfield id: SVN Id

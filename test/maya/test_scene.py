@@ -1,6 +1,5 @@
 # -*- coding: utf-8 -*-
-"""B{mayarvtest.mayarv.maya.scene}
-
+"""
 Test the scene methods
 
 @newfield revision: Revision

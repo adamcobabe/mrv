@@ -1,6 +1,5 @@
 # -*- coding: utf-8 -*-
-"""B{mayarvtest.mayarv.maya.benchmark.undo}
-
+"""
 Test undo queue performance
 
 @newfield revision: Revision
