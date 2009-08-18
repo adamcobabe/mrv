@@ -83,7 +83,7 @@ class QAMELAdapter( object ):
 	@note: this class assumes it is used on a process
 
 	Configuration
-	-------------
+	
 	The following variables MUST be used to setup this class once you have derived
 	from it:
 

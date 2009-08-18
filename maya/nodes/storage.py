@@ -292,7 +292,7 @@ class StorageBase( iDuplicatable ):
 
 
 	Attribute Setup
-	---------------
+	
 	-- shortname ( description ) [ data type ] --
 	dta ( data )[ multi compound ]
 	 	id ( data id )[ string ]
@@ -301,7 +301,7 @@ class StorageBase( iDuplicatable ):
 		dmsg ( data message )[ multi message ]
 
 	Configuration
-	-------------
+	
 	attrprefix: will prefix every attribute during attr set and get - this allows
 		several clients to access the same storage base ( on the same node for example )
 		It acts like a namespace

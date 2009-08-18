@@ -1,3 +1,0 @@
-As the end-user documentation is represented by an online wiki, allowing it to be modified by end-users themselves, this spot here will just contain a mirror of the actual wiki data for backup purposes. 
-
-Thus this wiki information is NOT to be edited directly !
