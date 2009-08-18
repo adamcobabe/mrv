@@ -36,8 +36,9 @@ def api_role(role, rawtext, text, lineno, inliner, options={}, content=[]):
         $ sphinx-build doc doc/_build/html
 
     """
+    print "Role: %s, rawtext: %s" % ( role, rawtext )
     basedir = 'api'
-    prefix = 'doc/_build/html/' # fixme: fetch it from configuration
+    prefix = 'build/html/' 	
     exists = lambda f: os.path.exists(prefix + f)
 
     # assume module is references

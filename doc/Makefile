@@ -10,7 +10,7 @@ PAPER         =
 PAPEROPT_a4     = -D latex_paper_size=a4
 PAPEROPT_letter = -D latex_paper_size=letter
 ALLSPHINXOPTS   = -d build/doctrees $(PAPEROPT_$(PAPER)) $(SPHINXOPTS) source
-EPYTARGET       = epydocs
+EPYTARGET       = build/html/generated/api
 
 .PHONY: help clean html web pickle htmlhelp latex changes linkcheck epydoc
 
@@ -25,7 +25,6 @@ help:
 
 clean:
 	-rm -rf build/*
-	-rm -rf epydocs/*
 	-rm source/index.rst
 
 source/index.rst:
@@ -39,8 +38,7 @@ source/index.rst:
 	@rm source/index.rst.center
 	
 epydoc:	epydoc.cfg
-	@mkdir -p $EPYTARGET 2>/dev/null
-	./epydoc -q -q -o $EPYTARGET
+	./epydoc -q -q -o $(EPYTARGET)
 	
 html: source/index.rst
 	mkdir -p build/html build/doctrees
