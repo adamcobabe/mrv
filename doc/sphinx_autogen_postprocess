@@ -1,0 +1,24 @@
+#!/bin/bash
+# Call like:
+# thisFile folder/to/parse
+# Find-and-replace within the folder/to/parse and put in api roles that will 
+# reference the respective epydoc documentation. It needs to exist already !
+# 
+# Add a line like :api:`filename.no.extension` to line 3 of the rst files in 
+# $1
+for f in `find $1 -name "*.rst"`; do
+	# remove extension
+	f_no_ext=${f%*.*}
+	# remove folder prefix
+	f_no_ext=${f_no_ext#$1}
+	# remove leading /
+	f_no_ext=${f_no_ext#/}
+	# replace / with .
+	f_no_ext=`echo $f_no_ext |sed "s#/#.#g"`
+	
+	# do the actual sed replacement 
+	f_processed=$f.sed
+	sed "2 a\\:api:\`${f_no_ext}\`" $f > $f_processed
+	rm $f
+	mv $f_processed $f
+done

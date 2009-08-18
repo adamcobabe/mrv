@@ -36,9 +36,8 @@ def api_role(role, rawtext, text, lineno, inliner, options={}, content=[]):
         $ sphinx-build doc doc/_build/html
 
     """
-    print "Role: %s, rawtext: %s" % ( role, rawtext )
     basedir = 'api'
-    prefix = 'build/html/' 	
+    prefix = 'build/html/generated/' 	
     exists = lambda f: os.path.exists(prefix + f)
 
     # assume module is references
@@ -67,7 +66,7 @@ def api_role(role, rawtext, text, lineno, inliner, options={}, content=[]):
                 uri = '%s/%s-class.html#%s' % (basedir, fprefix, method)
 
     if exists(file):
-        node = nodes.reference(rawtext, name, refuri=uri, **options)
+        node = nodes.reference(rawtext, "( Click here for epydoc version of module documentation )", refuri=uri, **options)
     else:
         # cannot find reference, then just inline the text
         node = nodes.literal(rawtext, text)

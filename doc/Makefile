@@ -4,6 +4,8 @@
 # You can set these variables from the command line.
 SPHINXOPTS    =
 SPHINXBUILD   = ./sphinx_build
+SPHINXAUTOGEN   = ./sphinx_autogen
+SPHINXAUTOGENPOST = ./sphinx_autogen_postprocess
 PAPER         =
 
 # Internal variables.
@@ -11,8 +13,10 @@ PAPEROPT_a4     = -D latex_paper_size=a4
 PAPEROPT_letter = -D latex_paper_size=letter
 ALLSPHINXOPTS   = -d build/doctrees $(PAPEROPT_$(PAPER)) $(SPHINXOPTS) source
 EPYTARGET       = build/html/generated/api
+AUTOGEN_TARGET  = source/generated
 
-.PHONY: help clean html web pickle htmlhelp latex changes linkcheck epydoc
+
+.PHONY: help clean html web pickle htmlhelp latex changes linkcheck epydoc autogen
 
 help:
 	@echo "Please use \`make <target>' where <target> is one of"
@@ -25,6 +29,7 @@ help:
 
 clean:
 	-rm -rf build/*
+	-rm -rf $(AUTOGEN_TARGET)
 	-rm source/index.rst
 
 source/index.rst:
@@ -33,20 +38,27 @@ source/index.rst:
 	-not -wholename "*/start/*" -not -wholename "*/ext/*" \
 	-not -wholename "*/doc/*" -not -wholename "*/templates/*" \
 	-not -name "__init__.py" | \
-	sort | sed "s#^../#\\tmayarv/#" | sed "s#.py\$$##" | sed "s#/#.#g" > source/index.rst.center
-	@cat source/index.rst.header source/index.rst.center source/index.rst.footer > source/index.rst
-	@rm source/index.rst.center
+	sort | sed "s#^../#\\tmayarv/#" | sed "s#.py\$$##" | sed "s#/#.#g" > $(@).center
+	@cat $(@).header $(@).center $(@).footer > $@
+	@rm $(@).center
 	
-epydoc:	epydoc.cfg
+epydoc:
+	@mkdir -p $(EPYTARGET)
 	./epydoc -q -q -o $(EPYTARGET)
+
+autogen: source/index.rst
+	-rm $(AUTOGEN_TARGET)/*
+	$(SPHINXAUTOGEN) -o $(AUTOGEN_TARGET) $^
+	$(SPHINXAUTOGENPOST) $(AUTOGEN_TARGET)
 	
-html: source/index.rst
-	mkdir -p build/html build/doctrees
+	
+html: source/index.rst autogen epydoc
+	@mkdir -p build/html build/doctrees
 	$(SPHINXBUILD) -b html $(ALLSPHINXOPTS) build/html
 	@echo
 	@echo "Build finished. The HTML pages are in build/html."
 
-full: epydoc html
+full: html
 
 rebuild: clean full
 

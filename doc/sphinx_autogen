@@ -1,0 +1,5 @@
+#!/bin/bash
+# Creates auto-summaries which requires full maya support
+# use maya 2008 as it requires python 2.5 - for now this is where sphinx is installed
+# and has nothing to do with the quality of the generated documentation
+../start/mayarv 2008 sphinx_autogen_startup.py $@ 
