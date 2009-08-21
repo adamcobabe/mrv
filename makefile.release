@@ -1,0 +1,55 @@
+
+GITROOT=.git
+.PHONY: release checkreleaseargs gitroot default
+.DEFAULT_GOAL:=default 
+
+# DEFAULT
+# Abort printing usage information
+default: 
+	@echo "make SOURCE_BRANCH=name TARGET_BRANCH=name release"
+	@echo "Use calling convention above to make a release of the given source_branch to create or update the given target branch"
+	false
+
+
+######################
+# CHECKARGS ##################################################
+# allows to check command line required to make a release ####
+##############################################################
+checkargs:
+ifndef $(1)
+	@echo "$(1) is not defined - please specify $(1)=branch on the commandline"
+	@echo "The SOURCE_BRANCH has to be given for safety reasons, TARGET_BRANCH will be created on demand"
+endif
+ifndef TAG
+	@echo "Tag name is not defined - specify TAG=name on the commandline"
+	@echo "Tag must not exist within git"
+	false
+endif
+ifndef PYVERSION
+	@echo "PYVERSION is not defined - specify PYVERSION=2.4|2.5|2.6 on the commandline"
+	false
+endif
+ifndef SOURCE_BRANCH
+	@echo "SOURCE_BRANCH is not defined - please specify SOURCE_BRANCH=branch on the commandline"
+	@echo "The SOURCE_BRANCH has to be given for safety reasons"
+endif
+ifndef TARGET_BRANCH
+	@echo "TARGET_BRANCH is not defined - please specify TARGET_BRANCH=branch on the commandline"
+	@echo "The SOURCE_BRANCH has to be given for safety reasons"
+endif
+# ------------------------------------------ #
+
+
+
+
+# GIT ROOT PREREQUESITE
+# abort if we are not in the root of the repostiry
+$(GITROOT):
+	@echo "Need to be in the root level of the git repository - it contains the .git subdirectory"
+	
+	
+# RELEASE 
+##########
+release : checkargs $(GITROOT)
+	@echo "Making $(TAG)"
+# Checkout the 
