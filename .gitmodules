@@ -1,0 +1,3 @@
+[submodule "ext/networkx"]
+	path = ext/networkx
+	url = git://github.com/Byron/networkx.git
