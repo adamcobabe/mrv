@@ -4,6 +4,23 @@
 # releaselib.sh call funcname [ args ]
 
 
+# return: python version string used in the given maya version 
+function mapMayaToPythonVersion () {
+	mayaversion=${1?:"First argument needs to be the maya version"}
+	
+	for pyversion in 8.52.4 20082.5 20092.5 ; do
+		if [[ $pyversion == ${mayaversion}* ]]; then
+			# output python version 
+			echo ${pyversion/$mayaversion/}
+			return 0
+		fi
+	done
+	
+	# could not find version
+	echo "MayaVersion $1 unknown"
+	return 2
+}
+
 
 # allows to call functions directly 
 if [[ $1 == "call" ]]; then
