@@ -27,6 +27,65 @@ function git_currentBranch () {
 }
 
 
+# list information about all submodules reachable from current dir or 
+# the path given as arg
+function git_submodule_list () {
+	git ls-files --error-unmatch --stage -- "$@" | grep '^160000 '	
+}
+
+# forcibly update all submodules to assure they contain all files they should
+# contain 
+# IMPORTANT: WILL DESTROY CHANGES IN THESE SUBMODULES
+function git_submodule_forceUpdate () {
+	curdir=$PWD
+	git_submodule_list |
+	while read mode sha1 stage path
+	do
+		if [[ -e "$path"/.git ]]
+		then 
+			cd $path && git checkout -f HEAD
+		fi
+	done
+	cd $curdir
+}
+
+
+# disables or enable a submodule - this  allows git to temporarily forget about 
+# the fact that the submodule is actually there, so the files of the submodule
+# can be added to your own repository
+# arg 1: if 1, submodules will be enabled, if 0 they are disabled
+# NOTE: reads information as retrieved from git_submodule_list from stdin
+# Hence you must call it like git_submodule_list | git_submodule_setEnabled arg
+# IMPORTANT: git_submodule_list will not list submodules once you have disabled them
+# hence you should cache the result
+function git_submodule_setEnabled () { 
+	enabled=${1:?"Need to set 1 or 0 to define whether the submodule should be enabled or disabled"}
+	
+	while read mode sha1 stage path
+	do
+		# adjust the index to mark deletion ( if hidden ) or revert the old file
+		# also move the .git directory to hide it - otherwise git will not allow 
+		# to add files that already appear to be mananged by a submodule ( fair enough :) )
+		# if enabled
+		source=$path/.git
+		target=${source}hidden
+		if [[ $enabled == 1 ]]
+		then 
+			tmp=$source
+			source=$target
+			target=$tmp
+			# undo changes to index 
+			git reset -q HEAD -- $path > /dev/null
+		else
+			# remove from index 
+			git rm -q --cached $path
+		fi
+		
+		if [[ -d $source ]]; then
+			mv $source $target
+		fi
+	done
+}
 
 # allows to call functions directly 
 if [[ $1 == "call" ]]; then
