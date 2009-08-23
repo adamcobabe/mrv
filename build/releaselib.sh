@@ -131,7 +131,9 @@ function makeRelease () {
 	
 	
 	# DISABLE SUBMODULES 
-	submoduleinfo=$(git_submodule_list)
+	# we recursively operate on them 
+	recursive_listing=1
+	submoduleinfo=$(git_submodule_list $recursive_listing )
 	
 	echo $submoduleinfo | git_submodule_setEnabled 0
 	

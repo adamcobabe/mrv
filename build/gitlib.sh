@@ -27,10 +27,24 @@ function git_currentBranch () {
 }
 
 
-# list information about all submodules reachable from current dir or 
-# the path given as arg
+# list information about all submodules reachable from current dir
+# arg 1: optional: if 1, default 0, the method will operate recursively, depth first
 function git_submodule_list () {
-	git ls-files --error-unmatch --stage -- "$@" | grep '^160000 '	
+	recurse=${1:-0}
+	basepath=$2		# not necessarily set
+	git ls-files --error-unmatch --stage -- "" | grep '^160000 ' | 
+	while read mode sha1 stage path
+	do 
+		# return data
+		echo $mode $sha1 $stage ${basepath}${path}
+		
+		if [[ $recurse == 1 && -d $path/.git ]]; then
+			curdir=$PWD
+			cd $path
+			git_submodule_list $recurse $path/
+			cd $curdir
+		fi
+	done	
 }
 
 # forcibly update all submodules to assure they contain all files they should
