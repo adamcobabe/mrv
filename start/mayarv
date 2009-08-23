@@ -89,5 +89,4 @@ export PYTHONPATH=$PYTHONPATH:$mayarvbase
 
 # execute the interpreter
 # TODO: parse an optional option to specify the python version or just the maya version
-echo $PYTHONPATH
 /usr/bin/env python$python_version $@
