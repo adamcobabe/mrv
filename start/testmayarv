@@ -3,7 +3,7 @@
 # Maya version can be 8.5, 2008, 2009 and so forth
 # 
 # Uses nose to run tests defined by mayarv, options are provided to nose
-base=`/usr/bin/dirname $0`
+base=${0%/*}
 if [[ $base != /* ]]; then
 	base=$PWD/$base
 fi
@@ -17,6 +17,4 @@ if [[ $1 == 8.5 || $1 == 20?? ]]; then
 	shift
 fi
 
-# move one level up and into the test directory 
-cd $base/../test
 $base/mayarv $firstArg -i $base/nosestartup.py $@

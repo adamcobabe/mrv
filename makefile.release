@@ -89,7 +89,7 @@ releases : $(release_targets)
 ########
 # Run unit tests
 $(TESTRESULTLOGBASE).%.log : $(PYFILES) 
-	start/testmayarv $(MAYA_VERSION) --exe -v 2>&1>> $(TESTRESULTLOGBASE).$(MAYA_VERSION).log
+	start/testmayarv $(MAYA_VERSION) --exe -v test > $(TESTRESULTLOGBASE).$(MAYA_VERSION).log
 
 
 # CLEAN
