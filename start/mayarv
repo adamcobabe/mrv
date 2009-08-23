@@ -75,14 +75,14 @@ fi
 # adjust PYTHONPATH to look for maya includes
 # need to make sure pylibdir gets expanded by filename subsitution which does not
 # happen if we export things right away
-PYTHONPATH=$MAYA_LOCATION/$pylibdir/python$python_version/site-packages
+PYTHONPATH=$PYTHONPATH:$MAYA_LOCATION/$pylibdir/python$python_version/site-packages
 export PYTHONPATH MAYA_LOCATION
 
 
 # set the python path to find out package
 base=`/usr/bin/dirname $0`
-byronimobase=$base/../..
-export PYTHONPATH=$PYTHONPATH:$byronimobase
+mayarvbase=$base/../..
+export PYTHONPATH=$PYTHONPATH:$mayarvbase
 
 
 # execute the interpreter
