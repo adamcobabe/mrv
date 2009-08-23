@@ -4,14 +4,14 @@ maya.standalone.initialize()
 import os
 
 # try to load custom settings
-if "PYMAYASTD_CONFIG" in os.environ:
-	filepath = os.environ[ "PYMAYASTD_CONFIG" ]
+if "IMAYARV_CONFIG" in os.environ:
+	filepath = os.environ[ "IMAYARV_CONFIG" ]
 	try:
 		execfile( filepath )
 	except Exception:
 		print "Failed to run configuration script"
 else:
-	print "Set PYMAYASTD_CONFIG to point to python script doing additional setup"
+	print "Set IMAYARV_CONFIG to point to python script doing additional setup"
 
 # init ipython - needs to be available in your local python installation
 try: 
