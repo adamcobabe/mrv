@@ -1,3 +1,0 @@
-Contains all project documentation that has been specifically written outside of source files.
-
-Its the goal not to duplicate any documentation information.

@@ -3,17 +3,18 @@
 
 # You can set these variables from the command line.
 SPHINXOPTS    =
-SPHINXBUILD   = ./sphinx_build
-SPHINXAUTOGEN   = ./sphinx_autogen
-SPHINXAUTOGENPOST = ./sphinx_autogen_postprocess
+SPHINXBUILD   ?= ./sphinx_build
+SPHINXAUTOGEN   ?= ./sphinx_autogen
+SPHINXAUTOGENPOST ?= ./sphinx_autogen_postprocess
 PAPER         =
 
 # Internal variables.
-PAPEROPT_a4     = -D latex_paper_size=a4
-PAPEROPT_letter = -D latex_paper_size=letter
-ALLSPHINXOPTS   = -d build/doctrees $(PAPEROPT_$(PAPER)) $(SPHINXOPTS) source
-EPYTARGET       = build/html/generated/api
-AUTOGEN_TARGET  = source/generated
+PAPEROPT_a4     ?= -D latex_paper_size=a4
+PAPEROPT_letter ?= -D latex_paper_size=letter
+ALLSPHINXOPTS   ?= -d build/doctrees $(PAPEROPT_$(PAPER)) $(SPHINXOPTS) source
+EPYTARGET       ?= build/html/generated/api
+AUTOGEN_TARGET  ?= source/generated
+PY_IMPORT_BASE	?= mayarv
 
 
 .PHONY: help clean html web pickle htmlhelp latex changes linkcheck epydoc autogen
@@ -36,9 +37,8 @@ source/index.rst:
 	@echo Generating $@
 	@find ../ -name "*.py" -not -wholename "*/test/*" \
 	-not -wholename "*/start/*" -not -wholename "*/ext/*" \
-	-not -wholename "*/doc/*" -not -wholename "*/templates/*" \
-	-not -name "__init__.py" | \
-	sort | sed "s#^../#\\tmayarv/#" | sed "s#.py\$$##" | sed "s#/#.#g" > $(@).center
+	-not -wholename "*/doc/*" -not -name "__init__.py" | \
+	sort | sed "s#^../#\\t$(PY_IMPORT_BASE)/#" | sed "s#.py\$$##" | sed "s#/#.#g" > $(@).center
 	@cat $(@).header $(@).center $(@).footer > $@
 	@rm $(@).center
 	
