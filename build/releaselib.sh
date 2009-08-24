@@ -150,7 +150,8 @@ function makeRelease () {
 	recursive_listing=1
 	submoduleinfo=$(git_submodule_list $recursive_listing )
 	
-	echo $submoduleinfo | git_submodule_setEnabled 0
+	# "" are important to keep the newlines !
+	echo "$submoduleinfo" | git_submodule_setEnabled 0
 	
 	# remove index to be able to completly rebuild it from scratch
 	rm .git/index
@@ -166,7 +167,7 @@ function makeRelease () {
 	
 	
 	# REENABLE SUBMODULES AFTER COMMIT 
-	echo $submoduleinfo | git_submodule_setEnabled 1
+	echo "$submoduleinfo" | git_submodule_setEnabled 1
 	
 	# finally checkout the original branch, undoing all our possible changes
 	# Even if it fails - if we are here, the actual release succeeded
