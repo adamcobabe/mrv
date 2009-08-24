@@ -106,7 +106,9 @@ $(TESTRESULTLOGBASE).%.log : $(PYFILES)
 
 # CLEAN
 ########
-clean : clean_compile_files
+clean :
+	-make --directory doc clean
 	-rm $(TESTRESULTLOGBASE).*
 	-find . \( -name "*.pyc" -or -name "*.pyo" \) -exec rm {} +
+	
 	
