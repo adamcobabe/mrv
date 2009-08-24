@@ -50,9 +50,10 @@ function git_submodule_list () {
 # forcibly update all submodules to assure they contain all files they should
 # contain 
 # IMPORTANT: WILL DESTROY CHANGES IN THESE SUBMODULES
+# Args are given to git_submodule_list 
 function git_submodule_forceUpdate () {
 	curdir=$PWD
-	git_submodule_list |
+	git_submodule_list $@ |
 	while read mode sha1 stage path
 	do
 		if [[ -e "$path"/.git ]]

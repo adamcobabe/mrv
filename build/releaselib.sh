@@ -173,7 +173,7 @@ function makeRelease () {
 	$back_to_sbranch 
 	
 	# undo changes in submodules 
-	git_submodule_forceUpdate
+	git_submodule_forceUpdate $recursive_listing
 	
 	exit $rval
 }
