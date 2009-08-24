@@ -79,9 +79,14 @@ function _addFiles () {
 # arg 1: source rev spec to checkout 
 # arg 2: target branch to create or update
 # arg 3: maya version to compile for
-
+# arg 4: if 1, python source will be precompiled to pyc. Source will not be part of 
+# 		the package. 
+#		NOTE: As this makes the compiled pyc dependent on the python version, 
+#		pyPYTHON_VERSION ( i.e. py2.5 ) will be auto-appended to the name 
+# 		of your target branch
 # arg 5: optionsl: command to call to add files to be included in release branch
 #			defaults to _addFiles
+# NOTE: Will create a (moving) tag to indicate the release origin
 function makeRelease () {
 	srevspec=${1:?"Needs source branch or tag to checkout and release"}
 	tbranch=${2:?"Needs target branch to write release data to"}
@@ -112,13 +117,18 @@ function makeRelease () {
 	
 	# compile pyc 
 	deletefileglob="*.py"
-	if [[ $precompile == 1 ]]; then 
+	if [[ $precompile == 1 ]]; then
+		tbranch=${tbranch}py${pyversion}
 		compilePyToPyc $pyversion .
 	else
 		deletefileglob="*.pyc"
 	fi
 	
-	 
+	# TAG SOURCE - to keep information about which commit was last released
+	# These tags should not be pushed to a public repo !
+	git tag -f $tbranch
+	
+	
 	# CHECK TARGET BRANCH - create it if it does not exist
 	# otherwise we just switch 'silently' to it - we need a branch for this 
 	# as we will advance it with a new commit. We do not want to change the state
