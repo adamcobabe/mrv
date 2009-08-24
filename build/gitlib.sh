@@ -1,4 +1,4 @@
-#!/bin/bash
+##!/bin/bash
 # A library with common functions for git interaction
 # Allows functions to be called directly using:
 # gitlib.sh call funcname [ args ]
@@ -27,7 +27,8 @@ function git_currentBranch () {
 }
 
 
-# list information about all submodules reachable from current dir
+# list information about all submodules reachable from current dir as follows:
+# origin_repo_path_absolute $mode $sha1 $stage $path
 # arg 1: optional: if 1, default 0, the method will operate recursively, depth first
 function git_submodule_list () {
 	recurse=${1:-0}
@@ -35,8 +36,8 @@ function git_submodule_list () {
 	git ls-files --error-unmatch --stage -- "" | grep '^160000 ' | 
 	while read mode sha1 stage path
 	do 
-		# return data
-		echo $mode $sha1 $stage ${basepath}${path}
+		# return data - absolute current directory
+		echo $( cd $PWD; echo `pwd` ) $mode $sha1 $stage $path
 		
 		if [[ $recurse == 1 && -d $path/.git ]]; then
 			curdir=$PWD
@@ -54,8 +55,9 @@ function git_submodule_list () {
 function git_submodule_forceUpdate () {
 	curdir=$PWD
 	git_submodule_list $@ |
-	while read mode sha1 stage path
+	while read absbasepath mode sha1 stage path
 	do
+		cd $absbasepath
 		if [[ -e "$path"/.git ]]
 		then 
 			cd $path && git checkout -f HEAD
@@ -75,9 +77,10 @@ function git_submodule_forceUpdate () {
 # hence you should cache the result
 function git_submodule_setEnabled () { 
 	enabled=${1:?"Need to set 1 or 0 to define whether the submodule should be enabled or disabled"}
-	
-	while read mode sha1 stage path
+	curdir=$PWD
+	while read absbasepath mode sha1 stage path
 	do
+		cd $absbasepath
 		# adjust the index to mark deletion ( if hidden ) or revert the old file
 		# also move the .git directory to hide it - otherwise git will not allow 
 		# to add files that already appear to be mananged by a submodule ( fair enough :) )
@@ -90,17 +93,20 @@ function git_submodule_setEnabled () {
 			source=$target
 			target=$tmp
 			# undo changes to index 
-			git reset -q HEAD -- $path > /dev/null
+			git reset -q HEAD -- $path &> /dev/null
 		else
-			# remove from index 
-			git rm -q --cached $path
+			# remove from index
+			git rm -q --cached $path &> /dev/null
 		fi
 		
 		if [[ -d $source ]]; then
 			mv $source $target
 		fi
 	done
+	cd $curdir
 }
+
+
 
 # allows to call functions directly 
 if [[ $1 == "call" ]]; then
