@@ -14,6 +14,15 @@ GITROOT=.git
 TESTRESULTLOGBASE ?= testresult
 DOCINDEX ?= doc/build/html/index.html
 
+# shell script launching all tests based on NOSE_TEST_EXECUTABLE, hence it must support to given flags
+NOSE_TEST_EXECUTABLE ?= start/testmayarv
+
+# shell script making a release, will be given following parameters:
+# source_revspec, target_branch, maya_version, precompile, for more information see 
+# build/releaselib.sh:makeRelease
+MAKE_RELEASE_EXECUTABLE ?= build/releaselib.sh call makeRelease
+
+
 # declare phony targets, release tags are defined procedurally
 release_targets := $(foreach version,$(maya_versions), release$(version))
 .PHONY: releases checkreleaseargs gitroot default clean test $(release_targets) docs
@@ -66,7 +75,7 @@ test$(1) : $(TESTRESULTLOGBASE).$(1).log
 
 release$(1) : MAYA_VERSION=$(1)
 release$(1) : checkargs $(GITROOT) test$(1) docs
-	build/releaselib.sh call makeRelease $$(SOURCE_REVSPEC) $$(TARGET_BRANCH) $$(MAYA_VERSION) $$(PRECOMPILE)
+	$(MAKE_RELEASE_EXECUTABLE) $$(SOURCE_REVSPEC) $$(TARGET_BRANCH) $$(MAYA_VERSION) $$(PRECOMPILE)
 endef
 
 $(foreach version, $(maya_versions), $(eval $(call release_template,$(version)) ) )
@@ -89,7 +98,7 @@ releases : $(release_targets)
 ########
 # Run unit tests
 $(TESTRESULTLOGBASE).%.log : $(PYFILES) 
-	start/testmayarv $(MAYA_VERSION) --exe -v test > $(TESTRESULTLOGBASE).$(MAYA_VERSION).log
+	$(NOSE_TEST_EXECUTABLE) $(MAYA_VERSION) --exe -v > $(TESTRESULTLOGBASE).$(MAYA_VERSION).log
 
 
 # CLEAN
