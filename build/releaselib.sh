@@ -8,8 +8,13 @@
 ###########
 argscopy=$@
 # empty args 
-set - ""			
-. ${0%/*}/gitlib.sh
+set - ""
+# if we are included from another file, $0 might be a path far away.
+# In that case the includer as to include the gitlib as well
+gitlib=${0%/*}/gitlib.sh
+if [[ -f $gitlib ]]; then
+. $gitlib
+fi
 
 # reset args 
 set - $argscopy
