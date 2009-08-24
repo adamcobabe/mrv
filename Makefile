@@ -1,4 +1,4 @@
 
 # aggregate common functions 
-include makefile.release
+include Makefile.release
 
