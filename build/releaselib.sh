@@ -158,7 +158,8 @@ function makeRelease () {
 	
 	# re-add all files we need
 	# delete files we will not need
-	find . -name "$deletefileglob" | xargs rm -f 2>/dev/null
+	# ignore executables which must be released as py file
+	find . -name "$deletefileglob" -not -executable| xargs rm -f 2>/dev/null
 	$add_files_script || ( $back_to_sbranch ; die "Failed to add files using $add_files_script" )
 	
 	# commit changes
