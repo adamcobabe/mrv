@@ -61,7 +61,6 @@ function compilePyToPyc () {
 	
 	find $rootpath -name "*.pyc" -exec rm {} +
 	
-	echo $compileargs
 	python$pyversion $compileargs -c "import compileall; compileall.compile_dir(\"$rootpath\")" > /dev/null
 	
 	# rename all pyo to pyc
