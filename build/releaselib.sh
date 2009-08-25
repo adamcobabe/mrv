@@ -78,6 +78,9 @@ function _addFiles () {
 	
 	# add the doc directory 
 	git add -f doc/
+	
+	# add the start directory
+	git add -f start/
 }
 
 # compile the python files, remove certain directories, put clean data back in
@@ -159,7 +162,7 @@ function makeRelease () {
 	# re-add all files we need
 	# delete files we will not need
 	# ignore executables which must be released as py file
-	find . -name "$deletefileglob" -not -executable| xargs rm -f 2>/dev/null
+	find . -name "$deletefileglob" -not -executable | xargs rm -f 2>/dev/null
 	$add_files_script || ( $back_to_sbranch ; die "Failed to add files using $add_files_script" )
 	
 	# commit changes
