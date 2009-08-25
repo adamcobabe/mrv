@@ -44,7 +44,6 @@ __copyright__='(c) 2008 Sebastian Thiel'
 
 import maya.cmds as cmds
 import maya.mel as mel
-from util import MuteUndo
 
 #{ Initialization
 
@@ -253,8 +252,19 @@ def notundoable( func ):
 	def notundoableDecoratorWrapFunc( *args, **kwargs ):
 		"""This is the long version of the method as it is slightly faster than
 		simply using the StartUndo helper"""
-		muteundo = MuteUndo()
-		return func( *args, **kwargs )
+		prevstate = cmds.undoInfo( q=1, st=1 )
+		cmds.undoInfo( swf = 0 )
+		rval = None
+		try:
+			rval = func( *args, **kwargs )
+		except:
+			cmds.undoInfo( swf = prevstate )
+			raise
+		# END exception handling
+		
+		cmds.undoInfo( swf = prevstate )
+		return rval
+		
 	# END wrapFunc
 
 	if hasattr( func, "__name__" ):
