@@ -47,18 +47,32 @@ function mapMayaToPythonVersion () {
 	return 2
 }
 
+
 # compiles *.py to pyc in the given directory, recursively
 # arg 1: python version to be used for compilation 
 # arg 2: root directory for compilation
+# arg 3: optional, if true, the file will be optimized twice using -OO
+# 			default 0
 # NOTE: cleans all pyc beforehand
 function compilePyToPyc () {
 	pyversion=${1?:"Needs to be python version"}
 	rootpath=${2?:"Needs to be the root path for the compilation"}
+	compileargs=$( [[ ${3:-0} == 1 ]] && echo "-OO" || echo "" ) 
 	
 	find $rootpath -name "*.pyc" -exec rm {} +
 	
-	python$pyversion -c "import compileall; compileall.compile_dir(\"$rootpath\")" > /dev/null
+	echo $compileargs
+	python$pyversion $compileargs -c "import compileall; compileall.compile_dir(\"$rootpath\")" > /dev/null
+	
+	# rename all pyo to pyc
+	find $rootpath -name "*.pyo" | 
+	while read file
+	do
+		targetfile=${file%.pyo}.pyc
+		mv $file $targetfile
+	done
 }
+
 
 # add files suitable for a mayarv release
 # NOTE: Assumes we are in the root of the git repository
@@ -90,24 +104,25 @@ function _addFiles () {
 # arg 1: source rev spec to checkout 
 # arg 2: target branch to create or update
 # arg 3: maya version to compile for
-# arg 4: if 1, python source will be precompiled to pyc. Source will not be part of 
-# 		the package. 
+# arg 4: if 1, python source will be precompiled to pyc. If 2, the pyc files
+#		will be optimized, including removed docstrings. 
+# 		Source will not be part of the package. 
 #		NOTE: As this makes the compiled pyc dependent on the python version, 
 #		pyPYTHON_VERSION ( i.e. py2.5 ) will be auto-appended to the name 
 # 		of your target branch
-# arg 5: optionsl: command to call to add files to be included in release branch
+# arg 5: options: command to call to add files to be included in release branch
 #			defaults to _addFiles
 # NOTE: Will create a (moving) tag to indicate the release origin
 function makeRelease () {
-	srevspec=${1:?"Needs source branch or tag to checkout and release"}
-	tbranch=${2:?"Needs target branch to write release data to"}
-	mayaversion=${3:?"Needs target maya version to compile python for"}
-	precompile=${4:?"Needs 1 or 0 to define whether py files should be precompiled"}
-	add_files_script=${5:-"_addFiles"}
+	local srevspec=${1:?"Needs source branch or tag to checkout and release"}
+	local tbranch=${2:?"Needs target branch to write release data to"}
+	local mayaversion=${3:?"Needs target maya version to compile python for"}
+	local precompile=${4:?"Needs 2 ( optimized ), 1 ( pyc ) or 0 to define whether py files should be precompiled"}
+	local add_files_script=${5:-"_addFiles"}
 	
-	pyversion=$(mapMayaToPythonVersion $mayaversion) || exit $?
-	curbranch=$(git_currentBranch) || die "Could not determine current branch"
-	back_to_sbranch="git checkout -f $curbranch"
+	local pyversion=$(mapMayaToPythonVersion $mayaversion) || exit $?
+	local curbranch=$(git_currentBranch) || die "Could not determine current branch"
+	local back_to_sbranch="git checkout -f $curbranch"
 	
 	# CHECK STATE - needs to be clean
 	# if we have a dirty state, abort
@@ -127,10 +142,11 @@ function makeRelease () {
 	git checkout $srevspec || die "Failed to checkout $srevspec"
 	
 	# compile pyc 
-	deletefileglob="*.py"
-	if [[ $precompile == 1 ]]; then
+	local deletefileglob="*.py"
+	if [[ $precompile > 0 ]]; then
+		local optimize=[[ $precompile == 2 ]] && echo 1 || echo 0 
 		tbranch=${tbranch}py${pyversion}
-		compilePyToPyc $pyversion .
+		compilePyToPyc $pyversion . $optimize
 	else
 		deletefileglob="*.pyc"
 	fi
