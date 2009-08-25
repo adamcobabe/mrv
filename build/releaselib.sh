@@ -81,6 +81,9 @@ function _addFiles () {
 	
 	# add the start directory
 	git add -f start/
+	
+	# add the nodes cache directory which is important for the node hierarchy
+	git add -f maya/cache
 }
 
 # compile the python files, remove certain directories, put clean data back in
