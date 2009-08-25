@@ -85,19 +85,26 @@ function _addFiles () {
 	find . \( -name "*.pyc" -or -name "*.py" \) -not \( -wholename "./doc*" \) | xargs git add -f
 	
 	# add docs after moving them up to the doc level
-	mv doc/build/html doc/.html
-	rm -Rf doc/*
-	mv doc/.html/* doc
-	rm -Rf doc/.* 2>/dev/null		# delete all hidden files
-	
-	# add the doc directory 
-	git add -f doc/
+	if [[ -d doc ]] 
+	then
+		mv doc/build/html doc/.html
+		rm -Rf doc/*
+		mv doc/.html/* doc
+		rm -Rf doc/.* 2>/dev/null		# delete all hidden files
+		
+		# add the doc directory 
+		git add -f doc/
+	fi
 	
 	# add the start directory
-	git add -f start/
+	if [[ -d start ]]; then 
+		git add -f start/
+	fi
 	
 	# add the nodes cache directory which is important for the node hierarchy
-	git add -f maya/cache
+	if [[ -d maya/cache ]]; then
+		git add -f maya/cache
+	fi
 }
 
 # compile the python files, remove certain directories, put clean data back in
@@ -144,7 +151,7 @@ function makeRelease () {
 	# compile pyc 
 	local deletefileglob="*.py"
 	if [[ $precompile > 0 ]]; then
-		local optimize=[[ $precompile == 2 ]] && echo 1 || echo 0 
+		local optimize=$( [[ $precompile == 2 ]] && echo 1 || echo 0 ) 
 		tbranch=${tbranch}py${pyversion}
 		compilePyToPyc $pyversion . $optimize
 	else
