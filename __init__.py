@@ -41,7 +41,8 @@ def init_modules( filepath, moduleprefix, recurse=False ):
 	moduledir = Path( filepath  ).p_parent
 	moduleitems = moduledir.listdir( )
 	moduleitems.sort()					# assure we have the same order on every system
-
+	extensions = ( ".py", ".pyc", ".pyo" )
+	
 	if not moduleprefix.endswith( "." ):
 		moduleprefix += "."
 
@@ -53,15 +54,24 @@ def init_modules( filepath, moduleprefix, recurse=False ):
 			if not recurse:
 				continue
 
-			packageinitfile = path / "__init__.py"
-			if not packageinitfile.exists():
+			packageinitfile = None
+			for ext in extensions:
+				testpackageinitfile = path / "__init__%s" % ext
+				if testpackageinitfile.exists():
+					packageinitfile = testpackageinitfile
+					break
+				# END if packageinit file exists
+			# END for each possible extension
+			
+			# skip non-existing ones
+			if not packageinitfile:
 				continue
-
+			
 			init_modules( packageinitfile, moduleprefix + path.basename(), recurse=True )
 			continue
 		# END path handling
 
-		if path.p_ext != ".py":
+		if path.p_ext not in extensions:
 			continue
 
 		modulename = path.p_namebase

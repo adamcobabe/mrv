@@ -18,7 +18,7 @@ import networkx.tree as nxtree
 from collections import deque as Deque
 import weakref
 import inspect
-
+import itertools
 from interfaces import *
 
 ############################
@@ -121,7 +121,7 @@ def getPackageClasses( importBase, packageFile, predicate = lambda x: True ):
 
 	# get all submodules
 	basenameNoExt = lambda n: os.path.splitext( os.path.split( n )[1] )[0]
-	pymodules = glob( os.path.join( packageDir, "*.py" ) )
+	pymodules = itertools.chain( glob( os.path.join( packageDir, "*.py" ) ), glob( os.path.join( packageDir, "*.pyc" ) ) ) 
 	pymodules = [ basenameNoExt( m ) for m in pymodules
 							if not os.path.basename( m ).startswith( '_' ) ]
 

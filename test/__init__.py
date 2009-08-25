@@ -34,6 +34,8 @@ def get_package_suite( moduleObject ):
 
 	# get all submodules
 	basenameNoExt = lambda n: os.path.splitext( os.path.split( n )[1] )[0]
+	
+	# testing is only for developers, hence we assume we have the code ( *.py )
 	pymodules = glob( os.path.join( packageDir, "*.py" ) )
 	pymodules.sort()
 	pymodules = [ moduleObject.__name__+"."+basenameNoExt( m ) for m in pymodules
