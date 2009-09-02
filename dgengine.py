@@ -5,8 +5,8 @@ to be organized more efficiently.
 @todo: not using the look-up (dict) based networkx can bring performance ( just by linking nodes directly )
 @todo: optimize plug-dirtying - as the call path is mostly predetermined, one could decide much smarter whether
 a cache has to be cleared or not ... possibly
-@newfield revision: Revision
-@newfield id: SVN Id
+
+
 """
 
 __author__='$Author: byron $'

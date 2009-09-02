@@ -2,8 +2,8 @@
 """
 Test the quality assurance framework and it's mel bindings
 
-@newfield revision: Revision
-@newfield id: SVN Id
+
+
 """
 
 __author__='$Author: byron $'

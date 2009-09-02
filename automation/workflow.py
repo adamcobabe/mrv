@@ -1,8 +1,8 @@
 # -*- coding: utf-8 -*-
 """Contains workflow classes that conenct processes in a di - graph
 
-@newfield revision: Revision
-@newfield id: SVN Id
+
+
 """
 
 __author__='$Author: byron $'

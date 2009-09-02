@@ -17,8 +17,8 @@ the programs behaviour.
 	- its safe and easy to write back possibly altered values even if complex inheritance
 		schemes are applied
 
-@newfield revision: Revision
-@newfield id: SVN Id
+
+
 """
 
 __author__='$Author$'

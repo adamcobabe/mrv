@@ -2,8 +2,8 @@
 """
 Test general nodes features
 
-@newfield revision: Revision
-@newfield id: SVN Id
+
+
 """
 
 __author__='$Author: byron $'

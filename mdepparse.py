@@ -2,8 +2,8 @@
 """Contains parser allowing to retrieve dependency information from maya ascii files
 and convert it into an easy-to-use networkx graph with convenience methods
 
-@newfield revision: Revision
-@newfield id: SVN Id
+
+
 """
 
 __author__='$Author: byron $'

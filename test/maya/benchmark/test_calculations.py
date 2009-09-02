@@ -2,8 +2,8 @@
 """
 Some more math related tests
 
-@newfield revision: Revision
-@newfield id: SVN Id
+
+
 """
 
 __author__='$Author: byron $'

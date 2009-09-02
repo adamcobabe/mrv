@@ -2,8 +2,8 @@
 """
 Test the scene methods
 
-@newfield revision: Revision
-@newfield id: SVN Id
+
+
 """
 
 __author__='$Author: byron $'

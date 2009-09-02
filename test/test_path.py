@@ -3,8 +3,8 @@
 
 @todo: actual implementation of path tests - currently it is just a placeholder assuring
 that the module can at least be imported
-@newfield revision: Revision
-@newfield id: SVN Id
+
+
 """
 
 __author__='$Author: byron $'

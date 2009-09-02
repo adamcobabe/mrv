@@ -11,8 +11,8 @@ As they are usually derived from the class they patch , they could also be used 
 @note: NEVER IMPORT CLASSES DIRECTLY IN HERE, keep at least one module , thus:
 NOT: thisImportedClass BUT: module.thisImportedClass !
 
-@newfield revision: Revision
-@newfield id: SVN Id
+
+
 """
 
 __author__='$Author: byron $'

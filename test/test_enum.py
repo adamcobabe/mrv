@@ -1,8 +1,8 @@
 # -*- coding: utf-8 -*-
 """
 @note: adjusted by Sebastian Thiel
-@newfield revision: Revision
-@newfield id: SVN Id
+
+
 """
 
 __author__='Don Garret'

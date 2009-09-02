@@ -2,8 +2,8 @@
 """
 Tests the geometric nodes, focussing on the set handling
 
-@newfield revision: Revision
-@newfield id: SVN Id
+
+
 """
 
 __author__='$Author: byron $'

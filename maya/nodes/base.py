@@ -15,8 +15,8 @@ Implementing an undoable method
    the previous one )
    - if you raise, you should not have created an undo operation
 
-@newfield revision: Revision
-@newfield id: SVN Id
+
+
 """
 
 __author__='$Author: byron $'

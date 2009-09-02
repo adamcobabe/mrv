@@ -5,8 +5,8 @@ These are specialized and thus more powerful than the default wraps
 
 @todo: more documentation
 
-@newfield revision: Revision
-@newfield id: SVN Id
+
+
 """
 
 __author__='$Author: byron $'

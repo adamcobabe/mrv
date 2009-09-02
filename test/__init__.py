@@ -1,8 +1,8 @@
 # -*- coding: utf-8 -*-
 """Initialize the test framework
 
-@newfield revision: Revision
-@newfield id: SVN Id
+
+
 """
 
 

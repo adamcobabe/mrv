@@ -1,8 +1,8 @@
 # -*- coding: utf-8 -*-
 """Contains base class and common methods for all processes
 
-@newfield revision: Revision
-@newfield id: SVN Id
+
+
 """
 
 __author__='$Author: byron $'

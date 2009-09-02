@@ -2,8 +2,8 @@
 """Specialization of workflow to allow checks to be natively implemented in MEL
 
 
-@newfield revision: Revision
-@newfield id: SVN Id
+
+
 """
 
 from mayarv.automation.qa import QACheck, QACheckAttribute, QACheckResult, QAProcessBase

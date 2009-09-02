@@ -1,8 +1,8 @@
 # -*- coding: utf-8 -*-
 """Test all aspects of the configuration management system
 
-@newfield revision: Revision
-@newfield id: SVN Id
+
+
 """
 
 __author__='$Author$'

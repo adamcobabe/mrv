@@ -5,8 +5,8 @@ proper benchmarks should be implemented on per test basis.
 
 It is possible though to supply command line arguments, see L{main}
 
-@newfield revision: Revision
-@newfield id: SVN Id
+
+
 """
 
 __author__='$Author: byron $'

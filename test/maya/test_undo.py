@@ -2,8 +2,8 @@
 """
 Test ALL features of the undo queue
 
-@newfield revision: Revision
-@newfield id: SVN Id
+
+
 """
 
 __author__='$Author: byron $'

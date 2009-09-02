@@ -15,8 +15,8 @@ The quality assurance framework is defined by:
 
 They specialize the respective parts of the workflow
 
-@newfield revision: Revision
-@newfield id: SVN Id
+
+
 """
 
 __author__='$Author: byron $'

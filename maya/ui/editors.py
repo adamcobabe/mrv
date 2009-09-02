@@ -3,8 +3,8 @@
 Contains implementations of maya editors
 @todo: more documentation
 
-@newfield revision: Revision
-@newfield id: SVN Id
+
+
 """
 
 __author__='$Author: byron $'

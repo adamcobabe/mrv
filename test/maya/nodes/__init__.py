@@ -2,8 +2,8 @@
 """
 Intialize the byronimo maya nodes testing suite
 
-@newfield revision: Revision
-@newfield id: SVN Id
+
+
 """
 
 __author__='$Author: byron $'

@@ -2,8 +2,8 @@
 """Contains specialized attributes that judge value based on different criteria,
 allowing more elaborate typecheckingr
 
-@newfield revision: Revision
-@newfield id: SVN Id
+
+
 """
 
 __author__='$Author: byron $'

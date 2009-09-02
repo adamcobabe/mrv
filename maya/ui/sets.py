@@ -4,8 +4,8 @@ Contains implementation of user interface modules resembling a convenient tool
 to manipulate all kinds of sets.
 @todo: more documentation
 
-@newfield revision: Revision
-@newfield id: SVN Id
+
+
 """
 
 __author__='$Author: byron $'

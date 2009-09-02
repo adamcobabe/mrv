@@ -6,8 +6,8 @@ data within maya scenes.
 
 @todo: more documentation, how to use the system
 
-@newfield revision: Revision
-@newfield id: SVN Id """
+
+ """
 
 __author__='$Author: byron $'
 __contact__='byronimo <.a.t.> gmail <.> com'

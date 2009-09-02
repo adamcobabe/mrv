@@ -2,8 +2,8 @@
 """
 Test default report classes
 
-@newfield revision: Revision
-@newfield id: SVN Id
+
+
 """
 
 __author__='$Author: byron $'

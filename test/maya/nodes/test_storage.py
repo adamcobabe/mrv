@@ -2,8 +2,8 @@
 """
 Test storage system and storage node
 
-@newfield revision: Revision
-@newfield id: SVN Id
+
+
 """
 
 __author__='$Author: byron $'

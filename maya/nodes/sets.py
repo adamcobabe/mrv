@@ -2,8 +2,8 @@
 """
 Contains improved clases for set and partition editing 
 
-@newfield revision: Revision
-@newfield id: SVN Id
+
+
 """
 
 __author__='$Author: byron $'

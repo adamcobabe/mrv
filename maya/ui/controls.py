@@ -4,8 +4,8 @@ Contains the most controls like buttons and sliders for more convenient use
 
 @todo: more documentation
 
-@newfield revision: Revision
-@newfield id: SVN Id
+
+
 """
 
 __author__='$Author: byron $'

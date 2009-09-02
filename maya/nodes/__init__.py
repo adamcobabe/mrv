@@ -18,8 +18,8 @@ Default maya commands will require them to be used as string variables instead.
 
 @todo: more documentation
 
-@newfield revision: Revision
-@newfield id: SVN Id
+
+
 """
 
 __author__='$Author: byron $'

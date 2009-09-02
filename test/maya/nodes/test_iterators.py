@@ -2,8 +2,8 @@
 """
 Test node iterators
 
-@newfield revision: Revision
-@newfield id: SVN Id
+
+
 """
 
 __author__='$Author: byron $'

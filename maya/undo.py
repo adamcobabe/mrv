@@ -29,8 +29,8 @@ sys._maya_undo_enabled = False ( default True )
 
 @todo: more documentation about how to use the system and how it actually works
 
-@newfield revision: Revision
-@newfield id: SVN Id """
+
+ """
 
 __author__='$Author: byron $'
 __contact__='byronimo <.a.t.> gmail <.> com'

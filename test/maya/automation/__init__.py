@@ -2,8 +2,8 @@
 """
 Intialize the maya automation test suite
 
-@newfield revision: Revision
-@newfield id: SVN Id
+
+
 """
 
 __author__='$Author: byron $'

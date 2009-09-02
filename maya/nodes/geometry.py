@@ -2,8 +2,8 @@
 """
 Contains implementations ( or improvements ) to mayas geometric shapes
 
-@newfield revision: Revision
-@newfield id: SVN Id
+
+
 """
 
 __author__='$Author: byron $'

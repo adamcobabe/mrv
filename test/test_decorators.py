@@ -6,8 +6,8 @@
 @note: decorator tests will always succeed if NOT in debug mode ( as custom decorators are
 deactivated in that case
 
-@newfield revision: Revision
-@newfield id: SVN Id
+
+
 """
 
 __author__='$Author$'

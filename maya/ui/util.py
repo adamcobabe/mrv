@@ -4,8 +4,8 @@ Utilities and classes useful for user interfaces
 
 @todo: more documentation
 
-@newfield revision: Revision
-@newfield id: SVN Id
+
+
 """
 
 __author__='$Author: byron $'

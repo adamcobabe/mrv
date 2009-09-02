@@ -7,8 +7,8 @@ as disambiguation to a filesystem file.
 @todo: more documentation
 @todo: create real class properties - currently its only working with instances.
 
-@newfield revision: Revision
-@newfield id: SVN Id
+
+
 """
 
 __author__='$Author: byron $'

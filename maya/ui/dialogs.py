@@ -4,8 +4,8 @@ Contains some default dialogs as well as layouts suitable for layout dialogs
 
 @todo: more documentation
 
-@newfield revision: Revision
-@newfield id: SVN Id
+
+
 """
 
 __author__='$Author: byron $'

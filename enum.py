@@ -33,8 +33,8 @@ assert 1 in Borders
 
 @note: slightly modified by Sebastian Thiel to be more flexible and suitable as
 base class
-@newfield revision: Revision
-@newfield id: SVN Id
+
+
 """
 __author__='Don Garret'
 __contact__='garret at bgb dot cc'

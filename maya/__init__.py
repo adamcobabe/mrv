@@ -6,8 +6,8 @@ Inialize the mayarv.maya sub-system and assure and startup maya natively
 @todo: logger !
 @todo: configuration support
 
-@newfield revision: Revision
-@newfield id: SVN Id
+
+
 """
 
 __author__='$Author$'

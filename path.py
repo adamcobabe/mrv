@@ -27,8 +27,8 @@ TODO
    - Perhaps support arguments to touch().
    - Could add split() and join() methods that generate warnings.
 
-@newfield revision: Revision
-@newfield id: SVN Id
+
+
 """
 from __future__ import generators
 

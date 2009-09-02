@@ -4,8 +4,8 @@
 @note: L{createWorkflow} method must be supported in a module keeping workflows
 @todo: it would be better to have the createWorkflow method in some sort of workflowManager,
 for now that appears like overkill though
-@newfield revision: Revision
-@newfield id: SVN Id
+
+
 """
 
 __author__='$Author: byron $'

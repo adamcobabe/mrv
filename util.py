@@ -1,8 +1,8 @@
 # -*- coding: utf-8 -*-
 """All kinds of utility methods and classes that are used in more than one modules
 
-@newfield revision: Revision
-@newfield id: SVN Id
+
+
 """
 
 __author__='$Author: byron $'

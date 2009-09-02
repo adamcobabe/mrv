@@ -2,8 +2,8 @@
 """
 Intialize suite checking all workflows
 
-@newfield revision: Revision
-@newfield id: SVN Id
+
+
 """
 
 __author__='$Author: byron $'

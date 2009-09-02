@@ -11,8 +11,8 @@ Decorators are used to
 @warn: all methods without a leading underscore will be made available as decorators
 @NOTE: All decorators will return unaltered methods if the DEBUG mode is not enabled
 
-@newfield revision: Revision
-@newfield id: SVN Id
+
+
 """
 
 __author__='$Author$'

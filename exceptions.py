@@ -2,8 +2,8 @@
 """
 Contains all exceptions used by the mayarv package in general
 
-@newfield revision: Revision
-@newfield id: SVN Id
+
+
 """
 
 __author__='$Author$'

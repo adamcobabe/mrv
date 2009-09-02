@@ -2,8 +2,8 @@
 """
 Test some default ui capababilities
 
-@newfield revision: Revision
-@newfield id: SVN Id
+
+
 """
 
 __author__='$Author: byron $'

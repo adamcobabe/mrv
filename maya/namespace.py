@@ -3,8 +3,8 @@
 Allows convenient access and handling of namespaces in an object oriented manner
 @todo: more documentation
 
-@newfield revision: Revision
-@newfield id: SVN Id
+
+
 """
 
 __author__='$Author: byron $'

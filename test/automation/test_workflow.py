@@ -2,8 +2,8 @@
 """
 Test the workflow class
 
-@newfield revision: Revision
-@newfield id: SVN Id
+
+
 """
 
 __author__='$Author: byron $'

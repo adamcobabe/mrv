@@ -4,8 +4,8 @@ Initialize mayarv system assisting development, debugging and maintenance
 
 	- install general L{decorators} into __builtin__ namespace
 
-@newfield revision: Revision
-@newfield id: SVN Id
+
+
 """
 
 __author__='$Author$'

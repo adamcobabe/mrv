@@ -1,8 +1,8 @@
 # -*- coding: utf-8 -*-
 """contains report implementations allowing to analyse the callgraph of
 
-@newfield revision: Revision
-@newfield id: SVN Id
+
+
 """
 
 __author__='$Author: byron $'

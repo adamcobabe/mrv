@@ -4,8 +4,8 @@ Contains some basic  classes that are required to run the UI system
 
 @todo: more documentation
 
-@newfield revision: Revision
-@newfield id: SVN Id
+
+
 """
 
 __author__='$Author: byron $'

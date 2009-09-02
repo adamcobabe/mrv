@@ -4,8 +4,8 @@ Contains different multi-purpose iterators allowing to conveniently walk the dg 
 dag.
 @todo: more documentation
 
-@newfield revision: Revision
-@newfield id: SVN Id
+
+
 """
 
 __author__='$Author: byron $'

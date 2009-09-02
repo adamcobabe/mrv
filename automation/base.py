@@ -1,8 +1,8 @@
 # -*- coding: utf-8 -*-
 """general methods and classes
 
-@newfield revision: Revision
-@newfield id: SVN Id
+
+
 """
 
 __author__='$Author: byron $'
