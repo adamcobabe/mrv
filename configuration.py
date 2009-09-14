@@ -129,20 +129,15 @@ class ConfigAccessor( object ):
 		one writable node in the chain - due to the inheritance scheme applied by the configmanager,
 		the final configuration result will match the changes applied at runtime.
 
-	Commonalities to ConfigParser
-	
-		Terms used to describe INI files and most exception.
-
 	Additional Information
 	
 		The term configuration is rather complex though:
 			- configuration is based on an extended INI file format
 				- its not fully compatible, but slightly more narrow regarding allowed input
 				  to support extended functionality
-			- this configuration is read from file-like objects
+			- configuration is read from file-like objects
 			- a list of file-like objects creates a configuration chain
-			- keys have properties attached to them defining how they behave during
-			  inheritance
+			- keys have properties attached to them defining how they behave when being overridden
 			- once all the INI configurations have been read and processed, one can access
 			  the configuration as if it was just in one file.
 			- Direct access is obtained though L{Key} and L{Section} objects
@@ -250,6 +245,7 @@ class ConfigAccessor( object ):
 	#{ IO Interface
 	def readfp( self, filefporlist, close_fp = True ):
 		""" Read the configuration from the file like object(s) representing INI files.
+		@note: This will overwrite and discard all existing configuration.
 		@param filefporlist: single file like object or list of such
 		@param close_fp: if True, the file-like object will be closed before the method returns,
 		but only for file-like objects that have actually been processed
@@ -347,6 +343,19 @@ class ConfigAccessor( object ):
 
 	#} END GROUP
 
+	#{ Utitlities
+	def isEmpty( self ):
+		"""@return: True if the accessor does not stor information"""
+		if not self._configChain:
+			return True
+			
+		for node in self._configChain:
+			if node.listSections():
+				return False
+		# END for each node 
+		return True
+		
+	#} END GROUP 
 
 	#{ General Access ( disregarding writable state )
 	def hasSection( self, name ):
@@ -475,20 +484,19 @@ class ConfigAccessor( object ):
 class ConfigManager( object ):
 	""" Cache Configurations for fast access and provide a convenient interface
 
-	As the normal implementation of the ConfigAccessor has limited speed due
-	to the hierarchical nature of configuration chains.
-
+	The the ConfigAccessor has limited speed due to the hierarchical nature of 
+	configuration chains.
 	The config manager flattens the chain providing fast access. Once it is being
-	deleted or asked, it will find the differences between the fast cached
+	deleted or if asked, it will find the differences between the fast cached
 	configuration and the original one, and apply the changes back to the original chain,
 	which will then write the changes back ( if possible ).
 
-	This class should be preferred over the direct congiguration accessor, but this
-	class allows direct access to the cached configuraion accessor if required.
-
-	This class mimics the ConfigAccessor inteface as far as possible to improve ease of use
-
-	Use self.config to directly access the configuration through the L{ConfigAccessor} interface"""
+	This class should be preferred over the direct congiguration accessor.
+	This class mimics the ConfigAccessor inteface as far as possible to improve ease of use.
+	Use self.config to directly access the configuration through the L{ConfigAccessor} interface
+	
+	To use this class, read a list of ini files and use configManager.config to access
+	the configuration."""
 
 	def __init__( self, filePointers=list(), write_back_on_desctruction=True, close_fp = True ):
 		"""Initialize the class with a list of Extended File Classes
@@ -548,6 +556,7 @@ class ConfigManager( object ):
 	def readfp( self, filefporlist, close_fp=True ):
 		""" Read the configuration from the file pointers
 		@raise ConfigParsingError:
+		@param filefporlist: single file like object or list of such
 		@return: the configuration that is meant to be used for accessing the configuration"""
 		self.__config.readfp( filefporlist, close_fp = close_fp )
 
@@ -561,14 +570,12 @@ class ConfigManager( object ):
 	#{ Utilities
 	@classmethod
 	def getTaggedFileDescriptors( cls, directories, taglist, pattern=None ):
-		"""
-		Will list all files in directories, directory after directory, applies the prefix and postfix
-		regex to the file for initial filtering.
-
+		"""Finds tagged configuration files in given directories and return them.
+		
 		The files retrieved can be files like "file.ext" or can contain tags. Tags are '.'
 		separated files tags that are to be matched with the tags in taglist in order.
 
-		All tags must match to retrieve a filepointer to it.
+		All tags must match to retrieve a filepointer to the respective file.
 
 		Example Usage: you could give two paths, one is a global one in a read-only location,
 		another is a local one in the user's home ( where you might have precreated a file already ).
@@ -577,14 +584,14 @@ class ConfigManager( object ):
 		all matching files from the local one, sorted such that the file with the smallest amount
 		of tags come first, files with more tags ( more specialized ones ) will come after that.
 
-		If fed into the L{readfp} method, the individual file contents can override each other.
+		If fed into the L{readfp} or the L{__init__} method, the individual file contents can override each other.
 		Once changes have been applied to the configuration, they can be written back to the writable
 		file pointers respectively.
 
 		@param directories: [ string( path ) ... ] of directories to look in for files
 		@param taglist: [ string( tag ) ... ] of tags, like a tag for the operating system, or the user name
 		@param pattern: simple fnmatch pattern as used for globs or a list of them ( allowing to match several
-		different patterns at once"
+		different patterns at once )
 		"""
 
 		# get patterns
@@ -602,6 +609,8 @@ class ConfigManager( object ):
 		for folder in directories:
 			for pattern in workpatterns:
 				matchedFiles.extend( Path( folder ).files( pattern ) )
+			# END for each pattern/glob 
+		# END for each directory
 
 		# APPLY THE PATTERN SEARCH
 		############################

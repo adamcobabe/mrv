@@ -1,5 +1,5 @@
-"""Imports all utility functions into the same module
-"""
+# -*- coding: utf-8 -*-
+"""Imports all utility functions into the same module """
 
 __author__='$Author$'
 __contact__='byronimo <.a.t.> gmail <.> com'

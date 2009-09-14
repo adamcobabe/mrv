@@ -125,6 +125,7 @@ class TestConfigAccessor( unittest.TestCase ):
 
 		# try to read all files in a row
 		self._verifiedRead( ca, _getprefixedinifps( 'valid' ) )
+		assert not ca.isEmpty()
 
 
 	def test_readInvalidINI( self ):
@@ -177,6 +178,7 @@ class TestConfigAccessor( unittest.TestCase ):
 
 		# create a new configaccessor and assure we have a fully qualified property name
 		nca = ConfigAccessor()
+		assert nca.isEmpty()
 		memfile.seek( 0 )
 		nca.readfp( memfile )
 		self.failUnless( nca.getKeyDefault( "section", "key", "" ).properties.name == "+section:key" )
