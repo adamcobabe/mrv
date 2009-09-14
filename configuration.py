@@ -41,7 +41,6 @@ import re
 import sys
 import StringIO
 import os
-import traceback
 
 #{ Exceptions
 ################################################################################
@@ -546,7 +545,8 @@ class ConfigManager( object ):
 			report = diff.applyTo( self.__config )
 			outwrittenfiles = self.__config.write( close_fp = self._closeFp )
 			return outwrittenfiles
-		except Exception:
+		except Exception,e:
+			print str( e ) 
 			raise
 			# for now we reraise
 			# TODO: raise a proper error here as mentioned in the docs
@@ -1117,7 +1117,7 @@ class Section( PropertyHolder ):
 		self.name = othersection.name
 
 		# merge properties
-		if othersection.properties != None:
+		if othersection.properties is not None:
 			self.properties.mergeWith( othersection.properties )
 
 		for fkey in othersection.keys:
@@ -1234,7 +1234,7 @@ class ConfigNode( object ):
 	def _check_and_append( cls, sectionsforwriting, section ):
 		"""Assure we ignore empty sections
 		@return: True if section has been appended, false otherwise"""
-		if section != None and len( section.keys ):
+		if section is not None and len( section.keys ):
 			sectionsforwriting.append( section )
 			return True
 		return False
@@ -1374,7 +1374,7 @@ class DiffData( object ):
 				# out += attr + " " + typename + " is not set\n"
 
 		# append properties
-		if self.properties != None:
+		if self.properties is not None:
 			out += "-- Properties --\n"
 			out += str( self.properties )
 
@@ -1387,7 +1387,7 @@ class DiffData( object ):
 	def hasDifferences( self ):
 		"""@return: true if we have stored differences ( A  is not equal to B )"""
 		return  ( len( self.added ) or len( self.removed ) or len ( self.changed ) or \
-				( self.properties != None and self.properties.hasDifferences() ) )
+				( self.properties is not None and self.properties.hasDifferences() ) )
 
 class DiffKey( DiffData ):
 	""" Implements DiffData on Key level """
@@ -1428,7 +1428,7 @@ class DiffKey( DiffData ):
 		self.changed = list()			# always empty -
 		self.name = A.name
 		# diff the properties
-		if A.properties != None:
+		if A.properties is not None:
 			propdiff = DiffSection( A.properties, B.properties )
 			self.properties = propdiff			# attach propdiff no matter what
 
@@ -1448,7 +1448,7 @@ class DiffKey( DiffData ):
 
 		# there are never changed values as this cannot be tracked
 		# finally apply the properties if we have some
-		if self.properties != None:
+		if self.properties is not None:
 			self.properties.applyTo( key.properties )
 
 
@@ -1461,21 +1461,14 @@ class DiffSection( DiffData ):
 	def _populate( self, A, B  ):
 		""" Find the difference between the respective """
 		# get property diff if possible
-		if A.properties != None:
+		if A.properties is not None:
 			propdiff = DiffSection( A.properties, B.properties )
 			self.properties = propdiff			# attach propdiff no matter what
 		else:
 			self.properties = None	# leave it Nonw - one should simply not try to get propertydiffs of property diffs
-
-		self.added = B.keys - A.keys
-		self.removed = A.keys - B.keys
 		
-		# NOTE: in destructors, deep copy fails if the amount of added or removed items
-		# is zero
-		if self.added:
-			self.added = list( copy.deepcopy( self.added ) )
-		if self.removed:
-			self.removed = list( copy.deepcopy( self.removed ) )
+		self.added = list( copy.deepcopy( B.keys - A.keys ) )
+		self.removed = list( copy.deepcopy( A.keys - B.keys ) )
 		self.changed = list()
 		self.unchanged = list()
 		self.name = A.name
@@ -1518,7 +1511,7 @@ class DiffSection( DiffData ):
 			changedKeyDiff.applyTo( key )
 
 		# apply section property diff
-		if self.properties != None:
+		if self.properties is not None:
 			self.properties.applyTo( targetSection.properties )
 
 
@@ -1589,7 +1582,6 @@ class ConfigDiffer( DiffData ):
 	def _populate( self, A, B ):
 		""" Perform the acutal diffing operation to fill our data structures
 		@note: this method directly accesses ConfigAccessors internal datastructures """
-
 		# diff sections  - therefore we actually have to treat the chains
 		#  in a flattened manner
 		# built section sets !
@@ -1597,15 +1589,11 @@ class ConfigDiffer( DiffData ):
 		bsections = self._getMergedSections( B )
 		# assure we do not work on references !
 		
-		self.added = bsections - asections
-		self.removed = asections - bsections
-		
-		# NOTE: can only deep-copy if we have members in the basic set if 
-		# we are called during a destructor ... don't ask me why 
-		if self.added:
-			self.added = list( copy.deepcopy( self.added ) )
-		if self.removed:
-			self.removed = list( copy.deepcopy( self.removed ) )
+		# Deepcopy can be 0 in case we are shutting down - deepcopy goes down too early 
+		# for some reason
+		assert( copy.deepcopy is not None, "Deepcopy is not available" )
+		self.added = list( copy.deepcopy( bsections - asections ) )
+		self.removed = list( copy.deepcopy( asections - bsections ) )
 		self.changed = list( )
 		self.unchanged = list( )
 		self.name = ''
