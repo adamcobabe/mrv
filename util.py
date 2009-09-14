@@ -291,6 +291,10 @@ class CallbackBase( iDuplicatable ):
 	# if True, the sender, thus self of an instance of this class, will be put
 	# as first arguments to functions when called for a specific event
 	sender_as_argument = False
+	
+	# if True, exceptions thrown when sending events will be reraised immediately
+	# and may stop execution of the event sender as well
+	reraise_on_error = False
 	#} END configuration
 
 	class Event( object ):
@@ -414,7 +418,9 @@ class CallbackBase( iDuplicatable ):
 					else:
 						func( *args, **kwargs )
 				except LookupError, e:
-					# thrown if self in instance methods went out of skope
+					# thrown if self in instance methods went out of scope
+					if self.reraise_on_error:
+						raise 
 					print str( e )
 					failed_callbacks.append( function )
 
@@ -422,9 +428,11 @@ class CallbackBase( iDuplicatable ):
 			except Exception, e :
 				if eventinst.remove_on_error:
 					failed_callbacks.append( function )
+				
+				if self.reraise_on_error:
+					raise 
 				print str( e )
 				success = False
-				#print "Error: Exception thrown by function %s during event %s" % ( func, eventname )
 		# END for each registered event
 
 		# remove failed listeners
