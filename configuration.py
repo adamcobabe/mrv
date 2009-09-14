@@ -41,6 +41,7 @@ import re
 import sys
 import StringIO
 import os
+import traceback
 
 #{ Exceptions
 ################################################################################
@@ -525,8 +526,6 @@ class ConfigManager( object ):
 			# might trow - python will automatically ignore these issues
 			self.write( )
 
-		pass
-
 	#{ IO Methods
 	def write( self ):
 		""" Write the possibly changed configuration back to its sources
@@ -537,7 +536,7 @@ class ConfigManager( object ):
 		the changes could not be accomodated.
 		@return: the names of the files that have been written as string list"""
 
-		if self.config == None:
+		if self.config is None:
 			raise ValueError( "Internal configuration does not exist" )
 
 
@@ -547,7 +546,7 @@ class ConfigManager( object ):
 			report = diff.applyTo( self.__config )
 			outwrittenfiles = self.__config.write( close_fp = self._closeFp )
 			return outwrittenfiles
-		except:
+		except Exception:
 			raise
 			# for now we reraise
 			# TODO: raise a proper error here as mentioned in the docs
@@ -1422,14 +1421,12 @@ class DiffKey( DiffData ):
 		# compare based on string list, as this matches the actual representation in the file
 		avals = frozenset( str( val ) for val in A._values  )
 		bvals = frozenset( str( val ) for val in B._values  )
-
 		# we store real
 		self.added = self._subtractLists( B._values, A._values )
 		self.removed = self._subtractLists( A._values, B._values )
 		self.unchanged = self._subtractLists( B._values, self.added )	# this gets the commonalities
 		self.changed = list()			# always empty -
 		self.name = A.name
-
 		# diff the properties
 		if A.properties != None:
 			propdiff = DiffSection( A.properties, B.properties )
@@ -1470,8 +1467,15 @@ class DiffSection( DiffData ):
 		else:
 			self.properties = None	# leave it Nonw - one should simply not try to get propertydiffs of property diffs
 
-		self.added = list( copy.deepcopy( B.keys - A.keys ) )
-		self.removed = list( copy.deepcopy( A.keys - B.keys ) )
+		self.added = B.keys - A.keys
+		self.removed = A.keys - B.keys
+		
+		# NOTE: in destructors, deep copy fails if the amount of added or removed items
+		# is zero
+		if self.added:
+			self.added = list( copy.deepcopy( self.added ) )
+		if self.removed:
+			self.removed = list( copy.deepcopy( self.removed ) )
 		self.changed = list()
 		self.unchanged = list()
 		self.name = A.name
@@ -1555,11 +1559,11 @@ class ConfigDiffer( DiffData ):
 		""" NOTE: within config nodes, sections must be unique, between nodes,
 		this is not the case - sets would simply drop keys with the same name
 		leading to invalid results - thus we have to merge equally named sections
-		@return: iterable with merged sections
+		@return: BasicSet with merged sections
 		@todo: make this algo work on sets instead of individual sections for performance"""
 		sectionlist = list( configaccessor.getSectionIterator() )
 		if len( sectionlist ) < 2:
-			return sectionlist
+			return BasicSet( sectionlist )
 
 		out = BasicSet( )				# need a basic set for indexing
 		for section in sectionlist:
@@ -1589,28 +1593,35 @@ class ConfigDiffer( DiffData ):
 		# diff sections  - therefore we actually have to treat the chains
 		#  in a flattened manner
 		# built section sets !
-		asections = BasicSet( self._getMergedSections( A ) )
-		bsections = BasicSet( self._getMergedSections( B ) )
-
+		asections = self._getMergedSections( A )
+		bsections = self._getMergedSections( B )
 		# assure we do not work on references !
-		self.added = list( copy.deepcopy( bsections - asections ) )
-		self.removed = list( copy.deepcopy( asections - bsections ) )
+		
+		self.added = bsections - asections
+		self.removed = asections - bsections
+		
+		# NOTE: can only deep-copy if we have members in the basic set if 
+		# we are called during a destructor ... don't ask me why 
+		if self.added:
+			self.added = list( copy.deepcopy( self.added ) )
+		if self.removed:
+			self.removed = list( copy.deepcopy( self.removed ) )
 		self.changed = list( )
 		self.unchanged = list( )
 		self.name = ''
-
 		common = asections & bsections		# will be copied later later on key level
-
+		
 		# get a deeper analysis of the common sections - added,removed,changed keys
 		for section in common:
 			# find out whether the section has changed
 			asection = asections[ section ]
 			bsection = bsections[ section ]
 			dsection = DiffSection( asection, bsection )
-
-			if dsection.hasDifferences( ): self.changed.append( dsection )
-			else: self.unchanged.append( asection )
-
+			if dsection.hasDifferences( ): 
+				self.changed.append( dsection )
+			else: 
+				self.unchanged.append( asection )
+		# END for each common section
 
 
 
