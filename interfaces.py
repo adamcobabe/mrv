@@ -215,7 +215,7 @@ class iDuplicatable( object ):
 		instance of our class to be compatible.
 		Only the common classes will be copied to instance
 		@return: altered instance
-		@note: instance will be altered during theat process"""
+		@note: instance will be altered during the process"""
 		if not isinstance( instance, self.__class__ ):
 			raise TypeError( "copyTo: Instance must be of type %s but was type %s" % ( type( self ), type( instance ) ) )
 
