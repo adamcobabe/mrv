@@ -1072,7 +1072,7 @@ class Path( _base, iDagItem ):
 	copytree = lambda self, dest, **kwargs: shutil.copytree( self._expandvars(), dest, **kwargs )
 	if hasattr(shutil, 'move'):
 		move = lambda self, dest: shutil.move( self._expandvars(), dest )
-	rmtree = lambda self, dest, **kwargs: shutil.rmtree( self._expandvars(), dest, **kwargs )
+	rmtree = lambda self, **kwargs: shutil.rmtree( self._expandvars(),  **kwargs )
 
 	#} END High-Level
 
