@@ -474,8 +474,9 @@ class InterfaceMaster( iDuplicatable ):
 			self.iname = interfacename			# keep name of our interface
 
 		def __get__( self, inst, cls = None ):
+			# allow our instance to be manipulated if accessed through the class
 			if inst is None:
-				raise AttributeError( "Interfaces must be accessed through the instance of the class" )
+				return self
 
 			try:
 				return inst.getInterface( self.iname )
