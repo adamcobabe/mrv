@@ -17,7 +17,25 @@ __copyright__='(c) 2008 Sebastian Thiel'
 from collections import deque as Deque
 
 
-class iDagItem( object ):
+class Interface( object ):
+	"""Base for all interfaces.
+	All interfaces should derive from here."""
+	
+	# assure we can be handled efficiently - subclasses are free not to define 
+	# slots, but those who do will not inherit a __dict__ from here
+	__slots__ = tuple()
+	
+	def supports( self, interface_type ):
+		"""@return: True if this instance supports the interface of the given type
+		@param interface_type: Type of the interface you require this instance 
+		to support
+		@note: Must be used in case you only have a weak reference of your interface
+		instance or proxy which is a case where the ordinary isinstance( obj, iInterface )
+		will not work"""
+		return isinstance( self, interface_type )
+
+
+class iDagItem( Interface ):
 	""" Describes interface for a DAG item.
 	Its used to unify interfaces allowing to access objects in a dag like graph
 	Of the underlying object has a string representation, the defatult implementation
@@ -171,7 +189,7 @@ class iDagItem( object ):
 	#} END name generation
 
 
-class iDuplicatable( object ):
+class iDuplicatable( Interface ):
 	"""Simple interface allowing any class to be properly duplicated
 	@note: to implement this interface, implement L{createInstance} and
 	L{copyFrom} in your class """
@@ -284,7 +302,7 @@ class iDuplicatable( object ):
 		return instance
 	
 
-class iChoiceDialog( object ):
+class iChoiceDialog( Interface ):
 	"""Interface allowing access to a simple confirm dialog allowing the user
 	to pick between a selection of choices, one of which he has to confirm
 	@note: for convenience, this interface contains a brief implementation as a
@@ -329,7 +347,7 @@ class iChoiceDialog( object ):
 
 		return self.default_choice
 
-class iPrompt( object ):
+class iPrompt( Interface ):
 	"""Prompt a value from the user, providing a default if no input is retrieved"""
 	#{ Configuration
 	# used as message to the user to confirm the input and provides it to the caller
@@ -360,7 +378,7 @@ class iPrompt( object ):
 		print "Hit %s to confirm or %s to cancel" % ( self.confirmToken, self.cancelToken )
 		return self.confirmDefault
 
-class iProgressIndicator( object ):
+class iProgressIndicator( Interface ):
 	"""Interface allowing to submit progress information
 	The default implementation just prints the respective messages
 	Additionally you may query whether the computation has been cancelled by the user
