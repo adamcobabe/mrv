@@ -391,9 +391,12 @@ class ConfigAccessor( object ):
 	def getKeysByName( self, name ):
 		"""@param name: the name of the key you wish to find
 		@return: List of  (L{Key},L{Section}) tuples of key(s) matching name found in section, or empty list"""
-		return list( self._configChain.iterateKeysByName( name ) )
+		return list( self.iterateKeysByName( name ) )
 
-
+	def iterateKeysByName( self, name ):
+		"""As L{getKeysByName}, but returns an iterator instead"""
+		return self._configChain.iterateKeysByName( name )
+		
 	#} END GROUP
 
 	#{ Operators

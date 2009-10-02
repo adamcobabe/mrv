@@ -147,6 +147,7 @@ class TestConfigAccessor( unittest.TestCase ):
 		"""ConfigAccessor.Properties: Assure that key properties can be parsed"""
 		ca = _getca( 'valid_keyproperty' )
 		self.failUnless( ca.getKeysByName( "my_key_with_property" )[0][0].properties.getKey( 'property' ).value =='value' )
+		self.failUnless( len( list( ca.iterateKeysByName( "my_key_with_property" ) ) ) )
 
 	def test_sectionprortyparsing( self ):
 		"""ConfigAccessor.Properties: Assure that section properties can be parsed"""

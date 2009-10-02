@@ -32,6 +32,10 @@ class iDagItem( object ):
 
 	kOrder_DepthFirst, kOrder_BreadthFirst = range(2)
 
+	# assure we can be handled efficiently - subclasses are free not to define 
+	# slots, but those who do will not inherit a __dict__ from here
+	__slots__ = tuple()
+
 	#{ Configuration
 	# separator as appropriate for your class if it can be treated as string
 	# if string treatment is not possibly, override the respective method
@@ -171,6 +175,37 @@ class iDuplicatable( object ):
 	"""Simple interface allowing any class to be properly duplicated
 	@note: to implement this interface, implement L{createInstance} and
 	L{copyFrom} in your class """
+	
+	# assure we can be handled efficiently - subclasses are free not to define 
+	# slots, but those who do will not inherit a __dict__ from here
+	__slots__ = tuple()
+	
+	def __copyTo( self, instance, *args, **kwargs ):
+		"""Internal Method with minimal checking"""
+		# Get reversed mro, starting at lowest base
+		mrorev = instance.__class__.mro()
+		mrorev.reverse()
+
+		# APPLY COPY CONSTRUCTORS !
+		##############################
+		for base in mrorev:
+			if base is iDuplicatable:
+				continue
+
+			# must get the actual method directly from the base ! Getattr respects the mro ( of course )
+			# and possibly looks at the base's superclass methods of the same name
+			try:
+				copyFromFunc = base.__dict__[ 'copyFrom' ]
+				copyFromFunc( instance, self, *args, **kwargs )
+			except KeyError:
+				pass
+			except TypeError,e:
+				raise AssertionError( "The subclass method %s.%s must support *args and or **kwargs if the superclass does, error: %s" % (base, copyFromFunc,e) )
+		# END for each base
+
+		# return the result !
+		return instance
+	
 	#{ Interface
 
 	def createInstance( self, *args, **kwargs ):
@@ -198,7 +233,7 @@ class iDuplicatable( object ):
 		try:
 			createInstFunc = getattr( self, 'createInstance' )
 			instance = createInstFunc( *args, **kwargs )
-		except TypeError,e: 		#	 could be the derived class does not support the args ( although it should
+		except TypeError,e:
 			#raise
 			raise AssertionError( "The subclass method %s must support *args and or **kwargs if the superclass does, error: %s" % ( createInstFunc, e ) )
 
@@ -208,7 +243,7 @@ class iDuplicatable( object ):
 			msg = "Duplicate must have same class as self, was %s, should be %s" % ( instance.__class__, self.__class__ )
 			raise AssertionError( msg )
 
-		return self.copyTo( instance, *args, **kwargs )
+		return self.__copyTo( instance, *args, **kwargs )
 
 	def copyTo( self, instance, *args, **kwargs ):
 		"""Copy the values of ourselves onto the given instance which must be an
@@ -216,39 +251,45 @@ class iDuplicatable( object ):
 		Only the common classes will be copied to instance
 		@return: altered instance
 		@note: instance will be altered during the process"""
-		if not isinstance( instance, self.__class__ ):
+		if type( instance ) != type( self ):
 			raise TypeError( "copyTo: Instance must be of type %s but was type %s" % ( type( self ), type( instance ) ) )
+		return self.__copyTo( instance, *args, **kwargs )
 
+	def copyToOther( self, instance, *args, **kwargs ):
+		"""As L{copyTo}, but does only require the objects to have a common base.
+		It will match the actually compatible base classes and call L{copyFrom}
+		if possible.
+		As more checking is performed, this method performs worse than L{copyTo}"""
 		# Get reversed mro, starting at lowest base
 		mrorev = instance.__class__.mro()
 		mrorev.reverse()
-
+		
+		own_bases = self.__class__.mro()
+		own_bases.reverse()
+		
 		# APPLY COPY CONSTRUCTORS !
 		##############################
 		for base in mrorev:
-			if base is iDuplicatable:
+			if base is iDuplicatable or base not in own_bases:
 				continue
-
-			# must get the actual method directly from the base ! Getattr respects the mro ( of course )
-			# and possibly looks at the base's superclass methods of the same name
+			
 			try:
 				copyFromFunc = base.__dict__[ 'copyFrom' ]
 				copyFromFunc( instance, self, *args, **kwargs )
 			except KeyError:
 				pass
-			except TypeError,e: 		#	 could be the derived class does not support the args ( although it shold
+			except TypeError,e: 
 				raise AssertionError( "The subclass method %s.%s must support *args and or **kwargs if the superclass does, error: %s" % (base, copyFromFunc,e) )
 		# END for each base
-
-		# return the result !
 		return instance
-
+	
 
 class iChoiceDialog( object ):
 	"""Interface allowing access to a simple confirm dialog allowing the user
 	to pick between a selection of choices, one of which he has to confirm
 	@note: for convenience, this interface contains a brief implementation as a
 	basis for subclasses """
+	
 
 	def __init__( self, *args, **kwargs ):
 		"""Allow the user to pick a choice
