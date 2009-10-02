@@ -150,3 +150,6 @@ class TestReferenceRunner( unittest.TestCase ):
 		# empty replacement - remove ns
 		self.failUnless( ns2.substitute( multins, "" ) == "ns1:multinsrel" )
 		self.failUnless( ns.substitute( nsabs, "" ) == ":absolute" )
+		
+		# namespaces have slots
+		self.failUnlessRaises( AttributeError, setattr, ns, "myattr", 2 )

@@ -56,6 +56,9 @@ class Namespace( unicode, iDagItem ):
 	rootNamespace = ':'
 	_defaultns = [ 'UI','shared' ]			# default namespaces that we want to ignore in our listings
 	defaultIncrFunc = lambda b,i: "%s%02i" % ( b,i )
+	
+	# to keep instance small
+	__slots__ = tuple()
 
 	#{ Overridden Methods
 
