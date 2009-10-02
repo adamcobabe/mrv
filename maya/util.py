@@ -288,6 +288,8 @@ class CallbackBase( object ):
 
 	It has the advantage of easier usage as you can pass in any function with the
 	appropriate signature"""
+	
+	__slots__ = ( "_middict", "_callbacks" )
 
 	def __init__( self ):
 		"""initialize our base variables"""
@@ -386,6 +388,7 @@ class MuteUndo( object ):
 	previous state will be restored
 	@note: useful if you want to save the undo overhead involved in an operation,
 	but assure that the previous state is always being reset"""
+	__slots__ = ( "prevstate", )
 	def __init__( self ):
 		self.prevstate = cmds.undoInfo( q=1, st=1 )
 		cmds.undoInfo( swf = 0 )
@@ -403,6 +406,8 @@ class StandinClass( object ):
 	create the given class.
 	@note: Use it at placeholder for classes that are to be created on first call, without
 	vasting large amounts of memory if one wants to precreate them."""
+	__slots__ = ( "clsname", "classcreator", "_createdClass" )
+	
 	def __init__( self, classname, classcreator=type ):
 		self.clsname = classname
 		self.classcreator = classcreator

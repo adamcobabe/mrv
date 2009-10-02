@@ -273,10 +273,11 @@ def notundoable( func ):
 	return notundoableDecoratorWrapFunc
 
 
-class StartUndo:
+class StartUndo( object ):
 	"""Utility class that will push the undo stack on __init__ and pop it on __del__
 	@note: Prefer the undoable decorator over this one as they are easier to use and FASTER !
 	@note: use this class to assure that you pop undo when your method exists"""
+	__slots__ = ( "id", )
 	def __init__( self, id = None ):
 		self.id = id
 		_incrStack( )
@@ -319,11 +320,12 @@ def undoAndClear( ):
 
 from mayarv.util import Call
 
-class Operation:
+class Operation( object ):
 	"""Simple command class as base for all operations
 	All undoable/redoable operation must support it
 	NOTE: only operations may be placed on the undo stack !"""
-
+	__slots__ = tuple()
+	
 	def __init__( self ):
 		"""Operations will always be placed on the undo queue if undo is available
 		This happens automatically upon creation
@@ -494,7 +496,7 @@ class DGModifier( Operation ):
 	@note: You MUST call doIt() before once you have instantiated an instance, even though you
 	have nothing on it. This requiredment is related to the undo queue mechanism
 	@note: May NOT derive directly from dg modifier!"""
-
+	__slots__ = ( "_modifier", )
 	_modifier_class_ = om.MDGModifier		# do be overridden by subclasses
 
 	def __init__( self ):
@@ -517,8 +519,9 @@ class DGModifier( Operation ):
 
 class DagModifier( DGModifier ):
 	"""undo-aware DAG modifier, copying all extra functions from DGModifier"""
+	__slots__ = tuple()
 	_modifier_class_ = om.MDagModifier
-
+	
 
 # keep aliases
 #{ Aliases

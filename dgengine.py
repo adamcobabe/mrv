@@ -202,7 +202,6 @@ class Attribute( object ):
 	Your returned value will be type-checked against the required type if check_passing_values is set."""
 	kNo, kGood, kPerfect = 0, 127, 255				# specify how good attributes fit together
 	exact_type, readonly, computable, cls, uncached, unconnectable,check_passing_values = ( 1, 2, 4, 8, 16, 32, 64 )
-	__slots__ = ( 'typecls', 'flags', '_default' )
 
 	def __init__( self, typeClass, flags, default = None ):
 		self.typecls = typeClass
@@ -395,7 +394,6 @@ class plug( iPlug ):
 	@note: class is lowercase as it is used as descriptor ( acting more like a function )
 	"""
 	kNo,kGood,kPerfect = ( 0, 127, 255 )
-	__slots__ = ( '_name', 'attr', '_affects', '_affectedBy' )
 
 	#{ Overridden object methods
 	def __init__( self, attribute ):
@@ -1071,7 +1069,6 @@ class NodeBase( iDuplicatable ):
 	Nodes are identified by an ID - the default graph implementation though will
 	be okay with just having instances.
 	It is also being used for string representations of this node"""
-	__slots__ = ('graph','shellcls','id')		# may have a per instance shell class if required
 	shellcls = _PlugShell					# class used to instantiate new shells
 	__metaclass__ = _NodeBaseCheckMeta		# check the class before its being created
 

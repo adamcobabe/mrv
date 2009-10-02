@@ -203,6 +203,8 @@ def iterNetworkxGraph( graph, startItem, direction = 0, prune = lambda i,g: Fals
 class Call( object ):
 	"""Call object encapsulating any code, thus providing a simple facade for it
 	@note: derive from it if a more complex call is required"""
+	__slots__ = ( "func", "args", "kwargs" )
+	
 	def __init__( self, func, *args,**kwargs ):
 		"""Initialize object with function to call once this object is called"""
 		self.func = func
@@ -219,6 +221,8 @@ class CallAdv( Call ):
 	"""Advanced call class providing additional options:
 	merge_args : if True, default True, incoming arguments will be prepended before the static ones
 	merge_kwargs: if True, default True, incoming kwargs will be merged into the static ones """
+	__slots__ = ( "merge_args", "merge_kwargs" )
+	
 	def __init__( self, func, *args, **kwargs ):
 		self.merge_args = kwargs.pop( "merge_args", True )
 		self.merge_kwargs = kwargs.pop( "merge_kwargs", True )
@@ -286,6 +290,8 @@ class CallbackBase( iDuplicatable ):
 
 	@note: using weak-references to ensure one does not keep objects alive,
 	see L{use_weakref}"""
+	
+	__slots__ = tuple( )
 
 	#{ Configuration
 	# if True, the sender, thus self of an instance of this class, will be put
@@ -300,6 +306,7 @@ class CallbackBase( iDuplicatable ):
 	class Event( object ):
 		"""Descriptor allowing to easily setup callbacks for classes derived from
 		CallbackBase"""
+		
 		#{ Configuration
 		# if true, functions will be weak-referenced - its useful if you use instance
 		# variables as callbacks
@@ -459,7 +466,7 @@ class CallbackBase( iDuplicatable ):
 class InterfaceMaster( iDuplicatable ):
 	"""Base class making the derived class an interface provider, allowing interfaces
 	to be set, queried and used including build-in use"""
-
+	__slots__ = ( "_idict", )
 	#{ Configuration
 	im_provide_on_instance = True			 # if true, interfaces are available directly through the class using descriptors
 	#} END configuration
@@ -513,6 +520,7 @@ class InterfaceMaster( iDuplicatable ):
 		access to call to the number of your current caller.
 		@note: You can register an InterfaceBase with several InterfaceMasters and
 		share the caller count respectively"""
+		__slots__ = ( "_current_caller_id", "_num_callers" )
 		def __init__( self ):
 			self._current_caller_id	 = -1 # id of the caller currently operating on us
 			self._num_callers = 0		# the amount of possible callers, ids range from 0 to (num_callers-1)
@@ -620,6 +628,7 @@ class InterfaceMaster( iDuplicatable ):
 class Singleton(object) :
 	""" Singleton classes can be derived from this class,
 		you can derive from other classes as long as Singleton comes first (and class doesn't override __new__ ) """
+	__slots__ = "_the_instance"
 	def __new__(cls, *p, **k):
 		if not '_the_instance' in cls.__dict__:
 			cls._the_instance = super(Singleton, cls).__new__(cls)
@@ -651,6 +660,7 @@ class CallOnDeletion( object ):
 	"""Call the given callable object once this object is being deleted
 	Its usefull if you want to assure certain code to run once the parent scope
 	of this object looses focus"""
+	__slots__ = "callableobj"
 	def __init__( self, callableobj ):
 		self.callableobj = callableobj
 
@@ -713,6 +723,7 @@ class PipeSeparatedFile( object ):
 	...
 	"""
 	kSeparator = '|'
+	__slots__ = ( "_fileobj", "_columncount" )
 
 	def __init__( self, fileobj ):
 		"""Initialize the instance
@@ -810,6 +821,7 @@ class RegexHasMatch( object ):
 class And( object ):
 	"""For use with python's filter method, simulates logical AND
 	Use: filter( And( f1,f2,fn ), sequence ) """
+	__slots__ = "functions"
 	def __init__( self, *args ):
 		"""args must contain the filter methods to be AND'ed
 		To append functions after creation, simply access the 'functions' attribute
@@ -830,6 +842,7 @@ class And( object ):
 class Or( object ):
 	"""For use with python's filter method, simulates logical OR
 	Use: filter( Or( f1,f2,fn ), sequence ) """
+	__slots__ = "functions"
 	def __init__( self, *args ):
 		"""args must contain the filter methods to be AND'ed"""
 		self.functions = args

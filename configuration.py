@@ -881,7 +881,7 @@ class BasicSet( set ):
 class PropertyHolder( object ):
 	"""Simple Base defining how to deal with properties
 	@note: to use this interface, the subclass must have a 'name' field"""
-	__slots__ = [ 'properties' ]
+	__slots__ = ( 'properties', ) 
 
 	def __init__( self ):
 		# assure we do not get recursive here
@@ -901,7 +901,7 @@ class Key( PropertyHolder ):
 	@note: a key's name will be stored stripped only, must not contain certain chars
 	@todo: add support for escpaing comas within quotes - currently it split at
 	comas, no matter what"""
-	__slots__ = [ '_name','_values','order' ]
+	__slots__ = ( '_name', 'name', '_values', 'values', 'order' )
 	validchars = r'[\w\(\)]'
 	_re_checkName = re.compile( validchars+r'+' )			# only word characters are allowed in key names, and paranthesis
 	_re_checkValue = re.compile( r'[^\n\t\r]+' )					# be as open as possible
@@ -1060,7 +1060,7 @@ class Section( PropertyHolder ):
 	all its keys and section properties
 
 	@note: name will be stored stripped and must not contain certain chars """
-	__slots__ = [ '_name', 'keys','order' ]
+	__slots__ = ( '_name', 'name', 'keys','order' )
 	_re_checkName = re.compile( r'\+?\w+(:' + Key.validchars+ r'+)?' )
 
 	def __iter__( self ):
@@ -1171,7 +1171,7 @@ class Section( PropertyHolder ):
 
 class PropertySection( Section ):
 	"""Define a section containing keys that make up properties of somethingI"""
-	__slots__ = []
+	__slots__ = tuple()
 
 
 class ConfigNode( object ):
@@ -1340,7 +1340,7 @@ class DiffData( object ):
 	""" Struct keeping data about added, removed and/or changed data
 	Subclasses should override some private methods to automatically utilize some
 	basic functionality"""
-	__slots__ = [ 'added', 'removed', 'changed', 'unchanged','properties','name' ]
+	__slots__ = ( 'added', 'removed', 'changed', 'unchanged','properties','name' )
 
 	"""#@ivar added: Copies of all the sections that are only in B ( as they have been added to B )"""
 	"""#@ivar removed: Copies of all the sections that are only in A ( as they have been removed from B )"""
@@ -1394,7 +1394,8 @@ class DiffData( object ):
 
 class DiffKey( DiffData ):
 	""" Implements DiffData on Key level """
-
+	__slots__ = tuple()
+	
 	def __str__( self ):
 		return self.toStr( "Key-Value" )
 
@@ -1457,7 +1458,8 @@ class DiffKey( DiffData ):
 
 class DiffSection( DiffData ):
 	""" Implements DiffData on section level """
-
+	__slots__ = tuple()
+	
 	def __str__( self ):
 		return self.toStr( "Key" )
 
@@ -1545,7 +1547,8 @@ class ConfigDiffer( DiffData ):
 		- DiffKey.properties: see DiffSection.properties
 	  - DiffSection.properties:None if this is a section diff, otherwise it contains a DiffSection with the respective differences
 	"""
-
+	__slots__ = tuple()
+	
 	def __str__( self ):
 		""" Print its own delta information - useful for debugging purposes """
 		return self.toStr( 'section' )
