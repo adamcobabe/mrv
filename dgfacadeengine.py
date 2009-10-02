@@ -370,7 +370,6 @@ class FacadeNodeBase( NodeBase ):
 	@note: this class could also be used for facades Container nodes that provide
 	an interface to their internal nodes"""
 	shellcls = _OIShell		# overriden from NodeBase
-	__slots__ = ('caching','_cachedOIPlugs' ) 	# caching mode flag, cached plug names
 
 	#{ Configuration
 	caching_enabled = True						# if true, the facade may cache plugs once queried
