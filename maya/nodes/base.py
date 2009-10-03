@@ -48,6 +48,13 @@ from itertools import chain
 # to prevent always creating instances of the same class per call
 _nameToApiSelList = api.MSelectionList()
 _mfndep = api.MFnDependencyNode()
+# cache functions
+_mfndep_setobject = _mfndep.setObject
+_mfndep_typename = _mfndep.typeName
+_mfndep_name = _mfndep.name
+
+api_mdagpath_node = api.MDagPath.node
+api_mdagpath = api.MDagPath
 
 # direct import to safe api. lookup
 from maya.OpenMaya import MFnDagNode
@@ -372,7 +379,7 @@ def createNode( nodename, nodetype, autocreateNamespace=True, renameOnClash = Tr
 	@raise NameError: If name of desired node clashes as existing node has different type
 	@note: As this method is checking a lot and tries to be smart, its relatively slow ( creates ~400 nodes / s )
 	@return: the newly create Node"""
-	global _mfndep
+	global _mfndep_setobject,_mfndep_name
 
 	if nodename in ( '|', '' ):
 		raise RuntimeError( "Cannot create '|' or ''" )
@@ -463,8 +470,8 @@ def createNode( nodename, nodetype, autocreateNamespace=True, renameOnClash = Tr
 		# CLASHING CHECK ( and name update ) !
 		# PROBLEM: if a dep node with name of dagtoken already exists, it will
 		# rename the newly created (sub) node although it is not the same !
-		_mfndep.setObject( newapiobj )
-		actualname = _mfndep.name()
+		_mfndep_setobject( newapiobj )
+		actualname = _mfndep_name()
 		if actualname != dagtoken:
 			# Is it a renamed node because because a dep node of the same name existed ?
 			# Could be that a child of the same name existed too
@@ -499,7 +506,8 @@ def createComponent( componentcls, apitype ):
 def _checkedInstanceCreationDagPathSupport( apiobj_or_dagpath, clsToBeCreated, basecls ):
 	"""Same purpose and attribtues as L{_checkedInstanceCreation}, but supports
 	dagPaths as input as well"""
-	global _mfndep
+	global _mfndep_setobject,_mfndep_typename, api_mdagpath_node, api_mdagpath
+	
 	# if return is here, you get 5430 ( vs 2000 originally )
 
 	apiobj = apiobj_or_dagpath
@@ -515,26 +523,26 @@ def _checkedInstanceCreationDagPathSupport( apiobj_or_dagpath, clsToBeCreated, b
 		# changes
 		# NOTE: this is not the most expensive call which can be seen if
 		# it is added twice ( 2000 vs 1730 )
-		apiobj = api.MDagPath.node( apiobj_or_dagpath )	## expensive call !
+		apiobj = api_mdagpath_node( apiobj_or_dagpath )	## expensive call !
 		dagpath = apiobj_or_dagpath
 	# END if we have a dag path
 
 	# if return is here, you get 3600 ( vs 2000 originally )
-	_mfndep.setObject( apiobj )
-	nodeTypeName = _mfndep.typeName( )
+	_mfndep_setobject( apiobj )
+	nodeTypeName = _mfndep_typename( )
 	clsinstance = _checkedInstanceCreation( apiobj, nodeTypeName, clsToBeCreated, basecls )
 
 	# ASSURE WE HAVE A DAG PATH
 	# Dag Objects should always have a dag path even if none was passed in
 	## costs nealy nothing
-	if not dagpath and isinstance( clsinstance, DagNode ):
-		dagpath = api.MDagPath( )
+	if dagpath is None and isinstance( clsinstance, DagNode ):
+		dagpath = api_mdagpath( )
 		MFnDagNode( apiobj ).getPath( dagpath )
 	# END if no dagpath was available
 
 	# NOTE: this costs plenty of performance ( with: 2000, without, 2900 ), thus we
 	# do it on demand when the dagpath is requested
-	if dagpath:
+	if dagpath is not None:
 		object.__setattr__( clsinstance, '_apidagpath', dagpath )	# add some convenience to it
 
 	return clsinstance
@@ -654,6 +662,7 @@ class Node( object ):
 	representation
 	Use this class to directly create a maya node of the required type"""
 	__metaclass__ = nodes.MetaClassCreatorNodes
+	__api_type_tuple = ( api.MObject, api.MDagPath )
 
 	def __new__ ( cls, *args, **kwargs ):
 		"""return the proper class for the given object
@@ -679,7 +688,7 @@ class Node( object ):
 		apiobj_or_dagpath = None
 
 		# GET AN API OBJECT
-		if isinstance( objorname, ( api.MObject, api.MDagPath ) ):
+		if isinstance( objorname, cls.__api_type_tuple ):
 			apiobj_or_dagpath = objorname
 		elif isinstance( objorname, basestring ):
 			if objorname.find( '.' ) != -1:
