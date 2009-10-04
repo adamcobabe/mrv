@@ -291,8 +291,6 @@ class CallbackBase( iDuplicatable ):
 	@note: using weak-references to ensure one does not keep objects alive,
 	see L{use_weakref}"""
 	
-	__slots__ = tuple( )
-
 	#{ Configuration
 	# if True, the sender, thus self of an instance of this class, will be put
 	# as first arguments to functions when called for a specific event
@@ -628,7 +626,6 @@ class InterfaceMaster( iDuplicatable ):
 class Singleton(object) :
 	""" Singleton classes can be derived from this class,
 		you can derive from other classes as long as Singleton comes first (and class doesn't override __new__ ) """
-	__slots__ = "_the_instance"
 	def __new__(cls, *p, **k):
 		if not '_the_instance' in cls.__dict__:
 			cls._the_instance = super(Singleton, cls).__new__(cls)
