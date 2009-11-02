@@ -34,7 +34,7 @@ function die () {
 function mapMayaToPythonVersion () {
 	mayaversion=${1?:"First argument needs to be the maya version"}
 	
-	for pyversion in 8.52.4 20082.5 20092.5 ; do
+	for pyversion in 8.52.4 20082.5 20092.5 20102.6 ; do
 		if [[ $pyversion == ${mayaversion}* ]]; then
 			# output python version 
 			echo ${pyversion/$mayaversion/}
