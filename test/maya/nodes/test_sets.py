@@ -18,7 +18,7 @@ __copyright__='(c) 2008 Sebastian Thiel'
 
 import unittest
 import mayarv.maya.nodes as nodes
-import mayarv.maya.nodes.iterators as iterators
+import mayarv.maya.nodes.iter as iterators
 import maya.cmds as cmds
 import maya.OpenMaya as api
 import mayarv.test.maya as common

@@ -452,7 +452,7 @@ class Namespace( unicode, iDagItem ):
 		@note: this is a convenience method
 		@note: the method is inherently inefficient as a full list of object names
 		in the naemspace will be retrieved anyway"""
-		from nodes.iterators import iterSelectionList
+		from nodes.iter import iterSelectionList
 		sellist = self.getSelectionList( depth = depth, child_predicate = child_predicate, as_strings = False )
 
 		return iterSelectionList( sellist, **kwargs )

@@ -27,7 +27,7 @@ import maya.OpenMaya as api
 import string
 import random
 import time
-import mayarv.maya.nodes.iterators as iters
+import mayarv.maya.nodes.iter as iters
 import mayarv.test.maya.benchmark as bcommon
 
 

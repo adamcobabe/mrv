@@ -225,10 +225,10 @@ def toSelectionListFromNames( nodenames ):
 def fromSelectionList( sellist, handlePlugs=1, **kwargs ):
 	"""@return: list of Nodes and MPlugs stored in the given selection list
 	@param **kwargs: passed to selectionListIterator"""
-	import iterators
+	import iter
 	kwargs.pop( "asNode", None )	# remove our overridden warg
 	handlePlugs = kwargs.pop( "handlePlugs", handlePlugs )
-	return list( iterators.iterSelectionList( sellist, asNode=1, handlePlugs = handlePlugs, **kwargs ) )
+	return list( iter.iterSelectionList( sellist, asNode=1, handlePlugs = handlePlugs, **kwargs ) )
 
 def toNodesFromNames( nodenames, **kwargs ):
 	"""@return: list of wrapped nodes from the given list of node names

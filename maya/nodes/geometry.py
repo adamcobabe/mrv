@@ -18,7 +18,6 @@ __copyright__='(c) 2008 Sebastian Thiel'
 import base
 import types
 import maya.OpenMaya as api
-import iterators
 from mayarv.enum import create as enum
 
 class Shape( base.DagNode ):	 # base for epydoc !
