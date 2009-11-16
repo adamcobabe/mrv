@@ -21,8 +21,7 @@ __copyright__='(c) 2008 Sebastian Thiel'
 import maya.OpenMaya as api
 import maya.cmds as cmds
 
-nodes = __import__( "mayarv.maya.nodes", globals(), locals(), [ 'nodes' ] )
-
+import base
 
 def _argsToFilter( args ):
 	"""convert the MFnTypes in args list to the respective typeFilter"""
@@ -68,7 +67,7 @@ def iterDgNodes( *args, **kwargs ):
 	while not iterObj.isDone() :
 		obj = iterObj.thisNode()
 		if asNode:
-			node = nodes.Node( obj, 1 )
+			node = base.Node( obj, 1 )
 			if predicate( node ):
 				yield node
 		else:
@@ -161,7 +160,7 @@ def iterDagNodes( *args, **kwargs ):
 			dPath = api.MDagPath( )
 			iterObj.getPath( dPath )
 			if asNode:
-				node = nodes.Node( dPath, 1 )
+				node = base.Node( dPath, 1 )
 				if predicate( node ):
 					yield node
 			else:
@@ -205,7 +204,7 @@ def getGraphIterator( nodeOrPlug, *args, **kwargs ):
 	if isinstance( nodeOrPlug, api.MPlug ):
 		startPlug = nodeOrPlug
 		startObj = api.MObject()
-	elif isinstance( nodeOrPlug, nodes.Node ):
+	elif isinstance( nodeOrPlug, base.Node ):
 		startObj = nodeOrPlug._apiobj
 		startPlug = pa[0]
 
@@ -286,7 +285,7 @@ def iterGraph( nodeOrPlug, *args, **kwargs ):
 		else:
 			obj = iterObj.currentItem()
 			if asNode:
-				node = nodes.Node( obj, 1 )
+				node = base.Node( obj, 1 )
 				if predicate( node ):
 					yield node
 			else:
@@ -397,10 +396,10 @@ def iterSelectionList( sellist, filterType = api.MFn.kInvalid, predicate = lambd
 				# END filter handling
 
 				if asNode:
-					node = nodes.Node( iterobj, 1 )
+					node = base.Node( iterobj, 1 )
 					if handleComponents:
 						if not component.isNull():
-							component = nodes.Component( component )
+							component = base.Component( component )
 						rval = ( node, component )
 						if predicate( rval ):
 							yield rval
@@ -432,10 +431,10 @@ def iterSelectionList( sellist, filterType = api.MFn.kInvalid, predicate = lambd
 					iterator.getDagPath( path )
 
 				if asNode:
-					node = nodes.Node( path, 1 )
+					node = base.Node( path, 1 )
 					if handleComponents:
 						if not component.isNull():
-							component = nodes.Component( component )
+							component = base.Component( component )
 						rval = ( node, component )
 						if predicate( rval ):
 							yield rval
@@ -450,7 +449,7 @@ def iterSelectionList( sellist, filterType = api.MFn.kInvalid, predicate = lambd
 				obj = api.MObject()
 				iterator.getDependNode( obj )
 				if asNode:
-					node = nodes.Node( obj, 1 )
+					node = base.Node( obj, 1 )
 					if predicate( node ):
 						yield node
 				else:
