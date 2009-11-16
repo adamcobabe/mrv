@@ -19,7 +19,7 @@ from collections import deque as Deque
 import weakref
 import inspect
 import itertools
-from interfaces import *
+from interface import *
 
 ############################
 #### Methods 		  	####

@@ -45,7 +45,7 @@ import fnmatch
 import glob
 import shutil
 import codecs
-from interfaces import iDagItem
+from interface import iDagItem
 
 __version__ = '2.1'
 __all__ = ['Path']

@@ -2,7 +2,7 @@
 """
 Initialize mayarv system assisting development, debugging and maintenance
 
-	- install general L{decorators} into __builtin__ namespace
+	- install general L{decorator} into __builtin__ namespace
 
 
 
@@ -119,17 +119,17 @@ def _init_decorators( ):
 	Decorators will help maintaining the system - this method installs
 	them in the __builtin__ namespace to make them available to all L{mayarv}
 	classes """
-	import decorators
+	import decorator
 
 	pred = lambda x: isfunction( x ) and not x.func_name.startswith( "_" )
-	decorator_functions = [ func for func in decorators.__dict__.itervalues() if pred( func ) ]
+	decorator_functions = [ func for func in decorator.__dict__.itervalues() if pred( func ) ]
 
 	# put decoratrors into __builtin__ namespace
 	for func in decorator_functions:
 		__builtin__.__dict__[ func.func_name ] = func
 
 	# add the interface class to the builtin namespace also
-	__builtin__.__dict__[ 'interface' ] = decorators.interface
+	__builtin__.__dict__[ 'interface' ] = decorator.interface
 
 
 def _init_configProvider( ):
