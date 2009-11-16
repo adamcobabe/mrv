@@ -17,7 +17,7 @@ __copyright__='(c) 2008 Sebastian Thiel'
 
 
 import base as nodes
-import types
+import typ
 import maya.OpenMaya as api
 import maya.cmds as cmds
 undo = __import__( "mayarv.maya.undo", globals(), locals(),[ 'undo' ] )
@@ -35,7 +35,7 @@ class ObjectSet:
 	""" Extended and more convenient object set interface dealing with Nodes ( and 
 	provides the original MFnSet interface as well
 	"""                                                               
-	__metaclass__ = types.MetaClassCreatorNodes
+	__metaclass__ = typ.MetaClassCreatorNodes
 	kReplace, kAdd,kAddForce, kRemove = range( 4 )
 	
 	#{ Partition Handling 
@@ -509,13 +509,13 @@ class ShadingEngine:
 	@todo: Force exclusivity must be a little more elaborate - this could be overwritten
 	and reimplemented to take care of the details"""
 	
-	__metaclass__ = types.MetaClassCreatorNodes
+	__metaclass__ = typ.MetaClassCreatorNodes
 	
 	
 	
 class Partition:
 	"""Deal with common set <-> partition interactions"""
-	__metaclass__ = types.MetaClassCreatorNodes
+	__metaclass__ = typ.MetaClassCreatorNodes
 	
 	#{ Set Membership 
 	

@@ -21,7 +21,6 @@ import mayarv.maya as bmaya
 import mayarv.maya.env as env
 import mayarv.maya.namespace as namespace
 import mayarv.maya.nodes as nodes
-import mayarv.maya.nodes.types as types
 from mayarv.test.maya import get_maya_file
 from mayarv.util import capitalize, uncapitalize
 from mayarv.maya.util import StandinClass

@@ -32,7 +32,7 @@ __copyright__='(c) 2008 Sebastian Thiel'
 from mayarv.util import uncapitalize, capitalize, IntKeyGenerator, getPythonIndex, iDagItem, Call, iDuplicatable
 from mayarv.maya.util import StandinClass
 nodes = __import__( "mayarv.maya.nodes", globals(), locals(), ['nodes'] )
-from types import nodeTypeToMfnClsMap, nodeTypeTree
+from typ import nodeTypeToMfnClsMap, nodeTypeTree
 import maya.OpenMaya as api
 import maya.cmds as cmds
 import maya.OpenMayaMPx as OpenMayaMPx
