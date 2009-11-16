@@ -27,7 +27,7 @@ import maya.OpenMaya as api
 import string
 import random
 import time
-import mayarv.maya.nodes.iterators as iters
+import mayarv.maya.nodes.it as it
 import mayarv.test.maya.benchmark as bcommon
 
 
@@ -43,7 +43,7 @@ class TestCalculations( unittest.TestCase ):
 		starttime = time.time()
 		nodecount = 0
 		vec = api.MVector()
-		for i, node in enumerate( iters.iterDagNodes( api.MFn.kTransform, asNode = True ) ):
+		for i, node in enumerate( it.iterDagNodes( api.MFn.kTransform, asNode = True ) ):
 			vec.x = i*3
 			vec.y = i*3+1
 			vec.z = i*3+2
@@ -66,7 +66,7 @@ class TestCalculations( unittest.TestCase ):
 		pos = api.MVector()
 		nodecache = list()			# for the previous wrapped nodes
 
-		for node in iters.iterDagNodes( api.MFn.kTransform, asNode = True ):
+		for node in it.iterDagNodes( api.MFn.kTransform, asNode = True ):
 			pos += node.getTranslation( api.MSpace.kWorld )
 			nodecache.append( node )
 		# END for each node

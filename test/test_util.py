@@ -138,7 +138,7 @@ class TestDAGTree( unittest.TestCase ):
 		self.failUnless( len( imaster.listInterfaces( ) ) == 0 )
 
 	def test_choiceDialog( self ):
-		"""mayarv.interfaces.iChoiceDialog: quick choicebox test"""
+		"""mayarv.interface.iChoiceDialog: quick choicebox test"""
 		c1 = "single choice"
 		choice_dialog = iChoiceDialog( t = "my title", m = "my message", c = c1 )
 		self.failUnless( choice_dialog.getChoice() == c1 )
@@ -148,7 +148,7 @@ class TestDAGTree( unittest.TestCase ):
 		self.failUnless( choice_dialog.getChoice() == c1 )
 
 	def test_prompt( self ):
-		"""mayarv.interfaces.iPrompt"""
+		"""mayarv.interface.iPrompt"""
 		assert iPrompt( m="Enter your name:", d="test", ct="Enter" ).prompt() == "test"
 
 	def test_progressIndicator( self ):

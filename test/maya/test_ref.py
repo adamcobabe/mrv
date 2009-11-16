@@ -21,8 +21,8 @@ import mayarv.test.maya as common
 from mayarv.maya.scene import Scene
 import maya.OpenMaya as om
 import maya.cmds as cmds
-from mayarv.maya.reference import *
-from mayarv.maya.namespace import *
+from mayarv.maya.ref import *
+from mayarv.maya.ns import *
 import mayarv.maya as bmaya
 from mayarv.util import RegexHasMatch
 import re
@@ -34,7 +34,7 @@ class TestReferenceRunner( unittest.TestCase ):
 
 
 	def test_listAndQuery( self ):
-		"""mayarv.maya.reference: list some references and query their information """
+		"""mayarv.maya.ref: list some references and query their information """
 		bmaya.Scene.open( common.get_maya_file( "refbase.ma" ), force=True )
 		allRefs = FileReference.ls( )
 		self.failUnless( len( allRefs ) != 0 )
@@ -92,7 +92,7 @@ class TestReferenceRunner( unittest.TestCase ):
 		# END for each reference
 
 	def test_referenceCreation( self ):
-		"""mayarv.maya.reference: create , delete and replace references"""
+		"""mayarv.maya.ref: create , delete and replace references"""
 		# create some new references
 		bmaya.Scene.open( common.get_maya_file( "refbase.ma" ), force=True )
 		filenames = [ "sphere.ma", "cube.ma", "empty.ma", "cylinder.ma", "subrefbase.ma" ]

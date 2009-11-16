@@ -18,7 +18,7 @@ __copyright__='(c) 2008 Sebastian Thiel'
 
 import unittest
 from networkx import DiGraph
-from mayarv.dgengine import *
+from mayarv.dge import *
 from random import randint
 
 A = Attribute

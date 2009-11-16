@@ -21,10 +21,10 @@ import inspect
 import weakref
 from util import iDuplicatable
 
-from dgengine import NodeBase
-from dgengine import _PlugShell
-from dgengine import iPlug
-from dgengine import Attribute
+from dge import NodeBase
+from dge import _PlugShell
+from dge import iPlug
+from dge import Attribute
 
 #{ Shells
 

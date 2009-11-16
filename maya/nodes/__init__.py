@@ -37,7 +37,7 @@ _thismodule = __import__( "mayarv.maya.nodes", globals(), locals(), ['nodes'] )
 from mayarv.path import Path
 env =  __import__( "mayarv.maya.env", globals(), locals(), ['env'] )
 bmayautil = __import__( "mayarv.maya.util", globals(), locals(), ['util'] )
-from types import *
+from typ import *
 from mayarv import init_modules
 import sys
 
@@ -80,8 +80,8 @@ def addCustomType( newcls, parentClsName=None, **kwargs ):
 			parentname = newcls.__bases__[0].__name__
 
 	# add to hierarchy tree
-	import types
-	types._addCustomType( _thismodule, parentname, newclsname, **kwargs )
+	import typ
+	typ._addCustomType( _thismodule, parentname, newclsname, **kwargs )
 
 	# add the class to our module if required
 	if newclsobj:
@@ -102,9 +102,9 @@ def addCustomTypeFromFile( hierarchyfile, **kwargs ):
 	@note: all attributes of L{addCustomType} are supported
 	@note: there must be exactly one root type
 	@return: iterator providing all class names that have been added"""
-	import types
+	import typ
 	dagtree = bmaya._dagTreeFromTupleList( bmaya._tupleListFromFile( hierarchyfile ) )
-	types._addCustomTypeFromDagtree( _thismodule, dagtree, **kwargs )
+	typ._addCustomTypeFromDagtree( _thismodule, dagtree, **kwargs )
 	return ( capitalize( nodetype ) for nodetype in dagtree.nodes_iter() )
 
 
@@ -135,14 +135,14 @@ def forceClassCreation( typeNameList ):
 
 def init_package( ):
 	"""Do the main initialization of this package"""
-	import types
+	import typ
 	import apipatch
-	types.MetaClassCreatorNodes.targetModule = _thismodule			# init metaclass with our module
+	typ.MetaClassCreatorNodes.targetModule = _thismodule			# init metaclass with our module
 
-	types.init_nodehierarchy( )
-	types.init_nodeTypeToMfnClsMap( )
+	typ.init_nodehierarchy( )
+	typ.init_nodeTypeToMfnClsMap( )
 	apipatch.init_applyPatches( )
-	types.init_wrappers( _thismodule )
+	typ.init_wrappers( _thismodule )
 
 	# initialize modules
 	init_modules( __file__, "mayarv.maya.nodes" )
@@ -159,9 +159,9 @@ if not init_done:
 
 	# overwrite dummy node bases with hand-implemented ones
 	from base import *
-	from sets import *
+	from set import *
 	# import additional classes required in this module
-	from mayarv.maya.namespace import Namespace
+	from mayarv.maya.ns import Namespace
 
 
 init_done = True

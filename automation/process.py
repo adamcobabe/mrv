@@ -16,10 +16,10 @@ __copyright__='(c) 2008 Sebastian Thiel'
 
 __all__ = list()
 
-from mayarv.dgengine import NodeBase
-from mayarv.dgfacadeengine import GraphNodeBase
-from mayarv.dgengine import plug
-from mayarv.dgengine import Attribute
+from mayarv.dge import NodeBase
+from mayarv.dgfe import GraphNodeBase
+from mayarv.dge import plug
+from mayarv.dge import Attribute
 import mayarv.automation.base as wflbase
 
 from mayarv.path import Path

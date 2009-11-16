@@ -32,11 +32,11 @@ __copyright__='(c) 2008 Sebastian Thiel'
 from mayarv.util import uncapitalize, capitalize, IntKeyGenerator, getPythonIndex, iDagItem, Call, iDuplicatable
 from mayarv.maya.util import StandinClass
 nodes = __import__( "mayarv.maya.nodes", globals(), locals(), ['nodes'] )
-from types import nodeTypeToMfnClsMap, nodeTypeTree
+from typ import nodeTypeToMfnClsMap, nodeTypeTree
 import maya.OpenMaya as api
 import maya.cmds as cmds
 import maya.OpenMayaMPx as OpenMayaMPx
-import mayarv.maya.namespace as namespace
+import mayarv.maya.ns as nsm
 undo = __import__( "mayarv.maya.undo", globals(), locals(),[ 'undo' ] )
 import sys
 from itertools import chain
@@ -225,10 +225,10 @@ def toSelectionListFromNames( nodenames ):
 def fromSelectionList( sellist, handlePlugs=1, **kwargs ):
 	"""@return: list of Nodes and MPlugs stored in the given selection list
 	@param **kwargs: passed to selectionListIterator"""
-	import iterators
+	import it
 	kwargs.pop( "asNode", None )	# remove our overridden warg
 	handlePlugs = kwargs.pop( "handlePlugs", handlePlugs )
-	return list( iterators.iterSelectionList( sellist, asNode=1, handlePlugs = handlePlugs, **kwargs ) )
+	return list( it.iterSelectionList( sellist, asNode=1, handlePlugs = handlePlugs, **kwargs ) )
 
 def toNodesFromNames( nodenames, **kwargs ):
 	"""@return: list of wrapped nodes from the given list of node names
@@ -433,7 +433,7 @@ def createNode( nodename, nodetype, autocreateNamespace=True, renameOnClash = Tr
 		dagtoken = '|'.join( subpaths[ i : i+1 ] )
 
 		if autocreateNamespace:
-			namespace.create( ":".join( dagtoken.split( ":" )[0:-1] ) )	# will resolve to root namespace at least
+			nsm.create( ":".join( dagtoken.split( ":" )[0:-1] ) )	# will resolve to root namespace at least
 
 		# see whether we have to create a transform or the actual nodetype
 		actualtype = "transform"
@@ -931,9 +931,9 @@ class DependNode( Node, iDuplicatable ):		# parent just for epydoc -
 
 		# NAMESPACE
 		ns = ":".join( newname.split( ":" )[:-1] )
-		if not namespace.exists( ns ) and not autocreateNamespace:
+		if not nsm.exists( ns ) and not autocreateNamespace:
 			raise RuntimeError( "Cannot rename %s to %s as namespace %s does not exist" % ( self, newname, ns ) )
-		ns = namespace.create( ns )		# assure its there
+		ns = nsm.create( ns )		# assure its there
 
 
 		# NOTE: this stupid method will also rename shapes !!!

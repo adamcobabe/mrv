@@ -15,7 +15,7 @@ __id__="$Id: configuration.py 50 2008-08-12 13:33:55Z byron $"
 __copyright__='(c) 2008 Sebastian Thiel'
 
 from networkx.digraph import DiGraph
-from mayarv.dgengine import Graph, ComputeError
+from mayarv.dge import Graph, ComputeError
 import time
 import weakref
 import sys

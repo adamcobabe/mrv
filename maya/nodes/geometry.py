@@ -16,9 +16,7 @@ __id__="$Id: configuration.py 16 2008-05-29 00:30:46Z byron $"
 __copyright__='(c) 2008 Sebastian Thiel'
 
 import base
-import types
 import maya.OpenMaya as api
-import iterators
 from mayarv.enum import create as enum
 
 class Shape( base.DagNode ):	 # base for epydoc !

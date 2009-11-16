@@ -17,11 +17,11 @@ __copyright__='(c) 2008 Sebastian Thiel'
 
 
 import base as nodes
-import types
+import typ
 import maya.OpenMaya as api
 import maya.cmds as cmds
 undo = __import__( "mayarv.maya.undo", globals(), locals(),[ 'undo' ] )
-import iterators
+import it
 
 
 #{ Exceptions 
@@ -35,7 +35,7 @@ class ObjectSet:
 	""" Extended and more convenient object set interface dealing with Nodes ( and 
 	provides the original MFnSet interface as well
 	"""                                                               
-	__metaclass__ = types.MetaClassCreatorNodes
+	__metaclass__ = typ.MetaClassCreatorNodes
 	kReplace, kAdd,kAddForce, kRemove = range( 4 )
 	
 	#{ Partition Handling 
@@ -198,7 +198,7 @@ class ObjectSet:
 		# if there is only one member, use our single member function 
 		# as it will be faster when checking for partition constraints
 		if lsellist == 1:
-			return self._addRemoveMember( iterators.iterSelectionList( sellist, asNode = 0 ).next(), api.MObject(), mode, ignore_failure )
+			return self._addRemoveMember( it.iterSelectionList( sellist, asNode = 0 ).next(), api.MObject(), mode, ignore_failure )
 				
 		# prepare operation
 		mfninst = self._mfncls( self._apiobj )
@@ -303,13 +303,13 @@ class ObjectSet:
 		@note: All keywords of iterMembers are supported
 		@note: if 'handlePlugs' is False, the iteration using a filter type will be faster
 		@note: handleComponents will allow component iteration - see the iterator documentation"""
-		return iterators.iterSelectionList( self.getMembers( ), *args, **kwargs ) 
+		return it.iterSelectionList( self.getMembers( ), *args, **kwargs ) 
 	
 	def isMember( self, obj, component = api.MObject() ):
 		"""@return: True if obj is a member of this set
 		@param component is given, the component must be fully part of the set 
 		for the object ( dagNode ) to be considered part of the set
-		@note: all keywords of L{iterators.iterSelectionList} are supported
+		@note: all keywords of L{it.iterSelectionList} are supported
 		@note: ismember does not appear to be working properly with component assignments.
 		It returns true for components that are not actually in the givne shading group"""
 		if not component.isNull():
@@ -480,18 +480,18 @@ class ObjectSet:
 		
 	def iterUnion( self, setOrSetsOrObjects, **kwargs ):
 		"""As getUnion, but returns an iterator
-		@param **kwargs: passed to iterators.iterSelectionList"""
-		return iterators.iterSelectionList( self.getUnion( setOrSetsOrObjects ), **kwargs )
+		@param **kwargs: passed to it.iterSelectionList"""
+		return it.iterSelectionList( self.getUnion( setOrSetsOrObjects ), **kwargs )
 		
 	def iterIntersection( self, setOrSetsOrObjects, **kwargs ):
 		"""As getIntersection, but returns an iterator
-		@param **kwargs: passed to iterators.iterSelectionList"""
-		return iterators.iterSelectionList( self.getIntersection( setOrSetsOrObjects ), **kwargs )
+		@param **kwargs: passed to it.iterSelectionList"""
+		return it.iterSelectionList( self.getIntersection( setOrSetsOrObjects ), **kwargs )
 		
 	def iterDifference( self, setOrSetsOrObjects, **kwargs ):
 		"""As getDifference, but returns an iterator
-		@param **kwargs: passed to iterators.iterSelectionList"""
-		return iterators.iterSelectionList( self.getDifference( setOrSetsOrObjects ), **kwargs )
+		@param **kwargs: passed to it.iterSelectionList"""
+		return it.iterSelectionList( self.getDifference( setOrSetsOrObjects ), **kwargs )
 		
 	#} END set operations
 	
@@ -509,13 +509,13 @@ class ShadingEngine:
 	@todo: Force exclusivity must be a little more elaborate - this could be overwritten
 	and reimplemented to take care of the details"""
 	
-	__metaclass__ = types.MetaClassCreatorNodes
+	__metaclass__ = typ.MetaClassCreatorNodes
 	
 	
 	
 class Partition:
 	"""Deal with common set <-> partition interactions"""
-	__metaclass__ = types.MetaClassCreatorNodes
+	__metaclass__ = typ.MetaClassCreatorNodes
 	
 	#{ Set Membership 
 	

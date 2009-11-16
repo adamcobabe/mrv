@@ -8,7 +8,7 @@
 
 from mayarv.automation.qa import QACheck, QACheckAttribute, QACheckResult, QAProcessBase
 from mayarv.maya.util import Mel
-from mayarv.dgengine import _NodeBaseCheckMeta
+from mayarv.dge import _NodeBaseCheckMeta
 import sys
 
 class QAMELCheckAttribute( QACheckAttribute ):

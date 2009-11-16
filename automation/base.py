@@ -15,8 +15,8 @@ __id__="$Id: configuration.py 50 2008-08-12 13:33:55Z byron $"
 __copyright__='(c) 2008 Sebastian Thiel'
 
 from mayarv.path import Path
-from mayarv.dgengine import PlugAlreadyConnected
-from mayarv.dgfacadeengine import GraphNodeBase
+from mayarv.dge import PlugAlreadyConnected
+from mayarv.dgfe import GraphNodeBase
 
 #{ Edit
 

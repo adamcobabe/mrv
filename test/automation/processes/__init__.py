@@ -19,7 +19,7 @@ import unittest
 import mayarv.test as common
 import mayarv.automation.process as process
 import mayarv.automation.processes as processes
-from mayarv.dgengine import plug, Attribute as A
+from mayarv.dge import plug, Attribute as A
 from mayarv.path import Path
 from mayarv.automation.qa import QAProcessBase, QACheck, QACheckResult
 

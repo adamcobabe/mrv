@@ -298,5 +298,5 @@ class TestGeneralUI( unittest.TestCase ):
 		win.show()
 
 	def test_prompt( self ):
-		"""mayarv.maya.ui.dialogs: Test prompt window"""
+		"""mayarv.maya.ui.dialog: Test prompt window"""
 		ui.Prompt( title="test title", m="enter test string", d="this", cd="cthis", t="confirm", ct="cancel" ).prompt()
