@@ -159,7 +159,7 @@ if not init_done:
 
 	# overwrite dummy node bases with hand-implemented ones
 	from base import *
-	from sets import *
+	from set import *
 	# import additional classes required in this module
 	from mayarv.maya.namespace import Namespace
 

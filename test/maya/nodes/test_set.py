@@ -23,14 +23,14 @@ import maya.cmds as cmds
 import maya.OpenMaya as api
 import mayarv.test.maya as common
 import mayarv.maya as bmaya
-import mayarv.maya.nodes.sets as sets
+import mayarv.maya.nodes.set as set
 import mayarv.test.maya.nodes as ownpackage
 
 class TestSets( unittest.TestCase ):
 	""" Test set and partition handling """
 
 	def test_createAddRemove( self ):
-		"""mayarv.maya.nodes.sets: create,add and remove"""
+		"""mayarv.maya.nodes.set: create,add and remove"""
 		if not ownpackage.mayRun( "sets" ): return
 		set1 = nodes.createNode( "set1", "objectSet" )
 		set2 = nodes.createNode( "set2", "objectSet" )
@@ -89,7 +89,7 @@ class TestSets( unittest.TestCase ):
 		return [ ik, persp, persp.translate, rg._apiobj, front._apidagpath, s2 ]
 
 	def test_memberHandling( self ):
-		"""mayarv.maya.nodes.sets: add/remove members from all kinds of inputs"""
+		"""mayarv.maya.nodes.set: add/remove members from all kinds of inputs"""
 		if not ownpackage.mayRun( "sets" ): return
 		s = nodes.createNode( "memberSet", "objectSet" )
 
@@ -274,7 +274,7 @@ class TestSets( unittest.TestCase ):
 		
 
 	def test_partitions( self ):
-		"""mayarv.maya.nodes.sets: test partition constraints"""
+		"""mayarv.maya.nodes.set: test partition constraints"""
 		if not ownpackage.mayRun( "setsforce" ): return
 
 		# one transform, two sets, one partition
@@ -300,7 +300,7 @@ class TestSets( unittest.TestCase ):
 			###############
 			multiobj = [ o1, o2 ]
 			s1.addMember( o1 )
-			self.failUnlessRaises( sets.ConstraintError, s2.addMember, o1 )	# failure, as errors are not ignored
+			self.failUnlessRaises( set.ConstraintError, s2.addMember, o1 )	# failure, as errors are not ignored
 			s2.addMember( o1, ignore_failure = 1 )		# ignore failure
 
 			# FORCE
@@ -309,7 +309,7 @@ class TestSets( unittest.TestCase ):
 
 			# MULTIPLE OBJECTS
 			###################
-			self.failUnlessRaises( sets.ConstraintError, s1.addMembers, multiobj )			# fails as t is in s2
+			self.failUnlessRaises( set.ConstraintError, s1.addMembers, multiobj )			# fails as t is in s2
 			s1.addMembers( [ o2 ] )			# works as t2 is not in any set yet
 			self.failUnless( s1.isMember( o2 ) )
 
@@ -327,7 +327,7 @@ class TestSets( unittest.TestCase ):
 
 
 			s1.addMembers( multiobj )
-			self.failUnlessRaises( sets.ConstraintError, s2.addMembers, multiobj, force = False, ignore_failure = False )
+			self.failUnlessRaises( set.ConstraintError, s2.addMembers, multiobj, force = False, ignore_failure = False )
 			assert s2.getMembers().length() == 0
 
 			s2.addMembers( multiobj, force = False, ignore_failure = 1 )
@@ -353,8 +353,8 @@ class TestSets( unittest.TestCase ):
 		snode = nodes.createNode( "mysg", "shadingEngine" )
 		snode.setPartition( rp, 1 )
 
-		self.failUnlessRaises( sets.ConstraintError, snode.addMember, sphere )
-		self.failUnlessRaises( sets.ConstraintError, snode.addMembers, multi )
+		self.failUnlessRaises( set.ConstraintError, snode.addMember, sphere )
+		self.failUnlessRaises( set.ConstraintError, snode.addMembers, multi )
 
 		# now force it in
 		snode.addMembers( multi, force = 1, ignore_failure = 0 )
@@ -362,7 +362,7 @@ class TestSets( unittest.TestCase ):
 		assert snode.getIntersection( multi ).length() == 2
 
 	def test_renderPartition( self ):
-		"""mayarv.maya.nodes.sets: assure renderpartition works for us"""
+		"""mayarv.maya.nodes.set: assure renderpartition works for us"""
 		if not ownpackage.mayRun( "setsrenderpartition" ): return
 
 		rp = nodes.Node( "renderPartition" )
@@ -370,7 +370,7 @@ class TestSets( unittest.TestCase ):
 
 
 	def test_z_memberHandlingComps( self ):
-		"""mayarv.maya.nodes.sets: member handling with components - needs to run last"""
+		"""mayarv.maya.nodes.set: member handling with components - needs to run last"""
 		if not ownpackage.mayRun( "sets" ): return
 		bmaya.Scene.open( common.get_maya_file( "perComponentAssignments.ma" ), force = 1 )
 		p1 = nodes.Node( "|p1trans|p1" )
