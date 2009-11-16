@@ -36,7 +36,7 @@ from typ import nodeTypeToMfnClsMap, nodeTypeTree
 import maya.OpenMaya as api
 import maya.cmds as cmds
 import maya.OpenMayaMPx as OpenMayaMPx
-import mayarv.maya.namespace as namespace
+import mayarv.maya.ns as nsm
 undo = __import__( "mayarv.maya.undo", globals(), locals(),[ 'undo' ] )
 import sys
 from itertools import chain
@@ -433,7 +433,7 @@ def createNode( nodename, nodetype, autocreateNamespace=True, renameOnClash = Tr
 		dagtoken = '|'.join( subpaths[ i : i+1 ] )
 
 		if autocreateNamespace:
-			namespace.create( ":".join( dagtoken.split( ":" )[0:-1] ) )	# will resolve to root namespace at least
+			nsm.create( ":".join( dagtoken.split( ":" )[0:-1] ) )	# will resolve to root namespace at least
 
 		# see whether we have to create a transform or the actual nodetype
 		actualtype = "transform"
@@ -931,9 +931,9 @@ class DependNode( Node, iDuplicatable ):		# parent just for epydoc -
 
 		# NAMESPACE
 		ns = ":".join( newname.split( ":" )[:-1] )
-		if not namespace.exists( ns ) and not autocreateNamespace:
+		if not nsm.exists( ns ) and not autocreateNamespace:
 			raise RuntimeError( "Cannot rename %s to %s as namespace %s does not exist" % ( self, newname, ns ) )
-		ns = namespace.create( ns )		# assure its there
+		ns = nsm.create( ns )		# assure its there
 
 
 		# NOTE: this stupid method will also rename shapes !!!

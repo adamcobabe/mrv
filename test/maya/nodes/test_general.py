@@ -19,7 +19,7 @@ __copyright__='(c) 2008 Sebastian Thiel'
 import unittest
 import mayarv.maya as bmaya
 import mayarv.maya.env as env
-import mayarv.maya.namespace as namespace
+import mayarv.maya.ns as nsm
 import mayarv.maya.nodes as nodes
 from mayarv.test.maya import get_maya_file
 from mayarv.util import capitalize, uncapitalize
@@ -402,7 +402,7 @@ class TestNodeBase( unittest.TestCase ):
 
 		# multi undo - namespace is one operation in this one
 		cmds.undo()
-		self.failUnless( not namespace.exists( "nsdoesnotexist" ) )
+		self.failUnless( not nsm.exists( "nsdoesnotexist" ) )
 		cmds.redo()
 		self.failUnless( node.isValid() )
 

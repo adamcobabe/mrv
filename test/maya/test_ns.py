@@ -19,7 +19,7 @@ __copyright__='(c) 2008 Sebastian Thiel'
 import unittest
 import mayarv.test.maya as common
 from mayarv.maya.scene import Scene
-from mayarv.maya.namespace import *
+from mayarv.maya.ns import *
 import mayarv.maya as bmaya
 import maya.cmds as cmds
 import os
@@ -28,7 +28,7 @@ class TestReferenceRunner( unittest.TestCase ):
 	""" Test the database """
 
 	def test_checkNamespaces( self ):
-		"""mayarv.maya.namespace: test all namespace functionality """
+		"""mayarv.maya.ns: test all namespace functionality """
 		bmaya.Scene.open( common.get_maya_file( "namespace.ma" ), force=True )
 
 		rootns = Namespace( Namespace.rootNamespace )

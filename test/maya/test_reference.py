@@ -22,7 +22,7 @@ from mayarv.maya.scene import Scene
 import maya.OpenMaya as om
 import maya.cmds as cmds
 from mayarv.maya.reference import *
-from mayarv.maya.namespace import *
+from mayarv.maya.ns import *
 import mayarv.maya as bmaya
 from mayarv.util import RegexHasMatch
 import re

@@ -161,7 +161,7 @@ if not init_done:
 	from base import *
 	from set import *
 	# import additional classes required in this module
-	from mayarv.maya.namespace import Namespace
+	from mayarv.maya.ns import Namespace
 
 
 init_done = True
