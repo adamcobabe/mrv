@@ -19,19 +19,19 @@ __copyright__='(c) 2008 Sebastian Thiel'
 
 
 import base as uibase
-import controls
+import control
 import maya.cmds as cmds
 import mayarv.util as util
 import mayarv.maya.util as mutil
 import util as uiutil
-import layouts
+import layout
 from mayarv.automation.qa import QAWorkflow
 import maya.OpenMaya as api
 from itertools import chain
 import re
 from mayarv.util import capitalize
 
-class QACheckLayout( layouts.RowLayout ):
+class QACheckLayout( layout.RowLayout ):
 	"""Row Layout able to display a qa check and related information
 	@note: currently we make assumptions about the positions of the children in the
 	RowLayout, thus you may only append new ones"""
@@ -117,16 +117,16 @@ class QACheckLayout( layouts.RowLayout ):
 		# assume we are active
 		checkplug = self.getCheck().plug
 		nice_name = self._toNiceName( checkplug.getName() )
-		self.add( controls.Text( label = nice_name, ann = checkplug.annotation ) )
+		self.add( control.Text( label = nice_name, ann = checkplug.annotation ) )
 
-		ibutton = self.add( controls.IconTextButton( 	style="iconOnly",
+		ibutton = self.add( control.IconTextButton( 	style="iconOnly",
 														h = self.height, w = self.height ) )
-		sbutton = self.add( controls.Button( label = "S", w = self.height,
+		sbutton = self.add( control.Button( label = "S", w = self.height,
 												ann = "Select faild or fixed items" ) )
 
 		# if we can actually fix the item, we add an additional button
 		if checkplug.implements_fix:
-			fbutton = self.add( controls.Button( label = "Fix", ann = "Attempt to fix failed items" ) )
+			fbutton = self.add( control.Button( label = "Fix", ann = "Attempt to fix failed items" ) )
 			fbutton.e_released = self._runCheck
 		# END fix button setup
 
@@ -167,7 +167,7 @@ class QACheckLayout( layouts.RowLayout ):
 		force_check = kwargs.pop( "force_check", True )
 
 		mode = check.node.eMode.query
-		if args and isinstance( args[0], controls.Button ):
+		if args and isinstance( args[0], control.Button ):
 			mode = check.node.eMode.fix
 		# END fix button handling
 
@@ -236,7 +236,7 @@ class QACheckLayout( layouts.RowLayout ):
 		return bicon
 	#} END interface
 
-class QALayout( layouts.FormLayout, uiutil.iItemSet ):
+class QALayout( layout.FormLayout, uiutil.iItemSet ):
 	"""Layout able to dynamically display QAChecks, run them and display their result"""
 
 	#{ Configuration
@@ -280,10 +280,10 @@ class QALayout( layouts.FormLayout, uiutil.iItemSet ):
 		scroll_layout = None
 
 		if self.scrollable:
-			scroll_layout = self.add( layouts.ScrollLayout( cr=1 ) )
+			scroll_layout = self.add( layout.ScrollLayout( cr=1 ) )
 
 		# will contain the checks
-		self.col_layout = layouts.ColumnLayout( adj = 1 )
+		self.col_layout = layout.ColumnLayout( adj = 1 )
 		if scroll_layout:
 			scroll_layout.add( self.col_layout )
 		else:
@@ -323,7 +323,7 @@ class QALayout( layouts.FormLayout, uiutil.iItemSet ):
 		if not checks and self.no_checks_text is None and self.show_text_if_empty:
 			prevparent = self.getParent()
 			self.col_layout.setActive()
-			self.no_checks_text = controls.Text( label = "No checks available" )
+			self.no_checks_text = control.Text( label = "No checks available" )
 			prevparent.setActive()
 		# END no checks existed handling
 
@@ -360,10 +360,10 @@ class QALayout( layouts.FormLayout, uiutil.iItemSet ):
 		# create child layout ?
 		if self.run_all_button:
 			self.setActive()
-			layout_child = self.add( layouts.ColumnLayout( adj = 1, name = button_layout_name ) )
+			layout_child = self.add( layout.ColumnLayout( adj = 1, name = button_layout_name ) )
 			if layout_child:
-				controls.Separator( style = "single", h = 10 )
-				run_button = controls.Button( label = "Run All", ann = "Run all checks in one go",
+				control.Separator( style = "single", h = 10 )
+				run_button = control.Button( label = "Run All", ann = "Run all checks in one go",
 											 	enable = len( checks ) > 0 )
 				run_button.e_pressed = self.runAllPressed
 			# END button layout setup

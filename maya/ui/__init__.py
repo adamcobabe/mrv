@@ -158,11 +158,11 @@ if not init_done:
 	# assure we do not run several times
 	# import modules - this way we overwrite actual wrappers lateron
 	from base import *
-	from controls import *
-	from dialogs import *
-	from layouts import *
-	from panels import *
-	from editors import *
+	from control import *
+	from dialog import *
+	from layout import *
+	from panel import *
+	from editor import *
 
 
 init_done = True
