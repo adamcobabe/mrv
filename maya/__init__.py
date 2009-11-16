@@ -23,7 +23,7 @@ __copyright__='(c) 2008 Sebastian Thiel'
 import os, sys                                                                         
 from mayarv import init_modules
 from mayarv.util import capitalize, DAGTree
-from mayarv.exceptions import MayaRVError
+from mayarv.exc import MayaRVError
 from mayarv.path import Path
 
 ############################

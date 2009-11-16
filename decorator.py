@@ -27,11 +27,11 @@ __copyright__='(c) 2008 Sebastian Thiel'
 
 import sys
 
-from exceptions import ( 	TypecheckDecoratorError,
-									MethodTypeError,
-									InterfaceError,
-									InterfaceSetupError,
-									ProtectedMethodError)
+from exc import ( 	TypecheckDecoratorError,
+					MethodTypeError,
+					InterfaceError,
+					InterfaceSetupError,
+					ProtectedMethodError)
 
 class __classobjtype( object ):
 	""" Required to find out whether something is a classobj

@@ -18,7 +18,7 @@ __copyright__='(c) 2008 Sebastian Thiel'
 
 from mayarv.path import Path
 from mayarv.util import And
-from mayarv.exceptions import *
+from mayarv.exc import *
 from mayarv.maya.namespace import Namespace
 from mayarv.maya.util import noneToList
 import maya.cmds as cmds

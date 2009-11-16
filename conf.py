@@ -35,7 +35,7 @@ from ConfigParser import (	RawConfigParser,
 							NoSectionError,
 							NoOptionError,
 							ParsingError)
-from exceptions import MayaRVError
+from exc import MayaRVError
 import copy
 import re
 import sys

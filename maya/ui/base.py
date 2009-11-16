@@ -25,7 +25,7 @@ from mayarv.util import capitalize, iDagItem
 from util import CallbackBaseUI
 import mayarv.maya.util as mutil
 import util as uiutil
-from mayarv.exceptions import MayaRVError
+from mayarv.exc import MayaRVError
 
 
 ############################

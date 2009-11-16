@@ -22,7 +22,7 @@ __copyright__='(c) 2008 Sebastian Thiel'
 
 import unittest
 import sys
-from mayarv.exceptions import *
+from mayarv.exc import *
 
 
 class TestTypecheckDecorators( unittest.TestCase ):
