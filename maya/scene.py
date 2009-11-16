@@ -28,7 +28,7 @@ __all__ = [ 'Scene' ]
 #import mayarv.maya.util as util
 mayautil = __import__( "mayarv.maya.util", globals(), locals(), [ "util" ] )
 util = __import__( "mayarv.util", globals(), locals(), [ "util" ] )
-refmod = __import__( "mayarv.maya.reference", globals(), locals(), ['reference'] )
+refmod = __import__( "mayarv.maya.ref", globals(), locals(), ['reference'] )
 
 import maya.OpenMaya as om
 import maya.cmds as cmds
