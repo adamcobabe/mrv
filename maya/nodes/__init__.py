@@ -32,11 +32,11 @@ __id__="$Id: configuration.py 16 2008-05-29 00:30:46Z byron $"
 __copyright__='(c) 2008 Sebastian Thiel'
 
 
-bmaya = __import__( "mayarv.maya", globals(), locals(), ['maya'] )
+import mayarv.maya as bmaya
 _thismodule = __import__( "mayarv.maya.nodes", globals(), locals(), ['nodes'] )
 from mayarv.path import Path
-env =  __import__( "mayarv.maya.env", globals(), locals(), ['env'] )
-bmayautil = __import__( "mayarv.maya.util", globals(), locals(), ['util'] )
+import mayarv.maya.env as env
+import mayarv.maya.util as bmayautil
 from typ import *
 from mayarv import init_modules
 import sys
@@ -136,14 +136,20 @@ def forceClassCreation( typeNameList ):
 def init_package( ):
 	"""Do the main initialization of this package"""
 	import typ
-	import apipatch
 	typ.MetaClassCreatorNodes.targetModule = _thismodule			# init metaclass with our module
-
+	
 	typ.init_nodehierarchy( )
 	typ.init_nodeTypeToMfnClsMap( )
-	apipatch.init_applyPatches( )
 	typ.init_wrappers( _thismodule )
 
+	# initialize base module with our global namespace dict
+	import base
+	base._nodesdict = globals()
+
+	# must come last as typ needs full initialization first
+	import apipatch
+	apipatch.init_applyPatches( )
+	
 	# initialize modules
 	init_modules( __file__, "mayarv.maya.nodes" )
 
@@ -159,6 +165,7 @@ if not init_done:
 
 	# overwrite dummy node bases with hand-implemented ones
 	from base import *
+	from geometry import *
 	from set import *
 	# import additional classes required in this module
 	from mayarv.maya.ns import Namespace

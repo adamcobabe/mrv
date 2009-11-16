@@ -24,9 +24,8 @@ __revision__="$Revision: 16 $"
 __id__="$Id: configuration.py 16 2008-05-29 00:30:46Z byron $"
 __copyright__='(c) 2008 Sebastian Thiel'
 
-
-nodes = __import__( "mayarv.maya.nodes", globals(), locals(), [ 'nodes' ] )
-undo = __import__( "mayarv.maya.undo", globals(), locals(), ['undo'] )
+import base
+import mayarv.maya.undo as undo
 
 import mayarv.util as util
 from mayarv.util import getPythonIndex
@@ -677,11 +676,11 @@ class MPlug( api.MPlug, util.iDagItem ):
 
 	def getAttribute( self ):
 		"""@return: Attribute instance of our underlying attribute"""
-		return nodes.Attribute( api.MPlug._api_attribute( self ) )
+		return base.Attribute( api.MPlug._api_attribute( self ) )
 
 	def getNode( self ):
 		"""@return: Node instance of our underlying node"""
-		return nodes.Node( api.MPlug._api_node( self ) )
+		return base.Node( api.MPlug._api_node( self ) )
 
 	def getNodeApiObj( self ):
 		"""@return: unwrapped api object of the plugs node
@@ -694,7 +693,7 @@ class MPlug( api.MPlug, util.iDagItem ):
 
 	def asData( *args, **kwargs ):
 		"""@return: our data Mobject wrapped in L{Data}"""
-		return nodes.Data( api.MPlug._api_asMObject( *args, **kwargs ) )
+		return base.Data( api.MPlug._api_asMObject( *args, **kwargs ) )
 	#} END query
 
 
