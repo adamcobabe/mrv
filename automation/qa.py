@@ -32,7 +32,7 @@ __copyright__='(c) 2008 Sebastian Thiel'
 from workflow import Workflow
 from process import ProcessBase
 from mayarv.util import CallbackBase
-from mayarv.dgengine import Attribute, plug, ComputeFailed
+from mayarv.dge import Attribute, plug, ComputeFailed
 from mayarv.enum import create as enum
 import sys
 

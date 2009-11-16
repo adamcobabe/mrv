@@ -15,7 +15,7 @@ __revision__="$Revision: 50 $"
 __id__="$Id: configuration.py 50 2008-08-12 13:33:55Z byron $"
 __copyright__='(c) 2008 Sebastian Thiel'
 
-from mayarv.dgengine import Attribute
+from mayarv.dge import Attribute
 
 class RegexStringAttr( Attribute ):
 	"""Attribute that accepts string values matching a given regular expression"""
