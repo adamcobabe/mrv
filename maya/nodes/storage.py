@@ -21,13 +21,21 @@ __copyright__='(c) 2008 Sebastian Thiel'
 import mayarv.maya.undo as undo
 from mayarv.util import iDuplicatable
 import maya.cmds as cmds
-nodes = __import__( "mayarv.maya.nodes", globals(), locals(), [ 'nodes' ] )
 
+# this __import__ is absolutely required as - for some reason and in conjunction 
+# with plugin loading - the 'typ' module get initialized twice if 
+# import base is used ( which is the only module we need ). The second time 
+# it gets initialized, this happens without callling its init functions 
+# which are required. This __import__ prevents this from happening, and 
+# everything runs smoothly
+nodes = __import__( "mayarv.maya.nodes", globals(), locals(), ['nodes'])
 
 #{ Initialization
 
-def __initialize():
-	""" Assure our plugin is loaded - called during module intialization"""
+def __initialize( nodes_module ):
+	"""Assure our plugin is loaded - called during module intialization.
+	Its a tough time to run, it feels more like bootstrapping as we initialize
+	ourselves although the system is not quite there yet."""
 	import os
 
 	pluginpath = os.path.splitext( __file__ )[0] + ".py"
@@ -38,8 +46,9 @@ def __initialize():
 	# to the custom type system
 
 	# register plugin data in the respective class
-	nodes.registerPluginDataTrackingDict( PyPickleData.kPluginDataId, sys._maya_pyPickleData_trackingDict )
-
+	nodes_module.registerPluginDataTrackingDict( PyPickleData.kPluginDataId, sys._maya_pyPickleData_trackingDict )
+	
+	
 
 #} END initialization
 

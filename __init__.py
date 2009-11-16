@@ -29,7 +29,7 @@ from path import Path
 
 
 #{ Common
-def init_modules( filepath, moduleprefix, recurse=False ):
+def init_modules( filepath, moduleprefix, recurse=False, self_module = None):
 	""" Call '__initialize' functions in submodules of module at filepath if they exist
 	These functions should setup the module to be ready for work, its a callback informing
 	the submodules that the super module is being requested
@@ -37,11 +37,17 @@ def init_modules( filepath, moduleprefix, recurse=False ):
 	@param moduleprefix: prefix like "super.yourmodule." leading to the submodules from
 	an available system include path
 	@param recurse: if True, method will recursively initialize submodules
+	@param self_module: if not None, it must be the module that called this function.
+	It will be given to the __initialize functions as first arguments allowing 
+	them to operate on functions of their own module - importing their own 
+	module is not yet possible as it is in the course of being intialized itself.
+	The module will be given only to intermediate submodules in case recurse is True.
 	@note: in this moment, all submodules will be 'pulled' in"""
 	moduledir = Path( filepath  ).p_parent
 	moduleitems = moduledir.listdir( )
 	moduleitems.sort()					# assure we have the same order on every system
 	extensions = ( ".py", ".pyc", ".pyo" )
+	initialized_modules = set()
 	
 	if not moduleprefix.endswith( "." ):
 		moduleprefix += "."
@@ -79,12 +85,17 @@ def init_modules( filepath, moduleprefix, recurse=False ):
 			continue
 
 		fullModuleName = moduleprefix + modulename
+		if fullModuleName in initialized_modules:
+			continue
+		# END prevent duplicate initialization due to different endings
+		initialized_modules.add(fullModuleName)
 		module = __import__( fullModuleName , globals(), locals(), [ modulename ] )
 
 		# call init
+		args = ( self_module and [ self_module ] ) or tuple()
 		if hasattr( module, "__initialize" ):
 			print "Initializing " + module.__name__
-			module.__initialize( )
+			module.__initialize( *args )
 	# END for each file or dir
 
 #} END common

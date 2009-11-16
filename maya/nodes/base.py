@@ -28,18 +28,20 @@ __revision__="$Revision: 16 $"
 __id__="$Id: configuration.py 16 2008-05-29 00:30:46Z byron $"
 __copyright__='(c) 2008 Sebastian Thiel'
 
-
+from typ import nodeTypeToMfnClsMap, nodeTypeTree, MetaClassCreatorNodes
 from mayarv.util import uncapitalize, capitalize, IntKeyGenerator, getPythonIndex, iDagItem, Call, iDuplicatable
 from mayarv.maya.util import StandinClass
-from typ import nodeTypeToMfnClsMap, nodeTypeTree, MetaClassCreatorNodes
 import maya.OpenMaya as api
 import maya.cmds as cmds
 import maya.OpenMayaMPx as OpenMayaMPx
 import mayarv.maya.ns as nsm
 import mayarv.maya.undo as undo
-import sys
-_nodesdict = None				# will be set during maya.nodes initialization
+
 from itertools import chain
+import sys
+
+_nodesdict = None				# will be set during maya.nodes initialization
+
 
 
 ############################

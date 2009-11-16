@@ -17,10 +17,10 @@ __revision__="$Revision: 16 $"
 __id__="$Id: configuration.py 16 2008-05-29 00:30:46Z byron $"
 __copyright__='(c) 2008 Sebastian Thiel'
 
-nodes = __import__( "mayarv.maya.nodes", globals(), locals(), ['nodes'] )
 from mayarv.maya.util import MetaClassCreator, StandinClass
 import mayarv.maya as bmaya
 from mayarv.path import Path
+import mayarv.maya.env as env
 from mayarv.util import uncapitalize, capitalize, PipeSeparatedFile
 import maya.OpenMaya as api
 import maya.OpenMayaAnim as apianim
@@ -35,6 +35,7 @@ import maya.cmds as cmds
 ####################
 ### CACHES ########
 ##################
+_nodesdict = None					# to be set during initialization
 nodeTypeTree = None
 nodeTypeToMfnClsMap = {}			# allows to see the most specialized compatible mfn cls for a given node type
 
@@ -64,7 +65,7 @@ class MetaClassCreatorNodes( MetaClassCreator ):
 		function set described by mfnclsname
 		If no explicit information exists, the db will be empty"""
 		try:
-			return MfnMemberMap( nodes.getMfnDBPath( mfnclsname ) )
+			return MfnMemberMap( getMfnDBPath( mfnclsname ) )
 		except IOError:
 			pass
 		return MfnMemberMap()
@@ -368,6 +369,12 @@ class MetaClassCreatorNodes( MetaClassCreator ):
 #### Initialization Methods   ####
 #################################
 
+def getMfnDBPath( mfnclsname ):
+	"""Generate a path to a database file containing mfn wrapping information"""
+	appversion = str( env.getAppVersion( )[0] )
+	return Path( __file__ ).p_parent.p_parent / ( "cache/mfndb/"+ mfnclsname )
+
+
 def getCacheFilePath( filename, ext, use_version = False ):
 	"""@Return path to cache file from which you would initialize data structures
 	@param use_version: if true, the maya version will be appended to the filename  """
@@ -381,7 +388,7 @@ def getCacheFilePath( filename, ext, use_version = False ):
 
 def init_nodehierarchy( ):
 	""" Parse the nodes hiearchy from the maya doc and create an Indexed tree from it
-	@todo: cache the pickled tree and try to load it instead  """
+	@todo: cache the pickled tree and try to load it instead"""
 	mfile = getCacheFilePath( "nodeHierarchy", "html", use_version = 1 )
 	lines = mfile.lines( retain=False )			# just read them in one burst
 
@@ -511,10 +518,11 @@ class MfnMemberMap( UserDict.UserDict ):
 			if not isinstance( funcname, basestring ):
 				return funcname
 			if funcname == 'None': return None
-			if not hasattr( nodes, funcname ):
+			
+			try:
+				return _nodesdict[funcname]
+			except KeyError:
 				raise ValueError("'%s' is unknown to nodes module - it must be implemented there" % funcname )
-
-			return getattr( nodes, funcname )
 
 		def rvalFuncToStr( self ):
 			if self.rvalfunc is None: return 'None'
@@ -597,7 +605,7 @@ def writeMfnDBCacheFiles( ):
 	for apimod in ( api, apianim, apirender, apiui ):
 		mfnclsnames = [ clsname for clsname in dir( apimod ) if clsname.startswith( "MFn" ) ]
 		for mfnname in mfnclsnames:
-			mfnfile = nodes.getMfnDBPath( mfnname )
+			mfnfile = getMfnDBPath( mfnname )
 			mfncls = getattr( apimod, mfnname )
 
 			try:
