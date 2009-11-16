@@ -19,7 +19,7 @@ from mayarv.test.lib import *
 import os
 import sys
 from ConfigParser import *
-from mayarv.configuration import *
+from mayarv.conf import *
 from itertools import *
 import shutil
 import tempfile
