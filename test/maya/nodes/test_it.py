@@ -18,7 +18,7 @@ __copyright__='(c) 2008 Sebastian Thiel'
 
 import unittest
 import maya.OpenMaya as api
-from mayarv.maya.nodes.iter import *
+from mayarv.maya.nodes.it import *
 import mayarv.test.maya as common
 import mayarv.maya as bmaya
 import mayarv.maya.nodes as nodes
@@ -35,7 +35,7 @@ class TestGeneral( unittest.TestCase ):
 
 
 	def test_dagIter( self ):
-		"""mayarv.maya.nodes.iter: simple DAG iteration"""
+		"""mayarv.maya.nodes.it: simple DAG iteration"""
 		if not ownpackage.mayRun( "iterators" ): return
 		bmaya.Scene.new( force=1 )
 		trans = nodes.createNode( "trans", "transform" )
@@ -90,7 +90,7 @@ class TestGeneral( unittest.TestCase ):
 
 
 	def test_iterSelectionList( self ):
-		"""mayarv.maya.nodes.iter: Iterate selection lists"""
+		"""mayarv.maya.nodes.it: Iterate selection lists"""
 		if not ownpackage.mayRun( "iterators" ): return
 		bmaya.Scene.open( common.get_maya_file( "perComponentAssignments.ma" ), force = 1 )
 
@@ -150,7 +150,7 @@ class TestGeneral( unittest.TestCase ):
 
 
 	def test_dggraph( self ):
-		"""mayarv.maya.nodes.iter: simple dg graph iteration"""
+		"""mayarv.maya.nodes.it: simple dg graph iteration"""
 		if not ownpackage.mayRun( "iterators" ): return
 		bmaya.Scene.new( force=1 )
 		persp = nodes.Node( "persp" )
@@ -183,7 +183,7 @@ class TestGeneral( unittest.TestCase ):
 
 
 	def test_dgiter( self ):
-		"""mayarv.maya.nodes.iter: simple DG iteration"""
+		"""mayarv.maya.nodes.it: simple DG iteration"""
 		if not ownpackage.mayRun( "iterators" ): return
 		bmaya.Scene.new( force=1 )
 		trans = nodes.createNode( "trans", "transform" )
