@@ -1,0 +1,30 @@
+#!/bin/bash
+# runtestsUI /path/to/maya/binary [ maya_args ]
+# 
+# Uses nose to run tests defined by mayarv, options are provided to nose
+base=${0%/*}
+if [[ $base != /* ]]; then
+	base=$PWD/$base
+fi
+
+if [ $# = 0 ]; then 
+	echo "runtestUI /path/to/maya/binary [maya args]" && exit 2
+fi
+
+# prepare the environment to use a minimal UI - put mayarv into the script path
+# as well as our helper script
+MAYA_SCRIPT_PATH=$MAYA_SCRIPT_PATH:$base:$(cd $base/../../..; echo $PWD)
+MAYARV_PYTHON_PATH=$(cd $base/../../..; echo $PWD)
+MAYA_OVERRIDE_UI=initialLayout_minimal.mel
+
+export MAYA_SCRIPT_PATH MAYA_OVERRIDE_UI MAYARV_PYTHON_PATH
+
+# assure we have no additional environment set
+MAYA_APP_DIR=/tmp/maya_test_home
+mkdir -p $MAYA_APP_DIR
+export MAYA_APP_DIR
+touch $MAYA_APP_DIR/Maya.env
+
+# start maya and make sure it will execute the python user interface tests
+# for this to work, maya must be in the path
+$@
