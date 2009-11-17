@@ -278,11 +278,11 @@ def init_singletons( ):
 	global Scene
 	global Mel
 
-	module = __import__( "mayarv.maya.scene" , globals(), locals(), [ "scene" ] )
-	Scene = module.Scene()
+	import scene
+	Scene = scene.Scene()
 
-	module = __import__( "mayarv.maya.util" , globals(), locals(), [ "util" ] )
-	Mel = module.Mel()
+	import util
+	Mel = util.Mel()
 
 
 #} Initialization

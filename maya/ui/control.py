@@ -19,9 +19,6 @@ __copyright__='(c) 2008 Sebastian Thiel'
 
 
 import base as uibase
-import maya.cmds as cmds
-import mayarv.util as util
-import mayarv.maya.util as mutil
 import util as uiutil
 
 
@@ -83,7 +80,7 @@ class GroupBase( uibase.SizedControl ):
 
 class OptionMenuBase( uibase.ContainerMenuBase ):
 	"""base class for all optionMenu like controls"""
-	__metaclass__ = uibase.ui.MetaClassCreatorUI
+	__metaclass__ = uibase.typ.MetaClassCreatorUI
 
 	_events_ = ( "cc", "changeCommand" )
 	_properties_ = ( 	"ils", "itemListShort",
@@ -103,7 +100,7 @@ class FieldBase( uibase.SizedControl ):
 
 class TextFieldBase( object ):
 	"""Base just containing properties and events"""
-	__metaclass__ = uibase.ui.MetaClassCreatorUI
+	__metaclass__ = uibase.typ.MetaClassCreatorUI
 
 	_properties_ = ( 	"fn", "font",
 						"it", "insertText",
@@ -164,7 +161,7 @@ class ButtonGroupBase( GroupBase ):
 class IconTextBase( object ):
 	"""Base class for all icon text like controls"""
 	#{ Configuration
-	__metaclass__ = uibase.ui.MetaClassCreatorUI
+	__metaclass__ = uibase.typ.MetaClassCreatorUI
 	#} END configuation
 
 	_properties_ = ( 	"image", "i",

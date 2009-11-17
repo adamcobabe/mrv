@@ -18,15 +18,14 @@ __id__="$Id: configuration.py 16 2008-05-29 00:30:46Z byron $"
 __copyright__='(c) 2008 Sebastian Thiel'
 
 
-ui = __import__( "mayarv.maya.ui",globals(), locals(), ['ui'] )
-import weakref
 import maya.cmds as cmds
 from mayarv.util import capitalize, iDagItem
 from util import CallbackBaseUI
 import mayarv.maya.util as mutil
 import util as uiutil
 from mayarv.exc import MayaRVError
-
+import typ
+_uidict = None 			# set during initialization
 
 ############################
 #### Methods		  	####
@@ -53,7 +52,7 @@ def getUIType( uiname ):
 	"""@return: uitype string having a corresponding mel command - some types returned do not correspond
 	to the actual name of the command used to manipulate the type """
 	uitype = cmds.objectTypeUI( uiname )
-	return ui._typemap.get( uitype, uitype )
+	return typ._typemap.get( uitype, uitype )
 
 
 def wrapUI( uinameOrList, ignore_errors = False ):
@@ -78,11 +77,10 @@ def wrapUI( uinameOrList, ignore_errors = False ):
 		clsname = capitalize( uitype )
 
 		try:
-			out.append( getattr( ui, clsname )( name=uiname,  wrap_only = 1 ) )
-		except AttributeError, e:
+			out.append( _uidict[clsname]( name=uiname,  wrap_only = 1 ) )
+		except KeyError:
 			if not ignore_errors:
-				print str( e )
-				raise RuntimeError( "%s has no class named %s, failed to wrap %s" % ( ui.__name__, clsname, uiname ) )
+				raise RuntimeError( "ui module has no class named %s, failed to wrap %s" % ( clsname, uiname ) )
 	# END for each uiname
 
 	if islisttype:
@@ -153,7 +151,7 @@ class NamedUI( unicode, BaseUI , iDagItem, CallbackBaseUI ):
 
 	@note: although many access methods look quite 'repeated' as they are quite
 	similar except for a changing flag, they are hand-written to provide proper docs for them"""
-	__metaclass__ = ui.MetaClassCreatorUI
+	__metaclass__ = typ.MetaClassCreatorUI
 
 	#( Configurtation
 	_sep = "|"			# separator for ui elements in their name, same as for dag paths
@@ -248,7 +246,7 @@ class NamedUI( unicode, BaseUI , iDagItem, CallbackBaseUI ):
 		forbiddenKeys = [ 'edit', 'e' , 'query', 'q' ]
 		for fkey in forbiddenKeys:
 			if fkey in kwargs:
-				raise ui.UIError( "Edit or query flags are not permitted during initialization as interfaces must be created onclass instantiation" )
+				raise ValueError( "Edit or query flags are not permitted during initialization as interfaces must be created onclass instantiation" )
 			# END if key found in kwargs
 		# END for each forbidden key
 
@@ -323,7 +321,7 @@ class NamedUI( unicode, BaseUI , iDagItem, CallbackBaseUI ):
 
 class SizedControl( NamedUI ):
 	"""Base Class for all controls having a dimension"""
-	__metaclass__ = ui.MetaClassCreatorUI
+	__metaclass__ = typ.MetaClassCreatorUI
 	_properties_ = ( 	"dt", "defineTemplate",
 					  	"ut", "useTemplate",
 						"w","width",
@@ -385,7 +383,7 @@ class SizedControl( NamedUI ):
 class Window( SizedControl, uiutil.UIContainerBase ):
 	"""Simple Window Wrapper
 	@note: Window does not support some of the properties provided by sizedControl"""
-	__metaclass__ = ui.MetaClassCreatorUI
+	__metaclass__ = typ.MetaClassCreatorUI
 	_properties_ = (	"t", "title",
 					   	"i", "iconify",
 						"s", "sizeable",

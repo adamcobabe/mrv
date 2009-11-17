@@ -32,12 +32,12 @@ __id__="$Id: configuration.py 16 2008-05-29 00:30:46Z byron $"
 __copyright__='(c) 2008 Sebastian Thiel'
 
 
-bmaya = __import__( "mayarv.maya", globals(), locals(), ['maya'] )
+import mayarv.maya as bmaya
+import typ
 _thismodule = __import__( "mayarv.maya.nodes", globals(), locals(), ['nodes'] )
 from mayarv.path import Path
-env =  __import__( "mayarv.maya.env", globals(), locals(), ['env'] )
-bmayautil = __import__( "mayarv.maya.util", globals(), locals(), ['util'] )
-from typ import *
+import mayarv.maya.env as env
+import mayarv.maya.util as bmayautil
 from mayarv import init_modules
 import sys
 
@@ -46,11 +46,6 @@ if not hasattr( sys,"_dataTypeIdToTrackingDictMap" ):
 
 
 #{ Common
-def getMfnDBPath( mfnclsname ):
-	"""Generate a path to a database file containing mfn wrapping information"""
-	appversion = str( env.getAppVersion( )[0] )
-	return Path( __file__ ).p_parent.p_parent / ( "cache/mfndb/"+ mfnclsname )
-
 def registerPluginDataTrackingDict( dataTypeID, trackingDict ):
 	"""Using the given dataTypeID and tracking dict, nodes.MFnPluginData can return
 	self pointers belonging to an MPxPluginData instance as returned by MFnPluginData.
@@ -80,7 +75,6 @@ def addCustomType( newcls, parentClsName=None, **kwargs ):
 			parentname = newcls.__bases__[0].__name__
 
 	# add to hierarchy tree
-	import typ
 	typ._addCustomType( _thismodule, parentname, newclsname, **kwargs )
 
 	# add the class to our module if required
@@ -102,7 +96,6 @@ def addCustomTypeFromFile( hierarchyfile, **kwargs ):
 	@note: all attributes of L{addCustomType} are supported
 	@note: there must be exactly one root type
 	@return: iterator providing all class names that have been added"""
-	import typ
 	dagtree = bmaya._dagTreeFromTupleList( bmaya._tupleListFromFile( hierarchyfile ) )
 	typ._addCustomTypeFromDagtree( _thismodule, dagtree, **kwargs )
 	return ( capitalize( nodetype ) for nodetype in dagtree.nodes_iter() )
@@ -135,17 +128,23 @@ def forceClassCreation( typeNameList ):
 
 def init_package( ):
 	"""Do the main initialization of this package"""
-	import typ
-	import apipatch
+	global _thismodule
 	typ.MetaClassCreatorNodes.targetModule = _thismodule			# init metaclass with our module
-
+	typ._nodesdict = globals()
 	typ.init_nodehierarchy( )
 	typ.init_nodeTypeToMfnClsMap( )
-	apipatch.init_applyPatches( )
 	typ.init_wrappers( _thismodule )
 
+	# initialize base module with our global namespace dict
+	import base
+	base._nodesdict = globals()
+
+	# must come last as typ needs full initialization first
+	import apipatch
+	apipatch.init_applyPatches( )
+	
 	# initialize modules
-	init_modules( __file__, "mayarv.maya.nodes" )
+	init_modules( __file__, "mayarv.maya.nodes", self_module = _thismodule )
 
 
 
@@ -159,6 +158,7 @@ if not init_done:
 
 	# overwrite dummy node bases with hand-implemented ones
 	from base import *
+	from geometry import *
 	from set import *
 	# import additional classes required in this module
 	from mayarv.maya.ns import Namespace

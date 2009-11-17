@@ -28,18 +28,20 @@ __revision__="$Revision: 16 $"
 __id__="$Id: configuration.py 16 2008-05-29 00:30:46Z byron $"
 __copyright__='(c) 2008 Sebastian Thiel'
 
-
+from typ import nodeTypeToMfnClsMap, nodeTypeTree, MetaClassCreatorNodes
 from mayarv.util import uncapitalize, capitalize, IntKeyGenerator, getPythonIndex, iDagItem, Call, iDuplicatable
 from mayarv.maya.util import StandinClass
-nodes = __import__( "mayarv.maya.nodes", globals(), locals(), ['nodes'] )
-from typ import nodeTypeToMfnClsMap, nodeTypeTree
 import maya.OpenMaya as api
 import maya.cmds as cmds
 import maya.OpenMayaMPx as OpenMayaMPx
 import mayarv.maya.ns as nsm
-undo = __import__( "mayarv.maya.undo", globals(), locals(),[ 'undo' ] )
-import sys
+import mayarv.maya.undo as undo
+
 from itertools import chain
+import sys
+
+_nodesdict = None				# will be set during maya.nodes initialization
+
 
 
 ############################
@@ -69,8 +71,8 @@ def nodeTypeToNodeTypeCls( nodeTypeName ):
 	""" Convert the given  node type (str) to the respective python node type class
 	@param nodeTypeName: the type name you which to have the actual class for  """
 	try:
-		nodeTypeCls = getattr( nodes, capitalize( nodeTypeName ) )
-	except AttributeError:
+		nodeTypeCls = _nodesdict[capitalize( nodeTypeName )]
+	except KeyError:
 		raise TypeError( "NodeType %s unknown - it cannot be wrapped" % nodeTypeName )
 
 	# CHECK FOR STANDIN CLASS
@@ -661,7 +663,7 @@ class Node( object ):
 	"""Common base for all maya nodes, providing access to the maya internal object
 	representation
 	Use this class to directly create a maya node of the required type"""
-	__metaclass__ = nodes.MetaClassCreatorNodes
+	__metaclass__ = MetaClassCreatorNodes
 	__api_type_tuple = ( api.MObject, api.MDagPath )
 
 	def __new__ ( cls, *args, **kwargs ):
@@ -761,7 +763,7 @@ class DependNode( Node, iDuplicatable ):		# parent just for epydoc -
 
 	Depdency Nodes are manipulated using an MObjectHandle which is safest to go with,
 	but consumes more memory too !"""
-	__metaclass__ = nodes.MetaClassCreatorNodes
+	__metaclass__ = MetaClassCreatorNodes
 
 
 	#{ Overridden Methods
@@ -1117,12 +1119,12 @@ class DependNode( Node, iDuplicatable ):		# parent just for epydoc -
 
 class Entity( DependNode ):		# parent just for epydoc
 	"""Common base for dagnodes and paritions"""
-	__metaclass__ = nodes.MetaClassCreatorNodes
+	__metaclass__ = MetaClassCreatorNodes
 
 
 class DagNode( Entity, iDagItem ):	# parent just for epydoc
 	""" Implements access to DAG nodes """
-	__metaclass__ = nodes.MetaClassCreatorNodes
+	__metaclass__ = MetaClassCreatorNodes
 	_sep = "|"
 	kNextPos = MFnDagNode.kNextPos
 
@@ -1237,7 +1239,7 @@ class DagNode( Entity, iDagItem ):	# parent just for epydoc
 			mod.reparentNode( self._apiobj, parentnode._apiobj )
 		else:
 			# sanity check
-			if isinstance( self, nodes.Shape ):
+			if isinstance( self, Shape ):
 				raise RuntimeError( "Shape %s cannot be parented under root '|' but needs a transform" % self )
 			mod = undo.DagModifier( )
 			mod.reparentNode( self._apiobj )
@@ -1501,7 +1503,7 @@ class DagNode( Entity, iDagItem ):	# parent just for epydoc
 		meshes and tweaks - the underlying api duplication would still be used of course, as well as
 		connections ( to sets ) and so on ... """
 		# print "-"*5+"DUPLICATE: %r to %s" % (self,newpath)+"-"*5
-		selfIsShape = isinstance( self, nodes.Shape )
+		selfIsShape = isinstance( self, Shape )
 
 		# NAME HANDLING
 		# create a valid absolute name to have less special cases later on
@@ -1894,7 +1896,7 @@ class Attribute( api.MObject ):
 	Use this general class to create attribute wraps - it will return
 	a class of the respective type """
 
-	__metaclass__ = nodes.MetaClassCreatorNodes
+	__metaclass__ = MetaClassCreatorNodes
 
 	def __new__ ( cls, *args, **kwargs ):
 		"""return an attribute class of the respective type for given MObject
@@ -1921,7 +1923,7 @@ class Data( api.MObject ):
 	"""Represents an data in general - this is the base class
 	Use this general class to create data wrap objects - it will return a class of the respective type """
 
-	__metaclass__ = nodes.MetaClassCreatorNodes
+	__metaclass__ = MetaClassCreatorNodes
 
 	def __new__ ( cls, *args, **kwargs ):
 		"""return an data class of the respective type for given MObject
@@ -2002,7 +2004,7 @@ class Component( api.MObject ):
 	"""Represents a shape component - its derivates can be used to handle component lists
 	to be used in object sets and shading engines """
 
-	__metaclass__ = nodes.MetaClassCreatorNodes
+	__metaclass__ = MetaClassCreatorNodes
 
 	def __new__ ( cls, *args, **kwargs ):
 		"""return an data class of the respective type for given MObject
@@ -2029,7 +2031,7 @@ class SingleIndexedComponent( Component ):
 
 class DoubleIndexedComponent( Component ):	# derived just for epydoc
 	"""Fixes some functions that would not work usually """
-	__metaclass__ = nodes.MetaClassCreatorNodes
+	__metaclass__ = MetaClassCreatorNodes
 
 
 	def getType( self ):
@@ -2181,7 +2183,7 @@ class DagPath( api.MDagPath, iDagItem ):
 
 #} END basic types
 
-#{ Foreward created types
+#{ Default Types
 
 class Transform( DagNode ):		# derived just for epydoc
 	"""Precreated class to allow isinstance checking against their types and
@@ -2189,7 +2191,7 @@ class Transform( DagNode ):		# derived just for epydoc
 	@note: bases determined by metaclass
 	@note: to have undoable set* functions , get the ( improved ) transformation matrix
 	make your changes to it and use the L{set} method """
-	__metaclass__ = nodes.MetaClassCreatorNodes
+	__metaclass__ = MetaClassCreatorNodes
 
 	#{ MFnTransform Overrides
 
@@ -2206,6 +2208,134 @@ class Transform( DagNode ):		# derived just for epydoc
 
 	#} END mfntransform overrides
 
-#} END foreward created types
+
+class Shape( DagNode ):	 # base for epydoc !
+	"""Interface providing common methods to all geometry shapes as they can be shaded.
+	They usually support per object and per component shader assignments
+
+	@note: as shadingEngines are derived from objectSet, this class deliberatly uses
+	them interchangably when it comes to set handling.
+	@note: for convenience, this class implements the shader related methods
+	whereever possible
+	@note: bases determined by metaclass"""
+
+	__metaclass__ = MetaClassCreatorNodes
+
+
+
+
+	#{ preset type filters
+	fSetsRenderable = SetFilter( api.MFn.kShadingEngine, False, 0 )	# shading engines only
+	fSetsDeformer = SetFilter( api.MFn.kSet, True , 1)				# deformer sets only
+	#} END type filters
+
+	#{ Sets Interface
+
+	def _parseSetConnections( self, allow_compoents ):
+		"""Manually parses the set connections from self
+		@return: tuple( MObjectArray( setapiobj ), MObjectArray( compapiobj ) ) if allow_compoents, otherwise
+		just a list( setapiobj )"""
+		sets = api.MObjectArray()
+		iogplug = self._getSetPlug()			# from DagNode , usually iog plug
+
+		# this will never fail - logcical index creates the plug as needed
+		# and drops it if it is no longer required
+		if allow_compoents:
+			components = api.MObjectArray()
+
+			# take full assignments as well - make it work as the getConnectedSets api method
+			for dplug in iogplug.getOutputs():
+				sets.append( dplug.getNodeApiObj() )
+				components.append( api.MObject() )
+			# END full objecft assignments
+
+			for compplug in iogplug['objectGroups']:
+				for setplug in compplug.getOutputs():
+					sets.append( setplug.getNodeApiObj() )		# connected set
+
+					# get the component from the data
+					compdata = compplug['objectGrpCompList'].asData()
+					if compdata.getLength() == 1:			# this is what we can handle
+						components.append( compdata[0] ) 	# the component itself
+					else:
+						raise AssertionError( "more than one compoents in list" )
+
+				# END for each set connected to component
+			# END for each component group
+
+			return ( sets, components )
+		else:
+			for dplug in iogplug.getOutputs():
+				sets.append( dplug.getNodeApiObj() )
+			return sets
+		# END for each object grouop connection in iog
+
+
+	def getComponentAssignments( self, setFilter = fSetsRenderable, use_api = True ):
+		"""@return: list of tuples( objectSetNode, Component ) defininmg shader
+		assignments on per component basis.
+		If a shader is assigned to the whole object, the component would be a null object, otherwise
+		it is an instance of a wrapped IndexedComponent class
+		@param setFilter: see L{getConnectedSets}
+		@param use_api: if True, api methods will be used if possible which is usually faster.
+		If False, a custom non-api implementation will be used instead.
+		This can be required if the apiImplementation is not reliable which happens in
+		few cases of 'weird' component assignments
+		@note: the sets order will be the order of connections of the respective component list
+		attributes at instObjGroups.objectGroups
+		@note: currently only meshes and subdees support per component assignment, whereas only
+		meshes can have per component shader assignments
+		@note: SubDivision Components cannot be supported as the component type kSubdivCVComponent
+		cannot be wrapped into any component function set - reevaluate that with new maya versions !
+		@note: deformer set component assignments are only returned for instance 0 ! They apply to all
+		output meshes though"""
+
+		# SUBDEE SPECIAL CASE
+		#########################
+		# cannot handle components for subdees - return them empty
+		if self._apiobj.apiType() == api.MFn.kSubdiv:
+			print "WARNING: components are not supported for Subdivision surfaces due to m8.5 api limitation"
+			sets = self.getConnectedSets( setFilter = setFilter )
+			return [ ( setnode, api.MObject() ) for setnode in sets ]
+		# END subdee handling
+
+		sets = components = None
+
+		# MESHES AND NURBS
+		##################
+		# QUERY SETS AND COMPONENTS
+		# for non-meshes, we have to parse the components manually
+		if not use_api or not self._apiobj.hasFn( api.MFn.kMesh ) or not self.isValidMesh():
+			# check full membership
+			sets,components = self._parseSetConnections( True )
+		# END non-mesh handling
+		else:
+			# MESH - use the function set
+			# take all fSets by default, we do the filtering
+			sets = api.MObjectArray()
+			components = api.MObjectArray()
+			self.getConnectedSetsAndMembers( self.getInstanceNumber(), sets, components, False )
+		# END sets/components query
+                                         
+
+		# wrap the sets and components
+		outlist = list()
+		for setobj,compobj in zip( sets, components ):
+			if not setFilter( setobj ):
+				continue
+
+			setobj = Node( api.MObject( setobj ) )								# copy obj to get memory to python
+			compobj = api.MObject( compobj )											# make it ours
+			if not compobj.isNull():
+				compobj = Component( compobj )
+
+			outlist.append( ( setobj, compobj ) )
+		# END for each set/component pair
+		return outlist
+
+	#} END set interface
+
+
+#} END default types
 
 

@@ -20,8 +20,8 @@ import base as nodes
 import typ
 import maya.OpenMaya as api
 import maya.cmds as cmds
-undo = __import__( "mayarv.maya.undo", globals(), locals(),[ 'undo' ] )
 import it
+import mayarv.maya.undo as undo
 
 
 #{ Exceptions 

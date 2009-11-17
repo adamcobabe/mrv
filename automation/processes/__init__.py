@@ -14,7 +14,6 @@ __revision__="$Revision: 50 $"
 __id__="$Id: configuration.py 50 2008-08-12 13:33:55Z byron $"
 __copyright__='(c) 2008 Sebastian Thiel'
 
-_this_module = __import__( "mayarv.automation.processes", globals(), locals(), ['processes'] )
 from mayarv.automation.process import ProcessBase
 import mayarv.util as util
 
@@ -29,10 +28,10 @@ def parseProcessesFromPackage( importBase, packageFile ):
 	isProcess = lambda cls: hasattr( cls, 'mro' ) and ProcessBase in cls.mro()
 	processes = util.getPackageClasses( importBase, packageFile, predicate = isProcess )
 
-	global _this_module
+	gd = globals()
 	for pcls in processes:
-		setattr( _this_module, pcls.__name__, pcls )
-
+		gd[pcls.__name__] = pcls
+	# END for each process
 
 
 
@@ -41,12 +40,12 @@ def addProcesses( *args ):
 	with their name obtained by str( processCls ).
 	Workflows loaded from files will have access to the processes in this package
 	@param *args: process classes to be registered to this module."""
-	global _this_module
+	gd = globals();
 	for pcls in args:
 		if ProcessBase not in pcls.mro():
 			raise TypeError( "%r does not support the process interface" % pcls )
 
-		setattr( _this_module, pcls.__name__, pcls )
+		gd[pcls.__name__] = pcls
 	# END for each arg
 
 #} END interface
