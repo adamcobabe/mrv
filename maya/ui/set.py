@@ -1,12 +1,7 @@
 # -*- coding: utf-8 -*-
-"""
-Contains implementation of user interface modules resembling a convenient tool
+""" Contains implementation of user interface modules resembling a convenient tool
 to manipulate all kinds of sets.
-@todo: more documentation
-
-
-
-"""
+@todo: more documentation """
 
 __author__='$Author: byron $'
 __contact__='byronimo <.a.t.> gmail <.> com'

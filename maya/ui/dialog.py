@@ -21,7 +21,6 @@ import base as uibase
 import maya.cmds as cmds
 import maya.utils as mutils
 import mayarv.util as util
-import mayarv.maya.util as mutil
 
 #{ Exceptions
 ################################################################################

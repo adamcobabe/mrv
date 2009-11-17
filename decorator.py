@@ -313,7 +313,7 @@ def protected( exactClass ):
 
 		def _inner_protectedCheck( self, *args, **kwargs ):
 			if self.__class__ == exactClass:
-				raise ui.ProtectedMethodError( "Cannot instantiate" + self.__class__.__name__ + " directly - it can only be a base class" )
+				raise ProtectedMethodError( "Cannot instantiate" + self.__class__.__name__ + " directly - it can only be a base class" )
 
 			return func( self, *args, **kwargs )
 

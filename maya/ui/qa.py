@@ -20,9 +20,6 @@ __copyright__='(c) 2008 Sebastian Thiel'
 
 import base as uibase
 import control
-import maya.cmds as cmds
-import mayarv.util as util
-import mayarv.maya.util as mutil
 import util as uiutil
 import layout
 from mayarv.automation.qa import QAWorkflow

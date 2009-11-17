@@ -48,7 +48,7 @@ def init_applyPatches( ):
 	@note: overwritten api methods will be renamed to _api_methodname
 	@note: currently this method works not recursively"""
 	module = __import__( "mayarv.maya.nodes.apipatch", globals(), locals(), ['apipatch'] )
-	classes = [ r[1] for r in inspect.getmembers( module, predicate = inspect.isclass ) ]
+	classes = [ v for v in globals().values() if inspect.isclass(v) ]
 	forbiddenMembers = [ '__module__','_applyPatch','__dict__','__weakref__','__doc__' ]
 
 	for cls in classes:
