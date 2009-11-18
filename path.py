@@ -871,6 +871,8 @@ class Path( _base, iDagItem ):
 	#{ Methods for querying the filesystem
 
 	exists = lambda self: os.path.exists( self._expandvars() )
+	if hasattr(os.path, 'lexists'):
+		lexists = lambda self: os.path.lexists( self._expandvars() )
 	isdir = lambda self: os.path.isdir( self._expandvars() )
 	isfile = lambda self: os.path.isfile( self._expandvars() )
 	islink = lambda self: os.path.islink( self._expandvars() )
