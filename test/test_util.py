@@ -190,3 +190,23 @@ class TestDAGTree( unittest.TestCase ):
 		# use setup
 		progress.setup( (0,99), True, False, True )
 		progress.setup( (0,99), relative=None, abortable=True, begin=False )
+		# round-robin
+		assert progress.getRoundRobin() == False
+		progress.setup( (0,10), relative=False, round_robin=True)
+		assert progress.getRoundRobin() == True
+		
+		# absolute 
+		progress.set( 15 )
+		assert progress.getValue() == 15
+		assert progress.get() == 5
+		progress.set( 10 )
+		assert progress.get() == 0
+		
+		# relative 
+		progress.setRelative(True)
+		progress.set( 15 )
+		assert progress.get() == 50.0
+		assert progress.getValue() == 15
+		
+		
+		

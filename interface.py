@@ -385,16 +385,19 @@ class iProgressIndicator( Interface ):
 	@note: this interface is a simple progress indicator itself, and can do some computations
 	for you if you use the get() method yourself"""
 
+
 	#{ Initialization
-	def __init__( self, min = 0, max = 100, is_relative = True, may_abort = False, **kwargs ):
+	def __init__( self, min = 0, max = 100, is_relative = True, may_abort = False, round_robin=False, **kwargs ):
 		"""@param min: the minimum progress value
 		@param max: the maximum progress value
 		@param is_relative: if True, the values given will be scaled to a range of 0-100,
 		if False no adjustments will be done
-		@param kwargs: additional arguments being ignored"""
+		@param round_robin: see L{setRoundRobin} 
+		@param **kwargs: additional arguments being ignored"""
 		self.setRange( min, max )
 		self.setRelative( is_relative )
 		self.setAbortable( may_abort )
+		self.setRoundRobin( round_robin )
 		self.__progress = min
 
 
@@ -436,6 +439,12 @@ class iProgressIndicator( Interface ):
 		"""set the range within we expect our progress to occour"""
 		self.__min = min
 		self.__max = max
+		
+	def setRoundRobin( self, round_robin ):
+		"""Set if round-robin mode should be used. 
+		If True, values exceeding the maximum range will be wrapped and 
+		start at the minimum range""" 
+		self.__rr = round_robin
 
 	def setRelative( self, state ):
 		"""enable or disable relative progress computations"""
@@ -446,13 +455,14 @@ class iProgressIndicator( Interface ):
 		be interrupted"""
 		self.__may_abort = state
 
-	def setup( self, range=None, relative=None, abortable=None, begin=True ):
+	def setup( self, range=None, relative=None, abortable=None, begin=True, round_robin=None ):
 		"""Multifunctional, all in one convenience method setting all important attributes
 		at once. This allows setting up the progress indicator with one call instead of many
 		@note: If a kw argument is None, it will not be set
 		@param range: Tuple( min, max ) - start ane end of progress indicator range
 		@param relative: equivalent to L{setRelative}
 		@param abortable: equivalent to L{setAbortable}
+		@param round_robin: equivalent to L{setRoundRobin}
 		@param begin: if True, L{begin} will be called as well"""
 		if range is not None:
 			self.setRange( range[0], range[1] )
@@ -462,6 +472,9 @@ class iProgressIndicator( Interface ):
 
 		if abortable is not None:
 			self.setAbortable( abortable )
+			
+		if round_robin is not None:
+			self.setRoundRobin(round_robin)
 
 		if begin:
 			self.begin()
@@ -472,19 +485,34 @@ class iProgressIndicator( Interface ):
 	def get( self ):
 		"""@return: the current progress value
 		@note: if set to relative mode, values will range
-		from 0.0 to 100.0"""
-		if not self.isRelative():
-			mn,mx = self.getRange()
-			return min( max( self.__progress, mn ), mx )
-
-		# compute the percentage
-		p = self.__progress
+		from 0.0 to 100.0.
+		Values will always be within the ones returned by L{getRange}"""
+		p = self.getValue()
 		mn,mx = self.getRange()
+		if self.getRoundRobin():
+			p = p % mx
+				
+		if not self.isRelative():
+			return min( max( p, mn ), mx )
+		# END relative handling 
+		
+		# compute the percentage
 		return min( max( ( p - mn ) / float( mx - mn ), 0.0 ), 1.0 ) * 100.0
+		
+	def getValue( self ):
+		"""@return: current progress as it is stored internally, without regarding 
+		the range or round-robin options.
+		@note: This allows you to use this instance as a counter without concern to 
+		the range and round-robin settings"""
+		return self.__progress
 
 	def getRange( self ):
 		"""@return: tuple( min, max ) value"""
 		return ( self.__min, self.__max )
+
+	def getRoundRobin( self ):
+		"""@return: True if roundRobin mode is enabled"""
+		return self.__rr
 
 	def getPrefix( self, value ):
 		"""@return: a prefix indicating the progress according to the current range
