@@ -380,7 +380,7 @@ class ConfigAccessor( object ):
 
 		raise NoSectionError( section )
 
-	def getKeyDefault( self, sectionname,keyname, value ):
+	def getKeyDefault( self, sectionname, keyname, value ):
 		"""Convenience Function: get key with keyname in first section with sectionname with the key's value being initialized to value if it did not exist.
 		@param sectionname: the name of the sectionname the key is supposed to be in - it will be created if needed
 		@param keyname: the name of the key you wish to find
@@ -397,6 +397,48 @@ class ConfigAccessor( object ):
 	def iterateKeysByName( self, name ):
 		"""As L{getKeysByName}, but returns an iterator instead"""
 		return self._configChain.iterateKeysByName( name )
+		
+	def get( self, key_id, default = None ):
+		"""Convenience function allowing to easily specify the key you wish to retrieve
+		with the option to provide a default value
+		@param key_id: string specifying a key, either as 
+		* 'sectionname.keyname'
+		* 'keyname'
+		In case you specify a section, the key must reside in the given section, 
+		if only a keyname is given, it may reside in any section
+		@param default: Default value to be given to a newly created key in case 
+		there is no existing value. If None, the method may raise in case the given
+		key_id does not exíst.
+		@return: L{Key} instance whose value may be queried through its 'value' or 
+		'values' attributes"""
+		sid = None
+		kid = key_id
+		if '.' in key_id:
+			sid, kid = key_id.split('.', 1)
+		# END split key id into section and key
+		
+		if sid is None:
+			keys = self.getKeysByName(kid)
+			try:
+				return keys[0][0]
+			except IndexError:
+				if default is None:
+					raise NoOptionError(kid, sid)
+				else:
+					for section in self.getSectionIterator():
+						return section.getKeyDefault(kid, default)[0]
+					# END for each existing section
+					# create default section 
+					return self.getSectionDefault('default').getKeyDefault(kid, default)[0]
+			# END option exception handling
+		else:
+			if default is None:
+				return self.getSection(sid).getKey(kid)
+			else:
+				return self.getKeyDefault(sid, kid, default)
+			# END default handling 
+		# END has section handling
+		
 		
 	#} END GROUP
 

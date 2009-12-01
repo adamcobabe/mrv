@@ -288,6 +288,25 @@ class TestConfigManager( unittest.TestCase ):
 
 		# check removed value
 		self.failUnless( "val2" not in cm.config.getSection( "section_removeval" ).getKey( "key_rmval" ).values )
+		
+		
+		# test key access
+		for section in (None, 'myNewSection'):
+			for key in ('key3', 'myNewKey', 'doesnt_exist'):
+				for default in ( None, True ):
+					key_id = key
+					if section is not None:
+						key_id = "%s.%s" % ( section, key )
+					try:
+						val = cm.get(key_id, default)
+						assert isinstance(val, Key)
+					except (NoSectionError,NoOptionError),e:
+						if default is not None:	# default values must not raise
+							raise AssertionError(str(e))
+				# END for each default value
+			# END for each key id 
+		# END for each section id
+		
 
 
 	def test_getTaggedFileDescriptors( self ):
