@@ -199,15 +199,16 @@ class TestConfigAccessor( unittest.TestCase ):
 	def test_operators( self ):
 		"""ConfigAccessor: see if ca['keyname'] works"""
 		ca = _getca( 'valid_sectionandkeyproperty' )
-		val = ca['key_with_property']						# rhs
-		ca['key_with_property'] = val+"change"				# lhs assignment
-		ca['key_with_property'] = [ 1,2,3, "foo", "bar" ]	# complex list assignment
+		key = ca['key_with_property']								# rhs
+		assert isinstance(key, Key)
+		ca['key_with_property'].value = key.value+"change"				# lhs assignment
+		ca['key_with_property'].value = [ 1,2,3, "foo", "bar" ]	# complex list assignment
 
 		# invalid key
-		self.failUnlessRaises( KeyError, ca.__getitem__, 'doesntexist' )
+		self.failUnlessRaises( NoOptionError, ca.__getitem__, 'doesntexist' )
 
 		# now with default value
-		assert ca['doesntexist',2] == 2
+		assert ca['doesntexist',2].value == 2
 
 
 class TestConfigManager( unittest.TestCase ):

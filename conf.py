@@ -427,9 +427,9 @@ class ConfigAccessor( object ):
 				else:
 					for section in self.getSectionIterator():
 						return section.getKeyDefault(kid, default)[0]
-					# END for each existing section
 					# create default section 
 					return self.getSectionDefault('default').getKeyDefault(kid, default)[0]
+				# END default handling
 			# END option exception handling
 		else:
 			if default is None:
@@ -444,32 +444,13 @@ class ConfigAccessor( object ):
 
 	#{ Operators
 	def __getitem__( self, key ):
-		""" @return: value of first key with keyname
-			@param key: string idenfifying the name of the key to look for, alternatively
-			a tuple( keyname, defaultvalue ), where defaultvalue will be returned if key does not exist
-			Call latter one like config[ keyname, defaultvalue ]
-			@raise KeyError: if keyname does not exist """
 		defaultvalue = None
 		if isinstance( key, tuple ):
 			defaultvalue = key[1]
 			key = key[0]
 		# END default value handling
-
-		for k,s in self._configChain.iterateKeysByName( key ):
-			return k.value
-
-		if defaultvalue is None:
-			raise KeyError( "Key '"+key+"' not found" )
-		else:
-			return defaultvalue
-
-	def __setitem__( self, keyname, value ):
-		""" Assigns value to key with keyname
-			@raise KeyError: if keyname does not exist """
-		for key,section in self._configChain.iterateKeysByName( keyname ):
-			key.value = value
-			return
-		raise KeyError( "Key '"+keyname+"' not found" )
+		
+		return self.get(key, defaultvalue)
 
 	#} END GROUP
 
