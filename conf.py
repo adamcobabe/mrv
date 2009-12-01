@@ -146,6 +146,7 @@ class ConfigAccessor( object ):
 
 	@note: The configaccessor should only be used in conjunction with the L{ConfigManager}
 	"""
+	__slots__ = "_configChain"
 
 	def __init__( self ):
 		""" Initialize instance variables """
@@ -499,7 +500,12 @@ class ConfigManager( object ):
 	Use self.config to directly access the configuration through the L{ConfigAccessor} interface
 	
 	To use this class, read a list of ini files and use configManager.config to access
-	the configuration."""
+	the configuration.
+	
+	For convenience, it will wire through all calls it cannot handle to its L{ConfigAccessor}
+	stored at .config"""
+	
+	__slots__ = ( '__config', 'config', '_writeBackOnDestruction', '_closeFp' ) 
 
 	def __init__( self, filePointers=list(), write_back_on_desctruction=True, close_fp = True ):
 		"""Initialize the class with a list of Extended File Classes
@@ -527,6 +533,13 @@ class ConfigManager( object ):
 		if self._writeBackOnDestruction:
 			# might trow - python will automatically ignore these issues
 			self.write( )
+
+	def __getattr__( self, attr ):
+		"""Wire all queries we cannot handle to our config accessor"""
+		try:
+			return getattr(self.config, attr)
+		except Exception:
+			return object.__getattribute__(self, attr)
 
 	#{ IO Methods
 	def write( self ):
@@ -651,6 +664,7 @@ class ExtendedFileInterface( object ):
 	@warning: Additionally, readline and write must be supported - its not mentioned
 	here for reasons of speed
 	@note: override the methods with implementation"""
+	__slots__ = tuple()
 
 	def isWritable( self ):
 		""" @return: True if the file can be written to """
@@ -733,6 +747,8 @@ class ConfigFile( file, ExtendedFileInterface ):
 
 class DictConfigINIFile( DictToINIFile, ExtendedFileInterface ):
 	""" dict file object implementation of ExtendedFileInterface """
+	__slots__ = tuple()
+	
 	def isClosed( self ):
 		return self.closed
 
@@ -746,7 +762,7 @@ class DictConfigINIFile( DictToINIFile, ExtendedFileInterface ):
 
 class ConfigStringIO( StringIO.StringIO, ExtendedFileInterface ):
 	""" cStringIO object implementation of ExtendedFileInterface """
-
+	__slots__ = tuple()
 
 	def isWritable( self ):
 		""" Once we are closed, we are not writable anymore """
@@ -772,6 +788,8 @@ class ConfigStringIO( StringIO.StringIO, ExtendedFileInterface ):
 class FixedConfigParser( RawConfigParser ):
 	"""The RawConfigParser stores options lowercase - but we do not want that
 	and keep the case - for this we just need to override a method"""
+	__slots__ = tuple()
+	
 	def optionxform( self, option ):
 		return option
 
@@ -783,6 +801,8 @@ class ConfigChain( list ):
 
 	@note: this solution is mainly fast to implement, but a linked-list like
 	behaviour is intended """
+	__slots__ = tuple()
+	
 	#{ List Overridden Methods
 	def __init__( self ):
 		""" Assures we can only create plain instances """
@@ -855,6 +875,7 @@ def _excmsgprefix( msg ):
 	exc = sys.exc_info()[1]
 	exc.message = msg + exc.message
 
+
 class BasicSet( set ):
 	""" Set with ability to return the key which matches the requested one
 
@@ -863,7 +884,9 @@ class BasicSet( set ):
 	hash functions, put them into a set, and finally retrieve the same object again !
 
 	@note: indexing a set is not the fastest because the matching key has to be searched.
-	Good news is that the actual 'is k in set' question can be answered quickly """
+	Good news is that the actual 'is k in set' question can be answered quickly"""
+	__slots__ = tuple()
+	
 	def __getitem__( self, item ):
 		# assure we have the item
 		if not item in self:
@@ -1181,6 +1204,7 @@ class ConfigNode( object ):
 	Additionally, it is aware of it being element of a chain, and can provide next
 	and previous elements respectively """
 	#{Construction/Destruction
+	__slots__ = ( '_sections', '_fp' )
 	def __init__( self, fp ):
 		""" Initialize Class Instance"""
 		self._sections	= BasicSet()			# associate sections with key holders

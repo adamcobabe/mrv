@@ -239,8 +239,9 @@ class TestConfigManager( unittest.TestCase ):
 		# remove a section completely - all are writable, they must be no failed node
 		self.failIf( cm.config.removeSection( "section_to_be_removed" ) != 0 )
 
-		# add keys to existing section
-		key,created = cm.config.getSection( "section" ).getKeyDefault( "anotherNewKey", "thisDefaultValue" )
+		# add keys to existing section - it wires through the calls
+		key,created = cm.getSection( "section" ).getKeyDefault( "anotherNewKey", "thisDefaultValue" )
+		self.failUnlessRaises(AttributeError, getattr, cm, 'that')
 
 		# remove keys - this one is garantueed to exist
 		cm.config.getSection( "section_removekey_2" ).keys.remove( "key_2" )

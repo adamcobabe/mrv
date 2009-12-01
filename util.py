@@ -142,11 +142,12 @@ def iterNetworkxGraph( graph, startItem, direction = 0, prune = lambda i,g: Fals
 	0 = items being successors of startItem
 	1 = items being predecessors of startItem
 	@param prune: return True if item i in graph g should be pruned from result
-	@param stop: return True if item i in graph g should be returned, but should also
-	stop the search in that direction
+	@param stop: return True if item i in graph g
+	stop the search in that direction. It will not be returned.
 	@param depth: define at which level the iteration should not go deeper
 	if -1, there is no limit
-	i.e. if 1, you would only get the first level of predessessors/successors
+	if 0, you would only get startitem.
+	i.e. if 1, you would only get the startitem and the first level of predessessors/successors
 	@param branch_first: if True, items will be returned branch first, otherwise depth first
 	@param visit_once: if True, items will only be returned once, although they might be encountered
 	several times
