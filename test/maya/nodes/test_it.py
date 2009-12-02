@@ -168,8 +168,20 @@ class TestGeneral( unittest.TestCase ):
 		self.failUnlessRaises( StopIteration, graphiter.next )
 
 		# apparently, one cannot easily traverse plugs if just a root node was given
+		mayaversion = float(cmds.about(v=1).split(' ')[0])
 		graphiter = iterGraph( persp, input=1, plug=1, asNode=1 )
-		self.failUnlessRaises( RuntimeError, graphiter.next )
+		
+		# its fixed in 2009 and above
+		if mayaversion < 2009:
+			self.failUnlessRaises( RuntimeError, graphiter.next )
+		else:
+			num_plugs = 0
+			for plug in graphiter:
+				num_plugs += 1
+				assert isinstance(plug, api.MPlug)
+			# END for each plug
+			assert num_plugs
+		# END version handling
 
 		# PLUG LEVEL
 		#############
