@@ -1,0 +1,6 @@
+1
+    | MFnContainerNode_getMembers             | None                |                                         
+    | MFnContainerNode_getParentContainer     | None                |                                         
+    | MFnContainerNode_getPublishedPlugs      | None                |                                         
+    | MFnContainerNode_getSubcontainers       | None                |                                         
+    | delete_MFnContainerNode                 | None                |                                         

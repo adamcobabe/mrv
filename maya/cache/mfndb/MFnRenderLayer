@@ -1,9 +1,12 @@
 1
+    | MFnRenderLayer_externalRenderPasses     | None                | getExternalRenderPasses                                         
     | MFnRenderLayer_inCurrentRenderLayer     | None                |                                         
     | MFnRenderLayer_inLayer                  | None                |                                         
     | MFnRenderLayer_isPlugAdjusted           | None                |                                         
     | MFnRenderLayer_layerChildren            | None                |                                         
     | MFnRenderLayer_listMembers              | None                |                                         
+    | MFnRenderLayer_passHasLight             | None                |                                         
+    | MFnRenderLayer_passHasObject            | None                |                                         
     | delete_MFnRenderLayer                   | None                |                                         
     | inCurrentRenderLayer                    | None                |                                         
     | inLayer                                 | None                |                                         

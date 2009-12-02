@@ -932,7 +932,6 @@ class TestNodeBase( unittest.TestCase ):
 		should be redone for maya 8.5 perhaps ... or in fact its enough to have one for all maya versions
 		and just merge them
 		@todo: do it """
-		pass
-		#types.writeMfnDBCacheFiles( )
+		# nodes.typ.writeMfnDBCacheFiles( )
 
 

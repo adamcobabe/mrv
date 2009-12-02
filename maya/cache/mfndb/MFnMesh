@@ -7,6 +7,7 @@
     | MFnMesh_assignUV                        | None                |                                         
     | MFnMesh_assignUVs                       | None                |                                         
     | MFnMesh_binaryBlindDataComponentId      | None                |                                         
+    | MFnMesh_booleanOp                       | None                |                                         
     | MFnMesh_cachedIntersectionAcceleratorInfo| None                |                                         
     | MFnMesh_cleanupEdgeSmoothing            | None                |                                         
     | MFnMesh_clearBlindData                  | None                |                                         
@@ -39,6 +40,7 @@
     | MFnMesh_freeCachedIntersectionAccelerator| None                |                                         
     | MFnMesh_generateSmoothMesh              | None                |                                         
     | MFnMesh_getAssignedUVs                  | None                |                                         
+    | MFnMesh_getAssociatedColorSetInstances  | None                |                                         
     | MFnMesh_getAssociatedUVSetInstances     | None                |                                         
     | MFnMesh_getAssociatedUVSetTextures      | None                |                                         
     | MFnMesh_getBinaryBlindData              | None                |                                         
@@ -54,7 +56,9 @@
     | MFnMesh_getColor                        | None                |                                         
     | MFnMesh_getColorIndex                   | None                |                                         
     | MFnMesh_getColorRepresentation          | None                |                                         
+    | MFnMesh_getColorSetFamilyNames          | None                |                                         
     | MFnMesh_getColorSetNames                | None                |                                         
+    | MFnMesh_getColorSetsInFamily            | None                |                                         
     | MFnMesh_getColors                       | None                |                                         
     | MFnMesh_getConnectedSetsAndMembers      | None                |                                         
     | MFnMesh_getConnectedShaders             | None                |                                         
@@ -86,6 +90,9 @@
     | MFnMesh_getPolygonUV                    | None                |                                         
     | MFnMesh_getPolygonUVid                  | None                |                                         
     | MFnMesh_getPolygonVertices              | None                |                                         
+    | MFnMesh_getRawNormals                   | None                |                                         
+    | MFnMesh_getRawPoints                    | None                |                                         
+    | MFnMesh_getSmoothMeshDisplayOptions     | None                |                                         
     | MFnMesh_getStringBlindData              | None                |                                         
     | MFnMesh_getTangentId                    | None                |                                         
     | MFnMesh_getTangents                     | None                |                                         
@@ -99,6 +106,7 @@
     | MFnMesh_getUvShellsIds                  | None                |                                         
     | MFnMesh_getVertexColors                 | None                |                                         
     | MFnMesh_getVertexNormal                 | None                |                                         
+    | MFnMesh_getVertexNormals                | None                |                                         
     | MFnMesh_getVertices                     | None                |                                         
     | MFnMesh_hasAlphaChannels                | None                |                                         
     | MFnMesh_hasBlindData                    | None                |                                         
@@ -107,6 +115,7 @@
     | MFnMesh_intersect                       | None                |                                         
     | MFnMesh_isBlindDataTypeUsed             | None                |                                         
     | MFnMesh_isColorClamped                  | None                |                                         
+    | MFnMesh_isColorSetPerInstance           | None                |                                         
     | MFnMesh_isEdgeSmooth                    | None                |                                         
     | MFnMesh_isNormalLocked                  | None                |                                         
     | MFnMesh_isPolygonConvex                 | None                |                                         
@@ -151,6 +160,7 @@
     | MFnMesh_setNormals                      | None                |                                         
     | MFnMesh_setPoint                        | None                |                                         
     | MFnMesh_setPoints                       | None                |                                         
+    | MFnMesh_setSmoothMeshDisplayOptions     | None                |                                         
     | MFnMesh_setSomeColors                   | None                |                                         
     | MFnMesh_setSomeUVs                      | None                |                                         
     | MFnMesh_setStringBlindData              | None                |                                         

@@ -597,7 +597,7 @@ class Path( _base, iDagItem ):
 
 	def open(self, mode='r'):
 		""" Open this file.	 Return a file object. """
-		return file(self._expandvars(), mode)
+		return open(self._expandvars(), mode)
 
 	def bytes(self):
 		""" Open this file, read all bytes, return them as a string. """

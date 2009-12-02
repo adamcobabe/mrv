@@ -96,7 +96,14 @@ class TimeDistanceAngleBase( Abstract ):
 	@note: idea for patches from pymel"""
 	def __str__( self ): return str(float(self))
 	def __int__( self ): return int(float(self))
-	def __float__( self ): return self.as(self.uiUnit())
+	
+	# in Maya 2010, these classes have an as_units method allowing 
+	# it to be used in python without the use of getattr
+	if hasattr(api.MTime, 'asUnits'):
+		def __float__( self ): return self.asUnits(self.uiUnit())
+	else:
+		def __float__( self ): return getattr(self, 'as')(self.uiUnit())
+	# END conditional implementation
 	def __repr__(self): return '%s(%s)' % ( self.__class__.__name__, float(self) )
 
 

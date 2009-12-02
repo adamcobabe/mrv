@@ -721,7 +721,7 @@ class PipeSeparatedFile( object ):
 	...
 	"""
 	kSeparator = '|'
-	__slots__ = ( "_fileobj", "_columncount" )
+	__slots__ = ( "_fileobj", "_columncount", "_formatstr" )
 
 	def __init__( self, fileobj ):
 		"""Initialize the instance

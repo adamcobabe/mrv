@@ -19,6 +19,7 @@
     | MFnNurbsSurface_getAssignedUVs          | None                |                                         
     | MFnNurbsSurface_getCV                   | None                |                                         
     | MFnNurbsSurface_getCVs                  | None                |                                         
+    | MFnNurbsSurface_getDataObject           | None                |                                         
     | MFnNurbsSurface_getDerivativesAtParm    | None                |                                         
     | MFnNurbsSurface_getKnotDomain           | None                |                                         
     | MFnNurbsSurface_getKnotsInU             | None                |                                         
