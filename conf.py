@@ -48,7 +48,6 @@ class ConfigParsingError( MayaRVError ):
 	""" Indicates that the parsing failed """
 	pass
 
-
 class ConfigParsingPropertyError( ConfigParsingError ):
 	""" Indicates that the property-parsing encountered a problem """
 	pass
@@ -896,7 +895,8 @@ def _excmsgprefix( msg ):
 	""" Put msg in front of current exception and reraise
 	@warning: use only within except blocks"""
 	exc = sys.exc_info()[1]
-	exc.message = msg + exc.message
+	if hasattr(exc, 'message'):
+		exc.message = msg + exc.message
 
 
 class BasicSet( set ):
@@ -1276,7 +1276,7 @@ class ConfigNode( object ):
 			# if error is ours, prepend filename
 			if not isinstance( exc, ParsingError ):
 				_excmsgprefix( "File: " + name + ": " )
-			raise ConfigParsingError( exc.message )
+			raise ConfigParsingError( str(exc) )
 
 		# cache whether we can possibly write to that destination x
 
@@ -1644,7 +1644,7 @@ class ConfigDiffer( DiffData ):
 		
 		# Deepcopy can be 0 in case we are shutting down - deepcopy goes down too early 
 		# for some reason
-		assert( copy.deepcopy is not None, "Deepcopy is not available" )
+		assert copy.deepcopy is not None, "Deepcopy is not available"
 		self.added = list( copy.deepcopy( bsections - asections ) )
 		self.removed = list( copy.deepcopy( asections - bsections ) )
 		self.changed = list( )

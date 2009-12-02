@@ -176,16 +176,7 @@ def _init_python( ):
 	Assure that certain python classes have the least possible amount of compatablity
 	so that we can work with them
 	"""
-	# must have proper exceptions
-	e = Exception()
-	if not hasattr( e, 'message' ):
-		# put in a special __init__ function
-		Exception.__init__old = Exception.__init__
-		def myinit( self, *args, **kwargs ):
-			self.message = ''
-			Exception.__init__old( self, *args, **kwargs )
-
-		Exception.__init__ = myinit
+	
 
 #} END initialization
 

@@ -181,7 +181,7 @@ class Enumeration(tuple):
 		assert len(names) == len(values)
 
 		# We are a tuple of our values, plus more....
-		tuple.__init__(self, values)
+		tuple.__init__(self)
 
 		self._nameMap = {}
 		self._valueMap = {}
