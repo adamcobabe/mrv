@@ -175,12 +175,12 @@ class TestGeneralPerformance( unittest.TestCase ):
 			bmaya.Scene.open( benchfile, force = 1 )
 
 
-			# NO NODE CONVERSION
+			# DAGPATHS NO NODE CONVERSION
 			starttime = time.time( )
-			for dagpath in it.iterDagNodes( dagpath = 1 ):
+			for dagpath in it.iterDagNodes( dagpath = 1, asNode = 0 ):
 				pass
 			elapsed = time.time() - starttime
-			print "Walked %i nodes in %f s ( %f / s )" % ( nodecount, elapsed, nodecount / elapsed )
+			print "Walked %i dag nodes from dagpaths in %f s ( %f / s )" % ( nodecount, elapsed, nodecount / elapsed )
 
 			# DIRECT ITERATOR USE
 			starttime = time.time( )
@@ -193,6 +193,11 @@ class TestGeneralPerformance( unittest.TestCase ):
 			elapsed = time.time() - starttime
 			print "Walked %i nodes directly in %f s ( %f / s )" % ( nodecount, elapsed, nodecount / elapsed )
 
+			starttime = time.time( )
+			for dagpath in it.iterDagNodes( dagpath = 1, asNode = 1 ):
+				pass
+			elapsed = time.time() - starttime
+			print "Walked %i WRAPPED dag nodes from dagpaths in %f s ( %f / s )" % ( nodecount, elapsed, nodecount / elapsed )
 
 			# from ls
 			starttime = time.time( )
@@ -218,7 +223,7 @@ class TestGeneralPerformance( unittest.TestCase ):
 			for node in it.iterDagNodes( asNode = 1 ):
 				pass
 			elapsed = time.time() - starttime
-			print "Walked %i WRAPPED nodes in %f s ( %f / s )" % ( nodecount, elapsed, nodecount / elapsed )
+			print "Walked %i WRAPPED nodes from MObjects in %f s ( %f / s )" % ( nodecount, elapsed, nodecount / elapsed )
 
 
 			# BREADTH
@@ -226,7 +231,7 @@ class TestGeneralPerformance( unittest.TestCase ):
 			for dagpath in it.iterDagNodes( depth = 0 ):
 				pass
 			elapsed = time.time() - starttime
-			print "Walked %i nodes BREADTH FIRST in %f s ( %f / s )" % ( nodecount, elapsed, nodecount / elapsed )
+			print "Walked %i nodes from MObjects BREADTH FIRST in %f s ( %f / s )" % ( nodecount, elapsed, nodecount / elapsed )
 
 		# END for each run
 
