@@ -73,7 +73,8 @@ def get_suite( ):
 			alltests.addTests( module.get_suite( ) )
 		except AttributeError:
 			print "%s did not define test" % module.__name__
-			raise
+		# END exception handling 
+	# END for each module we want to test.
 
 	return alltests
 
@@ -92,3 +93,6 @@ def run_all( ):
 def main( *args ):
 	"""Run all tests by default if started from commandline """
 	run_all()
+	
+if __name__ == '__main__':
+	main()
