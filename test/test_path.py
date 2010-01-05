@@ -40,3 +40,13 @@ class TestPath( unittest.TestCase ):
 
 		self.failUnless( len( list( userexp.iterParents() ) ) )
 		self.failUnless( len( list( userexp.getChildren() ) ) )
+		
+	def test_expand_or_raise(self):
+		self.failUnlessRaises(ValueError, Path("$doesnt_exist/without/variable").expand_or_raise)
+		
+		pwv = Path("without/variable")
+		assert pwv.expand_or_raise() == pwv
+		
+		first_var = os.environ.iterkeys().next()
+		expanded = Path("$%s/something" % first_var).expand_or_raise()
+		assert os.environ[first_var] in expanded

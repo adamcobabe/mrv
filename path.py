@@ -208,7 +208,17 @@ class Path( _base, iDagItem ):
 
 	def containsvars( self ):
 		"""@return: True if this path contains environment variables"""
-		return self.find( '$' ) != -1 or self.find( '$' ) != -1
+		return self.find( '$' ) != -1
+		
+	def expand_or_raise(self):
+		"""@return: Copy of self with all variables expanded ( using L{expand}
+		@raise ValueError: If we could not expand all environment variables as
+		their values where missing in the environment"""
+		rval = self.expand()
+		if rval.containsvars():
+			raise ValueError("Failed to expand all environment variables in %r, got %r" % (self, rval))
+		return rval
+		
 
 	def _get_namebase(self):
 		base, ext = os.path.splitext(self.p_name)
