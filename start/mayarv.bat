@@ -8,7 +8,7 @@ set mayapydll=%MAYA_LOCATION%\Python\DLLs
 set mayadll=%MAYA_LOCATION%\bin
 
 set basedir=%~dp0
-set pyrepobase=%basedir%\..\..\
+set pyrepobase=%basedir%..\..\
 
 set PYTHONPATH=%pyrepobase%;%mayapy%;%PYTHONPATH%
 set PATH=%mayapydll%;%mayadll%;%PATH%
