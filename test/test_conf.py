@@ -318,11 +318,17 @@ class TestConfigManager( unittest.TestCase ):
 		userFileDir = os.path.join( taggedIniFileDir, "user" )
 
 		directories = [ taggedIniFileDir, userFileDir ]
-		tags = [ sys.platform, os.uname()[-1][-2:], 'myproject' ]
+		bits = os.uname()[-1][-2:]
+		tags = [ sys.platform, bits, 'myproject' ]
 
 		descriptors = ConfigManager.getTaggedFileDescriptors( directories, tags )
-
-		self.failUnless( len( descriptors ) == 5 )
+		
+		expected_descriptor_count = 4
+		if bits == '64':
+			# this currently only works on linux ( for the test at least )
+			expected_descriptor_count = 5
+		# END descriptor count 	
+		self.failUnless( len( descriptors ) == expected_descriptor_count )
 
 		# parse ini files
 		cm = ConfigManager( write_back_on_desctruction = False )
