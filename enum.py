@@ -206,16 +206,24 @@ class Enumeration(tuple):
 
 	def valueFromName(self, name):
 		"""Look up the enumeration value for a given element name.
-		"""
-		return self._nameMap[name]
+		@raise ValueError:"""
+		try:
+			return self._nameMap[name]
+		except KeyError:
+			raise ValueError("Name %r not found in enumeration, pick one of %s" % (name, ', '.join(str(e) for e in self)))
+		# END exception handling
 
 	def nameFromValue(self, value):
 		"""Look up the name of an enumeration element, given it's value.
 
 		If there are multiple elements with the same value, you will only
 		get a single matching name back. Which name is undefined.
-		"""
-		return self._valueMap[value]
+		@raise ValueError: if value is not a part of our enumeration"""
+		try:
+			return self._valueMap[value]
+		except KeyError:
+			raise ValueError("Value %r is not a member of this enumeration" % value)
+		# END exception handling  
 
 	def _nextOrPrevious( self, element, direction, wrap_around ):
 		"""do-it method, see L{next} and L{previous}

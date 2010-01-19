@@ -173,6 +173,7 @@ class EnumerateTestCase(unittest.TestCase):
 
 		self.failUnless(e.George == e.valueFromName('George'))
 		self.failUnless('drummer' == e.valueFromName('Ringo'))
+		self.failUnlessRaises(ValueError, e.valueFromName, 'doesnt_exist')
 		self.failUnless(e('Paul') == 2)
 
 		try:
@@ -190,7 +191,7 @@ class EnumerateTestCase(unittest.TestCase):
 		self.failUnless('John' == e.nameFromValue(e.John))
 		self.failUnless('Paul' == e.nameFromValue(2))
 		self.failUnless('Ringo' == e.nameFromValue('drummer'))
-
+		self.failUnlessRaises(ValueError, e.nameFromValue, 'doesnt_exist')
 		self.failUnless( e( "George" ) == e.George )
 
 	def testNextAndPrevious( self ):
