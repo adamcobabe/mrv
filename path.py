@@ -357,36 +357,30 @@ class Path( _base, iDagItem ):
 		they reside on different drives in Windows, then this returns
 		dest.abspath().
 		"""
-		origin = self.abspath()
-		dest = self.__class__(dest).abspath()
-
-		orig_list = origin.normcase().splitall()
-		# Don't normcase dest!	We want to preserve the case.
-		dest_list = dest.splitall()
-
-		if orig_list[0] != os.path.normcase(dest_list[0]):
-			# Can't get here from there.
-			return dest
-
-		# Find the location where the two paths start to differ.
-		i = 0
-		for start_seg, dest_seg in zip(orig_list, dest_list):
-			if start_seg != os.path.normcase(dest_seg):
-				break
-			i += 1
-
-		# Now i is the point where the two paths diverge.
-		# Need a certain number of "os.pardir"s to work up
-		# from the origin to the point of divergence.
-		segments = [os.pardir] * (len(orig_list) - i)
-		# Need to add the diverging part of dest_list.
-		segments += dest_list[i:]
-		if len(segments) == 0:
-			# If they happen to be identical, use os.curdir.
-			relpath = os.curdir
-		else:
-			relpath = os.path.join(*segments)
-		return self.__class__(relpath)
+		def commonprefix(m):
+			if not m: return ''
+			s1 = min(m)
+			s2 = max(m)
+			for i, c in enumerate(s1):
+				if c != s2[i]:
+					return s1[:i]
+			return s1
+		# END common prefix 
+		
+		start_list = os.path.abspath(dest).split(os.sep)
+		path_list = os.path.abspath(self._expandvars()).split(os.sep)
+	
+		# Work out how much of the filepath is shared by start and path.
+		i = len(commonprefix([start_list, path_list]))
+	
+		rel_list = [os.pardir] * (len(start_list)-i) + path_list[i:]
+		if not rel_list:
+			return os.curdir
+		return self.__class__(os.path.join(*rel_list))
+		
+	def relpathfrom(self, dest):
+		""" Return a relative path from dest to self"""
+		return self.__class__(dest).relpathto(self)
 
 	def tonative( self ):
 		"""Convert the path separator to the type required by the current operating
