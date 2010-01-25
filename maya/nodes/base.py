@@ -36,6 +36,7 @@ import maya.cmds as cmds
 import maya.OpenMayaMPx as OpenMayaMPx
 import mayarv.maya.ns as nsm
 import mayarv.maya.undo as undo
+from util import in_double3_out_vector, undoable_in_double3_as_vector
 
 from itertools import chain
 import sys
@@ -2199,15 +2200,46 @@ class Transform( DagNode ):		# derived just for epydoc
 	def set( self, transformation ):
 		"""Set the transformation of this Transform node"""
 		curtransformation = self.transformation()
-		mfninst = api.MFnTransform( self._apidagpath )
-
+		setter = self._api_set
 		op = undo.GenericOperation()
-		op.addDoit( mfninst.set, transformation )
-		op.addUndoit( mfninst.set, curtransformation )
+		op.addDoit( setter, transformation )
+		op.addUndoit( setter, curtransformation )
 		op.doIt()
 
 	#} END mfntransform overrides
 
+
+	#{ Convenience Overrides
+	def getScale(self):
+		"""@return: MVector containing the scale of the transform"""
+		return in_double3_out_vector(self._api_getScale)
+		
+	def getShear(self):
+		"""@return: MVector containing the shear of the transform"""
+		return in_double3_out_vector(self._api_getShear)
+
+	@undoable
+	def setScale(self, vec_scale):
+		"""Set the scale of the transform with undo support from a single vector"""
+		return undoable_in_double3_as_vector(self._api_setScale, self.getScale(), vec_scale)
+		
+	@undoable
+	def setShear(self, vec_shear):
+		"""Set the shear value of the transform with undo support from single vector"""
+		return undoable_in_double3_as_vector(self._api_setShear, self.getShear(), vec_shear)
+
+	@undoable
+	def shearBy(self, vec_value):
+		"""Add the given vector to the transform's shear"""
+		return undoable_in_double3_as_vector(self._api_shearBy, self.getShear(), vec_value)
+	
+	@undoable
+	def scaleBy(self, vec_value):
+		"""Add the given vector to the transform's scale"""
+		return undoable_in_double3_as_vector(self._api_scaleBy, self.getScale(), vec_value)
+	
+	#} END convenience overrides
+	
 
 class Shape( DagNode ):	 # base for epydoc !
 	"""Interface providing common methods to all geometry shapes as they can be shaded.
