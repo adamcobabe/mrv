@@ -407,7 +407,7 @@ class ConfigAccessor( object ):
 		if only a keyname is given, it may reside in any section
 		@param default: Default value to be given to a newly created key in case 
 		there is no existing value. If None, the method may raise in case the given
-		key_id does not exíst.
+		key_id does not exist.
 		@return: L{Key} instance whose value may be queried through its 'value' or 
 		'values' attributes"""
 		sid = None
