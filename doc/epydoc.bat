@@ -12,7 +12,7 @@ GOTO HELP
 :DEFAULT
 	set PY="default python"
 	echo.
-	echo try for python
+	echo Generate docs using python in your PATH ...
 	python -V
 	IF ERRORLEVEL 1 GOTO MAYAPY
 	echo.
@@ -23,7 +23,7 @@ GOTO HELP
 :MAYAPY
 	set PY=mayapy
 	echo.
-	echo try for mayapy
+	echo Generating docs using mayapy in your PATH
 	mayapy -V
 	IF ERRORLEVEL 1 GOTO NOPYTHON
 	echo.
@@ -34,7 +34,7 @@ GOTO HELP
 :NOPYTHON
 	echo.
 	echo ERROR: no python installation could be found,
-	echo        please add python directory to PATH environment variable
+	echo        please add the python installation directory to PATH environment variable
 	GOTO END
 
 :EPYERROR
@@ -44,13 +44,13 @@ GOTO HELP
 	GOTO END
 	
 :HELP
-	echo Automaticly creates a html documentation of mayarv to \html subfolder.
-	echo If \html does not exists it will be createt.
+	echo Automatically creates html documentation of mayarv to .\html subfolder.
+	echo If .\html does not exists it will be created.
 	echo.
 	echo usage: epydoc.bat [mayapy]
 	echo.
-	echo By default epydoc.bat uses standart python installation, if calling "python"
-	echo fails "mayapy" will be used instead. 
+	echo By default epydoc.bat uses the python executable in your PATH, and reverts to 
+	echo "mayapy" on failure. 
 	echo In case epydoc package is installed just on mayapy the use of "mayapy" can be
 	echo forced by executing "epydoc.bat mayapy"
 	echo.
