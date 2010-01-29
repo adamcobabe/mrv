@@ -164,7 +164,7 @@ class Enumeration(tuple):
 		"""Prefer to return value from our value map"""
 		try:
 			return self.valueFromName( attr )
-		except KeyError:
+		except ValueError:
 			raise AttributeError( "Element %s is not part of the enumeration" % attr )
 
 
