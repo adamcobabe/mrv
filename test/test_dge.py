@@ -20,6 +20,7 @@ import unittest
 from networkx import DiGraph
 from mayarv.dge import *
 from random import randint
+import tempfile
 
 A = Attribute
 
@@ -249,7 +250,7 @@ class TestDGEngine( unittest.TestCase ):
 		for n in ( s1, s2, s3 ):
 			self.failUnless( getattr( graph, n.getID() ) == n )
 
-		graph.writeDot( "/usr/tmp/PreRemove.dot" )
+		graph.writeDot( tempfile.gettempdir() + "/PreRemove.dot" )
 		# remove nodes and check connections
 		graph.removeNode( s3 )
 		graph.removeNode( s2 )

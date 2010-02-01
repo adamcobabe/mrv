@@ -22,6 +22,7 @@ import unittest
 import workflows
 from mayarv.automation.report import Plan
 import processes
+import tempfile
 
 
 class TestProcesses( unittest.TestCase ):
@@ -30,7 +31,7 @@ class TestProcesses( unittest.TestCase ):
 	def test_workflowProcess( self ):
 		"""mayarv.automation.process: check workflow nested into process"""
 		wfl = workflows.workflowwrap
-		workflows.multiinput.writeDot("/usr/tmp/mygraph.dot" )
+		workflows.multiinput.writeDot(tempfile.gettempdir() + "/mygraph.dot" )
 
 		self.failUnless( len( list( wfl.iterNodes() ) ) ==  1 )
 		rate, process = wfl.getTargetRating( unicode( "this" ) )
