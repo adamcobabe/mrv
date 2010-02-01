@@ -45,6 +45,7 @@ import fnmatch
 import glob
 import shutil
 import codecs
+import re
 from interface import iDagItem
 
 __version__ = '2.1'
@@ -89,6 +90,9 @@ _textmode = 'r'
 if hasattr(file, 'newlines'):
 	_textmode = 'U'
 
+
+# cache used for path expansion
+_varprog = re.compile(r'\$(\w+|\{[^}]*\})')
 
 class TreeWalkWarning(Warning):
 	pass
@@ -152,8 +156,34 @@ class Path( _base, iDagItem ):
 	#} END Special Python methods
 
 	def _expandvars( self ):
-		"""Internal version returning a string only """
-		return os.path.expandvars( self )
+		"""Internal version returning a string only
+		@note: It is a slightly changed copy of the version in posixfile
+		as the windows version was implemented differently ( it expands
+		variables to an empty space which is undesireable )"""
+		if '$' not in self:
+			return self
+		
+		global _varprog
+		i = 0
+		while True:
+			m = _varprog.search(self, i)
+			if not m:
+				break
+			i, j = m.span(0)
+			name = m.group(1)
+			if name.startswith('{') and name.endswith('}'):
+				name = name[1:-1]
+			if name in os.environ:
+				tail = self[j:]
+				self = self[:i] + os.environ[name]
+				i = len(self)
+				self += tail
+			else:
+				i = j
+			# END handle variable exists in environ
+		# END loop forever
+		return self
+
 
 	def getcwd(cls):
 		""" Return the current working directory as a path object. """
@@ -193,7 +223,7 @@ class Path( _base, iDagItem ):
 	def normpath(self):		 return self.__class__(os.path.normpath(self))
 	def realpath(self):		 return self.__class__(os.path.realpath(self._expandvars()))
 	def expanduser(self):	 return self.__class__(os.path.expanduser(self))
-	def expandvars(self):	 return self.__class__(os.path.expandvars(self))
+	def expandvars(self):	 return self.__class__(self._expandvars())
 	def dirname(self):		 return self.__class__(os.path.dirname(self))
 	basename = os.path.basename
 

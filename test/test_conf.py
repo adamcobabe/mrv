@@ -318,22 +318,22 @@ class TestConfigManager( unittest.TestCase ):
 		userFileDir = os.path.join( taggedIniFileDir, "user" )
 
 		directories = [ taggedIniFileDir, userFileDir ]
-		
+		# we default to 32 bits for now
+		# TODO: a reliable mayarv system method to obtain bits would be nice to have
+		bits = 32
 		if os.name == 'nt':
-			bits = os.system('if exist "%windir%\SysWOW64" (exit /B 64) else (exit /B 32)')
+			if os.path.exists(os.path.expandvars("$windir/SysWOW64")):
+				bits = 64
+			# END check for exclusive 64 bit file
 		elif os.name == 'posix':
-			bits = os.uname()[-1][-2:]
-		else:
-			# TODO: 64bit check for all supported os
-			# for now we go for 32bit if unsupported os (for the test at least)
-			bits = '32'
-		# END os specific bit-check
-			
-		tags = [ sys.platform, bits, 'myproject' ]
+			bits = int(os.uname()[-1][-2:])
+		# END check bits per os
+		
+		tags = [ sys.platform, str(bits), 'myproject' ]
 		descriptors = ConfigManager.getTaggedFileDescriptors( directories, tags )
 		
 		expected_descriptor_count = 4
-		if bits == '64':
+		if bits == 64:
 			# this currently only works on linux ( for the test at least )
 			expected_descriptor_count = 5
 		# END descriptor count 	

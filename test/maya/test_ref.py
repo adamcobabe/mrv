@@ -108,8 +108,10 @@ class TestReferenceRunner( unittest.TestCase ):
 					pass
 
 				self.failUnless( ref.p_loaded == load )
-				# on windows inner maya paths use slash and outermaya paths use backslash
-				self.failUnless( os.path.abspath(ref) == newreffile ) # would prefere to use normpath but python 2.5 is buggy with slash-backslash conversion here
+				
+				# on windows inner maya paths use slash and paths outside of maya use backslash
+				# would prefer to use normpath but python 2.5 is buggy with slash-backslash conversion here
+				self.failUnless( os.path.abspath(ref) == newreffile ) 
 				self.failUnless( ref.exists() )
 
 				# try to create a reference with the same namespace
