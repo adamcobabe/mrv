@@ -132,14 +132,13 @@ def iterDagNodes( *args, **kwargs ):
 		@param dagpath:	if True, MDagPaths will be returned ( ~6k paths/s )
 						If False, MObjects will be returned - it will return each object only once ( ~10k objs/s )
 						default True
-		@param depth: 	if True nodes Mobjects will be returned as a depth first traversal of the hierarchy tree ( ~6k path/s )
+		@param depth: 	if True Nodes will be returned as a depth first traversal of the hierarchy tree ( ~6k path/s )
 				 		if False as a post-order (breadth first) ( ~3.5k paths/s, or slower, depending on the scene )
 						default True
 		@param underworld: if True traversal will include a shape's underworld (dag object parented to the shape),
 			  				if False underworld will not be traversed,
 							default is False (do not traverse underworld )
-		@param asNode: 	if True, default false, the returned item will be wrapped into a Node ( 2k Nodes/s )
-						default True
+		@param asNode: 	if True, default True, the returned item will be wrapped into a Node ( 2k Nodes/s )
 		@param root: 	MObject or MDagPath of the object you would like to start iteration on, or None to
 		start on the scene root. The root node will also be returned by the iteration !
 		@param predicate: method returninng True if passed in iteration element can be yielded

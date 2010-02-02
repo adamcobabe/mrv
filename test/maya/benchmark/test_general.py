@@ -309,7 +309,6 @@ class TestGeneralPerformance( unittest.TestCase ):
 		bmaya.Scene.new( force = True )
 
 		p = nodes.Node('perspShape')
-		camfn = api.MFnCamera( p.getObject() )
 
 		# node wrapped
 		a = time.time()
@@ -324,6 +323,14 @@ class TestGeneralPerformance( unittest.TestCase ):
 			p._api_focalLength()  # this wraps the API directly
 		b = time.time()
 		print "%f s : node._api_focalLength()" % ( b - a )
+
+		# node speedwrapped + cached
+		a = time.time()
+		api_get_focal_length = p._api_focalLength
+		for i in range( 10000 ):
+			api_get_focal_length()  # get rid of the dictionary lookup
+		b = time.time()
+		print "%f s : _api_focalLength()" % ( b - a )
 
 		# mfn recreate
 		a = time.time()
