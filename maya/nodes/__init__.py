@@ -160,6 +160,7 @@ if not init_done:
 	from base import *
 	from geometry import *
 	from set import *
+	from anim import *
 	# import additional classes required in this module
 	from mayarv.maya.ns import Namespace
 

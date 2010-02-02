@@ -18,6 +18,15 @@ def in_double3_out_vector(function):
 	
 	return api.MVector(su.getDoubleArrayItem(ptr,0), su.getDoubleArrayItem(ptr,1), su.getDoubleArrayItem(ptr,2))
 
+def in_two_floats_out_tuple(function):
+	"""@return: tuple containing result of function with signature 
+	function(float& f1, float& f2)"""
+	suf1 = api.MScriptUtil()
+	suf2 = api.MScriptUtil()
+	rval = function(suf1.asFloatPtr(), suf2.asFloatPtr())
+	
+	return (suf1.asFloat(), suf2.asFloat())
+
 def in_double3_as_vector(function, vec_value):
 	"""Set the value in vec_value to passed in function as double [3] and 
 	return the result"""
