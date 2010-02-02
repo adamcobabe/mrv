@@ -6,6 +6,7 @@ __license__='MIT License'
 __copyright__='(c) 2010 Sebastian Thiel'
 
 import unittest
+from mayarv.test.lib import *
 import mayarv.maya.nodes as nodes
 
 
@@ -30,15 +31,15 @@ class TestAnim( unittest.TestCase ):
 		anim_curve.addKeyframe(nodes.api.MTime(1.0), 10.0)
 		assert anim_curve.getNumKeyframes() == 2
 		
-		anim_curve.setOutTangentType(0, 4)
-		anim_curve.setTangent(0, 3.0, 4.0, False)
-		
 		# test method overrides 
-		for isInTangent in range(2):
-			for index in range(anim_curve.numKeyframes()):
+		
+		for index in range(anim_curve.numKeyframes()):
+			for isInTangent in range(2):
 				rval = anim_curve.getTangent(index, isInTangent)
 				assert isinstance(rval, tuple) and len(rval) == 2
-				print rval
-			# END for each keyindex
-		# END for each isInTangent value
+				assert rval[0] != 0.0 and rval[1] != 0.0
+			# END for each isInTangent value
+		# END for each keyindex
 		
+		
+		# save_for_debugging('anim')

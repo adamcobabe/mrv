@@ -21,11 +21,14 @@ def in_double3_out_vector(function):
 def in_two_floats_out_tuple(function):
 	"""@return: tuple containing result of function with signature 
 	function(float& f1, float& f2)"""
-	suf1 = api.MScriptUtil()
+	suf1 = api.MScriptUtil()	# keep it, otherwise it might deinitialize its memory
 	suf2 = api.MScriptUtil()
-	rval = function(suf1.asFloatPtr(), suf2.asFloatPtr())
+	pf1 = suf1.asFloatPtr()
+	pf2 = suf2.asFloatPtr()
 	
-	return (suf1.asFloat(), suf2.asFloat())
+	function(pf1, pf2)
+	
+	return (suf1.getFloat(pf1), suf2.getFloat(pf2))
 
 def in_double3_as_vector(function, vec_value):
 	"""Set the value in vec_value to passed in function as double [3] and 
