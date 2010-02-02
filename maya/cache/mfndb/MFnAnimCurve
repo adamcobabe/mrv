@@ -14,7 +14,7 @@
     | MFnAnimCurve_isTimeInput                | None                |                                         
     | MFnAnimCurve_isUnitlessInput            | None                |                                         
     | MFnAnimCurve_isWeighted                 | None                |                                         
-    | MFnAnimCurve_numKeyframes               | None                |                                         
+    | MFnAnimCurve_numKeyframes               | None                |                                        
     | MFnAnimCurve_numKeys                    | None                |                                         
     | MFnAnimCurve_outTangentType             | None                |                                         
     | MFnAnimCurve_postInfinityType           | None                |                                         
@@ -44,24 +44,24 @@
     | addKey                                  | None                |                                         
     | addKeyframe                             | None                |                                         
     | addKeys                                 | None                |                                         
-    | animCurveType                           | None                |                                         
-    | create                                  | None                |                                         
+    | animCurveType                           | None                | getAnimCurveType                                        
+    | create                                  | Node                |                                         
     | delete_MFnAnimCurve                     | None                |                                         
     | evaluate                                | None                |                                         
     | find                                    | None                |                                         
     | findClosest                             | None                |                                         
     | getTangent                              | None                |                                         
-    | inTangentType                           | None                |                                         
+    | inTangentType                           | None                | getInTangentType                                        
     | isBreakdown                             | None                |                                         
     | isStatic                                | None                |                                         
     | isTimeInput                             | None                |                                         
     | isUnitlessInput                         | None                |                                         
     | isWeighted                              | None                |                                         
-    | numKeyframes                            | None                |                                         
-    | numKeys                                 | None                |                                         
-    | outTangentType                          | None                |                                         
-    | postInfinityType                        | None                |                                         
-    | preInfinityType                         | None                |                                         
+    | numKeyframes                            | None                | getNumKeyframes                                        
+    | numKeys                                 | None                | getNumKeys                                        
+    | outTangentType                          | None                | getOutTangentType                                        
+    | postInfinityType                        | None                | getPostInfinityType                                        
+    | preInfinityType                         | None                | getPreInfinityType                                        
     | remove                                  | None                |                                         
     | setAngle                                | None                |                                         
     | setInTangentType                        | None                |                                         
@@ -77,11 +77,11 @@
     | setValue                                | None                |                                         
     | setWeight                               | None                |                                         
     | setWeightsLocked                        | None                |                                         
-    | tangentsLocked                          | None                |                                         
-    | time                                    | None                |                                         
-    | timedAnimCurveTypeForPlug               | None                |                                         
-    | type                                    | None                |                                         
-    | unitlessAnimCurveTypeForPlug            | None                |                                         
-    | unitlessInput                           | None                |                                         
-    | value                                   | None                |                                         
-    | weightsLocked                           | None                |                                         
+    | tangentsLocked                          | None                | getTangentsLocked                                        
+    | time                                    | None                | getTime                                        
+    | timedAnimCurveTypeForPlug               | None                | getTimedAnimCurveTypeForPlug                                        
+    | type                                    | None                | getType                                        
+    | unitlessAnimCurveTypeForPlug            | None                | getUnitlessAnimCurveTypeForPlug                                        
+    | unitlessInput                           | None                | getUnitlessInput                                        
+    | value                                   | None                | getValue                                        
+    | weightsLocked                           | None                | getWeightsLocked                                        

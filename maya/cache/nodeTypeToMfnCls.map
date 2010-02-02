@@ -49,3 +49,5 @@ geometryFilter		| MFnGeometryFilter
 skinCluster			| MFnSkinCluster
 blendShape			| MFnBlendShapeDeformer
 weightGeometryFilter | MFnWeightGeometryFilter
+
+animCurve           | MFnAnimCurve
