@@ -32,7 +32,10 @@ class TestPath( unittest.TestCase ):
 		"""path: test set interaction"""
 		# paths pointing to the same object after all should
 		# compare equal in sets, thus they will not allow to be duplicated in it
-		user = Path( "$HOME" )
+		user = Path( "$HOME" ) # for win $HOME is not defined
+		if os.name == "nt":
+			user = Path("$HOMEPATH")
+		
 		userexp = user.expandvars()
 
 		s = set( ( user, userexp ) )	# same path after all
@@ -42,9 +45,13 @@ class TestPath( unittest.TestCase ):
 		self.failUnless( len( list( userexp.getChildren() ) ) )
 		
 	def test_expand_or_raise(self):
-		self.failUnlessRaises(ValueError, Path("$doesnt_exist/without/variable").expand_or_raise)
+		self.failUnlessRaises( ValueError, Path("$doesnt_exist/without/variable").expand_or_raise) # seems like it never raises on maya python 2.5 becaus of expanding undefined as nothing or maybe os.path.normpath bugg
 		
-		pwv = Path("without/variable")
+		if os.name == "nt":
+			pwv = Path("without\variable") # for win use \
+		else:
+			pwv = Path("without/variable")
+			
 		assert pwv.expand_or_raise() == pwv
 		
 		first_var = os.environ.iterkeys().next()

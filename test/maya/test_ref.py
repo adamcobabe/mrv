@@ -37,6 +37,7 @@ class TestReferenceRunner( unittest.TestCase ):
 		"""mayarv.maya.ref: list some references and query their information """
 		bmaya.Scene.open( common.get_maya_file( "refbase.ma" ), force=True )
 		allRefs = FileReference.ls( )
+
 		self.failUnless( len( allRefs ) != 0 )
 
 		for ref in allRefs:
@@ -101,13 +102,14 @@ class TestReferenceRunner( unittest.TestCase ):
 			for filename in filenames:
 				newreffile = common.get_maya_file( filename )
 				ref = FileReference.create( newreffile , load = load )
-
+				
 				# quick iteration
 				for node in ref.iterNodes( asNode = 1 ):
 					pass
 
 				self.failUnless( ref.p_loaded == load )
-				self.failUnless( ref == newreffile )
+				# on windows inner maya paths use slash and outermaya paths use backslash
+				self.failUnless( os.path.abspath(ref) == newreffile ) # would prefere to use normpath but python 2.5 is buggy with slash-backslash conversion here
 				self.failUnless( ref.exists() )
 
 				# try to create a reference with the same namespace

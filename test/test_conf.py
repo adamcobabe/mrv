@@ -318,9 +318,18 @@ class TestConfigManager( unittest.TestCase ):
 		userFileDir = os.path.join( taggedIniFileDir, "user" )
 
 		directories = [ taggedIniFileDir, userFileDir ]
-		bits = os.uname()[-1][-2:]
+		
+		if os.name == 'nt':
+			bits = os.system('if exist "%windir%\SysWOW64" (exit /B 64) else (exit /B 32)')
+		elif os.name == 'posix':
+			bits = os.uname()[-1][-2:]
+		else:
+			# TODO: 64bit check for all supported os
+			# for now we go for 32bit if unsupported os (for the test at least)
+			bits = '32'
+		# END os specific bit-check
+			
 		tags = [ sys.platform, bits, 'myproject' ]
-
 		descriptors = ConfigManager.getTaggedFileDescriptors( directories, tags )
 		
 		expected_descriptor_count = 4
