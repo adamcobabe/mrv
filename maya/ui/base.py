@@ -410,10 +410,6 @@ class Window( SizedControl, uiutil.UIContainerBase ):
 		""" Show Window"""
 		cmds.showWindow( self )
 
-	def delete( self ):
-		""" Delete window """
-		cmds.deleteUI( self )
-
 	def getNumberOfMenus( self ):
 		"""@return: number of menus in the menu array"""
 		return int( self.__melcmd__( self, q=1, numberOfMenus=1 ) )

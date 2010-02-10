@@ -4,9 +4,6 @@ Contains the most important mel-layouts wrapped into easy to use python classes
 These are specialized and thus more powerful than the default wraps
 
 @todo: more documentation
-
-
-
 """
 
 __author__='$Author: byron $'

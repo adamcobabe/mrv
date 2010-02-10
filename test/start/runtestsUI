@@ -1,7 +1,7 @@
 #!/bin/bash
 # runtestsUI /path/to/maya/binary [ maya_args ]
 # 
-# Uses nose to run tests defined by mayarv, options are provided to nose
+# Uses standard unittest testrunner to run UI tests in mayarv.test.maya.ui
 base=${0%/*}
 if [[ $base != /* ]]; then
 	base=$PWD/$base
@@ -24,6 +24,11 @@ MAYA_APP_DIR=/tmp/maya_test_home
 mkdir -p $MAYA_APP_DIR
 export MAYA_APP_DIR
 touch $MAYA_APP_DIR/Maya.env
+
+# Make sure commands passed to maya are not split up again, hence 
+# we set the split characters to be empty
+IFS=
+set -f
 
 # start maya and make sure it will execute the python user interface tests
 # for this to work, maya must be in the path

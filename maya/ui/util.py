@@ -121,7 +121,7 @@ class CallbackBaseUI( CallbackBase ):
 			"""Set the given event to be called when this event is being triggered"""
 			eventset = self.__get__( inst )
 
-			# REGISTE TO MEL IF THIS IS THE FIRST EVENT
+			# REGISTER TO MEL IF THIS IS THE FIRST EVENT
 			# do we have to register the callback ?
 			if not eventset:
 				kwargs = dict()
@@ -182,7 +182,7 @@ class UIContainerBase( object ):
 		@param set_self_active: if True, we explicitly make ourselves the current parent
 		for newly created UI elements
 		@param revert_to_previous_parent: if True, the previous parent will be restored
-		once we are done, if Fales we stay the parent - only effective if set_self_active is True
+		once we are done, if False we keep the parent - only effective if set_self_active is True
 		@return: the newly added child, allowing contructs like
 		button = layout.addChild( Button( ) )"""
 		if child in self._children:
@@ -252,6 +252,7 @@ class UIContainerBase( object ):
 	def clearChildren( self ):
 		"""Clear our child arrays to quickly forget about our children"""
 		self._children = list()
+
 
 class iItemSet( object ):
 	"""Interface allowing to dynamically add, update and remove items to a layout

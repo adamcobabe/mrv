@@ -1,20 +1,5 @@
 # -*- coding: utf-8 -*-
-"""
-Test some default ui capababilities
-
-
-
-"""
-
-__author__='$Author: byron $'
-__contact__='byronimo <.a.t.> gmail <.> com'
-__version__=1
-__license__='MIT License'
-__date__="$Date: 2008-05-29 02:30:46 +0200 (Thu, 29 May 2008) $"
-__revision__="$Revision: 16 $"
-__id__="$Id: configuration.py 16 2008-05-29 00:30:46Z byron $"
-__copyright__='(c) 2008 Sebastian Thiel'
-
+""" Test some default ui capababilities """
 
 import unittest
 import mayarv.maya.ui as ui
@@ -77,12 +62,14 @@ class TestGeneralUI( unittest.TestCase ):
 
 		col = ui.ColumnLayout( adj=1 )
 		self.failUnless( col.exists() )
-		ui.Button( l="first" )
-		ui.Button( l="second" )
-		ui.Button( l="third" )
 		self.failUnless( isinstance( col, ui.Layout ) )
-
+		if col:
+			ui.Button( l="first" )
+			ui.Button( l="second" )
+			ui.Button( l="third" )
+		# END column layout
 		win.show()
+		
 		win.p_iconify = True
 		win.p_iconify = False
 		self.failUnless( win.p_iconify == False )
@@ -111,7 +98,7 @@ class TestGeneralUI( unittest.TestCase ):
 
 		win.p_titleBarMenu = True
 		win.p_titleBarMenu = False
-		if not cmds.about( linux = 1 ):
+		if cmds.about( nt = 1 ):
 			self.failUnless( win.p_titleBarMenu == False )
 
 		win.p_menuBarVisible = True
@@ -130,8 +117,7 @@ class TestGeneralUI( unittest.TestCase ):
 		"""mayarv.maya.ui: test basic layout functions"""
 		if cmds.about( batch=1 ):
 			return
-		win = ui.Window( title="Test Window" )
-		sys.___layoutwin = win
+		win = ui.Window( title="Test Layout Window" )
 		col = win.add( ui.ColumnLayout( adj=1 ) )
 
 		if col:
@@ -148,7 +134,6 @@ class TestGeneralUI( unittest.TestCase ):
 				b.p_label = "pressed"
 				b2.p_label = "affected"
 
-			sys.___layoutfunc = func
 			b1.e_released = func
 
 			grid = col.add( ui.GridLayout( ) )
@@ -165,6 +150,7 @@ class TestGeneralUI( unittest.TestCase ):
 			self.failUnless( len( col.getChildren( ) ) == 4 )
 			self.failUnless( len( col.getChildrenDeep( ) ) == 6 )
 			self.failUnless( grid.getParent( ) == col )
+			self.failUnless( grid.getParent() is not col )
 		col.setParentActive()
 
 		win.show()
@@ -175,18 +161,16 @@ class TestGeneralUI( unittest.TestCase ):
 		if cmds.about( batch=1 ):
 			return
 
-		win = ui.Window( title="Test Window" )
-		sys.___callbackwin = win				# keep it
+		win = ui.Window( title="Test Callback Window" )
 
 		col = win.add( ui.ColumnLayout( adj=1 ) )
 		self.failUnless( win.getChildByName( str( col ) ) == col )
 		def func( *args ):
 			b = args[0]
 			b.p_label = "pressed"
-			b.p_actionissubstitute = 1
+			b.p_actionIsSubstitute = 1
 			sys.stdout.write( str( args ) )
 
-		sys.__mytestfunc = func		# to keep it alive, it will be weakly bound
 
 		if col:
 			b = col.add( ui.Button( l="b with cb" ), set_self_active=1 )
@@ -218,11 +202,7 @@ class TestGeneralUI( unittest.TestCase ):
 		# END main menu
 		menu.setParentActive( )
 
-
 		ui.Menu( l = "second" )
-
-
-
 		win.show()
 
 	def test_progressWindow( self ):
