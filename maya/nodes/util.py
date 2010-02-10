@@ -2,6 +2,8 @@
 """General utility methods"""
 import maya.OpenMaya as api
 import mayarv.maya.undo as undo
+
+MScriptUtil = api.MScriptUtil
 #{ Decorators
 
 #} END decorators
@@ -11,7 +13,7 @@ import mayarv.maya.undo as undo
 def in_double3_out_vector(function):
 	"""@return: MVector containing result of function with signature 
 	function(double [3])"""
-	su = api.MScriptUtil()
+	su = MScriptUtil()
 	su.createFromDouble(0.0, 0.0, 0.0)
 	ptr = su.asDoublePtr()
 	function(ptr)
@@ -21,19 +23,19 @@ def in_double3_out_vector(function):
 def in_two_floats_out_tuple(function):
 	"""@return: tuple containing result of function with signature 
 	function(float& f1, float& f2)"""
-	suf1 = api.MScriptUtil()	# keep it, otherwise it might deinitialize its memory
-	suf2 = api.MScriptUtil()
+	suf1 = MScriptUtil()	# keep it, otherwise it might deinitialize its memory
+	suf2 = MScriptUtil()
 	pf1 = suf1.asFloatPtr()
 	pf2 = suf2.asFloatPtr()
 	
 	function(pf1, pf2)
 	
-	return (suf1.getFloat(pf1), suf2.getFloat(pf2))
+	return (MScriptUtil.getFloat(pf1), MScriptUtil.getFloat(pf2))
 
 def in_double3_as_vector(function, vec_value):
 	"""Set the value in vec_value to passed in function as double [3] and 
 	return the result"""
-	su = api.MScriptUtil()
+	su = MScriptUtil()
 	su.createFromList([vec_value.x, vec_value.y, vec_value.z], 3)
 	ptr = su.asDoublePtr()
 	return function(ptr)

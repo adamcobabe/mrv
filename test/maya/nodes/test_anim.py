@@ -6,8 +6,10 @@ __license__='MIT License'
 __copyright__='(c) 2010 Sebastian Thiel'
 
 import unittest
+import maya.OpenMaya as api
 from mayarv.test.lib import *
 import mayarv.maya.nodes as nodes
+
 
 
 class TestAnim( unittest.TestCase ):
@@ -38,6 +40,11 @@ class TestAnim( unittest.TestCase ):
 				rval = anim_curve.getTangent(index, isInTangent)
 				assert isinstance(rval, tuple) and len(rval) == 2
 				assert rval[0] != 0.0 and rval[1] != 0.0
+				
+				rval = anim_curve.getTangentAsAngle(index, isInTangent)
+				assert len(rval) == 2
+				assert isinstance(rval[0], api.MAngle)
+				assert rval[0].value() != 0.0 and rval[1] != 0.0
 			# END for each isInTangent value
 		# END for each keyindex
 		
