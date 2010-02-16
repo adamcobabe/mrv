@@ -1,0 +1,12 @@
+.PHONY = pylintclean, analyse
+PYLINT_RESULT = pylint.html
+
+# pylint result file
+$(PYLINT_RESULT) : 
+	pylint --rcfile=pylint.rc `find . -wholename "*.py" -not \( -wholename "*.git/*" -or -wholename "*doc/*" -or -wholename "*.pyc" -or -wholename "*test/*" -or -wholename "*/ext/*" -or -wholename "*start/*" \)` > $@
+
+# alias for pylint result file
+analyse : $(PYLINT_RESULT)
+	
+lintclean : 
+	-rm $(PYLINT_RESULT)
