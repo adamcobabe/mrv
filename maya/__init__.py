@@ -266,7 +266,7 @@ def init_system( ):
 	# RUN USER SETUP
 	###################
 	# TODO: This should be an option in the configuration !
-	# TODO: white the code that runs it once it can be disbled
+	# TODO: write the code that runs it once it can be disbled
 
 	# FINISHED
 	return
@@ -275,7 +275,7 @@ def init_system( ):
 
 
 def init_singletons( ):
-	""" Initialize singleton classes and attach them direclty to our module """
+	""" Initialize singleton classes and attach them direclty to our module"""
 	global Scene
 	global Mel
 

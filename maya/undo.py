@@ -25,7 +25,8 @@ To globally disable the undo queue using cmds.undo will disable tracking of opea
 still call the mel command.
 
 Disable the 'undoable' decorator effectively remove the surroinding mel script calls using
-sys._maya_undo_enabled = False ( default True )
+sys._maya_undo_enabled = False ( default True ). Additionally it will turn off 
+the maya undo queue as a convenience.
 
 @todo: more documentation about how to use the system and how it actually works
 
@@ -70,6 +71,10 @@ def __initialize():
 import maya.OpenMaya as om
 import maya.OpenMayaMPx as mpx
 
+# cache
+isUndoing = om.MGlobal.isUndoing
+undoInfo = cmds.undoInfo
+
 
 # Use sys as general placeholder that will only exist once !
 # Global vars do not really maintain their values as modules get reinitialized
@@ -81,6 +86,9 @@ if not hasattr( sys, "_maya_stack_depth" ):
 
 if not hasattr( sys, "_maya_undo_enabled" ):
 	sys._maya_undo_enabled = True
+
+if not sys._maya_undo_enabled:
+	undoInfo(swf=0)
 
 # command
 class UndoCmd( mpx.MPxCommand ):
@@ -122,8 +130,8 @@ class UndoCmd( mpx.MPxCommand ):
 			return
 
 		# run in reversed order !
-		for index in xrange( len( self._operations )-1, -1, -1 ):
-			self._operations[ index ].undoIt()
+		for op in reversed(self._operations):
+			op.undoIt()
 
 	def isUndoable( self ):
 		"""@return: True if we are undoable - it depends on the state of our
@@ -192,7 +200,7 @@ def undoable( func ):
 	manually, thus using these is will greatly improve code readability
 	@note: if you use undoable functions, you should mark yourself undoable too - otherwise the
 	functions you call will create individual undo steps
-	@note: if sys._maya_undo_enabled is False, the decorator will do nothing """
+	@note: if the undo queue is disabled, the decorator does nothing"""
 	if not sys._maya_undo_enabled:
 		return func
 
@@ -205,41 +213,35 @@ def undoable( func ):
 		simply using the StartUndo helper"""
 		_incrStack( )
 		try:
-			rval = func( *args, **kwargs )
+			return func( *args, **kwargs )
+		finally:
 			_decrStack( name )
-			return rval
-		except:
-			_decrStack( name )
-			raise
-
+		# END try finally
 	# END wrapFunc
 
 	undoableDecoratorWrapFunc.__name__ = name
 	return undoableDecoratorWrapFunc
 
 def forceundoable( func ):
-	"""As undoable, but will enable the undo queue if it is currently disabled
+	"""As undoable, but will enable the undo queue if it is currently disabled. It will 
+	not respect the sys._maya_undo_enabled value as clients rely on the functionality 
+	of the undoqueue.
 	@note: can only be employed reasonably if used in conjunction with L{undoAndClear}
 	as it will restore the old state of the undoqueue afterwards, which might be off, thus
 	rendering attempts to undo impossible"""
-	if not sys._maya_undo_enabled:
-		return func
-
 	undoable_func = undoable( func )
 	def forcedUndo( *args, **kwargs ):
+		global undoInfo
 		disable = False
-		if not cmds.undoInfo( q=1, st=1 ):
+		if not undoInfo( q=1, st=1 ):
 			disable = True
-			cmds.undoInfo( swf=1 )
+			undoInfo( swf=1 )
 		# END undo info handling
 		try:
-			rval = undoable_func( *args, **kwargs )
+			return undoable_func( *args, **kwargs )
+		finally:
 			if disable:
-				cmds.undoInfo( swf=0 )
-			return rval
-		except:
-			if disable:
-				cmds.undoInfo( swf=0 )
+				undoInfo( swf=0 )
 		# END exception handling
 	# END forced undo function
 	return forcedUndo
@@ -248,23 +250,22 @@ def notundoable( func ):
 	"""Decorator wrapping a function into a muteUndo call, thus all undoable operations
 	called from this method will not enter the undostack and thus pollute it.
 	@note: use it if your method cannot support undo, butcalls undoable operations itself
-	@note: all functions using a notundoable should be notundoable themselves"""
+	@note: all functions using a notundoable should be notundoable themselves
+	@note: does nothing if sys._maya_undo_enabled is False"""
+	if not sys._maya_undo_enabled:
+		return func
+	
 	def notundoableDecoratorWrapFunc( *args, **kwargs ):
 		"""This is the long version of the method as it is slightly faster than
 		simply using the StartUndo helper"""
-		prevstate = cmds.undoInfo( q=1, st=1 )
-		cmds.undoInfo( swf = 0 )
-		rval = None
+		global undoInfo
+		prevstate = undoInfo( q=1, st=1 )
+		undoInfo( swf = 0 )
 		try:
-			rval = func( *args, **kwargs )
-		except:
-			cmds.undoInfo( swf = prevstate )
-			raise
+			return func( *args, **kwargs )
+		finally:
+			undoInfo( swf = prevstate )
 		# END exception handling
-		
-		cmds.undoInfo( swf = prevstate )
-		return rval
-		
 	# END wrapFunc
 
 	if hasattr( func, "__name__" ):
@@ -309,8 +310,8 @@ def undoAndClear( ):
 	sys._maya_stack = list()
 
 	# run in reversed order !
-	for index in xrange( len( operations )-1, -1, -1 ):
-		operations[ index ].undoIt()
+	for op in reversed(operations):
+		op.undoIt()
 
 #}
 
@@ -330,14 +331,15 @@ class Operation( object ):
 		"""Operations will always be placed on the undo queue if undo is available
 		This happens automatically upon creation
 		@note: assure subclasses call the superclass init !"""
-		if not om.MGlobal.isUndoing() and cmds.undoInfo( q=1, st=1 ):
+		global isUndoing
+		global undoInfo
+		if sys._maya_undo_enabled and not isUndoing() and undoInfo( q=1, st=1 ):
 			# sanity check !
-			if sys._maya_undo_enabled and sys._maya_stack_depth < 1:
+			if sys._maya_stack_depth < 1:
 				raise AssertionError( "Undo-Stack was %i, but must be at least 1 before operations can be put - check your code !" % sys._maya_stack_depth )
-
+			# END sanity check
 			sys._maya_stack.append( self )
-
-
+		# END if not undoing and undo is enabled
 	def doIt( self ):
 		"""Do whatever you do"""
 		raise NotImplementedError
@@ -345,6 +347,7 @@ class Operation( object ):
 	def undoIt( self ):
 		"""Undo whatever you did"""
 		raise NotImplementedError
+
 
 class GenericOperation( Operation ):
 	"""Simple oeration allowing to use a generic doit and untoit call to be accessed
@@ -423,8 +426,9 @@ class GenericOperationStack( Operation ):
 
 	def doIt( self ):
 		"""Call all doIt commands stored in our instance after temporarily disabling the undo queue"""
-		prevstate = cmds.undoInfo( q=1, st=1 )
-		cmds.undoInfo( swf=False )
+		global undoInfo
+		prevstate = undoInfo( q=1, st=1 )
+		undoInfo( swf=False )
 
 		try:
 			if self._undocmds_tmp:
@@ -448,13 +452,14 @@ class GenericOperationStack( Operation ):
 				# END for each do calll
 			# END if undo cmds have been verified
 		finally:
-			cmds.undoInfo( swf=prevstate )
+			undoInfo( swf=prevstate )
 
 	def undoIt( self ):
 		"""Call all undoIt commands stored in our instance after temporarily disabling the undo queue"""
 		# NOTE: the undo list is already reversed !
-		prevstate = cmds.undoInfo( q=1, st=1 )
-		cmds.undoInfo( swf=False )
+		global undoInfo
+		prevstate = undoInfo( q=1, st=1 )
+		undoInfo( swf=False )
 
 		# sanity check
 		try:
@@ -464,7 +469,7 @@ class GenericOperationStack( Operation ):
 			for call in self._undocmds:
 				call()
 		finally:
-			cmds.undoInfo( swf=prevstate )
+			undoInfo( swf=prevstate )
 
 
 	def addCmd( self, doCall, undoCall ):
@@ -480,14 +485,15 @@ class GenericOperationStack( Operation ):
 		this way to add your commands or the L{addCmd} method, never mix them !
 		@return: return value of the doCall
 		@note: use this method if you need the return value of the doCall right away"""
-		prevstate = cmds.undoInfo( q=1, st=1 )
-		cmds.undoInfo( swf=False )
+		global undoInfo
+		prevstate = undoInfo( q=1, st=1 )
+		undoInfo( swf=False )
 
 		rval = doCall()
 		self._docmds.append( doCall )
 		self._undocmds.insert( 0, undoCall )
 
-		cmds.undoInfo( swf=prevstate )
+		undoInfo( swf=prevstate )
 		return rval
 
 
@@ -517,6 +523,7 @@ class DGModifier( Operation ):
 		"""Override from Operation"""
 		return self._modifier.undoIt()
 
+
 class DagModifier( DGModifier ):
 	"""undo-aware DAG modifier, copying all extra functions from DGModifier"""
 	__slots__ = tuple()
@@ -529,7 +536,8 @@ class DagModifier( DGModifier ):
 MDGModifier = DGModifier
 MDagModifier = DagModifier
 
-#}
+#} END aliases
+
 
 #} END operations
 

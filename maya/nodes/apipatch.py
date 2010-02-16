@@ -32,6 +32,7 @@ from mayarv.util import getPythonIndex
 import maya.OpenMaya as api
 import maya.cmds as cmds
 import inspect
+import sys
 
 
 
@@ -709,7 +710,9 @@ class MPlug( api.MPlug, util.iDagItem ):
 		"""Create a function setting a value with undo support
 		@param dataTypeId: string naming the datatype, like "Bool" - capitalization is
 		important
-		@note: to use the orinal method without undo, use """
+		@note: if undo is globally disabled, we will resolve to implementing a faster
+		function instead as we do not store the previous value.
+		@note: to use the orinal method without undo, use api.MPlug.setX(your_plug, value)"""
 		# this binds the original setattr and getattr, not the patched one
 		getattrfunc = getattroverride
 		if not getattrfunc:
@@ -749,11 +752,11 @@ class MPlug( api.MPlug, util.iDagItem ):
 			finalWrappedSetAttr = wrappedSetAttr
 		# END MObject special case
 
-		# did undoable do anything ? If not, its disabled
+		# did undoable do anything ? If not, its disabled and we return the original
 		wrappedUndoableSetAttr = undoable( finalWrappedSetAttr )
-		if wrappedUndoableSetAttr == finalWrappedSetAttr:
-			# return original
+		if wrappedUndoableSetAttr is finalWrappedSetAttr:
 			return setattrfunc
+		# END return original 
 
 		return wrappedUndoableSetAttr
 
