@@ -17,10 +17,22 @@ __copyright__='(c) 2008 Sebastian Thiel'
 #### Exceptions		 	####
 #########################
 
-
 if 'init_done' not in locals():
 	init_done = False
 
+
+#{ Initialization Utilities
+def _force_type_creation():
+	"""Enforce the creation of all ui types - must be called once all custom types 
+	were imported"""
+	from mayarv.maya.util import StandinClass
+	for cls in globals().itervalues():
+		if isinstance( cls, StandinClass ):
+			cls.createCls()
+		# END create type 
+	# END for each stored type
+
+#} END initialization utilities
 
 if not init_done:
 	import typ
@@ -38,6 +50,9 @@ if not init_done:
 	from layout import *
 	from panel import *
 	from editor import *
+	
+	# automatic types need to be created in the end !
+	_force_type_creation()
 # END initialization
 
 init_done = True

@@ -117,9 +117,10 @@ def forceClassCreation( typeNameList ):
 	The typenames must be upper case
 	@return: List of type instances ( the classes ) that have been created"""
 	outclslist = []
+	standincls = bmayautil.StandinClass
 	for typename in typeNameList:
 		typeCls = getattr( _thismodule, typename )
-		if isinstance( typeCls, bmayautil.StandinClass ):
+		if isinstance( typeCls, standincls ):
 			outclslist.append( typeCls.createCls() )
 	# END for each typename
 	return outclslist
@@ -147,6 +148,18 @@ def init_package( ):
 	init_modules( __file__, "mayarv.maya.nodes", self_module = _thismodule )
 
 
+def _force_type_creation():
+	"""Enforce the creation of all types - must be called once all custom types 
+	were imported"""
+	global _thismodule
+	standincls = bmayautil.StandinClass
+	for cls in _thismodule.__dict__.itervalues():
+		if isinstance( cls, standincls ):
+			cls.createCls()
+		# END create type 
+	# END for each stored type
+	
+	
 
 if 'init_done' not in locals():
 	init_done = False
@@ -161,8 +174,14 @@ if not init_done:
 	from geometry import *
 	from set import *
 	from anim import *
+	from it import *
+	from storage import *
+	
 	# import additional classes required in this module
 	from mayarv.maya.ns import Namespace
+	
+	# Setup all actual types - this makes the use much easier
+	_force_type_creation()
 
 
 init_done = True

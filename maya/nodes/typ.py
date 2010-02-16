@@ -481,19 +481,7 @@ def _addCustomTypeFromDagtree( targetModule, dagtree, metaclass=MetaClassCreator
 				yield edge
 
 	nodeTypeTree.add_edges_from( recurseOutEdges( rootnode ) )
-
-	bmaya._initWrappers( targetModule, dagtree.nodes_iter(), metaclass, force_creation = False, **kwargs )
-
-	if force_creation:
-		for nodename in dagtree.nodes_iter():
-			nodename = capitalize( nodename )
-			standininst = getattr( targetModule, nodename )
-
-			# just to be sure
-			if isinstance( standininst, StandinClass ):
-				standininst.createCls( )
-		# END for each node type name ( to create the acutal class for
-	# END force_creation handling
+	bmaya._initWrappers( targetModule, dagtree.nodes_iter(), metaclass, force_creation = force_creation, **kwargs )
 
 
 ################################

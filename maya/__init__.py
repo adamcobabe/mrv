@@ -96,20 +96,26 @@ def _initWrappers( module, types, metacreatorcls, force_creation = False ):
 	from mayarv.maya.util import StandinClass
 
 	# create dummy class that will generate the class once it is first being instatiated
+	standin_instances = list()
+	mdict = module.__dict__
 	for uitype in types:
 		clsname = capitalize( uitype )
 
 		# do not overwrite hand-made classes
-		if clsname in module.__dict__:
+		if clsname in mdict:
 			continue
 
 		standin = StandinClass( clsname, metacreatorcls )
-		module.__dict__[ clsname ] = standin
+		mdict[ clsname ] = standin
 
 		if force_creation:
-			standin.createCls( )
-
+			standin_instances.append(standin)
 	# END for each uitype
+	
+	# delay forced creation as there may be hierarchical relations between 
+	# the types
+	for standin in standin_instances:
+		standin.createCls( )
 
 
 def parse_maya_env( envFilePath ):

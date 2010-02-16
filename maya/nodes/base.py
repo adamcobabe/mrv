@@ -76,9 +76,6 @@ def nodeTypeToNodeTypeCls( nodeTypeName ):
 	except KeyError:
 		raise TypeError( "NodeType %s unknown - it cannot be wrapped" % nodeTypeName )
 
-	# CHECK FOR STANDIN CLASS
-	###########################
-	# The class type could still be a standin - call it
 	if isinstance( nodeTypeCls, StandinClass ):
 		nodeTypeCls = nodeTypeCls.createCls( )
 

@@ -288,7 +288,6 @@ class TestNodeBase( unittest.TestCase ):
 		nodes.addCustomType( "MyNewCls",parentClsName = "dependNode" )
 		# standin class should be there
 		cls = nodes.MyNewCls
-		self.failUnless( isinstance( cls, StandinClass ) )
 		self.failUnlessRaises( TypeError, cls, "persp" )	# class has incorrect type for persp
 		# NOTE: needed actual plugin type for proper test
 
