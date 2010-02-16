@@ -5,14 +5,8 @@
 
 """
 
-__author__='Don Garret'
 __contact__='garret at bgb dot cc'
-__version__=1
 __license__='freeware'
-__date__="$Date: 2008-05-29 02:30:46 +0200 (Thu, 29 May 2008) $"
-__revision__="$Revision: 16 $"
-__id__="$Id:$"
-__copyright__='(c) 2003 Don Garret'
 
 import unittest
 import mayarv.enum as Enumeration

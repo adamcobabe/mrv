@@ -77,7 +77,7 @@ class QAMetaMel( _NodeBaseCheckMeta ):
 		return newcls
 
 
-class QAMELAdapter( object ):
+class QAMELMixin( object ):
 	"""Base class allowing to process MEL baesd plugs as created by our metaclass
 	@note: this class assumes it is used on a process
 

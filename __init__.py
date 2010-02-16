@@ -8,14 +8,6 @@ Initialize mayarv system assisting development, debugging and maintenance
 
 """
 
-__author__='$Author$'
-__contact__='byronimo <.a.t.> gmail <.> com'
-__version__=1
-__license__='MIT License'
-__date__="$Date$"
-__revision__="$Revision$"
-__id__="$Id$"
-__copyright__='(c) 2008 Sebastian Thiel'
 
 import __builtin__
 from inspect import isfunction

@@ -71,12 +71,13 @@ class TestGeneralUI( unittest.TestCase ):
 			ui.Button( l="second" )
 			ui.Button( l="third" )
 			
-			if sys.version_info[1] > 5:
-				with ui.ColumnLayout( w=20 ):
-					ui.Button( l="sub" )
-				# END with test
-				b = ui.Button( l="previous column" )
-				assert b.getParent() == col 
+			# worked last time it was tested, its a simple implementation as well
+			# Causes error in python 2.4 though, hence its disabled
+			#with ui.ColumnLayout( w=20 ):
+			#	ui.Button( l="sub" )
+			# END with test
+			#b = ui.Button( l="previous column" )
+			#assert b.getParent() == col 
 			# END python 2.6 or higher required
 		# END column layout
 		win.show()

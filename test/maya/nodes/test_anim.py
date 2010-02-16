@@ -2,8 +2,6 @@
 """
 Test animCurves and related types
 """
-__license__='MIT License'
-__copyright__='(c) 2010 Sebastian Thiel'
 
 import unittest
 import maya.OpenMaya as api

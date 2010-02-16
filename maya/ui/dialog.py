@@ -8,13 +8,6 @@ Contains some default dialogs as well as layouts suitable for layout dialogs
 
 """
 
-__author__='$Author: byron $'
-__contact__='byronimo <.a.t.> gmail <.> com'
-__version__=1
-__license__='MIT License'
-__revision__="$Revision: 16 $"
-__id__="$Id: configuration.py 16 2008-05-29 00:30:46Z byron $"
-__copyright__='(c) 2008 Sebastian Thiel'
 
 
 import base as uibase

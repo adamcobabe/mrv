@@ -6,14 +6,6 @@ Test the quality assurance framework and it's mel bindings
 
 """
 
-__author__='$Author: byron $'
-__contact__='byronimo <.a.t.> gmail <.> com'
-__version__=1
-__license__='MIT License'
-__date__="$Date: 2008-05-29 02:30:46 +0200 (Thu, 29 May 2008) $"
-__revision__="$Revision: 16 $"
-__id__="$Id: configuration.py 16 2008-05-29 00:30:46Z byron $"
-__copyright__='(c) 2008 Sebastian Thiel'
 
 
 import unittest
@@ -42,7 +34,7 @@ check_proc_create = """global proc string[] b_test_check( string $cname, int $sh
 mmel.eval( check_proc_create )
 
 
-class TestMELQAProcess( processes.QACheckProcess, qa.QAMELAdapter ):
+class TestMELQAProcess( processes.QACheckProcess, qa.QAMELMixin ):
 	"""Test class providing some configuration"""
 	mel_index_proc = "b_test_index"
 	mel_check_proc = "b_test_check"

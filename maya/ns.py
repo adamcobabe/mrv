@@ -7,14 +7,6 @@ Allows convenient access and handling of namespaces in an object oriented manner
 
 """
 
-__author__='$Author: byron $'
-__contact__='byronimo <.a.t.> gmail <.> com'
-__version__=1
-__license__='MIT License'
-__date__="$Date: 2008-05-29 02:30:46 +0200 (Thu, 29 May 2008) $"
-__revision__="$Revision: 16 $"
-__id__="$Id: configuration.py 16 2008-05-29 00:30:46Z byron $"
-__copyright__='(c) 2008 Sebastian Thiel'
 
 from mayarv.maya import undo
 from mayarv.maya.util import noneToList, MuteUndo

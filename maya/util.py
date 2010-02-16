@@ -5,14 +5,6 @@
 
 """
 
-__author__='$Author: byron $'
-__contact__='byronimo <.a.t.> gmail <.> com'
-__version__=1
-__license__='MIT License'
-__date__="$Date: 2008-07-16 22:41:16 +0200 (Wed, 16 Jul 2008) $"
-__revision__="$Revision: 22 $"
-__id__="$Id: configuration.py 22 2008-07-16 20:41:16Z byron $"
-__copyright__='(c) 2008 Sebastian Thiel'
 
 
 import maya.mel as mm
