@@ -177,6 +177,14 @@ class UIContainerBase( object ):
 		else:
 			return self._children[ key ]
 
+	def __enter__(self):
+		return self
+		
+	def __exit__(self, type, value, traceback):
+		if type is None and hasattr(self, 'setParentActive'):
+			self.setParentActive()
+		# END only undo parenting if there is no exception
+
 	def add( self, child, set_self_active = False, revert_to_previous_parent = True ):
 		"""Add the given child UI item to our list of children
 		@param set_self_active: if True, we explicitly make ourselves the current parent
