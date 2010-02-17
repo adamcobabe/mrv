@@ -224,13 +224,15 @@ class Path( _base, iDagItem ):
 	basename = os.path.basename
 
 	def expand(self):
-		""" Clean up a filename by calling expandvars(),
-		expanduser(), and normpath() on it.
+		""" Clean up a filename by calling expandvars() and expanduser()
 
 		This is commonly everything needed to clean up a filename
 		read from a configuration file, for example.
+		
+		If you are not interested in trailing slashes, you should call
+		normpath() on the resulting Path as well.
 		"""
-		return self.expandvars().expanduser().normpath()
+		return self.expandvars().expanduser()
 
 	def containsvars( self ):
 		"""@return: True if this path contains environment variables"""
