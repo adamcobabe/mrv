@@ -9,9 +9,7 @@ a cache has to be cleared or not ... possibly
 
 """
 
-
-from networkx import DiGraph, NetworkXError
-from networkx.xdigraph import XDiGraph
+import networkx as nx
 from collections import deque
 import inspect
 import weakref
@@ -724,7 +722,7 @@ class _PlugShell( tuple ):
 
 
 
-class Graph( DiGraph, iDuplicatable ):
+class Graph( nx.DiGraph, iDuplicatable ):
 	"""Holds the nodes and their connections
 
 	Nodes are kept in a separate list whereas the plug connections are kept
@@ -757,46 +755,30 @@ class Graph( DiGraph, iDuplicatable ):
 	def writeDot( self , fileOrPath  ):
 		"""Write the connections in self to the given file object or path
 		@todo: remove if no longer needed"""
-		import networkx.drawing.nx_pydot as dotio
-
 		# associate every plugshell with its node create a more native look
-		writegraph = XDiGraph()
+		writegraph = nx.DiGraph()
 		# but we do not use it as the edge attrs cannot be assigned anymore - dict has no unique keys
 		# writegraph.allow_multiedges()
 
-		graphattrs = { "style" : "filled" }
-		nodeattrs = dict()
-		edgeattrs = dict()
-
 		# EXTRACT DATA
 		for node in self.iterNodes():
-			nodeattrs[ node ] = { "color" : "#ebba66", "width" : "4", "height" : "2", "fontsize" : "22" }
-			writegraph.add_node( node )
+			writegraph.add_node( node, color="#ebba66", width=4, height=2, fontsize=22 )
 		# END for each node in graph
 
 		# now all the connections - just transfer them
 		for sshell,eshell in self.edges_iter():
-			edge = (sshell,eshell)
-			writegraph.add_edge( edge )
+			writegraph.add_edge( sshell,eshell )
 
-			node_to_shell = (sshell.node,sshell)
-			writegraph.add_edge( node_to_shell )
-			edgeattrs[ node_to_shell ] = { "color" : "#000000" }	# change color
+			writegraph.add_edge( sshell.node, sshell, color="#000000" )
+			
+			writegraph.add_node( sshell, color="#000000", label=sshell.plug )
+			writegraph.add_node( eshell, color="#000000", label=eshell.plug )
 
-			nodeattrs[ sshell ] = { "color" : "#000000", "label" : sshell.plug }	# change color
-			nodeattrs[ eshell ] = { "color" : "#000000", "label" : eshell.plug }	# change color
-
-			shell_to_node = (eshell,eshell.node)
-			writegraph.add_edge( shell_to_node )
-			edgeattrs[ shell_to_node ] = { "color" : "#000000" }	# change color
+			writegraph.add_edge( eshell,eshell.node, color="#000000" )
 		# END for each edge in graph
 
 		# WRITE DOT FILE
-		fh = dotio._get_fh( fileOrPath ,'w' )
-		P = dotio.to_pydot( writegraph, graph_attr=graphattrs, node_attr=nodeattrs, edge_attr=edgeattrs )
-		P.set( "ratio", "1" )
- 		fh.write( P.to_string( ) )
- 		fh.flush( ) # might be a user filehandle so leave open (but flush)
+		nx.write_dot(writegraph, fileOrPath)
 
 	#} END debugging
 
@@ -980,12 +962,12 @@ class Graph( DiGraph, iDuplicatable ):
 	def disconnect( self, sourceshell, destinationshell ):
 		"""Remove the connection between sourceshell to destinationshell if they are connected
 		@note: does not raise if no connection is present"""
-		self.delete_edge( sourceshell, v = destinationshell )
+		self.remove_edge( sourceshell, v = destinationshell )
 
 		# also, delete the plugshells if they are not connnected elsewhere
 		for shell in sourceshell,destinationshell:
 			if len( self.neighbors( shell ) ) == 0:
-				self.delete_node( shell )
+				self.remove_node( shell )
 
 	def getInput( self, plugshell ):
 		"""@return: the connected input plug of plugshell or None if there is no such connection
@@ -996,7 +978,7 @@ class Graph( DiGraph, iDuplicatable ):
 			pred = self.predecessors( plugshell )
 			if pred:
 				return pred[0]
-		except NetworkXError:
+		except nx.NetworkXError:
 			pass
 
 		return None
@@ -1006,7 +988,7 @@ class Graph( DiGraph, iDuplicatable ):
 		@param predicate: plug will only be returned if predicate is true for it - shells will be passed in """
 		try:
 			return [ s for s in self.successors( plugshell ) if predicate( s ) ]
-		except NetworkXError:
+		except nx.NetworkXError:
 			return list()
 
 	#} END connections

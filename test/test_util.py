@@ -17,11 +17,11 @@ class TestDAGTree( unittest.TestCase ):
 	def test_dagMethods( self ):
 		"""mayarv.util.DAGTree: Test general methods"""
 		self.tree = DAGTree( )
-		self.tree.add_edge( (0,1) )
-		self.tree.add_edge( (0,2) )
-		self.tree.add_edge( (0,3) )
-		self.tree.add_edge( (1,4) )
-		self.tree.add_edge( (4,5) )
+		self.tree.add_edge( 0,1 )
+		self.tree.add_edge( 0,2 )
+		self.tree.add_edge( 0,3 )
+		self.tree.add_edge( 1,4 )
+		self.tree.add_edge( 4,5 )
 
 		self.failUnless( self.tree.parent( 1 ) == 0 )
 		self.failUnless( self.tree.parent( 5 ) == 4 )

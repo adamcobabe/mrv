@@ -5,8 +5,7 @@
 
 """
 
-
-from networkx.digraph import DiGraph
+import networkx as nx
 from mayarv.dge import Graph, ComputeError
 import time
 import weakref
@@ -103,7 +102,7 @@ class Workflow( Graph ):
 			return None
 
 
-	class CallGraph( DiGraph ):
+	class CallGraph( nx.DiGraph ):
 		"""Simple wrapper storing a call graph, keeping the root at which the call started
 		@note: this class is specialized to be used by workflows, its not general for that
 		purpose"""

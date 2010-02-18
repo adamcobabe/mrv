@@ -6,7 +6,7 @@
 """
 
 
-import networkx.tree as nxtree
+import networkx as nx
 from collections import deque as Deque
 import weakref
 import inspect
@@ -659,7 +659,7 @@ class CallOnDeletion( object ):
 			self.callableobj( )
 
 
-class DAGTree( nxtree.DirectedTree ):
+class DAGTree( nx.DiGraph ):
 	"""Adds utility functions to DirectedTree allowing to handle a directed tree like a dag
 	@note: currently this tree does not support instancing
 	@todo: add instancing support"""

@@ -11,8 +11,6 @@
 ## CLASSES    ######
 ###################
 
-import networkx.search as search
-
 class ReportBase( object ):
 	"""Provides main interface for all reports as well as the basic implementation"""
 

@@ -60,7 +60,7 @@ def _dagTreeFromTupleList( tuplelist ):
 		elif direction < -1:		# we go many parents back, find the parent at level
 			lastparent = list( tree.parent_iter( lastparent ) )[ -level ]
 
-		tree.add_edge( ( lastparent, name ) )
+		tree.add_edge( lastparent, name )
 		lastchild = name
 	# END for each line in hiearchy map
 

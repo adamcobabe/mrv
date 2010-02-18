@@ -448,7 +448,7 @@ def _addCustomType( targetmodule, parentclsname, newclsname,
 	# add new type into the type hierarchy #
 	parentclsname = uncapitalize( parentclsname )
 	newclsname = uncapitalize( newclsname )
-	nodeTypeTree.add_edge( ( parentclsname, newclsname ) )
+	nodeTypeTree.add_edge( parentclsname, newclsname )
 
 	# create wrapper ( in case newclsname does not yet exist in target module )
 	bmaya._initWrappers( targetmodule, [ newclsname ], metaclass, **kwargs )

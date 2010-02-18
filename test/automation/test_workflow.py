@@ -5,9 +5,6 @@ Test the workflow class
 
 
 """
-
-
-
 import unittest
 import workflows
 import mayarv.automation.workflow as workflow
