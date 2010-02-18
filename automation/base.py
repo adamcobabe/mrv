@@ -5,7 +5,7 @@
 
 """
 
-
+import networkx as nx
 from mayarv.path import Path
 from mayarv.dge import PlugAlreadyConnected
 from mayarv.dgfe import GraphNodeBase
@@ -24,13 +24,16 @@ def _toSimpleType( stringtype ):
 def _getNodeInfo( node ):
 	"""@return: ( nodename, args, kwargs ) - all arguments have been parsed"""
 	args = [ node.get_name().strip('"') ]
-	if node.toplabel:
-		args.extend( [ _toSimpleType( a ) for a in node.toplabel.split(',') ] )
+	nodeattrs = node.get_attributes()
+	tl = nodeattrs.get('toplabel', '').strip('"')
+	if tl:
+		args.extend( [ _toSimpleType( a ) for a in tl.split(',') ] )
 	# END if args are set
 
 	kwargs = dict()
-	if node.bottomlabel:
-		for kwa in node.bottomlabel.split(','):
+	bl = nodeattrs.get('bottomlabel', '').strip('"')
+	if bl:
+		for kwa in bl.split(','):
 			k,v = tuple(kwa.split('='))
 			kwargs[ k ] = _toSimpleType( v )
 		# END for each kw value
@@ -38,9 +41,9 @@ def _getNodeInfo( node ):
 
 	# convert name such that if one can write nodename(args,kwargs), without
 	# destroing the original node name
-	typename = node.label
+	typename = node.get_label()
 	if typename:
-		typename = typename.split( "(" )[0]
+		typename = typename.strip('"').split( "(" )[0]
 
 	return ( typename, args,kwargs )
 
@@ -72,6 +75,9 @@ def loadWorkflowFromDotFile( dotfile, workflowcls = None ):
 	for node in dotgraph.get_node_list():
 		# can have initializers
 		nodeid = node.get_name().strip( '"' )
+		# ignore default node
+		if nodeid == "node":
+			continue	
 		processname,args,kwargs = _getNodeInfo( node )
 
 		# skip nodes with incorrect label - the parser returns one node each time it appears
@@ -101,8 +107,8 @@ def loadWorkflowFromDotFile( dotfile, workflowcls = None ):
 	#############
 	# create most suitable plug connections
 	for edge in dotgraph.get_edge_list():
-		snode = edge_lut[ edge.get_source() ]
-		dnode = edge_lut[ edge.get_destination() ]
+		snode = edge_lut[ edge.get_source().strip('"') ]
+		dnode = edge_lut[ edge.get_destination().strip('"') ]
 		destplugs = dnode.getInputPlugs( )
 
 		numConnections = 0
@@ -162,17 +168,8 @@ def loadWorkflowFromDotFile( dotfile, workflowcls = None ):
 		# assure we have a connection
 		if numConnections == 0:
 			raise AssertionError( "Found no compatible connection from %s to %s in workflow %s - check your processes" % ( snode, dnode, wfl ) )
-
-	# DEBUG - write workflow
-	#import tempfile
-	#path = "%s/%s.postcreate.dot" % ( tempfile.gettempdir(), wfl )
-	#wfl.writeDot( path )
-	#msg = "Wrote DOT to: %s" % path
-	#print "-" * len( msg )
-	#print msg
-	#print "-" * len( msg )
-
 	# END for each edge
+	
 	return wfl
 
 

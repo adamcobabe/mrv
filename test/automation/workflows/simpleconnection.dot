@@ -1,7 +1,7 @@
 digraph test {
 ratio=1
 node [style=filled]
-"TestProcess0" [fillcolor="#ebba66",label="TestProcess"];
-"TestProcess1" [fillcolor="#ebba66",label="TestProcess"];
-"TestProcess0" -> "TestProcess1" [label="TestData",headlabel="1"];
+TestProcess0 [fillcolor="#ebba66",label=TestProcess];
+TestProcess1 [fillcolor="#ebba66",label=TestProcess];
+TestProcess0 -> TestProcess1 [label="TestData",headlabel="1"];
 }

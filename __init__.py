@@ -99,7 +99,7 @@ def _init_syspath( ):
 	extbase = os.path.join( os.path.split( __file__ )[0], "ext" )
 
 	# pyparsing
-	pyparsing = os.path.join( extbase, "pyparsing" )
+	pyparsing = os.path.join( extbase, "pyparsing", "src" )
 
 	# pydot
 	pydot = os.path.join( extbase, "pydot" )
