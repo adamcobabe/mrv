@@ -5,12 +5,10 @@ Test general performance
 
 
 """
-
-
-
 import unittest
 import mayarv.maya as bmaya
 import mayarv.maya.nodes as nodes
+from mayarv.maya.nodes import Node
 import mayarv.test.maya as common
 import sys
 import maya.cmds as cmds
@@ -212,7 +210,7 @@ class TestGeneralPerformance( unittest.TestCase ):
 
 			# WITH NODE CONVERSION
 			starttime = time.time( )
-			for node in it.iterDagNodes( asNode = 1 ):
+			for node in it.iterDagNodes( asNode = 1, dagpath=False ):
 				pass
 			elapsed = time.time() - starttime
 			print "Walked %i WRAPPED nodes from MObjects in %f s ( %f / s )" % ( nodecount, elapsed, nodecount / elapsed )
@@ -220,7 +218,7 @@ class TestGeneralPerformance( unittest.TestCase ):
 
 			# BREADTH
 			starttime = time.time( )
-			for dagpath in it.iterDagNodes( depth = 0 ):
+			for dagpath in it.iterDagNodes( depth = 0, dagpath=False ):
 				pass
 			elapsed = time.time() - starttime
 			print "Walked %i nodes from MObjects BREADTH FIRST in %f s ( %f / s )" % ( nodecount, elapsed, nodecount / elapsed )
@@ -276,22 +274,24 @@ class TestGeneralPerformance( unittest.TestCase ):
 
 		starttime = time.time( )
 		for name in nodenames:
-			Nodes.append( nodes.Node( name ) )
+			Nodes.append( Node( name ) )
 
 		elapsed = time.time() - starttime
-		print "Created %i Nodes ( from STRING ) in %f s ( %f / s )" % ( len( nodenames ), elapsed, len( nodenames ) / elapsed )
+		print "Created %i WRAPPED Nodes ( from STRING ) in %f s ( %f / s )" % ( len( nodenames ), elapsed, len( nodenames ) / elapsed )
 
 
 		# CREATE MAYA NODES FROM DAGPATHS AND OBJECTS
 		starttime = time.time( )
+		tmplist = list()	# previously we measured the time it took to append the node as well
 		for node in Nodes:
 			if isinstance( node, nodes.DagNode ):
-				n = nodes.Node( node._apidagpath )
+				tmplist.append( Node( node._apidagpath ) )
 			else:
-				n = nodes.Node( node._apiobj )
+				tmplist.append( Node( node._apiobj ) )
+		# END for each wrapped node
 
 		api_elapsed = time.time() - starttime
-		print "Created %i Nodes ( from APIOBJ ) in %f s ( %f / s ) -> %f %% faster" % ( len( nodenames ), api_elapsed, len( nodenames ) / api_elapsed, (elapsed / api_elapsed) * 100 )
+		print "Created %i WRAPPED Nodes ( from APIOBJ ) in %f s ( %f / s ) -> %f %% faster" % ( len( nodenames ), api_elapsed, len( nodenames ) / api_elapsed, (elapsed / api_elapsed) * 100 )
 
 
 	def test_wrappedFunctionCall( self ):
@@ -300,7 +300,7 @@ class TestGeneralPerformance( unittest.TestCase ):
 
 		bmaya.Scene.new( force = True )
 
-		p = nodes.Node('perspShape')
+		p = Node('perspShape')
 
 		# node wrapped
 		a = time.time()

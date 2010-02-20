@@ -79,5 +79,36 @@ class TestCalculations( unittest.TestCase ):
 
 		elapsed = time.time() - starttime
 		print "Set %i nodes to average position in %f s ( %f / s )" % ( nodecount, elapsed, nodecount / elapsed )
+		
 
 		common._saveTempFile( "averaged.mb" )
+		
+		# set back to zero - this time we have the method cached, but not the mfnfunc
+		starttime = time.time()
+		null = api.MVector()
+		for node in nodecache:
+			node.setTranslation( null, api.MSpace.kWorld )
+		# END for each node
+		
+		new_elapsed = time.time() - starttime
+		print "Set the same %i nodes back to null in %f s ( %f / s ) ( cached functions speedup = %f %%)" % ( nodecount, new_elapsed, nodecount / new_elapsed, (elapsed / new_elapsed)*100 )
+		
+		
+		starttime = time.time()
+		null = api.MVector()
+		for node in nodecache:
+			node._api_setTranslation( pos, api.MSpace.kWorld )
+		# END for each node
+		api_new_elapsed = time.time() - starttime
+		print "Set the same %i nodes back to average in %f s ( %f / s ) ( new api functions speedup = %f %%)" % ( nodecount, api_new_elapsed, nodecount / api_new_elapsed, (elapsed / api_new_elapsed)*100 )
+		
+		
+		starttime = time.time()
+		null = api.MVector()
+		for node in nodecache:
+			node._api_setTranslation( null, api.MSpace.kWorld )
+		# END for each node
+		api_new_elapsed = time.time() - starttime
+		print "Set the same %i nodes back to null in %f s ( %f / s ) ( cached api functions speedup = %f %%)" % ( nodecount, api_new_elapsed, nodecount / api_new_elapsed, (elapsed / api_new_elapsed)*100 )
+		
+		

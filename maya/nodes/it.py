@@ -3,17 +3,12 @@
 Contains different multi-purpose iterators allowing to conveniently walk the dg and
 dag.
 @todo: more documentation
-
-
-
 """
-
-
-
 import maya.OpenMaya as api
 import maya.cmds as cmds
+from maya.OpenMaya import MDagPath, MObject
 
-import base
+from base import Node, Component
 
 def _argsToFilter( args ):
 	"""convert the MFnTypes in args list to the respective typeFilter"""
@@ -59,7 +54,7 @@ def iterDgNodes( *args, **kwargs ):
 	while not iterObj.isDone() :
 		obj = iterObj.thisNode()
 		if asNode:
-			node = base.Node( obj, 1 )
+			node = Node( obj, 1 )
 			if predicate( node ):
 				yield node
 		else:
@@ -82,7 +77,7 @@ def getDagIterator( *args, **kwargs ):
 
 	# SETUP TYPE FILTER - reset needs to work with root
 	if root is not None:
-		if isinstance( root, api.MDagPath ):
+		if isinstance( root, MDagPath ):
 			typeFilter.setObjectType( api.MIteratorType.kMDagPathObject )
 		else :
 			typeFilter.setObjectType( api.MIteratorType.kMObject )
@@ -98,7 +93,7 @@ def getDagIterator( *args, **kwargs ):
 	# set start object
 	if root is not None :
 		startObj = startPath = None
-		if isinstance( root, api.MDagPath ):
+		if isinstance( root, MDagPath ):
 			startPath = root
 		else:
 			startObj = root
@@ -148,10 +143,10 @@ def iterDagNodes( *args, **kwargs ):
 	predicate = kwargs.get('predicate', lambda x: True )
 	if dagpath:
 		while not iterObj.isDone( ) :
-			dPath = api.MDagPath( )
+			dPath = MDagPath( )
 			iterObj.getPath( dPath )
 			if asNode:
-				node = base.Node( dPath, 1 )
+				node = Node( dPath, 1 )
 				if predicate( node ):
 					yield node
 			else:
@@ -194,8 +189,8 @@ def getGraphIterator( nodeOrPlug, *args, **kwargs ):
 									# during mit object initialization
 	if isinstance( nodeOrPlug, api.MPlug ):
 		startPlug = nodeOrPlug
-		startObj = api.MObject()
-	elif isinstance( nodeOrPlug, base.Node ):
+		startObj = MObject()
+	elif isinstance( nodeOrPlug, Node ):
 		startObj = nodeOrPlug._apiobj
 		startPlug = pa[0]
 
@@ -276,7 +271,7 @@ def iterGraph( nodeOrPlug, *args, **kwargs ):
 		else:
 			obj = iterObj.currentItem()
 			if asNode:
-				node = base.Node( obj, 1 )
+				node = Node( obj, 1 )
 				if predicate( node ):
 					yield node
 			else:
@@ -328,14 +323,15 @@ def iterSelectionList( sellist, filterType = api.MFn.kInvalid, predicate = lambd
 			plugcheckfunc = lambda obj: isinstance( obj, ( api.MPlug, api.MPlugPtr ) )
 
 		# SELECTION LIST MODE
+		kInvalid = api.MFn.kInvalid
 		for i in xrange( sellist.length() ):
 			# DAG PATH
 			iterobj = None
 			component = None
 			try:
-				iterobj = api.MDagPath( )
+				iterobj = MDagPath( )
 				if handleComponents:
-					component = api.MObject()
+					component = MObject()
 					sellist.getDagPath( i, iterobj, component )
 				else:
 					sellist.getDagPath( i, iterobj )
@@ -353,7 +349,7 @@ def iterSelectionList( sellist, filterType = api.MFn.kInvalid, predicate = lambd
 					iterobj.attribute()
 				except RuntimeError:
 				# TRY DG NODE
-					iterobj = api.MObject( )
+					iterobj = MObject( )
 					sellist.getDependNode( i, iterobj )
 				# END its not an MObject
 			# END its not a dag node
@@ -361,7 +357,7 @@ def iterSelectionList( sellist, filterType = api.MFn.kInvalid, predicate = lambd
 			# should have iterobj now
 			if plugcheckfunc( iterobj ):
 				# apply filter
-				if filterType != api.MFn.kInvalid and iterobj.node().apiType() != filterType:
+				if filterType != kInvalid and iterobj.node().apiType() != filterType:
 					continue
 					# END apply filter type
 
@@ -379,18 +375,18 @@ def iterSelectionList( sellist, filterType = api.MFn.kInvalid, predicate = lambd
 			else:
 				# must be dag or dg node
 				filterobj = iterobj
-				if isinstance( iterobj, api.MDagPath ):
+				if isinstance( iterobj, MDagPath ):
 					filterobj = iterobj.node()
 
-				if filterType != api.MFn.kInvalid and filterobj.apiType() != filterType:
+				if filterType != kInvalid and filterobj.apiType() != filterType:
 					continue
 				# END filter handling
 
 				if asNode:
-					node = base.Node( iterobj, 1 )
+					node = Node( iterobj, 1 )
 					if handleComponents:
 						if not component.isNull():
-							component = base.Component( component )
+							component = Component( component )
 						rval = ( node, component )
 						if predicate( rval ):
 							yield rval
@@ -409,23 +405,24 @@ def iterSelectionList( sellist, filterType = api.MFn.kInvalid, predicate = lambd
 	else:
 		# ITERATOR MODE
 		iterator = getSelectionListIterator( sellist, filterType = filterType )
-
+		kDagSelectionItem = api.MItSelectionList.kDagSelectionItem
+		kDNselectionItem = api.MItSelectionList.kDNselectionItem
 		while not iterator.isDone():
 			# try dag object
 			itemtype = iterator.itemType( )
-			if itemtype == api.MItSelectionList.kDagSelectionItem:
-				path = api.MDagPath( )
+			if itemtype == kDagSelectionItem:
+				path = MDagPath( )
 				if handleComponents:
-					component = api.MObject( )
+					component = MObject( )
 					sellist.getDagPath( i, iterobj, component )
 				else:
 					iterator.getDagPath( path )
 
 				if asNode:
-					node = base.Node( path, 1 )
+					node = Node( path, 1 )
 					if handleComponents:
 						if not component.isNull():
-							component = base.Component( component )
+							component = Component( component )
 						rval = ( node, component )
 						if predicate( rval ):
 							yield rval
@@ -436,11 +433,11 @@ def iterSelectionList( sellist, filterType = api.MFn.kInvalid, predicate = lambd
 				else:
 					if predicate( path ):
 						yield path
-			elif itemtype == api.MItSelectionList.kDNselectionItem:
-				obj = api.MObject()
+			elif itemtype == kDNselectionItem:
+				obj = MObject()
 				iterator.getDependNode( obj )
 				if asNode:
-					node = base.Node( obj, 1 )
+					node = Node( obj, 1 )
 					if predicate( node ):
 						yield node
 				else:
