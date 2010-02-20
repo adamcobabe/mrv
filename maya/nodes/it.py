@@ -163,12 +163,23 @@ def iterDagNodes( *args, **kwargs ):
 			obj = iterObj.currentItem()
 			if iterObj.isInstanced( True ) :
 				if obj not in instanceset:
-					if predicate( obj ):
-						yield obj
-						instanceset.append( obj )
+					if asNode:
+						node = Node(obj)
+						if predicate( node ):
+							yield node
+						# END predicate handling
+					else:
+						if predicate( obj ):
+							yield obj
+						# END predicate handling
+					# END asNode handling
+					instanceset.append( obj )
 			else :
+				if asNode:
+					obj = Node(obj)
 				if predicate( obj ):
 					yield obj
+			# END isInstanced handling
 			iterObj.next()
 		# END while not is done
 	# END if using mobjects
