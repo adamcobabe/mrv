@@ -30,6 +30,9 @@ import mayarv.maya.ns as nsm
 import mayarv.maya.undo as undo
 from util import in_double3_out_vector, undoable_in_double3_as_vector
 
+# direct import to safe api. lookup
+from maya.OpenMaya import MFnDagNode, MDagPath, MObject, MObjectHandle
+
 from itertools import chain
 import sys
 
@@ -48,11 +51,9 @@ _mfndep_setobject = _mfndep.setObject
 _mfndep_typename = _mfndep.typeName
 _mfndep_name = _mfndep.name
 
-api_mdagpath_node = api.MDagPath.node
-api_mdagpath = api.MDagPath
+api_mdagpath_node = MDagPath.node
 
-# direct import to safe api. lookup
-from maya.OpenMaya import MFnDagNode
+
 
 ############################
 #### Methods 		  	####
@@ -114,7 +115,7 @@ def toApiobj( nodename ):
 		except:
 			continue
 		else:
-			obj = api.MObject()
+			obj = MObject()
 			_nameToApiSelList.getDependNode( 0, obj )
 
 			# if we requested a dg node, but got a dag node, fail
@@ -151,11 +152,11 @@ def toApiobjOrDagPath( nodename ):
 			continue
 		else:
 			try:
-				dag = api.MDagPath()
+				dag = MDagPath()
 				_nameToApiSelList.getDagPath( 0 , dag )
 				return DagPath( dag )
 			except RuntimeError:
-				obj = api.MObject()
+				obj = MObject()
 				_nameToApiSelList.getDependNode( 0, obj )
 
 				# if we requested a dg node, but got a dag node, fail
@@ -180,7 +181,7 @@ def toSelectionList( nodeList, mergeWithExisting = False ):
 	sellist = api.MSelectionList()
 	for node in nodeList:
 		if isinstance( node, DagNode ):
-			sellist.add( node._apidagpath, api.MObject(), mergeWithExisting )
+			sellist.add( node._apidagpath, MObject(), mergeWithExisting )
 		elif isinstance( node, DependNode ):
 			sellist.add( node._apiobj, mergeWithExisting )
 		else: # probably plug or something else like an mobject or dagpath
@@ -498,13 +499,13 @@ def createComponent( componentcls, apitype ):
 def _checkedInstanceCreationDagPathSupport( apiobj_or_dagpath, clsToBeCreated, basecls ):
 	"""Same purpose and attribtues as L{_checkedInstanceCreation}, but supports
 	dagPaths as input as well"""
-	global _mfndep_setobject,_mfndep_typename, api_mdagpath_node, api_mdagpath
+	global _mfndep_setobject, _mfndep_typename, api_mdagpath_node
 	
 	# if return is here, you get 5430 ( vs 2000 originally )
 
 	apiobj = apiobj_or_dagpath
 	dagpath = None
-	if isinstance( apiobj, api.MDagPath ):
+	if isinstance( apiobj, MDagPath ):
 		# NO: Need the type, thus need a function set or a non-string typemap to use
 		# apiobj_or_dagpath.apiType() ## fast call
 		# It would be good to delay this call, but then there is no way to get the
@@ -527,15 +528,15 @@ def _checkedInstanceCreationDagPathSupport( apiobj_or_dagpath, clsToBeCreated, b
 	# ASSURE WE HAVE A DAG PATH
 	# Dag Objects should always have a dag path even if none was passed in
 	## costs nealy nothing
-	if dagpath is None and isinstance( clsinstance, DagNode ):
-		dagpath = api_mdagpath( )
+	if not dagpath and isinstance( clsinstance, DagNode ):
+		dagpath = MDagPath( )
 		MFnDagNode( apiobj ).getPath( dagpath )
 	# END if no dagpath was available
 
 	# NOTE: this costs plenty of performance ( with: 2000, without, 2900 ), thus we
 	# do it on demand when the dagpath is requested
-	if dagpath is not None:
-		object.__setattr__( clsinstance, '_apidagpath', dagpath )	# add some convenience to it
+	if dagpath:
+		object.__setattr__( clsinstance, '_apidagpath', dagpath )
 
 	return clsinstance
 
@@ -654,7 +655,7 @@ class Node( object ):
 	representation
 	Use this class to directly create a maya node of the required type"""
 	__metaclass__ = MetaClassCreatorNodes
-	__api_type_tuple = ( api.MObject, api.MDagPath )
+	__api_type_tuple = ( MObject, MDagPath )
 
 	def __new__ ( cls, *args, **kwargs ):
 		"""return the proper class for the given object
@@ -686,7 +687,7 @@ class Node( object ):
 			if objorname.find( '.' ) != -1:
 				raise ValueError( "%s cannot be handled - create a node, then access its attribute like Node('name').attr" % objorname )
 			apiobj_or_dagpath = toApiobjOrDagPath( objorname )
-		elif isinstance( objorname, api.MObjectHandle ):
+		elif isinstance( objorname, MObjectHandle ):
 			apiobj_or_dagpath = objorname.object()
 		else:
 			raise ValueError( "objects of type %s cannot be handled" % type( objorname ) )
@@ -694,8 +695,8 @@ class Node( object ):
 
 		skip_checks = ( len( args ) > 1 and args[1] ) or False
 		if ( not skip_checks and ( apiobj_or_dagpath is None
-			or ( isinstance( apiobj_or_dagpath, api.MDagPath ) and not apiobj_or_dagpath.isValid() )
-			or ( isinstance( apiobj_or_dagpath, api.MObject ) and apiobj_or_dagpath.isNull() ) ) ):
+			or ( isinstance( apiobj_or_dagpath, MDagPath ) and not apiobj_or_dagpath.isValid() )
+			or ( isinstance( apiobj_or_dagpath, MObject ) and apiobj_or_dagpath.isNull() ) ) ):
 			raise ValueError( "object does not exist: %s" % objorname )
 		# END evil validity checking
 
@@ -860,24 +861,24 @@ class DependNode( Node, iDuplicatable ):		# parent just for epydoc -
 
 			if not setFilter( setapiobj ):
 				continue
-			outlist.append( Node( api.MObject( setapiobj ) ) )
+			outlist.append( Node( MObject( setapiobj ) ) )
 		# END for each connected set
 
 		return outlist
 
-	def isMemberOf( self, setnode, component = api.MObject() ):
+	def isMemberOf( self, setnode, component = MObject() ):
 		"""@return: True if self is part of setnode
 		@note: method is undoable
 		@see: L{ObjectSet}"""
 		return setnode.isMember( self, component = component )
 
-	def addTo( self, setnode, component = api.MObject(), **kwargs ):
+	def addTo( self, setnode, component = MObject(), **kwargs ):
 		"""Add ourselves to the given set
 		@note: method is undoable
 		@see: L{ObjectSet}"""
 		return setnode.addMember( self, component = component, **kwargs )
 
-	def removeFrom( self, setnode, component = api.MObject() ):
+	def removeFrom( self, setnode, component = MObject() ):
 		"""remove ourselves to the given set
 		@note: method is undoable
 		@see: L{ObjectSet}"""
@@ -1074,12 +1075,12 @@ class DependNode( Node, iDuplicatable ):		# parent just for epydoc -
 	def isValid( self ):
 		"""@return: True if the object exists in the scene
 		@note: objects on the undo queue are NOT valid, but alive"""
-		return api.MObjectHandle( self._apiobj ).isValid()
+		return MObjectHandle( self._apiobj ).isValid()
 
 	def isAlive( self ):
 		"""@return: True if the object exists in memory
 		@note: objects on the undo queue are alive, but NOT valid"""
-		return api.MObjectHandle( self._apiobj ).isAlive()
+		return MObjectHandle( self._apiobj ).isAlive()
 
 	#} END status
 
@@ -1748,7 +1749,7 @@ class DagNode( Entity, iDagItem ):	# parent just for epydoc
 	def getParent( self ):
 		"""@return: Maya node of the parent of this instance or None if this is the root"""
 		# implement raw not using a wrapped path
-		copy = api.MDagPath( self._apidagpath )
+		copy = MDagPath( self._apidagpath )
 		copy.pop( 1 )
 		if copy.length() == 0:		# ignore world !
 			return None
@@ -1759,8 +1760,8 @@ class DagNode( Entity, iDagItem ):	# parent just for epydoc
 		out = list()
 		ownpath = self._apidagpath
 		for i in range( ownpath.childCount() ):
-			copy = api.MDagPath( ownpath )
-			copy.push( api.MDagPath.child( ownpath, i ) )
+			copy = MDagPath( ownpath )
+			copy.push( MDagPath.child( ownpath, i ) )
 			child = Node( copy )
 
 			if not predicate( child ):
@@ -1804,7 +1805,7 @@ class DagNode( Entity, iDagItem ):	# parent just for epydoc
 		allpaths = api.MDagPathArray()
 		self.getAllPaths( allpaths )
 		# copy the path as it will be invalidated once the array goes out of scope !
-		return Node( api.MDagPath( allpaths[ instanceNumber ] ) )
+		return Node( MDagPath( allpaths[ instanceNumber ] ) )
 
 	def hasChild( self, node ):
 		"""@return: True if node is a child of self"""
@@ -1815,8 +1816,8 @@ class DagNode( Entity, iDagItem ):	# parent just for epydoc
 		@note: this method fixes the MFnDagNode.child method - it returns an MObject,
 		which doesnt work well with instanced nodes - a dag path is required, which is what
 		we use to aquire the object"""
-		copy = api.MDagPath( self._apidagpath )
-		copy.push( api.MDagPath.child( self._apidagpath, index ) )
+		copy = MDagPath( self._apidagpath )
+		copy.push( MDagPath.child( self._apidagpath, index ) )
 		return Node( copy )
 
 	child = getChild 		# assure the mfnmethod cannot be called anymore - its dangerous !
@@ -1831,11 +1832,11 @@ class DagNode( Entity, iDagItem ):	# parent just for epydoc
 
 	def getApiDagPath( self ):
 		"""@return: the original DagPath attached to this Node - it's not wrapped
-		for convenience"""
+		for performance"""
 		return self._apidagpath
 
 	def getApiObject( self ):
-		"""@return: our dag path as this is our api object - the object defining this node"""
+		"""@return: our dag path as this is our api object - the object defining this node best"""
 		return self.getDagPath()
 
 	#}END general query
@@ -1866,7 +1867,7 @@ class DagNode( Entity, iDagItem ):	# parent just for epydoc
 			# index is NOT instance number ! If transforms are instanced, children increase instance number
 			dagpath = allpaths[ i ]
 			if dagpath.instanceNumber() != ownNumber:
-				yield Node( api.MDagPath( dagpath ) )
+				yield Node( MDagPath( dagpath ) )
 		# END for each instance
 
 	#}
@@ -1881,7 +1882,7 @@ class DagNode( Entity, iDagItem ):	# parent just for epydoc
 
 #{ Additional Classes
 
-class Attribute( api.MObject ):
+class Attribute( MObject ):
 	"""Represents an attribute in general - this is the base class
 	Use this general class to create attribute wraps - it will return
 	a class of the respective type """
@@ -1909,7 +1910,7 @@ class Attribute( api.MObject ):
 		# END for each known attr type
 
 
-class Data( api.MObject ):
+class Data( MObject ):
 	"""Represents an data in general - this is the base class
 	Use this general class to create data wrap objects - it will return a class of the respective type """
 
@@ -1990,7 +1991,7 @@ class GeometryData( Data ):
 
 
 
-class Component( api.MObject ):
+class Component( MObject ):
 	"""Represents a shape component - its derivates can be used to handle component lists
 	to be used in object sets and shading engines """
 
@@ -2037,7 +2038,7 @@ class TripleIndexedComponent( Component ):
 
 #{ Basic Types
 
-class DagPath( api.MDagPath, iDagItem ):
+class DagPath( MDagPath, iDagItem ):
 	"""Wraps a dag path adding some additional convenience functions
 	@note: We do NOT patch the actual api type as this would make it unusable to be passed in
 	as reference/pointer type unless its being created by maya itself. Thus we manually convert
@@ -2060,7 +2061,7 @@ class DagPath( api.MDagPath, iDagItem ):
 
 	def getApiObj( self ):
 		"""@return: the unwrapped api object this path is referring to"""
-		return  api.MDagPath.node( self )
+		return  MDagPath.node( self )
 
 	def getNode( self ):
 		"""@return: Node of the node we are attached to"""
@@ -2069,7 +2070,7 @@ class DagPath( api.MDagPath, iDagItem ):
 	def getTransform( self ):
 		"""@return: path of the lowest transform in the path
 		@note: if this is a shape, you would get its parent transform"""
-		return api.MDagPath.transform( self )
+		return MDagPath.transform( self )
 
 	def getParent( self ):
 		"""@return: DagPath to the parent path of the node this path points to"""
@@ -2085,14 +2086,14 @@ class DagPath( api.MDagPath, iDagItem ):
 		uintptr = sutil.asUintPtr()
 		sutil.setUint( uintptr , 0 )
 
-		api.MDagPath.numberOfShapesDirectlyBelow( self, uintptr )
+		MDagPath.numberOfShapesDirectlyBelow( self, uintptr )
 
 		return sutil.getUint( uintptr )
 
 	def getChildPath( self, index ):
 		"""@return: a dag path pointing to this path's shape with num"""
 		copy = DagPath( self )
-		copy.push( api.MDagPath.child(self, index ) )
+		copy.push( MDagPath.child(self, index ) )
 		return copy
 
 
@@ -2113,13 +2114,13 @@ class DagPath( api.MDagPath, iDagItem ):
 		"""Pop the given number of items off the end of the path
 		@return: self
 		@note: will change the current path in place"""
-		api.MDagPath.pop( self, num )
+		MDagPath.pop( self, num )
 		return self
 
 	def extendToChild( self, num ):
 		"""Extend this path to the given child number - can be shape or transform
 		@return: self """
-		api.MDagPath.extendToShapeDirectlyBelow( self, num )
+		MDagPath.extendToShapeDirectlyBelow( self, num )
 		return self
 
 	def getChildrenByFn( self, fn, predicate = lambda x: True ):
@@ -2149,24 +2150,24 @@ class DagPath( api.MDagPath, iDagItem ):
 
 	#{ Name Remapping
 
-	getApiType = api.MDagPath.apiType
+	getApiType = MDagPath.apiType
 	node = getNode
 	child = getChildPath
-	getChildCount = api.MDagPath.childCount
+	getChildCount = MDagPath.childCount
 	transform = getTransform
-	getApiType = api.MDagPath.apiType
-	getLength = api.MDagPath.length
+	getApiType = MDagPath.apiType
+	getLength = MDagPath.length
 	numberOfShapesDirectlyBelow = getNumShapes
-	getInstanceNumber = api.MDagPath.instanceNumber
-	getPathCount = api.MDagPath.pathCount
-	getFullPathName = api.MDagPath.fullPathName
-	getPartialName = api.MDagPath.partialPathName
-	isNull = lambda self: not api.MDagPath.isValid( self )
+	getInstanceNumber = MDagPath.instanceNumber
+	getPathCount = MDagPath.pathCount
+	getFullPathName = MDagPath.fullPathName
+	getPartialName = MDagPath.partialPathName
+	isNull = lambda self: not MDagPath.isValid( self )
 
 
-	getInclusiveMatrix = api.MDagPath.inclusiveMatrix
-	getInclusiveMatrixInverse = api.MDagPath.inclusiveMatrixInverse
-	getExclusiveMatrixInverse = api.MDagPath.exclusiveMatrixInverse
+	getInclusiveMatrix = MDagPath.inclusiveMatrix
+	getInclusiveMatrixInverse = MDagPath.inclusiveMatrixInverse
+	getExclusiveMatrixInverse = MDagPath.exclusiveMatrixInverse
 
 	#}
 
@@ -2267,7 +2268,7 @@ class Shape( DagNode ):	 # base for epydoc !
 			# take full assignments as well - make it work as the getConnectedSets api method
 			for dplug in iogplug.getOutputs():
 				sets.append( dplug.getNodeApiObj() )
-				components.append( api.MObject() )
+				components.append( MObject() )
 			# END full objecft assignments
 
 			for compplug in iogplug['objectGroups']:
@@ -2317,7 +2318,7 @@ class Shape( DagNode ):	 # base for epydoc !
 		if self._apiobj.apiType() == api.MFn.kSubdiv:
 			print "WARNING: components are not supported for Subdivision surfaces due to m8.5 api limitation"
 			sets = self.getConnectedSets( setFilter = setFilter )
-			return [ ( setnode, api.MObject() ) for setnode in sets ]
+			return [ ( setnode, MObject() ) for setnode in sets ]
 		# END subdee handling
 
 		sets = components = None
@@ -2345,8 +2346,8 @@ class Shape( DagNode ):	 # base for epydoc !
 			if not setFilter( setobj ):
 				continue
 
-			setobj = Node( api.MObject( setobj ) )								# copy obj to get memory to python
-			compobj = api.MObject( compobj )											# make it ours
+			setobj = Node( MObject( setobj ) )								# copy obj to get memory to python
+			compobj = MObject( compobj )											# make it ours
 			if not compobj.isNull():
 				compobj = Component( compobj )
 
