@@ -138,32 +138,26 @@ class MetaClassCreatorNodes( MetaClassCreator ):
 				# INITIALIZED DAG NODES WITH DAG PATH !
 				if api.MFnDagNode in mfncls.mro() and not needs_MObject:			# yes, we duplicate code here to keep it fast !!
 					def wrapMfnFunc( self, *args, **kwargs ):
-						mfninst = mfncls( self._apidagpath )
-						mfnfunc = getattr( mfninst, mfnfuncname )
-						rvallambda = lambda *args, **kwargs: rvalfunc( mfnfunc( *args, **kwargs ) )
-						object.__setattr__( self, funcname_orig, rvallambda )
+						rvallambda = lambda *args, **kwargs: rvalfunc(getattr(mfncls(self._apidagpath), mfnfuncname)(*args, **kwargs))
+						object.__setattr__( self, funcname_orig, rvallambda ) # cache it in our object
 						return rvallambda( *args, **kwargs )
 					newfunc = wrapMfnFunc
 				else:
 					def wrapMfnFunc( self, *args, **kwargs ):
-						mfninst = mfncls( self._apiobj )
-						mfnfunc = getattr( mfninst, mfnfuncname )
-						rvallambda = lambda *args, **kwargs: rvalfunc( mfnfunc( *args, **kwargs ) )
+						rvallambda = lambda *args, **kwargs: rvalfunc(getattr(mfncls(self._apiobj), mfnfuncname)(*args, **kwargs))
 						object.__setattr__( self, funcname_orig, rvallambda )
 						return rvallambda( *args, **kwargs )
 					newfunc = wrapMfnFunc
 			else:
 				if api.MFnDagNode in mfncls.mro() and not needs_MObject:			# yes, we duplicate code here to keep it fast !!
 					def wrapMfnFunc( self, *args, **kwargs ):
-						mfninst = mfncls( self._apidagpath )
-						mfnfunc = getattr( mfninst, mfnfuncname )
+						mfnfunc = getattr(mfncls(self._apidagpath), mfnfuncname)
 						object.__setattr__( self, funcname_orig, mfnfunc )
 						return mfnfunc( *args, **kwargs )
 					newfunc = wrapMfnFunc
 				else:
 					def wrapMfnFunc( self, *args, **kwargs ):
-						mfninst = mfncls( self._apiobj )
-						mfnfunc = getattr( mfninst, mfnfuncname )
+						mfnfunc = getattr(mfncls(self._apiobj), mfnfuncname)
 						object.__setattr__( self, funcname_orig, mfnfunc )
 						return mfnfunc( *args, **kwargs )
 					newfunc = wrapMfnFunc
@@ -173,24 +167,20 @@ class MetaClassCreatorNodes( MetaClassCreator ):
 				# INITIALIZED DAG NODES WITH DAG PATH !
 				if api.MFnDagNode in mfncls.mro() and not needs_MObject:			# yes, we duplicate code here to keep it fast !!
 					def wrapMfnFunc( self, *args, **kwargs ):
-						mfninst = mfncls( self._apidagpath )
-						return rvalfunc( getattr( mfninst, mfnfuncname )( *args, **kwargs ) )
+						return rvalfunc(getattr(mfncls(self._apidagpath), mfnfuncname)(*args, **kwargs))
 					newfunc = wrapMfnFunc
 				else:
 					def wrapMfnFunc( self, *args, **kwargs ):
-						mfninst = mfncls( self._apiobj )
-						return rvalfunc( getattr( mfninst, mfnfuncname )( *args, **kwargs ) )
+						return rvalfunc(getattr(mfncls(self._apiobj), mfnfuncname)(*args, **kwargs))
 					newfunc = wrapMfnFunc
 			else:
 				if api.MFnDagNode in mfncls.mro() and not needs_MObject:			# yes, we duplicate code here to keep it fast !!
 					def wrapMfnFunc( self, *args, **kwargs ):
-						mfninst = mfncls( self._apidagpath )
-						return getattr( mfninst, mfnfuncname )( *args, **kwargs )
+						return getattr(mfncls(self._apidagpath), mfnfuncname)(*args, **kwargs)
 					newfunc = wrapMfnFunc
 				else:
 					def wrapMfnFunc( self, *args, **kwargs ):
-						mfninst = mfncls( self._apiobj )
-						return getattr( mfninst, mfnfuncname )( *args, **kwargs )
+						return getattr(mfncls(self._apiobj), mfnfuncname)(*args, **kwargs)
 					newfunc = wrapMfnFunc
 			# END not rvalfunc
 		# END api accellerated method
@@ -226,14 +216,14 @@ class MetaClassCreatorNodes( MetaClassCreator ):
 				if not mfncls:
 					continue
 
-				mfndb = None
 				# GET MFNDB allowing automated method mutations
 				# TO BE WRITTEN ON CLASS LEVEL !
-				if not basecls.__dict__.has_key( thiscls.mfndbattr ):
+				mfndb = None
+				try:
+					mfndb = basecls.__dict__[ thiscls.mfndbattr ]
+				except KeyError:
 					mfndb = thiscls._readMfnDB( mfncls.__name__ )
 					type.__setattr__( basecls, thiscls.mfndbattr, mfndb )
-				else:
-					mfndb = basecls.__dict__[ thiscls.mfndbattr ]
 				# END mfndb handling
 
 				# get function as well as its possibly changed name
