@@ -269,7 +269,8 @@ class MPlug( api.MPlug, util.iDagItem ):
 
 	def __iter__( self ):
 		"""@return: iterator object"""
-		return util.IntKeyGenerator( self )
+		for i in xrange(len(self)):
+			yield self.getByIndex(i)
 
 	def __str__( self ):
 		"""@return: name of plug"""
@@ -418,28 +419,22 @@ class MPlug( api.MPlug, util.iDagItem ):
 		@note: equals lhsplug >> rhsplug ( force = True ) or lhsplug > rhsplug ( force = False )
 		@raise RuntimeError: If destination is already connected and force = False
 		@todo: currently we cannot handle nested array structures properly"""
-		mod = None		# create mod only once we really need it
+		mod = undo.DGModifier( )
 
 		# is destination already input-connected ? - disconnect it if required
-		destinputplug = destplug.p_input
-		if not destinputplug.isNull():
-			# handle possibly connected plugs
-			if self == destinputplug:		# is it us ?
-				return destplug
-
-			if not force:
-				raise RuntimeError( "%s > %s failed as destination is connected to %s" % ( self, destplug, destinputplug ) )
-			else:
+		# Optimization: We only care if force is specified. It will fail otherwise
+		if force:
+			destinputplug = destplug.p_input
+			if not destinputplug.isNull():
+				# handle possibly connected plugs
+				if self == destinputplug:		# is it us already ?
+					return destplug
+	
 				# disconnect
-				mod = undo.DGModifier( )
 				mod.disconnect( destinputplug, destplug )
-			# END disconnect existing
-		# END destination is connected
-
-		# otherwise we can do the connection
-		if not mod:
-			mod = undo.DGModifier( )
-
+				# END disconnect existing
+			# END destination is connected
+		# END force mode
 		mod.connect( self, destplug )	# finally do the connection
 		mod.doIt( )
 		return destplug
