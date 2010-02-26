@@ -6,8 +6,9 @@ Test animCurves and related types
 import unittest
 import maya.OpenMaya as api
 from mayarv.test.lib import *
+import mayarv.maya as mrvmaya
 import mayarv.maya.nodes as nodes
-
+import maya.OpenMayaAnim as manim
 
 
 class TestAnim( unittest.TestCase ):
@@ -48,3 +49,32 @@ class TestAnim( unittest.TestCase ):
 		
 		
 		# save_for_debugging('anim')
+		
+	def test_get_animation( self ):
+		mrvmaya.Scene.new(force=True)
+		p = nodes.Node("persp")
+		
+		# translate is animated
+		for tc in p.translate.getChildren():
+			manim.MFnAnimCurve().create(tc)	
+		# END set animation
+		
+		# test animation iteration
+		for converter in (lambda x: x, lambda x: nodes.toSelectionList(x)):
+			for as_node in range(2):
+				nc = 0
+				target_type = nodes.api.MObject
+				if as_node:
+					target_type = nodes.Node
+				# END define target type
+				for anode in nodes.AnimCurve.getAnimation(converter([p]), as_node):
+					assert isinstance(anode, target_type)
+					nc += 1
+				# END for each anim node
+				assert nc == 3
+			# END for each as_node mode
+		# END for each converter
+		
+		
+		
+	
