@@ -10,18 +10,14 @@ class AnimCurve( base.DependNode ):
 	methods and provides new convenience methods as well"""
 
 	@classmethod
-	def getAnimation( cls, nodes, asNode=True ):
+	def getAnimation( cls, iter_nodes, asNode=True ):
 		"""@return: list-compatible object containing animation curves attached to
 		the nodes in the given object.
 		@param nodes: MSelection list or list of MObjects or Nodes containing
 		whose animation you would like to retrieve.
 		@param asNode: If True, the animation curves will be wrapped, or 
 		MObjects otherwise ( to gain performance )"""
-		selection_list = nodes
-		if not isinstance(nodes, api.MSelectionList):
-			selection_list = base.toSelectionList(nodes)
-		# END handle selction list
-		
+		selection_list = base.toSelectionList(iter_nodes)
 		anim_plugs = api.MPlugArray()
 		manim.MAnimUtil.findAnimatedPlugs(selection_list, anim_plugs, False)
 		

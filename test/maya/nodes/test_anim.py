@@ -2,13 +2,14 @@
 """
 Test animCurves and related types
 """
-
-import unittest
-import maya.OpenMaya as api
 from mayarv.test.lib import *
+
+import maya.OpenMaya as api
+import maya.OpenMayaAnim as manim
+
 import mayarv.maya as mrvmaya
 import mayarv.maya.nodes as nodes
-import maya.OpenMayaAnim as manim
+
 
 
 class TestAnim( unittest.TestCase ):
