@@ -556,15 +556,21 @@ def _checkedInstanceCreation( apiobj, typeName, clsToBeCreated, basecls ):
 	# NON-MAYA NODE Type
 	# if an explicit type was requested, assure we are at least compatible with
 	# the given cls type - our node type is supposed to be the most specialized one
-	# cls is either of the same type as ours, or is a superclass
+	# cls is either of the same type as ours, or is a superclass.
+	# It is also okay if the user provided a class which is a subclass of the most 
+	# suitable class we know, which acts like a virtal specialization
 	if clsToBeCreated is not basecls and clsToBeCreated is not nodeTypeCls:
-		if not issubclass( nodeTypeCls, clsToBeCreated ):
-			raise TypeError( "Explicit class %r must be %r or a superclass of it" % ( clsToBeCreated, nodeTypeCls ) )
+		vclass_attr = '__mayarv_virtual_subtype__'
+		# If the class is a virtual subtype and indeed a subclass of our best known type,  
+		# its a valid class
+		if not issubclass( nodeTypeCls, clsToBeCreated ) and \
+			not ( hasattr(clsToBeCreated, vclass_attr) and issubclass(clsToBeCreated, nodeTypeCls) ):
+			raise TypeError( "Explicit class %r must be %r or a superclass of it. Consider setting the %s attribute to indicate you are a virtual subtype." % ( clsToBeCreated, nodeTypeCls, vclass_attr ) )
 		else:
 			nodeTypeCls = clsToBeCreated						# respect the wish of the client
 	# END if explicit class given
 
-	# FININSH INSTANCE
+	# FINISH INSTANCE
 	clsinstance = super( basecls, clsToBeCreated ).__new__( nodeTypeCls )
 
 	object.__setattr__( clsinstance, '_apiobj',  apiobj )				# set the api object - if this is a string, the called has to take care about it

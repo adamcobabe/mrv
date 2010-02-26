@@ -49,7 +49,6 @@ def addCustomType( newcls, parentClsName=None, **kwargs ):
 	""" Add a custom class to this module - it will be handled like a native type
 	@param newcls: new class object if metaclass is None, otherwise string name of the
 	type name to be created by your metaclass
-	@param metaClass: custom metaclass to create newcls type string
 	@param parentClsName: if metaclass is set, the parentclass name ( of a class existing
 	in the nodeTypeTree ( see /maya/cache/nodeHierarchy.html )
 	Otherwise, if unset, the parentclassname will be extracted from the newcls object
