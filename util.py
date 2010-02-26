@@ -624,6 +624,7 @@ class Singleton(object) :
 			cls._the_instance = super(Singleton, cls).__new__(cls)
 		return cls._the_instance
 
+
 class IntKeyGenerator( object ):
 	"""Provides iterators for directly access list like objects supporting
 	__getitem__ method

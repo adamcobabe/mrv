@@ -595,7 +595,6 @@ class MPlug( api.MPlug, util.iDagItem ):
 		if noInputs == 0:
 			# TODO: find a better way to get a MPlugPtr type that can properly be tested for isNull
 			return self.pa[0]
-			return None
 
 		if noInputs == 1:
 			return inputs[0]
@@ -833,21 +832,47 @@ class ArrayBase( Abstract ):
 		"""@note: does not work as it expects a pointer type - probably a bug"""
 		return self.set( item, getPythonIndex( index, len( self ) ) )
 
-	def __getitem__ ( self, index ):
-		return self._apicls._api___getitem__( self,  getPythonIndex( index, len( self ) ) )
 
-	def __iter__( self ):
-		"""@return: iterator object"""
-		return util.IntKeyGenerator( self )
-
-
+_plugarray_getitem = api.MPlugArray.__getitem__
+_objectarray_getitem = api.MObjectArray.__getitem__
 class MPlugArray( api.MPlugArray, ArrayBase ):
 	""" Wrap MPlugArray to make it compatible to pythonic contructs"""
 	_apicls = api.MPlugArray
+	
+	def __iter__( self ):
+		"""@return: iterator object"""
+		global _plugarray_getitem
+		for i in xrange(len(self)):
+			yield api.MPlug(_plugarray_getitem( self,  i ))
+	
+	def __getitem__ ( self, index ):
+		"""Copy the MPlugs we return to assure their ref count gets incremented"""
+		global _plugarray_getitem
+		if index < 0:
+			index = len(self) + index
+		return api.MPlug(_plugarray_getitem( self,  index ))
+	
 
 class MObjectArray( api.MObjectArray, ArrayBase ):
-	""" Wrap MObject to make it compatible to pythonic contructs"""
+	""" Wrap MObject to make it compatible to pythonic contructs.
+	@note: This array also fixes an inherent issue that comes into play when 
+	MObjects are returned using __getitem__, as the reference count does not natively
+	get incremented, and the MObjects will be obsolete once the parent-array goes out 
+	of scope"""
 	_apicls = api.MObjectArray
+	
+	def __iter__( self ):
+		"""@return: iterator object"""
+		global _objectarray_getitem
+		for i in xrange(len(self)):
+			yield api.MObject(_objectarray_getitem( self,  i ))
+	
+	def __getitem__ ( self, index ):
+		"""Copy the MObjects we return to assure their ref count gets incremented"""
+		global _objectarray_getitem
+		if index < 0:
+			index = len(self) + index
+		return api.MObject(_objectarray_getitem( self,  index ))
 
 #}
 
