@@ -628,8 +628,7 @@ class MPlug( api.MPlug, util.iDagItem ):
 		if noInputs == 0:
 			# TODO: find a better way to get a MPlugPtr type that can properly be tested for isNull
 			return self.pa[0]
-
-		if noInputs == 1:
+		elif noInputs == 1:
 			return inputs[0]
 
 		# must have more than one input - can this ever be ?
@@ -726,6 +725,12 @@ class MPlug( api.MPlug, util.iDagItem ):
 	def asData( *args, **kwargs ):
 		"""@return: our data Mobject wrapped in L{Data}"""
 		return base.Data( api.MPlug._api_asMObject( *args, **kwargs ) )
+		
+	def getFullyQualifiedName( self ):
+		"""@return: string returning the absolute and fully qualified name of the
+		plug. It might take longer to evaluate but is safe to use if you want to 
+		convert the resulting string back to the actual plug"""
+		return self.partialName(1, 1, 1, 0, 1, 1)
 	#} END query
 
 

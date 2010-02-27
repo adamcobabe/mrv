@@ -327,6 +327,7 @@ def iterSelectionList( sellist, filterType = api.MFn.kInvalid, predicate = lambd
 	If handleComponents is True, for each Object, a tuple will be returned as tuple( node, component ) where
 	component is NullObject ( MObject ) if the whole object is on the list
 	@todo: get rid of the nullplug array as it will not handle recursion properly or multithreading """
+	global nullplugarray
 	if handlePlugs:
 		# version compatibility - maya 8.5 still defines a plug ptr class that maya 2005 lacks
 		plugcheckfunc = lambda obj: isinstance( obj, api.MPlug )
@@ -351,7 +352,6 @@ def iterSelectionList( sellist, filterType = api.MFn.kInvalid, predicate = lambd
 				# TRY PLUG - first as the object could be returned as well if called
 				# for DependNode
 				try:
-					global nullplugarray
 					iterobj = nullplugarray[0]
 					sellist.getPlug( i, iterobj )
 					# try to access the attribute - if it is not really a plug, it will
