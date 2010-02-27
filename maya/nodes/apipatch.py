@@ -24,7 +24,9 @@ from mayarv.util import getPythonIndex
 import maya.OpenMaya as api
 import maya.cmds as cmds
 import inspect
+import itertools
 import sys
+
 
 
 
@@ -407,6 +409,37 @@ class MPlug( api.MPlug, util.iDagItem ):
 
 	#{ Connections ( Edit )
 
+	@classmethod
+	@undoable
+	def connectMultiToMulti(self, iter_source, iter_destination, force=False):
+		"""Connect multiple source plugs to the same amount of detsination plugs.
+		@note: This method provides the most efficient way to connect a large known 
+		amount of plugs to each other
+		@param iter_source: Iterator yielding the source plug for a connection
+		@param iter_destination: Iterator yielding the destination plug for a connection
+		@param force: If True, existing input connections on the destination side will 
+		be broken automatically. Otherwise the whole operation will fail if one 
+		connection could not be made.
+		@note: Both iterators need to yield the same total amount of plugs
+		@note: In the current implementation, performance will be hurt if force 
+		is specified as each destination has to be checked for a connection in advance"""
+		mod = undo.DGModifier( )
+		for source, dest in itertools.izip(iter_source, iter_destination):
+			if force:
+				destinputplug = dest.p_input
+				if not destinputplug.isNull():
+					if source == destinputplug:		
+						continue
+					# END skip this plug if it is already connected
+					mod.disconnect(destinputplug, dest)
+				# END destination is connected
+			# END handle force
+			mod.connect(source, dest)
+		# END for each source, dest pair
+		mod.doIt()
+		return mod
+		
+
 	@undoable
 	def connectTo( self, destplug, force=True ):
 		"""Connect this plug to the right hand side plug
@@ -436,7 +469,12 @@ class MPlug( api.MPlug, util.iDagItem ):
 			# END destination is connected
 		# END force mode
 		mod.connect( self, destplug )	# finally do the connection
-		mod.doIt( )
+		
+		try:
+			mod.doIt( )
+		except RuntimeError:
+			raise RuntimeError("Failed to connect %s to %s as destination is already connected" % (self, destplug))
+		# END connection failed handling
 		return destplug
 
 	def connectToArray( self, arrayplug, force = True, exclusive_connection = False ):

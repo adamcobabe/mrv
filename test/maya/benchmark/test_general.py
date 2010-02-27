@@ -12,7 +12,6 @@ from mayarv.maya.nodes import Node
 import mayarv.test.maya as common
 import sys
 import maya.cmds as cmds
-import mayarv.maya.undo as undo
 import maya.OpenMaya as api
 import string
 import random
@@ -64,95 +63,6 @@ class TestGeneralPerformance( unittest.TestCase ):
 		cmds.undoInfo( st=1 )
 		bmaya.Scene.save( targetFile )
 
-
-	def test_plugs( self ):
-		"""mayarv.maya.apipatch: test plug performance"""
-		if not bcommon.mayRun( "plugs" ): return
-
-		bmaya.Scene.new( force = True )
-
-		s1 = nodes.createNode( "storage1", "StorageNode" )
-		s2 = nodes.createNode( "storage2", "StorageNode" )
-
-		s1msg = s1.getStoragePlug( "s1", plugType = 1, autoCreate = True )
-		s2msg = s1.getStoragePlug( "s1", plugType = 1, autoCreate = True )
-
-		# connect the message attributes respectively
-
-		def measurePlugConnection( msg, func, callNumberList ):
-			"""Call func of named operation msg number of times as in callNumberList"""
-			for numcons in callNumberList:
-				undoObj = undo.StartUndo()
-
-				starttime = time.time()
-				for i in xrange( numcons ):
-					func( i )
-				elapsed = time.time( ) - starttime
-
-				print "%i %s in %f s ( %f / s )" % ( numcons, msg, elapsed, numcons / elapsed )
-
-				del( undoObj )
-
-				starttime = time.time()
-				cmds.undo()
-				undoelapsed = time.time() - starttime
-
-				starttime = time.time()
-				cmds.redo()
-				redoelapsed = time.time() - starttime
-
-				print "UNDO / REDO Time = %f / %f ( %f * faster than initial creation )" % ( undoelapsed, redoelapsed,  elapsed / max( redoelapsed, 0.001) )
-			# END for each amount of plugs to connct
-		# END measure function
-
-		conlist = [ 250, 1000, 2000, 4000 ]
-
-		# CONNECT MULTI PLUGS
-		######################
-		multifunc = lambda i: s1msg.getByLogicalIndex( i ) >> s2msg.getByLogicalIndex( i )
-		measurePlugConnection( "MULTI PLUG Connected", multifunc, conlist )
-
-		# CONNECT SINGLE PLUGS
-		persp = nodes.Node( "persp" )
-		front = nodes.Node( "front" )
-		def singleFunc( i ):
-			persp.message >> front.isHistoricallyInteresting
-			persp.message | front.isHistoricallyInteresting
-		measurePlugConnection( "SINGLE PLUGS Connected", singleFunc, conlist )
-
-
-		# SET AND GET
-		##############
-		persp = nodes.Node( "persp" )
-		perspshape = persp[0]
-		plugs = [ persp.t['x'], perspshape.fl ]
-
-		num_iterations = 2500
-		iterations = range( num_iterations )
-
-		undoObj = undo.StartUndo()
-		starttime = time.time()
-		for plug in plugs:
-			for i in iterations:
-				value = plug.asFloat()
-				plug.setFloat( value )
-			# END get set plug
-		# END for each plug
-		elapsed = time.time() - starttime
-		del( undoObj )
-
-		total_count = num_iterations * len( plugs )
-		print "Get/Set %i plugs %i times ( total = %i ) in %f ( %g / s )" % ( len( plugs ), num_iterations, total_count,  elapsed, total_count / elapsed )
-
-		starttime = time.time()
-		cmds.undo()
-		undoelapsed = time.time() - starttime
-
-		starttime = time.time()
-		cmds.redo()
-		redoelapsed = time.time() - starttime
-
-		print "UNDO / REDO Time = %f / %f ( %f * faster than initial set/get )" % ( undoelapsed, redoelapsed,  elapsed / max( redoelapsed, 0.001) )
 
 	def test_dagwalking( self ):
 		"""mayarv.maya.benchmark.general.dagWalking: see how many nodes per second we walk"""
