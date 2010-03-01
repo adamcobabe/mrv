@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 """Performance Testing"""
-from mayarv.test.lib import *
+from mayarv.test.maya import *
 
 import mayarv.maya.nodes as nodes
 import time
@@ -8,7 +8,7 @@ import sys
 
 class TestAnimPerformance( unittest.TestCase ):
 	
-	@with_scene('ma/21kcurves.mb')
+	@with_scene('21kcurves.mb')
 	def test_iter_animation(self):
 		
 		# get all nodes, get all animation from them

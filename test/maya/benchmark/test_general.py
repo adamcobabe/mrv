@@ -1,11 +1,6 @@
 # -*- coding: utf-8 -*-
-"""
-Test general performance
-
-
-
-"""
-import unittest
+""" Test general performance """
+from mayarv.test.maya import *
 import mayarv.maya as bmaya
 import mayarv.maya.nodes as nodes
 from mayarv.maya.nodes import Node

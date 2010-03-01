@@ -1,13 +1,9 @@
 # -*- coding: utf-8 -*-
-"""
-Intialize the byronimo maya testing suite
-
-
-
-"""
-
-
+""" Intialize the byronimo maya testing suite """
 from mayarv.test.lib import *
+from util import *
+
+import mayarv.maya.undo as undo
 import mayarv.maya as bmaya
 import mayarv.test as common
 import maya.cmds as cmds
@@ -15,11 +11,6 @@ import os
 import tempfile
 
 #{ Interface
-def get_maya_file( filename ):
-	"""@return: path to specified maya ( test ) file """
-	return fixturePath( "ma/"+filename )
-
-
 def _saveTempFile( filename ):
 	"""save the current scene as given filename in a temp directory, print path"""
 	filepath = tempfile.gettempdir( ) + "/" + filename

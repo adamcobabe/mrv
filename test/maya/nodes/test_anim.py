@@ -2,7 +2,7 @@
 """
 Test animCurves and related types
 """
-from mayarv.test.lib import *
+from mayarv.test.maya import *
 
 import maya.OpenMaya as api
 import maya.OpenMayaAnim as manim
