@@ -762,26 +762,34 @@ class DependNode( Node, iDuplicatable ):		# parent just for epydoc -
 	but consumes more memory too !"""
 	__metaclass__ = MetaClassCreatorNodes
 
-
 	#{ Overridden Methods
 	def __getattr__( self, attr ):
 		"""Interpret attributes not in our dict as attributes on the wrapped node,
 		create a plug for it and add it to our class dict, effectively caching the attribute"""
 		base = super( DependNode, self )
 		try:
-			plug = self.findPlug( str(attr) )
+			plug = self.findPlug( attr)
 		except RuntimeError:		# perhaps a base class can handle it
 			try:
 				return base.__getattr__( attr )
 			except AttributeError:
 				raise AttributeError( "Attribute '%s' does not exist on '%s', neither as function not as attribute" % ( attr, self.name() ) )
 
+		# cache the plug on our instance
 		base.__setattr__( attr, plug )
+		# and assure our class knows about it so in future the plug will be retrieved
+		# right away, before having a function lookup miss
+		attr = str(attr)
+		setattr(type(self), attr, property(lambda self: self.findPlug(attr)))
+		
 		return plug
 
 	#@return: Plug with the given name
-	#@note: used as alternative to the getattr style"""
-	__getitem__ = __getattr__
+	#@note: """
+	def __getitem__(self, attr):
+		"""used as alternative to the getattr style. We call findPlug in order to 
+		avoid cache lookups"""
+		return self.findPlug(attr)
 
 	def __str__( self ):
 		"""@return: name of this object"""

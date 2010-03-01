@@ -332,6 +332,7 @@ class TestNodeBase( unittest.TestCase ):
 		# get simple attributes
 		for attr in [ "preMel", "postMel" ]:
 			plug = getattr( node, attr )
+			assert plug == getattr( node, attr )
 			assert plug == node[attr]
 			self.failUnless( not plug.isNull() )
 

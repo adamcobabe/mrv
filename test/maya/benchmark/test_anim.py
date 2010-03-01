@@ -21,6 +21,33 @@ class TestAnimPerformance( unittest.TestCase ):
 			elapsed = time.time() - st
 			print >>sys.stderr, "Found %i animation nodes ( as_node=%i ) in %f s ( %f anim nodes / s )" % (num_nodes, as_node, elapsed, num_nodes/elapsed)
 			
+			# check plug access
+			if as_node:
+				st = time.time()
+				for anode in anim_nodes:
+					anode.output
+				# END for each node
+				elapsed = time.time() - st
+				print >>sys.stderr, "Accessed output plug on %i nodes using node.output in %f s ( %f anim nodes / s )" % (num_nodes, elapsed, num_nodes/elapsed)
+				
+				st = time.time()
+				for anode in anim_nodes:
+					anode.findPlug('output')
+				# END for each node
+				elapsed_findplug = time.time() - st
+				print >>sys.stderr, "Accessed output plug on %i nodes using node.findPlug('output') in %f s ( %f anim nodes / s )" % (num_nodes, elapsed_findplug, num_nodes/elapsed_findplug)
+				print >>sys.stderr, "node.findPlug is %f times as fast as node.plug" % (elapsed/elapsed_findplug)
+			else:
+				st = time.time()
+				mfndep = nodes.api.MFnDependencyNode()
+				for apianode in anim_nodes:
+					mfndep.setObject(apianode)
+					mfndep.findPlug('output')
+				# END for each node
+				elapsed = time.time() - st
+				print >>sys.stderr, "Accessed output plug on %i api nodes using mfndep.findPlug in %f s ( %f anim nodes / s )" % (num_nodes, elapsed, num_nodes/elapsed)
+			# END attr access testing
+			
 			# make selection list
 			st = time.time()
 			anim_sel_list = nodes.toSelectionList(anim_nodes)

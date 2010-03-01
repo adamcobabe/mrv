@@ -49,6 +49,9 @@ class TestDataBase( unittest.TestCase ):
 		#######################
 		# CHECK COMPOUND ACCESS
 		tx = persp.translate['tx']
+		
+		# can access attributes twice
+		persp.translate
 
 		# DO CONNECTIONS ( test undo/redo )
 		persp.translate >> front.translate
