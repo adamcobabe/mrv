@@ -149,7 +149,7 @@ class TestGeneral( unittest.TestCase ):
 
 		# DIFFERENT TYPES AT END OF PATH
 		nodes.createNode( "this|mesh", "mesh" )
-		self.failUnlessRaises( NameError, nodes.createNode, "this|mesh", "nurbsSurface" )
+		self.failUnlessRaises( NameError, nodes.createNode, "this|mesh", "nurbsSurface", forceNewLeaf = False )
 
 		# renameOnClash  - it fails if the dep node exists first
 		nodes.createNode( "node", "facade" )
