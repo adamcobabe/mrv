@@ -3,7 +3,7 @@
    contain the root `toctree` directive.
 
 Welcome to the MayaRV documentation!
-===============================================
+====================================
 
 Contents:
 
@@ -11,7 +11,8 @@ Contents:
    :maxdepth: 2
    
    install
-   reference
+   usage
+   develop
    
 Module Summary
 ==============
