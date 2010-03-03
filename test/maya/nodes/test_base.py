@@ -44,3 +44,65 @@ class TestTransform( unittest.TestCase ):
 		for i,(fgetname, fsetname) in enumerate(zip(getters, setters)):
 			assert_values(fgetname, fsetname, loose=True)
 		# END for each name
+		
+	def test_doc_examples(self):
+		from mayarv.maya.nodes import *
+		import __builtin__
+		
+		# NODES
+		#######
+		p = Node("persp")
+		t = Node("time1")
+		assert p == p
+		assert p != t
+		assert p in [p]
+		
+		s = __builtin__.set()
+		s.add(p)
+		s.add(t)
+		assert p in s and t in s and len(s | s) == 2
+		
+		# getApiObject returns the api object which represents the underlying maya node best
+		assert isinstance(p.getApiObject(), api.MDagPath)
+		assert isinstance(t.getApiObject(), api.MObject)
+		
+		# api types
+		assert isinstance(p, Transform) and p.getApiType() == api.MFn.kTransform
+		assert isinstance(t, Time) and t.getApiType() == api.MFn.kTime
+		assert p.hasFn(p.getApiType())
+		
+		# get the MObject repreentation
+		assert isinstance(p.getMObject(), api.MObject) and isinstance(t.getMObject(), api.MObject)
+		
+		# DagNodes have a DagPath as well
+		assert p.getDagPath() == p.getMDagPath()
+		assert isinstance(p.getDagPath(), DagPath) and not isinstance(p.getMDagPath(), DagPath)
+		
+		
+		# METHODS
+		#########
+		self.failUnlessRaises(AttributeError, getattr, p, 'doesnt_exist')
+		
+		assert p.getName == p.name
+		
+		assert isinstance(p.getMFnClasses(), list)
+		
+		# DAG NAVIGATION
+		################
+		ps = p.getChildren()[0]
+		assert ps == p[0]
+		assert ps[-1] == p
+		
+		assert ps == p.getShapes()[0]
+		assert ps.getParent() == p == ps.getTransform()
+		
+		# filtering
+		assert len(p.getChildrenByType(Transform)) == 0
+		assert p.getChildrenByType(Camera) == p.getChildrenByType(Shape)
+		
+		# deep and iteration
+		assert ps.iterParents().next() == p == ps.getRoot()
+		assert ps.getParentDeep()[0] == p
+		assert p.getChildrenDeep()[0] == ps
+		
+		

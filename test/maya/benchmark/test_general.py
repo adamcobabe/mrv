@@ -246,13 +246,13 @@ class TestGeneralPerformance( unittest.TestCase ):
 		# mfn recreate
 		a = time.time()
 		for i in range( 10000 ):
-			camfn = api.MFnCamera( p.getObject() )
+			camfn = api.MFnCamera( p.getMObject() )
 			camfn.focalLength()  # this wraps the API
 		b = time.time()
 		print "%f s : recreated + call" % ( b - a )
 
 		# mfn directly
-		camfn = api.MFnCamera( p.getObject() )
+		camfn = api.MFnCamera( p.getMObject() )
 		a = time.time()
 		for i in range( 10000 ):
 			camfn.focalLength()  # this wraps the API

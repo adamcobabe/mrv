@@ -131,7 +131,7 @@ def toApiobj( nodename ):
 
 
 def toApiobjOrDagPath( nodename ):
-	"""Convert the given nodename to the respective MObject or DagPath
+	"""Convert the given nodename to the respective MObject or MDagPath
 	@note: we treat "nodename" and "|nodename" as the same objects as they occupy the
 	same namespace - one time a dep node is meant, the other time a dag node.
 	If querying a dag node, the dep node with the same name is not found, although it is in
@@ -154,7 +154,7 @@ def toApiobjOrDagPath( nodename ):
 			try:
 				dag = MDagPath()
 				_nameToApiSelList.getDagPath( 0 , dag )
-				return DagPath( dag )
+				return dag
 			except RuntimeError:
 				obj = MObject()
 				_nameToApiSelList.getDependNode( 0, obj )
@@ -730,7 +730,7 @@ class Node( object ):
 		correspond to the exact object.
 		@note: using asHashable of openMayaMPx did not work as it returns addresses
 		to instances - this does not work for MObjects though"""
-		return str( self ).__hash__()
+		return hash(str(self))
 
 	#} END overridden methods
 
@@ -830,13 +830,6 @@ class DependNode( Node, iDuplicatable ):		# parent just for epydoc -
 		setattr(type(self), attr, property(lambda self: self.findPlug(attr)))
 		
 		return plug
-
-	#@return: Plug with the given name
-	#@note: """
-	def __getitem__(self, attr):
-		"""used as alternative to the getattr style. We call findPlug in order to 
-		avoid cache lookups"""
-		return self.findPlug(attr)
 
 	def __str__( self ):
 		"""@return: name of this object"""
@@ -961,7 +954,7 @@ class DependNode( Node, iDuplicatable ):		# parent just for epydoc -
 			raise NameError( "new node names may not contain '|' as in %s" % newname )
 
 		# is it the same name ?
-		if newname == api.MFnDependencyNode( self.getObject() ).name():
+		if newname == api.MFnDependencyNode( self.getMObject() ).name():
 			return self
 
 		# ALREADY EXISTS ?
@@ -1034,7 +1027,7 @@ class DependNode( Node, iDuplicatable ):		# parent just for epydoc -
 		if isinstance( attr, Attribute ):
 			attrobj = attr._apiobj
 
-		mfninst = self._mfncls( self.getObject() )
+		mfninst = self._mfncls( self.getMObject() )
 		doitfunc = mfninst.addAttribute
 
 		if not add:
@@ -1088,7 +1081,7 @@ class DependNode( Node, iDuplicatable ):		# parent just for epydoc -
 		@note: you can query the lock state with L{isLocked}"""
 		curstate = self.isLocked()
 		# also works for dag nodes !
-		depfn = api.MFnDependencyNode( self.getObject() )
+		depfn = api.MFnDependencyNode( self.getMObject() )
 
 		op = undo.GenericOperation( )
 		op.addDoit( depfn.setLocked, state )
@@ -1145,11 +1138,11 @@ class DependNode( Node, iDuplicatable ):		# parent just for epydoc -
 	#} END status
 
 	#{ General Query
-	def getObject( self ):
+	def getMObject( self ):
 		"""@return: the MObject attached to this Node"""
 		return self._apiobj
 
-	getApiObject = getObject		# overridden from Node
+	getApiObject = getMObject		# overridden from Node
 
 
 	def getReferenceFile( self ):
@@ -1198,11 +1191,6 @@ class DagNode( Entity, iDagItem ):	# parent just for epydoc
 		If index is string, use DependNodes implementation
 		@note: returned child can be transform or shape, use L{getShapes} or
 		L{getChildTransforms} if you need a quickfilter """
-		if isinstance( index, basestring ):
-			# use method directly for performance, we know that our base classes
-			# will not change
-			return DependNode.__getitem__( self, basestring )
-		# END index is attribute name handling
 		if index > -1:
 			return self.getChild( index )
 		else:
@@ -1887,10 +1875,10 @@ class DagNode( Entity, iDagItem ):	# parent just for epydoc
 	def getDagPath( self ):
 		"""@return: the DagPath attached to this Node
 		@note: it is a wrapped version that can be handled more conveniently, but
-		wrapping it is rather expensive"""
+		wrapping it is rather expensive as it copies the original MDagPath"""
 		return DagPath( self._apidagpath )
 
-	def getApiDagPath( self ):
+	def getMDagPath( self ):
 		"""@return: the original DagPath attached to this Node - it's not wrapped
 		for performance"""
 		return self._apidagpath

@@ -333,7 +333,7 @@ class TestNodeBase( unittest.TestCase ):
 		for attr in [ "preMel", "postMel" ]:
 			plug = getattr( node, attr )
 			assert plug == getattr( node, attr )
-			assert plug == node[attr]
+			assert plug == node.findPlug(attr)
 			self.failUnless( not plug.isNull() )
 
 		# check connection methods

@@ -11,8 +11,10 @@ Contents:
    :maxdepth: 2
    
    install
+   gettingstarted
    usage
    develop
+   tools
    
 Module Summary
 ==============

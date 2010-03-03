@@ -45,6 +45,7 @@ As MayaRV will be run using ''mayapy'' on this system, it is required to install
 
 '''TODO: Detail this'''
 
+.. _runtestsdoc-label:
 Running Tests
 =============
 
