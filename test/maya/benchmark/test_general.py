@@ -3,7 +3,7 @@
 from mayarv.test.maya import *
 import mayarv.maya as bmaya
 import mayarv.maya.nodes as nodes
-from mayarv.maya.nodes import Node
+from mayarv.maya.nodes import Node, NodeFromObj
 import mayarv.test.maya as common
 import sys
 import maya.cmds as cmds
@@ -89,7 +89,7 @@ class TestGeneralPerformance( unittest.TestCase ):
 			print "Walked %i nodes directly in %f s ( %f / s )" % ( nodecount, elapsed, nodecount / elapsed )
 
 			starttime = time.time( )
-			for dagpath in it.iterDagNodes( dagpath = 1, asNode = 1 ):
+			for dagnode in it.iterDagNodes( dagpath = 1, asNode = 1 ):
 				pass
 			elapsed = time.time() - starttime
 			print "Walked %i WRAPPED dag nodes from dagpaths in %f s ( %f / s )" % ( nodecount, elapsed, nodecount / elapsed )
@@ -197,6 +197,20 @@ class TestGeneralPerformance( unittest.TestCase ):
 
 		api_elapsed = time.time() - starttime
 		print "Created %i WRAPPED Nodes ( from APIOBJ ) in %f s ( %f / s ) -> %f %% faster" % ( len( nodenames ), api_elapsed, len( nodenames ) / api_elapsed, (elapsed / api_elapsed) * 100 )
+
+
+		# CREATE MAYA NODES USING THE FAST CONSTRUCTOR
+		starttime = time.time( )
+		tmplist = list()	# previously we measured the time it took to append the node as well
+		for node in Nodes:
+			if isinstance( node, nodes.DagNode ):
+				tmplist.append( NodeFromObj( node._apidagpath ) )
+			else:
+				tmplist.append( NodeFromObj( node._apiobj ) )
+		# END for each wrapped node
+
+		api_elapsed = time.time() - starttime
+		print "Created %i WRAPPED Nodes ( from APIOBJ using NodeFromObj) in %f s ( %f / s ) -> %f %% faster" % ( len( nodenames ), api_elapsed, len( nodenames ) / api_elapsed, (elapsed / api_elapsed) * 100 )
 
 
 	def test_wrappedFunctionCall( self ):

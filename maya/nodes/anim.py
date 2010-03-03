@@ -28,7 +28,7 @@ class AnimCurve( base.DependNode ):
 		# END for each animated plug
 		
 		if asNode:
-			return map(base.Node, objs)
+			return map(base.NodeFromObj, objs)
 		else:
 			return objs
 		# END handle return type

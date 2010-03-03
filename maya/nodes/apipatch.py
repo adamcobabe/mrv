@@ -711,7 +711,7 @@ class MPlug( api.MPlug, util.iDagItem ):
 
 	def getNode( self ):
 		"""@return: Node instance of our underlying node"""
-		return base.Node( api.MPlug._api_node( self ) )
+		return base.NodeFromObj( api.MPlug._api_node( self ) )
 
 	def getNodeApiObj( self ):
 		"""@return: unwrapped api object of the plugs node

@@ -60,7 +60,7 @@ class TestPlugPerformance( unittest.TestCase ):
 
 		s1 = nodes.createNode( "storage1", "StorageNode" )
 		s2 = nodes.createNode( "storage2", "StorageNode" )
-
+		
 		s1msg = s1.getStoragePlug( "s1", plugType = 1, autoCreate = True )
 		s2msg = s1.getStoragePlug( "s1", plugType = 1, autoCreate = True )
 

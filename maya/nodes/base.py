@@ -482,7 +482,7 @@ def createNode( nodename, nodetype, autocreateNamespace=True, renameOnClash = Tr
 	if createdNode is None:
 		raise RuntimeError( "Failed to create %s ( %s )" % ( nodename, nodetype ) )
 
-	return Node( createdNode )
+	return NodeFromObj( createdNode )
 
 
 
@@ -522,8 +522,7 @@ def _checkedInstanceCreationDagPathSupport( apiobj_or_dagpath, clsToBeCreated, b
 
 	# if return is here, you get 3600 ( vs 2000 originally )
 	_mfndep_setobject( apiobj )
-	nodeTypeName = _mfndep_typename( )
-	clsinstance = _checkedInstanceCreation( apiobj, nodeTypeName, clsToBeCreated, basecls )
+	clsinstance = _checkedInstanceCreation( apiobj, _mfndep_typename( ), clsToBeCreated, basecls )
 
 	# ASSURE WE HAVE A DAG PATH
 	# Dag Objects should always have a dag path even if none was passed in
@@ -571,7 +570,8 @@ def _checkedInstanceCreation( apiobj, typeName, clsToBeCreated, basecls ):
 	# END if explicit class given
 
 	# FINISH INSTANCE
-	clsinstance = super( basecls, clsToBeCreated ).__new__( nodeTypeCls )
+	# At this point, we only support type as we expect ourselves to be lowlevel
+	clsinstance = object.__new__( nodeTypeCls )
 
 	object.__setattr__( clsinstance, '_apiobj',  apiobj )				# set the api object - if this is a string, the called has to take care about it
 	return clsinstance
@@ -631,7 +631,7 @@ class SetFilter( tuple ):
 	def __call__( self, apiobj ):
 		"""@return: True if given api object matches our specifications """
 		if self[ 2 ]:			# deformer sets
-			setnode = Node( apiobj )
+			setnode = NodeFromObj( apiobj )
 			for elmplug in setnode.usedBy:	# find connected deformer
 				iplug = elmplug.getInput()
 				if iplug.isNull():
@@ -656,6 +656,7 @@ class SetFilter( tuple ):
 
 
 #{ Base
+
 class Node( object ):
 	"""Common base for all maya nodes, providing access to the maya internal object
 	representation
@@ -755,6 +756,50 @@ class Node( object ):
 	#} END interface
 
 
+class NodeFromObj( object ):
+	"""Virtual Constructor, producing nodes as the L{Node} does, but it will only
+	accept MObjects or dagpaths which are expected to be valid. 
+	As no additional checking is performed, it might be more unsafe to use, but 
+	will be faster as it does not perform any runtime checks
+	
+	It duplicates code from L{_checkedInstanceCreation} and L{_checkedInstanceCreationDagPathSupport}
+	to squeeze out the last tiny bit of performance as it can make quite a few more 
+	assumptions and reduces method calls.
+	
+	@note: Do not derive from this class, derive from L{Node} instead
+	@note: We will always create the node type as determined by the type hierarchy"""
+	def __new__ ( cls, apiobj_or_dagpath ):
+		global _mfndep_setobject, _mfndep_typename, api_mdagpath_node
+		
+		apiobj = apiobj_or_dagpath
+		dagpath = None
+		if isinstance( apiobj, MDagPath ):
+			apiobj = api_mdagpath_node( apiobj_or_dagpath )	## expensive call !
+			dagpath = apiobj_or_dagpath
+		# END if we have a dag path
+	
+		_mfndep_setobject( apiobj )
+		
+		# this assures multiple inheritance works !
+		clsinstance = object.__new__( nodeTypeToNodeTypeCls( _mfndep_typename( ) ) )
+	
+		object.__setattr__( clsinstance, '_apiobj',  apiobj )				
+	
+		if not dagpath and isinstance( clsinstance, DagNode ):
+			dagpath = MDagPath( )
+			MFnDagNode( apiobj ).getPath( dagpath )
+		# END if no dagpath was available
+	
+		if dagpath:
+			object.__setattr__( clsinstance, '_apidagpath', dagpath )
+			
+		# for some reason, we have to call init ourselves in that case, probably
+		# since we are not afficliated with the actual instance we returned which 
+		# makes a little bit of sense.
+		clsinstance.__init__(apiobj_or_dagpath)
+		return clsinstance
+
+
 class DependNode( Node, iDuplicatable ):		# parent just for epydoc -
 	""" Implements access to dependency nodes
 
@@ -771,10 +816,12 @@ class DependNode( Node, iDuplicatable ):		# parent just for epydoc -
 			plug = self.findPlug( attr)
 		except RuntimeError:		# perhaps a base class can handle it
 			try:
-				return base.__getattr__( attr )
+				return base.__getattribute__( attr )
 			except AttributeError:
 				raise AttributeError( "Attribute '%s' does not exist on '%s', neither as function not as attribute" % ( attr, self.name() ) )
-
+			# END try to get attribute by base class
+		# END find plug exception handling 
+		
 		# cache the plug on our instance
 		base.__setattr__( attr, plug )
 		# and assure our class knows about it so in future the plug will be retrieved
@@ -862,8 +909,7 @@ class DependNode( Node, iDuplicatable ):		# parent just for epydoc -
 		Its preset to only return shading engines
 		@note: the returned sets order is defined by the order connections to instObjGroups
 		@note: only sets will be returned that have the whole object as member, thus you will not
-		see sets having component assignments like per-compoent shader assignments or deformer sets
-		@note: this method ignores"""
+		see sets having component assignments like per-compoent shader assignments or deformer sets """
 
 		# have to parse the connections to fSets manually, finding fSets matching the required
 		# type and returning them
@@ -875,7 +921,7 @@ class DependNode( Node, iDuplicatable ):		# parent just for epydoc -
 
 			if not setFilter( setapiobj ):
 				continue
-			outlist.append( Node( MObject( setapiobj ) ) )
+			outlist.append( NodeFromObj( MObject( setapiobj ) ) )
 		# END for each connected set
 
 		return outlist
@@ -1261,7 +1307,7 @@ class DagNode( Entity, iDagItem ):	# parent just for epydoc
 				if DependNode.__eq__( self, child ):
 					return child
 		else: # return updated version of ourselves
-			return Node( self._apiobj )
+			return NodeFromObj( self._apiobj )
 
 
 		raise AssertionError( "Could not find self in children after reparenting" )
@@ -1308,7 +1354,7 @@ class DagNode( Entity, iDagItem ):	# parent just for epydoc
 		op.addUndoit( self.addChild, childNode, keepExistingParent=True )	# TODO: add child to position it had
 		op.doIt()
 
-		return Node( childNode._apiobj )	# will attach A new dag path respectively - it will just pick the first one it gets
+		return NodeFromObj( childNode._apiobj )	# will attach A new dag path respectively - it will just pick the first one it gets
 
 
 	@undoable
@@ -1423,7 +1469,7 @@ class DagNode( Entity, iDagItem ):	# parent just for epydoc
 		dagIndex = pos
 		if pos == self.kNextPos:
 			dagIndex = self.getChildCount() - 1	# last entry as child got added
-		newChildNode = Node( self.getDagPath().getChildPath( dagIndex ) )
+		newChildNode = NodeFromObj( self.getDagPath().getChildPath( dagIndex ) )
 
 		# update undo cmd to use the newly created child with the respective dag path
 		undocmd.args = [ newChildNode ]
@@ -1564,7 +1610,7 @@ class DagNode( Entity, iDagItem ):	# parent just for epydoc
 		# it will always duplicate the transform and return it
 		# in case of instances, its the only way we have to get it below an own parent
 		# bake all names into strings for undo and redo
-		duplicate_node_parent = Node( api.MFnDagNode( self._apidagpath ).duplicate( False, False ) )		# get the duplicate
+		duplicate_node_parent = NodeFromObj( api.MFnDagNode( self._apidagpath ).duplicate( False, False ) )		# get the duplicate
 
 
 		# RENAME DUPLICATE CHILDREN
@@ -1749,7 +1795,7 @@ class DagNode( Entity, iDagItem ):	# parent just for epydoc
 		uint = sutil.asUint()
 		sutil.setUint( uint , index )
 
-		return Node( api.MFnDagNode( self._apidagpath ).parent( uint ) )
+		return NodeFromObj( api.MFnDagNode( self._apidagpath ).parent( uint ) )
 
 	def getTransform( self ):
 		"""@return: Node to lowest transform in the path attached to our node
@@ -1758,7 +1804,7 @@ class DagNode( Entity, iDagItem ):	# parent just for epydoc
 		# back to a Node
 		if isinstance( self, Transform ):
 			return self
-		return Node( self._apidagpath.transform( ) )
+		return NodeFromObj( self._apidagpath.transform( ) )
 
 	def getParent( self ):
 		"""@return: Maya node of the parent of this instance or None if this is the root"""
@@ -1767,7 +1813,7 @@ class DagNode( Entity, iDagItem ):	# parent just for epydoc
 		copy.pop( 1 )
 		if copy.length() == 0:		# ignore world !
 			return None
-		return Node( copy )
+		return NodeFromObj( copy )
 
 	def getChildren( self, predicate = lambda x: True ):
 		"""@return: all child nodes below this dag node if predicate returns True for passed Node"""
@@ -1776,7 +1822,7 @@ class DagNode( Entity, iDagItem ):	# parent just for epydoc
 		for i in range( ownpath.childCount() ):
 			copy = MDagPath( ownpath )
 			copy.push( MDagPath.child( ownpath, i ) )
-			child = Node( copy )
+			child = NodeFromObj( copy )
 
 			if not predicate( child ):
 				continue
@@ -1794,12 +1840,12 @@ class DagNode( Entity, iDagItem ):	# parent just for epydoc
 		"""@return: all our Shape nodes
 		@note: you could use getChildren with a predicate, but this method is more
 		efficient as it uses dagpath functions to filter shapes"""
-		shapeNodes = [ Node( s ) for s in self.getDagPath().getShapes() ]	# could use getChildrenByType, but this is faster
+		shapeNodes = map(NodeFromObj, self.getDagPath().getShapes())	# could use getChildrenByType, but this is faster
 		return [ s for s in shapeNodes if predicate( s ) ]
 
 	def getChildTransforms( self, predicate = lambda x: True ):
 		"""@return: list of all transform nodes below this one """
-		transformNodes = [ Node( s ) for s in self.getDagPath().getTransforms() ] # could use getChildrenByType, but this is faster
+		transformNodes = map(NodeFromObj, self.getDagPath().getTransforms()) # could use getChildrenByType, but this is faster
 		return [ t for t in transformNodes if predicate( t ) ]
 
 	def getInstanceNumber( self ):
@@ -1819,7 +1865,7 @@ class DagNode( Entity, iDagItem ):	# parent just for epydoc
 		allpaths = api.MDagPathArray()
 		self.getAllPaths( allpaths )
 		# copy the path as it will be invalidated once the array goes out of scope !
-		return Node( MDagPath( allpaths[ instanceNumber ] ) )
+		return NodeFromObj( MDagPath( allpaths[ instanceNumber ] ) )
 
 	def hasChild( self, node ):
 		"""@return: True if node is a child of self"""
@@ -1832,7 +1878,7 @@ class DagNode( Entity, iDagItem ):	# parent just for epydoc
 		we use to aquire the object"""
 		copy = MDagPath( self._apidagpath )
 		copy.push( MDagPath.child( self._apidagpath, index ) )
-		return Node( copy )
+		return NodeFromObj( copy )
 
 	child = getChild 		# assure the mfnmethod cannot be called anymore - its dangerous !
 	#} END hierarchy query
@@ -1881,7 +1927,7 @@ class DagNode( Entity, iDagItem ):	# parent just for epydoc
 			# index is NOT instance number ! If transforms are instanced, children increase instance number
 			dagpath = allpaths[ i ]
 			if dagpath.instanceNumber() != ownNumber:
-				yield Node( MDagPath( dagpath ) )
+				yield NodeFromObj( MDagPath( dagpath ) )
 		# END for each instance
 
 	#}
@@ -2079,7 +2125,7 @@ class DagPath( MDagPath, iDagItem ):
 
 	def getNode( self ):
 		"""@return: Node of the node we are attached to"""
-		return Node( self.getApiObj( ) )
+		return NodeFromObj( self.getApiObj( ) )
 
 	def getTransform( self ):
 		"""@return: path of the lowest transform in the path
@@ -2360,7 +2406,7 @@ class Shape( DagNode ):	 # base for epydoc !
 			if not setFilter( setobj ):
 				continue
 
-			setobj = Node( MObject( setobj ) )								# copy obj to get memory to python
+			setobj = NodeFromObj( MObject( setobj ) )								# copy obj to get memory to python
 			compobj = MObject( compobj )											# make it ours
 			if not compobj.isNull():
 				compobj = Component( compobj )

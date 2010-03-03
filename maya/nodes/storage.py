@@ -315,7 +315,6 @@ class StorageBase( iDuplicatable ):
 	@todo: should self._node be stored as weakref ?"""
 	kValue, kMessage, kStorage = range( 3 )
 	_partitionIdAttr = "bda_storagePartition"
-	__slots__ = ( '_attrprefix', '_node' )
 
 	class PyPickleValue( object ):
 		"""Wrapper object prividing native access to the wrapped python pickle object
@@ -732,7 +731,7 @@ class StorageNode( nodes.DependNode, StorageBase ):
 	#{ Overrriden Methods
 	def __init__( self, *args ):
 		"""initialize bases properly"""
-		nodes.DependNode.__init__( self, *args )
+		nodes.DependNode.__init__( self )
 		StorageBase.__init__( self )
 
 
