@@ -2062,6 +2062,21 @@ class Component( MObject ):
 		"""@return: mfn type of this class
 		@note: the type returned is *not* the type of the shape component"""
 		return cls._mfnType
+		
+	def addElements( self, *args ):
+		"""Operates exactly as described in the MFn...IndexComponent documentation, 
+		but returns self to allow combined calls and on-the-fly component generation
+		@return: self"""
+		self._mfncls(self).addElements(*args)
+		return self
+
+	def addElement( self, *args ):
+		"""see L{addElements}
+		@return: self
+		@note: do not use this function as it will be really slow when handling many
+		items, use addElements instead"""
+		self._mfncls(self).addElement(*args)
+		return self
 
 
 class SingleIndexedComponent( Component ):

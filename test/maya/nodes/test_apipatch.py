@@ -378,5 +378,10 @@ class TestDataBase( unittest.TestCase ):
 		assert len(ia) == 3 and ia[0] == 4 and ia[1] == 6 and ia[2] == 7
 		
 		# from iter
-		ia = api.MIntArray.fromIter(iter((4,6,7)))
+		items = (4,6,7)
+		ia = api.MIntArray.fromIter(iter(items))
+		assert len(ia) == 3 and ia[0] == 4 and ia[1] == 6 and ia[2] == 7
+		
+		# from list
+		ia = api.MIntArray.fromList(items)
 		assert len(ia) == 3 and ia[0] == 4 and ia[1] == 6 and ia[2] == 7

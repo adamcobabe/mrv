@@ -116,8 +116,12 @@ class Element(object):
 		return None
 
 	def getValue( self ):
-		"""@return: own value - it is strictly read-only"""
+		"""@return: own value"""
 		return self._value
+		
+	def getName( self ):
+		"""@return: name of the element"""
+		return self._name
 
 
 class Enumeration(tuple):
@@ -275,9 +279,12 @@ def create(*elements, **kwargs ):
 	"""Factory method for Enumerations. Accepts of list of values that
 	can either be strings or (name, value) tuple pairs. Strings will
 	have an Element created for use as their value.
+	If you provide elements, the member returned when you access the enumeration
+	will be the element itself.
 
 	Example:  Enumeration.create('fred', 'bob', ('joe', 42))
 	Example:  Enumeration.create('fred', cls = EnumerationSubClass )
+	Example:  Enumeration.create(Element('fred', Marge), ...)
 
 	@param cls: The class to create an enumeration with, must be an instance of
 	Enumeration
@@ -324,6 +331,9 @@ def create(*elements, **kwargs ):
 			# END bitflag value generation
 			values.append( elmcls( element, val ) )		# zero based ids
 			names.append(element)
+		elif isinstance(element, elmcls):
+			values.append(element)
+			names.append(element.getName())
 		else:
 			raise "Unsupported element type: %s" % type( element )
 	# END for each element

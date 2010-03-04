@@ -222,13 +222,47 @@ class TestGeometry( unittest.TestCase ):
 			# END for each mesh name
 		# END for each component type
 		
-	def test_mesh_components(self):
+	def test_mesh_components_and_iteration(self):
 		isb = nodes.Node("initialShadingGroup")
 		m = nodes.Mesh()
 		pc = nodes.PolyCube()
 		pc.output > m.inMesh
 		
-		assert len(m.getComponentAssignments()) == 0 and m.numVertices() > 0
+		assert len(m.getComponentAssignments()) == 0 and m.numVertices() == 8
+		
+		# TEST ITERATION
+		################
+		self.failUnlessRaises(ValueError, m.iterComponents, "something")
+		
+		ec = m.eComponentType
+		for comp, maxindex in zip(m.eComponentType[:3], (7, 11, 5)):
+			last_index = 0
+			for it in m.iterComponents(comp):
+				last_index = it.index()
+			# END for each itertion pass
+			assert last_index == maxindex
+		# END for each component, iterator type
+		
+		last_index = 0
+		for it in m.iterFaceVertex():
+			last_index = it.faceId()
+		# END for each facevertex
+		assert last_index == 5
+		
+		
+		# constrain mit using component
+		self.failUnlessRaises(ValueError, m.getComponent, 1)	# invalid arg type
+		vc = m.getComponent(ec.vertex).addElements(api.MIntArray.fromMultiple(1,2))
+		assert isinstance(vc, nodes.SingleIndexedComponent)
+		
+		miv = m.iterComponents(ec.vertex, vc)
+		assert miv.count() == 2
+		
+		#self.fail("try with component")
+		
+		
+		
+		
 	
 	def test_lightLinkCopy( self ):
 		"""mayarv.maya.nodes.geometry: test how lightlinks are copied from oen shape to another

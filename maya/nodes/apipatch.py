@@ -10,12 +10,7 @@ As they are usually derived from the class they patch , they could also be used 
 
 @note: NEVER IMPORT CLASSES DIRECTLY IN HERE, keep at least one module , thus:
 NOT: thisImportedClass BUT: module.thisImportedClass !
-
-
-
 """
-
-
 import base
 import mayarv.maya.undo as undo
 
@@ -979,8 +974,7 @@ class MIntArray( api.MIntArray ):
 		l = j - i
 		ia.setLength(l)
 		
-		# wouldn't it be great to have a real for loop now ? Its a bit 
-		# faster like that 
+		# wouldn't it be great to have a real for loop now ?
 		ci = 0
 		for i in xrange(i, j):
 			ia[ci] = i
@@ -1018,6 +1012,52 @@ class MIntArray( api.MIntArray ):
 			ia.append(index)
 		return ia
 	
+	@classmethod
+	def fromList(cls, list):
+		"""@return: MIntArray created from the given list of indices"""
+		ia = api.MIntArray()
+		ia.setLength(len(list))
+		
+		ci = 0
+		for index in list:
+			ia[ci] = index
+			ci += 1
+		# END for each item
+		
+		return ia
 	
+class MeshIteratorBase( Abstract ):
+	"""Provides common functionality for all MItMesh classes"""
+	
+	def __iter__(self):
+		"""@return: Iterator yielding self for each item in the iteration
+		@note: the iteration will be reset before beginning it
+		@note: extract the information you are interested in yourself"""
+		self.reset()
+		next = self.next
+		if hasattr(self, 'count'):
+			for i in xrange(self.count()):
+				yield self
+				next()
+			# END for each item 
+		else:
+			isDone = self.isDone
+			while not isDone():
+				yield self
+				next()
+			# END while we have items
+		# END handle optimized iteration, saving function calls
+	
+class MItMeshVertex( api.MItMeshVertex, MeshIteratorBase ):
+	pass
+
+class MItMeshEdge( api.MItMeshEdge, MeshIteratorBase ):
+	pass
+
+class MItMeshPolygon( api.MItMeshPolygon, MeshIteratorBase ):
+	pass
+
+class MItMeshFaceVertex( api.MItMeshFaceVertex, MeshIteratorBase ):
+	pass
 #}
 

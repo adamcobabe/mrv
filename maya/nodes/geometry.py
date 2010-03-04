@@ -9,7 +9,7 @@ Contains implementations ( or improvements ) to mayas geometric shapes
 
 import base
 from typ import MetaClassCreatorNodes
-from mayarv.enum import create as enum
+from mayarv.enum import (create as enum, Element as elm)
 import maya.OpenMaya as api
 
 class GeometryShape( base.Shape ):	# base for epydoc !
@@ -93,7 +93,12 @@ class Mesh( SurfaceShape ):		# base for epydoc !
 	convenient"""
 	__metaclass__ = MetaClassCreatorNodes
 	# component types that make up a mesh
-	eComponentType = enum( "vertex", "edge", "face", "uv" )
+	eComponentType = enum( elm("vertex", api.MFn.kMeshVertComponent), 
+							elm("edge", api.MFn.kMeshEdgeComponent ), 
+							elm("face", api.MFn.kMeshPolygonComponent ), 
+							elm("uv", api.MFn.kMeshMapComponent ) )
+	
+	#{ Utilities
 
 	def copyTweaksTo( self, other ):
 		"""Copy our tweaks onto another mesh
@@ -229,6 +234,41 @@ class Mesh( SurfaceShape ):		# base for epydoc !
 				# possibly only for the current uvset
 				pass
 		# END for tweak type to reset
+		
+	def getComponent(self, component_type):
+		"""@return: A component object able to hold the given component type
+		@param component_type: a member of the L{eComponentType} enumeration"""
+		if component_type not in self.eComponentType:
+			raise ValueError("Invalid component type")
+		return base.SingleIndexedComponent.create(component_type.getValue())
+		
+	#} END utilities
+		
+	#{ Iterators 
+	def iterComponents(self, component_type, component=api.MObject()):
+		"""@return: MItIterator matching your component_type to iteartor over items
+		on this mesh
+		@param component_type: 
+			vertex -> MItMeshVertex
+			edge -> MItMeshEdge
+			face -> MItMeshPolygon
+		@param component: if not kNullObject, the iterator returned will be constrained
+		to the given indices as described by the Component"""
+		if component_type not in self.eComponentType:
+			raise ValueError("Invalid component type")
+			
+		ec = self.eComponentType
+		it_type = { 	ec.vertex : api.MItMeshVertex,
+						ec.edge   : api.MItMeshEdge, 
+						ec.face   : api.MItMeshPolygon }[component_type] 
+		
+		return it_type(self.getMDagPath(), component)
+		
+	def iterFaceVertex(self, component=api.MObject()):
+		"""@return: FaceVertex iterator, optionally constrained to the given component
+		@param component: see L{iterComponents}"""
+		return api.MItMeshFaceVertex(self.getMDagPath(), component)
+	#} END iterators 
 
 	#( iDuplicatable
 	def copyFrom( self, other, *args, **kwargs ):
