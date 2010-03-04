@@ -26,6 +26,7 @@ import maya.cmds as cmds
 import inspect
 import itertools
 import sys
+import it
 
 
 
@@ -912,5 +913,13 @@ class MObjectArray( api.MObjectArray, ArrayBase ):
 			index = len(self) + index
 		return api.MObject(_objectarray_getitem( self,  index ))
 
+
+class MSelectionList( api.MSelectionList, ArrayBase ):
+	_apicls = api.MSelectionList
+	
+	def __iter__( self ):
+		"""@return: iterator object"""
+		return it.iterSelectionList(self)
+	
 #}
 

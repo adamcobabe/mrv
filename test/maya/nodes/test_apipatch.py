@@ -290,8 +290,6 @@ class TestDataBase( unittest.TestCase ):
 
 		tmat.setRotate( ( 20, 40, 90, 1.0 ) )
 
-
-
 	def test_MPlugArray( self ):
 		"""mayarv.maya.nodes: test the plugarray wrapper
 		NOTE: plugarray can be wrapped, but the types stored will always be"""
@@ -321,3 +319,19 @@ class TestDataBase( unittest.TestCase ):
 
 		self.failIf( len( pa ) != 5 )
 
+	def test_MSelectionList( self ):
+		sl = nodes.toSelectionList(nodes.it.iterDgNodes())
+		nodeset = set()
+		
+		# can be handled like a list
+		assert len(sl) > 3
+		
+		# provides unique wrapped nodes
+		for node in sl:
+			assert isinstance(node, nodes.Node)
+			nodeset.add(node)
+		# END for each node
+		assert len(nodeset) == len(sl)
+		
+		# random access is not yet implemented
+		self.failUnlessRaises(AttributeError, getattr, sl, '__getitem__')

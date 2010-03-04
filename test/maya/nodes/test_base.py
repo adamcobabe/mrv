@@ -105,4 +105,25 @@ class TestTransform( unittest.TestCase ):
 		assert ps.getParentDeep()[0] == p
 		assert p.getChildrenDeep()[0] == ps
 		
+		# NODE CREATION
+		###############
+		cs = createNode("namespace:subspace:group|other:camera|other:cameraShape", "camera")
+		assert len(cs.getParentDeep()) == 2
 		
+		# NAMESPACES
+		#############
+		ons = cs.getNamespace()
+		assert ons == cs[-1].getNamespace()
+		
+		sns = cs[-2].getNamespace()
+		assert sns != ons
+		
+		pns = sns.getParent()
+		assert pns.getChildren()[0] == sns
+		
+		assert len(sns.getSelectionList()) == 1
+		assert len(pns.listObjectStrings()) == 0
+		assert len(pns.getSelectionList(depth=2)) == 1
+		
+		# DAG MANIPULATION
+		##################

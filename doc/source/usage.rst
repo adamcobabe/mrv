@@ -99,14 +99,33 @@ More specialized filters can be applied as well::
 	>>> assert p.getChildrenByType(Camera) == p.getChildrenByType(Shape)
 	>>> assert p.getChildren(lambda n: n.getApiType()==248)[0] == ps
 	
-Generally, all items that are organized in a hierarachy support the  ``mayarv.interface.iDagItem`` interface, which applies to ``mayarv.maya.ref.FileReference``s as well as to Paths (see ``mayarv.path.Path``)::
+Generally, all items that are organized in a hierarachy support the  ``mayarv.interface.iDagItem`` interface::
 	>>> assert ps.iterParents().next() == p == ps.getRoot()
 	>>> assert ps.getParentDeep()[0] == p
 	>>> assert p.getChildrenDeep()[0] == ps
 
 Node Creation
 =============
-
+Creating nodes in MayaRV is simple and possibly slow as you can only create about 1200 Nodes per second. There is only one method to accomplish this with plenty of keyword arguemnts, ``mayarv.maya.nodes.base.createNode``, this shall only be brief example::
+	>>> cs = createNode("namespace:group|other:camera|other:cameraShape")
+	>>> assert len(cs.getParentsDeep()) == 2
+	
+Namespaces
+==========
+Namespaces in MayaRV are objects which may create a hierarchy, hence they support the ``mayarv.interface.iDagItem`` interface.
+	>>> ons = cs.getNamespace()
+	>>> assert ons == cs[-1].getNamespace()
+	
+	>>> sns = cs[-2].getNamespace()
+	>>> assert sns != ons
+	
+	>>> pns = sns.getParent()
+	>>> assert pns.getChildren()[0] == sns
+	
+	>>> assert len(sns.getSelectionList()) == 1
+	>>> assert len(pns.listObjectStrings()) == 0
+	>>> assert len(pns.getSelectionList(depth=2)) == 1
+	
 DAG-Manipulation
 ================
 
