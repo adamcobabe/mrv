@@ -9,6 +9,7 @@ Test sets and partitions
 
 
 import unittest
+from mayarv.test.maya import *
 import mayarv.maya.nodes as nodes
 import maya.cmds as cmds
 import maya.OpenMaya as api
@@ -20,7 +21,7 @@ import mayarv.test.maya.nodes as ownpackage
 class TestSets( unittest.TestCase ):
 	""" Test set and partition handling """
 
-	def test_createAddRemove( self ):
+	def _test_createAddRemove( self ):
 		"""mayarv.maya.nodes.set: create,add and remove"""
 		if not ownpackage.mayRun( "sets" ): return
 		set1 = nodes.createNode( "set1", "objectSet" )
@@ -67,9 +68,24 @@ class TestSets( unittest.TestCase ):
 
 		# replace multiple
 		prt2.replaceSets( [ set3 ] )
-
-
-
+		
+		# set like methods
+		prt2.add(set1)
+		assert set1 in prt2
+		prt2.discard(set1)
+		assert set1 not in prt2
+		
+		# test partition protocols 
+		assert len(prt2) == len(prt2.getMembers())
+		assert [ s for s in prt2 ] == prt2.getMembers()
+		assert set3 in prt2
+		
+		
+		assert len(prt2)
+		assert isinstance(prt2.clear(), nodes.Partition)
+		assert len(prt2) == 0
+		
+		
 	def _getMemberList( self ):
 		"""@return: object list with all types"""
 		persp = nodes.Node( "persp" )
@@ -158,6 +174,20 @@ class TestSets( unittest.TestCase ):
 		cmds.redo()
 		self.failUnless( s.getMembers().length() == 0 )
 
+		
+		# test smart add
+		s.add(sellist)
+		assert len(s) == len(sellist)
+		single_item = iter(sellist).next()
+		s.add(single_item)
+		assert len(s) == len(sellist)
+
+		s.discard(single_item)
+		assert single_item not in s
+		
+		s.discard(sellist.toList())
+		assert len(s) == 0
+
 
 		# TEST CLEAR
 		#############
@@ -188,8 +218,15 @@ class TestSets( unittest.TestCase ):
 		
 		cmds.undo()
 		self.failUnless( s.getMembers().length() == 3 )
+		
+		
+		# TEST SET PROTOCOLS
+		####################
+		assert len(s) == 3
+		assert [ m for m in s ] == list(s.getMembers())
+		assert iter(s).next() in s
 
-	def test_setOperations( self ):
+	def _test_setOperations( self ):
 		"""byroniom.maya.nodes.sets: unions, intersections, difference, overloaded ops"""
 		if not ownpackage.mayRun( "sets" ): return
 		memberlist = self._getMemberList( )
@@ -264,7 +301,7 @@ class TestSets( unittest.TestCase ):
 		self.failUnless( s.getMembers().length() - s2.getMembers().length() - s3.getMembers().length() == sellist.length() )
 		
 
-	def test_partitions( self ):
+	def _test_partitions( self ):
 		"""mayarv.maya.nodes.set: test partition constraints"""
 		if not ownpackage.mayRun( "setsforce" ): return
 
@@ -310,7 +347,7 @@ class TestSets( unittest.TestCase ):
 
 
 			# and once more
-			s1.clear()
+			assert isinstance(s1.clear(), nodes.ObjectSet)
 			s2.clear()
 
 			for s in s1,s2:
@@ -352,7 +389,7 @@ class TestSets( unittest.TestCase ):
 		assert snode.getMembers().length() == 2
 		assert snode.getIntersection( multi ).length() == 2
 
-	def test_renderPartition( self ):
+	def _test_renderPartition( self ):
 		"""mayarv.maya.nodes.set: assure renderpartition works for us"""
 		if not ownpackage.mayRun( "setsrenderpartition" ): return
 
@@ -360,7 +397,7 @@ class TestSets( unittest.TestCase ):
 		assert len( rp.getSets( ) )		# at least the initial shading group
 
 
-	def test_z_memberHandlingComps( self ):
+	def _test_z_memberHandlingComps( self ):
 		"""mayarv.maya.nodes.set: member handling with components - needs to run last"""
 		if not ownpackage.mayRun( "sets" ): return
 		bmaya.Scene.open( common.get_maya_file( "perComponentAssignments.ma" ), force = 1 )

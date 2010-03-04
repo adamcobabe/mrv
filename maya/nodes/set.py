@@ -179,9 +179,7 @@ class ObjectSet:
 	def _addRemoveMembers( self, members, mode, ignore_failure ):
 		"""Add or remove the members to the set
 		@param mode: kRemove or kAdd or kAddForce"""
-		sellist = members
-		if not isinstance( sellist, api.MSelectionList ):
-			sellist = nodes.toSelectionList( sellist )
+		sellist = nodes.toSelectionList( members )	# handles 'member is SelectionList' case !
 			
 		lsellist = sellist.length()
 		if not lsellist:
@@ -202,8 +200,14 @@ class ObjectSet:
 			tmp = undoitfunc
 			undoitfunc = doitfunc
 			doitfunc = tmp
-		# END function swapping
 			
+			# IMPORTANT: If one member of sellist is not in the set, the operation
+			# will *silently* ( WTF ??) fail. Hence we have to make sure that
+			# we only even remotely think about trying to remove items which are
+			# actually in the set !
+			sellist = self.getIntersection(sellist)
+		# END function swapping
+		
 		op = undo.GenericOperation()	
 		op.addDoit( doitfunc, sellist )
 		op.addUndoit( undoitfunc, sellist )
@@ -213,8 +217,10 @@ class ObjectSet:
 	
 	@undoable
 	def clear( self ):
-		"""Clear the set so that it will be empty afterwards"""
+		"""Clear the set so that it will be empty afterwards
+		@return self:"""
 		self.removeMembers( self.getMembers() )
+		return self
 	
 	@undoable
 	def addMember( self, member, component = api.MObject(), force = False, ignore_failure = False ):
@@ -232,13 +238,42 @@ class ObjectSet:
 		if force:
 			mode = self.kAddForce
 		return self._addRemoveMember( member, component, mode, ignore_failure )		
-		
+	
+	@undoable
+	def add( self, member_or_members, **kwargs ):
+		"""Combined method which takes single or multiple members which are to be added
+		@param member_or_members: one of the input types supported by L{addMember} and
+		L{addMembers}
+		@param **kwargs: see L{addMember}
+		@note: this method is for convenience only and should not be used to 
+		add massive amounts of items"""
+		addfun = None
+		if isinstance(member_or_members, (tuple, list, api.MSelectionList)):
+			addfun = self.addMembers
+		else:
+			addfun = self.addMember
+		# END handle input
+		return addfun(member_or_members, **kwargs)
 		
 	@undoable
 	def removeMember( self, member, component = api.MObject()  ):
 		"""Remove the member from the set
 		@param member: member of the list, for types see L{addMember}"""
 		return self._addRemoveMember( member, component, ObjectSet.kRemove, True )
+	
+	@undoable
+	def discard( self, member_or_members, **kwargs ):
+		"""Removes a single member or multiple members from the set
+		@param member_or_members: any of the types supported by L{removeMember}
+		or L{removeMembers}
+		@param **kwargs: see L{removeMember}"""
+		rmfun = None
+		if isinstance(member_or_members, (tuple, list, api.MSelectionList)):
+			rmfun = self.removeMembers
+		else:
+			rmfun = self.removeMember
+		# END handle input
+		return rmfun(member_or_members, **kwargs)
 	
 	@undoable
 	def addMembers( self, nodes, force = False, ignore_failure = False ):
@@ -307,10 +342,6 @@ class ObjectSet:
 		if not component.isNull():
 			return self._mfncls( self._apiobj ).isMember( self._toMemberObj( obj ), component )
 		return self._mfncls( self._apiobj ).isMember( self._toMemberObj( obj ) )
-	
-	def __contains__( self, obj ):
-		"""@return: True if the given obj is member of this set"""
-		return self.isMember( obj )
 		
 	#} END member query 
 	
@@ -488,10 +519,25 @@ class ObjectSet:
 	#} END set operations
 	
 	#{ Operators
+	__or__ = getUnion
 	__add__ = getUnion
 	__sub__ = getDifference
 	__and__ = getIntersection
 	#} END operators
+	
+	#{ Protocols 
+	def __len__(self):
+		"""@warn: This method is possibly slow as it will retrieve all members 
+		just to get the size of the set. Don't use it directly if you like performance""" 
+		return len(self.getMembers())
+	
+	def __iter__(self):
+		return iter(self.getMembers())
+	
+	def __contains__( self, obj ):
+		"""@return: True if the given obj is member of this set"""
+		return self.isMember( obj )
+	#} END protocols 
 	
 	
 
@@ -530,11 +576,15 @@ class Partition:
 		@return: self allowing chained calls"""
 		return self._addRemoveMember( objectset, ObjectSet.kAdd )
 		
+	add = addMember
+		
 	def removeMember( self, objectset ):
 		"""Remove the given objectset from the partition
 		@param objectset: one or multiple object sets 
 		@return: self allowing chained calls"""
 		return self._addRemoveMember( objectset, ObjectSet.kRemove )
+		
+	discard = removeMember
 		
 	def replaceMember( self, objectset ):
 		"""Replace existing objectsets with the given one(s
@@ -544,9 +594,12 @@ class Partition:
 		
 	@undoable
 	def clear( self ):
-		"""remove all members from this partition"""
+		"""remove all members from this partition
+		@return: self"""
 		for m in self.getMembers():
 			self.removeMember( m )
+			
+		return self
 			
 	def getMembers( self ):
 		"""@return: sets being member of this partition
@@ -570,3 +623,14 @@ class Partition:
 	replaceSets = replaceMember
 	getSets = getMembers
 	#} END name remapping 
+	
+	#{ Protocols 
+	def __len__(self):
+		return len(self.sets.getInputs())
+		
+	def __iter__(self):
+		for s in self.getMembers():
+			yield s
+		# END for each member (ObjectSet)
+	
+	#} END protocols 
