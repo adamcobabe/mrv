@@ -46,6 +46,8 @@ class TestTransform( unittest.TestCase ):
 		# END for each name
 		
 	def test_doc_examples(self):
+		# NOTE: If this test fails ( because of name changes for instance ), the 
+		# documentation needs to be fixed as well, usage.rst.
 		from mayarv.maya.nodes import *
 		import __builtin__
 		
@@ -127,3 +129,28 @@ class TestTransform( unittest.TestCase ):
 		
 		# DAG MANIPULATION
 		##################
+		csp = cs.getTransform()
+		cs.setParent(p)
+		assert cs.getInstanceCount(0) == 1
+		csi = cs.addParent(csp)
+		
+		assert csi.isInstanced() and cs.getInstanceCount(0) == 2
+		assert csi != cs
+		assert csi.getMObject() == cs.getMObject()
+		
+		assert cs.getParentAtIndex(0) == p
+		assert cs.getParentAtIndex(1) == csp
+		
+		p.removeChild(csi)
+		assert not cs.isValid() and csi.isValid()
+		assert not csi.isInstanced()
+		
+		
+		# reparent
+		cspp = csp[-1]
+		csi.reparent(cspp)
+		
+		csp.unparent()
+		assert csp.getParent() is None and len(csp.getChildren()) == 0
+		assert len(cspp.getChildren()) == 1
+		

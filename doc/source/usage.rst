@@ -107,7 +107,7 @@ Generally, all items that are organized in a hierarachy support the  ``mayarv.in
 Node Creation
 =============
 Creating nodes in MayaRV is simple and possibly slow as you can only create about 1200 Nodes per second. There is only one method to accomplish this with plenty of keyword arguemnts, ``mayarv.maya.nodes.base.createNode``, this shall only be brief example::
-	>>> cs = createNode("namespace:group|other:camera|other:cameraShape")
+	>>> cs = createNode("namespace:subspace:group|other:camera|other:cameraShape", "camera")
 	>>> assert len(cs.getParentsDeep()) == 2
 	
 Namespaces
@@ -126,14 +126,47 @@ Namespaces in MayaRV are objects which may create a hierarchy, hence they suppor
 	>>> assert len(pns.listObjectStrings()) == 0
 	>>> assert len(pns.getSelectionList(depth=2)) == 1
 	
-DAG-Manipulation
-================
+DAG-Manipulation and Instancing
+===============================
+Change the structure of the DAG easily by adjusting parent-child relation ships and by handling instances. DAG manipulation is an interesting topic as it is implemented using the MayaAPI, but it provides a new programming interface unique to MayaRV in order to be more intuitive and as a workaround to many issues that can occour when using the MayaAPI otherwise.
+
+Transforms can be parented under the world root, which is the root of the dag, and under other transforms. Shape nodes may be parented under transforms only, whereas some special nodes are parented under Shape nodes, which effectively puts them into the Shape's ``underworld``.
+
+As long as Transforms and Shapes have only one parent, there is only one DAGPath leading up to the object in question. If you add more parents to them, there are more DAGPaths leading to the same object, which is called ``instancing`` in Maya.
+
+The MayaRV DAG manipulation API provides multiple methods to adjust the number of children and parents of the individual items, including undo support::
+	>>> csp = cs.getTransform()
+	>>> cs.setParent(p)
+	>>> assert cs.getInstanceCount(0) == 1
+	>>> csi = cs.addParent(csp)
+	
+	>>> assert csi.isInstanced() and cs.getInstanceCount(0) == 2
+	>>> assert csi != cs
+	>>> assert csi.getMObject() == cs.getMObject()
+	
+	>>> assert cs.getParentAtIndex(0) == p
+	>>> assert cs.getParentAtIndex(1) == csp
+	
+	>>> p.removeChild(csi)
+	>>> assert not cs.isValid() and csi.isValid()
+	>>> assert not csi.isInstanced()
+ 
+It is worth noting that the only 'real' methods are ``addChild`` and ``removeChild``. All others, such as ``addParent``, ``removeParent``, ``setParent`` and ``addInstancedChild``are only variations of them.
+
+``reparent`` and ``unparent`` are different operations than the instance-aware ones presented in the previous section, as they will not only ignore instances, but also enforce the object into a single DAGPath. This effectively removes all instances::
+	>>> cspp = csp[-1]
+	>>> csi.reparent(cspp)
+	
+	>>> csp.unparent()
+	>>> assert csp.getParent() is None
+
+The MayaAPI provides methods to handle instances and to do mere reparenting, MayaRV makes this more usable by providing own methods. Nonetheless, the general feeling of inconsistency remains these sets of functions are slightly opposing each other.
+
+As a general advice, you should be aware of instances and the methods to use to safely operate on them. ``reparent`` and ``unparent`` can be used safely as well as they will raise by default if instances would be destroyed otherwise.
 
 Node- and Graph-Iteration
 =========================
 
-Instances
-=========
 
 =====================
 Attributes and MPlugs

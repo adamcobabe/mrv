@@ -451,6 +451,13 @@ class TestNodeBase( unittest.TestCase ):
 		# instances are gone should be gone
 		mesh = mesh.reparent( rbase, raiseOnInstance=False )
 		self.failUnless( mesh.isValid() and not baseinst.isValid() and not obaseinst.isValid() )
+		
+		# try unparent
+		meshtrans = mesh.getTransform()
+		meshtrans.setParent(obase)
+		assert meshtrans.getParent() == obase
+		meshtrans.unparent()
+		assert meshtrans.getParent() is None
 
 	def test_duplicateInstances( self ):
 		"""mayarv.maya.nodes: handle duplication of instances"""
@@ -548,7 +555,8 @@ class TestNodeBase( unittest.TestCase ):
 		oparent = nodes.createNode( "oparent2", "transform" )
 		wtrans = wtrans.reparent( None )
 
-		wtransnewparent = wtrans = wtrans.setParent( parent )
+		wtransnewparent = wtrans.setParent( parent )
+		assert wtrans == wtransnewparent
 		self.failUnless( wtransnewparent.getInstanceCount( 1 ) == 1 )
 		wtransnewparent.addParent( oparent )
 		self.failUnless( wtransnewparent.getInstanceCount( 1 ) == 2 )

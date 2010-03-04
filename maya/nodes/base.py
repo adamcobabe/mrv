@@ -436,7 +436,6 @@ def createNode( nodename, nodetype, autocreateNamespace=True, renameOnClash = Tr
 		# create the node - either with or without parent
 		# NOTE: usually one could just use a dagModifier for everything, but I do not
 		# trust wrapped inherited methods with default attributes
-		#print "DAGTOKEN = %s - PARTIAL NAME = %s - TYPE = %s" % ( dagtoken, nodepartialname, actualtype )
 		if parentnode or actualtype == "transform":
 
 			# create dag node
@@ -1209,7 +1208,7 @@ class DagNode( Entity, iDagItem ):	# parent just for epydoc
 		return self.iog.getByLogicalIndex( self.getInstanceNumber() )
 	#} END set handling
 
-	#{ Hierarchy Modification
+	#{ DAG Modification
 
 	def _setWorldspaceTransform( self, parentnode ):
 		"""Set ourselve's transformation matrix to our absolute worldspace transformation,
@@ -1299,6 +1298,11 @@ class DagNode( Entity, iDagItem ):	# parent just for epydoc
 
 
 		raise AssertionError( "Could not find self in children after reparenting" )
+		
+	@undoable
+	def unparent(self, **kwargs):
+		"""As L{reparent}, but will unparent this transform under the scene root"""
+		return self.reparent(None, **kwargs)
 
 	@undoable
 	def addInstancedChild( self, childNode, position=MFnDagNode.kNextPos ):
@@ -1309,17 +1313,15 @@ class DagNode( Entity, iDagItem ):	# parent just for epydoc
 
 	@undoable
 	def removeChild( self, childNode, allowZeroParents = False ):
-		"""@remove the given childNode ( being a child of this node ) from our child list, effectively
+		"""remove the given childNode ( being a child of this node ) from our child list, effectively
 		parenting it under world !
 		@param childNode: Node to unparent - if it is not one of our children, no change takes place
 		@param allowZeroParents: if True, it is possible to leave a node unparented, thus no valid
-		dag paths leads to it. If False, transforms will just be unparented
-		@return: copy of childnode pointing to one valid dag path
+		dag paths leads to it. If False, transforms will just be reparented under the world
+		@return: copy of childnode pointing to the first valid dag path we find.
 		@note: to prevent the child ( if transform ) to dangle in unknown space if the last instance
 		is to be removed, it will instead be reparented to world.
 		@note: removing shapes from their last parent will result in an error"""
-		# print "( %i, %i ) REMOVE CHILD: %r from %r" % ( api.MGlobal.isUndoing(),api.MGlobal.isRedoing(),childNode , self )
-
 		# reparent if we have a last-instance of something
 		if not allowZeroParents:
 			if childNode.getInstanceCount( False ) == 1:
@@ -1370,8 +1372,6 @@ class DagNode( Entity, iDagItem ):	# parent just for epydoc
 		will not harm in direct instances, so its save to use.
 		@note: if the instance count of the item is 1 and keepExistingParent is False, the position
 		argument is being ignored"""
-		# print "( %i/%i ) ADD CHILD (keep=%i): %r to %r"  % ( api.MGlobal.isUndoing(),api.MGlobal.isRedoing(), keepExistingParent, DependNode( childNode._apiobj ) , self )
-
 		# should we use reparent to get around an instance bug ?
 		is_direct_instance = childNode.getInstanceCount( 0 ) > 1
 		if not keepExistingParent and not is_direct_instance:	# direct only
@@ -1496,7 +1496,7 @@ class DagNode( Entity, iDagItem ):	# parent just for epydoc
 		return parentnode.removeChild( self )
 
 
-	#} END hierarchy modification
+	#} END DAG modification
 
 	#{ Edit
 	@undoable
@@ -1541,7 +1541,6 @@ class DagNode( Entity, iDagItem ):	# parent just for epydoc
 		@todo: duplicate should be completely reimplemented to support all mel options and actually work with
 		meshes and tweaks - the underlying api duplication would still be used of course, as well as
 		connections ( to sets ) and so on ... """
-		# print "-"*5+"DUPLICATE: %r to %s" % (self,newpath)+"-"*5
 		selfIsShape = isinstance( self, Shape )
 
 		# NAME HANDLING
@@ -1622,7 +1621,6 @@ class DagNode( Entity, iDagItem ):	# parent just for epydoc
 			# and their copies - store the id the current basename once we encounter it
 			selfbasename = self.getBasename()
 			for i,targetchild in enumerate( destchildren ):
-				#print "RENAME %r to %s" % ( targetchild, srcchildren[ i ].getBasename( ) )
 				srcchildbasename = srcchildren[ i ].getBasename( )
 				targetchild.rename( srcchildbasename )
 				# HACK: we should only check the intermediate children, but actually conisder them deep
@@ -1702,11 +1700,8 @@ class DagNode( Entity, iDagItem ):	# parent just for epydoc
 		# rename the target to match the leaf of the path
 		# we currently do not check whether the name is already set
 		# - the rename method does that for us
-		#print "RENAME TARGET BEFORE: %r"  % rename_target
 		final_node = rename_target.rename( leafobjectname, autocreateNamespace = autocreateNamespace,
 										  	renameOnClash=renameOnClash )
-		#print "RENAME TARGET AFTER: %r"  % rename_target
-		#print "FinalName: %r ( %r )" % ( final_node, self )
 
 		# call our base class to copy additional information
 		self.copyTo( final_node, **kwargs )
@@ -1715,7 +1710,7 @@ class DagNode( Entity, iDagItem ):	# parent just for epydoc
 	#} END edit
 
 
-	#{ Hierarchy Status Information
+	#{ DAG Status Information
 	def _checkHierarchyVal( self, plugName, cmpval ):
 		"""@return: cmpval if the plug value of one of the parents equals cmpval
 		as well as the current entity"""
@@ -1756,7 +1751,7 @@ class DagNode( Entity, iDagItem ):	# parent just for epydoc
 		The display type in effect is always the last one set in the hierarchy
 		returns None display overrides are disabled"""
 		return self._getDisplayOverrideValue( plugName )
-	#}
+	#} END dag status information
 
 	#{ Overridden from DependNode
 
@@ -1773,17 +1768,17 @@ class DagNode( Entity, iDagItem ):	# parent just for epydoc
 		return self.fullPathName( )
 
 
-	#{ Hierarchy Query
+	#{ DAG Query
 
 	def getParentAtIndex( self, index ):
 		"""@return: Node of the parent at the given index - non-instanced nodes only have one parent
 		@note: if a node is instanced, it can have L{getParentCount} parents
 		@todo: Update dagpath afterwards ! Use dagpaths instead !"""
 		sutil = api.MScriptUtil()
+		sutil.createFromInt(index)
 		uint = sutil.asUint()
-		sutil.setUint( uint , index )
 
-		return NodeFromObj( api.MFnDagNode( self._apidagpath ).parent( uint ) )
+		return NodeFromObj( api.MFnDagNode(self.getMDagPath()).parent( uint ) )
 
 	def getTransform( self ):
 		"""@return: Node to lowest transform in the path attached to our node
@@ -1869,7 +1864,7 @@ class DagNode( Entity, iDagItem ):	# parent just for epydoc
 		return NodeFromObj( copy )
 
 	child = getChild 		# assure the mfnmethod cannot be called anymore - its dangerous !
-	#} END hierarchy query
+	#} END dag query
 
 	#{ General Query
 	def getDagPath( self ):
