@@ -350,4 +350,19 @@ class TestDataBase( unittest.TestCase ):
 		# test conversion methods
 		assert list(sl) == sl.toList()
 		assert hasattr(sl.toIter(), 'next')
+		
+		# test contains
+		dagnode = nodes.Node("persp")
+		dgnode = nodes.Node("time1")
+		plug = dgnode.o
+		
+		sls = api.MSelectionList.fromList((dagnode, dgnode, plug))
+		assert len(sls) == 3
+		
+		nc = 0
+		for item in sls:
+			assert item in sls
+			nc += 1
+		# END for each item
+		assert nc == len(sls)
 

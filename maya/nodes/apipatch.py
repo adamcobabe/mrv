@@ -921,6 +921,17 @@ class MSelectionList( api.MSelectionList, ArrayBase ):
 		"""@return: iterator object"""
 		return it.iterSelectionList(self)
 	
+	def __contains__( self, rhs ):
+		"""@return: True if we contain rhs
+		@note: As we check for Nodes as well as MayaAPI objects, we are possibly slow"""
+		if isinstance(rhs, base.DagNode):
+			return self.hasItem(rhs._apidagpath)
+		elif isinstance(rhs, base.DependNode):
+			return self.hasItem(rhs._apiobj)
+		else:
+			return self.hasItem(rhs)
+		# END handle input type
+	
 	@staticmethod
 	def fromStrings( iter_strings, **kwargs ):
 		"""@return: MSelectionList initialized from the given iterable of strings
