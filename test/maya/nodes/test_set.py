@@ -21,7 +21,7 @@ import mayarv.test.maya.nodes as ownpackage
 class TestSets( unittest.TestCase ):
 	""" Test set and partition handling """
 
-	def _test_createAddRemove( self ):
+	def test_createAddRemove( self ):
 		"""mayarv.maya.nodes.set: create,add and remove"""
 		if not ownpackage.mayRun( "sets" ): return
 		set1 = nodes.createNode( "set1", "objectSet" )
@@ -226,7 +226,7 @@ class TestSets( unittest.TestCase ):
 		assert [ m for m in s ] == list(s.getMembers())
 		assert iter(s).next() in s
 
-	def _test_setOperations( self ):
+	def test_setOperations( self ):
 		"""byroniom.maya.nodes.sets: unions, intersections, difference, overloaded ops"""
 		if not ownpackage.mayRun( "sets" ): return
 		memberlist = self._getMemberList( )
@@ -301,7 +301,7 @@ class TestSets( unittest.TestCase ):
 		self.failUnless( s.getMembers().length() - s2.getMembers().length() - s3.getMembers().length() == sellist.length() )
 		
 
-	def _test_partitions( self ):
+	def test_partitions( self ):
 		"""mayarv.maya.nodes.set: test partition constraints"""
 		if not ownpackage.mayRun( "setsforce" ): return
 
@@ -389,7 +389,7 @@ class TestSets( unittest.TestCase ):
 		assert snode.getMembers().length() == 2
 		assert snode.getIntersection( multi ).length() == 2
 
-	def _test_renderPartition( self ):
+	def test_renderPartition( self ):
 		"""mayarv.maya.nodes.set: assure renderpartition works for us"""
 		if not ownpackage.mayRun( "setsrenderpartition" ): return
 
@@ -397,7 +397,7 @@ class TestSets( unittest.TestCase ):
 		assert len( rp.getSets( ) )		# at least the initial shading group
 
 
-	def _test_z_memberHandlingComps( self ):
+	def test_z_memberHandlingComps( self ):
 		"""mayarv.maya.nodes.set: member handling with components - needs to run last"""
 		if not ownpackage.mayRun( "sets" ): return
 		bmaya.Scene.open( common.get_maya_file( "perComponentAssignments.ma" ), force = 1 )
@@ -434,9 +434,9 @@ class TestSets( unittest.TestCase ):
 		# END for each set component assignment
 
 		# create a component with 3 faces
-		f3 = nodes.createComponent( nodes.SingleIndexedComponent, api.MFn.kMeshPolygonComponent )
+		f3 = nodes.SingleIndexedComponent.create(api.MFn.kMeshPolygonComponent)
 		for i in range( 3 ): f3.addElement( i )
-		f6 = nodes.createComponent( nodes.SingleIndexedComponent, api.MFn.kMeshPolygonComponent )
+		f6 = nodes.SingleIndexedComponent.create(api.MFn.kMeshPolygonComponent)
 		for i in range( 3,6 ): f6.addElement( i )
 
 		# FORCE OVERWRITING EXISITNG FACE ASSIGNMNETS

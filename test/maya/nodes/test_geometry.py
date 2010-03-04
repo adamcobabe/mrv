@@ -221,7 +221,15 @@ class TestGeometry( unittest.TestCase ):
 				# two vertices are tweaked
 			# END for each mesh name
 		# END for each component type
-
+		
+	def test_mesh_components(self):
+		isb = nodes.Node("initialShadingGroup")
+		m = nodes.Mesh()
+		pc = nodes.PolyCube()
+		pc.output > m.inMesh
+		
+		assert len(m.getComponentAssignments()) == 0 and m.numVertices() > 0
+	
 	def test_lightLinkCopy( self ):
 		"""mayarv.maya.nodes.geometry: test how lightlinks are copied from oen shape to another
 		@note: currently we only call variants of the respective method to run it - verification

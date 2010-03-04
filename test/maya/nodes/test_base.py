@@ -231,3 +231,12 @@ class TestTransform( unittest.TestCase ):
 		
 		# COMPONENTS
 		#############
+		# create a polycube and pipe its output into our mesh shape
+		pc = PolyCube()
+		pc.output > m.inMesh
+		assert m.numVertices() == 8
+		
+		# make initial shading group assignments
+		assert len(m.getComponentAssignments()) == 0
+		
+		

@@ -366,3 +366,17 @@ class TestDataBase( unittest.TestCase ):
 		# END for each item
 		assert nc == len(sls)
 
+	def test_intarray_creation(self):
+		# from range
+		self.failUnlessRaises(ValueError, api.MIntArray.fromRange, 3, 2)
+		self.failUnlessRaises(ValueError, api.MIntArray.fromRange, 3, -5)
+		ia = api.MIntArray.fromRange(2,4)
+		assert len(ia) == 2 and ia[0] == 2 and ia[1] == 3
+		
+		# from individual
+		ia = api.MIntArray.fromMultiple(4,6,7)
+		assert len(ia) == 3 and ia[0] == 4 and ia[1] == 6 and ia[2] == 7
+		
+		# from iter
+		ia = api.MIntArray.fromIter(iter((4,6,7)))
+		assert len(ia) == 3 and ia[0] == 4 and ia[1] == 6 and ia[2] == 7

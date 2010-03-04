@@ -956,6 +956,10 @@ class TestNodeBase( unittest.TestCase ):
 		# cannot create anything below dependnode
 		self.failUnlessRaises(ValueError, nodes.Node)
 
+	def test_single_indexed_components( self ):
+		# check exceptions
+		self.failUnlessRaises(ValueError, nodes.SingleIndexedComponent)	# no arg
+		self.failUnlessRaises(TypeError, nodes.Component.create, api.MFn.kMeshEdgeComponent) # invalid type
 
 
 	def test_mfncachebuilder( self ):

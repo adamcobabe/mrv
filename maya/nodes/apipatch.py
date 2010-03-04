@@ -961,5 +961,63 @@ class MSelectionList( api.MSelectionList, ArrayBase ):
 		"""@return: iterator yielding of Nodes and MPlugs stored in this given selection list
 		@param **kwargs: passed to L{it.iterSelectionList}"""
 		return it.iterSelectionList( self, **kwargs )
+		
+class MIntArray( api.MIntArray ):
+	"""Attach additional creator functions"""
+	
+	@classmethod
+	def fromRange(cls, i, j):
+		"""@return: An MIntArray initialized with integers ranging from i to j
+		@param i: first integer of the returned array
+		@param j: last integer of returned array will have the value j-1"""
+		if j < i:
+			raise ValueError("j < i violated")
+		if j < 0 or i < 0:
+			raise ValueError("negative ranges are not supported")
+		
+		ia = api.MIntArray()
+		l = j - i
+		ia.setLength(l)
+		
+		# wouldn't it be great to have a real for loop now ? Its a bit 
+		# faster like that 
+		ci = 0
+		for i in xrange(i, j):
+			ia[ci] = i
+			ci += 1
+		# END for each integer
+		
+		# this is slightly slower
+		#for ci, i in enumerate(xrange(i, j)):
+		#	ia[ci] = i
+		# END for each index/value pair
+		
+		return ia
+
+	@classmethod
+	def fromMultiple(cls, *args):
+		"""@return: MIntArray created from the given indices"""
+		ia = api.MIntArray()
+		ia.setLength(len(args))
+		
+		ci = 0
+		for index in args:
+			ia[ci] = index
+			ci += 1
+		# END for each index
+		
+		return ia
+		
+	@classmethod
+	def fromIter(cls, iter):
+		"""@return: MIntArray created from indices yielded by iter
+		@note: this one is less efficient than L{fromMultiple} as the final length 
+		of the array is not predetermined"""
+		ia = api.MIntArray()
+		for index in iter:
+			ia.append(index)
+		return ia
+	
+	
 #}
 
