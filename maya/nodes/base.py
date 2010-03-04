@@ -196,7 +196,7 @@ def toComponentSelectionList( nodeCompList, mergeWithExisting = False ):
 	can be a nullObject though to add the whole object after all.
 	@param nodeCompList: list of tuple( DagNode, Component ), Component can be
 	filled component or null MObject"""
-	if isinstance( nodeList, api.MSelectionList ):		# sanity check
+	if isinstance( nodeCompList, api.MSelectionList ):		# sanity check
 		return nodeList
 
 	sellist = api.MSelectionList()
@@ -214,7 +214,6 @@ def toSelectionListFromNames( nodenames ):
 
 	return sellist
 
-
 def fromSelectionList( sellist, handlePlugs=1, **kwargs ):
 	"""@return: list of Nodes and MPlugs stored in the given selection list
 	@param **kwargs: passed to selectionListIterator"""
@@ -230,14 +229,6 @@ def toNodesFromNames( nodenames, **kwargs ):
 	selection list getting the api objects for the given names
 	@param **kwargs: passed to L{fromSelectionList}"""
 	return fromSelectionList( toSelectionListFromNames( nodenames ), **kwargs )
-
-def getSelection( **kwargs ):
-	"""@return: list of Nodes from the current selection
-	@param **kwargs: passed to L{fromSelectionList}"""
-	sellist = api.MSelectionList()
-	api.MGlobal.getActiveSelectionList( sellist )
-
-	return fromSelectionList( sellist, **kwargs )
 
 def getByName( name , **kwargs ):
 	"""@return: list of node matching name, whereas simple regex using * can be used
@@ -314,6 +305,13 @@ def delete( *args, **kwargs ):
 		# END exception handling
 	# END for each node to delete
 
+def getSelection( **kwargs ):
+	"""@return: list of Nodes from the current selection
+	@param **kwargs: passed to L{fromSelectionList}"""
+	sellist = api.MSelectionList()
+	api.MGlobal.getActiveSelectionList( sellist )
+
+	return fromSelectionList( sellist, **kwargs )
 
 def select( *nodesOrSelectionList , **kwargs ):
 	"""Select the given list of wrapped nodes or selection list in maya

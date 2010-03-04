@@ -335,3 +335,19 @@ class TestDataBase( unittest.TestCase ):
 		
 		# random access is not yet implemented
 		self.failUnlessRaises(AttributeError, getattr, sl, '__getitem__')
+		
+		# test creation functions
+		node_list = list(sl)
+		nls = node_list[4:15]
+		for slsnodesgen, selfun in ((lambda : [str(n) for n in nls], api.MSelectionList.fromStrings),
+									(lambda : nls, api.MSelectionList.fromList),
+									(lambda : [(n, api.MObject()) for n in node_list[-5:] if isinstance(n, nodes.DagNode)], api.MSelectionList.fromComponentList) ):
+			slsnodes = slsnodesgen()
+			sls = selfun(iter(slsnodes))
+			assert isinstance(sls, api.MSelectionList) and len(sls) == len(slsnodes) 
+		# END for each variant
+
+		# test conversion methods
+		assert list(sl) == sl.toList()
+		assert hasattr(sl.toIter(), 'next')
+

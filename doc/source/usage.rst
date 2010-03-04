@@ -34,8 +34,7 @@ The Node p now represents the transform named 'persp' within the maya scene. You
 	>>> s.add(t)
 	>>> assert p in s and t in s and len(s | s) == 2
 	
-This will of course work for DAGNodes as well as for DGNodes.
-As initially stated, a Node wraps the respective API object, which is either of type MDagPath or MObject. These objects can be retrieved from the Node afterwards::
+This will of course work for DAGNodes as well as for DGNodes. As initially stated, a Node wraps the respective API object, which is either of type MDagPath or MObject. These objects can be retrieved from the Node afterwards::
 	>>> # getApiObject returns the api object which represents the underlying maya node best
 	>>> assert isinstance(p.getApiObject(), api.MDagPath)
 	>>> assert isinstance(t.getApiObject(), api.MObject)
@@ -59,9 +58,11 @@ Calling methods is involves nothing special, you just make the call on your node
 	>>> p.doesnt_exist()
 	
 MayaRV looks up the name in the following order:
-1. Find a method on the instance itself. This would succeed if the method has been implemented on the respective class type, in order to make it easier to use for instance.
-2. Find the method name on the top most MFnFunction set, and resort to more general function sets if the name could not be found. If a Node wraps a mesh for example, it would try to find the Method in MFnMesh, then in MFnDagNode, finally in MFnDependencyNode.
-3. Try to find an MPlug with the given name, internally using (MFnDependencyNode.)findPlug(name) to achieve this.
+ 1. Find a method on the instance itself. This would succeed if the method has been implemented on the respective class type, in order to make it easier to use for instance.
+ 
+ 2. Find the method name on the top most MFnFunction set, and resort to more general function sets if the name could not be found. If a Node wraps a mesh for example, it would try to find the Method in MFnMesh, then in MFnDagNode, finally in MFnDependencyNode.
+ 
+ 3. Try to find an MPlug with the given name, internally using (MFnDependencyNode.)findPlug(name) to achieve this.
 
 This implies that functions will be found *before* an attribute of the same name. If you run into this issue, use the short attribute name instead.
 
@@ -88,7 +89,8 @@ DAG-Navigation
 DAG objects are organized in a hierarchy which can be walked and traversed at will. The following example also uses a very handy shortcut, allowing you to access the children and parent nodes by index::
 	>>> ps = p.getChildren()[0]
 	>>> assert ps == p[0]
-	>>> assert ps[-1] == p>>> assert ps == p.getChildren()[0]
+	>>> assert ps[-1] == p
+	>>> assert ps == p.getChildren()[0]
 	
 Sometimes its required to use filters, only listing shape nodes or transforms are the most common cases::
 	>>> assert ps == p.getShapes()[0]
@@ -151,7 +153,7 @@ The MayaRV DAG manipulation API provides multiple methods to adjust the number o
 	>>> assert not cs.isValid() and csi.isValid()
 	>>> assert not csi.isInstanced()
  
-It is worth noting that the only 'real' methods are ``addChild`` and ``removeChild``. All others, such as ``addParent``, ``removeParent``, ``setParent`` and ``addInstancedChild``are only variations of them.
+It is worth noting that the only 'real' methods are ``addChild`` and ``removeChild``. All others, such as ``addParent``, ``removeParent``, ``setParent`` and ``addInstancedChild`` are only variations of them.
 
 ``reparent`` and ``unparent`` are different operations than the instance-aware ones presented in the previous section, as they will not only ignore instances, but also enforce the object into a single DAGPath. This effectively removes all instances::
 	>>> cspp = csp[-1]
@@ -166,6 +168,50 @@ As a general advice, you should be aware of instances and the methods to use to 
 
 Node- and Graph-Iteration
 =========================
+The fastest way to retrieve Nodes is by iterating them. There are three major areas to iterate: DAG Nodes only, DG Nodes only, or the dependency graph which is defined by Plug connections between DG Nodes.
+
+MayaRV iterators are built around their MayaAPI counterparts, but provide a more intuitive and pythonic interface::
+	>>> for dagnode in it.iterDagNodes():
+	>>> 	assert isinstance(dagnode, DagNode)
+		
+	>>> for dg_or_dagnode in it.iterDgNodes():
+	>>> 	assert isinstance(dg_or_dagnode, DependNode)
+	
+	>>> rlm = Node("renderLayerManager")
+	>>> assert len(list(it.iterGraph(rlm))) == 2
+	
+Handling Selections with SelectionLists
+=======================================
+Many methods within the MayaAPI and within MayaRV will take MSelectionLists as input or return them. An MSelectionList is an ordered heterogeneous list which keeps MObjects, MDagPaths, MPlugs as well as ComponentLists, and although the name suggests otherwise, it has nothing to do with the selection within your maya scene.
+
+SelectionLists can easily be created using the ``mayarv.maya.nodes.base.toSelectionList`` function, or the monkey-patched creator functions. It comes in several variants which are more specialized, but will be faster as well. Its safe and mostly performant enough to use the general version though.
+	>>> nl = (p, t, rlm)
+	>>> sl = toSelectionList(nl)
+	>>> assert isinstance(sl, api.MSelectionList) and len(sl) == 3
+		
+	>>> sl2 = api.MSelectionList.fromList(nl)
+	>>> sl3 = api.MSelectionList.fromStrings([str(n) for n in nl])
+	
+Adjust maya's selection or retrieve it using the ``mayarv.maya.nodes.base.select`` and ``mayarv.maya.nodes.base.getSelection`` functions::
+	>>> osl = getSelection()
+	>>> select(sl)
+	>>> select(p, t)
+	
+	>>> # clear the selection
+	>>> select()
+	>>> assert len(getSelection()) == 0
+	
+Please be aware of the fact that ``getSelection`` as well as ``select`` are high-level functions that ephasize convenience over performance. If this matters, use the respective functions in MGlobal instead.
+
+SelectionLists can be iterated natively, or explicitly be converted into lists::
+	>>> for n in sl:
+	>>> 	assert isinstance(n, DependNode)
+		
+	>>> assert list(sl) == sl.toList()
+	>>> assert list(sl.toIter()) == list(it.iterSelectionList(sl))
+
+ObjectSets and ShadingEngines
+=============================
 
 
 =====================

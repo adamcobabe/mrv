@@ -921,5 +921,34 @@ class MSelectionList( api.MSelectionList, ArrayBase ):
 		"""@return: iterator object"""
 		return it.iterSelectionList(self)
 	
+	@staticmethod
+	def fromStrings( iter_strings, **kwargs ):
+		"""@return: MSelectionList initialized from the given iterable of strings
+		@param **kwargs: passed to L{base.toSelectionListFromNames}"""
+		return base.toSelectionListFromNames(iter_strings, **kwargs)
+		
+	@staticmethod
+	def fromList( iter_items, **kwargs ):
+		"""@return: MSelectionList as initialized from the given iterable of Nodes, 
+		MObjects, MDagPaths or MPlugs
+		@param **kwargs: passed to L{base.toSelectionList}"""
+		return base.toSelectionList(iter_items, **kwargs)
+		
+	@staticmethod
+	def fromComponentList( iter_components, **kwargs ):
+		"""@return: MSelectionList as initialized from the given list of tuple( DagNode, Component ), 
+		Component can be a filled Component object or null MObject
+		@param **kwargs: passed to L{base.toComponentSelectionList}"""
+		return base.toComponentSelectionList(iter_components, **kwargs)
+		
+	def toList( self, **kwargs ):
+		"""@return: list with the contents of this MSelectionList
+		@param **kwargs: passed to L{it.iterSelectionList}"""
+		return list(self.toIter(**kwargs))
+		
+	def toIter( self, **kwargs ):
+		"""@return: iterator yielding of Nodes and MPlugs stored in this given selection list
+		@param **kwargs: passed to L{it.iterSelectionList}"""
+		return it.iterSelectionList( self, **kwargs )
 #}
 

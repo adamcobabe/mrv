@@ -154,3 +154,42 @@ class TestTransform( unittest.TestCase ):
 		assert csp.getParent() is None and len(csp.getChildren()) == 0
 		assert len(cspp.getChildren()) == 1
 		
+		
+		# NODE- AND GRAPH-ITERATION
+		###########################
+		for dagnode in it.iterDagNodes():
+			assert isinstance(dagnode, DagNode)
+			
+		for dg_or_dagnode in it.iterDgNodes():
+			assert isinstance(dg_or_dagnode, DependNode)
+		
+		rlm = Node("renderLayerManager")
+		assert len(list(it.iterGraph(rlm))) == 2
+		
+		# SELECTIONLISTS
+		################
+		nl = (p, t, rlm)
+		sl = toSelectionList(nl)
+		assert isinstance(sl, api.MSelectionList) and len(sl) == 3
+		
+		sl2 = api.MSelectionList.fromList(nl)
+		sl3 = api.MSelectionList.fromStrings([str(n) for n in nl])
+		
+		
+		osl = getSelection()
+		select(sl)
+		select(p, t)
+		# clear the selection
+		select()
+		assert len(getSelection()) == 0
+		
+		for n in sl:
+			assert isinstance(n, DependNode)
+		
+		assert list(sl) == sl.toList()
+		assert list(sl.toIter()) == list(it.iterSelectionList(sl))
+		
+		# OBJECTSETS AND SHADING ENGINES
+		################################
+		
+		

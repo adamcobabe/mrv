@@ -40,13 +40,11 @@ def getDgIterator( *args, **kwargs ):
 def iterDgNodes( *args, **kwargs ):
 	""" Iterator on MObjects of nodes of the specified types in the Maya scene,
 		if a list of tyes is passed as args, then all nodes of a type included in the list will be iterated on,
-		if no types are specified, all nodes of the scene will be iterated on
-		the types are specified as Maya API types
-		@param asNode: if True, the returned value will be wrapped as nod
-		default True
+		if no types are specified, all nodes of the scene will be iterated on which may include DAG nodes as well.
+		@param *args: type as found in MFn.k... to optionally restrict the set of nodes the iterator operates upon
+		@param asNode: if True, default True, the returned value will be wrapped as node
 		@param predicate: returns True for every object that can be returned by the iteration,
-		default : lambda x: True
-		@note: adjusted pymel implementation"""
+		default : lambda x: True"""
 
 	iterObj = getDgIterator( *args, **kwargs )
 	predicate = kwargs.get( "predicate", lambda x: True )
@@ -129,8 +127,7 @@ def iterDagNodes( *args, **kwargs ):
 		@param root: 	MObject or MDagPath of the object you would like to start iteration on, or None to
 		start on the scene root. The root node will also be returned by the iteration !
 		@param predicate: method returninng True if passed in iteration element can be yielded
-		default: lambda x: True
-		@note: adjusted pymel implementation"""
+		default: lambda x: True"""
 
 	# Must define dPath in loop or the iterator will yield
 	# them as several references to the same object (thus with the same value each time)
@@ -261,8 +258,7 @@ def iterGraph( nodeOrPlug, *args, **kwargs ):
 						default True
 		@param predicate: method returning True if passed in iteration element can be yielded
 			default: lambda x: True
-		@yield: MObject, Node or Plug depending on the configuration flags
-		@node: based on pymel"""
+		@yield: MObject, Node or Plug depending on the configuration flags"""
 	try:
 		iterObj = getGraphIterator( nodeOrPlug, *args, **kwargs )
 	except RuntimeError:
