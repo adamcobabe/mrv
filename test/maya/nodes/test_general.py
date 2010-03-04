@@ -922,8 +922,39 @@ class TestNodeBase( unittest.TestCase ):
 
 		self._checkIdentity( t )
 
-
-
+	def test_simplified_node_creation( self ):
+		# dg node
+		os = nodes.ObjectSet()
+		assert isinstance(os, nodes.ObjectSet)
+		
+		# assure we can still wrap dg nodes
+		assert nodes.ObjectSet(os.getMObject()) == os
+		
+		
+		# dag nodes
+		# come along with a transform
+		mesh = nodes.Mesh()
+		assert isinstance(mesh, nodes.Mesh)
+		assert len(mesh.getParentDeep()) == 1
+		
+		# multiple calls create multiple shapes, but under the same transform
+		mesh2 = nodes.Mesh()
+		assert mesh2 != mesh
+		assert mesh2[-1] == mesh[-1]
+		
+		# transforms are created plain and under the root
+		trans = nodes.Transform()
+		assert isinstance(trans, nodes.Transform)
+		assert trans.getParent() is None
+		
+		trans2 = nodes.Transform()
+		assert trans2 != trans
+		
+		# kwargs go to createNode
+		assert trans == nodes.Transform(forceNewLeaf=False)
+		
+		# cannot create anything below dependnode
+		self.failUnlessRaises(ValueError, nodes.Node)
 
 
 

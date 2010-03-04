@@ -668,18 +668,25 @@ class Node( object ):
 			- MObject
 			- MObjectHandle
 			- MDagPath
-		@param args[1]: if True, default unset and False, the input
-		object will not verified before using it. This is useful if you want to
-		wrap an object that is not yet valid as it is freshly duplicated, or on the undo-stack
-		after deletion.
-		The original purpose of using this flag is to make duplicated objects after adding
-		them to a set and retrieving them work - they appear to be invalid, although they
-		are ... its purely odd
-		@todo: assure support for instances of Nodes ( as kind of copy constructure )
-		@note: this area must be optimized for speed"""
+		If args is empty, a new node of the given type will be created within
+		maya. Shapes will automatically receive a parent transform. 
+		**kwargs will be passed to L{createNode} in that case.
+		@note: This multi-purpose constructor is not perfectly optimized for speed, 
+		consider using L{NodeFromObj} instead"""
 
 		if not args:
-			raise ValueError( "First argument must specify the node to be wrapped" )
+			if not issubclass(cls, DependNode): # cls can be DependNode as well
+				raise ValueError("Can only create types being subclasses of Node, not %r" % cls)
+			# END handle invalid class
+			
+			typename = uncapitalize(cls.__name__)
+			instname = typename
+			if issubclass(cls, Shape):	# cls can be DagNode as well
+				instname = "%s|%sShape" % (instname, instname)
+			# END handle dag objects
+			
+			return createNode( instname, typename, **kwargs)
+		# END handle creation mode
 
 		objorname = args[0]
 		apiobj_or_dagpath = None
