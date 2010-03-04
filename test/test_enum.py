@@ -17,7 +17,6 @@ from cStringIO import StringIO
 
 class ElementTestCase(unittest.TestCase):
 	def testElementComparisons(self):
-		"""mayarv.enum: testElementComparisons"""
 		e = Enumeration.create('fred', 'bob', 'joe', 'larry', 'moe')
 		e2 = Enumeration.create('red', 'green', 'blue')
 		e3 = Enumeration.create('fred', 'bob', 'joe', 'larry', 'moe')
@@ -53,14 +52,18 @@ class ElementTestCase(unittest.TestCase):
 		self.failUnless(e.fred != 'fred')
 
 	def testElementRepresentation(self):
-		"""mayarv.enum: testElementRepresentation"""
+		# create using string
 		e = Enumeration.create('fred', 'bob')
 
 		self.failUnless('fred' == str(e.fred))
 		self.failUnless('bob' == str(e[1]))
+		
+		# create using element
+		elm = Enumeration.Element
+		e = Enumeration.create(elm('fred',2))
+		assert isinstance(e.fred, elm)
 
 	def testElementToEnumeration(self):
-		"""mayarv.enum: testElementToEnumeration"""
 		e = Enumeration.create('fred', 'bob')
 
 		i = e.fred
@@ -72,7 +75,6 @@ class ElementTestCase(unittest.TestCase):
 class EnumerateTestCase(unittest.TestCase):
 
 	def testMembers(self):
-		"""mayarv.enum: testMembers"""
 		e = Enumeration.create('George',
 							   'John',
 							   ('Paul', 2),
@@ -91,7 +93,6 @@ class EnumerateTestCase(unittest.TestCase):
 
 
 	def testTupleness(self):
-		"""mayarv.enum: testTupleness"""
 		e = Enumeration.create('George',
 							   'John',
 							   ('Paul', 2),
@@ -119,7 +120,6 @@ class EnumerateTestCase(unittest.TestCase):
 
 
 	def testMultipleEnums(self):
-		"""mayarv.enum: testMultipleEnums"""
 		e  = Enumeration.create('fred', 'bob')
 		e2 = Enumeration.create('joe', 'bob')
 
@@ -138,7 +138,6 @@ class EnumerateTestCase(unittest.TestCase):
 			pass
 
 	def testReadOnly(self):
-		"""mayarv.enum: testReadOnly"""
 		e = Enumeration.create('fred', 'bob')
 
 		try:
@@ -161,7 +160,6 @@ class EnumerateTestCase(unittest.TestCase):
 
 
 	def testNameLookup(self):
-		"""mayarv.enum: testNameLookup"""
 		e = Enumeration.create('George', 'John',
 							   ('Paul', 2), ('Ringo', 'drummer'))
 
@@ -177,7 +175,6 @@ class EnumerateTestCase(unittest.TestCase):
 			pass
 
 	def testValueLookup(self):
-		"""mayarv.enum: testValueLookup"""
 		e = Enumeration.create('George', 'John',
 							   ('Paul', 2), ('Ringo', 'drummer'))
 
@@ -189,7 +186,6 @@ class EnumerateTestCase(unittest.TestCase):
 		self.failUnless( e( "George" ) == e.George )
 
 	def testNextAndPrevious( self ):
-		"""mayarv.enum: testNextAndPrevious"""
 		e2 = Enumeration.create('joe', 'bob')
 		e1 = Enumeration.create( 'joe' )
 
@@ -205,9 +201,6 @@ class EnumerateTestCase(unittest.TestCase):
 		self.failUnless( e1.previous( e1[0], wrap_around = 1 ) == e1[0] )
 
 	def testPickleUnpickle( self ):
-		"""mayarv.enum: test pickling and unpiclking results
-
-		This test actually shows that the cycle in the """
 		src = StringIO()
 		p = pickle.Pickler(src)
 
@@ -226,7 +219,6 @@ class EnumerateTestCase(unittest.TestCase):
 
 
 	def testBitFlags( self ):
-		"""mayarv.enum: test bitflag capabilities"""
 		e1 = Enumeration.create( "foo", "bar", "this", bitflag = 1 )
 
 		orres = e1.foo | e1.bar
@@ -247,7 +239,6 @@ class EnumerateTestCase(unittest.TestCase):
 		assert e1.foo ^ e1.foo.getValue() == 0
 
 	def test_dict( self ):
-		"""mayarv.enum: assure that sets and dicts work properly"""
 		# should always work as elements or global items
 		e1 = Enumeration.create( "foo", "bar", "this" )
 		e2 = Enumeration.create( "foo1", "bar2", "this3" )

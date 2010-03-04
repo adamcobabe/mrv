@@ -125,7 +125,7 @@ class TestGeneralUI( unittest.TestCase ):
 		# win.delete()
 
 
-	def _test_layouts( self ):
+	def test_layouts( self ):
 		"""mayarv.maya.ui: test basic layout functions"""
 		if cmds.about( batch=1 ):
 			return
@@ -168,7 +168,7 @@ class TestGeneralUI( unittest.TestCase ):
 		win.show()
 		# win.delete()	# does not really work as windows stays as zombie
 
-	def _test_callbacks( self ):
+	def test_callbacks( self ):
 		"""mayarv.maya.ui: test callbacks and handling - needs user interaction"""
 		if cmds.about( batch=1 ):
 			return
@@ -191,7 +191,7 @@ class TestGeneralUI( unittest.TestCase ):
 
 		win.show()
 
-	def _test_menus( self ):
+	def test_menus( self ):
 		"""mayarv.maya.ui: use menu bars and menuItems"""
 		if cmds.about( batch=1 ):
 			return
@@ -217,7 +217,7 @@ class TestGeneralUI( unittest.TestCase ):
 		ui.Menu( l = "second" )
 		win.show()
 
-	def _test_progressWindow( self ):
+	def test_progressWindow( self ):
 		"""mayarv.maya.ui: test progress window functionality"""
 		if cmds.about( batch=1 ):
 			return
@@ -261,7 +261,7 @@ class TestGeneralUI( unittest.TestCase ):
 		progress.set( maxrange * 2 )
 		self.failUnless( progress.get() == maxrange )
 
-	def _test_qa( self ):
+	def test_qa( self ):
 		"""mayarv.maya.ui.qa: test qa interface by setting some checks"""
 		if cmds.about( batch=1 ):
 			return
@@ -289,6 +289,6 @@ class TestGeneralUI( unittest.TestCase ):
 
 		win.show()
 
-	def _test_prompt( self ):
+	def test_prompt( self ):
 		"""mayarv.maya.ui.dialog: Test prompt window"""
 		ui.Prompt( title="test title", m="enter test string", d="this", cd="cthis", t="confirm", ct="cancel" ).prompt()

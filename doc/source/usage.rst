@@ -264,7 +264,8 @@ ShadingEngines work the same, except that they are attached to the renderParitio
 	
 Components
 ==========
-In order to show the interaction with Components, we create a blank cube and shade only two of its faces.
+In order to show the interaction with Components, we create a blank cube and shade only two of its faces::
+	>>> 
 	
 =====================
 Attributes and MPlugs

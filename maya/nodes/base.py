@@ -481,15 +481,6 @@ def createNode( nodename, nodetype, autocreateNamespace=True, renameOnClash = Tr
 
 	return NodeFromObj( createdNode )
 
-
-
-def createComponent( componentcls, apitype ):
-		"""@return: a wrapped instance of a component of the given component class
-		@param componentcls: Single|Double|TripleIndexedComponent
-		@param apitype: api.MFn.type of component you wish to create"""
-		return Component( componentcls._mfncls( ).create( apitype ) )
-
-
 #} END base
 
 
@@ -503,16 +494,6 @@ def _checkedInstanceCreationDagPathSupport( apiobj_or_dagpath, clsToBeCreated, b
 	apiobj = apiobj_or_dagpath
 	dagpath = None
 	if isinstance( apiobj, MDagPath ):
-		# NO: Need the type, thus need a function set or a non-string typemap to use
-		# apiobj_or_dagpath.apiType() ## fast call
-		# It would be good to delay this call, but then there is no way to get the
-		# type name which is required to get the proper class hierarchy
-		# apiobj = apiobj_or_dagpath.node()	## very expensive call !
-		# use original api method - our one returns wrapped MObject for some reason
-		# see tests.maya.benchmark dagwalk to have a good check for the impact of
-		# changes
-		# NOTE: this is not the most expensive call which can be seen if
-		# it is added twice ( 2000 vs 1730 )
 		apiobj = api_mdagpath_node( apiobj_or_dagpath )	## expensive call !
 		dagpath = apiobj_or_dagpath
 	# END if we have a dag path
@@ -523,7 +504,7 @@ def _checkedInstanceCreationDagPathSupport( apiobj_or_dagpath, clsToBeCreated, b
 
 	# ASSURE WE HAVE A DAG PATH
 	# Dag Objects should always have a dag path even if none was passed in
-	## costs nealy nothing
+	# costs nealy nothing
 	if not dagpath and isinstance( clsinstance, DagNode ):
 		dagpath = MDagPath( )
 		MFnDagNode( apiobj ).getPath( dagpath )
@@ -570,7 +551,7 @@ def _checkedInstanceCreation( apiobj, typeName, clsToBeCreated, basecls ):
 	# At this point, we only support type as we expect ourselves to be lowlevel
 	clsinstance = object.__new__( nodeTypeCls )
 
-	object.__setattr__( clsinstance, '_apiobj',  apiobj )				# set the api object - if this is a string, the called has to take care about it
+	object.__setattr__( clsinstance, '_apiobj',  apiobj )				# set the api object - if this is a string, the caller has to take care about it
 	return clsinstance
 
 
@@ -1943,11 +1924,9 @@ class Attribute( MObject ):
 		@note: this area must be optimized for speed"""
 
 		if not args:
-			raise ValueError( "First argument must specify the node to be wrapped" )
+			raise ValueError( "First argument must specify the Attribute as MObject to be wrapped" )
 
 		attributeobj = args[0]
-
-
 		newinst = _createInstByPredicate( attributeobj, cls, cls, lambda x: x.endswith( "Attribute" ) )
 
 		if not newinst:
@@ -1970,11 +1949,9 @@ class Data( MObject ):
 		@note: this area must be optimized for speed"""
 
 		if not args:
-			raise ValueError( "First argument must specify the maya node name or api object to be wrapped" )
+			raise ValueError( "First argument must specify the MObject data to be wrapped" )
 
 		attributeobj = args[0]
-
-
 		newinst = _createInstByPredicate( attributeobj, cls, cls, lambda x: x.endswith( "Data" ) )
 
 		if not newinst:
@@ -2037,50 +2014,107 @@ class GeometryData( Data ):
 		return objgrpid
 
 
-
-
 class Component( MObject ):
 	"""Represents a shape component - its derivates can be used to handle component lists
 	to be used in object sets and shading engines """
-
 	__metaclass__ = MetaClassCreatorNodes
+	_mfnType = None	# to be set in the subclass component
 
 	def __new__ ( cls, *args, **kwargs ):
 		"""return an data class of the respective type for given MObject
-		@param args: arg[0] is data's MObject to be wrapped
+		@param args: arg[0] is data's MObject to be wrapped.
 		@note: this area must be optimized for speed"""
-
 		if not args:
-			raise ValueError( "First argument must specify the maya node name or api object to be wrapped" )
-
-		attributeobj = args[0]
-
-
-		newinst = _createInstByPredicate( attributeobj, cls, cls, lambda x: x.endswith( "Component" ) )
+			raise ValueError("Please provide the component data to be wrapped or the MFn:: component type to be created")
+		# END handle empty args
+		
+		componentobj = args[0]
+		if cls != Component:
+			# the user knows which type he wants, created it directlys
+			newinst = object.__new__(cls, componentobj)
+			newinst._apiobj = newinst
+			return newinst
+		# END optimization
+		newinst = _createInstByPredicate( componentobj, cls, cls, lambda x: x.endswith( "Component" ) )
 
 		if not newinst:
-			raise ValueError( "Component api object typed '%s' could not be wrapped into any component function set" % attributeobj.apiTypeStr() )
+			raise ValueError( "Component api object typed '%s' could not be wrapped into any component function set" % componentobj.apiTypeStr() )
 
 		return newinst
 		# END for each known attr type
+		
+	@classmethod
+	def create(cls, component_type):
+		"""@return: A new component instance carrying data of the given component type
+		@param component_type: MFn:: component type to be created. 
+		@note: It is important that you call this function on the Component Class of 
+		a compatible type, or a RuntimeError will occour"""
+		if cls == Component:
+			raise TypeError("The base compnent type cannot be instantiated")
+		# END handle invalid type
+		
+		cdata = cls._mfncls().create(component_type)
+		cinst = cls(cdata)
+		return cinst
+	
+	@classmethod
+	def getMFnType( cls ):
+		"""@return: mfn type of this class
+		@note: the type returned is *not* the type of the shape component"""
+		return cls._mfnType
+		
+	def addElements( self, *args ):
+		"""Operates exactly as described in the MFn...IndexComponent documentation, 
+		but returns self to allow combined calls and on-the-fly component generation
+		@return: self"""
+		self._mfncls(self).addElements(*args)
+		return self
+
+	def addElement( self, *args ):
+		"""see L{addElements}
+		@return: self
+		@note: do not use this function as it will be really slow when handling many
+		items, use addElements instead"""
+		self._mfncls(self).addElement(*args)
+		return self
+
 
 class SingleIndexedComponent( Component ):
 	"""precreated class for ease-of-use"""
-	pass
+	_mfnType = api.MFn.kSingleIndexedComponent
+		
+	def getElements(self):
+		"""@return: MIntArray containing the indices this component represents"""
+		u = api.MIntArray()
+		api.MFnSingleIndexedComponent.getElements(u)
+		return u
+
 
 class DoubleIndexedComponent( Component ):	# derived just for epydoc
 	"""Fixes some functions that would not work usually """
-	__metaclass__ = MetaClassCreatorNodes
-
-
-	def getType( self ):
-		return api.MFn.kDoubleIndexedComponent
-	type = getType
-
+	_mfnType = api.MFn.kDoubleIndexedComponent
+	
+	def getElements(self):
+		"""@return: (uIntArray, vIntArray) tuple containing arrays with the u and v
+		indices this component represents"""
+		u = api.MIntArray()
+		v = api.MIntArray()
+		api.MFnDoubleIndexedComponent.getElements(u, v)
+		return (u,v) 
+		
+	
 class TripleIndexedComponent( Component ):
 	"""precreated class for ease-of-use"""
-	pass
+	_mfnType = api.MFn.kTripleIndexedComponent
 
+	def getElements(self):
+		"""@return: (uIntArray, vIntArray, wIntArray) tuple containing arrays with 
+		the u, v and w indices this component represents"""
+		u = api.MIntArray()
+		v = api.MIntArray()
+		w = api.MIntArray()
+		api.MFnDoubleIndexedComponent.getElements(u, v, w)
+		return (u,v,w)
 #} END additional classes
 
 

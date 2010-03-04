@@ -32,7 +32,7 @@ class TestGeneralPerformance( unittest.TestCase ):
 		return nodes.createNode( name, nodetype, renameOnClash=True )
 
 
-	def _test_buildTestScene( self ):
+	def test_buildTestScene( self ):
 		"""mayarv.maya.benchmark.general: build test scene with given amount of nodes  """
 		return 	# disabled
 		numNodes = 100000
@@ -212,6 +212,14 @@ class TestGeneralPerformance( unittest.TestCase ):
 		api_elapsed = time.time() - starttime
 		print "Created %i WRAPPED Nodes ( from APIOBJ using NodeFromObj) in %f s ( %f / s ) -> %f %% faster" % ( len( nodenames ), api_elapsed, len( nodenames ) / api_elapsed, (elapsed / api_elapsed) * 100 )
 
+
+	def test_intarray_creation(self):
+		starttime = time.time( )
+		num_indices = 100000
+		ia = nodes.Component.iar(0, num_indices)
+		elapsed = time.time() - starttime
+		print "Created MIntArray with %i ints in %f s ( %f / s )" % ( num_indices, elapsed, num_indices / elapsed )
+	
 
 	def test_wrappedFunctionCall( self ):
 		"""mayarv.maya.benchmark.general: test wrapped funtion calls and compare them"""
