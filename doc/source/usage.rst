@@ -112,6 +112,25 @@ Creating nodes in MayaRV is simple and possibly slow as you can only create abou
 	>>> cs = createNode("namespace:subspace:group|other:camera|other:cameraShape", "camera")
 	>>> assert len(cs.getParentsDeep()) == 2
 	
+The short and more convenient way to create nodes is to use the NodeType() call signature, whose ``**kwargs`` will be passed to the ``createNode`` function::
+	>>> m = Mesh()
+	>>> assert isinstance(m, Mesh) and m.isValid()
+		
+	>>> assert m == Mesh(forceNewLeaf=False)
+	
+Node Duplication
+================
+Node duplication is an interesting problem as it might involve many secondary tasks, such as maintaining light-links or shading assignments. 
+
+When using the blank duplicate function as provided by the MayaAPI, one will only get a bare copy of the input node, without any connections. Its safe to state that the MayaAPI duplicate is far behind the MEL implementation, as it can take care of much more. Lets just call it a design mistake that they implement functionality in a MEL command instead of in a library so that it can be made accessible in the MayaAPI and in MEL.
+
+MayaRV tackles the problem by providing an interface called ``mayarv.interface.iDuplicatable``. It works much like a c++ copy constructor, and anyone who implements it correctly is able to be duplicated. Nodes happen to do so, providing the additional ability to implement special cases for specific node types::
+	>>> # this duplicated tweaks, set and shader assignments as well
+	>>> md = m.duplicate()
+	>>> assert md != m
+	
+If you ever miss anything to be duplicated on a certain node-type, you only need to implement it in the ``copyFrom`` method in the respective class.
+	
 Namespaces
 ==========
 Namespaces in MayaRV are objects which may create a hierarchy, hence they support the ``mayarv.interface.iDagItem`` interface.
@@ -210,10 +229,43 @@ SelectionLists can be iterated natively, or explicitly be converted into lists::
 	>>> assert list(sl) == sl.toList()
 	>>> assert list(sl.toIter()) == list(it.iterSelectionList(sl))
 
-ObjectSets and ShadingEngines
-=============================
+ObjectSets, ShadingEngines and Partitions
+=========================================
+Sets and Partitions are a major feature of Maya, which uses ObjectSets and their derivatives in many locations of the program. Partitions allow to enforce exclusive membership among sets. 
 
+ObjectSets in MayaRV can be controlled much like ordinary python sets, but they in fact correspond to an ObjectSet compatible node with your scene::
+	>>> objset = ObjectSet()
+	>>> aobjset = ObjectSet()
+	>>> partition = Partition()
+		
+	>>> assert len(objset) == 0
+	>>> objset.addMembers(sl)
+	>>> objset.add(csp)
+	>>> aobjset.addMember(csi)
+	>>> assert len(objset)-1 == len(sl)
+	>>> assert len(aobjset) == 1
+	>>> assert csp in objset
+		
+	>>> partition.addSets([objset, aobjset])
+	>>> assert objset in partition and aobjset in partition
+	>>> partition.discard(aobjset)
+	>>> assert aobjset not in partition
+		
+	>>> assert len(objset + aobjset) == len(objset) + len(aobjset)
+	>>> assert len(objset & aobjset) == 0
+	>>> aobjset.add(p)
+	>>> assert len(aobjset) == 2
+	>>> assert len(aobjset & objset) == 1
+	>>> assert len(aobjset - objset) == 1
 
+	>>> assert len(aobjset.clear()) == 0
+	
+ShadingEngines work the same, except that they are attached to the renderParition by default, and that you usually assign components to them.
+	
+Components
+==========
+In order to show the interaction with Components, we create a blank cube and shade only two of its faces.
+	
 =====================
 Attributes and MPlugs
 =====================

@@ -112,6 +112,17 @@ class TestTransform( unittest.TestCase ):
 		cs = createNode("namespace:subspace:group|other:camera|other:cameraShape", "camera")
 		assert len(cs.getParentDeep()) == 2
 		
+		m = Mesh()
+		assert isinstance(m, Mesh) and m.isValid()
+		
+		assert m == Mesh(forceNewLeaf=False) 
+		
+		# NODE DUPLICATION
+		##################
+		# this duplicated tweaks, set and shader assignments as well
+		md = m.duplicate()
+		assert md != m
+		
 		# NAMESPACES
 		#############
 		ons = cs.getNamespace()
@@ -191,5 +202,32 @@ class TestTransform( unittest.TestCase ):
 		
 		# OBJECTSETS AND SHADING ENGINES
 		################################
+		objset = ObjectSet()
+		aobjset = ObjectSet()
+		partition = Partition()
+		
+		assert len(objset) == 0
+		objset.addMembers(sl)
+		objset.add(csp)
+		aobjset.addMember(csi)
+		assert len(objset)-1 == len(sl)
+		assert len(aobjset) == 1
+		assert csp in objset
+		
+		partition.addSets([objset, aobjset])
+		assert objset in partition and aobjset in partition
+		partition.discard(aobjset)
+		assert aobjset not in partition
+		
+		assert len(objset + aobjset) == len(objset) + len(aobjset)
+		assert len(objset & aobjset) == 0
+		aobjset.add(p)
+		assert len(aobjset) == 2
+		assert len(aobjset & objset) == 1
+		assert len(aobjset - objset) == 1
+		
+		assert len(aobjset.clear()) == 0
 		
 		
+		# COMPONENTS
+		#############
