@@ -11,6 +11,7 @@ Tests the geometric nodes, focussing on the set handling
 import unittest
 import mayarv.maya.nodes.storage as storage
 import mayarv.maya.nodes as nodes
+import mayarv.maya.nodes.geometry as modmesh
 import maya.OpenMaya as api
 import mayarv.maya as bmaya
 import mayarv.test.maya as common
@@ -234,23 +235,27 @@ class TestGeometry( unittest.TestCase ):
 		################
 		self.failUnlessRaises(ValueError, m.iterComponents, "something")
 		
+		def get_index(it):
+			if hasattr(it, 'index'):
+				return it.index()
+			else:
+				return it.faceId()
+			# END handle index
+		# END check index helper
+		
+		
 		ec = m.eComponentType
-		for comp, maxindex in zip(m.eComponentType[:3], (7, 11, 5)):
+		for comp, maxindex in zip(m.eComponentType, (7, 11, 5, 5)):
 			last_index = 0
 			for it in m.iterComponents(comp):
-				last_index = it.index()
+				last_index = get_index(it)
 			# END for each itertion pass
 			assert last_index == maxindex
 		# END for each component, iterator type
 		
-		last_index = 0
-		for it in m.iterFaceVertex():
-			last_index = it.faceId()
-		# END for each facevertex
-		assert last_index == 5
 		
 		
-		# constrain mit using component
+		# CONSTRAIN MIT USING COMPONENT
 		self.failUnlessRaises(ValueError, m.getComponent, 1)	# invalid arg type
 		vc = m.getComponent(ec.vertex).addElements(api.MIntArray.fromMultiple(1,2))
 		assert isinstance(vc, nodes.SingleIndexedComponent)
@@ -258,10 +263,64 @@ class TestGeometry( unittest.TestCase ):
 		miv = m.iterComponents(ec.vertex, vc)
 		assert miv.count() == 2
 		
-		#self.fail("try with component")
 		
+	
 		
+		# SHORTCUT ITERATION
+		for shortname in ('vtx', 'e', 'f', 'map'):
+			it_helper = getattr(m, shortname)
+			assert isinstance(it_helper, modmesh._ComponentIterator)
+			
+			max_index = 0
+			for it in it_helper:
+				max_index = get_index(it)
+			# END iterate whole mesh
+			assert max_index != 0
+			
+			# check component iteration
+			try:
+				# slice
+				last_index = 0
+				for it in it_helper[:2]:
+					last_index = get_index(it)
+				# END slice iteration
+				assert last_index and last_index < max_index
+			except NotImplementedError:
+				# double index components are not supported
+				# everything else would fail as well
+				continue
+			# END handle exceptions
+			
+			# single 
+			last_index = 0
+			for it in it_helper[2]:
+				last_index = get_index(it)
+			# END slice iteration
+			assert last_index == 2
+			
+			# multi 
+			last_index = 0
+			ni = 0
+			for it in it_helper[0,2]:
+				last_index = get_index(it)
+				ni += 1
+			# END slice iteration
+			assert last_index == 2 and ni == 2 
+			
+			# list
+			for conv in (	lambda l: l, 
+							lambda l: iter(l), 
+							lambda l: api.MIntArray.fromList(l)):
+				last_index = 0
+				ni = 0
+				for it in it_helper[conv((0,3))]:
+					last_index = get_index(it)
+					ni += 1
+				# END slice iteration
+				assert last_index == 3 and ni == 2
+			# END for each argument convertion function
 		
+		# END for each shortname
 		
 	
 	def test_lightLinkCopy( self ):

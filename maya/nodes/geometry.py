@@ -1,12 +1,7 @@
 # -*- coding: utf-8 -*-
 """
 Contains implementations ( or improvements ) to mayas geometric shapes
-
-
-
 """
-
-
 import base
 from typ import MetaClassCreatorNodes
 from mayarv.enum import (create as enum, Element as elm)
@@ -88,16 +83,83 @@ class SurfaceShape( ControlPoint ):	# base for epydoc !
 	pass
 
 
+#{ Helpers 
+class _ComponentIterator(object):
+	"""Utility which produces iterators for the component type
+	it was initialized with. As a bonus, it allows to return 
+	quick constrained iterators using the slice and get-item notation"""
+	__slots__ = ('_mesh', '_component')
+	
+	def __init__(self, mesh, component):
+		self._mesh = mesh
+		self._component = component
+		
+	def __iter__(self):
+		return iter(self._mesh.iterComponents(self._component))
+		
+	def _check_component(self):
+		"""@raise NotImplementedError: if comp needs double-index component, our interface
+		cannot support anything else than SingleIndex components"""
+		if self._component == Mesh.eComponentType.uv:
+			raise NotImplementedError("This Utility does not support iteration using \
+				component-constrained iterators as it can only reproduce \
+				SingleIndexedComponents - create the Component yourself and \
+				use iterComponents to retrieve the iterator instead")
+		
+	def __getslice__(self, i, j):
+		self._check_component()
+		comp = self._mesh.getComponent(self._component).addElements(api.MIntArray.fromRange(i, j))
+		return self._mesh.iterComponents(self._component, comp)
+		
+	def __getitem__(self, *args):
+		self._check_component()
+		comp = self._mesh.getComponent(self._component)
+		ia = None
+		if len(args) == 1:
+			arg = args[0]
+			if hasattr(arg, 'next'):
+				ia = api.MIntArray.fromIter(arg)
+			elif isinstance(arg, (list, tuple)):
+				ia = api.MIntArray.fromList(arg)
+			elif isinstance(arg, api.MIntArray):
+				ia = arg
+			else:
+				ia = api.MIntArray.fromMultiple(arg)
+			# END handle type
+		else:
+			ia = api.MIntArray.fromList(args)
+		# END handle args
+		
+		comp.addElements(ia)
+		return self._mesh.iterComponents(self._component, comp) 
+		
+#} END helpers 
+
+
 class Mesh( SurfaceShape ):		# base for epydoc !
 	"""Implemnetation of mesh related methods to make its handling more
-	convenient"""
+	convenient
+	
+	.. todo:: Write a litte more here, restructuredText, e[x:y], e[1,5,7], e[iter], e[list], e[ia]"""
 	__metaclass__ = MetaClassCreatorNodes
 	# component types that make up a mesh
 	eComponentType = enum( elm("vertex", api.MFn.kMeshVertComponent), 
 							elm("edge", api.MFn.kMeshEdgeComponent ), 
 							elm("face", api.MFn.kMeshPolygonComponent ), 
 							elm("uv", api.MFn.kMeshMapComponent ) )
+
+	#{ Iterator Shortcuts
+	def _make_component_getter(component):
+		def internal(self):
+			return _ComponentIterator(self, component)
+		# END internal method
+		return internal
+	# END pseudo-decorator
 	
+	for shortname, component in zip(('vtx', 'e', 'f', 'map'), eComponentType):
+		locals()[shortname] = property(_make_component_getter(component))
+	#} END iterator shortcuts
+
 	#{ Utilities
 
 	def copyTweaksTo( self, other ):
@@ -237,10 +299,16 @@ class Mesh( SurfaceShape ):		# base for epydoc !
 		
 	def getComponent(self, component_type):
 		"""@return: A component object able to hold the given component type
-		@param component_type: a member of the L{eComponentType} enumeration"""
+		@param component_type: a member of the L{eComponentType} enumeration
+		@note: the uv component type return a DoubleIndexComponent"""
 		if component_type not in self.eComponentType:
 			raise ValueError("Invalid component type")
-		return base.SingleIndexedComponent.create(component_type.getValue())
+		
+		if component_type == self.eComponentType.uv:
+			return base.DoubleIndexedComponent.create(api.MFn.kMeshVtxFaceComponent)
+		else:
+			return base.SingleIndexedComponent.create(component_type.getValue())
+		# END handle face-vertex components
 		
 	#} END utilities
 		
@@ -252,22 +320,21 @@ class Mesh( SurfaceShape ):		# base for epydoc !
 			vertex -> MItMeshVertex
 			edge -> MItMeshEdge
 			face -> MItMeshPolygon
+			uv -> MItMeshFaceVertex
 		@param component: if not kNullObject, the iterator returned will be constrained
-		to the given indices as described by the Component"""
+		to the given indices as described by the Component. Use L{getComponent} to retrieve 
+		a matching component type's instance"""
 		if component_type not in self.eComponentType:
 			raise ValueError("Invalid component type")
 			
 		ec = self.eComponentType
 		it_type = { 	ec.vertex : api.MItMeshVertex,
 						ec.edge   : api.MItMeshEdge, 
-						ec.face   : api.MItMeshPolygon }[component_type] 
+						ec.face   : api.MItMeshPolygon, 
+						ec.uv     : api.MItMeshFaceVertex}[component_type] 
 		
 		return it_type(self.getMDagPath(), component)
 		
-	def iterFaceVertex(self, component=api.MObject()):
-		"""@return: FaceVertex iterator, optionally constrained to the given component
-		@param component: see L{iterComponents}"""
-		return api.MItMeshFaceVertex(self.getMDagPath(), component)
 	#} END iterators 
 
 	#( iDuplicatable
