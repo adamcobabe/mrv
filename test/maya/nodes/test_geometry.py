@@ -272,6 +272,9 @@ class TestGeometry( unittest.TestCase ):
 			it_helper = getattr(m, shortname)
 			assert isinstance(it_helper, modmesh._SingleIndexedComponentIterator)
 			
+			# plain iterator 
+			assert hasattr(it_helper.iter, 'next')
+			
 			max_index = 0
 			for it in it_helper:
 				max_index = get_index(it)

@@ -178,6 +178,14 @@ class _SingleIndexedComponentIterator(_SingleIndexedComponentGenerator):
 		comp = super(_SingleIndexedComponentIterator, self).__getitem__(*args)
 		return self._mesh.iterComponents(self._component, comp) 
 		
+		
+	def getIterator(self):
+		"""@return: Iterator for all components in the mesh"""
+		return self._get_complete_iterator()
+		
+	# shortcut alias
+	iter = property(getIterator)
+		
 #} END helpers 
 
 

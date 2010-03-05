@@ -262,4 +262,24 @@ class TestTransform( unittest.TestCase ):
 		assert len(e) == 6					# we have added all 6 faces
 		
 		
+		# MESH COMPONENT ITERATION
+		average_x = 0.0
+		for vit in m.vtx:                  # iterate the whole mesh
+			average_x += vit.position().x
+		average_x /= m.numVertices()
+		assert m.vtx.iter.count() == m.numVertices()
+		
+		sid = 3
+		for vit in m.vtx[sid:sid+3]:       # iterate subsets
+			assert sid == vit.index()
+			sid += 1
+		
+		for eit in m.e:
+			eit.point(0); eit.point(1)
+			
+		for fit in m.f:
+			fit.isStarlike(); fit.isPlanar()
+			
+		for mit in m.map:
+			mit.faceId(); mit.vertId() 
 		
