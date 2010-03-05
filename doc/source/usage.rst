@@ -262,10 +262,37 @@ ObjectSets in MayaRV can be controlled much like ordinary python sets, but they 
 	
 ShadingEngines work the same, except that they are attached to the renderParition by default, and that you usually assign components to them.
 	
-Components and Component Assignments
-====================================
-In order to show the interaction with Components, we create a blank cube and shade only two of its faces::
-	>>> 
+Components and Component-Level Shader Assignments
+================================================
+The following examples operate on a simple mesh, representing a polygonal cube with 6 faces, 8 vertices and 12 edges::
+	isb = Node("initialShadingGroup")
+	pc = PolyCube()
+	pc.output > m.inMesh
+	assert m.numVertices() == 8
+	assert m not in isb                            # it has no shaders on object level
+	assert len(m.getComponentAssignments()) == 0   # nor on component leveld 
+	
+Shader assignments on object level can simply be created and broken by adding or removing items from the respective shading group::
+	>>> m.addTo(isb)
+	>>> assert m in isb
+	
+Component Assignments are mutually exclusive to the object level assignments, but maya will just allow the object level assignments to take priority. If you want component level assignments to become effective, make sure you have no object level assignments left::
+	>>> assert m.getSets(m.fSetsRenderable)[0] == isb
+	>>> m.removeFrom(isb)
+	>>> assert not m.isMemberOf(isb)
+	
+	>>> isb.add(m, m.cf[range(0,6,2)])     # add every second face
+	>>> isb.discard(m, m.cf[:])	            # remove all component assignments
+		
+	>>> isb.add(m, m.cf[:3])				# add faces 0 to 2
+	>>> isb.add(m, m.cf[3])					# add single face 3
+	>>> isb.add(m, m.cf[4,5])				# add remaining faces
+	
+To query component assignments, use the ``mayarv.maya.nodes.base.Shape.getComponentAssignments`` function::
+	>>> se, comp = m.getComponentAssignments()[0]
+	>>> assert se == isb
+	>>> e = comp.getElements()
+	>>> assert len(e) == 6					# we have added all 6 faces
 	
 =====================
 Attributes and MPlugs
@@ -292,7 +319,9 @@ Add and Delete Attributes
 -------------------------
 
 
-
+========================
+Mesh Component Iteration
+========================
 
 ====
 Undo

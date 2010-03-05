@@ -232,11 +232,34 @@ class TestTransform( unittest.TestCase ):
 		# COMPONENTS AND COMPONENT ASSIGNMENTS
 		######################################
 		# create a polycube and pipe its output into our mesh shape
+		isb = Node("initialShadingGroup")
 		pc = PolyCube()
 		pc.output > m.inMesh
 		assert m.numVertices() == 8
+		assert m not in isb                            # it has no shaders on object level
+		assert len(m.getComponentAssignments()) == 0   # nor on component leveld 
 		
-		# make initial shading group assignments
-		assert len(m.getComponentAssignments()) == 0
+		# object level
+		m.addTo(isb)
+		assert m in isb
+		
+		assert m.getSets(m.fSetsRenderable)[0] == isb
+		m.removeFrom(isb)
+		assert not m.isMemberOf(isb)
+		
+		# component level
+		isb.add(m, m.cf[range(0,6,2)])     # add every second face
+		isb.discard(m, m.cf[:])	            # remove all component assignments
+		
+		isb.add(m, m.cf[:3])				# add faces 0 to 2
+		isb.add(m, m.cf[3])					# add single face 3
+		isb.add(m, m.cf[4,5])				# add remaining faces
+		
+		# query assignments
+		se, comp = m.getComponentAssignments()[0]
+		assert se == isb
+		e = comp.getElements()
+		assert len(e) == 6					# we have added all 6 faces
+		
 		
 		

@@ -240,7 +240,7 @@ class ObjectSet:
 		return self._addRemoveMember( member, component, mode, ignore_failure )		
 	
 	@undoable
-	def add( self, member_or_members, **kwargs ):
+	def add( self, member_or_members, *args, **kwargs ):
 		"""Combined method which takes single or multiple members which are to be added
 		@param member_or_members: one of the input types supported by L{addMember} and
 		L{addMembers}
@@ -253,7 +253,7 @@ class ObjectSet:
 		else:
 			addfun = self.addMember
 		# END handle input
-		return addfun(member_or_members, **kwargs)
+		return addfun(member_or_members, *args, **kwargs)
 		
 	@undoable
 	def removeMember( self, member, component = api.MObject()  ):
@@ -262,7 +262,7 @@ class ObjectSet:
 		return self._addRemoveMember( member, component, ObjectSet.kRemove, True )
 	
 	@undoable
-	def discard( self, member_or_members, **kwargs ):
+	def discard( self, member_or_members, *args, **kwargs ):
 		"""Removes a single member or multiple members from the set
 		@param member_or_members: any of the types supported by L{removeMember}
 		or L{removeMembers}
@@ -273,7 +273,7 @@ class ObjectSet:
 		else:
 			rmfun = self.removeMember
 		# END handle input
-		return rmfun(member_or_members, **kwargs)
+		return rmfun(member_or_members, *args, **kwargs)
 	
 	@undoable
 	def addMembers( self, nodes, force = False, ignore_failure = False ):

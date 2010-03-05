@@ -904,6 +904,9 @@ class DependNode( Node, iDuplicatable ):		# parent just for epydoc -
 
 		return outlist
 
+	# alias - getConnectedSets derives from the MayaAPI, but could be shorter
+	getSets = getConnectedSets
+
 	def isMemberOf( self, setnode, component = MObject() ):
 		"""@return: True if self is part of setnode
 		@note: method is undoable
