@@ -229,8 +229,8 @@ SelectionLists can be iterated natively, or explicitly be converted into lists::
 	>>> assert list(sl) == sl.toList()
 	>>> assert list(sl.toIter()) == list(it.iterSelectionList(sl))
 
-ObjectSets, ShadingEngines and Partitions
-=========================================
+ObjectSets and Partitions
+=========================
 Sets and Partitions are a major feature of Maya, which uses ObjectSets and their derivatives in many locations of the program. Partitions allow to enforce exclusive membership among sets. 
 
 ObjectSets in MayaRV can be controlled much like ordinary python sets, but they in fact correspond to an ObjectSet compatible node with your scene::
@@ -262,8 +262,8 @@ ObjectSets in MayaRV can be controlled much like ordinary python sets, but they 
 	
 ShadingEngines work the same, except that they are attached to the renderParition by default, and that you usually assign components to them.
 	
-Components
-==========
+Components and Component Assignments
+====================================
 In order to show the interaction with Components, we create a blank cube and shade only two of its faces::
 	>>> 
 	

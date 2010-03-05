@@ -200,8 +200,8 @@ class TestTransform( unittest.TestCase ):
 		assert list(sl) == sl.toList()
 		assert list(sl.toIter()) == list(it.iterSelectionList(sl))
 		
-		# OBJECTSETS AND SHADING ENGINES
-		################################
+		# OBJECTSETS AND PARTITIONS
+		###########################
 		objset = ObjectSet()
 		aobjset = ObjectSet()
 		partition = Partition()
@@ -229,8 +229,8 @@ class TestTransform( unittest.TestCase ):
 		assert len(aobjset.clear()) == 0
 		
 		
-		# COMPONENTS
-		#############
+		# COMPONENTS AND COMPONENT ASSIGNMENTS
+		######################################
 		# create a polycube and pipe its output into our mesh shape
 		pc = PolyCube()
 		pc.output > m.inMesh

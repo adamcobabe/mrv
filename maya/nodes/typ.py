@@ -64,7 +64,7 @@ class MetaClassCreatorNodes( MetaClassCreator ):
 
 
 	@classmethod
-	def _wrapMfnFunc( cls, mfncls, funcname, funcMutatorDB = None ):
+	def _wrapMfnFunc( cls, newcls, mfncls, funcname, funcMutatorDB = None ):
 		""" Create a function that makes a Node natively use its associated Maya
 		function set on calls.
 
@@ -127,6 +127,8 @@ class MetaClassCreatorNodes( MetaClassCreator ):
 		# is a real bitch with empty shapes on which it does not want to operate at all
 		# as opposed to behaviour of the API.
 		mfnfunc = mfncls.__dict__[ mfnfuncname ]			# will just raise on error
+		mfnmro = mfncls.mro()
+		newclsmro = newcls.mro()
 		newfunc = None
 
 		needs_MObject = mfncls in cls.forceInitWithMObject
@@ -136,52 +138,80 @@ class MetaClassCreatorNodes( MetaClassCreator ):
 			# bound to class, self will be attached on class instantiation
 			if rvalfunc:	# wrap rval function around
 				# INITIALIZED DAG NODES WITH DAG PATH !
-				if api.MFnDagNode in mfncls.mro() and not needs_MObject:			# yes, we duplicate code here to keep it fast !!
+				if api.MFnDagNode in mfnmro and not needs_MObject:			# yes, we duplicate code here to keep it fast !!
 					def wrapMfnFunc( self, *args, **kwargs ):
 						rvallambda = lambda *args, **kwargs: rvalfunc(getattr(mfncls(self._apidagpath), mfnfuncname)(*args, **kwargs))
 						object.__setattr__( self, funcname_orig, rvallambda ) # cache it in our object
 						return rvallambda( *args, **kwargs )
 					newfunc = wrapMfnFunc
 				else:
-					def wrapMfnFunc( self, *args, **kwargs ):
-						rvallambda = lambda *args, **kwargs: rvalfunc(getattr(mfncls(self._apiobj), mfnfuncname)(*args, **kwargs))
-						object.__setattr__( self, funcname_orig, rvallambda )
-						return rvallambda( *args, **kwargs )
-					newfunc = wrapMfnFunc
+					if api.MObject in newclsmro:
+						def wrapMfnFunc( self, *args, **kwargs ):
+							rvallambda = lambda *args, **kwargs: rvalfunc(getattr(mfncls(self), mfnfuncname)(*args, **kwargs))
+							object.__setattr__( self, funcname_orig, rvallambda )
+							return rvallambda( *args, **kwargs )
+						newfunc = wrapMfnFunc
+					else:
+						def wrapMfnFunc( self, *args, **kwargs ):
+							rvallambda = lambda *args, **kwargs: rvalfunc(getattr(mfncls(self._apiobj), mfnfuncname)(*args, **kwargs))
+							object.__setattr__( self, funcname_orig, rvallambda )
+							return rvallambda( *args, **kwargs )
+						newfunc = wrapMfnFunc
+					# END handle MObject inheritance
 			else:
-				if api.MFnDagNode in mfncls.mro() and not needs_MObject:			# yes, we duplicate code here to keep it fast !!
+				if api.MFnDagNode in mfnmro and not needs_MObject:			# yes, we duplicate code here to keep it fast !!
 					def wrapMfnFunc( self, *args, **kwargs ):
 						mfnfunc = getattr(mfncls(self._apidagpath), mfnfuncname)
 						object.__setattr__( self, funcname_orig, mfnfunc )
 						return mfnfunc( *args, **kwargs )
 					newfunc = wrapMfnFunc
 				else:
-					def wrapMfnFunc( self, *args, **kwargs ):
-						mfnfunc = getattr(mfncls(self._apiobj), mfnfuncname)
-						object.__setattr__( self, funcname_orig, mfnfunc )
-						return mfnfunc( *args, **kwargs )
-					newfunc = wrapMfnFunc
+					if api.MObject in newclsmro:
+						def wrapMfnFunc( self, *args, **kwargs ):
+							mfnfunc = getattr(mfncls(self), mfnfuncname)
+							object.__setattr__( self, funcname_orig, mfnfunc )
+							return mfnfunc( *args, **kwargs )
+						newfunc = wrapMfnFunc
+					else:
+						def wrapMfnFunc( self, *args, **kwargs ):
+							mfnfunc = getattr(mfncls(self._apiobj), mfnfuncname)
+							object.__setattr__( self, funcname_orig, mfnfunc )
+							return mfnfunc( *args, **kwargs )
+						newfunc = wrapMfnFunc
+					# END handle MObject inheritance
 			# END not rvalfunc
 		else:
 			if rvalfunc:	# wrap rval function around
 				# INITIALIZED DAG NODES WITH DAG PATH !
-				if api.MFnDagNode in mfncls.mro() and not needs_MObject:			# yes, we duplicate code here to keep it fast !!
+				if api.MFnDagNode in mfnmro and not needs_MObject:			# yes, we duplicate code here to keep it fast !!
 					def wrapMfnFunc( self, *args, **kwargs ):
 						return rvalfunc(getattr(mfncls(self._apidagpath), mfnfuncname)(*args, **kwargs))
 					newfunc = wrapMfnFunc
 				else:
-					def wrapMfnFunc( self, *args, **kwargs ):
-						return rvalfunc(getattr(mfncls(self._apiobj), mfnfuncname)(*args, **kwargs))
-					newfunc = wrapMfnFunc
+					if api.MObject in newclsmro:
+						def wrapMfnFunc( self, *args, **kwargs ):
+							return rvalfunc(getattr(mfncls(self), mfnfuncname)(*args, **kwargs))
+						newfunc = wrapMfnFunc
+					else:
+						def wrapMfnFunc( self, *args, **kwargs ):
+							return rvalfunc(getattr(mfncls(self._apiobj), mfnfuncname)(*args, **kwargs))
+						newfunc = wrapMfnFunc
+					# END handle MObject inheritance
 			else:
-				if api.MFnDagNode in mfncls.mro() and not needs_MObject:			# yes, we duplicate code here to keep it fast !!
+				if api.MFnDagNode in mfnmro and not needs_MObject:			# yes, we duplicate code here to keep it fast !!
 					def wrapMfnFunc( self, *args, **kwargs ):
 						return getattr(mfncls(self._apidagpath), mfnfuncname)(*args, **kwargs)
 					newfunc = wrapMfnFunc
 				else:
-					def wrapMfnFunc( self, *args, **kwargs ):
-						return getattr(mfncls(self._apiobj), mfnfuncname)(*args, **kwargs)
-					newfunc = wrapMfnFunc
+					if api.MObject in newclsmro:
+						def wrapMfnFunc( self, *args, **kwargs ):
+							return getattr(mfncls(self), mfnfuncname)(*args, **kwargs)
+						newfunc = wrapMfnFunc
+					else:
+						def wrapMfnFunc( self, *args, **kwargs ):
+							return getattr(mfncls(self._apiobj), mfnfuncname)(*args, **kwargs)
+						newfunc = wrapMfnFunc
+					# END handle MObject inheritance
 			# END not rvalfunc
 		# END api accellerated method
 
@@ -228,7 +258,7 @@ class MetaClassCreatorNodes( MetaClassCreator ):
 
 				# get function as well as its possibly changed name
 				try:
-					newclsfunc = thiscls._wrapMfnFunc( mfncls, attr, funcMutatorDB=mfndb )
+					newclsfunc = thiscls._wrapMfnFunc( newcls, mfncls, attr, funcMutatorDB=mfndb )
 					if not newclsfunc: # Function %s has been deleted - ignore
 						continue
 				except KeyError:  		# function not available in this mfn - ignore

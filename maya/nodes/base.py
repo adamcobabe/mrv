@@ -1968,7 +1968,7 @@ class ComponentListData( Data ):
 
 	def __getitem__( self, index ):
 		"""@return: the item at the given index"""
-		return self._mfncls( self._apiobj )[ index ]
+		return self._mfncls( self )[ index ]
 
 
 class PluginData( Data ):
@@ -1997,6 +1997,8 @@ class PluginData( Data ):
 				return trackingdict[ dataptrkey ]
 			except KeyError:
 				raise RuntimeError( "Could not find data associated with plugin data pointer at %r" % dataptrkey )
+			# END exception handling tracking dict
+		# END exception handling dict access
 
 class GeometryData( Data ):
 	"""Wraps geometry data providing additional convenience methods"""
@@ -2032,6 +2034,9 @@ class Component( MObject ):
 		if cls != Component:
 			# the user knows which type he wants, created it directlys
 			newinst = object.__new__(cls, componentobj)
+			# NOTE: Although this class is implemented not to need the _apiobj anymore
+			# as we ARE an MObject, it appears that the reference counting stays an 
+			# issue, and if we keep this ref, things won't crash.
 			newinst._apiobj = newinst
 			return newinst
 		# END optimization
