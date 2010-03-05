@@ -615,7 +615,7 @@ class SetFilter( tuple ):
 				if iplug.isNull():
 					continue
 
-				if iplug.getNodeApiObj().hasFn( api.MFn.kGeometryFilt ):
+				if iplug.getNodeMObject().hasFn( api.MFn.kGeometryFilt ):
 					return True
 			# END for each connected plug in usedBy array
 
@@ -895,7 +895,7 @@ class DependNode( Node, iDuplicatable ):		# parent just for epydoc -
 		iogplug = self._getSetPlug()
 
 		for dplug in iogplug.getOutputs():
-			setapiobj = dplug.getNodeApiObj()
+			setapiobj = dplug.getNodeMObject()
 
 			if not setFilter( setapiobj ):
 				continue
@@ -2357,13 +2357,13 @@ class Shape( DagNode ):	 # base for epydoc !
 
 			# take full assignments as well - make it work as the getConnectedSets api method
 			for dplug in iogplug.getOutputs():
-				sets.append( dplug.getNodeApiObj() )
+				sets.append( dplug.getNodeMObject() )
 				components.append( MObject() )
 			# END full objecft assignments
 
 			for compplug in iogplug['objectGroups']:
 				for setplug in compplug.getOutputs():
-					sets.append( setplug.getNodeApiObj() )		# connected set
+					sets.append( setplug.getNodeMObject() )		# connected set
 
 					# get the component from the data
 					compdata = compplug['objectGrpCompList'].asData()
@@ -2378,7 +2378,7 @@ class Shape( DagNode ):	 # base for epydoc !
 			return ( sets, components )
 		else:
 			for dplug in iogplug.getOutputs():
-				sets.append( dplug.getNodeApiObj() )
+				sets.append( dplug.getNodeMObject() )
 			return sets
 		# END for each object grouop connection in iog
 

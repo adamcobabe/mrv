@@ -46,6 +46,7 @@ class TestTransform( unittest.TestCase ):
 		# END for each name
 		
 	def test_doc_examples(self):
+		bmaya.Scene.new(force=True)
 		# NOTE: If this test fails ( because of name changes for instance ), the 
 		# documentation needs to be fixed as well, usage.rst.
 		from mayarv.maya.nodes import *
@@ -274,12 +275,65 @@ class TestTransform( unittest.TestCase ):
 			assert sid == vit.index()
 			sid += 1
 		
-		for eit in m.e:
+		for eit in m.e:                    # iterate edges
 			eit.point(0); eit.point(1)
 			
-		for fit in m.f:
+		for fit in m.f:                    # iterate faces
 			fit.isStarlike(); fit.isPlanar()
 			
-		for mit in m.map:
+		for mit in m.map:                  # iterate face-vertices
 			mit.faceId(); mit.vertId() 
+		
+		
+		# Plugs and Attributes
+		######################
+		# PLUGS #
+		assert isinstance(p.translate, api.MPlug)
+		assert p.translate == p.findPlug('translate')
+		assert p.t == p.translate
+		
+		# connections
+		( p.tx > p.ty ) > p.tz		# parantheses enforce connection order in this case
+		assert p.tx >= p.ty
+		assert p.ty.isConnectedTo(p.tz)
+		assert not p.tz >= p.ty
+		
+		( p.tx | p.ty ) | p.tz		# disconnect all
+		assert len(p.ty.p_inputs) + len(p.tz.getInputs()) == 0
+		assert p.tz.getInput().isNull()
+		
+		p.tx > p.tz
+		self.failUnlessRaises(RuntimeError, p.ty.connectTo, p.tz, force=False)     # tz is already connected
+		p.ty >> p.tz                                         # force the connection
+		p.tz.disconnect()                                    # disconnect all
+		
+		# query
+		assert isinstance(p.tx.asFloat(), float)
+		assert isinstance(t.outTime.asMTime(), api.MTime)
+		
+		ninst = p.getInstanceNumber()
+		pewm = p.worldMatrix.elementByLogicalIndex(ninst)
+		
+		matfn = api.MFnMatrixData(pewm.asMObject())
+		matrix = matfn.matrix()                       # wrap data manually
+		
+		assert matrix == pewm.asData().matrix()       # or get a wrapped version right away
+		
+		
+		# set values
+		newx = 10.0
+		p.tx.setDouble(newx)
+		assert p.tx.asDouble() == newx
+		
+		meshdata = m.outMesh.asMObject()
+		meshfn = api.MFnMesh(meshdata)
+		meshfn.deleteFace(0)                        # delete one face of copied cube data
+		assert meshfn.numPolygons() == 5
+		
+		mc = Mesh()                                 # create new empty mesh to 
+		mc.cachedInMesh.setMObject(meshdata)        # hold the new mesh in the scene
+		assert mc.numPolygons() == 5
+		assert m.numPolygons() == 6
+		
+		# ATTRIBUTES #
 		

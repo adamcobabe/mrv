@@ -373,7 +373,7 @@ def iterSelectionList( sellist, filterType = api.MFn.kInvalid, predicate = lambd
 					if asNode:
 						rval = ( iterobj.getNode(), iterobj )
 					else:
-						rval = ( iterobj.getNodeApiObj(), iterobj )
+						rval = ( iterobj.getNodeMObject(), iterobj )
 				# END handle components
 
 				if predicate( rval ):

@@ -263,7 +263,7 @@ ObjectSets in MayaRV can be controlled much like ordinary python sets, but they 
 ShadingEngines work the same, except that they are attached to the renderParition by default, and that you usually assign components to them.
 	
 Components and Component-Level Shader Assignments
-================================================
+=================================================
 The following examples operate on a simple mesh, representing a polygonal cube with 6 faces, 8 vertices and 12 edges::
 	isb = Node("initialShadingGroup")
 	pc = PolyCube()
@@ -294,23 +294,77 @@ To query component assignments, use the ``mayarv.maya.nodes.base.Shape.getCompon
 	>>> e = comp.getElements()
 	>>> assert len(e) == 6					# we have added all 6 faces
 	
-=====================
-Attributes and MPlugs
-=====================
+====================
+Plugs and Attributes 
+====================
+People coming from MEL might be confused at first as MEL always uses the term ``attr`` when dealing with plugs and attributes. The MayaAPI, as well as MayaRV differentiate these.
 
-MPlugs
+ * Attributes define the type of data to be stored, its name and a suitable default value. They do not hold any data themselves.
+ 
+ * Plugs allow accessing Data as identified by an Attribute on a given Node. Plugs are valid only if they refer to a valid Node and one of the Node's Attributes. Plugs can be connected to each other, input connections are exclusive, hence a Plug may have multiple output connection, but only one input connection.
+
+Plugs
 ======
-node.findPlug
-node.plugname
-
+To access data on a node, you need to retrieve a Plug to it, represented by the monkey-patched API type ``MPlug``. Whenever you deal with data and connections within MayaRV, you deal with Plugs::
+	>>> assert isinstance(p.translate, api.MPlug)
+	>>> assert p.translate == p.findPlug('translate')
+	>>> assert p.t == p.translate 
+	
+The ``MPlug`` type has been extended with various convenience methods which are well worth an extended study, here we focus on the most important functionality.
+	
 Connections
 -----------
+Connect and disconnect plugs using simple, chainable functions. The most common connection related methods can be called using overloaded operators::
+	>>> ( p.tx > p.ty ) > p.tz		# parantheses enforce connection order in this case
+	>>> assert p.tx >= p.ty
+	>>> assert p.ty.isConnectedTo(p.tz)
+	>>> assert not p.tz >= p.ty
+		
+	>>> ( p.tx | p.ty ) | p.tz		# disconnect all
+	>>> assert len(p.ty.p_inputs) + len(p.tz.getInputs()) == 0
+	>>> assert p.tz.getInput().isNull()
+	
+	>>> p.tx > p.tz
+	>>> p.ty > p.tz              # raises as tz is already connected
+	>>> p.ty >> p.tz             # force the connection
+	>>> p.tz.disconnect()        # disconnect all
 
-Retrieving Values
------------------
-
+Querying Values
+---------------
+Primitive values, like ints, floats, values with units as well as strings can easily be retrieved using one of the dedicated ``MPlug.asType`` functions::
+	>>> assert isinstance(p.tx.asFloat(), float)
+	>>> assert isinstance(t.outTime.asMTime(), api.MTime)
+	
+All other data is returned as an MObject serving as a container for the possibly copied data. Data-specific function sets can operate on this data. You need to know which function set is actually compatible with the ``MObject``, or use a MayaRV data wrapper::
+	>>> ninst = p.getInstanceNumber()
+	>>> pewm = p.worldMatrix.elementByLogicalIndex(ninst)
+		
+	>>> matfn = api.MFnMatrixData(pewm.asMObject())
+	>>> matrix = matfn.matrix()                       # wrap data manually
+		
+	>>> assert matrix == pewm.asData().matrix()       # or get a wrapped version right away
+	
 Setting Values
 --------------
+Primitive value types can be handled easily using their corresponding ``MPlug.setType`` functions::
+	>>> newx = 10.0
+	>>> p.tx.setDouble(newx)
+	>>> assert p.tx.asDouble() == newx
+	
+All other types need to be created and adjusted using their respective data function sets. The following example extracts mesh data defining a cube, deletes a face, creates a new mesh shape to be filled with the adjusted data so that it shows in the scene::
+	>>> meshdata = m.outMesh.asMObject()
+	>>> meshfn = api.MFnMesh(meshdata)
+	>>> meshfn.deleteFace(0)                        # delete one face of copied cube data
+	>>> assert meshfn.numPolygons() == 5
+		
+	>>> mc = Mesh()                                 # create new empty mesh to 
+	>>> mc.cachedInMesh.setMObject(meshdata)        # hold the new mesh in the scene
+	>>> assert mc.numPolygons() == 5
+	>>> assert m.numPolygons() == 6
+	
+
+Compound Plugs and Plug-Arrays
+-------------------------------
 
 Attributes
 ==========

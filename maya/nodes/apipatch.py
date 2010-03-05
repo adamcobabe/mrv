@@ -469,7 +469,7 @@ class MPlug( api.MPlug, util.iDagItem ):
 		try:
 			mod.doIt( )
 		except RuntimeError:
-			raise RuntimeError("Failed to connect %s to %s as destination is already connected" % (self, destplug))
+			raise RuntimeError("Failed to connect %s to %s as destination is already connected or incompatible" % (self, destplug))
 		# END connection failed handling
 		return destplug
 
@@ -696,7 +696,7 @@ class MPlug( api.MPlug, util.iDagItem ):
 		@note: only valid for array plugs"""
 		return self.getByLogicalIndex( self.getNextLogicalIndex() )
 
-	def getAttributeApiObj( self ):
+	def getAttributeMObject( self ):
 		"""@return: the original unwrapped api object - use this if you
 		prefer speed over convenience"""
 		return api.MPlug._api_attribute( self )
@@ -709,7 +709,7 @@ class MPlug( api.MPlug, util.iDagItem ):
 		"""@return: Node instance of our underlying node"""
 		return base.NodeFromObj( api.MPlug._api_node( self ) )
 
-	def getNodeApiObj( self ):
+	def getNodeMObject( self ):
 		"""@return: unwrapped api object of the plugs node
 		@note: use this if you prefer speed over convenience"""
 		return api.MPlug._api_node( self )

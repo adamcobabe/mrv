@@ -619,8 +619,7 @@ class StorageBase( iDuplicatable ):
 		"""Delete the object set identified by setIndex
 		@note: the method is implicitly undoable
 		@note: use this method to delete your sets instead of manual deletion as it will automatically
-		remove the managed partition in case the last set is being deleted
-		@note: operation is implicitly undoable"""
+		remove the managed partition in case the last set is being deleted"""
 		try:
 			objset = self.getObjectSet( dataID, setIndex, autoCreate = False )
 		except ( ValueError, AttributeError ):
@@ -629,13 +628,13 @@ class StorageBase( iDuplicatable ):
 		else:
 			# if this is the last set, remove the partition as well
 			#su = undo.StartUndo()			# make the following operations atomic
-			if len( self.getSets( dataID ) ) == 1:
+			if len( self.getSetsByID( dataID ) ) == 1:
 				self.setPartition( dataID, False )
 
 			nodes.delete( objset )
 		# END obj set handling
 
-	def getSets( self, dataID ):
+	def getSetsByID( self, dataID ):
 		"""@return: all object sets stored under the given dataID"""
 		mp = self.getStoragePlug( dataID, self.kMessage, autoCreate = False )
 		allnodes = [ p.getNode() for p in mp.getInputs() ]
@@ -648,13 +647,17 @@ class StorageBase( iDuplicatable ):
 		@param dataID: id identifying the storage plug
 		@param state: if True, a partition will be used, if False, it will be disabled
 		@note: this method makes sure that all sets are hooked up to the partition
-		@raises: AttributeError: if the plug did not exist ( and autocreate is False )
+		@raise ValueError: If we did not have a single set to which to add to the partition
+		@raise AttributeError: If the dataID has never had sets
 		@return: if state is True, the name of the possibly created ( or existing ) partition"""
-		sets = self.getSets( dataID )
+		sets = self.getSetsByID( dataID )
 		partition = self.getPartition( dataID )
 
 		if state:
 			if partition is None:
+				if not sets:
+					raise ValueError("Cannot create partition as data %r did not have any connected sets" % dataID)
+				# END check sets exist
 				# create partition
 				partition = nodes.createNode( "storagePartition", "partition", forceNewLeaf=True )
 
@@ -678,7 +681,7 @@ class StorageBase( iDuplicatable ):
 	def getPartition( self, dataID ):
 		"""@return: partition Node attached to the sets at dataID or None if state
 		is disabled"""
-		sets = self.getSets( dataID )
+		sets = self.getSetsByID( dataID )
 
 		# get the dominant partition
 		partitions = []

@@ -190,8 +190,12 @@ class TestStorage( unittest.TestCase ):
 
 		# SIMPLE SET
 		did = "objset"
+		
+		# error checking 
+		
 		objset = snode.getObjectSet( did, 0, autoCreate = True )
 		self.failUnless( isinstance( objset, nodes.ObjectSet ) )
+		assert len(snode.getSetsByID(did)) == 1
 
 		# does not exist anymore
 		cmds.undo()
@@ -204,17 +208,19 @@ class TestStorage( unittest.TestCase ):
 		# del set
 		snode.deleteObjectSet( did, 0 )
 		self.failUnless( not objset.isValid() and objset.isAlive() )
+		self.failUnlessRaises( AttributeError, snode.getObjectSet, did, 0, False ) 
 		cmds.undo()
 		self.failUnless( objset.isValid() )
+		assert snode.getObjectSet(did, 0, False) == objset
 		cmds.redo()
 		self.failUnless( not objset.isValid() )
+		self.failUnlessRaises( AttributeError, snode.getObjectSet, did, 0, False )
 		cmds.undo()	# undo deletion after all
-
+		assert objset.isValid()
+		assert snode.getObjectSet(did, 0, False) == objset
 		# SIMPLE OBJSET OPERATIONS
 
 		# MULTIPLE SETS
-
-
 
 
 		# PARTITION HANDLING
