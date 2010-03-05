@@ -1019,6 +1019,69 @@ class TestNodeBase( unittest.TestCase ):
 		assert len(cd) == 0
 		
 
+	def test_attributes( self ):
+		# CREATION 
+		##########
+		# UNIT ATTRIBUTE # 
+		l = "long"
+		s = "sh"
+		for ut in nodes.UnitAttribute.types:
+			attr = nodes.UnitAttribute.create( l, s, ut)
+			assert isinstance(attr, nodes.UnitAttribute)
+			assert attr.unitType() == ut
+		# END for each unit attribute
+		
+		
+		# TYPED ATTRIBUTE #
+		# we create null obj defaults for the sake of simplicity
+		for at in nodes.TypedAttribute.types:
+			attr = nodes.TypedAttribute.create(l, s, at)
+			assert isinstance(attr, nodes.TypedAttribute)
+			assert attr.attrType() == at
+		# END for each type
+		
+		# test plugin data type
+		attr = nodes.TypedAttribute.create(l, s, nodes.PyPickleData.kPluginDataId)
+		assert isinstance(attr, nodes.TypedAttribute)
+		assert attr.attrType() == nodes.api.MFnData.kInvalid	 # its okay, it works, see storage node
+		
+		
+		# NUMERIC DATA #
+		for nt in nodes.NumericAttribute.types:
+			attr = nodes.NumericAttribute.create(l, s, nt)
+			assert not attr.isNull()
+			assert isinstance(attr, nodes.NumericAttribute)
+			assert attr.unitType() == nt
+		# END for each type
+		
+		# test special constructors
+		for method_name in ('createColor', 'createPoint'):
+			attr = getattr(nodes.NumericAttribute, method_name)(l, s)
+			assert attr.unitType() == nodes.NumericAttribute.k3Float
+		# END for each special constructor
+		
+		
+		# MATRIX ATTRIBUTE # 
+		for mt in nodes.MatrixAttribute.types:
+			attr = nodes.MatrixAttribute.create(l, s, mt)
+		# END for each type
+		
+		# LIGHT DATA ATTRIBUTE # 
+		# skipping the work for now 
+		
+		# GENERIC ATTRIBUTE #
+		attr = nodes.GenericAttribute.create(l, s)
+		
+		# ENUM ATTRIBUTE
+		attr = nodes.EnumAttribute.create(l, s)
+		
+		# COMPOUND ATTRIBUTE #
+		attr = nodes.CompoundAttribute.create(l, s)
+		
+		
+		
+	
+
 	def test_mfncachebuilder( self ):
 		"""byroniom.maya.nodes.base: write a generated cache using the builder function
 		should be redone for maya 8.5 perhaps ... or in fact its enough to have one for all maya versions

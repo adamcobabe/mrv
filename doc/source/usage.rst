@@ -362,16 +362,78 @@ All other types need to be created and adjusted using their respective data func
 	>>> assert mc.numPolygons() == 5
 	>>> assert m.numPolygons() == 6
 	
-
 Compound Plugs and Plug-Arrays
--------------------------------
+-------------------------------------
+Compound Attributes are attributes which by themselves only serve as a parent for one or more child aattributes. Array attributes are Attributes which can have any amount of homogeneous elements. Compound- and Array Attributes can be combined to create complex special purpose Attribute types.
+
+The ``MPlug`` type has functions to traverse the Plugs to the corresponding attributes
+
+A simple example for a compound plug is the translate attribute of a transform, which has 3 child plugs, translateX, translateY and translatZ.
+
+Array plugs are used to access the transform's worldMatrix data, which contains one world matrix per direct instance of the transform.
+
+The following example shows the traversal of these attribute types::
+	>>> pc = p.t.getChildren()
+	>>> assert len(pc) == 3
+	>>> assert (pc[0] == p.tx) and (pc[1] == p.ty)
+	>>> assert pc[2] == p.t['tz']
+	>>> assert p.tx.getParent() == p.t
+	>>> assert p.t.isCompound()
+	>>> assert p.tx.isChild()
+		
+	>>> assert p.wm.isArray()
+	>>> assert len(p.wm) == 1
+		
+	>>> for element_plug in p.wm:
+	>>> 	assert element_plug.isElement()
 
 Attributes
 ==========
+As attributes are just describing the type and further meta information of data, their most interesting purpose is to create new attributes which can be customized to fully suit your specific needs. 
 
-Add and Delete Attributes
--------------------------
+The following example will use facilities of MayaRV to create a complex attribute.
+ * master ( Compound, Array )
+ 
+  * String
+  
+  * Point ( double3 compound )
+  
+   * x ( double )
+   
+   * y ( double )
+   
+   * z ( double )
+   
+  * message ( Message Array )
 
+The code looks like this::
+	>>> cattr = CompoundAttribute.create("compound", "co")
+	>>> cattr.setArray(True)
+	>>> if cattr:
+	>>> 	sattr = TypedAttribute.create("string", "str", TypedAttribute.kString)
+	>>> 	pattr = NumericAttribute.createPoint("point", "p")
+	>>> 	mattr = MessageAttribute.create("message", "msg")
+	>>> 	mattr.setArray(True)
+			
+	>>> 	cattr.addChild(sattr)
+	>>> 	cattr.addChild(pattr)
+	>>> 	cattr.addChild(mattr)
+	>>> # END compound attribute
+
+Now the only thing left to do is to add the newly created attribute to a node::
+	>>> 
+	
+
+To delete an attribute, remove the attribute which works as long as it was dynamically added before::
+	>>> n = Network()
+	>>> n.addAttribute(cattr)
+	>>> assert n.compound.isArray()
+	>>> assert n.compound.isCompound()
+	>>> assert len(n.compound.getChildren()) == 3
+	>>> assert n.compound['mymessage'].isArray()
+	
+Finally, remove the attribute - either using the attribute we kept, ``cattr`` or by finding the attribute::
+	>>> n.removeAttribute(n.compound.getAttribute())
 
 ========================
 Mesh Component Iteration

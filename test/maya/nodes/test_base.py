@@ -336,5 +336,42 @@ class TestTransform( unittest.TestCase ):
 		assert mc.numPolygons() == 5
 		assert m.numPolygons() == 6
 		
+		# compounds and arrays
+		pc = p.t.getChildren()
+		assert len(pc) == 3
+		assert (pc[0] == p.tx) and (pc[1] == p.ty)
+		assert pc[2] == p.t['tz']
+		assert p.tx.getParent() == p.t
+		assert p.t.isCompound()
+		assert p.tx.isChild()
+		
+		assert p.wm.isArray()
+		assert len(p.wm) == 1
+		
+		for element_plug in p.wm:
+			assert element_plug.isElement()
+		
+		
 		# ATTRIBUTES #
+		cattr = CompoundAttribute.create("compound", "co")
+		cattr.setArray(True)
+		if cattr:
+			sattr = TypedAttribute.create("string", "str", TypedAttribute.kString)
+			pattr = NumericAttribute.createPoint("point", "p")
+			mattr = MessageAttribute.create("mymessage", "mmsg")
+			mattr.setArray(True)
+			
+			cattr.addChild(sattr)
+			cattr.addChild(pattr)
+			cattr.addChild(mattr)
+		# END compound attribute
+		
+		n = Network()
+		n.addAttribute(cattr)
+		assert n.compound.isArray()
+		assert n.compound.isCompound()
+		assert len(n.compound.getChildren()) == 3
+		assert n.compound['mymessage'].isArray()
+		
+		n.removeAttribute(n.compound.getAttribute())
 		

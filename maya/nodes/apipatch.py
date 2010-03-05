@@ -349,7 +349,7 @@ class MPlug( api.MPlug, util.iDagItem ):
 
 
 	def getSubPlugs( self , predicate = lambda x: True):
-		"""@return: list of intermediate sub-plugs that are either child plugs or elemnt plugs
+		"""@return: list of intermediate sub-plugs that are either child plugs or element plugs
 		@param predicate: return True to include x in result
 		@note: use this function recursively for easy deep traversal of all
 		combinations of array and compound plugs"""

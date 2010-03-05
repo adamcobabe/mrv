@@ -1925,6 +1925,16 @@ class Attribute( MObject ):
 			raise ValueError( "First argument must specify the Attribute as MObject to be wrapped" )
 
 		attributeobj = args[0]
+		if cls != Attribute:
+			# the user knows which type he wants, created it directly
+			newinst = object.__new__(cls, attributeobj)
+			# NOTE: Although this class is implemented not to need the _apiobj anymore
+			# as we ARE an MObject, we are learning from the issue in Component
+			# and just keep another reference to it, to be on the safe side
+			newinst._apiobj = newinst
+			return newinst
+		# END optimization
+		
 		newinst = _createInstByPredicate( attributeobj, cls, cls, lambda x: x.endswith( "Attribute" ) )
 
 		if newinst is None:
@@ -1933,7 +1943,158 @@ class Attribute( MObject ):
 
 		return newinst
 		# END for each known attr type
+		
+		
+	@classmethod
+	def create(cls, full_name, brief_name, *args, **kwargs):
+		"""@return: A new Attribute 
+		@param full_name: the long name of the attribute
+		@param brief_name: the brief name of the attribute
+		@param *args, **kwargs: passed to the respective function set instance
+		@note: specialize this method in derived types !"""
+		if cls == Attribute:
+			raise TypeError("Cannot create plain Attributes, choose a subclass of Attribute instead")
+		# END handle invalid type
+		
+		attr = cls._mfncls().create(full_name, brief_name, *args, **kwargs)
+		return cls(attr)
+		
+		
+class UnitAttribute( Attribute ):
+	#{ Constants
+	types = ( api.MFnUnitAttribute.kAngle, api.MFnUnitAttribute.kDistance, api.MFnUnitAttribute.kTime )
+	kAngle, \
+	kDistance, \
+	kTime, = types
+	#} END constants
 
+
+class TypedAttribute( Attribute ):
+	#{ Constants 
+	types = (  	api.MFnData.kString, 
+				api.MFnData.kMatrix, 
+				api.MFnData.kStringArray, 
+				api.MFnData.kDoubleArray, 
+				api.MFnData.kIntArray, 
+				api.MFnData.kPointArray, 
+				api.MFnData.kVectorArray, 
+				api.MFnData.kComponentList, 
+				api.MFnData.kMesh, 
+				api.MFnData.kLattice, 
+				api.MFnData.kNurbsCurve, 
+				api.MFnData.kNurbsSurface, 
+				api.MFnData.kSphere, 
+				api.MFnData.kDynArrayAttrs, 
+				api.MFnData.kDynSweptGeometry, 
+				api.MFnData.kSubdSurface, 
+				api.MFnData.kNObject )
+	
+	kString, \
+	kMatrix, \
+	kStringArray, \
+	kDoubleArray, \
+	kIntArray, \
+	kPointArray, \
+	kVectorArray, \
+	kComponentList, \
+	kMesh, \
+	kLattice, \
+	kNurbsCurve, \
+	kNurbsSurface, \
+	kSphere, \
+	kDynArrayAttrs, \
+	kDynSweptGeometry, \
+	kSubdSurface, \
+	kNObject = types
+	#} END constants
+	
+
+class NumericAttribute( Attribute ):
+	#{ Constants
+	types = (	api.MFnNumericData.kBoolean,
+				api.MFnNumericData.kByte, 
+				api.MFnNumericData.kChar, 
+				api.MFnNumericData.kShort, 
+				api.MFnNumericData.k2Short,
+				api.MFnNumericData.k3Short,
+				api.MFnNumericData.kLong,
+				api.MFnNumericData.kInt, 
+				api.MFnNumericData.k2Long,
+				api.MFnNumericData.k2Int,
+				api.MFnNumericData.k3Long,
+				api.MFnNumericData.k3Int,
+				api.MFnNumericData.kFloat,
+				api.MFnNumericData.k2Float, 
+				api.MFnNumericData.k3Float,
+				api.MFnNumericData.kDouble,
+				api.MFnNumericData.k2Double,
+				api.MFnNumericData.k3Double,
+				api.MFnNumericData.kAddr	)
+	
+	kBoolean, \
+	kByte, \
+	kChar, \
+	kShort, \
+	k2Short, \
+	k3Short, \
+	kLong, \
+	kInt, \
+	k2Long, \
+	k2Int, \
+	k3Long, \
+	k3Int, \
+	kFloat, \
+	k2Float, \
+	k3Float, \
+	kDouble, \
+	k2Double, \
+	k3Double, \
+	kAddr = types
+	#} END constants
+	
+	@classmethod
+	def _create_using(cls, method_name, *args):
+		attr = getattr(cls._mfncls(), method_name)(*args)
+		return cls(attr)
+	
+	@classmethod
+	def createColor(cls, full_name, brief_name ):
+		"""@return: An attribute representing a RGB color
+		@param full_name, brief_name: see L{create}"""
+		return cls._create_using('createColor', full_name, brief_name)
+	
+	@classmethod
+	def createPoint(cls, full_name, brief_name ):
+		"""@return: An attribute representing a point with XYZ coordinates
+		@param full_name, brief_name: see L{create}"""
+		return cls._create_using('createPoint', full_name, brief_name)
+		
+	
+class MessageAttribute( Attribute ):
+	pass 
+	
+	
+class MatrixAttribute( Attribute ):
+	#{ Constants
+	types = ( 	api.MFnMatrixAttribute.kFloat, api.MFnMatrixAttribute.kDouble )
+	kFloat, kDouble = types
+	#} END constants
+	
+	
+class LightDataAttribute( Attribute ):
+	pass 
+	
+
+class GenericAttribute( Attribute ):
+	pass 
+	
+	
+class EnumAttribute( Attribute ):
+	pass 
+	
+	
+class CompoundAttribute( Attribute ):
+	pass 
 
 #} END attributes
 
