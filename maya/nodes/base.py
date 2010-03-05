@@ -2375,16 +2375,21 @@ class Shape( DagNode ):	 # base for epydoc !
 		# END for each object grouop connection in iog
 
 
-	def getComponentAssignments( self, setFilter = fSetsRenderable, use_api = True ):
-		"""@return: list of tuples( objectSetNode, Component ) defininmg shader
+	def getComponentAssignments( self, setFilter = fSetsRenderable, use_api = True, asComponent = True ):
+		"""@return: list of tuples( ObjectSetNode, Component_or_MObject ) defininmg shader
 		assignments on per component basis.
 		If a shader is assigned to the whole object, the component would be a null object, otherwise
 		it is an instance of a wrapped IndexedComponent class
+		@note: The returned Component will be an MObject(kNullObject) only in case the component is 
+		not set. Hence you should check whether it isNull() before actually using it.
 		@param setFilter: see L{getConnectedSets}
 		@param use_api: if True, api methods will be used if possible which is usually faster.
 		If False, a custom non-api implementation will be used instead.
 		This can be required if the apiImplementation is not reliable which happens in
 		few cases of 'weird' component assignments
+		@param asComponent: If True, the components will be wrapped into the matching MayaRV compontent type
+		to provide a nicer interface. This might slightly slow down the process, but this is usually 
+		neglectable.
 		@note: the sets order will be the order of connections of the respective component list
 		attributes at instObjGroups.objectGroups
 		@note: currently only meshes and subdees support per component assignment, whereas only
@@ -2429,10 +2434,12 @@ class Shape( DagNode ):	 # base for epydoc !
 				continue
 
 			setobj = NodeFromObj( MObject( setobj ) )								# copy obj to get memory to python
-			compobj = MObject( compobj )											# make it ours
-			if not compobj.isNull():
-				compobj = Component( compobj )
-
+			if not compobj.isNull() and asComponent:
+				compobj = Component( compobj )	# this copies the object as well
+			else:
+				compobj = MObject( compobj )	# make it ours
+			# END handle component type
+			
 			outlist.append( ( setobj, compobj ) )
 		# END for each set/component pair
 		return outlist

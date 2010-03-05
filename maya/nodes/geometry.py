@@ -163,15 +163,6 @@ class _SingleIndexedComponentIterator(_SingleIndexedComponentGenerator):
 				SingleIndexedComponents - create the Component yourself and \
 				use iterComponents to retrieve the iterator instead")
 		
-	def _check_component(self):
-		"""@raise NotImplementedError: if comp needs double-index component, our interface
-		cannot support anything else than SingleIndex components"""
-		if self._component == Mesh.eComponentType.uv:
-			raise NotImplementedError("This Utility does not support iteration using \
-				component-constrained iterators as it can only reproduce \
-				SingleIndexedComponents - create the Component yourself and \
-				use iterComponents to retrieve the iterator instead")
-		
 	def __getslice__(self, i, j):
 		self._check_component()
 		# skip full slices, as in fact no components are needed there.

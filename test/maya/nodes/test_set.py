@@ -1,13 +1,5 @@
 # -*- coding: utf-8 -*-
-"""
-Test sets and partitions
-
-
-
-"""
-
-
-
+""" Test sets and partitions """
 import unittest
 from mayarv.test.maya import *
 import mayarv.maya.nodes as nodes
@@ -16,14 +8,12 @@ import maya.OpenMaya as api
 import mayarv.test.maya as common
 import mayarv.maya as bmaya
 import mayarv.maya.nodes.set as set
-import mayarv.test.maya.nodes as ownpackage
 
 class TestSets( unittest.TestCase ):
 	""" Test set and partition handling """
 
 	def test_createAddRemove( self ):
 		"""mayarv.maya.nodes.set: create,add and remove"""
-		if not ownpackage.mayRun( "sets" ): return
 		set1 = nodes.createNode( "set1", "objectSet" )
 		set2 = nodes.createNode( "set2", "objectSet" )
 		set3 = nodes.createNode( "set3", "objectSet" )
@@ -97,7 +87,6 @@ class TestSets( unittest.TestCase ):
 
 	def test_memberHandling( self ):
 		"""mayarv.maya.nodes.set: add/remove members from all kinds of inputs"""
-		if not ownpackage.mayRun( "sets" ): return
 		s = nodes.createNode( "memberSet", "objectSet" )
 
 		# ADD/REMOVE SINGLE MEMBER
@@ -228,7 +217,6 @@ class TestSets( unittest.TestCase ):
 
 	def test_setOperations( self ):
 		"""byroniom.maya.nodes.sets: unions, intersections, difference, overloaded ops"""
-		if not ownpackage.mayRun( "sets" ): return
 		memberlist = self._getMemberList( )
 		s3 = nodes.createNode( "anotherObjectSet", "objectSet" )
 		s = nodes.Node( "memberSet" )
@@ -303,7 +291,6 @@ class TestSets( unittest.TestCase ):
 
 	def test_partitions( self ):
 		"""mayarv.maya.nodes.set: test partition constraints"""
-		if not ownpackage.mayRun( "setsforce" ): return
 
 		# one transform, two sets, one partition
 		s1 = nodes.createNode( "ms1", "objectSet" )
@@ -391,16 +378,14 @@ class TestSets( unittest.TestCase ):
 
 	def test_renderPartition( self ):
 		"""mayarv.maya.nodes.set: assure renderpartition works for us"""
-		if not ownpackage.mayRun( "setsrenderpartition" ): return
-
 		rp = nodes.Node( "renderPartition" )
 		assert len( rp.getSets( ) )		# at least the initial shading group
 
 
+	@with_scene("perComponentAssignments.ma")
 	def test_z_memberHandlingComps( self ):
 		"""mayarv.maya.nodes.set: member handling with components - needs to run last"""
-		if not ownpackage.mayRun( "sets" ): return
-		bmaya.Scene.open( common.get_maya_file( "perComponentAssignments.ma" ), force = 1 )
+		# bmaya.Scene.open( common.get_maya_file( "perComponentAssignments.ma" ), force = 1 )
 		p1 = nodes.Node( "|p1trans|p1" )
 		s1 = nodes.Node( "s1" )					# sphere with face shader assignments
 		s2 = nodes.Node( "s2" )					# sphere with one object assignment
@@ -453,5 +438,65 @@ class TestSets( unittest.TestCase ):
 		###############################
 		# TODO
 
-
+	def test_shader_comonent_assignments(self):
+		# MESH COMPONENTS
+		#################
+		isb = nodes.Node("initialShadingGroup")
+		m = nodes.Mesh()
+		pc = nodes.PolyCube()
+		pc.output > m.inMesh
+		assert len(m.getComponentAssignments()) == 0 and m.numVertices() == 8
+		
+		# assign two of the 6 faces
+		isb.addMember(m, m.cf[2,4])
+		asm = m.getComponentAssignments()
+		assert len(asm) == 1
+		asm = asm[0]
+		assert asm[0] == isb and len(asm[1].getElements()) == 2
+		
+		# verify return types of getComponentAssignments
+		asm = m.getComponentAssignments(asComponent=False)
+		assert not isinstance(asm[0][1], nodes.Component)
+		
+		# assign everything on component level
+		isb.addMember(m, m.cf[:])
+		asm = m.getComponentAssignments()
+		assert len(asm) == 1
+		asm = asm[0]
+		# IMPORTANT: Setting the component complete doesnt work - it will just
+		# do nothing as it doesnt check for that
+		assert not asm[1].isComplete()	# it should be complete, but maya doesnt think so
+		
+		# assign all 6 faces 
+		isb.addMember(m, m.cf[:6])
+		asm = m.getComponentAssignments()
+		assert len(asm) == 1
+		asm = asm[0]
+		assert len(asm[1].getElements()) == 6
+		
+		# unassign by assigning other faces does NOT work
+		isb.addMember(m, m.cf[:3])
+		assert len(m.getComponentAssignments()[0][1].getElements()) == 6
+		
+		# unassign all components at once does work !
+		isb.removeMember(m, m.cf[:])
+		asm = m.getComponentAssignments()
+		assert len(asm) == 0
+		
+		# unassign just a few of many faces
+		isb.addMember(m, m.cf[:6])
+		assert len(m.getComponentAssignments()) == 1
+		isb.removeMember(m, m.cf[:5])
+		asm = m.getComponentAssignments()[0]
+		e = asm[1].getElements()
+		assert len(e) == 1 and e[0] == 5
+		
+		
+		# test object level assignments vs. component assignments 
+		# Although they should be exclusive, they are not, hence component level
+		# assignments stay, the object level ones take precedence
+		isb.addMember(m)
+		assert len(m.getComponentAssignments()) == 1
+		assert m in isb
+		
 

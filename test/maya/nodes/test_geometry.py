@@ -224,7 +224,6 @@ class TestGeometry( unittest.TestCase ):
 		# END for each component type
 		
 	def test_mesh_components_and_iteration(self):
-		isb = nodes.Node("initialShadingGroup")
 		m = nodes.Mesh()
 		pc = nodes.PolyCube()
 		pc.output > m.inMesh

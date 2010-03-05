@@ -6,10 +6,10 @@ import mayarv.maya.nodes as nodes
 import time
 import sys
 
-class TestAnimPerformance( unittest.TestCase ):
+class TestGeometryPerformance( unittest.TestCase ):
 	
 	@with_scene('mesh40k.mb')
-	def test_mesh_iterationn(self):
+	def test_mesh_iteration(self):
 		m = nodes.Node('mesh40k')
 		nv = m.numVertices()
 		ne = m.numEdges()
