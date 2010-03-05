@@ -18,6 +18,7 @@ import maya.OpenMaya as api
 import maya.OpenMayaAnim as apianim
 import maya.OpenMayaUI	as apiui
 import maya.OpenMayaRender	as apirender
+import maya.OpenMayaFX as apifx
 import re
 import inspect
 import new
@@ -438,7 +439,7 @@ def init_nodeTypeToMfnClsMap( ):
 
 	version = pf.beginReading( )	 # don't care about version
 	for nodeTypeName, mfnTypeName in pf.readColumnLine( ):
-		for apimod in ( api, apianim, apirender, apiui ):
+		for apimod in ( api, apianim, apirender, apiui, apifx ):
 			try:
 				nodeTypeToMfnClsMap[ nodeTypeName ] = getattr( apimod, mfnTypeName )
 				break				# it worked, there is only one matching class

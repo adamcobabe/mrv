@@ -14,18 +14,13 @@ Implementing an undoable method
    create an empty operation anyway ( otherwise cmds.undo would not undo your command as expected, but
    the previous one )
    - if you raise, you should not have created an undo operation
-
-
-
 """
-
-
 from typ import nodeTypeToMfnClsMap, nodeTypeTree, MetaClassCreatorNodes
 from mayarv.util import uncapitalize, capitalize, IntKeyGenerator, getPythonIndex, iDagItem, Call, iDuplicatable
 from mayarv.maya.util import StandinClass
 import maya.OpenMaya as api
 import maya.cmds as cmds
-import maya.OpenMayaMPx as OpenMayaMPx
+import maya.OpenMayaMPx as mpx
 import mayarv.maya.ns as nsm
 import mayarv.maya.undo as undo
 from util import in_double3_out_vector, undoable_in_double3_as_vector
@@ -1912,7 +1907,7 @@ class DagNode( Entity, iDagItem ):	# parent just for epydoc
 
 #} END base ( classes )
 
-#{ Additional Classes
+#{ Attributes
 
 class Attribute( MObject ):
 	"""Represents an attribute in general - this is the base class
@@ -1932,13 +1927,18 @@ class Attribute( MObject ):
 		attributeobj = args[0]
 		newinst = _createInstByPredicate( attributeobj, cls, cls, lambda x: x.endswith( "Attribute" ) )
 
-		if not newinst:
+		if newinst is None:
 			mfnattr = api.MFnAttribute( attributeobj )
 			raise ValueError( "Attribute %s typed %s was could not be wrapped into any function set" % ( mfnattr.name(), attributeobj.apiTypeStr() ) )
 
 		return newinst
 		# END for each known attr type
 
+
+#} END attributes
+
+
+#{ Data 
 
 class Data( MObject ):
 	"""Represents an data in general - this is the base class
@@ -1954,24 +1954,60 @@ class Data( MObject ):
 		if not args:
 			raise ValueError( "First argument must specify the MObject data to be wrapped" )
 
-		attributeobj = args[0]
-		newinst = _createInstByPredicate( attributeobj, cls, cls, lambda x: x.endswith( "Data" ) )
+		dataobj = args[0]
+		if cls != Data:
+			# the user knows which type he wants, created it directly
+			newinst = object.__new__(cls, dataobj)
+			# NOTE: Although this class is implemented not to need the _apiobj anymore
+			# as we ARE an MObject, we are learning from the issue in Component
+			# and just keep another reference to it, to be on the safe side
+			newinst._apiobj = newinst
+			return newinst
+		# END optimization
 
-		if not newinst:
-			raise ValueError( "Data api object typed '%s' could not be wrapped into any function set" % attributeobj.apiTypeStr() )
+		newinst = _createInstByPredicate( dataobj, cls, cls, lambda x: x.endswith( "Data" ) )
+
+		if newinst is None:
+			raise ValueError( "Data api object typed '%s' could not be wrapped into any function set" % dataobj.apiTypeStr() )
 
 		return newinst
 		# END for each known attr type
+		
+		
+	@classmethod
+	def create(cls, *args, **kwargs):
+		"""@return: A new instance of data wrapped in the desired Data type
+		@note: specialize this method in derived types !"""
+		if cls == Data:
+			raise TypeError("Cannot create 'plain' data, choose a subclass of Data instead")
+		# END handle invalid type
+		
+		data = cls._mfncls().create(*args, **kwargs)
+		return cls(data)
+		
+
+class VectorArrayData( Data ):
+	pass
 
 
+class UInt64ArrayData( Data ):
+	pass
 
-class ComponentListData( Data ):
-	"""Improves the default wrap by adding some required methods to deal with
-	component lists"""
 
-	def __getitem__( self, index ):
-		"""@return: the item at the given index"""
-		return self._mfncls( self )[ index ]
+class StringData( Data ):
+	pass
+
+
+class StringArrayData( Data ):
+	pass
+
+
+class SphereData( Data ):
+	pass
+
+
+class PointArrayData( Data ):
+	pass
 
 
 class PluginData( Data ):
@@ -1995,13 +2031,30 @@ class PluginData( Data ):
 			raise RuntimeError( "Datatype %r is not registered to python as plugin data" % datatype )
 		else:
 			# retrieve the data pointer
-			dataptrkey = OpenMayaMPx.asHashable( mfn.data() )
+			dataptrkey = mpx.asHashable( mfn.data() )
 			try:
 				return trackingdict[ dataptrkey ]
 			except KeyError:
 				raise RuntimeError( "Could not find data associated with plugin data pointer at %r" % dataptrkey )
 			# END exception handling tracking dict
 		# END exception handling dict access
+
+
+class NumericData( Data ):
+	pass
+
+
+class NObjectData( Data ):
+	pass
+
+
+class MatrixData( Data ):
+	pass
+
+
+class IntArrayData( Data ):
+	pass
+
 
 class GeometryData( Data ):
 	"""Wraps geometry data providing additional convenience methods"""
@@ -2018,6 +2071,61 @@ class GeometryData( Data ):
 		# END for each existing object group
 		return objgrpid
 
+
+class SubdData( GeometryData ):
+	pass
+
+
+class NurbsSurfaceData( GeometryData ):
+	pass
+
+
+class NurbsCurveData( GeometryData ):
+	pass
+
+
+class MeshData( GeometryData ):
+	pass
+
+
+class LatticeData( GeometryData ):
+	pass
+
+
+class DynSweptGeometryData( Data ):
+	pass
+
+
+class DoubleArrayData( Data ):
+	pass
+
+
+class ComponentListData( Data ):
+	"""Improves the default wrap by adding some required methods to deal with
+	component lists"""
+
+	def __getitem__( self, index ):
+		"""@return: the item at the given index"""
+		return self._mfncls( self )[ index ]
+		
+	def __len__( self ):
+		"""@return: number of components stored in this data"""
+		return self.length()
+		
+	def __contains__( self, component ):
+		"""@return: True if the given component is contained in this data"""
+		return self.has(component)
+
+
+class ArrayAttrsData( Data ):
+	pass
+
+
+
+#} END data
+
+
+#{ Components 
 
 class Component( MObject ):
 	"""Represents a shape component - its derivates can be used to handle component lists
@@ -2062,8 +2170,7 @@ class Component( MObject ):
 		# END handle invalid type
 		
 		cdata = cls._mfncls().create(component_type)
-		cinst = cls(cdata)
-		return cinst
+		return cls(cdata)
 	
 	@classmethod
 	def getMFnType( cls ):
@@ -2123,8 +2230,8 @@ class TripleIndexedComponent( Component ):
 		w = api.MIntArray()
 		api.MFnDoubleIndexedComponent(self).getElements(u, v, w)
 		return (u,v,w)
-#} END additional classes
 
+#} END components
 
 #{ Basic Types
 

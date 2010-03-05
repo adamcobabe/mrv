@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 """Test basic node features """
 
-import unittest
+from mayarv.test.maya import *
 import mayarv.maya as bmaya
 import mayarv.maya.nodes as nodes
 import maya.OpenMaya as api
@@ -316,9 +316,10 @@ class TestTransform( unittest.TestCase ):
 		
 		matfn = api.MFnMatrixData(pewm.asMObject())
 		matrix = matfn.matrix()                       # wrap data manually
-		
-		assert matrix == pewm.asData().matrix()       # or get a wrapped version right away
-		
+
+		dat = pewm.asData()							# or get a wrapped version right away
+		assert matrix == dat.matrix()				
+	
 		
 		# set values
 		newx = 10.0

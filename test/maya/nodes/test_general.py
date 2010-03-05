@@ -1,13 +1,5 @@
 # -*- coding: utf-8 -*-
-"""
-Test general nodes features
-
-
-
-"""
-
-
-
+""" Test general nodes features """
 import unittest
 import mayarv.maya as bmaya
 import mayarv.maya.env as env
@@ -21,6 +13,7 @@ import mayarv.test.maya as common
 import mayarv.test.maya.nodes as ownpackage
 import maya.OpenMaya as api
 from mayarv.path import Path
+
 
 class TestGeneral( unittest.TestCase ):
 	""" Test general maya framework """
@@ -961,6 +954,70 @@ class TestNodeBase( unittest.TestCase ):
 		self.failUnlessRaises(ValueError, nodes.SingleIndexedComponent)	# no arg
 		self.failUnlessRaises(TypeError, nodes.Component.create, api.MFn.kMeshEdgeComponent) # invalid type
 
+	def test_data(self):
+		# DATA CREATION
+		###############
+		# create all implemented data types
+		self.failUnlessRaises(TypeError, nodes.Data.create)
+		
+		basic_types = (	nodes.VectorArrayData, nodes.UInt64ArrayData, nodes.StringData, 
+						nodes.StringArrayData, nodes.SphereData, nodes.PointArrayData,
+						nodes.NObjectData, nodes.MatrixData, nodes.IntArrayData, 
+						nodes.SubdData, nodes.NurbsSurfaceData, nodes.NurbsCurveData, 
+						nodes.MeshData, nodes.LatticeData, nodes.DoubleArrayData, 
+						nodes.ComponentListData, nodes.ArrayAttrsData )
+		
+		knullobj = nodes.api.MObject()
+		for bt in basic_types:
+			try:
+				data = bt.create()
+			except:
+				print "Failed to create %r with MFn: %r" % (bt, bt._mfncls)
+				raise
+			# END exception handling for debugging
+			assert data != knullobj
+			assert isinstance(data, bt)
+		# END for each type with a basic constructor
+		
+		# PLUGIN DATA
+		# use storage node data type
+		pd = nodes.PluginData.create(nodes.PyPickleData.kPluginDataId)
+		
+		
+		# NUMERIC DATA
+		# these items cannot work or do not work as simple types are not represented
+		# by data containers
+		forbidden = (	'kLast', 'kDouble', 'kInvalid', 'k4Double', 
+						'kBoolean', 'kShort', 'kInt', 'kByte', 'kAddr', 
+						'kChar', 'kLong', 'kFloat' )
+		types = [ (k, v) for k,v in api.MFnNumericData.__dict__.iteritems() if k.startswith('k') and k not in forbidden ]
+		assert types
+		for type_name, type_id in types:
+			data = nodes.NumericData.create(type_id)
+			assert not data.isNull() and isinstance(data, nodes.NumericData)
+		# END for each numeric data type
+		
+		
+		# COMPONENT LIST DATA
+		#####################
+		# special testing
+		mvc = nodes.SingleIndexedComponent.create(api.MFn.kMeshVertComponent)
+		cd = nodes.ComponentListData.create()
+		assert cd.length() == 0
+		assert mvc not in cd
+		cd.add(mvc)
+		assert len(cd) == 1
+		
+		# ERROR: It says our component is NOT contained in the data list, although
+		# we just added it and although it says the list has an item
+		# assert cd.has(mvc)
+		# assert mvc in cd
+		assert not cd.has(mvc)	# see above
+		assert mvc not in cd	# see above, we keep it to call the functions
+		
+		cd.remove(mvc)
+		assert len(cd) == 0
+		
 
 	def test_mfncachebuilder( self ):
 		"""byroniom.maya.nodes.base: write a generated cache using the builder function

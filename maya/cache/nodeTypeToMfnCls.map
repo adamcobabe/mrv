@@ -39,6 +39,7 @@ latticeData			| 	MFnLatticeData
 doubleArrayData		|	MFnDoubleArrayData
 componentListData	|	MFnComponentListData
 arrayAttrsData		|	MFnArrayAttrsData
+nObjectData			|	MFnNObjectData
 
 component			| 	MFnComponent
 singleIndexedComponent | MFnSingleIndexedComponent

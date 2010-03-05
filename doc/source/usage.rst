@@ -432,7 +432,7 @@ Improving the Database
 Common Mistakes
 ===============
 Lifetime of MObjects/reference count
-
+mat == p.wm.getByLogicalIndex(0).asData().matrix()	# matrix is ref, parent goes out of scope
 
 
 
