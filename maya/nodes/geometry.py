@@ -6,6 +6,7 @@ import base
 from typ import MetaClassCreatorNodes
 from mayarv.enum import (create as enum, Element as elm)
 import maya.OpenMaya as api
+import sys
 
 class GeometryShape( base.Shape ):	# base for epydoc !
 	"""Contains common methods for all geometry types"""
@@ -84,35 +85,39 @@ class SurfaceShape( ControlPoint ):	# base for epydoc !
 
 
 #{ Helpers 
-class _ComponentIterator(object):
-	"""Utility which produces iterators for the component type
-	it was initialized with. As a bonus, it allows to return 
-	quick constrained iterators using the slice and get-item notation"""
+
+class _SingleIndexedComponentGenerator(object):
+	"""Utility producing components, initialized with the given indices, i.e.::
+		m.cvtx[:]                   # a complete set of components
+		m.cvtx[1:4]                 # initialized with 3 indices
+		m.cvtx[1]                   # initialized with a single index
+		m.cvtx[1,2,3]               # initialized with multiple indices
+		m.cf[(1,2,3)]               # initialized with list or tuple
+		m.ce[iter(1,2,3)]           # initialized from iterator
+		m.ce[api.MIntArray()]       # initialized from MIntArray"""
 	__slots__ = ('_mesh', '_component')
+	# to detect slices, funny thing to remark: Maya passes 1 << 31 - 1 for some reason
+	# we want to be smaller, hence -2
+	_int32b = ( 1 << 31 ) - 2
 	
 	def __init__(self, mesh, component):
 		self._mesh = mesh
 		self._component = component
 		
-	def __iter__(self):
-		return iter(self._mesh.iterComponents(self._component))
-		
-	def _check_component(self):
-		"""@raise NotImplementedError: if comp needs double-index component, our interface
-		cannot support anything else than SingleIndex components"""
-		if self._component == Mesh.eComponentType.uv:
-			raise NotImplementedError("This Utility does not support iteration using \
-				component-constrained iterators as it can only reproduce \
-				SingleIndexedComponents - create the Component yourself and \
-				use iterComponents to retrieve the iterator instead")
-		
 	def __getslice__(self, i, j):
-		self._check_component()
-		comp = self._mesh.getComponent(self._component).addElements(api.MIntArray.fromRange(i, j))
-		return self._mesh.iterComponents(self._component, comp)
+		comp = self._mesh.getComponent(self._component)
+		# for some reason , python inside maya returns 31 bit ints to indicate 
+		# slices, instead of sys.maxint. To be sure we handle all, we just 
+		# check larger/than cases
+		# handle [:] slices
+		if j > self._int32b:
+			comp.setComplete(1)
+		else:
+			comp.addElements(api.MIntArray.fromRange(i, j))
+		# END handle slice range 
+		return comp
 		
 	def __getitem__(self, *args):
-		self._check_component()
 		comp = self._mesh.getComponent(self._component)
 		ia = None
 		if len(args) == 1:
@@ -130,7 +135,56 @@ class _ComponentIterator(object):
 			ia = api.MIntArray.fromList(args)
 		# END handle args
 		
-		comp.addElements(ia)
+		return comp.addElements(ia)
+		
+	def empty(self):
+		"""@return: empty component of our type"""
+		return self._mesh.getComponent(self._component)
+		
+
+class _SingleIndexedComponentIterator(_SingleIndexedComponentGenerator):
+	"""Utility which produces iterators for the component type
+	it was initialized with. As a bonus, it allows to return 
+	quick constrained iterators using the slice and get-item notation"""
+	__slots__ = tuple()
+	
+	def __iter__(self):
+		return iter(self._get_complete_iterator())
+	
+	def _get_complete_iterator(self):
+		return self._mesh.iterComponents(self._component)
+
+	def _check_component(self):
+		"""@raise NotImplementedError: if comp needs double-index component, our interface
+		cannot support anything else than SingleIndex components"""
+		if self._component == Mesh.eComponentType.uv:
+			raise NotImplementedError("This Utility does not support iteration using \
+				component-constrained iterators as it can only reproduce \
+				SingleIndexedComponents - create the Component yourself and \
+				use iterComponents to retrieve the iterator instead")
+		
+	def _check_component(self):
+		"""@raise NotImplementedError: if comp needs double-index component, our interface
+		cannot support anything else than SingleIndex components"""
+		if self._component == Mesh.eComponentType.uv:
+			raise NotImplementedError("This Utility does not support iteration using \
+				component-constrained iterators as it can only reproduce \
+				SingleIndexedComponents - create the Component yourself and \
+				use iterComponents to retrieve the iterator instead")
+		
+	def __getslice__(self, i, j):
+		self._check_component()
+		# skip full slices, as in fact no components are needed there.
+		if j > self._int32b:
+			return self._get_complete_iterator()
+		# END handle [:] slice
+		
+		comp = super(_SingleIndexedComponentIterator, self).__getslice__(i,j)
+		return self._mesh.iterComponents(self._component, comp)
+		
+	def __getitem__(self, *args):
+		self._check_component()
+		comp = super(_SingleIndexedComponentIterator, self).__getitem__(*args)
 		return self._mesh.iterComponents(self._component, comp) 
 		
 #} END helpers 
@@ -140,7 +194,7 @@ class Mesh( SurfaceShape ):		# base for epydoc !
 	"""Implemnetation of mesh related methods to make its handling more
 	convenient
 	
-	.. todo:: Write a litte more here, restructuredText, e[x:y], e[1,5,7], e[iter], e[list], e[ia]"""
+	.. todo:: Write a litte more here, restructuredText, e[x:y], e[1,5,7], e[iter], e[list], e[ia], ce, cvtx ..."""
 	__metaclass__ = MetaClassCreatorNodes
 	# component types that make up a mesh
 	eComponentType = enum( elm("vertex", api.MFn.kMeshVertComponent), 
@@ -149,15 +203,21 @@ class Mesh( SurfaceShape ):		# base for epydoc !
 							elm("uv", api.MFn.kMeshMapComponent ) )
 
 	#{ Iterator Shortcuts
-	def _make_component_getter(component):
+	def _make_component_getter(cls, component):
 		def internal(self):
-			return _ComponentIterator(self, component)
+			return cls(self, component)
 		# END internal method
 		return internal
 	# END pseudo-decorator
 	
+	# SETUP ITERATOR SHORTCUTS
 	for shortname, component in zip(('vtx', 'e', 'f', 'map'), eComponentType):
-		locals()[shortname] = property(_make_component_getter(component))
+		locals()[shortname] = property(_make_component_getter(_SingleIndexedComponentIterator, component))
+		
+	# SETUP COMPONENT SHORTCUTS
+	for shortname, component in zip(('cvtx', 'ce', 'cf', 'cmap'), eComponentType):
+		locals()[shortname] = property(_make_component_getter(_SingleIndexedComponentGenerator, component))
+	
 	#} END iterator shortcuts
 
 	#{ Utilities
@@ -299,15 +359,10 @@ class Mesh( SurfaceShape ):		# base for epydoc !
 		
 	def getComponent(self, component_type):
 		"""@return: A component object able to hold the given component type
-		@param component_type: a member of the L{eComponentType} enumeration
-		@note: the uv component type return a DoubleIndexComponent"""
+		@param component_type: a member of the L{eComponentType} enumeration"""
 		if component_type not in self.eComponentType:
 			raise ValueError("Invalid component type")
-		
-		if component_type == self.eComponentType.uv:
-			return base.DoubleIndexedComponent.create(api.MFn.kMeshVtxFaceComponent)
-		else:
-			return base.SingleIndexedComponent.create(component_type.getValue())
+		return base.SingleIndexedComponent.create(component_type.getValue())
 		# END handle face-vertex components
 		
 	#} END utilities

@@ -214,11 +214,8 @@ class TestGeneralPerformance( unittest.TestCase ):
 
 
 	def test_intarray_creation(self):
-		starttime = time.time( )
-		num_indices = 100000
-		ia = nodes.Component.iar(0, num_indices)
-		elapsed = time.time() - starttime
-		print "Created MIntArray with %i ints in %f s ( %f / s )" % ( num_indices, elapsed, num_indices / elapsed )
+		pass
+		# is tested in test_geometry through the Mesh class
 	
 
 	def test_wrappedFunctionCall( self ):

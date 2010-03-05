@@ -243,6 +243,8 @@ class TestGeometry( unittest.TestCase ):
 			# END handle index
 		# END check index helper
 		
+		converters = (lambda l: l, lambda l: iter(l), lambda l: api.MIntArray.fromList(l))
+		
 		
 		ec = m.eComponentType
 		for comp, maxindex in zip(m.eComponentType, (7, 11, 5, 5)):
@@ -269,7 +271,7 @@ class TestGeometry( unittest.TestCase ):
 		# SHORTCUT ITERATION
 		for shortname in ('vtx', 'e', 'f', 'map'):
 			it_helper = getattr(m, shortname)
-			assert isinstance(it_helper, modmesh._ComponentIterator)
+			assert isinstance(it_helper, modmesh._SingleIndexedComponentIterator)
 			
 			max_index = 0
 			for it in it_helper:
@@ -291,6 +293,9 @@ class TestGeometry( unittest.TestCase ):
 				continue
 			# END handle exceptions
 			
+			# complete slice
+			assert it_helper[:].count() == max_index + 1
+			
 			# single 
 			last_index = 0
 			for it in it_helper[2]:
@@ -308,9 +313,7 @@ class TestGeometry( unittest.TestCase ):
 			assert last_index == 2 and ni == 2 
 			
 			# list
-			for conv in (	lambda l: l, 
-							lambda l: iter(l), 
-							lambda l: api.MIntArray.fromList(l)):
+			for conv in converters:
 				last_index = 0
 				ni = 0
 				for it in it_helper[conv((0,3))]:
@@ -319,8 +322,41 @@ class TestGeometry( unittest.TestCase ):
 				# END slice iteration
 				assert last_index == 3 and ni == 2
 			# END for each argument convertion function
+		# END for each iteration shortname
 		
-		# END for each shortname
+		for shortname in ('cvtx', 'ce', 'cf', 'cmap'):
+			c_helper = getattr(m, shortname)
+			assert isinstance(c_helper, modmesh._SingleIndexedComponentGenerator)
+			
+			# empty
+			c = c_helper.empty()
+			assert len(c.getElements()) == 0 and not c.isComplete()
+			
+			# slice
+			c = c_helper[0:2]
+			e = c.getElements()
+			assert len(e) == 2 and e[0] == 0 and e[1] == 1
+			
+			# full slice
+			c = c_helper[:]
+			assert len(c.getElements()) == 0 and c.isComplete()
+			
+			# single
+			c = c_helper[5]
+			assert c.getElements()[0] == 5
+			
+			# multi
+			c = c_helper[5,10]
+			e = c.getElements()
+			assert len(e) == 2 and e[0] == 5 and e[1] == 10 
+			
+			# list/iter/IntArray
+			for conv in converters:
+				c = c_helper[conv((1,5))]
+				e = c.getElements()
+				assert len(e) == 2 and e[0] == 1 and e[1] == 5
+			# END for each type to check
+		# END for each component shortcut
 		
 	
 	def test_lightLinkCopy( self ):

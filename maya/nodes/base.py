@@ -2086,7 +2086,7 @@ class SingleIndexedComponent( Component ):
 	def getElements(self):
 		"""@return: MIntArray containing the indices this component represents"""
 		u = api.MIntArray()
-		api.MFnSingleIndexedComponent.getElements(u)
+		api.MFnSingleIndexedComponent(self).getElements(u)
 		return u
 
 
@@ -2099,7 +2099,7 @@ class DoubleIndexedComponent( Component ):	# derived just for epydoc
 		indices this component represents"""
 		u = api.MIntArray()
 		v = api.MIntArray()
-		api.MFnDoubleIndexedComponent.getElements(u, v)
+		api.MFnDoubleIndexedComponent(self).getElements(u, v)
 		return (u,v) 
 		
 	
@@ -2113,7 +2113,7 @@ class TripleIndexedComponent( Component ):
 		u = api.MIntArray()
 		v = api.MIntArray()
 		w = api.MIntArray()
-		api.MFnDoubleIndexedComponent.getElements(u, v, w)
+		api.MFnDoubleIndexedComponent(self).getElements(u, v, w)
 		return (u,v,w)
 #} END additional classes
 
