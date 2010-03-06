@@ -11,7 +11,7 @@ import mayarv.maya.util as mutil
 from mayarv.path import Path
 _thismodule = __import__( "mayarv.maya.ui", globals(), locals(), ['ui'] )
 import maya.cmds as mcmds
-from util import CallbackBaseUI, propertyQE
+from util import propertyQE, UIEvent
 
 
 
@@ -63,7 +63,7 @@ class MetaClassCreatorUI( mutil.MetaClassCreator ):
 
 	* AUTOMATIC UI-EVENT GENERATION *
 	  - define names of mel events in _events_ as list of names
-	  - these will be converted into _UIEvents sitting at attribute names like
+	  - these will be converted into Events sitting at attribute names like
 	  	e_eventName ( for even called 'eventName'
 	  - assign an event:
 	    windowinstance.e_restoreCommand = func
@@ -107,7 +107,7 @@ class MetaClassCreatorUI( mutil.MetaClassCreator ):
 
 		# HANDLE EVENTS
 		##################
-		# read the event description and create _UIEvent instances that will
+		# read the event description and create Event instances that will
 		# register themselves on first use, allowing multiple listeners per maya event
 		eventnames = clsdict.get( "_events_", list() )
 		event_kwargs = dict()
@@ -118,7 +118,7 @@ class MetaClassCreatorUI( mutil.MetaClassCreator ):
 			attrname = "e_%s" % ename
 			# allow user overrides
 			if attrname not in clsdict:
-				clsdict[ attrname ] = CallbackBaseUI._UIEvent( ename, **event_kwargs )
+				clsdict[ attrname ] = UIEvent( ename, **event_kwargs )
 		# END for each event name
 
 		newcls = super( MetaClassCreatorUI, metacls ).__new__( _typetree, _thismodule,
