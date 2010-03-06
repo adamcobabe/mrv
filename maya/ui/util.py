@@ -60,6 +60,19 @@ def propertyQE( flag, methodName = None ):
 #}
 
 
+class Signal( Event ):
+	"""User interface signal which keeps assigned functions as strong reference to
+	assure we can always call it. This implies that we may leave many dangling objects
+	unless we are being properly cleaned up on deletion.
+	
+	Calls generated from this event will not put the sender as first argument"""
+	#{ Configuration 
+	use_weakref = False
+	remove_on_error = False
+	sender_as_argument = False
+	#} END configuration 
+
+
 class CallbackBaseUI( CallbackBase ):
 	"""Allows registration of a typical UI callback
 	It basically streamlines the registration for a callback such that any

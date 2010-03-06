@@ -39,7 +39,7 @@ class TestGraphicalUserInterface( unittest.TestCase ):
 	def test_doc_demo_modules(self):
 		
 		class Additor(Button):
-			e_added = Event('added', weak=False)
+			e_added = Signal('added')
 			def __init__(self, *args, **kwarg):
 				self.reset(0)
 				
@@ -58,7 +58,7 @@ class TestGraphicalUserInterface( unittest.TestCase ):
 			def __init__(self, *args, **kwargs):
 				self.p_label = ""
 				
-			def collect(self, sender, value):
+			def collect(self, value):
 				self.p_label = self.p_label + ", %i" % value
 		# END collector
 		

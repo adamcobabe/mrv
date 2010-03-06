@@ -545,7 +545,7 @@ The solution is to pack the user interface elements into modules which are not d
 
 This way, complex user interfaces can be assembled in a more controllable fashion, events bind the different indepenent modules together::
 	>>> class Additor(Button):
-	>>> 	e_added = Event('added', weak=False)
+	>>> 	e_added = Signal('added')
 	>>> 	def __init__(self, *args, **kwarg):
 	>>> 		self.reset(0)
 	>>> 		
@@ -564,7 +564,7 @@ This way, complex user interfaces can be assembled in a more controllable fashio
 	>>> 	def __init__(self, *args, **kwargs):
 	>>> 		self.p_label = ""
 	>>> 		
-	>>>	def collect(self, sender, value):
+	>>>	def collect(self, value):
 	>>> 		self.p_label = self.p_label + ", %i" % value
 	>>> # END collector
 	>>> 

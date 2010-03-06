@@ -263,6 +263,10 @@ class Event( object ):
 	# if True, callback handlers throwing an exception will emmediately be
 	# removed from the callback list
 	remove_on_error = False
+	
+	
+	# If not None, this value overrides the corresponding value on the CallbackBase class
+	sender_as_argument = None
 	#} END configuration
 
 
@@ -405,7 +409,12 @@ class CallbackBase( iDuplicatable ):
 					continue
 
 				try:
-					if self.sender_as_argument:
+					sas = self.sender_as_argument
+					if eventinst.sender_as_argument is not None:
+						sas = eventinst.sender_as_argument
+					# END event override 
+					
+					if sas:
 						func( self, *args, **kwargs )
 					else:
 						func( *args, **kwargs )
