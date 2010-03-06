@@ -1,11 +1,11 @@
 # -*- coding: utf-8 -*-
 """ Test the quality assurance framework and it's mel bindings """
 import unittest
+import mayarv.automation.qa as bqa
 import mayarv.maya.automation.qa as qa
 import mayarv.automation.processes as processes
 import mayarv.test.automation.workflows as workflows
 import mayarv.test.automation.processes as processes
-from mayarv.maya.util import Mel
 import maya.mel as mmel
 
 #  create test methods
@@ -68,7 +68,7 @@ class TestQualityAssurance( unittest.TestCase ):
 
 		# run mel checks
 		melchecks = tprocess.listMELChecks( )
-		for mode in qa.QAProcessBase.eMode:
+		for mode in bqa.QAProcessBase.eMode:
 			results = wfl.runChecks( melchecks, mode = mode )
 			assert len( results ) == len( melchecks )
 

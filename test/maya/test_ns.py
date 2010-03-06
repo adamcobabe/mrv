@@ -2,11 +2,9 @@
 """ Test the namespace methods """
 import unittest
 import mayarv.test.maya as common
-from mayarv.maya.scene import Scene
 from mayarv.maya.ns import *
 import mayarv.maya as bmaya
 import maya.cmds as cmds
-import os
 
 class TestReferenceRunner( unittest.TestCase ):
 	""" Test the database """

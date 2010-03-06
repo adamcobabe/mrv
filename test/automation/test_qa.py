@@ -1,17 +1,8 @@
 # -*- coding: utf-8 -*-
-"""
-Test the quality assurance framework
-
-
-
-"""
-
-
-
+""" Test the quality assurance framework """
 import unittest
 import workflows
 import mayarv.automation.qa as qa
-from cStringIO import StringIO
 from mayarv.automation.processes import QACheckProcess
 
 class TestQualityAssurance( unittest.TestCase ):

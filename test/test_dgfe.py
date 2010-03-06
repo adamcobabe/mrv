@@ -1,10 +1,8 @@
 # -*- coding: utf-8 -*-
 """Test dependency graph engine """
 import unittest
-from networkx import DiGraph
 from mayarv.dge import *
 from mayarv.dgfe import *
-from random import randint
 
 A = Attribute
 

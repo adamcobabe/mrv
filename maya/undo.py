@@ -307,8 +307,6 @@ def undoAndClear( ):
 
 #{ Operations
 
-from mayarv.util import Call
-
 class Operation( object ):
 	"""Simple command class as base for all operations
 	All undoable/redoable operation must support it

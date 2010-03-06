@@ -1,8 +1,6 @@
 # -*- coding: utf-8 -*-
 """ Test utility classes """
 import unittest
-import mayarv.maya as bmaya
-import maya.cmds as cmds
 from mayarv.maya.util import *
 
 class TestUtil( unittest.TestCase ):

@@ -7,7 +7,6 @@ Contains some basic  classes that are required to run the UI system
 import maya.cmds as cmds
 from mayarv.util import capitalize, iDagItem
 from util import CallbackBaseUI
-import mayarv.maya.util as mutil
 import util as uiutil
 from mayarv.exc import MayaRVError
 import typ

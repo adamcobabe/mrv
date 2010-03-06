@@ -5,11 +5,7 @@ data within maya scenes.
 
 
 @todo: more documentation, how to use the system
-
-
- """
-
-
+"""
 import mayarv.maya.undo as undo
 from mayarv.util import iDuplicatable
 import maya.cmds as cmds
@@ -52,7 +48,6 @@ import sys
 import cPickle
 import cStringIO
 import binascii
-import struct
 import copy
 
 #{ Storage Plugin

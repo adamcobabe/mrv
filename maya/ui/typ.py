@@ -6,7 +6,7 @@ Module containing helpers to create the UI types at runtime.
 
 
 import mayarv.maya as bmaya
-from mayarv.util import capitalize, uncapitalize
+from mayarv.util import uncapitalize
 import mayarv.maya.util as mutil
 from mayarv.path import Path
 _thismodule = __import__( "mayarv.maya.ui", globals(), locals(), ['ui'] )

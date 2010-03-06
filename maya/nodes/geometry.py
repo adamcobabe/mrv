@@ -1,12 +1,9 @@
 # -*- coding: utf-8 -*-
-"""
-Contains implementations ( or improvements ) to mayas geometric shapes
-"""
+""" Contains implementations ( or improvements ) to mayas geometric shapes """
 import base
 from typ import MetaClassCreatorNodes
 from mayarv.enum import (create as enum, Element as elm)
 import maya.OpenMaya as api
-import sys
 
 class GeometryShape( base.Shape ):	# base for epydoc !
 	"""Contains common methods for all geometry types"""

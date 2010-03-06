@@ -1,7 +1,6 @@
 # -*- coding: utf-8 -*-
 """Test dependency graph engine """
 import unittest
-from networkx import DiGraph
 from mayarv.dge import *
 from random import randint
 import tempfile

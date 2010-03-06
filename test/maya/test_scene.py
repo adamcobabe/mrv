@@ -5,10 +5,10 @@ from mayarv.maya.scene import Scene
 import maya.OpenMaya as om
 import os.path as path
 import mayarv.maya.env as env
-from mayarv.path import Path
 import tempfile
 import shutil
 import mayarv.test.maya as common
+from mayarv.path import Path
 
 class TestSceneRunner( unittest.TestCase ):
 	""" Test the database """

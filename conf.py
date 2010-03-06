@@ -913,11 +913,13 @@ class BasicSet( set ):
 class PropertyHolder( object ):
 	"""Simple Base defining how to deal with properties
 	@note: to use this interface, the subclass must have a 'name' field"""
-	__slots__ = ( 'properties', ) 
+	__slots__ = ( 'properties', 'name', 'order') 
 
-	def __init__( self ):
+	def __init__( self, name, order ):
 		# assure we do not get recursive here
 		self.properties = None
+		self.name = name
+		self.order = order
 		try:
 			if not isinstance( self, PropertySection ):
 				self.properties = PropertySection( "+" + self.name, self.order+1 ) # default is to write our properties after ourselves		# will be created on demand to avoid recursion on creation
@@ -933,7 +935,7 @@ class Key( PropertyHolder ):
 	@note: a key's name will be stored stripped only, must not contain certain chars
 	@todo: add support for escpaing comas within quotes - currently it split at
 	comas, no matter what"""
-	__slots__ = ( '_name', 'name', '_values', 'values', 'order' )
+	__slots__ = ( '_name', '_values', 'values' )
 	validchars = r'[\w\(\)]'
 	_re_checkName = re.compile( validchars+r'+' )			# only word characters are allowed in key names, and paranthesis
 	_re_checkValue = re.compile( r'[^\n\t\r]+' )					# be as open as possible
@@ -942,11 +944,9 @@ class Key( PropertyHolder ):
 		""" Basic Field Initialization
 		@param order: -1 = will be written to end of list, or to given position otherwise """
 		self._name			= ''
-		self.name 			= name				# this assures the type check is being run
 		self._values 		= []				# value will always be stored as a list
-		self.order 			= order				# defines the order of the key in the file
 		self.values 		= value				# store the value
-		PropertyHolder.__init__( self )
+		PropertyHolder.__init__( self, name, order )
 
 	def __hash__( self ):
 		return self._name.__hash__()
@@ -1092,7 +1092,7 @@ class Section( PropertyHolder ):
 	all its keys and section properties
 
 	@note: name will be stored stripped and must not contain certain chars """
-	__slots__ = ( '_name', 'name', 'keys','order' )
+	__slots__ = ( '_name', 'keys' )
 	_re_checkName = re.compile( r'\+?\w+(:' + Key.validchars+ r'+)?' )
 
 	def __iter__( self ):
@@ -1103,10 +1103,8 @@ class Section( PropertyHolder ):
 		"""Basic Field Initialization
 		@param order: -1 = will be written to end of list, or to given position otherwise """
 		self._name 			= ''
-		self.name 			= name
 		self.keys 			= BasicSet()
-		self.order 			= order					# define where we are - for later writing
-		PropertyHolder.__init__( self )
+		PropertyHolder.__init__( self, name, order )
 
 	def __hash__( self ):
 		return self._name.__hash__()

@@ -11,7 +11,6 @@ from collections import deque
 import inspect
 import weakref
 import itertools
-import copy
 from util import iDuplicatable
 
 #####################

@@ -3,16 +3,9 @@
 Utilities and classes useful for user interfaces
 
 @todo: more documentation
-
-
-
 """
-
-
-
 from mayarv.util import CallbackBase, Event, Call, WeakInstFunction
 import maya.cmds as cmds
-import weakref
 from mayarv.enum import create as enum
 
 #{ MEL Function Wrappers

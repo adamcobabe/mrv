@@ -7,9 +7,7 @@ import mayarv.maya.ns as nsm
 import mayarv.maya.nodes as nodes
 from mayarv.test.maya import get_maya_file
 from mayarv.util import capitalize, uncapitalize
-from mayarv.maya.util import StandinClass
 import maya.cmds as cmds
-import mayarv.test.maya as common
 import mayarv.test.maya.nodes as ownpackage
 import maya.OpenMaya as api
 from mayarv.path import Path

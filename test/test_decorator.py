@@ -7,7 +7,6 @@
 deactivated in that case
 """
 import unittest
-import sys
 from mayarv.exc import *
 
 

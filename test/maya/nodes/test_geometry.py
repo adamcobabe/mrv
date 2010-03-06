@@ -1,7 +1,6 @@
 # -*- coding: utf-8 -*-
 """ Tests the geometric nodes, focussing on the set handling """
 import unittest
-import mayarv.maya.nodes.storage as storage
 import mayarv.maya.nodes as nodes
 import mayarv.maya.nodes.geometry as modmesh
 import maya.OpenMaya as api

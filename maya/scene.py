@@ -19,7 +19,6 @@ import ref as refmod
 import maya.OpenMaya as om
 import maya.cmds as cmds
 from mayarv.path import Path
-from mayarv.util import iDagItem
 
 
 

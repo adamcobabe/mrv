@@ -252,83 +252,83 @@ class WeakInstFunction( object ):
 
 
 class Event( object ):
-		"""Descriptor allowing to easily setup callbacks for classes derived from
-		CallbackBase"""
-		
-		#{ Configuration
-		# if true, functions will be weak-referenced - its useful if you use instance
-		# variables as callbacks
-		use_weakref = True
+	"""Descriptor allowing to easily setup callbacks for classes derived from
+	CallbackBase"""
+	
+	#{ Configuration
+	# if true, functions will be weak-referenced - its useful if you use instance
+	# variables as callbacks
+	use_weakref = True
 
-		# if True, callback handlers throwing an exception will emmediately be
-		# removed from the callback list
-		remove_on_error = False
-		#} END configuration
+	# if True, callback handlers throwing an exception will emmediately be
+	# removed from the callback list
+	remove_on_error = False
+	#} END configuration
 
 
-		def __init__( self, eventname, **kwargs ):
-			"""@param weak: if True, default class configuration use_weak_ref, weak
-			references will be created for event handlers, if False it will be strong
-			references
-			@param remove_failed: if True, defailt False, failed callback handlers
-			will be removed silently"""
-			self._name = eventname					# original name
-			self.eventname = eventname + "_set"	# set attr going to keep events
-			self.use_weakref = kwargs.get( "weak", self.__class__.use_weakref )
-			self.remove_on_error = kwargs.get( "remove_failed", self.__class__.remove_on_error )
+	def __init__( self, eventname, **kwargs ):
+		"""@param weak: if True, default class configuration use_weak_ref, weak
+		references will be created for event handlers, if False it will be strong
+		references
+		@param remove_failed: if True, defailt False, failed callback handlers
+		will be removed silently"""
+		self._name = eventname					# original name
+		self.eventname = eventname + "_set"	# set attr going to keep events
+		self.use_weakref = kwargs.get( "weak", self.__class__.use_weakref )
+		self.remove_on_error = kwargs.get( "remove_failed", self.__class__.remove_on_error )
 
-		def _toKeyFunc( self, eventfunc ):
-			"""@return: an eventfunction suitable to be used as key in our instance
-			event set"""
-			if self.use_weakref:
-				if inspect.ismethod( eventfunc ):
-					eventfunc = WeakInstFunction( eventfunc )
-				else:
-					eventfunc = weakref.ref( eventfunc )
-				# END instance function special handling
-			# END if use weak ref
-			return eventfunc
+	def _toKeyFunc( self, eventfunc ):
+		"""@return: an eventfunction suitable to be used as key in our instance
+		event set"""
+		if self.use_weakref:
+			if inspect.ismethod( eventfunc ):
+				eventfunc = WeakInstFunction( eventfunc )
+			else:
+				eventfunc = weakref.ref( eventfunc )
+			# END instance function special handling
+		# END if use weak ref
+		return eventfunc
 
-		def _keyToFunc( self, eventkey ):
-			"""@return: event function from the given eventkey as stored in
-			our events set.
-			@note: this is required as the event might be weakreffed or not"""
-			if self.use_weakref:
-				if isinstance( eventkey, WeakInstFunction ):
-					return eventkey
-				else:
-					return eventkey()
-				# END instance method handling
-			# END weak ref handling
-			return eventkey
+	def _keyToFunc( self, eventkey ):
+		"""@return: event function from the given eventkey as stored in
+		our events set.
+		@note: this is required as the event might be weakreffed or not"""
+		if self.use_weakref:
+			if isinstance( eventkey, WeakInstFunction ):
+				return eventkey
+			else:
+				return eventkey()
+			# END instance method handling
+		# END weak ref handling
+		return eventkey
 
-		def __set__( self, inst, eventfunc ):
-			"""Set a new event to our object"""
-			self.__get__( inst ).add( self._toKeyFunc( eventfunc ) )
+	def __set__( self, inst, eventfunc ):
+		"""Set a new event to our object"""
+		self.__get__( inst ).add( self._toKeyFunc( eventfunc ) )
 
-		def __get__( self, inst, cls = None ):
-			"""Always return the set itself so that one can iterate it
-			on class level, return self"""
-			if cls is not None:
-				return self
+	def __get__( self, inst, cls = None ):
+		"""Always return the set itself so that one can iterate it
+		on class level, return self"""
+		if cls is not None:
+			return self
 
-			if not hasattr( inst, self.eventname ):
-				setattr( inst, self.eventname, set() )
+		if not hasattr( inst, self.eventname ):
+			setattr( inst, self.eventname, set() )
 
-			return getattr( inst, self.eventname )
+		return getattr( inst, self.eventname )
 
-		def remove( self, inst, eventfunc ):
-			"""Remove eventfunc as listener for this event from the instance, i.e
-			CallbackBaseCls.event.remove( inst, func )"""
-			inst.removeEvent( self, eventfunc )
+	def remove( self, inst, eventfunc ):
+		"""Remove eventfunc as listener for this event from the instance, i.e
+		CallbackBaseCls.event.remove( inst, func )"""
+		inst.removeEvent( self, eventfunc )
 
-		def duplicate( self ):
-			inst = self.__class__( "" )
-			inst._name = self._name
-			inst.eventname = self.eventname
-			return inst
+	def duplicate( self ):
+		inst = self.__class__( "" )
+		inst._name = self._name
+		inst.eventname = self.eventname
+		return inst
 
-	# END event class
+# END event class
 
 class CallbackBase( iDuplicatable ):
 	"""Base class for all classes that want to provide a common callback interface
@@ -435,13 +435,13 @@ class CallbackBase( iDuplicatable ):
 
 	def listEventNames( self ):
 		"""@return: list of event ids that exist on our class"""
-		return [ name for name,member in inspect.getmembers( self, lambda m: isinstance( m, self.Event ) ) ]
+		return [ name for name,member in inspect.getmembers( self, lambda m: isinstance( m, Event ) ) ]
 
 
 	#{ iDuplicatable
 	def copyFrom( self, other, *args, **kwargs ):
 		"""Copy callbacks from other to ourselves"""
-		eventlist = inspect.getmembers( self, lambda m: isinstance( m, self.Event ) )
+		eventlist = inspect.getmembers( self, lambda m: isinstance( m, Event ) )
 		for eventname,event in eventlist:
 			setattr( self.__class__, eventname, event.duplicate( ) )
 

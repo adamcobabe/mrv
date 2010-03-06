@@ -1,6 +1,5 @@
 import unittest
 from mayarv.maya.ui import *
-import sys
 
 
 class TestGraphicalUserInterface( unittest.TestCase ):

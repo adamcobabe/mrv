@@ -16,7 +16,7 @@ Implementing an undoable method
    - if you raise, you should not have created an undo operation
 """
 from typ import nodeTypeToMfnClsMap, nodeTypeTree, MetaClassCreatorNodes
-from mayarv.util import uncapitalize, capitalize, IntKeyGenerator, getPythonIndex, iDagItem, Call, iDuplicatable
+from mayarv.util import uncapitalize, capitalize, getPythonIndex, iDagItem, Call, iDuplicatable
 from mayarv.maya.util import StandinClass
 import maya.OpenMaya as api
 import maya.cmds as cmds

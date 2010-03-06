@@ -20,7 +20,6 @@ import maya.OpenMaya as api
 import maya.cmds as cmds
 import inspect
 import itertools
-import sys
 import it
 
 

@@ -6,7 +6,6 @@ import maya.cmds as cmds
 import mayarv.util as util
 from mayarv.util import capitalize,uncapitalize
 import networkx.exception as networkxexc
-import os
 
 #{ Return Value Conversion
 def noneToList( res ):
@@ -166,8 +165,7 @@ class Mel(util.Singleton):
 
 class OptionVarDict( util.Singleton ):
 	"""	 A singleton dictionary-like class for accessing and modifying optionVars.
-	@note: Idea and base Implementation from PyMel, modified by byronimo to fix some issues
-	"""
+	@note: Idea and base Implementation from PyMel, modified by mayarv """
 	class OptionVarList(tuple):
 		def __new__( cls, key, val ):
 			"""modify constructor to work with tuple"""
@@ -176,9 +174,8 @@ class OptionVarDict( util.Singleton ):
 			return newinstpreinit
 
 		def appendVar( self, val ):
-			""" values appended to the OptionVarList with this method will be added to the Maya optionVar at the key denoted by self.key.
-			"""
-			val = OptionVarDict._checkType( val )
+			""" values appended to the OptionVarList with this method will be 
+			added to the Maya optionVar at the key denoted by self.key. """
 			if isinstance( val, basestring):
 				return cmds.optionVar( stringValueAppend=[self.key,unicode(val)] )
 			if isinstance( val, (bool,int) ):

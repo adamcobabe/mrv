@@ -4,7 +4,6 @@ import networkx as nx
 from mayarv.dge import Graph, ComputeError
 import time
 import weakref
-import sys
 import traceback
 
 #####################

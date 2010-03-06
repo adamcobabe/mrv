@@ -1,13 +1,5 @@
 # -*- coding: utf-8 -*-
-"""
-Contains improved clases for set and partition editing 
-
-
-
-"""
-
-
-
+""" Contains improved clases for set and partition editing  """
 import base as nodes
 import typ
 import maya.OpenMaya as api

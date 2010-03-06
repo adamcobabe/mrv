@@ -4,7 +4,6 @@ __all__ = list()
 
 from mayarv.dge import NodeBase
 from mayarv.dgfe import GraphNodeBase
-from mayarv.dge import plug
 from mayarv.dge import Attribute
 import mayarv.automation.base as wflbase
 

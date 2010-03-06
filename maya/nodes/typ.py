@@ -3,17 +3,12 @@
 Deals with types of objects and mappings between them
 
 @todo: more documentation
-
-
-
 """
-
-
-from mayarv.maya.util import MetaClassCreator, StandinClass
+from mayarv.maya.util import MetaClassCreator
 import mayarv.maya as bmaya
 from mayarv.path import Path
 import mayarv.maya.env as env
-from mayarv.util import uncapitalize, capitalize, PipeSeparatedFile
+from mayarv.util import uncapitalize, PipeSeparatedFile
 import maya.OpenMaya as api
 import maya.OpenMayaAnim as apianim
 import maya.OpenMayaUI	as apiui

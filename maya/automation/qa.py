@@ -1,12 +1,6 @@
 # -*- coding: utf-8 -*-
-"""Specialization of workflow to allow checks to be natively implemented in MEL
-
-
-
-
-"""
-
-from mayarv.automation.qa import QACheck, QACheckAttribute, QACheckResult, QAProcessBase
+"""Specialization of workflow to allow checks to be natively implemented in MEL """
+from mayarv.automation.qa import QACheck, QACheckAttribute, QACheckResult
 from mayarv.maya.util import Mel
 from mayarv.dge import _NodeBaseCheckMeta
 import sys

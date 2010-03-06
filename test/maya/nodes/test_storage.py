@@ -1,14 +1,11 @@
 # -*- coding: utf-8 -*-
 """ Test storage system and storage node """
 import unittest
-import mayarv.maya.nodes.storage as storage
 import mayarv.maya.nodes as nodes
-import maya.OpenMaya as api
 import mayarv.maya as bmaya
 import maya.cmds as cmds
 import tempfile
 from mayarv.path import Path
-import sys
 import mayarv.test.maya.nodes as ownpackage
 
 class TestStorage( unittest.TestCase ):

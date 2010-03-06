@@ -2,8 +2,6 @@
 """ Test the reference methods """
 import unittest
 import mayarv.test.maya as common
-from mayarv.maya.scene import Scene
-import maya.OpenMaya as om
 import maya.cmds as cmds
 from mayarv.maya.ref import *
 from mayarv.maya.ns import *
