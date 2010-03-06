@@ -23,7 +23,7 @@ They specialize the respective parts of the workflow
 
 from workflow import Workflow
 from process import ProcessBase
-from mayarv.util import CallbackBase, Event
+from mayarv.util import EventSender, Event
 from mayarv.dge import Attribute, plug, ComputeFailed
 from mayarv.enum import create as enum
 import sys
@@ -122,7 +122,7 @@ class QACheck( plug ):
 		return getattr( self.attr, attrname )
 
 
-class QAWorkflow( Workflow, CallbackBase ):
+class QAWorkflow( Workflow, EventSender ):
 	"""Represents a workflow of QAProcessBase instances and allows to query them more
 	conveniently"""
 
@@ -205,7 +205,7 @@ class QAWorkflow( Workflow, CallbackBase ):
 				sys.__stdout__.write( "Running %s: %s ... " % ( checkplug.getName(), checkplug.annotation ) )
 			# END extra info
 
-			self.sendEvent( self.e_preCheck, self.__class__.e_preCheck, checkshell )
+			self.e_preCheck.send( self.e_preCheck, checkshell )
 
 			result = QACheckResult()	 	# null value
 			if clear_result:
@@ -219,7 +219,7 @@ class QAWorkflow( Workflow, CallbackBase ):
 			try:
 				result = checkshell.get( shellmode )
 			except Exception, e:
-				self.sendEvent( self.e_checkError, self.__class__.e_checkError, checkshell, e, self )
+				self.e_checkError.send( self.e_checkError, checkshell, e, self )
 
 				if self.abort_on_error:
 					raise
@@ -234,7 +234,7 @@ class QAWorkflow( Workflow, CallbackBase ):
 
 			# record result
 			outresult.append( ( checkshell, result ) )
-			self.sendEvent( self.e_postCheck, self.__class__.e_postCheck, checkshell, result )
+			self.e_postCheck.send( self.e_postCheck, checkshell, result )
 		# END for each check to run
 
 		return outresult

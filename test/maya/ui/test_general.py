@@ -51,7 +51,7 @@ class TestGeneralUI( unittest.TestCase ):
 		win.delete()
 
 
-	def _test_createWindows( self ):
+	def test_createWindows( self ):
 		"""mayarv.maya.ui: create some windows"""
 		if cmds.about( batch=1 ):
 			return
@@ -122,7 +122,7 @@ class TestGeneralUI( unittest.TestCase ):
 		# win.delete()
 
 
-	def _test_layouts( self ):
+	def test_layouts( self ):
 		"""mayarv.maya.ui: test basic layout functions"""
 		if cmds.about( batch=1 ):
 			return
@@ -139,7 +139,7 @@ class TestGeneralUI( unittest.TestCase ):
 
 			self.failUnless( col[ str( b1 ) ] == b1 )
 
-			def func( b ):
+			def func( b, *args ):
 				b.p_label = "pressed"
 				b2.p_label = "affected"
 
@@ -154,7 +154,12 @@ class TestGeneralUI( unittest.TestCase ):
 				grid.add( ui.Button( l="gtwo" ) )
 			grid.setParentActive( )
 
-			col.add( ui.Button( l="two" ) )
+
+			btwo = col.add( ui.Button( l="two" ) )
+			def func2( b, *args ):
+				btwo.p_label = "2nd receiver"
+				
+			b1.e_released = func2
 
 			self.failUnless( len( col.getChildren( ) ) == 4 )
 			self.failUnless( len( col.getChildrenDeep( ) ) == 6 )
@@ -165,7 +170,7 @@ class TestGeneralUI( unittest.TestCase ):
 		win.show()
 		# win.delete()	# does not really work as windows stays as zombie
 
-	def _test_callbacks( self ):
+	def test_callbacks( self ):
 		"""mayarv.maya.ui: test callbacks and handling - needs user interaction"""
 		if cmds.about( batch=1 ):
 			return
@@ -174,8 +179,7 @@ class TestGeneralUI( unittest.TestCase ):
 
 		col = win.add( ui.ColumnLayout( adj=1 ) )
 		self.failUnless( win.getChildByName( str( col ) ) == col )
-		def func( *args ):
-			b = args[0]
+		def func( b, *args ):
 			b.p_label = "pressed"
 			b.p_actionIsSubstitute = 1
 			sys.stdout.write( str( args ) )
@@ -188,7 +192,7 @@ class TestGeneralUI( unittest.TestCase ):
 
 		win.show()
 
-	def _test_menus( self ):
+	def test_menus( self ):
 		"""mayarv.maya.ui: use menu bars and menuItems"""
 		if cmds.about( batch=1 ):
 			return
@@ -205,7 +209,7 @@ class TestGeneralUI( unittest.TestCase ):
 			smmenu.setParentActive()
 
 			mi = ui.MenuItem( l = "otherMenuItem" )
-			def cb( self ):
+			def cb( self, *args ):
 				self.p_label = "pressed"
 			mi.e_command = cb
 		# END main menu
@@ -214,7 +218,7 @@ class TestGeneralUI( unittest.TestCase ):
 		ui.Menu( l = "second" )
 		win.show()
 
-	def _test_progressWindow( self ):
+	def test_progressWindow( self ):
 		"""mayarv.maya.ui: test progress window functionality"""
 		if cmds.about( batch=1 ):
 			return
@@ -258,7 +262,7 @@ class TestGeneralUI( unittest.TestCase ):
 		progress.set( maxrange * 2 )
 		self.failUnless( progress.get() == maxrange )
 
-	def _test_qa( self ):
+	def test_qa( self ):
 		"""mayarv.maya.ui.qa: test qa interface by setting some checks"""
 		if cmds.about( batch=1 ):
 			return
@@ -272,6 +276,8 @@ class TestGeneralUI( unittest.TestCase ):
 		incol = ui.ColumnLayout( adj = 1 )
 		if incol:
 			qa = qaui.QALayout( )
+			# the first one gets strongly bound to the event as this is the default
+			# for UI events
 			qa.setChecks( checks )
 
 			assert len( qa.getChecks() ) == len( checks )
@@ -280,12 +286,16 @@ class TestGeneralUI( unittest.TestCase ):
 			incol.setActive()
 			qaui.QALayout.run_all_button = False
 			qa = qaui.QALayout( )
+			# the second one gets only weakly bound as this is the default 
+			# for the library events it connects to. Hence we must keep the 
+			# instance around
 			qa.setChecks( checks )
+			sys._qatmp = qa
 		# END incol
 		incol.setParentActive()
 
 		win.show()
 
-	def _test_prompt( self ):
+	def test_prompt( self ):
 		"""mayarv.maya.ui.dialog: Test prompt window"""
 		ui.Prompt( title="test title", m="enter test string", d="this", cd="cthis", t="confirm", ct="cancel" ).prompt()

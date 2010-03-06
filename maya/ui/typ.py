@@ -11,7 +11,7 @@ import mayarv.maya.util as mutil
 from mayarv.path import Path
 _thismodule = __import__( "mayarv.maya.ui", globals(), locals(), ['ui'] )
 import maya.cmds as mcmds
-from util import propertyQE, CallbackBaseUI
+from util import propertyQE, EventSenderUI
 
 
 
@@ -118,7 +118,7 @@ class MetaClassCreatorUI( mutil.MetaClassCreator ):
 			attrname = "e_%s" % ename
 			# allow user overrides
 			if attrname not in clsdict:
-				clsdict[ attrname ] = CallbackBaseUI._UIEvent( ename, **event_kwargs )
+				clsdict[ attrname ] = EventSenderUI._UIEvent( ename, **event_kwargs )
 		# END for each event name
 
 		newcls = super( MetaClassCreatorUI, metacls ).__new__( _typetree, _thismodule,

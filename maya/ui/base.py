@@ -6,7 +6,7 @@ Contains some basic  classes that are required to run the UI system
 """
 import maya.cmds as cmds
 from mayarv.util import capitalize, iDagItem
-from util import CallbackBaseUI
+from util import EventSenderUI
 import util as uiutil
 from mayarv.exc import MayaRVError
 import typ
@@ -100,7 +100,7 @@ class BaseUI( object ):
 		super( BaseUI, self ).__init__( *args, **kwargs )
 
 
-class NamedUI( unicode, BaseUI , iDagItem, CallbackBaseUI ):
+class NamedUI( unicode, BaseUI , iDagItem, EventSenderUI ):
 	"""Implements a simple UI element having a name  and most common methods one
 	can apply to it. Derived classes should override these if they can deliver a
 	faster implementation.
@@ -108,7 +108,7 @@ class NamedUI( unicode, BaseUI , iDagItem, CallbackBaseUI ):
 
 	Events
 	
-	As subclass of CallbackBaseUI, it can provide events that are automatically
+	As subclass of EventSenderUI, it can provide events that are automatically
 	added by the metaclass as described by the _events_ attribute list.
 	This allows any number of clients to register for one maya event. Derived classes
 	may also use their own events which is useful if you create components

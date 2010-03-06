@@ -241,6 +241,12 @@ class WeakInstFunction( object ):
 		self._weakinst = weakref.ref( instancefunction.im_self )
 		self._clsfunc = instancefunction.im_func
 
+	def __eq__(self, other):
+		return hash(self) == hash(other)
+
+	def __hash__(self):
+		return hash((self._clsfunc,  self._weakinst()))
+
 	def __call__( self, *args, **kwargs ):
 		"""@raise LookupError: if the instance referred to by the instance method
 		does not exist anymore"""
@@ -253,19 +259,19 @@ class WeakInstFunction( object ):
 
 class Event( object ):
 	"""Descriptor allowing to easily setup callbacks for classes derived from
-	CallbackBase"""
+	EventSender"""
 	
 	#{ Configuration
 	# if true, functions will be weak-referenced - its useful if you use instance
 	# variables as callbacks
 	use_weakref = True
 
-	# if True, callback handlers throwing an exception will emmediately be
+	# if True, callback handlers throwing an exception will immediately be
 	# removed from the callback list
 	remove_on_error = False
 	
 	
-	# If not None, this value overrides the corresponding value on the CallbackBase class
+	# If not None, this value overrides the corresponding value on the EventSender class
 	sender_as_argument = None
 	#} END configuration
 
@@ -280,6 +286,8 @@ class Event( object ):
 		self.eventname = eventname + "_set"	# set attr going to keep events
 		self.use_weakref = kwargs.get( "weak", self.__class__.use_weakref )
 		self.remove_on_error = kwargs.get( "remove_failed", self.__class__.remove_on_error )
+		self.sender_as_argument = kwargs.get("sender_as_argument", self.__class__.sender_as_argument)
+		self._last_inst_ref = None
 
 	def _toKeyFunc( self, eventfunc ):
 		"""@return: an eventfunction suitable to be used as key in our instance
@@ -306,35 +314,110 @@ class Event( object ):
 		# END weak ref handling
 		return eventkey
 
+	def _get_last_instance(self):
+		"""@return: The last instance that retrieved us"""
+		if self._last_inst_ref is None or self._last_inst_ref() is None:
+			raise TypeError("Cannot send events through class descriptor")
+		return self._last_inst_ref()
+
 	def __set__( self, inst, eventfunc ):
 		"""Set a new event to our object"""
-		self.__get__( inst ).add( self._toKeyFunc( eventfunc ) )
+		self._getFunctionSet(inst).add( self._toKeyFunc( eventfunc ) )
 
 	def __get__( self, inst, cls = None ):
-		"""Always return the set itself so that one can iterate it
-		on class level, return self"""
-		if cls is not None:
-			return self
-
+		"""Always return self, but keep the instance in case
+		we someone wants to send an event."""
+		if inst is not None:
+			inst = weakref.ref(inst)
+		# END handle instance
+		self._last_inst_ref = inst  
+		return self
+		
+	def _getFunctionSet(self, inst):
+		"""@return: function set of the given instance containing functions of our 
+		event"""
 		if not hasattr( inst, self.eventname ):
 			setattr( inst, self.eventname, set() )
-
+		# END initialize set
 		return getattr( inst, self.eventname )
+		
+	#{ Interface
+		
+	def send( self, *args, **kwargs ):
+		"""Send our event using the given args
+		@note: if an event listener is weak referenced and goes out of scope
+		@note: will catch all event exceptions trown by the methods called
+		@return: False if at least one event call threw an exception, true otherwise"""
+		inst = self._get_last_instance()
+		callbackset = self._getFunctionSet( inst )
+		success = True
+		failed_callbacks = list()
+		
+		sas = inst.sender_as_argument
+		if self.sender_as_argument is not None:
+			sas = self.sender_as_argument
+		# END event override
+		
+		for function in callbackset:
+			try:
+				func = self._keyToFunc( function )
+				if func is None:
+					print "Listener for callback of %s was not available anymore" % self
+					failed_callbacks.append( function )
+					continue
 
-	def remove( self, inst, eventfunc ):
-		"""Remove eventfunc as listener for this event from the instance, i.e
-		CallbackBaseCls.event.remove( inst, func )"""
-		inst.removeEvent( self, eventfunc )
+				try:
+					if sas:
+						func( inst, *args, **kwargs )
+					else:
+						func( *args, **kwargs )
+				except LookupError, e:
+					# thrown if self in instance methods went out of scope
+					if inst.reraise_on_error:
+						raise 
+					print str( e )
+					failed_callbacks.append( function )
+				# END sendder as argument
+			except Exception, e :
+				if self.remove_on_error:
+					failed_callbacks.append( function )
+				
+				if inst.reraise_on_error:
+					raise 
+				print str( e )
+				success = False
+		# END for each registered event
+
+		# remove failed listeners
+		for function in failed_callbacks:
+			callbackset.remove( function )
+
+		return success
+
+	def remove( self, eventfunc ):
+		"""remove the given function from this event
+		@note: will not raise if eventfunc does not exist"""
+		inst = self._get_last_instance()
+		eventfunc = self._toKeyFunc( eventfunc )
+		try:
+			self._getFunctionSet( inst ).remove( eventfunc )
+		except KeyError:
+			pass
 
 	def duplicate( self ):
 		inst = self.__class__( "" )
-		inst._name = self._name
+		inst._name = self._name	
 		inst.eventname = self.eventname
+		inst.use_weakref = self.use_weakref
+		inst.remove_on_error = self.remove_on_error
+		inst.sender_as_argument = self.sender_as_argument
 		return inst
+		
+	#} END interface 
 
 # END event class
 
-class CallbackBase( iDuplicatable ):
+class EventSender( object ):
 	"""Base class for all classes that want to provide a common callback interface
 	to supply event information to clients.
 	Usage
@@ -342,18 +425,13 @@ class CallbackBase( iDuplicatable ):
 	Derive from this class and define your callbacks like :
 	eventname = Event( "eventname" )
 	Call it using
-	self.sendEvent( "eventname", [ args [ ,kwargs ] ] )
-	 - depends on the assumption that eventname is also the name of the atttribute
-	   where the event class can be found
-	self.sendEvent( owncls.eventname [ args [, kwargs ] ] )
-	 - will always work as no string id is being used
-	If more args are given during your call, this has to be documented
+	self.eventname.send( [*args][,**kwargs]] )
 
 	Users register using
-	yourclass.eventname = callable
+	yourinstance.eventname = callable
 
 	and deregister using
-	yourclass.removeEvent( eventname, callable )
+	yourinstance.eventname.remove( callable )
 
 	@note: if use_weak_ref is True, we will weakref the eventfunction, and deal
 	properly with instance methods which would go out of scope immediatly otherwise
@@ -371,90 +449,10 @@ class CallbackBase( iDuplicatable ):
 	reraise_on_error = False
 	#} END configuration
 
-	def _toEventInst( self, event ):
-		"""@return: event instance for eventname or instance"""
-		eventinst = event
-		if isinstance( event, basestring ):
-			eventinst = getattr( self.__class__, event )
-		return eventinst
-
-	def removeEvent( self, event, eventfunc ):
-		"""remove the given event function from the event identified by event
-		@param event: either the name of the event as given upon creation or the event
-		or the event instance being a class variable of CallbackBase
-		@note: will not raise if it does not exist"""
-		eventinst = self._toEventInst( event )
-		eventfunc = eventinst._toKeyFunc( eventfunc )
-		try:
-			eventinst.__get__( self ).remove( eventfunc )
-		except KeyError:
-			pass
-
-	def sendEvent( self, event, *args, **kwargs ):
-		"""Send the given event to all registered event listeners
-		@note: will catch all event exceptions trown by the methods called
-		@param event: either name of event on self or the event instance itself
-		@note: if an event listener is weak referenced and goes out of scope
-		@return: False if at least one event call threw an exception, true otherwise"""
-		eventinst = self._toEventInst( event )
-		callbackset = eventinst.__get__( self )
-		success = True
-		failed_callbacks = list()
-		for function in callbackset:
-			try:
-				func = eventinst._keyToFunc( function )
-				if func is None:
-					print "Listener for callback of %s was not available anymore" % self
-					failed_callbacks.append( function )
-					continue
-
-				try:
-					sas = self.sender_as_argument
-					if eventinst.sender_as_argument is not None:
-						sas = eventinst.sender_as_argument
-					# END event override 
-					
-					if sas:
-						func( self, *args, **kwargs )
-					else:
-						func( *args, **kwargs )
-				except LookupError, e:
-					# thrown if self in instance methods went out of scope
-					if self.reraise_on_error:
-						raise 
-					print str( e )
-					failed_callbacks.append( function )
-
-				# END sendder as argument
-			except Exception, e :
-				if eventinst.remove_on_error:
-					failed_callbacks.append( function )
-				
-				if self.reraise_on_error:
-					raise 
-				print str( e )
-				success = False
-		# END for each registered event
-
-		# remove failed listeners
-		for function in failed_callbacks:
-			callbackset.remove( function )
-
-		return success
-
-	def listEventNames( self ):
+	@classmethod
+	def listEventNames( cls ):
 		"""@return: list of event ids that exist on our class"""
-		return [ name for name,member in inspect.getmembers( self, lambda m: isinstance( m, Event ) ) ]
-
-
-	#{ iDuplicatable
-	def copyFrom( self, other, *args, **kwargs ):
-		"""Copy callbacks from other to ourselves"""
-		eventlist = inspect.getmembers( self, lambda m: isinstance( m, Event ) )
-		for eventname,event in eventlist:
-			setattr( self.__class__, eventname, event.duplicate( ) )
-
-	#} END iDuplicatable
+		return [ name for name,member in inspect.getmembers( cls, lambda m: isinstance( m, Event ) ) ]
 
 
 class InterfaceMaster( iDuplicatable ):

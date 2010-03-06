@@ -218,7 +218,7 @@ class iDuplicatable( Interface ):
 		@note: using self.__class__ instead of an explicit class allows derived
 		classes that do not have anything to duplicate just to use your implementeation
 		@note: you must support *args and **kwargs if one of your iDuplicate bases does"""
-		raise NotImplementedError( "Implement like self.__class__( yourInitArgs )" )
+		return self.__class__(*args, **kwargs)
 
 	def copyFrom( self, other, *args, **kwargs ):
 		"""Copy the data from other into self as good as possible

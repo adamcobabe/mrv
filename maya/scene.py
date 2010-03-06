@@ -22,7 +22,7 @@ from mayarv.path import Path
 
 
 
-class _SceneCallback( mayautil.CallbackBase ):
+class _SceneCallback( mayautil.EventSender ):
 	""" Implements Scene Callbacks """
 
 	_checkCBSet = set( ( 	om.MSceneMessage.kBeforeNewCheck,
@@ -40,10 +40,10 @@ class _SceneCallback( mayautil.CallbackBase ):
 
 	def addListener( self, listenerID, callback, sceneMessageId ):
 		"""Add a listener for the given sceneMessageId - all other parameters
-		correspond to the baseclass method: L{CallbackBase.addListener}
+		correspond to the baseclass method: L{EventSender.addListener}
 		@param sceneMessageId: MSceneMessage message id enumeration member
 		@note: this message enforces the required signature"""
-		mayautil.CallbackBase.addListener( self, listenerID, callback, callbackID = sceneMessageId )
+		mayautil.EventSender.addListener( self, listenerID, callback, callbackID = sceneMessageId )
 
 	def _getCallbackGroupID( self, sceneMessageId ):
 		if sceneMessageId in self._checkCBSet:

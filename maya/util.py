@@ -264,7 +264,7 @@ class OptionVarDict( util.Singleton ):
 # use it as singleton
 optionvars = OptionVarDict()
 
-class CallbackBase( object ):
+class EventSender( object ):
 	""" Base type taking over the management part when wrapping maya messages into an
 	appropriate python class.
 

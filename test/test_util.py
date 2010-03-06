@@ -193,4 +193,103 @@ class TestDAGTree( unittest.TestCase ):
 		assert progress.getValue() == 15
 		
 		
+	def test_weak_inst(self):
+		# we must be able to handle it in sets
+		s = set()
+		wif = WeakInstFunction(self.test_weak_inst)
+		
+		s.add(wif)
+		s.add(wif)
+		assert len(s) == 1
+		s.remove(wif)
+		assert len(s) == 0
+		
+		wifsame = WeakInstFunction(self.test_weak_inst)
+		wifother = WeakInstFunction(self.test_callback_base)
+		s.add(wif)
+		s.add(wifsame)
+		assert len(s) == 1
+		
+		s.add(wifother)
+		assert len(s) == 2
+		
+		# a different instance is not the same function
+		s = set()
+		class Sender(object):
+			def method(self):
+				pass
+		# END class 
+		
+		s1 = Sender()
+		s2 = Sender()
+		wifi1 = WeakInstFunction(s1.method)
+		wifi2 = WeakInstFunction(s2.method)
+		s.add(wifi1)
+		s.add(wifi2)
+		s.add(wifi2)
+		assert len(s) == 2
+		
+		
+	def test_callback_base(self):
+		class Sender(EventSender):
+			sender_as_argument = True
+			
+			eweak = Event('eweak', weak=True, sender_as_argument=False)
+			estrong = Event('estrong', weak=False)
+			eremove = Event('eremove', remove_failed=True)
+			
+			def needs_sender(self, arg1, arg2):
+				self.needs_sender_called = 1
+			
+			def weak_call(self):
+				self.weak_call_called = 1
+			
+			def needs_sender2(self, arg1, arg2):
+				self.needs_sender_called2 = 1
+				
+			def weak_call2(self):
+				self.weak_call_called2 = 1
+			
+			def error(self, *args):
+				raise AssertionError("need to be removed")
+			
+			def make_assertion(self):
+				assert hasattr(self, 'needs_sender_called')
+				assert hasattr(self, 'needs_sender_called2')
+				assert hasattr(self, 'weak_call_called')
+				assert hasattr(self, 'weak_call_called2')
+		# END test class
+		
+		assert len(Sender.listEventNames()) == 3
+		
+		# set functions
+		sender = Sender()
+		sender.estrong = Sender.needs_sender
+		sender.estrong = Sender.needs_sender2
+		assert len(sender.estrong._getFunctionSet(sender)) == 2
+		
+		sender.eweak = sender.weak_call
+		sender.eweak = sender.weak_call2
+		assert len(sender.eweak._getFunctionSet(sender)) == 2
+		
+		sender.eremove = sender.error
+		assert len(sender.eremove._getFunctionSet(sender)) == 1
+		
+		# call 
+		sender.estrong.send(1, 2)
+		sender.eweak.send()
+		
+		sender.make_assertion()
+		
+		sender.eremove.send()
+		assert len(sender.eremove._getFunctionSet(sender)) == 0
+		
+		# remove
+		sender.estrong.remove(Sender.needs_sender)
+		assert len(sender.estrong._getFunctionSet(sender)) == 1
+		
+		sender.eweak.remove(sender.weak_call)
+		assert len(sender.eweak._getFunctionSet(sender)) == 1
+		
+		
 		

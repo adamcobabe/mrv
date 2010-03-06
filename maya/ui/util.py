@@ -4,9 +4,10 @@ Utilities and classes useful for user interfaces
 
 @todo: more documentation
 """
-from mayarv.util import CallbackBase, Event, Call, WeakInstFunction
+from mayarv.util import EventSender, Event, Call, WeakInstFunction
 import maya.cmds as cmds
 from mayarv.enum import create as enum
+import weakref
 
 #{ MEL Function Wrappers
 
@@ -73,7 +74,7 @@ class Signal( Event ):
 	#} END configuration 
 
 
-class CallbackBaseUI( CallbackBase ):
+class EventSenderUI( EventSender ):
 	"""Allows registration of a typical UI callback
 	It basically streamlines the registration for a callback such that any
 	number of listeners can be called when an event occours - this works by
@@ -83,7 +84,7 @@ class CallbackBaseUI( CallbackBase ):
 	To make this work it is essential that you work with one and the same instance of your
 	class.
 
-	To use this class , see the documentation of L{CallbackBase}, but use the Event
+	To use this class , see the documentation of L{EventSender}, but use the Event
 	instead.
 	If you want to add your own events, use your own events, use the L{Event} class instead
 
@@ -113,24 +114,24 @@ class CallbackBaseUI( CallbackBase ):
 		def __init__( self, eventname, **kwargs ):
 			"""Allows to set additional arguments to be given when a callback
 			is actually set"""
-			super( CallbackBaseUI._UIEvent, self ).__init__( eventname, **kwargs )
+			super( EventSenderUI._UIEvent, self ).__init__( eventname, **kwargs )
 			self._kwargs = kwargs
+	
+		def send( self, inst, *args, **kwargs ):
+			"""Sets our instance prior to calling the super class"""
+			self._last_inst_ref = weakref.ref(inst)
+			super(EventSenderUI._UIEvent, self).send(*args, **kwargs)
 	
 		def __set__(  self, inst, eventfunc ):
 			"""Set the given event to be called when this event is being triggered"""
-			eventset = self.__get__( inst )
+			eventset = self._getFunctionSet( inst )
 	
 			# REGISTER TO MEL IF THIS IS THE FIRST EVENT
 			# do we have to register the callback ?
 			if not eventset:
 				kwargs = dict()
 				# generic call that will receive maya's own arguments and pass them on
-				sendfunction = inst.sendEvent
-				if self.use_weakref:
-					sendfunction = WeakInstFunction( sendfunction )
-	
-				call = Call( sendfunction, self )
-				dyncall =  lambda *args, **kwargs: call( *args, **kwargs )
+				dyncall = lambda *args, **kwargs: self.send(inst, *args, **kwargs)
 	
 				kwargs[ 'e' ] = 1
 				kwargs[ self._name ] = dyncall
@@ -138,19 +139,8 @@ class CallbackBaseUI( CallbackBase ):
 				inst.__melcmd__( str( inst ) , **kwargs )
 			# END create event
 	
-			super( CallbackBaseUI._UIEvent, self ).__set__( inst, eventfunc )
+			super( EventSenderUI._UIEvent, self ).__set__( inst, eventfunc )
 	# END _UIEvent
-
-	#( iDuplicatable Deactivated
-
-	def createInstance( self, *args, **kwargs ):
-		"""Deactivated as we cannot copy callbacks safely if the maya ui is involved"""
-		raise RuntimeError( "A CallbackBaseUI instance cannot be duplicated" )
-
-	def copyFrom( self, other, *args, **kwargs ):
-		raise RuntimeError( "A CallbackBaseUI instance cannot be copied" )
-
-	#) end iduplicatable deactivated
 
 
 class UIContainerBase( object ):
