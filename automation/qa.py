@@ -147,13 +147,13 @@ class QAWorkflow( Workflow, EventSender ):
 
 	#{ Events
 	# called before a check is run as func: func( event, check )
-	e_preCheck = Event( "e_preCheck" )
+	e_preCheck = Event()
 
 	# called if a check fails with an error: func( event, check, exception, workflow )
-	e_checkError = Event( "e_checkError" )
+	e_checkError = Event()
 
 	# called after a check has been run: func( event, check, result )
-	e_postCheck = Event( "e_postCheck" )
+	e_postCheck = Event()
 	#}
 
 	def __init__( self, *args, **kwargs ):

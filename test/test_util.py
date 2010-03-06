@@ -3,6 +3,7 @@
 import unittest
 from mayarv.util import *
 import re
+import weakref
 
 class TestDAGTree( unittest.TestCase ):
 
@@ -234,9 +235,9 @@ class TestDAGTree( unittest.TestCase ):
 		class Sender(EventSender):
 			sender_as_argument = True
 			
-			eweak = Event('eweak', weak=True, sender_as_argument=False)
-			estrong = Event('estrong', weak=False)
-			eremove = Event('eremove', remove_failed=True)
+			eweak = Event(weak=True, sender_as_argument=False)
+			estrong = Event(weak=False)
+			eremove = Event(remove_failed=True)
 			
 			def needs_sender(self, arg1, arg2):
 				self.needs_sender_called = 1
@@ -292,4 +293,7 @@ class TestDAGTree( unittest.TestCase ):
 		assert len(sender.eweak._getFunctionSet(sender)) == 1
 		
 		
-		
+		# assure deletion of sender truly removes it ( weakref check )
+		sw = weakref.ref(sender)
+		del(sender)
+		assert sw() is None

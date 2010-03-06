@@ -114,7 +114,8 @@ class EventSenderUI( EventSender ):
 		def __init__( self, eventname, **kwargs ):
 			"""Allows to set additional arguments to be given when a callback
 			is actually set"""
-			super( EventSenderUI._UIEvent, self ).__init__( eventname, **kwargs )
+			super( EventSenderUI._UIEvent, self ).__init__( **kwargs )
+			self._name =eventname
 			self._kwargs = kwargs
 	
 		def send( self, inst, *args, **kwargs ):

@@ -260,6 +260,7 @@ class WeakInstFunction( object ):
 class Event( object ):
 	"""Descriptor allowing to easily setup callbacks for classes derived from
 	EventSender"""
+	_inst_event_attr = '__events__'	# dict with event -> set() relation
 	
 	#{ Configuration
 	# if true, functions will be weak-referenced - its useful if you use instance
@@ -276,14 +277,12 @@ class Event( object ):
 	#} END configuration
 
 
-	def __init__( self, eventname, **kwargs ):
+	def __init__( self, **kwargs ):
 		"""@param weak: if True, default class configuration use_weak_ref, weak
 		references will be created for event handlers, if False it will be strong
 		references
 		@param remove_failed: if True, defailt False, failed callback handlers
 		will be removed silently"""
-		self._name = eventname					# original name
-		self.eventname = eventname + "_set"	# set attr going to keep events
 		self.use_weakref = kwargs.get( "weak", self.__class__.use_weakref )
 		self.remove_on_error = kwargs.get( "remove_failed", self.__class__.remove_on_error )
 		self.sender_as_argument = kwargs.get("sender_as_argument", self.__class__.sender_as_argument)
@@ -336,11 +335,16 @@ class Event( object ):
 	def _getFunctionSet(self, inst):
 		"""@return: function set of the given instance containing functions of our 
 		event"""
-		if not hasattr( inst, self.eventname ):
-			setattr( inst, self.eventname, set() )
+		if not hasattr( inst, self._inst_event_attr ):
+			setattr( inst, self._inst_event_attr, dict() )
 		# END initialize set
-		return getattr( inst, self.eventname )
 		
+		ed = getattr( inst, self._inst_event_attr )
+		try:
+			return ed[self]
+		except KeyError:
+			return ed.setdefault(self, set())
+		# END handle self -> set relation
 	#{ Interface
 		
 	def send( self, *args, **kwargs ):
@@ -407,7 +411,6 @@ class Event( object ):
 	def duplicate( self ):
 		inst = self.__class__( "" )
 		inst._name = self._name	
-		inst.eventname = self.eventname
 		inst.use_weakref = self.use_weakref
 		inst.remove_on_error = self.remove_on_error
 		inst.sender_as_argument = self.sender_as_argument
@@ -423,15 +426,15 @@ class EventSender( object ):
 	Usage
 	-----
 	Derive from this class and define your callbacks like :
-	eventname = Event( "eventname" )
+	event = Event( )
 	Call it using
-	self.eventname.send( [*args][,**kwargs]] )
+	self.event.send( [*args][,**kwargs]] )
 
 	Users register using
-	yourinstance.eventname = callable
+	yourinstance.event = callable
 
 	and deregister using
-	yourinstance.eventname.remove( callable )
+	yourinstance.event.remove( callable )
 
 	@note: if use_weak_ref is True, we will weakref the eventfunction, and deal
 	properly with instance methods which would go out of scope immediatly otherwise

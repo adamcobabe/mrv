@@ -45,7 +45,7 @@ class TestGraphicalUserInterface( unittest.TestCase ):
 			return
 		
 		class Additor(Button):
-			e_added = Signal('added')
+			e_added = Signal()
 			def __init__(self, *args, **kwarg):
 				self.reset(0)
 				
