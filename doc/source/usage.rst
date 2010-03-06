@@ -557,7 +557,7 @@ This way, complex user interfaces can be assembled in a more controllable fashio
 	>>> 	def add(self, *args):
 	>>> 		self._val += self._add
 	>>> 		self.p_label = str(self._val)
-	>>> 		self.e_added.send(self._val)
+	>>> 		self.e_added(self._val)
 	>>> # END additor
 	>>> 
 	>>> class Collector(Text):

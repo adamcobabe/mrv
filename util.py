@@ -398,6 +398,9 @@ class Event( object ):
 
 		return success
 
+	# Alias, to make event sending even easier
+	__call__ = send
+
 	def remove( self, eventfunc ):
 		"""remove the given function from this event
 		@note: will not raise if eventfunc does not exist"""

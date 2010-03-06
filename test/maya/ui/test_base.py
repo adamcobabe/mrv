@@ -57,7 +57,7 @@ class TestGraphicalUserInterface( unittest.TestCase ):
 			def add(self, *args):
 				self._val += self._add
 				self.p_label = str(self._val)
-				self.e_added.send(self._val)
+				self.e_added(self._val)
 		# END additor
 		
 		class Collector(Text):

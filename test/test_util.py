@@ -277,12 +277,12 @@ class TestDAGTree( unittest.TestCase ):
 		assert len(sender.eremove._getFunctionSet(sender)) == 1
 		
 		# call 
-		sender.estrong.send(1, 2)
+		sender.estrong(1, 2)
 		sender.eweak.send()
 		
 		sender.make_assertion()
 		
-		sender.eremove.send()
+		sender.eremove()
 		assert len(sender.eremove._getFunctionSet(sender)) == 0
 		
 		# remove
