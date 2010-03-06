@@ -1,13 +1,5 @@
 # -*- coding: utf-8 -*-
-"""
-Test storage system and storage node
-
-
-
-"""
-
-
-
+""" Test storage system and storage node """
 import unittest
 import mayarv.maya.nodes.storage as storage
 import mayarv.maya.nodes as nodes

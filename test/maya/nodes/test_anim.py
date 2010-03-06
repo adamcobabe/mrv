@@ -1,7 +1,5 @@
 # -*- coding: utf-8 -*-
-"""
-Test animCurves and related types
-"""
+""" Test animCurves and related types """
 from mayarv.test.maya import *
 
 import maya.OpenMaya as api

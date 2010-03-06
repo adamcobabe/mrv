@@ -16,13 +16,7 @@ the programs behaviour.
 	- embed more complex data to be read by specialised classes using URLs
 	- its safe and easy to write back possibly altered values even if complex inheritance
 		schemes are applied
-
-
-
 """
-
-
-
 from ConfigParser import (	RawConfigParser,
 							NoSectionError,
 							NoOptionError,

@@ -1,12 +1,5 @@
 # -*- coding: utf-8 -*-
-"""Initialize the test framework
-
-
-
-"""
-
-
-
+"""Initialize the test framework """
 import unittest
 from cStringIO import StringIO
 

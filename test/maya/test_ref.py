@@ -1,13 +1,5 @@
 # -*- coding: utf-8 -*-
-"""
-Test the reference methods
-
-
-
-"""
-
-
-
+""" Test the reference methods """
 import unittest
 import mayarv.test.maya as common
 from mayarv.maya.scene import Scene

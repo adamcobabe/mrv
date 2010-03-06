@@ -1,20 +1,11 @@
 # -*- coding: utf-8 -*-
-"""
-Test utility classes
-
-
-
-"""
-
-
-
+""" Test utility classes """
 import unittest
 import mayarv.maya as bmaya
 import maya.cmds as cmds
 from mayarv.maya.util import *
 
 class TestUtil( unittest.TestCase ):
-
 	def test_optionvardict( self ):
 		"""mayarv.maya.util: test optionvars dict"""
 

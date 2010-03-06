@@ -26,9 +26,6 @@ TODO
    - guess_content_type() method?
    - Perhaps support arguments to touch().
    - Could add split() and join() methods that generate warnings.
-
-
-
 """
 from __future__ import generators
 

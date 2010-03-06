@@ -2,13 +2,7 @@
 """
 Contains implementations of maya editors
 @todo: more documentation
-
-
-
 """
-
-
-
 import base as uibase
 import util as uiutil
 

@@ -1,13 +1,5 @@
 # -*- coding: utf-8 -*-
-"""
-Some more math related tests
-
-
-
-"""
-
-
-
+""" Some more math related tests """
 import unittest
 import mayarv.maya as bmaya
 import mayarv.maya.nodes as nodes
@@ -20,14 +12,11 @@ import string
 import random
 import time
 import mayarv.maya.nodes.it as it
-import mayarv.test.maya.benchmark as bcommon
-
 
 class TestCalculations( unittest.TestCase ):
 
 	def test_0randomizeScene( self ):
 		"""mayarv.maya.nodes.benchmark: assign unique transformations to dag nodes in a scene"""
-		if not bcommon.mayRun( "randomize" ): return
 		numnodes = 2500
 		benchfile = common.get_maya_file( "large_scene_%i.mb" % 2500 )
 		bmaya.Scene.open( benchfile, force = 1 )
@@ -51,7 +40,6 @@ class TestCalculations( unittest.TestCase ):
 
 	def test_1computeCenter( self ):
 		"""mayarv.maya.nodes.benchmark: compute the center point of all  dagnodes in scene"""
-		if not bcommon.mayRun( "center" ): return
 		starttime = time.time()
 
 		# GET AVERAGE POSITION

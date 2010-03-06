@@ -6,13 +6,7 @@ as disambiguation to a filesystem file.
 
 @todo: more documentation
 @todo: create real class properties - currently its only working with instances.
-
-
-
 """
-
-
-
 # export filter
 __all__ = [ 'Scene' ]
 

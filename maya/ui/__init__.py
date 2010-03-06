@@ -42,7 +42,6 @@ if not init_done:
 	from layout import *
 	from panel import *
 	from editor import *
-	from util import Event
 	
 	# automatic types need to be created in the end !
 	_force_type_creation()

@@ -1,11 +1,5 @@
 # -*- coding: utf-8 -*-
-"""Contains all processes
-
-
-
-"""
-
-
+"""Contains all processes """
 from mayarv.automation.process import ProcessBase
 import mayarv.util as util
 

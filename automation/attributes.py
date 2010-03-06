@@ -1,12 +1,6 @@
 # -*- coding: utf-8 -*-
 """Contains specialized attributes that judge value based on different criteria,
-allowing more elaborate typecheckingr
-
-
-
-"""
-
-
+allowing more elaborate typecheckingr """
 from mayarv.dge import Attribute
 
 class RegexStringAttr( Attribute ):

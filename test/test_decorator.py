@@ -5,13 +5,7 @@
 
 @note: decorator tests will always succeed if NOT in debug mode ( as custom decorators are
 deactivated in that case
-
-
-
 """
-
-
-
 import unittest
 import sys
 from mayarv.exc import *

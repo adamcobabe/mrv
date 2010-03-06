@@ -1,13 +1,5 @@
 # -*- coding: utf-8 -*-
-"""
-Tests the geometric nodes, focussing on the set handling
-
-
-
-"""
-
-
-
+""" Tests the geometric nodes, focussing on the set handling """
 import unittest
 import mayarv.maya.nodes.storage as storage
 import mayarv.maya.nodes as nodes

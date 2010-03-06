@@ -12,7 +12,6 @@ import string
 import random
 import time
 import mayarv.maya.nodes.it as it
-import mayarv.test.maya.benchmark as bcommon
 
 class TestGeneralPerformance( unittest.TestCase ):
 	"""Tests to benchmark general performance"""
@@ -61,7 +60,6 @@ class TestGeneralPerformance( unittest.TestCase ):
 
 	def test_dagwalking( self ):
 		"""mayarv.maya.benchmark.general.dagWalking: see how many nodes per second we walk"""
-		if not bcommon.mayRun( "dagwalk" ): return
 
 		# numnodes = [ 2500, 25000, 100000 ]
 		numnodes = [ 2500 ]
@@ -132,7 +130,6 @@ class TestGeneralPerformance( unittest.TestCase ):
 
 	def test_createNodes( self ):
 		"""mayarv.maya.benchmark.general: test random node creation performance"""
-		if not bcommon.mayRun( "createnode" ): return
 		bmaya.Scene.new( force = True )
 		runs = [ 100,2500 ]
 		all_elapsed = []
@@ -220,7 +217,6 @@ class TestGeneralPerformance( unittest.TestCase ):
 
 	def test_wrappedFunctionCall( self ):
 		"""mayarv.maya.benchmark.general: test wrapped funtion calls and compare them"""
-		if not bcommon.mayRun( "funccall" ): return
 
 		bmaya.Scene.new( force = True )
 

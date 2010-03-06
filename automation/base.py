@@ -1,10 +1,5 @@
 # -*- coding: utf-8 -*-
-"""general methods and classes
-
-
-
-"""
-
+"""general methods and classes """
 import networkx as nx
 from mayarv.path import Path
 from mayarv.dge import PlugAlreadyConnected

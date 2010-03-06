@@ -10,7 +10,7 @@ Utilities and classes useful for user interfaces
 
 
 
-from mayarv.util import CallbackBase, Call, WeakInstFunction
+from mayarv.util import CallbackBase, Event, Call, WeakInstFunction
 import maya.cmds as cmds
 import weakref
 from mayarv.enum import create as enum
@@ -67,46 +67,6 @@ def propertyQE( flag, methodName = None ):
 #}
 
 
-Event = CallbackBase.Event
-
-class UIEvent( CallbackBase.Event ):
-	"""Event suitable to deal with user interface callback"""
-	#( Configuration
-	use_weakref = False
-	remove_on_error = False
-	#) END configuration
-
-	def __init__( self, eventname, **kwargs ):
-		"""Allows to set additional arguments to be given when a callback
-		is actually set"""
-		super( UIEvent, self ).__init__( eventname, **kwargs )
-		self._kwargs = kwargs
-
-	def __set__(  self, inst, eventfunc ):
-		"""Set the given event to be called when this event is being triggered"""
-		eventset = self.__get__( inst )
-
-		# REGISTER TO MEL IF THIS IS THE FIRST EVENT
-		# do we have to register the callback ?
-		if not eventset:
-			kwargs = dict()
-			# generic call that will receive maya's own arguments and pass them on
-			sendfunction = inst.sendEvent
-			if self.use_weakref:
-				sendfunction = WeakInstFunction( sendfunction )
-
-			call = Call( sendfunction, self )
-			dyncall =  lambda *args, **kwargs: call( *args, **kwargs )
-
-			kwargs[ 'e' ] = 1
-			kwargs[ self._name ] = dyncall
-			kwargs.update( self._kwargs )		# allow user kwargs
-			inst.__melcmd__( str( inst ) , **kwargs )
-		# END create event
-
-		super( UIEvent, self ).__set__( inst, eventfunc )
-
-
 class CallbackBaseUI( CallbackBase ):
 	"""Allows registration of a typical UI callback
 	It basically streamlines the registration for a callback such that any
@@ -135,6 +95,45 @@ class CallbackBaseUI( CallbackBase ):
 	# with the sender when handling the event
 	sender_as_argument = True
 	#} END configuration
+
+		
+	class _UIEvent( Event ):
+		"""Event suitable to deal with user interface callback"""
+		#( Configuration
+		use_weakref = False
+		remove_on_error = False
+		#) END configuration
+	
+		def __init__( self, eventname, **kwargs ):
+			"""Allows to set additional arguments to be given when a callback
+			is actually set"""
+			super( CallbackBaseUI._UIEvent, self ).__init__( eventname, **kwargs )
+			self._kwargs = kwargs
+	
+		def __set__(  self, inst, eventfunc ):
+			"""Set the given event to be called when this event is being triggered"""
+			eventset = self.__get__( inst )
+	
+			# REGISTER TO MEL IF THIS IS THE FIRST EVENT
+			# do we have to register the callback ?
+			if not eventset:
+				kwargs = dict()
+				# generic call that will receive maya's own arguments and pass them on
+				sendfunction = inst.sendEvent
+				if self.use_weakref:
+					sendfunction = WeakInstFunction( sendfunction )
+	
+				call = Call( sendfunction, self )
+				dyncall =  lambda *args, **kwargs: call( *args, **kwargs )
+	
+				kwargs[ 'e' ] = 1
+				kwargs[ self._name ] = dyncall
+				kwargs.update( self._kwargs )		# allow user kwargs
+				inst.__melcmd__( str( inst ) , **kwargs )
+			# END create event
+	
+			super( CallbackBaseUI._UIEvent, self ).__set__( inst, eventfunc )
+	# END _UIEvent
 
 	#( iDuplicatable Deactivated
 

@@ -5,14 +5,7 @@ paths.
 
 @todo: more documentation
 @todo: logger !
-
-
-
-
 """
-
-
-
 from maya import cmds
 
 

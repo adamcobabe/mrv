@@ -1,13 +1,5 @@
 # -*- coding: utf-8 -*-
-"""
-Test ALL features of the undo queue
-
-
-
-"""
-
-
-
+""" Test ALL features of the undo queue """
 import unittest
 import mayarv.maya as bmaya
 import maya.cmds as cmds

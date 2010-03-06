@@ -17,13 +17,7 @@ For long-term storage, use handles instead.
 Default maya commands will require them to be used as string variables instead.
 
 @todo: more documentation
-
-
-
 """
-
-
-
 import mayarv.maya as bmaya
 import typ
 _thismodule = __import__( "mayarv.maya.nodes", globals(), locals(), ['nodes'] )

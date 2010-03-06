@@ -1,13 +1,5 @@
 # -*- coding: utf-8 -*-
-"""
-Test the scene methods
-
-
-
-"""
-
-
-
+""" Test the scene methods """
 import unittest
 from mayarv.maya.scene import Scene
 import maya.OpenMaya as om

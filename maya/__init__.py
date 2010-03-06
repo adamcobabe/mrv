@@ -5,13 +5,7 @@ Inialize the mayarv.maya sub-system and assure and startup maya natively
 @todo: more documentation
 @todo: logger !
 @todo: configuration support
-
-
-
 """
-
-
-
 import os, sys                                                                         
 from mayarv import init_modules
 from mayarv.util import capitalize, DAGTree

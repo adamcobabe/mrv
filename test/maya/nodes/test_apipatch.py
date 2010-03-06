@@ -1,13 +1,5 @@
 # -*- coding: utf-8 -*-
-"""
-Test general nodes features
-
-
-
-"""
-
-
-
+""" Test general nodes features """
 import unittest
 import mayarv.maya.nodes as nodes
 import maya.cmds as cmds

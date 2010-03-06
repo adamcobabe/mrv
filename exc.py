@@ -1,12 +1,5 @@
 # -*- coding: utf-8 -*-
-"""
-Contains all exceptions used by the mayarv package in general
-
-
-
-"""
-
-
+""" Contains all exceptions used by the mayarv package in general """
 
 class MayaRVError( Exception ):
 	""" Base Class for all exceptions that the byronimo framework throws"""

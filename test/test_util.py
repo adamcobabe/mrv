@@ -1,13 +1,5 @@
 # -*- coding: utf-8 -*-
-"""Test misc utility classes
-
-
-
-
-"""
-
-
-
+"""Test misc utility classes """
 import unittest
 from mayarv.util import *
 import re

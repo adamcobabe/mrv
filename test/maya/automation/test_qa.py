@@ -1,13 +1,5 @@
 # -*- coding: utf-8 -*-
-"""
-Test the quality assurance framework and it's mel bindings
-
-
-
-"""
-
-
-
+""" Test the quality assurance framework and it's mel bindings """
 import unittest
 import mayarv.maya.automation.qa as qa
 import mayarv.automation.processes as processes

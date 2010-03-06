@@ -1,11 +1,5 @@
 # -*- coding: utf-8 -*-
-"""All kinds of utility methods and classes that are used in more than one modules
-
-
-
-"""
-
-
+"""All kinds of utility methods and classes that are used in more than one modules """
 import networkx as nx
 from collections import deque as Deque
 import weakref
@@ -257,44 +251,7 @@ class WeakInstFunction( object ):
 		return self._clsfunc( inst, *args, **kwargs )
 
 
-class CallbackBase( iDuplicatable ):
-	"""Base class for all classes that want to provide a common callback interface
-	to supply event information to clients.
-	Usage
-	-----
-	Derive from this class and define your callbacks like :
-	eventname = CallbackBase.Event( "eventname" )
-	Call it using
-	self.sendEvent( "eventname", [ args [ ,kwargs ] ] )
-	 - depends on the assumption that eventname is also the name of the atttribute
-	   where the event class can be found
-	self.sendEvent( owncls.eventname [ args [, kwargs ] ] )
-	 - will always work as no string id is being used
-	If more args are given during your call, this has to be documented
-
-	Users register using
-	yourclass.eventname = callable
-
-	and deregister using
-	yourclass.removeEvent( eventname, callable )
-
-	@note: if use_weak_ref is True, we will weakref the eventfunction, and deal
-	properly with instance methods which would go out of scope immediatly otherwise
-
-	@note: using weak-references to ensure one does not keep objects alive,
-	see L{use_weakref}"""
-	
-	#{ Configuration
-	# if True, the sender, thus self of an instance of this class, will be put
-	# as first arguments to functions when called for a specific event
-	sender_as_argument = False
-	
-	# if True, exceptions thrown when sending events will be reraised immediately
-	# and may stop execution of the event sender as well
-	reraise_on_error = False
-	#} END configuration
-
-	class Event( object ):
+class Event( object ):
 		"""Descriptor allowing to easily setup callbacks for classes derived from
 		CallbackBase"""
 		
@@ -372,6 +329,43 @@ class CallbackBase( iDuplicatable ):
 			return inst
 
 	# END event class
+
+class CallbackBase( iDuplicatable ):
+	"""Base class for all classes that want to provide a common callback interface
+	to supply event information to clients.
+	Usage
+	-----
+	Derive from this class and define your callbacks like :
+	eventname = Event( "eventname" )
+	Call it using
+	self.sendEvent( "eventname", [ args [ ,kwargs ] ] )
+	 - depends on the assumption that eventname is also the name of the atttribute
+	   where the event class can be found
+	self.sendEvent( owncls.eventname [ args [, kwargs ] ] )
+	 - will always work as no string id is being used
+	If more args are given during your call, this has to be documented
+
+	Users register using
+	yourclass.eventname = callable
+
+	and deregister using
+	yourclass.removeEvent( eventname, callable )
+
+	@note: if use_weak_ref is True, we will weakref the eventfunction, and deal
+	properly with instance methods which would go out of scope immediatly otherwise
+
+	@note: using weak-references to ensure one does not keep objects alive,
+	see L{use_weakref}"""
+	
+	#{ Configuration
+	# if True, the sender, thus self of an instance of this class, will be put
+	# as first arguments to functions when called for a specific event
+	sender_as_argument = False
+	
+	# if True, exceptions thrown when sending events will be reraised immediately
+	# and may stop execution of the event sender as well
+	reraise_on_error = False
+	#} END configuration
 
 	def _toEventInst( self, event ):
 		"""@return: event instance for eventname or instance"""

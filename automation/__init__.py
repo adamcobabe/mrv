@@ -1,9 +1,5 @@
 # -*- coding: utf-8 -*-
-"""Intiailize the automation and process framework
-
-
-
-"""
+"""Intiailize the automation and process framework """
 
 # assure we only do certain things once
 if 'init_done' not in locals():

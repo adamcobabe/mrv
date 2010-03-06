@@ -3,13 +3,7 @@
 Contains some default dialogs as well as layouts suitable for layout dialogs
 
 @todo: more documentation
-
-
-
 """
-
-
-
 import base as uibase
 import maya.cmds as cmds
 import maya.utils as mutils

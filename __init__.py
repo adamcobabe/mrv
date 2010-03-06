@@ -3,12 +3,7 @@
 Initialize mayarv system assisting development, debugging and maintenance
 
 	- install general L{decorator} into __builtin__ namespace
-
-
-
 """
-
-
 import __builtin__
 from inspect import isfunction
 

@@ -23,12 +23,10 @@ They specialize the respective parts of the workflow
 
 from workflow import Workflow
 from process import ProcessBase
-from mayarv.util import CallbackBase
+from mayarv.util import CallbackBase, Event
 from mayarv.dge import Attribute, plug, ComputeFailed
 from mayarv.enum import create as enum
 import sys
-
-event = CallbackBase.Event
 
 #{ Exceptions
 class CheckIncompatibleError( ComputeFailed ):
@@ -149,13 +147,13 @@ class QAWorkflow( Workflow, CallbackBase ):
 
 	#{ Events
 	# called before a check is run as func: func( event, check )
-	e_preCheck = event( "e_preCheck" )
+	e_preCheck = Event( "e_preCheck" )
 
 	# called if a check fails with an error: func( event, check, exception, workflow )
-	e_checkError = event( "e_checkError" )
+	e_checkError = Event( "e_checkError" )
 
 	# called after a check has been run: func( event, check, result )
-	e_postCheck = event( "e_postCheck" )
+	e_postCheck = Event( "e_postCheck" )
 	#}
 
 	def __init__( self, *args, **kwargs ):

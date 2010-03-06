@@ -1,12 +1,7 @@
 # -*- coding: utf-8 -*-
 """Contains parser allowing to retrieve dependency information from maya ascii files
 and convert it into an easy-to-use networkx graph with convenience methods
-
-
-
 """
-
-
 import mayarv				# assure we have the main module initialized
 from networkx import DiGraph, NetworkXError
 from networkx.readwrite import gpickle

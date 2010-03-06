@@ -1,13 +1,5 @@
 # -*- coding: utf-8 -*-
-"""
-Test the namespace methods
-
-
-
-"""
-
-
-
+""" Test the namespace methods """
 import unittest
 import mayarv.test.maya as common
 from mayarv.maya.scene import Scene

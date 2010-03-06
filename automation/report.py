@@ -1,12 +1,5 @@
 # -*- coding: utf-8 -*-
-"""contains report implementations allowing to analyse the callgraph of
-
-
-
-"""
-
-
-
+"""contains report implementations allowing to analyse the callgraph of """
 #####################
 ## CLASSES    ######
 ###################

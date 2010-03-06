@@ -1,11 +1,5 @@
 # -*- coding: utf-8 -*-
-"""Contains base class and common methods for all processes
-
-
-
-"""
-
-
+"""Contains base class and common methods for all processes """
 __all__ = list()
 
 from mayarv.dge import NodeBase

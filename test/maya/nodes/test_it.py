@@ -1,13 +1,5 @@
 # -*- coding: utf-8 -*-
-"""
-Test node iterators
-
-
-
-"""
-
-
-
+""" Test node iterators """
 import unittest
 import maya.OpenMaya as api
 from mayarv.maya.nodes.it import *

@@ -2,12 +2,7 @@
 """
 Allows convenient access and handling of references in an object oriented manner
 @todo: more documentation
-
-
-
 """
-
-
 from mayarv.path import Path
 from mayarv.util import And
 from mayarv.exc import *

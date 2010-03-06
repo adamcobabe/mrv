@@ -49,7 +49,7 @@ Although each wrapped node as a python type, which is its capitalized maya type,
 	>>> assert p.hasFn(p.getApiType())
 	>>> assert isinstance(p.getMObject(), api.MObject) and isinstance(t.getMObject(), api.MObject)
 	
-.. warning:: Do not keep nodes unless dag-objects, but prefer to reretrieve them as they may become invalid in the meanwhile.
+.. warning:: Do not keep Nodes cached, but prefer to re-retrieve them on demand as they may become invalid in the meanwhile depending on the operations performed in Maya.
 
 Method Lookup
 =============

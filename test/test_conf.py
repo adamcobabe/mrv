@@ -1,12 +1,5 @@
 # -*- coding: utf-8 -*-
-"""Test all aspects of the configuration management system
-
-
-
-"""
-
-
-
+"""Test all aspects of the configuration management system """
 from mayarv.test.lib import *
 import os
 import sys

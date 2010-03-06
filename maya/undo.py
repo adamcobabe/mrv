@@ -29,14 +29,10 @@ sys._maya_undo_enabled = False ( default True ). Additionally it will turn off
 the maya undo queue as a convenience.
 
 @todo: more documentation about how to use the system and how it actually works
-
-
- """
-
-
-
+"""
 import maya.cmds as cmds
 import maya.mel as mel
+
 
 #{ Initialization
 

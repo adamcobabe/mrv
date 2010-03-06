@@ -5,9 +5,6 @@ These are specialized and thus more powerful than the default wraps
 
 @todo: more documentation
 """
-
-
-
 import base as uibase
 import maya.cmds as cmds
 import mayarv.maya.util as mutil

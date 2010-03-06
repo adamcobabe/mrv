@@ -1,11 +1,5 @@
 # -*- coding: utf-8 -*-
-"""Contains interface definitions
-
-
-
-"""
-
-
+"""Contains interface definitions """
 from collections import deque as Deque
 
 

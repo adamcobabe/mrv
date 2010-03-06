@@ -1,19 +1,10 @@
 # -*- coding: utf-8 -*-
-"""
-Test undo queue performance
-
-
-
-"""
-
-
-
+""" Test undo queue performance """
 import unittest
 import mayarv.maya as bmaya
 import maya.cmds as cmds
 import mayarv.maya.undo as undo
 from mayarv.test.maya.test_undo import TestUndoQueue
-import mayarv.test.maya.benchmark as bcommon
 import sys
 
 class TestUndoPerformance( unittest.TestCase ):
@@ -56,8 +47,6 @@ class TestUndoPerformance( unittest.TestCase ):
 
 	def test_undoPerformance( self ):
 		"mayarv.maya.undo: recursive undo including decorator"
-		if not bcommon.mayRun( "undo" ): return
-		print "\n"			# new line to create some space
 		import time
 		iterations = 35
 		maxdepth = 3

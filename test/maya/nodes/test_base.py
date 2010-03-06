@@ -1,6 +1,5 @@
 # -*- coding: utf-8 -*-
 """Test basic node features """
-
 from mayarv.test.maya import *
 import mayarv.maya as bmaya
 import mayarv.maya.nodes as nodes

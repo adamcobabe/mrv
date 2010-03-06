@@ -3,13 +3,7 @@
 Contains the most controls like buttons and sliders for more convenient use
 
 @todo: more documentation
-
-
-
 """
-
-
-
 import base as uibase
 import util as uiutil
 
@@ -202,8 +196,8 @@ class Button( LabelBase ):
 	_properties_ = ( "actionIsSubstitute" )
 	_events_ = ( "c", "command" )
 
-	e_pressed = uiutil.UIEvent( "command", actOnPress=True )
-	e_released = uiutil.UIEvent( "command", actOnPress=False )
+	e_pressed = uiutil.CallbackBaseUI._UIEvent( "command", actOnPress=True )
+	e_released = uiutil.CallbackBaseUI._UIEvent( "command", actOnPress=False )
 
 class IconTextButton( LabelBase, IconTextBase ):
 	"""Class just for multiple inheritance - this cannot be expressed in the hierarchy
