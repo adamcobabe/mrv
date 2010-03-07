@@ -292,8 +292,7 @@ class iChoiceDialog( Interface ):
 	"""Interface allowing access to a simple confirm dialog allowing the user
 	to pick between a selection of choices, one of which he has to confirm
 	@note: for convenience, this interface contains a brief implementation as a
-	basis for subclasses """
-	
+	basis for subclasses, using standard input  and standard ouput for communication"""
 
 	def __init__( self, *args, **kwargs ):
 		"""Allow the user to pick a choice
@@ -333,6 +332,7 @@ class iChoiceDialog( Interface ):
 
 		return self.default_choice
 
+
 class iPrompt( Interface ):
 	"""Prompt a value from the user, providing a default if no input is retrieved"""
 	#{ Configuration
@@ -363,6 +363,7 @@ class iPrompt( Interface ):
 		print "%s [ %s ]:" % ( self.msg, self.confirmDefault )
 		print "Hit %s to confirm or %s to cancel" % ( self.confirmToken, self.cancelToken )
 		return self.confirmDefault
+
 
 class iProgressIndicator( Interface ):
 	"""Interface allowing to submit progress information

@@ -108,7 +108,7 @@ class MAngle( api.MAngle, TimeDistanceAngleBase ) :
 
 
 # patch some Maya api classes that miss __iter__ to make them iterable / convertible to list
-class PatchIteratblePrimitives( Abstract ):
+class PatchIterablePrimitives( Abstract ):
 	"""@note: Classes derived from this base should not be used directly"""
 	@classmethod
 	def _applyPatch( cls ):
@@ -117,13 +117,13 @@ class PatchIteratblePrimitives( Abstract ):
 		@note: idea from pymel"""
 		def __len__(self):
 			""" Number of components in Maya api iterable """
-			return self.length
+			return self._length
 		# END __len__
 		type.__setattr__( cls.__bases__[0], '__len__', __len__ )
 
 		def __iter__(self):
 			""" Iterates on all components of a Maya base iterable """
-			for i in range( self.length ) :
+			for i in range( self._length ) :
 				yield self.__getitem__( i )
 		# END __iter__
 		type.__setattr__( cls.__bases__[0], '__iter__', __iter__)
@@ -137,17 +137,17 @@ class PatchIteratblePrimitives( Abstract ):
 		# allow the class members to be used ( required as we are using them )
 		return True
 
-class PatchMatrix( Abstract, PatchIteratblePrimitives ):
+class PatchMatrix( Abstract, PatchIterablePrimitives ):
 	"""Only for matrices"""
 	@classmethod
 	def _applyPatch( cls ):
 		"""Special version for matrices"""
-		PatchIteratblePrimitives._applyPatch.im_func( cls )
+		PatchIterablePrimitives._applyPatch.im_func( cls )
 		def __iter__(self):
 			""" Iterates on all 4 rows of a Maya api MMatrix """
-			for r in range( self.length ) :
+			for r in range( self._length ) :
 				row = self.__getitem__( r )
-				yield [ self.scriptutil( row, c ) for c in range( self.length ) ]
+				yield [ self.scriptutil( row, c ) for c in range( self._length ) ]
 		# END __iter__
 		type.__setattr__( cls.__bases__[0], '__iter__', __iter__ )
 
@@ -162,37 +162,37 @@ class PatchMatrix( Abstract, PatchIteratblePrimitives ):
 
 
 
-class MVector( api.MVector, PatchIteratblePrimitives ):
-	length = 3
+class MVector( api.MVector, PatchIterablePrimitives ):
+	_length =3
 
-class MFloatVector( api.MFloatVector, PatchIteratblePrimitives ):
-	length = 3
+class MFloatVector( api.MFloatVector, PatchIterablePrimitives ):
+	_length =3
 
-class MPoint( api.MPoint, PatchIteratblePrimitives ):
-	length = 4
+class MPoint( api.MPoint, PatchIterablePrimitives ):
+	_length =4
 
-class MFloatPoint( api.MFloatPoint, PatchIteratblePrimitives ):
-	length = 4
+class MFloatPoint( api.MFloatPoint, PatchIterablePrimitives ):
+	_length =4
 
-class MColor( api.MColor, PatchIteratblePrimitives ):
-	length = 4
+class MColor( api.MColor, PatchIterablePrimitives ):
+	_length =4
 
-class MQuaternion( api.MQuaternion, PatchIteratblePrimitives ):
-	length = 4
+class MQuaternion( api.MQuaternion, PatchIterablePrimitives ):
+	_length =4
 
-class MEulerRotation( api.MEulerRotation, PatchIteratblePrimitives ):
-	length = 4
+class MEulerRotation( api.MEulerRotation, PatchIterablePrimitives ):
+	_length =4
 
 class MMatrix( api.MMatrix, PatchMatrix ):
-	length = 4
+	_length =4
 	scriptutil = api.MScriptUtil.getDoubleArrayItem
 
 class MFloatMatrix( api.MFloatMatrix, PatchMatrix ):
-	length = 4
+	_length =4
 	scriptutil = api.MScriptUtil.getFloatArrayItem
 #
 class MTransformationMatrix( api.MTransformationMatrix, PatchMatrix ):
-	length = 4
+	_length =4
 
 	@classmethod
 	def _applyPatch( cls ):
@@ -335,7 +335,7 @@ class MPlug( api.MPlug, util.iDagItem ):
 			for c in xrange( nc ):
 				child = self.getChild( c )
 				if (	child.partialName( ).split('.')[-1] == childname or
-					   	child.partialName( 0, 0, 0, 0, 0, 1 ).split('.')[-1] == childname ):
+						child.partialName( 0, 0, 0, 0, 0, 1 ).split('.')[-1] == childname ):
 					outchild = child
 					break
 				# END if it is the child we look for
@@ -863,13 +863,16 @@ class ArrayBase( Abstract ):
 
 	def __setitem__ ( self, index, item ):
 		"""@note: does not work as it expects a pointer type - probably a bug"""
-		return self.set( item, getPythonIndex( index, len( self ) ) )
+		return self.set( item, index )
 
 
 _plugarray_getitem = api.MPlugArray.__getitem__
 _objectarray_getitem = api.MObjectArray.__getitem__
+_colorarray_getitem = api.MColorArray.__getitem__
+_pointarray_getitem = api.MPointArray.__getitem__
 class MPlugArray( api.MPlugArray, ArrayBase ):
-	""" Wrap MPlugArray to make it compatible to pythonic contructs"""
+	""" Wrap MPlugArray to make it compatible to pythonic contructs
+	@note: for performance reasons, we do not provide negative index support"""
 	_apicls = api.MPlugArray
 	
 	def __iter__( self ):
@@ -881,8 +884,6 @@ class MPlugArray( api.MPlugArray, ArrayBase ):
 	def __getitem__ ( self, index ):
 		"""Copy the MPlugs we return to assure their ref count gets incremented"""
 		global _plugarray_getitem
-		if index < 0:
-			index = len(self) + index
 		return api.MPlug(_plugarray_getitem( self,  index ))
 	
 
@@ -891,7 +892,8 @@ class MObjectArray( api.MObjectArray, ArrayBase ):
 	@note: This array also fixes an inherent issue that comes into play when 
 	MObjects are returned using __getitem__, as the reference count does not natively
 	get incremented, and the MObjects will be obsolete once the parent-array goes out 
-	of scope"""
+	of scope
+	@note: for performance reasons, we do not provide negative index support"""
 	_apicls = api.MObjectArray
 	
 	def __iter__( self ):
@@ -903,59 +905,33 @@ class MObjectArray( api.MObjectArray, ArrayBase ):
 	def __getitem__ ( self, index ):
 		"""Copy the MObjects we return to assure their ref count gets incremented"""
 		global _objectarray_getitem
-		if index < 0:
-			index = len(self) + index
 		return api.MObject(_objectarray_getitem( self,  index ))
 
 
-class MSelectionList( api.MSelectionList, ArrayBase ):
-	_apicls = api.MSelectionList
+class MColorArray( api.MColorArray, ArrayBase ):
+	""" Wrap MColor to make it compatible to pythonic contructs.
+	@note: for performance reasons, we do not provide negative index support"""
+	_apicls = api.MColorArray
 	
 	def __iter__( self ):
 		"""@return: iterator object"""
-		return it.iterSelectionList(self)
+		global _colorarray_getitem
+		for i in xrange(len(self)):
+			yield _colorarray_getitem( self,  i )
 	
-	def __contains__( self, rhs ):
-		"""@return: True if we contain rhs
-		@note: As we check for Nodes as well as MayaAPI objects, we are possibly slow"""
-		if isinstance(rhs, base.DagNode):
-			return self.hasItem(rhs._apidagpath)
-		elif isinstance(rhs, base.DependNode):
-			return self.hasItem(rhs._apiobj)
-		else:
-			return self.hasItem(rhs)
-		# END handle input type
+
+class MPointArray( api.MPointArray, ArrayBase ):
+	""" Wrap MPoint to make it compatible to pythonic contructs.
+	@note: for performance reasons, we do not provide negative index support"""
+	_apicls = api.MPointArray
 	
-	@staticmethod
-	def fromStrings( iter_strings, **kwargs ):
-		"""@return: MSelectionList initialized from the given iterable of strings
-		@param **kwargs: passed to L{base.toSelectionListFromNames}"""
-		return base.toSelectionListFromNames(iter_strings, **kwargs)
-		
-	@staticmethod
-	def fromList( iter_items, **kwargs ):
-		"""@return: MSelectionList as initialized from the given iterable of Nodes, 
-		MObjects, MDagPaths or MPlugs
-		@param **kwargs: passed to L{base.toSelectionList}"""
-		return base.toSelectionList(iter_items, **kwargs)
-		
-	@staticmethod
-	def fromComponentList( iter_components, **kwargs ):
-		"""@return: MSelectionList as initialized from the given list of tuple( DagNode, Component ), 
-		Component can be a filled Component object or null MObject
-		@param **kwargs: passed to L{base.toComponentSelectionList}"""
-		return base.toComponentSelectionList(iter_components, **kwargs)
-		
-	def toList( self, **kwargs ):
-		"""@return: list with the contents of this MSelectionList
-		@param **kwargs: passed to L{it.iterSelectionList}"""
-		return list(self.toIter(**kwargs))
-		
-	def toIter( self, **kwargs ):
-		"""@return: iterator yielding of Nodes and MPlugs stored in this given selection list
-		@param **kwargs: passed to L{it.iterSelectionList}"""
-		return it.iterSelectionList( self, **kwargs )
-		
+	def __iter__( self ):
+		"""@return: iterator object"""
+		global _pointarray_getitem
+		for i in xrange(len(self)):
+			yield _pointarray_getitem( self,  i )
+	
+
 class MIntArray( api.MIntArray ):
 	"""Attach additional creator functions"""
 	
@@ -1024,6 +1000,55 @@ class MIntArray( api.MIntArray ):
 		# END for each item
 		
 		return ia
+
+
+class MSelectionList( api.MSelectionList, ArrayBase ):
+	_apicls = api.MSelectionList
+	
+	def __iter__( self ):
+		"""@return: iterator object"""
+		return it.iterSelectionList(self)
+	
+	def __contains__( self, rhs ):
+		"""@return: True if we contain rhs
+		@note: As we check for Nodes as well as MayaAPI objects, we are possibly slow"""
+		if isinstance(rhs, base.DagNode):
+			return self.hasItem(rhs._apidagpath)
+		elif isinstance(rhs, base.DependNode):
+			return self.hasItem(rhs._apiobj)
+		else:
+			return self.hasItem(rhs)
+		# END handle input type
+	
+	@staticmethod
+	def fromStrings( iter_strings, **kwargs ):
+		"""@return: MSelectionList initialized from the given iterable of strings
+		@param **kwargs: passed to L{base.toSelectionListFromNames}"""
+		return base.toSelectionListFromNames(iter_strings, **kwargs)
+		
+	@staticmethod
+	def fromList( iter_items, **kwargs ):
+		"""@return: MSelectionList as initialized from the given iterable of Nodes, 
+		MObjects, MDagPaths or MPlugs
+		@param **kwargs: passed to L{base.toSelectionList}"""
+		return base.toSelectionList(iter_items, **kwargs)
+		
+	@staticmethod
+	def fromComponentList( iter_components, **kwargs ):
+		"""@return: MSelectionList as initialized from the given list of tuple( DagNode, Component ), 
+		Component can be a filled Component object or null MObject
+		@param **kwargs: passed to L{base.toComponentSelectionList}"""
+		return base.toComponentSelectionList(iter_components, **kwargs)
+		
+	def toList( self, **kwargs ):
+		"""@return: list with the contents of this MSelectionList
+		@param **kwargs: passed to L{it.iterSelectionList}"""
+		return list(self.toIter(**kwargs))
+		
+	def toIter( self, **kwargs ):
+		"""@return: iterator yielding of Nodes and MPlugs stored in this given selection list
+		@param **kwargs: passed to L{it.iterSelectionList}"""
+		return it.iterSelectionList( self, **kwargs )
 	
 class MeshIteratorBase( Abstract ):
 	"""Provides common functionality for all MItMesh classes"""

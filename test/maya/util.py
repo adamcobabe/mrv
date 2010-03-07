@@ -1,6 +1,7 @@
 from mayarv.test.lib import *
 import mayarv.maya as mrvmaya
 from mayarv.maya.scene import Scene
+import tempfile
 
 def save_for_debugging(scene_name):
 	"""Save the currently actve scene as MayaAscii for debugging purposes"""

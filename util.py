@@ -444,6 +444,7 @@ class EventSender( object ):
 
 	@note: using weak-references to ensure one does not keep objects alive,
 	see L{use_weakref}"""
+	__slots__ = tuple()
 	
 	#{ Configuration
 	# if True, the sender, thus self of an instance of this class, will be put

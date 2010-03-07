@@ -9,7 +9,7 @@ import sys
 class TestGeometryPerformance( unittest.TestCase ):
 	
 	@with_scene('mesh40k.mb')
-	def test_mesh_iteration(self):
+	def _test_mesh_iteration(self):
 		m = nodes.Node('mesh40k')
 		nv = m.numVertices()
 		ne = m.numEdges()
@@ -93,8 +93,56 @@ class TestGeometryPerformance( unittest.TestCase ):
 		print >>sys.stderr, "Iterated %i face-vertices and queried position in %f s ( %f queries/s )" % (nc, elapsed, nc/elapsed)
 		
 		
+	@with_scene('mesh40k.mb')
+	def test_set_vertex_colors(self):
+		st = time.time()
 		
+		cset = 'edgeLength'
+		m = nodes.Node('mesh40k')
 		
+		m.createColorSetWithName(cset)
+		m.setCurrentColorSetName(cset)
+		
+		lp = nodes.api.MPointArray()
+		m.getPoints(lp)
+		
+		colors = nodes.api.MColorArray()
+		colors.setLength(m.numVertices())
+		
+		vids = nodes.api.MIntArray()
+		vids.setLength(len(colors))
+		
+		el = nodes.api.MFloatArray()
+		el.setLength(len(colors))
+		cvids = nodes.api.MIntArray()
+		
+		# compute average edge-lengths
+		max_len = 0.0
+		for vid, vit in enumerate(m.vtx):
+			vit.getConnectedVertices(cvids)
+			cvp = lp[vid]
+			accum_edge_len=0.0
+			for cvid in cvids:
+				accum_edge_len += (lp[cvid] - cvp).length()
+			# END for each edge-id
+			avg_len = accum_edge_len / len(cvids)
+			max_len = max(avg_len, max_len)
+			el[vid] = avg_len
+			vids[vid] = vid
+		# END for each vertex
+		
+		# normalize
+		for cid in xrange(len(colors)):
+			c = colors[cid]
+			c.b = el[cid] / max_len
+			colors[cid] = c
+		# END for each color id
+	
+		m.setVertexColors(colors, vids, nodes.api.MDGModifier(), nodes.api.MFnMesh.kRGB)
+		
+		elapsed = time.time() - st
+		nc = len(colors)
+		print >>sys.stderr, "Computed %i vertex colors ans assigned them in %f s ( %f colors/s )" % (nc, elapsed, nc/elapsed)
 		
 		
 		

@@ -20,7 +20,7 @@ class TestDataBase( unittest.TestCase ):
 			repr( inst )
 
 		for apicls in [ api.MVector, api.MFloatVector, api.MPoint, api.MFloatPoint,
-		 				api.MColor, api.MQuaternion, api.MEulerRotation, api.MMatrix,
+						api.MColor, api.MQuaternion, api.MEulerRotation, api.MMatrix,
 						api.MFloatMatrix, api.MTransformationMatrix ]:
 			inst = apicls()
 			for item in inst:
@@ -139,7 +139,7 @@ class TestDataBase( unittest.TestCase ):
 		# ATTRIBUTES AND UNDO
 		#######################
 		funcs = ( 	( "isLocked", "setLocked" ), ( "isKeyable", "setKeyable" ),
-				 	( "isCachingFlagSet", "setCaching" ), ( "isChannelBoxFlagSet", "setChannelBox" ) )
+					( "isCachingFlagSet", "setCaching" ), ( "isChannelBoxFlagSet", "setChannelBox" ) )
 
 		plugnames =( "t", "tx", "r","rx", "s", "sy" )
 		for p in plugnames:
@@ -292,7 +292,6 @@ class TestDataBase( unittest.TestCase ):
 		myplug = pa[0]
 		myplug.getName()				# special Plug method not available in the pure api object
 		pa.append( myplug )
-		pa[-1].getName()
 
 		self.failUnless( len( pa ) == 4 )
 
