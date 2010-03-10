@@ -352,16 +352,6 @@ class TestTransform( unittest.TestCase ):
 		
 		n.removeAttribute(n.compound.getAttribute())
 		
-		# SELECTIONS
-		#############
-		# 
-		
-	def test_mesh_examples(self):
-		bmaya.Scene.new(force=True)
-		from mayarv.maya.nodes import *
-		
-		m = Mesh()
-		PolyCube().output > m.inMesh
 		
 		# MESH COMPONENT ITERATION
 		average_x = 0.0
@@ -383,5 +373,12 @@ class TestTransform( unittest.TestCase ):
 			
 		for mit in m.map:                  # iterate face-vertices
 			mit.faceId(); mit.vertId() 
+		
+		
+		
+		# SELECTIONS
+		#############
+		# 
+		
 		
 		

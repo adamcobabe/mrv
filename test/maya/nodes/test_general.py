@@ -239,6 +239,12 @@ class TestGeneral( unittest.TestCase ):
 		# clear selection
 		nodes.select( )
 		self.failUnless( not nodes.getSelection() )
+		
+		# undo/redo
+		cmds.undo()
+		assert len(nodes.getSelection()) == 1
+		cmds.redo()
+		assert len(nodes.getSelection()) == 0
 
 		# select object and selection list
 		nodes.select( persp )

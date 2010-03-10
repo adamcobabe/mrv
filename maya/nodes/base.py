@@ -315,7 +315,8 @@ def select( *nodesOrSelectionList , **kwargs ):
 	@param listAdjustment: default api.MGlobal.kReplaceList
 	@note: as this is a convenience function that is not required by the api itself,
 	but for interactive sessions, it will be undoable
-	@note: Components are only supported if a selection list is given though"""
+	@note: Components are only supported if a selection list is given
+	@note: This method is implicitly undoable"""
 	nodenames = list()
 	other = list()
 
@@ -324,6 +325,7 @@ def select( *nodesOrSelectionList , **kwargs ):
 			nodenames.append( item )
 		else:
 			other.append( item )
+		# END handel item type
 	# END for each item
 
 	if len( other ) == 1 and isinstance( other[0], api.MSelectionList ):
@@ -334,7 +336,6 @@ def select( *nodesOrSelectionList , **kwargs ):
 	if nodenames:
 		sellistnames = toSelectionListFromNames( nodenames )
 		sellist.merge( sellistnames )
-
 
 	adjustment = kwargs.get( "listAdjustment", api.MGlobal.kReplaceList )
 	api.MGlobal.selectCommand( sellist , adjustment )

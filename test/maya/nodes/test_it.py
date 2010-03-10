@@ -86,51 +86,57 @@ class TestGeneral( unittest.TestCase ):
 		# COMPONENTS
 		###############
 		# get components and put them onto a selection list
-		sellist = api.MSelectionList()
-		for obj  in objs:
-			setsandcomps = obj.getComponentAssignments( setFilter = nodes.Shape.fSetsRenderable )
-			for setnode,comp in setsandcomps:
-				if comp:
-					sellist.add( obj.getApiObject(), comp, True )
-				sellist.add( obj.getApiObject(), api.MObject(), True )
-			# for component assignment
-		# for obj in objs
-
-		seliter = iterSelectionList( sellist, asNode=1, handleComponents=1 )
-		slist = list( seliter )
-
-		numassignments = 10
-		self.failUnless(  len( slist ) == numassignments )
-		for node,component in slist:
-			self.failUnless( isinstance( component, ( nodes.Component, api.MObject ) ) )
-
-
-		# NO COMPONENT SUPPORT
-		#########################
-		# it will just return the objects without components then
-		seliter = iterSelectionList( sellist, asNode=1, handleComponents=0 )
-		slist = list( seliter )
-		self.failUnless(  len( slist ) == numassignments )
-
-		for node in slist:
-			self.failUnless( not isinstance( node, tuple ) )
-
-
-		# PLUGS
-		#############
-		sellist.add( p1.o )
-		sellist.add( p1i.i )
-
-		seliter = iterSelectionList( sellist, asNode=1, handleComponents=1, handlePlugs=1 )
-		slist = list( seliter )
-
-		pcount = 0
-		for node, component in slist:
-			if cmds.about( v=1 ).startswith( "8.5" ):
+		for handle_plug in range(2):
+			sellist = api.MSelectionList()
+			for obj  in objs:
+				setsandcomps = obj.getComponentAssignments( setFilter = nodes.Shape.fSetsRenderable )
+				for setnode,comp in setsandcomps:
+					if comp:
+						sellist.add( obj.getApiObject(), comp, True )
+					sellist.add( obj.getApiObject(), api.MObject(), True )
+				# for component assignment
+			# for obj in objs
+	
+			seliter = iterSelectionList( sellist, asNode=1, handlePlugs=handle_plug, handleComponents=1 )
+			slist = list( seliter )
+	
+			numassignments = 10
+			self.failUnless(  len( slist ) == numassignments )
+			for node,component in slist:
+				self.failUnless( isinstance( component, ( nodes.Component, api.MObject ) ) )
+	
+	
+			# NO COMPONENT SUPPORT
+			#########################
+			# it will just return the objects without components then
+			seliter = iterSelectionList( sellist, asNode=1, handlePlugs=handle_plug, handleComponents=0 )
+			slist = list( seliter )
+			self.failUnless(  len( slist ) == numassignments )
+	
+			for node in slist:
+				self.failUnless( not isinstance( node, tuple ) )
+				
+			# PLUGS
+			#######
+			sellist.add( p1.o )
+			sellist.add( p1i.i )
+	
+			seliter = iterSelectionList( sellist, asNode=1, handleComponents=1, handlePlugs=1 )
+			slist = list( seliter )
+	
+			pcount = 0
+			for node, component in slist:
 				pcount += isinstance( component, (api.MPlug, api.MPlugPtr) )
-			else:
-				pcount += isinstance( component, api.MPlug )
-		self.failUnless( pcount == 2 )
+			# END handle plugs
+			self.failUnless( pcount == 2 )  
+		# END handle each possible plug mode )
+		
+		
+		# ANIM NODE KEYS
+		################
+		# NOTE: Although MItSelectionList appears to know something like a kAnimSelectionItem, 
+		# its unclear what exactly a 'keyset' is and how to select it. It does not 
+		# relate to the graph editor keyframe selection or it doesnt work.
 
 
 	def test_dggraph( self ):
