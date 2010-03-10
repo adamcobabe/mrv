@@ -38,26 +38,22 @@ def getDgIterator( *args, **kwargs ):
 
 
 def iterDgNodes( *args, **kwargs ):
-	""" Iterator on MObjects of nodes of the specified types in the Maya scene,
-		if a list of tyes is passed as args, then all nodes of a type included in the list will be iterated on,
-		if no types are specified, all nodes of the scene will be iterated on which may include DAG nodes as well.
-		@param *args: type as found in MFn.k... to optionally restrict the set of nodes the iterator operates upon
+	""" Iterator on MObjects or Nodes of the specified api.MFn types
+		@param *args: type as found in MFn.k... to optionally restrict the set of nodes the iterator operates upon.
+		All nodes of a type included in the *args will be iterated on.
+		*args is empty, all nodes of the scene will be iterated on which may include DAG nodes as well.
 		@param asNode: if True, default True, the returned value will be wrapped as node
-		@param predicate: returns True for every object that can be returned by the iteration,
+		@param predicate: returns True for every iteration element that may be returned by the iteration,
 		default : lambda x: True"""
-
 	iterObj = getDgIterator( *args, **kwargs )
 	predicate = kwargs.get( "predicate", lambda x: True )
 	asNode = kwargs.get( "asNode", True )
 	while not iterObj.isDone() :
-		obj = iterObj.thisNode()
+		node = iterObj.thisNode()
 		if asNode:
-			node = NodeFromObj( obj )
-			if predicate( node ):
-				yield node
-		else:
-			if predicate( obj ):
-				yield obj
+			node = NodeFromObj( node )
+		if predicate( node ):
+			yield node
 		iterObj.next()
 	# END for each obj in iteration
 

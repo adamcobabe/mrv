@@ -245,4 +245,9 @@ class TestGeneral( unittest.TestCase ):
 		for node in [ gid, oset ]:
 			self.failUnless( node in filteredNodes )
 
+		# asNode
+		assert isinstance(iterDgNodes(asNode=0).next(), api.MObject)
+		
+		# predicate
+		assert len(list(iterDgNodes(predicate=lambda n: False))) == 0
 

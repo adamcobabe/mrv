@@ -90,7 +90,7 @@ class TestGeneralPerformance( unittest.TestCase ):
 						for dagpath in it.iterDagNodes( dagpath = dagPath, depth=traversalmode, asNode = asNode ):
 							nc += 1
 						elapsed = time.time() - starttime
-						print >>sys.stderr, "Walked %i dag nodes (dagPath=%i, depth-first=%i, asNode=%i) in %f s ( %f / s )" % ( nc, dagPath, traversalmode, asNode, elapsed, nc / elapsed )
+						print >>sys.stderr, "iterDagNode: Walked %i dag nodes (dagPath=%i, depth-first=%i, asNode=%i) in %f s ( %f / s )" % ( nc, dagPath, traversalmode, asNode, elapsed, nc / elapsed )
 					# END for each asNode value
 				# END for each traversal
 			# END for each dagpath mode
@@ -125,7 +125,16 @@ class TestGeneralPerformance( unittest.TestCase ):
 				# END for handle plugs 
 			# END for asNode
 				
-			
+			# dg walking
+			for asNode in range(2):
+				nc = 0
+				starttime = time.time( )
+				for node in it.iterDgNodes(asNode=asNode):
+					nc += 1
+				# END for each node
+				elapsed = time.time() - starttime
+				print >>sys.stderr, "iterDgNodes: Walked %i nodes (asNode=%i) in %f s ( %f / s )" % ( nc, asNode, elapsed, nc / elapsed )
+			# END for each node
 
 		# END for each run
 
