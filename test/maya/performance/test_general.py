@@ -70,61 +70,87 @@ class TestGeneralPerformance( unittest.TestCase ):
 
 			# DAGPATHS NO NODE CONVERSION
 			starttime = time.time( )
+			nc = 0
 			for dagpath in it.iterDagNodes( dagpath = 1, asNode = 0 ):
-				pass
+				nc += 1
 			elapsed = time.time() - starttime
-			print "Walked %i dag nodes from dagpaths in %f s ( %f / s )" % ( nodecount, elapsed, nodecount / elapsed )
+			print "Walked %i dag nodes from dagpaths in %f s ( %f / s )" % ( nc, elapsed, nc / elapsed )
 
 			# DIRECT ITERATOR USE
 			starttime = time.time( )
 			iterObj = api.MItDag( )
+			nc = 0
 			while not iterObj.isDone( ):
 				dPath = api.MDagPath( )
 				iterObj.getPath( dPath )
 				iterObj.next()
+				nc += 1
 			# END for each dagpath
 			elapsed = time.time() - starttime
-			print "Walked %i nodes directly in %f s ( %f / s )" % ( nodecount, elapsed, nodecount / elapsed )
+			print "Walked %i nodes directly in %f s ( %f / s )" % ( nc, elapsed, nc / elapsed )
 
 			starttime = time.time( )
+			nc = 0
 			for dagnode in it.iterDagNodes( dagpath = 1, asNode = 1 ):
-				pass
+				nc += 1
 			elapsed = time.time() - starttime
-			print "Walked %i WRAPPED dag nodes from dagpaths in %f s ( %f / s )" % ( nodecount, elapsed, nodecount / elapsed )
+			print "Walked %i WRAPPED dag nodes from dagpaths in %f s ( %f / s )" % ( nc, elapsed, nc / elapsed )
 
 			# from ls
 			starttime = time.time( )
 			sellist = nodes.toSelectionListFromNames( cmds.ls( type="dagNode" ) )
+			nsl = len(sellist)
 			for node in it.iterSelectionList( sellist, handlePlugs = False, asNode = False ):
 				pass
 			elapsed = time.time() - starttime
-			print "Listed %i nodes with ls in %f s ( %f / s )" % ( nodecount, elapsed, nodecount / elapsed )
+			print "Listed %i nodes with ls in %f s ( %f / s )" % ( nsl, elapsed, nsl / elapsed )
 
 			# from active selection
-			starttime = time.time( )
 			cmds.select( cmds.ls( type="dagNode" ) )
+			starttime = time.time( )
 			sellist = api.MSelectionList()
 			api.MGlobal.getActiveSelectionList( sellist )
+			nsl = len(sellist)
 			for node in it.iterSelectionList( sellist, handlePlugs = False, asNode = False ):
 				pass
 			elapsed = time.time() - starttime
-			print "Listed %i nodes from active selection in %f s ( %f / s )" % ( nodecount, elapsed, nodecount / elapsed )
+			print "Listed %i nodes from active selection in %f s ( %f / s )" % ( nsl, elapsed, nsl / elapsed )
 
 
 			# WITH NODE CONVERSION
 			starttime = time.time( )
+			nc = 0
 			for node in it.iterDagNodes( asNode = 1, dagpath=False ):
-				pass
+				nc += 1
 			elapsed = time.time() - starttime
-			print "Walked %i WRAPPED nodes from MObjects in %f s ( %f / s )" % ( nodecount, elapsed, nodecount / elapsed )
+			print "Walked %i WRAPPED nodes from MObjects in %f s ( %f / s )" % ( nc, elapsed, nc / elapsed )
 
 
 			# BREADTH
 			starttime = time.time( )
+			nc = 0
 			for dagpath in it.iterDagNodes( depth = 0, dagpath=False ):
-				pass
+				nc += 1
 			elapsed = time.time() - starttime
-			print "Walked %i nodes from MObjects BREADTH FIRST in %f s ( %f / s )" % ( nodecount, elapsed, nodecount / elapsed )
+			print "Walked %i nodes from MObjects BREADTH FIRST in %f s ( %f / s )" % ( nc, elapsed, nc / elapsed )
+			
+			
+			# selection list testing
+			for asNode in range(2):
+				for handlePlugs in range(2):
+					for handleComponents in range(2):
+						starttime = time.time( )
+						for item in it.iterSelectionList( sellist, handlePlugs=handlePlugs, 
+															asNode=asNode, handleComponents=handleComponents ):
+							pass
+						# END for each item
+						elapsed = time.time() - starttime
+						print "iterSelList: Listed %i nodes from active selection (asNode=%i, handlePlugs=%i, handleComponents=%i) in %f s ( %f / s )" % ( nsl, asNode, handlePlugs, handleComponents, elapsed, nsl / elapsed )
+					# END for handle components
+				# END for handle plugs 
+			# END for asNode
+				
+			
 
 		# END for each run
 

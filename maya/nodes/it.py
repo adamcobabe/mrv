@@ -309,7 +309,7 @@ def iterSelectionList( sellist, filterType = api.MFn.kInvalid, predicate = lambd
 	@param sellist: MSelectionList to iterate
 	@param filterType: MFnType id acting as simple type filter
 	@param asNode: if True, returned MObjects or DagPaths will be wrapped as node, compoents will be
-	wrapped as Component objects
+	wrapped as Component objects. Otherwise they will be returned as MObjects and MDagPaths respectively.
 	@param handlePlugs: if True, plugs can be part of the selection list and will be returned. This
 	implicitly means that the selection list will be iterated without an iterator, and MFnType filters
 	will be slower as it is implemented in python. If components are enabled, the tuple returned will be
@@ -320,11 +320,14 @@ def iterSelectionList( sellist, filterType = api.MFn.kInvalid, predicate = lambd
 	as well - see docs for return value, see handlePlugs
 	The predicate will receive the node as well as the component in a tuple ( same as return value )
 	@return: Node or Plug on each iteration step ( assuming filter does not prevent that )
-	If handleComponents is True, for each Object, a tuple will be returned as tuple( node, component ) where
-	component is NullObject ( MObject ) if the whole object is on the list, or the plug if the original 
+	If handleComponents is True, for each Object, a tuple will be returned as tuple( Node, Component ) where
+	component is NullObject ( MObject ) if the whole object is on the list.
+	If the original object was a plug, it will be in the tuples first slot, whereas the component 
+	will be a NullObject
 	selection item was a plug
 	@todo: get rid of the nullplug array as it will not handle recursion properly or multithreading """
 	global nullplugarray
+	kNullObj = MObject()
 	if handlePlugs:
 		# version compatibility - maya 8.5 still defines a plug ptr class that maya 2005 lacks
 		is_plug = lambda obj: isinstance( obj, api.MPlug )
@@ -335,76 +338,60 @@ def iterSelectionList( sellist, filterType = api.MFn.kInvalid, predicate = lambd
 		kInvalid = api.MFn.kInvalid
 		for i in xrange( sellist.length() ):
 			# DAG PATH
-			iterobj = None
-			component = None
+			rval = None
+			component = kNullObj
 			try:
-				iterobj = MDagPath( )
+				rval = MDagPath( )
 				if handleComponents:
 					component = MObject()
-					sellist.getDagPath( i, iterobj, component )
+					sellist.getDagPath( i, rval, component )
+					if asNode and not component.isNull():
+						component = Component( component )
+					# END handle asNode
 				else:
-					sellist.getDagPath( i, iterobj )
-
+					sellist.getDagPath( i, rval )
+				# END handle components in DagPaths
 			except RuntimeError:
 				# TRY PLUG - first as the object could be returned as well if called
 				# for DependNode
 				try:
-					iterobj = nullplugarray[0]
-					sellist.getPlug( i, iterobj )
+					rval = nullplugarray[0]
+					sellist.getPlug( i, rval )
 					# try to access the attribute - if it is not really a plug, it will
 					# fail and throw - for some reason maya can put just the depend node into
 					# a plug
-					iterobj.attribute()
+					rval.attribute()
 				except RuntimeError:
 				# TRY DG NODE
-					iterobj = MObject( )
-					sellist.getDependNode( i, iterobj )
+					rval = MObject( )
+					sellist.getDependNode( i, rval )
 				# END its not an MObject
 			# END handle dagnodes/plugs/dg nodes
 
-			# should have iterobj now
-			if is_plug( iterobj ):
+			# should have rval now
+			if is_plug( rval ):
 				# apply filter
-				if filterType != kInvalid and iterobj.getNodeMObject().apiType() != filterType:
+				if filterType != kInvalid and rval.getNodeMObject().apiType() != filterType:
 					continue
 					# END apply filter type
-
-				rval = iterobj
-				if handleComponents:
-					if asNode:
-						rval = ( iterobj.getNode(), iterobj )
-					else:
-						rval = ( iterobj.getNodeMObject(), iterobj )
-				# END handle components
-
-				if predicate( rval ):
-					yield rval
 			else:
 				if filterType != kInvalid:
 					# must be dag or dg node
-					filterobj = iterobj
-					if isinstance( iterobj, MDagPath ):
-						filterobj = iterobj.node()
-					if filterobj.apiType() != filterType:
+					if isinstance( rval, MDagPath ):
+						if rval.node().apiType() != filterType:
+							continue
+					elif rval.apiType() != filterType: 
 						continue
 				# END filter handling
-
 				if asNode:
-					node = NodeFromObj( iterobj )
-					if handleComponents:
-						if not component.isNull():
-							component = Component( component )
-						rval = ( node, component )
-						if predicate( rval ):
-							yield rval
-					# END as node with components
-					elif predicate( node ):
-						yield node
-					# END asnode without components
-				elif predicate( iterobj ):
-					yield iterobj
-				# END asNode handling
+					rval = NodeFromObj( rval )
 			# END plug handling
+			
+			if handleComponents:
+				rval = ( rval, component )
+			
+			if predicate( rval ):
+				yield rval
 		# END for each element
 	else:
 		# ITERATOR MODE
@@ -412,46 +399,41 @@ def iterSelectionList( sellist, filterType = api.MFn.kInvalid, predicate = lambd
 		iterator = getSelectionListIterator( sellist, filterType = filterType )
 		kDagSelectionItem = api.MItSelectionList.kDagSelectionItem
 		kDNselectionItem = api.MItSelectionList.kDNselectionItem
+		rval = None
 		while not iterator.isDone():
 			# try dag object
+			component = kNullObj
 			itemtype = iterator.itemType( )
 			if itemtype == kDagSelectionItem:
-				path = MDagPath( )
+				rval = MDagPath( )
 				if handleComponents:
 					component = MObject( )
-					iterator.getDagPath( path, component )
+					iterator.getDagPath( rval, component )
+					if asNode and not component.isNull():
+						component = Component( component )
+					# END handle component conversion
 				else:
-					iterator.getDagPath( path )
+					iterator.getDagPath( rval )
 				# END handle components
-
-				if asNode:
-					node = NodeFromObj( path )
-					if handleComponents:
-						if not component.isNull():
-							component = Component( component )
-						rval = ( node, component )
-						if predicate( rval ):
-							yield rval
-					elif predicate( node ):
-						yield node
-					# END handle components
-				elif predicate( path ):
-					yield path
-				# END handle as node
 			elif itemtype == kDNselectionItem:
-				obj = MObject()
-				iterator.getDependNode( obj )
-				if asNode:
-					node = NodeFromObj( obj )
-					if predicate( node ):
-						yield node
-				elif predicate( obj ):
-					yield obj
-				# END handle as node
+				rval = MObject()
+				iterator.getDependNode( rval )
 			else:
 				# cannot handle the item, its animSelection item  - skip for now
 				raise NotImplementedError("todo anim selection item")
 			# END handle item type
+			
+			if asNode:
+				rval = NodeFromObj( rval )
+			# END handle as node
+			
+			if handleComponents:
+				rval = ( rval, component )
+			# END handle component
+				
+			if predicate( rval ):
+				yield rval
+			
 			iterator.next()
 		# END while not done
 

@@ -86,7 +86,8 @@ class TestGeneral( unittest.TestCase ):
 		# COMPONENTS
 		###############
 		# get components and put them onto a selection list
-		for handle_plug in range(2):
+		sellist = None
+		for handlePlugs in range(2):
 			sellist = api.MSelectionList()
 			for obj  in objs:
 				setsandcomps = obj.getComponentAssignments( setFilter = nodes.Shape.fSetsRenderable )
@@ -97,7 +98,7 @@ class TestGeneral( unittest.TestCase ):
 				# for component assignment
 			# for obj in objs
 	
-			seliter = iterSelectionList( sellist, asNode=1, handlePlugs=handle_plug, handleComponents=1 )
+			seliter = iterSelectionList( sellist, asNode=1, handlePlugs=handlePlugs, handleComponents=1 )
 			slist = list( seliter )
 	
 			numassignments = 10
@@ -109,7 +110,7 @@ class TestGeneral( unittest.TestCase ):
 			# NO COMPONENT SUPPORT
 			#########################
 			# it will just return the objects without components then
-			seliter = iterSelectionList( sellist, asNode=1, handlePlugs=handle_plug, handleComponents=0 )
+			seliter = iterSelectionList( sellist, asNode=1, handlePlugs=handlePlugs, handleComponents=0 )
 			slist = list( seliter )
 			self.failUnless(  len( slist ) == numassignments )
 	
@@ -126,11 +127,42 @@ class TestGeneral( unittest.TestCase ):
 	
 			pcount = 0
 			for node, component in slist:
-				pcount += isinstance( component, (api.MPlug, api.MPlugPtr) )
+				pcount += isinstance( node, (api.MPlug, api.MPlugPtr) )
 			# END handle plugs
 			self.failUnless( pcount == 2 )  
 		# END handle each possible plug mode )
 		
+		# test all code branches
+		for filterType in (nodes.api.MFn.kInvalid, nodes.api.MFn.kUnknown):
+			for predicate_rval in reversed(range(2)):
+				for asNode in range(2):
+					for handlePlugs in range(2):
+						for handleComponents in range(2):
+							predicate = lambda x: predicate_rval
+							items = list(iterSelectionList(sellist, filterType, predicate=predicate, 
+															asNode=asNode, handlePlugs=handlePlugs, 
+															handleComponents=handleComponents))
+							
+							# in some cases, we do not expect any return value as 
+							# it doesnt pass the filter
+							if filterType == nodes.api.MFn.kUnknown or predicate_rval == 0:
+								assert len(items) == 0
+							else:
+								assert len(items) != 0
+								if handleComponents:
+									for item in items:
+										assert isinstance(item, tuple)
+										assert isinstance(item[1], nodes.api.MObject)
+										if not item[1].isNull() and asNode:
+											assert isinstance(item[1], nodes.Component)
+									# END check each item
+								# END handle components assertion
+							# END assertion
+						# END for each handleComponents
+					# END for each handlePlugs value
+				# END for each asNode value
+			# END for each predicate
+		# END for each filter type
 		
 		# ANIM NODE KEYS
 		################
