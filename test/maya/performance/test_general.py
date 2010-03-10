@@ -223,6 +223,25 @@ class TestGeneralPerformance( unittest.TestCase ):
 		pass
 		# is tested in test_geometry through the Mesh class
 	
+	@with_scene("samurai_jet_graph.mb")
+	def test_graph_iteration(self):
+		root = nodes.Node('Jetctrllers')
+		for rootitem in (root, root.drawInfo):
+			for breadth in range(2):
+				for plug in range(2):
+					for asNode in range(2):
+						starttime = time.time( )
+						ic = 0
+						for item in it.iterGraph(rootitem, breadth=breadth, plug=plug, asNode=asNode): 
+							ic += 1
+						# END for each item
+						elapsed = time.time() - starttime
+						print >>sys.stderr, "iterGraph: Traversed %i items from %s (asNode=%i, plug=%i, breadth=%i) in %f s ( %f / s )" % ( ic, rootitem, asNode, plug, breadth, elapsed, ic / elapsed )
+					# END for each asNode value
+				# END for each asPlug value
+			# END for each traversal type
+		# END for each root
+		
 
 	def test_wrappedFunctionCall( self ):
 		"""mayarv.maya.benchmark.general: test wrapped funtion calls and compare them"""

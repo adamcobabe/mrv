@@ -39,12 +39,12 @@ def getDgIterator( *args, **kwargs ):
 
 def iterDgNodes( *args, **kwargs ):
 	""" Iterator on MObjects or Nodes of the specified api.MFn types
-		@param *args: type as found in MFn.k... to optionally restrict the set of nodes the iterator operates upon.
-		All nodes of a type included in the *args will be iterated on.
-		*args is empty, all nodes of the scene will be iterated on which may include DAG nodes as well.
-		@param asNode: if True, default True, the returned value will be wrapped as node
-		@param predicate: returns True for every iteration element that may be returned by the iteration,
-		default : lambda x: True"""
+	@param *args: type as found in MFn.k... to optionally restrict the set of nodes the iterator operates upon.
+	All nodes of a type included in the *args will be iterated on.
+	*args is empty, all nodes of the scene will be iterated on which may include DAG nodes as well.
+	@param asNode: if True, default True, the returned value will be wrapped as node
+	@param predicate: returns True for every iteration element that may be returned by the iteration,
+	default : lambda x: True"""
 	iterObj = getDgIterator( *args, **kwargs )
 	predicate = kwargs.get( "predicate", lambda x: True )
 	asNode = kwargs.get( "asNode", True )
@@ -110,23 +110,23 @@ def getDagIterator( *args, **kwargs ):
 # Iterators on dag nodes hierarchies using MItDag (ie listRelatives)
 def iterDagNodes( *args, **kwargs ):
 	""" Iterate over the hierarchy under a root dag node, if root is None, will iterate on whole Maya scene
-		If a list of types is provided, then only nodes of these types will be returned,
-		if no type is provided all dag nodes under the root will be iterated on.
-		Types are specified as Maya API types being a member of api.MFn
-		The following keywords will affect order and behavior of traversal:
-		@param dagpath:	if True, default True, MDagPaths will be returned
-		If False, MObjects will be returned - it will return each object only once in case they
-		occour in multiple paths.
-		@param depth: 	if True, default True, Nodes will be returned as a depth first traversal of the hierarchy tree
-		if False as a post-order (breadth first)
-		@param underworld: if True, default False, traversal will include a shape's underworld 
-		(dag object parented to the shape), if False the underworld will not be traversed,
-		@param asNode: 	if True, default True, the returned item will be wrapped into a Node
-		@param root: 	MObject or MDagPath or Node of the object you would like to start iteration on, or None to
-		start on the scene root. The root node will also be returned by the iteration !
-		Please note that if an MObject is given, it needs to be an instanced DAG node to have an effect.
-		@param predicate: method returning True if passed in iteration element can be yielded
-		default: lambda x: True"""
+	If a list of types is provided, then only nodes of these types will be returned,
+	if no type is provided all dag nodes under the root will be iterated on.
+	Types are specified as Maya API types being a member of api.MFn
+	The following keywords will affect order and behavior of traversal:
+	@param dagpath:	if True, default True, MDagPaths will be returned
+	If False, MObjects will be returned - it will return each object only once in case they
+	occour in multiple paths.
+	@param depth: 	if True, default True, Nodes will be returned as a depth first traversal of the hierarchy tree
+	if False as a post-order (breadth first)
+	@param underworld: if True, default False, traversal will include a shape's underworld 
+	(dag object parented to the shape), if False the underworld will not be traversed,
+	@param asNode: 	if True, default True, the returned item will be wrapped into a Node
+	@param root: 	MObject or MDagPath or Node of the object you would like to start iteration on, or None to
+	start on the scene root. The root node will also be returned by the iteration !
+	Please note that if an MObject is given, it needs to be an instanced DAG node to have an effect.
+	@param predicate: method returning True if passed in iteration element can be yielded
+	default: lambda x: True"""
 
 	# Must define dPath in loop or the iterator will yield
 	# them as several references to the same object (thus with the same value each time)
@@ -182,17 +182,19 @@ def getGraphIterator( nodeOrPlug, *args, **kwargs ):
 	This is a bug in that sense as it should just return nothing. It also shows that
 	maya pre-parses the result and then just iterates over a list with the iterator in
 	question"""
+	global nullplugarray
 	startObj = startPlug = None
 
-	pa = api.MPlugArray( )			# have to pass a proper empty plug pointer
-	pa.setLength( 1 )				# this is an ugly way to get it - needs just to be valid
-									# during mit object initialization
 	if isinstance( nodeOrPlug, api.MPlug ):
 		startPlug = nodeOrPlug
 		startObj = MObject()
 	elif isinstance( nodeOrPlug, Node ):
-		startObj = nodeOrPlug._apiobj
-		startPlug = pa[0]
+		startObj = nodeOrPlug.getMObject()
+		startPlug = nullplugarray[0]
+	else:
+		startObj = nodeOrPlug
+		startPlug = nullplugarray[0]
+	# END traversal root
 
 	inputPlugs = kwargs.get('input', False)
 	breadth = kwargs.get('breadth', False)
@@ -204,6 +206,7 @@ def getGraphIterator( nodeOrPlug, *args, **kwargs ):
 		typeFilter.setObjectType( api.MIteratorType.kMPlugObject )
 	else :
 		typeFilter.setObjectType( api.MIteratorType.kMObject )
+	# END handle object type
 
 	direction = api.MItDependencyGraph.kDownstream
 	if inputPlugs :
@@ -226,31 +229,30 @@ def getGraphIterator( nodeOrPlug, *args, **kwargs ):
 	return iterObj
 
 def iterGraph( nodeOrPlug, *args, **kwargs ):
-	""" Iterate over MObjects of Dependency Graph (DG) Nodes or Plugs starting at a specified root Node or Plug,
-		If a list of types is provided, then only nodes of these types will be returned,
-		if no type is provided all connected nodes will be iterated on.
-		Types are specified as Maya API types.
-		The following keywords will affect order and behavior of traversal:
-		@param nodeOrPlug: node or plug to start the iteration at
-		@param *args: list of MFn node types
-		@param input: if True connections will be followed from destination to source,
-				  if False from source to destination
-				  default is False (downstream)
-		@param breadth: if True nodes will be returned as a breadth first traversal of the connection graph,
-				 if False as a preorder (depth first)
-				 default is False (depth first)
-		@param plug: if True traversal will be at plug level (no plug will be traversed more than once),
-			  if False at node level (no node will be traversed more than once),
-			  default is False (node level)
-		@param prune : if True will stop the iteration on nodes that do not fit the types list,
-				if False these nodes will be traversed but not returned
-				default is False (do not prune)
-		@param asNode: if the iteration is on node level, Nodes ( wrapped MObjects ) will be returned
-						If False, MObjects will be returned
-						default True
-		@param predicate: method returning True if passed in iteration element can be yielded
-			default: lambda x: True
-		@yield: MObject, Node or Plug depending on the configuration flags"""
+	""" Iterate Dependency Graph (DG) Nodes or Plugs starting at a specified root Node or Plug,
+	The following keywords will affect order and behavior of traversal:
+	@param nodeOrPlug: Node, MObject or MPlug to start the iteration at
+	@param *args: list of MFn node types
+	If a list of types is provided, only nodes of these types will be returned,
+	if no type is provided all connected nodes will be iterated on.
+	@param input: if True connections will be followed from destination to source,
+	if False from source to destination
+	default is False (downstream)
+	@param breadth: if True nodes will be returned as a breadth first traversal of the connection graph,
+	if False as a preorder (depth first)
+	default is False (depth first)
+	@param plug: if True traversal will be at plug level (no plug will be traversed more than once),
+	if False at node level (no node will be traversed more than once),
+	default is False (node level)
+	@param prune : if True, the iteration will stop on nodes that do not fit the types list,
+	if False these nodes will be traversed but not returned
+	default is False (do not prune)
+	@param asNode: if True, default True, and if the iteration is on node level, 
+	Nodes ( wrapped MObjects ) will be returned
+	If False, MObjects will be returned
+	@param predicate: method returning True if passed in iteration element can be yielded
+	default: lambda x: True
+	@yield: MObject, Node or Plug depending on the configuration flags"""
 	try:
 		iterObj = getGraphIterator( nodeOrPlug, *args, **kwargs )
 	except RuntimeError:
@@ -262,30 +264,29 @@ def iterGraph( nodeOrPlug, *args, **kwargs ):
 	predicate = kwargs.get( 'predicate', lambda x: True )
 
 	# iterates and yields MObjects
-	while not iterObj.isDone():
-		if retrievePlugs:
-			plug = iterObj.thisPlug()
-			if predicate( plug ):
-				yield plug
-		else:
-			obj = iterObj.currentItem()
-			if asNode:
-				node = NodeFromObj( obj )
-				if predicate( node ):
-					yield node
+	rval = None
+	# if node filters are used, it easily threw NULL Object returned errors
+	# just because the iteration is depleted - catching this now
+	try:
+		while not iterObj.isDone():
+			if retrievePlugs:
+				rval = iterObj.thisPlug()
 			else:
-				if predicate( obj ):
-					yield obj
-		# END if return on node level
-
-		# if node filters are used, it easily throws NULL Object returned errors
-		# just because the iteration is depleted - catching this now
-		try:
+				rval = iterObj.currentItem()
+				if asNode:
+					rval = NodeFromObj( rval )
+				# END handle asNode
+			# END if return on node level
+			
+			if predicate( rval ):
+				yield rval
+	
 			iterObj.next()
-		except RuntimeError:
-			raise StopIteration()
-	# END of iteration
-
+		# END of iteration
+	except RuntimeError:
+		raise StopIteration()
+	# END handle possible iteration error
+			
 def getSelectionListIterator( sellist, **kwargs ):
 	"""@return: iterator suitable to iterate given selection list - for more info see
 	L{iterSelectionList}"""

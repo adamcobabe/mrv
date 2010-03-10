@@ -203,7 +203,7 @@ class TestGeneral( unittest.TestCase ):
 		
 		# its fixed in 2009 and above
 		if mayaversion < 2009:
-			self.failUnlessRaises( RuntimeError, graphiter.next )
+			self.failUnlessRaises(StopIteration, graphiter.next)
 		else:
 			num_plugs = 0
 			for plug in graphiter:
@@ -221,7 +221,40 @@ class TestGeneral( unittest.TestCase ):
 
 		# TODO: PLUGLEVEL  + filter
 		# Currently I do not really have any application for this, so lets wait
-		# till I need it
+		# till its needed
+		
+		# test all branches
+		for root in (persp, persp.t, front.t):
+			for inputval in range(2):
+				for breadth in range(2):
+					for plug in range(2):
+						for prune in range(2):
+							for asNode in range(2):
+								for predicate_rval in range(2):
+									predicate = lambda x: predicate_rval
+									items = list(iterGraph(root,input=inputval, breadth=breadth,
+															plug=plug, prune=prune, asNode=asNode, 
+															predicate=predicate))
+									if not predicate_rval:
+										assert len(items) == 0
+									if asNode and not plug:
+										for item in items:
+											assert isinstance(item, nodes.Node)
+										# END for each item
+									# END if node asNode iteartion
+									
+									if plug:
+										for item in items:
+											assert isinstance(item, api.MPlug)
+										# END for each item
+									# END if plug is to be returned
+								# END for each predicate rval
+							# END for each asNode value
+						# END for each prune value
+					# END for each plug value
+				# END for each traversal type
+			# END for each input val
+		# END for each root 
 
 
 	def test_dgiter( self ):
