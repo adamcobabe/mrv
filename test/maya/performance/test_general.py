@@ -34,6 +34,7 @@ class TestGeneralPerformance( unittest.TestCase ):
 	def test_buildTestScene( self ):
 		"""mayarv.maya.benchmark.general: build test scene with given amount of nodes  """
 		return 	# disabled
+		
 		numNodes = 100000
 		cmds.undoInfo( st=0 )
 		targetFile = common.get_maya_file( "large_scene_%i.mb" % numNodes )
@@ -68,7 +69,7 @@ class TestGeneralPerformance( unittest.TestCase ):
 			bmaya.Scene.open( benchfile, force = 1 )
 
 			# DIRECT ITERATOR USE
-			starttime = time.time( )
+			st = time.time( )
 			iterObj = api.MItDag( )
 			nc = 0
 			while not iterObj.isDone( ):
@@ -77,7 +78,7 @@ class TestGeneralPerformance( unittest.TestCase ):
 				iterObj.next()
 				nc += 1
 			# END for each dagpath
-			elapsed = time.time() - starttime
+			elapsed = time.time() - st
 			print >>sys.stderr, "Walked %i nodes directly in %f s ( %f / s )" % ( nc, elapsed, nc / elapsed )
 
 			
@@ -85,27 +86,27 @@ class TestGeneralPerformance( unittest.TestCase ):
 				for traversalmode in range(2):
 					for asNode in range(2):
 						# DAGPATHS NO NODE CONVERSION
-						starttime = time.time( )
+						st = time.time( )
 						nc = 0
 						for dagpath in it.iterDagNodes( dagpath = dagPath, depth=traversalmode, asNode = asNode ):
 							nc += 1
-						elapsed = time.time() - starttime
+						elapsed = time.time() - st
 						print >>sys.stderr, "iterDagNode: Walked %i dag nodes (dagPath=%i, depth-first=%i, asNode=%i) in %f s ( %f / s )" % ( nc, dagPath, traversalmode, asNode, elapsed, nc / elapsed )
 					# END for each asNode value
 				# END for each traversal
 			# END for each dagpath mode
 			
 			# FROM LS
-			starttime = time.time( )
+			st = time.time( )
 			sellist = nodes.toSelectionListFromNames( cmds.ls( type="dagNode" ) )
 			nsl = len(sellist)
 			for node in it.iterSelectionList( sellist, handlePlugs = False, asNode = False ):
 				pass
-			elapsed = time.time() - starttime
+			elapsed = time.time() - st
 			print >>sys.stderr, "Listed %i nodes with ls in %f s ( %f / s )" % ( nsl, elapsed, nsl / elapsed )
 
 			cmds.select( cmds.ls( type="dagNode" ) )
-			starttime = time.time( )
+			st = time.time( )
 			sellist = api.MSelectionList()
 			api.MGlobal.getActiveSelectionList( sellist )
 			nsl = len(sellist)
@@ -114,12 +115,12 @@ class TestGeneralPerformance( unittest.TestCase ):
 			for asNode in range(2):
 				for handlePlugs in range(2):
 					for handleComponents in range(2):
-						starttime = time.time( )
+						st = time.time( )
 						for item in it.iterSelectionList( sellist, handlePlugs=handlePlugs, 
 															asNode=asNode, handleComponents=handleComponents ):
 							pass
 						# END for each item
-						elapsed = time.time() - starttime
+						elapsed = time.time() - st
 						print >>sys.stderr, "iterSelList: Listed %i nodes from active selection (asNode=%i, handlePlugs=%i, handleComponents=%i) in %f s ( %f / s )" % ( nsl, asNode, handlePlugs, handleComponents, elapsed, nsl / elapsed )
 					# END for handle components
 				# END for handle plugs 
@@ -128,11 +129,11 @@ class TestGeneralPerformance( unittest.TestCase ):
 			# dg walking
 			for asNode in range(2):
 				nc = 0
-				starttime = time.time( )
+				st = time.time( )
 				for node in it.iterDgNodes(asNode=asNode):
 					nc += 1
 				# END for each node
-				elapsed = time.time() - starttime
+				elapsed = time.time() - st
 				print >>sys.stderr, "iterDgNodes: Walked %i nodes (asNode=%i) in %f s ( %f / s )" % ( nc, asNode, elapsed, nc / elapsed )
 			# END for each node
 
@@ -150,7 +151,7 @@ class TestGeneralPerformance( unittest.TestCase ):
 			nslist = genNestedNamesList( numNodes / 100, (0,3), genRandomNames(10,(3,8)),":" )
 			nodenames = genNodeNames( numNodes, (1,5),(3,8),nslist )
 
-			starttime = time.time( )
+			st = time.time( )
 			undoobj = undo.StartUndo( )
 			for nodename in nodenames:
 				try:	# it can happen that he creates dg and dag nodes with the same name
@@ -160,14 +161,14 @@ class TestGeneralPerformance( unittest.TestCase ):
 			# END for each node
 			del( undoobj )	# good if we raise runtime errors ( shouldnt happend )
 
-			elapsed = time.time() - starttime
+			elapsed = time.time() - st
 			all_elapsed.append( elapsed )
 			print >>sys.stderr, "Created %i nodes in %f s ( %f / s )" % ( numNodes, elapsed, numNodes / elapsed )
 
 			# UNDO OPERATION
-			starttime = time.time()
+			st = time.time()
 			cmds.undo()
-			elapsed = time.time() - starttime
+			elapsed = time.time() - st
 			print >>sys.stderr, "Undone Operation in %f s" % elapsed
 
 		# END for each run
@@ -183,16 +184,16 @@ class TestGeneralPerformance( unittest.TestCase ):
 		nodenames = cmds.ls( l=1 )
 		Nodes = []
 
-		starttime = time.time( )
+		st = time.time( )
 		for name in nodenames:
 			Nodes.append( Node( name ) )
 
-		elapsed = time.time() - starttime
+		elapsed = time.time() - st
 		print >>sys.stderr, "Created %i WRAPPED Nodes ( from STRING ) in %f s ( %f / s )" % ( len( nodenames ), elapsed, len( nodenames ) / elapsed )
 
 
 		# CREATE MAYA NODES FROM DAGPATHS AND OBJECTS
-		starttime = time.time( )
+		st = time.time( )
 		tmplist = list()	# previously we measured the time it took to append the node as well
 		for node in Nodes:
 			if isinstance( node, nodes.DagNode ):
@@ -201,12 +202,12 @@ class TestGeneralPerformance( unittest.TestCase ):
 				tmplist.append( Node( node._apiobj ) )
 		# END for each wrapped node
 
-		api_elapsed = time.time() - starttime
+		api_elapsed = time.time() - st
 		print >>sys.stderr, "Created %i WRAPPED Nodes ( from APIOBJ ) in %f s ( %f / s ) -> %f %% faster" % ( len( nodenames ), api_elapsed, len( nodenames ) / api_elapsed, (elapsed / api_elapsed) * 100 )
 
 
 		# CREATE MAYA NODES USING THE FAST CONSTRUCTOR
-		starttime = time.time( )
+		st = time.time( )
 		tmplist = list()	# previously we measured the time it took to append the node as well
 		for node in Nodes:
 			if isinstance( node, nodes.DagNode ):
@@ -215,8 +216,18 @@ class TestGeneralPerformance( unittest.TestCase ):
 				tmplist.append( NodeFromObj( node._apiobj ) )
 		# END for each wrapped node
 
-		api_elapsed = time.time() - starttime
+		api_elapsed = time.time() - st
 		print >>sys.stderr, "Created %i WRAPPED Nodes ( from APIOBJ using NodeFromObj) in %f s ( %f / s ) -> %f %% faster" % ( len( nodenames ), api_elapsed, len( nodenames ) / api_elapsed, (elapsed / api_elapsed) * 100 )
+
+
+		# RENAME PERFORMANCE
+		st = time.time()
+		for node in (n for n in tmplist if isinstance(n, nodes.DagNode)):
+			node.rename(node.getBasename()[:-1])
+		# END for each node 
+		elapsed = time.time() - st
+		ltl = len(tmplist)
+		print >>sys.stderr, "Renamed %i WRAPPED Nodes in %f s ( %f / s )" % ( ltl, elapsed, ltl / elapsed )
 
 
 	def test_intarray_creation(self):
@@ -230,12 +241,12 @@ class TestGeneralPerformance( unittest.TestCase ):
 			for breadth in range(2):
 				for plug in range(2):
 					for asNode in range(2):
-						starttime = time.time( )
+						st = time.time( )
 						ic = 0
 						for item in it.iterGraph(rootitem, breadth=breadth, plug=plug, asNode=asNode): 
 							ic += 1
 						# END for each item
-						elapsed = time.time() - starttime
+						elapsed = time.time() - st
 						print >>sys.stderr, "iterGraph: Traversed %i items from %s (asNode=%i, plug=%i, breadth=%i) in %f s ( %f / s )" % ( ic, rootitem, asNode, plug, breadth, elapsed, ic / elapsed )
 					# END for each asNode value
 				# END for each asPlug value

@@ -33,26 +33,26 @@ class TestPlugPerformance( unittest.TestCase ):
 			source > dest
 		# END for whole range
 		elapsed = time.time() - st
-		print "Single-Connected %i different multi-plugs in %f s ( %f / s )" % (len(r), elapsed, len(r) / elapsed)
+		print >> sys.stderr, "Single-Connected %i different multi-plugs in %f s ( %f / s )" % (len(r), elapsed, len(r) / elapsed)
 		
 		# multiconnect 
 		st = time.time()
 		api.MPlug.connectMultiToMulti(pir(sn2.a, r), pir(tn2.ab, r), force=False)
 		elapsed = time.time() - st
-		print "Multi-Connected %i different multi-plugs in %f s ( %f / s )" % (len(r), elapsed, len(r) / elapsed)
+		print >> sys.stderr, "Multi-Connected %i different multi-plugs in %f s ( %f / s )" % (len(r), elapsed, len(r) / elapsed)
 		
 		# multiconnect with force worstcase
 		st = time.time()
 		api.MPlug.connectMultiToMulti(pir(sn.a, r), pir(tn2.ab, r), force=True)
 		elapsed = time.time() - st
-		print "Multi-Connected %i different multi-plugs with worstcase FORCE in %f s ( %f / s )" % (len(r), elapsed, len(r) / elapsed)
+		print >> sys.stderr, "Multi-Connected %i different multi-plugs with worstcase FORCE in %f s ( %f / s )" % (len(r), elapsed, len(r) / elapsed)
 		
 		# multiconnect with force bestcase
 		r = range(len(r), len(r)+len(r))
 		st = time.time()
 		api.MPlug.connectMultiToMulti(pir(sn3.a, r), pir(tn3.ab, r), force=True)
 		elapsed = time.time() - st
-		print "Multi-Connected %i different multi-plugs with bestcase FORCE in %f s ( %f / s )" % (len(r), elapsed, len(r) / elapsed)
+		print >> sys.stderr, "Multi-Connected %i different multi-plugs with bestcase FORCE in %f s ( %f / s )" % (len(r), elapsed, len(r) / elapsed)
 	
 	def test_general( self ):
 		"""mayarv.maya.apipatch: test plug performance"""
@@ -76,7 +76,7 @@ class TestPlugPerformance( unittest.TestCase ):
 					func( i )
 				elapsed = time.time( ) - starttime
 
-				print "%i %s in %f s ( %f / s )" % ( numcons, msg, elapsed, numcons / elapsed )
+				print >> sys.stderr, "%i %s in %f s ( %f / s )" % ( numcons, msg, elapsed, numcons / elapsed )
 
 				del( undoObj )
 
@@ -88,7 +88,7 @@ class TestPlugPerformance( unittest.TestCase ):
 				cmds.redo()
 				redoelapsed = time.time() - starttime
 
-				print "UNDO / REDO Time = %f / %f ( %f * faster than initial creation )" % ( undoelapsed, redoelapsed,  elapsed / max( redoelapsed, 0.001) )
+				print >> sys.stderr, "UNDO / REDO Time = %f / %f ( %f * faster than initial creation )" % ( undoelapsed, redoelapsed,  elapsed / max( redoelapsed, 0.001) )
 			# END for each amount of plugs to connct
 		# END measure function
 
@@ -129,7 +129,7 @@ class TestPlugPerformance( unittest.TestCase ):
 		del( undoObj )
 
 		total_count = num_iterations * len( plugs )
-		print "Get/Set %i plugs %i times ( total = %i ) in %f ( %g / s )" % ( len( plugs ), num_iterations, total_count,  elapsed, total_count / elapsed )
+		print >> sys.stderr, "Get/Set %i plugs %i times ( total = %i ) in %f ( %g / s )" % ( len( plugs ), num_iterations, total_count,  elapsed, total_count / elapsed )
 
 		starttime = time.time()
 		cmds.undo()
@@ -139,5 +139,5 @@ class TestPlugPerformance( unittest.TestCase ):
 		cmds.redo()
 		redoelapsed = time.time() - starttime
 
-		print "UNDO / REDO Time = %f / %f ( %f * faster than initial set/get )" % ( undoelapsed, redoelapsed,  elapsed / max( redoelapsed, 0.001) )
+		print >> sys.stderr, "UNDO / REDO Time = %f / %f ( %f * faster than initial set/get )" % ( undoelapsed, redoelapsed,  elapsed / max( redoelapsed, 0.001) )
 

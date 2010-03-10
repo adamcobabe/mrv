@@ -378,7 +378,32 @@ class TestTransform( unittest.TestCase ):
 		
 		# SELECTIONS
 		#############
-		# 
+		select(p.t, "time1", p, ps)
+		assert len(getSelection()) == 4
+		
+		# simple filtering
+		assert getSelectionList().iterPlugs().next() == p.t
+		assert getSelection(api.MFn.kTransform)[-1] == p
+		
+		# adjustments
+		sl = getSelectionList()
+		sl.remove(0)		# remove plug
+		select(sl)
+		assert len(getSelectionList()) == len(getSelection()) == 3
+		
+		assert len(getSelection(predicate=lambda n: n.isReferenced())) == 0
+		
+		# COMPONENTS AND PLUGS#
+		sl = api.MSelectionList()
+		sl.add(m.getMDagPath(), m.cf[:4])			# first 4 faces
+		select(sl)
+		assert len(getSelectionList().iterComponents().next()[1].getElements()) == 4
+		
+		sl.clear()
+		sl.add(p.t)
+		sl.add(m.outMesh)
+		select(sl)
+		assert len(getSelection()) == 2
 		
 		
 		

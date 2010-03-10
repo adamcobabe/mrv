@@ -7,8 +7,8 @@ dag.
 import maya.OpenMaya as api
 import maya.cmds as cmds
 from maya.OpenMaya import MDagPath, MObject
-
 from base import Node, DagNode, NodeFromObj, Component
+
 
 def _argsToFilter( args ):
 	"""convert the MFnTypes in args list to the respective typeFilter"""
@@ -28,6 +28,8 @@ def _argsToFilter( args ):
 	return typeFilter
 
 
+#{ Iterator Creators
+
 def getDgIterator( *args, **kwargs ):
 	"""@return: MItDependencyNodes configured according to args - see docs at
 	L{iterDgNodes}.
@@ -35,30 +37,6 @@ def getDgIterator( *args, **kwargs ):
 	typeFilter = _argsToFilter( args )
 	iterObj = api.MItDependencyNodes( typeFilter )
 	return iterObj
-
-
-def iterDgNodes( *args, **kwargs ):
-	""" Iterator on MObjects or Nodes of the specified api.MFn types
-	@param *args: type as found in MFn.k... to optionally restrict the set of nodes the iterator operates upon.
-	All nodes of a type included in the *args will be iterated on.
-	*args is empty, all nodes of the scene will be iterated on which may include DAG nodes as well.
-	@param asNode: if True, default True, the returned value will be wrapped as node
-	@param predicate: returns True for every iteration element that may be returned by the iteration,
-	default : lambda x: True"""
-	iterObj = getDgIterator( *args, **kwargs )
-	predicate = kwargs.get( "predicate", lambda x: True )
-	asNode = kwargs.get( "asNode", True )
-	while not iterObj.isDone() :
-		node = iterObj.thisNode()
-		if asNode:
-			node = NodeFromObj( node )
-		if predicate( node ):
-			yield node
-		iterObj.next()
-	# END for each obj in iteration
-
-
-
 
 def getDagIterator( *args, **kwargs ):
 	"""@return: MItDagIterator configured according to args - see docs at
@@ -106,6 +84,92 @@ def getDagIterator( *args, **kwargs ):
 
 
 	return iterObj
+	
+
+def getGraphIterator( nodeOrPlug, *args, **kwargs ):
+	"""@return: MItDependencyGraph configured according to args - see docs at
+	L{iterGraph}.
+	@note: use this method if you want to use more advanced features of the iterator
+	@raise RuntimeError: if the filter types does not allow any nodes to be returned.
+	This is a bug in that sense as it should just return nothing. It also shows that
+	maya pre-parses the result and then just iterates over a list with the iterator in
+	question"""
+	global nullplugarray
+	startObj = startPlug = None
+
+	if isinstance( nodeOrPlug, api.MPlug ):
+		startPlug = nodeOrPlug
+		startObj = MObject()
+	elif isinstance( nodeOrPlug, Node ):
+		startObj = nodeOrPlug.getMObject()
+		startPlug = nullplugarray[0]
+	else:
+		startObj = nodeOrPlug
+		startPlug = nullplugarray[0]
+	# END traversal root
+
+	inputPlugs = kwargs.get('input', False)
+	breadth = kwargs.get('breadth', False)
+	plug = kwargs.get('plug', False)
+	prune = kwargs.get('prune', False)
+	typeFilter = _argsToFilter( args )
+
+	if startPlug is not None :
+		typeFilter.setObjectType( api.MIteratorType.kMPlugObject )
+	else :
+		typeFilter.setObjectType( api.MIteratorType.kMObject )
+	# END handle object type
+
+	direction = api.MItDependencyGraph.kDownstream
+	if inputPlugs :
+		direction = api.MItDependencyGraph.kUpstream
+
+	traversal =	 api.MItDependencyGraph.kDepthFirst
+	if breadth :
+		traversal = api.MItDependencyGraph.kBreadthFirst
+
+	level = api.MItDependencyGraph.kNodeLevel
+	if plug :
+		level = api.MItDependencyGraph.kPlugLevel
+
+	iterObj = api.MItDependencyGraph( startObj, startPlug, typeFilter, direction, traversal, level )
+
+	iterObj.disablePruningOnFilter()
+	if prune :
+		iterObj.enablePruningOnFilter()
+
+	return iterObj
+	
+
+def getSelectionListIterator( sellist, **kwargs ):
+	"""@return: iterator suitable to iterate given selection list - for more info see
+	L{iterSelectionList}"""
+	filtertype = kwargs.get( "filterType", api.MFn.kInvalid )
+	iterator = api.MItSelectionList( sellist, filtertype )
+	return iterator
+	
+#} END iterator creators 
+
+
+def iterDgNodes( *args, **kwargs ):
+	""" Iterator on MObjects or Nodes of the specified api.MFn types
+	@param *args: type as found in MFn.k... to optionally restrict the set of nodes the iterator operates upon.
+	All nodes of a type included in the *args will be iterated on.
+	*args is empty, all nodes of the scene will be iterated on which may include DAG nodes as well.
+	@param asNode: if True, default True, the returned value will be wrapped as node
+	@param predicate: returns True for every iteration element that may be returned by the iteration,
+	default : lambda x: True"""
+	iterObj = getDgIterator( *args, **kwargs )
+	predicate = kwargs.get( "predicate", lambda x: True )
+	asNode = kwargs.get( "asNode", True )
+	while not iterObj.isDone() :
+		node = iterObj.thisNode()
+		if asNode:
+			node = NodeFromObj( node )
+		if predicate( node ):
+			yield node
+		iterObj.next()
+	# END for each obj in iteration
 
 # Iterators on dag nodes hierarchies using MItDag (ie listRelatives)
 def iterDagNodes( *args, **kwargs ):
@@ -173,61 +237,6 @@ def iterDagNodes( *args, **kwargs ):
 		# END while not is done
 	# END if using mobjects
 
-
-def getGraphIterator( nodeOrPlug, *args, **kwargs ):
-	"""@return: MItDependencyGraph configured according to args - see docs at
-	L{iterGraph}.
-	@note: use this method if you want to use more advanced features of the iterator
-	@raise RuntimeError: if the filter types does not allow any nodes to be returned.
-	This is a bug in that sense as it should just return nothing. It also shows that
-	maya pre-parses the result and then just iterates over a list with the iterator in
-	question"""
-	global nullplugarray
-	startObj = startPlug = None
-
-	if isinstance( nodeOrPlug, api.MPlug ):
-		startPlug = nodeOrPlug
-		startObj = MObject()
-	elif isinstance( nodeOrPlug, Node ):
-		startObj = nodeOrPlug.getMObject()
-		startPlug = nullplugarray[0]
-	else:
-		startObj = nodeOrPlug
-		startPlug = nullplugarray[0]
-	# END traversal root
-
-	inputPlugs = kwargs.get('input', False)
-	breadth = kwargs.get('breadth', False)
-	plug = kwargs.get('plug', False)
-	prune = kwargs.get('prune', False)
-	typeFilter = _argsToFilter( args )
-
-	if startPlug is not None :
-		typeFilter.setObjectType( api.MIteratorType.kMPlugObject )
-	else :
-		typeFilter.setObjectType( api.MIteratorType.kMObject )
-	# END handle object type
-
-	direction = api.MItDependencyGraph.kDownstream
-	if inputPlugs :
-		direction = api.MItDependencyGraph.kUpstream
-
-	traversal =	 api.MItDependencyGraph.kDepthFirst
-	if breadth :
-		traversal = api.MItDependencyGraph.kBreadthFirst
-
-	level = api.MItDependencyGraph.kNodeLevel
-	if plug :
-		level = api.MItDependencyGraph.kPlugLevel
-
-	iterObj = api.MItDependencyGraph( startObj, startPlug, typeFilter, direction, traversal, level )
-
-	iterObj.disablePruningOnFilter()
-	if prune :
-		iterObj.enablePruningOnFilter()
-
-	return iterObj
-
 def iterGraph( nodeOrPlug, *args, **kwargs ):
 	""" Iterate Dependency Graph (DG) Nodes or Plugs starting at a specified root Node or Plug,
 	The following keywords will affect order and behavior of traversal:
@@ -286,13 +295,7 @@ def iterGraph( nodeOrPlug, *args, **kwargs ):
 	except RuntimeError:
 		raise StopIteration()
 	# END handle possible iteration error
-			
-def getSelectionListIterator( sellist, **kwargs ):
-	"""@return: iterator suitable to iterate given selection list - for more info see
-	L{iterSelectionList}"""
-	filtertype = kwargs.get( "filterType", api.MFn.kInvalid )
-	iterator = api.MItSelectionList( sellist, filtertype )
-	return iterator
+
 
 nullplugarray = api.MPlugArray()
 nullplugarray.setLength( 1 )

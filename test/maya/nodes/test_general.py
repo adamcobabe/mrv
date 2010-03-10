@@ -261,6 +261,15 @@ class TestGeneral( unittest.TestCase ):
 		###############
 		persp = nodes.getByName( "pers*" )[0]
 		self.failUnless( persp == nodes.Node( "persp" ) )
+		
+		# filter selection
+		##################
+		nodes.select("persp", "perspShape")
+		assert len(nodes.getSelection(api.MFn.kCamera)) == 1
+		assert len(list(nodes.iterSelection(api.MFn.kCamera))) == 1
+		
+		sl = nodes.getSelectionList()
+		assert len(sl) and isinstance(sl, api.MSelectionList)
 
 
 class TestNodeBase( unittest.TestCase ):

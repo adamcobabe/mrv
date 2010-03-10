@@ -469,20 +469,46 @@ As it has only been hinted at in the example, all shortcuts supported by Compone
 ==========
 Selections
 ==========
-There are several utility methods to aid in handling selections. 
+There are several utility methods to aid in handling selections. They are mostly used during interactive sessions, although general utilities like ``select`` and ``getSelectionList`` may also proove practical in scripts. 
 
-When retrieving selections, you will always receive a selection list of type ``MSelectionList`` which supports all operations of a normal list, as well as iteration::
-	>>> 
+The following examples show some of the most common functions::
+	>>> select(p.t, "time1", p, ps)
+	>>> assert len(getSelection()) == 4
+		
+	>>> # simple filtering
+	>>> assert getSelectionList().iterPlugs().next() == p.t
+	>>> assert getSelection(api.MFn.kTransform)[-1] == p
+		
+	>>> # adjustments
+	>>> sl = getSelectionList()
+	>>> sl.remove(0)                                 # remove plug
+	>>> select(sl)
+	>>> assert len(getSelectionList()) == len(getSelection()) == 3
 	
-Selecting Components
-====================
+Please note that many of the selection utilities operate on wrapped Nodes by default, which may not be desired in performance critical areas.  
 
-Selecting Plugs
-===============
+Advanced filtering can be implemented using the ``predicate`` of iterators, allowing to return only these items which produce a True value in the predicate function. Something like ``ls -ro`` would look like this::
+	>>> assert len(getSelection(predicate=lambda n: n.isReferenced())) == 0
 
-Selecting Keyframe Animation
-============================
-	
+Expanders, such as in ``ls -sl -dag`` could be implemented with adapter iterators, which expande dag nodes to the list of their children recursively.
+
+Its worth noting though that very complex filters could possibly be faster if they are handled by ``ls`` directly instead of reprogramming them using the python MayaAPI.
+
+Selecting Components and Plugs
+==============================
+Selecting components is comparable to component assignments of sets and shading engines. In case of selections, one first creates a selection list to be selected, and adds the mesh as well as the components::
+	>>> sl = api.MSelectionList()
+	>>> sl.add(m.getMDagPath(), m.cf[:4])			# first 4 faces
+	>>> select(sl)
+	>>> assert len(getSelectionList().iterComponents().next()[1].getElements()) == 4
+
+Plugs are can be selected exactly the same way as nodes::
+	>>> sl.clear()
+	>>> sl.add(p.t)
+	>>> sl.add(m.outMesh)
+	>>> select(sl)
+	>>> assert len(getSelection()) == 2
+
 ====
 Undo
 ====

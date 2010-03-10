@@ -212,10 +212,9 @@ def toSelectionListFromNames( nodenames ):
 def fromSelectionList( sellist, handlePlugs=1, **kwargs ):
 	"""@return: list of Nodes and MPlugs stored in the given selection list
 	@param **kwargs: passed to selectionListIterator"""
-	import it
-	kwargs.pop( "asNode", None )	# remove our overridden warg
-	handlePlugs = kwargs.pop( "handlePlugs", handlePlugs )
-	return list( it.iterSelectionList( sellist, asNode=1, handlePlugs = handlePlugs, **kwargs ) )
+	kwargs['asNode'] = 1
+	kwargs['handlePlugs'] = handlePlugs
+	return list(sellist.toIter(**kwargs))
 
 def toNodesFromNames( nodenames, **kwargs ):
 	"""@return: list of wrapped nodes from the given list of node names
@@ -300,13 +299,34 @@ def delete( *args, **kwargs ):
 		# END exception handling
 	# END for each node to delete
 
-def getSelection( **kwargs ):
+def getSelection( filterType=api.MFn.kInvalid, **kwargs ):
 	"""@return: list of Nodes from the current selection
+	@parma filterType: The type of nodes to return exclusively. Defaults to 
+	returning all nodes.
 	@param **kwargs: passed to L{fromSelectionList}"""
 	sellist = api.MSelectionList()
 	api.MGlobal.getActiveSelectionList( sellist )
-
+	kwargs['filterType'] = filterType
 	return fromSelectionList( sellist, **kwargs )
+	
+def getSelectionList( ):
+	"""@return: MSelectionList of the current selection list"""
+	sellist = api.MSelectionList()
+	api.MGlobal.getActiveSelectionList( sellist )
+	return sellist
+	
+def iterSelection(filterType=api.MFn.kInvalid, **kwargs):
+	"""@return: iterator over current scene selection
+	@param filterType: MFn type specifying the node type to iterate upon. Defaults
+	to all node types.
+	@param **kwargs: passed to L{it.iterSelectionList}
+	@note: This iterator will always return Nodes"""
+	sellist = api.MSelectionList()
+	api.MGlobal.getActiveSelectionList( sellist )
+	
+	kwargs['asNode'] = 1	# remove our overridden warg
+	kwargs['filterType'] = filterType
+	return sellist.toIter(**kwargs)
 
 def select( *nodesOrSelectionList , **kwargs ):
 	"""Select the given list of wrapped nodes or selection list in maya
