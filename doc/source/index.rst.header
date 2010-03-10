@@ -8,11 +8,13 @@ Welcome to the MayaRV documentation!
 Contents:
 
 .. toctree::
-   :maxdepth: 1
+   :maxdepth: 0
    
    install
    gettingstarted
    usage
+   gui
+   mesh
    develop
    tools
    

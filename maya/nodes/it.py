@@ -326,9 +326,9 @@ def iterSelectionList( sellist, filterType = api.MFn.kInvalid, predicate = lambd
 	global nullplugarray
 	if handlePlugs:
 		# version compatibility - maya 8.5 still defines a plug ptr class that maya 2005 lacks
-		plugcheckfunc = lambda obj: isinstance( obj, api.MPlug )
+		is_plug = lambda obj: isinstance( obj, api.MPlug )
 		if cmds.about( v=1 ).startswith( "8.5" ):
-			plugcheckfunc = lambda obj: isinstance( obj, ( api.MPlug, api.MPlugPtr ) )
+			is_plug = lambda obj: isinstance( obj, ( api.MPlug, api.MPlugPtr ) )
 
 		# SELECTION LIST MODE
 		kInvalid = api.MFn.kInvalid
@@ -362,7 +362,7 @@ def iterSelectionList( sellist, filterType = api.MFn.kInvalid, predicate = lambd
 			# END its not a dag node
 
 			# should have iterobj now
-			if plugcheckfunc( iterobj ):
+			if is_plug( iterobj ):
 				# apply filter
 				if filterType != kInvalid and iterobj.node().apiType() != filterType:
 					continue

@@ -44,7 +44,7 @@ class TestTransform( unittest.TestCase ):
 			assert_values(fgetname, fsetname, loose=True)
 		# END for each name
 		
-	def test_doc_examples(self):
+	def test_usage_examples(self):
 		bmaya.Scene.new(force=True)
 		# NOTE: If this test fails ( because of name changes for instance ), the 
 		# documentation needs to be fixed as well, usage.rst.
@@ -262,28 +262,6 @@ class TestTransform( unittest.TestCase ):
 		assert len(e) == 6					# we have added all 6 faces
 		
 		
-		# MESH COMPONENT ITERATION
-		average_x = 0.0
-		for vit in m.vtx:                  # iterate the whole mesh
-			average_x += vit.position().x
-		average_x /= m.numVertices()
-		assert m.vtx.iter.count() == m.numVertices()
-		
-		sid = 3
-		for vit in m.vtx[sid:sid+3]:       # iterate subsets
-			assert sid == vit.index()
-			sid += 1
-		
-		for eit in m.e:                    # iterate edges
-			eit.point(0); eit.point(1)
-			
-		for fit in m.f:                    # iterate faces
-			fit.isStarlike(); fit.isPlanar()
-			
-		for mit in m.map:                  # iterate face-vertices
-			mit.faceId(); mit.vertId() 
-		
-		
 		# Plugs and Attributes
 		######################
 		# PLUGS #
@@ -373,4 +351,37 @@ class TestTransform( unittest.TestCase ):
 		assert n.compound['mymessage'].isArray()
 		
 		n.removeAttribute(n.compound.getAttribute())
+		
+		# SELECTIONS
+		#############
+		# 
+		
+	def test_mesh_examples(self):
+		bmaya.Scene.new(force=True)
+		from mayarv.maya.nodes import *
+		
+		m = Mesh()
+		PolyCube().output > m.inMesh
+		
+		# MESH COMPONENT ITERATION
+		average_x = 0.0
+		for vit in m.vtx:                  # iterate the whole mesh
+			average_x += vit.position().x
+		average_x /= m.numVertices()
+		assert m.vtx.iter.count() == m.numVertices()
+		
+		sid = 3
+		for vit in m.vtx[sid:sid+3]:       # iterate subsets
+			assert sid == vit.index()
+			sid += 1
+		
+		for eit in m.e:                    # iterate edges
+			eit.point(0); eit.point(1)
+			
+		for fit in m.f:                    # iterate faces
+			fit.isStarlike(); fit.isPlanar()
+			
+		for mit in m.map:                  # iterate face-vertices
+			mit.faceId(); mit.vertId() 
+		
 		
