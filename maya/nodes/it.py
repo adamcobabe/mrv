@@ -8,7 +8,7 @@ import maya.OpenMaya as api
 import maya.cmds as cmds
 from maya.OpenMaya import MDagPath, MObject
 
-from base import Node, NodeFromObj, Component
+from base import Node, DagNode, NodeFromObj, Component
 
 def _argsToFilter( args ):
 	"""convert the MFnTypes in args list to the respective typeFilter"""
@@ -75,7 +75,7 @@ def getDagIterator( *args, **kwargs ):
 
 	# SETUP TYPE FILTER - reset needs to work with root
 	if root is not None:
-		if isinstance( root, MDagPath ):
+		if isinstance( root, (MDagPath, DagNode) ):
 			typeFilter.setObjectType( api.MIteratorType.kMDagPathObject )
 		else :
 			typeFilter.setObjectType( api.MIteratorType.kMObject )
@@ -91,11 +91,15 @@ def getDagIterator( *args, **kwargs ):
 	# set start object
 	if root is not None :
 		startObj = startPath = None
-		if isinstance( root, MDagPath ):
+		if isinstance( root, MDagPath):
 			startPath = root
+		elif isinstance( root, DagNode ):
+			startPath = root.getMDagPath()
+		elif isinstance( root, Node ):
+			startObj = root.getMObject()
 		else:
 			startObj = root
-
+		# END handle obj type
 		iterObj.reset( typeFilter, startObj, startPath, traversal )
 	# END if root is set
 
@@ -112,72 +116,64 @@ def iterDagNodes( *args, **kwargs ):
 	""" Iterate over the hierarchy under a root dag node, if root is None, will iterate on whole Maya scene
 		If a list of types is provided, then only nodes of these types will be returned,
 		if no type is provided all dag nodes under the root will be iterated on.
-		Types are specified as Maya API types.
+		Types are specified as Maya API types being a member of api.MFn
 		The following keywords will affect order and behavior of traversal:
-		@param dagpath:	if True, MDagPaths will be returned ( ~6k paths/s )
-						If False, MObjects will be returned - it will return each object only once ( ~10k objs/s )
-						default True
-		@param depth: 	if True Nodes will be returned as a depth first traversal of the hierarchy tree ( ~6k path/s )
-				 		if False as a post-order (breadth first) ( ~3.5k paths/s, or slower, depending on the scene )
-						default True
-		@param underworld: if True traversal will include a shape's underworld (dag object parented to the shape),
-			  				if False underworld will not be traversed,
-							default is False (do not traverse underworld )
-		@param asNode: 	if True, default True, the returned item will be wrapped into a Node ( 2k Nodes/s )
-		@param root: 	MObject or MDagPath of the object you would like to start iteration on, or None to
+		@param dagpath:	if True, default True, MDagPaths will be returned
+		If False, MObjects will be returned - it will return each object only once in case they
+		occour in multiple paths.
+		@param depth: 	if True, default True, Nodes will be returned as a depth first traversal of the hierarchy tree
+		if False as a post-order (breadth first)
+		@param underworld: if True, default False, traversal will include a shape's underworld 
+		(dag object parented to the shape), if False the underworld will not be traversed,
+		@param asNode: 	if True, default True, the returned item will be wrapped into a Node
+		@param root: 	MObject or MDagPath or Node of the object you would like to start iteration on, or None to
 		start on the scene root. The root node will also be returned by the iteration !
-		@param predicate: method returninng True if passed in iteration element can be yielded
+		Please note that if an MObject is given, it needs to be an instanced DAG node to have an effect.
+		@param predicate: method returning True if passed in iteration element can be yielded
 		default: lambda x: True"""
 
 	# Must define dPath in loop or the iterator will yield
 	# them as several references to the same object (thus with the same value each time)
 	# instances must not be returned multiple times
 	# could use a dict but it requires "obj1 is obj2" and not only "obj1 == obj2" to return true to
-	iterObj = getDagIterator( *args, **kwargs )
+	iterator = getDagIterator( *args, **kwargs )
 
 	dagpath = kwargs.get('dagpath', True)
 	asNode = kwargs.get('asNode', True )
 	predicate = kwargs.get('predicate', lambda x: True )
 	if dagpath:
-		while not iterObj.isDone( ) :
-			dPath = MDagPath( )
-			iterObj.getPath( dPath )
+		while not iterator.isDone( ) :
+			rval = MDagPath( )
+			iterator.getPath( rval )
 			if asNode:
-				node = NodeFromObj( dPath )
-				if predicate( node ):
-					yield node
-			else:
-				if predicate( dPath ):
-					yield dPath
-			iterObj.next()
+				rval = NodeFromObj( rval )
+			if predicate( rval ):
+				yield rval
+			
+			iterator.next()
 		# END while not is done
 	# END if using dag paths
 	else:
 		# NOTE: sets don't work here, as more than == comparison is required
 		instanceset = []
 
-		while not iterObj.isDone() :
-			obj = iterObj.currentItem()
-			if iterObj.isInstanced( True ) :
-				if obj not in instanceset:
-					if asNode:
-						node = NodeFromObj(obj)
-						if predicate( node ):
-							yield node
-						# END predicate handling
-					else:
-						if predicate( obj ):
-							yield obj
-						# END predicate handling
-					# END asNode handling
-					instanceset.append( obj )
-			else :
-				if asNode:
-					obj = NodeFromObj(obj)
-				if predicate( obj ):
-					yield obj
-			# END isInstanced handling
-			iterObj.next()
+		while not iterator.isDone() :
+			rval = iterator.currentItem()
+			if iterator.isInstanced( True ):
+				if rval not in instanceset:
+					instanceset.append( rval )
+				else:
+					iterator.next()
+					continue
+				# END if object not yet returned
+			# END handle instances
+			
+			if asNode:
+				rval = NodeFromObj(rval)
+			if predicate( rval ):
+				yield rval
+			
+			iterator.next()
 		# END while not is done
 	# END if using mobjects
 
@@ -305,27 +301,26 @@ nullplugarray = api.MPlugArray()
 nullplugarray.setLength( 1 )
 def iterSelectionList( sellist, filterType = api.MFn.kInvalid, predicate = lambda x: True,
 					  	asNode = True, handlePlugs = True, handleComponents = False ):
-	"""Iterate the given selection list with a filter from *args
+	"""Iterate the given selection list
 	@param sellist: MSelectionList to iterate
-	@param filterType: MFnType id acting as simple type filter
-	@param asNode: if True, returned MObjects or DagPaths will be wrapped as node, compoents will be
-	wrapped as Component objects. Otherwise they will be returned as MObjects and MDagPaths respectively.
+	@param filterType: MFnType id acting as simple type filter to ignore all objects which do not
+	have the given object type
+	@param asNode: if True, returned MObjects or DagPaths will be wrapped as Node, compoents will be
+	wrapped as Component. 
+	Otherwise they will be returned as MObjects and MDagPaths respectively.
 	@param handlePlugs: if True, plugs can be part of the selection list and will be returned. This
 	implicitly means that the selection list will be iterated without an iterator, and MFnType filters
 	will be slower as it is implemented in python. If components are enabled, the tuple returned will be
-	( Node, Plug ), asNode will be respected as well
+	( Plug, MObject() )
 	@param predicate: method returninng True if passed in iteration element can be yielded
 	default: lambda x: True
 	@param handleComponents: if True, possibly selected components of dagNodes will be returned
-	as well - see docs for return value, see handlePlugs
-	The predicate will receive the node as well as the component in a tuple ( same as return value )
-	@return: Node or Plug on each iteration step ( assuming filter does not prevent that )
+	as well. This forces the return value into tuple(Node, Component)
+	@return: Node or Plug on each iteration step
 	If handleComponents is True, for each Object, a tuple will be returned as tuple( Node, Component ) where
 	component is NullObject ( MObject ) if the whole object is on the list.
 	If the original object was a plug, it will be in the tuples first slot, whereas the component 
-	will be a NullObject
-	selection item was a plug
-	@todo: get rid of the nullplug array as it will not handle recursion properly or multithreading """
+	will be a NullObject"""
 	global nullplugarray
 	kNullObj = MObject()
 	if handlePlugs:

@@ -53,16 +53,20 @@ class TestGeneral( unittest.TestCase ):
 
 		# ROOT
 		#########
-		# dagpath
-		dagiter = iterDagNodes( root=trans._apidagpath,depth=1,asNode=1 )
-		self.failUnless( dagiter.next() == trans )		#
-		self.failUnless( dagiter.next() == transinst )
-
-		# apiobj
-		dagiter = iterDagNodes( root=trans._apiobj,depth=1,asNode=1 )
-		self.failUnless( dagiter.next() == trans )
-		self.failUnless( dagiter.next() == transinst )
-
+		# MDagpath, DagNode
+		for rootnode in ( trans2, trans2.getMDagPath() ):
+			dagiter = iterDagNodes( root=rootnode,depth=1,asNode=1 )
+			nextobj = dagiter.next()
+			self.failUnless( nextobj == trans2 )
+		# END for each root type
+		
+		# MObject only works for instances it appears
+		dagiter = iterDagNodes( root=trans.getMObject(),depth=1,asNode=1 )
+		assert dagiter.next() == trans
+		assert dagiter.next() == transinst
+		self.failUnlessRaises(StopIteration, dagiter.next)
+		
+		
 		# TYPES
 		# single
 		dagiter = iterDagNodes(api.MFn.kMesh, asNode=1 )
@@ -127,7 +131,11 @@ class TestGeneral( unittest.TestCase ):
 	
 			pcount = 0
 			for node, component in slist:
-				pcount += isinstance( node, (api.MPlug, api.MPlugPtr) )
+				if cmds.about( v=1 ).startswith( "8.5" ):
+					pcount += isinstance( node, (api.MPlug, api.MPlugPtr) )
+				else:
+					pcount += isinstance( node, api.MPlug )
+				# END handle special case
 			# END handle plugs
 			self.failUnless( pcount == 2 )  
 		# END handle each possible plug mode )

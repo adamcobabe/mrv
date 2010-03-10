@@ -51,7 +51,7 @@ class TestGeneralPerformance( unittest.TestCase ):
 				pass
 
 			if i % 500 == 0:
-				print "%i of %i nodes created" % ( i, numNodes )
+				print >>sys.stderr, "%i of %i nodes created" % ( i, numNodes )
 		# END for each nodename
 
 		cmds.undoInfo( st=1 )
@@ -67,15 +67,6 @@ class TestGeneralPerformance( unittest.TestCase ):
 			benchfile = common.get_maya_file( "large_scene_%i.mb" % nodecount )
 			bmaya.Scene.open( benchfile, force = 1 )
 
-
-			# DAGPATHS NO NODE CONVERSION
-			starttime = time.time( )
-			nc = 0
-			for dagpath in it.iterDagNodes( dagpath = 1, asNode = 0 ):
-				nc += 1
-			elapsed = time.time() - starttime
-			print "Walked %i dag nodes from dagpaths in %f s ( %f / s )" % ( nc, elapsed, nc / elapsed )
-
 			# DIRECT ITERATOR USE
 			starttime = time.time( )
 			iterObj = api.MItDag( )
@@ -87,53 +78,37 @@ class TestGeneralPerformance( unittest.TestCase ):
 				nc += 1
 			# END for each dagpath
 			elapsed = time.time() - starttime
-			print "Walked %i nodes directly in %f s ( %f / s )" % ( nc, elapsed, nc / elapsed )
+			print >>sys.stderr, "Walked %i nodes directly in %f s ( %f / s )" % ( nc, elapsed, nc / elapsed )
 
-			starttime = time.time( )
-			nc = 0
-			for dagnode in it.iterDagNodes( dagpath = 1, asNode = 1 ):
-				nc += 1
-			elapsed = time.time() - starttime
-			print "Walked %i WRAPPED dag nodes from dagpaths in %f s ( %f / s )" % ( nc, elapsed, nc / elapsed )
-
-			# from ls
+			
+			for dagPath in range(2):
+				for traversalmode in range(2):
+					for asNode in range(2):
+						# DAGPATHS NO NODE CONVERSION
+						starttime = time.time( )
+						nc = 0
+						for dagpath in it.iterDagNodes( dagpath = dagPath, depth=traversalmode, asNode = asNode ):
+							nc += 1
+						elapsed = time.time() - starttime
+						print >>sys.stderr, "Walked %i dag nodes (dagPath=%i, depth-first=%i, asNode=%i) in %f s ( %f / s )" % ( nc, dagPath, traversalmode, asNode, elapsed, nc / elapsed )
+					# END for each asNode value
+				# END for each traversal
+			# END for each dagpath mode
+			
+			# FROM LS
 			starttime = time.time( )
 			sellist = nodes.toSelectionListFromNames( cmds.ls( type="dagNode" ) )
 			nsl = len(sellist)
 			for node in it.iterSelectionList( sellist, handlePlugs = False, asNode = False ):
 				pass
 			elapsed = time.time() - starttime
-			print "Listed %i nodes with ls in %f s ( %f / s )" % ( nsl, elapsed, nsl / elapsed )
+			print >>sys.stderr, "Listed %i nodes with ls in %f s ( %f / s )" % ( nsl, elapsed, nsl / elapsed )
 
-			# from active selection
 			cmds.select( cmds.ls( type="dagNode" ) )
 			starttime = time.time( )
 			sellist = api.MSelectionList()
 			api.MGlobal.getActiveSelectionList( sellist )
 			nsl = len(sellist)
-			for node in it.iterSelectionList( sellist, handlePlugs = False, asNode = False ):
-				pass
-			elapsed = time.time() - starttime
-			print "Listed %i nodes from active selection in %f s ( %f / s )" % ( nsl, elapsed, nsl / elapsed )
-
-
-			# WITH NODE CONVERSION
-			starttime = time.time( )
-			nc = 0
-			for node in it.iterDagNodes( asNode = 1, dagpath=False ):
-				nc += 1
-			elapsed = time.time() - starttime
-			print "Walked %i WRAPPED nodes from MObjects in %f s ( %f / s )" % ( nc, elapsed, nc / elapsed )
-
-
-			# BREADTH
-			starttime = time.time( )
-			nc = 0
-			for dagpath in it.iterDagNodes( depth = 0, dagpath=False ):
-				nc += 1
-			elapsed = time.time() - starttime
-			print "Walked %i nodes from MObjects BREADTH FIRST in %f s ( %f / s )" % ( nc, elapsed, nc / elapsed )
-			
 			
 			# selection list testing
 			for asNode in range(2):
@@ -145,7 +120,7 @@ class TestGeneralPerformance( unittest.TestCase ):
 							pass
 						# END for each item
 						elapsed = time.time() - starttime
-						print "iterSelList: Listed %i nodes from active selection (asNode=%i, handlePlugs=%i, handleComponents=%i) in %f s ( %f / s )" % ( nsl, asNode, handlePlugs, handleComponents, elapsed, nsl / elapsed )
+						print >>sys.stderr, "iterSelList: Listed %i nodes from active selection (asNode=%i, handlePlugs=%i, handleComponents=%i) in %f s ( %f / s )" % ( nsl, asNode, handlePlugs, handleComponents, elapsed, nsl / elapsed )
 					# END for handle components
 				# END for handle plugs 
 			# END for asNode
@@ -161,7 +136,6 @@ class TestGeneralPerformance( unittest.TestCase ):
 		all_elapsed = []
 
 		numObjs = len( cmds.ls() )
-		print "\n"
 		for numNodes in runs:
 
 			nslist = genNestedNamesList( numNodes / 100, (0,3), genRandomNames(10,(3,8)),":" )
@@ -179,13 +153,13 @@ class TestGeneralPerformance( unittest.TestCase ):
 
 			elapsed = time.time() - starttime
 			all_elapsed.append( elapsed )
-			print "Created %i nodes in %f s ( %f / s )" % ( numNodes, elapsed, numNodes / elapsed )
+			print >>sys.stderr, "Created %i nodes in %f s ( %f / s )" % ( numNodes, elapsed, numNodes / elapsed )
 
 			# UNDO OPERATION
 			starttime = time.time()
 			cmds.undo()
 			elapsed = time.time() - starttime
-			print "Undone Operation in %f s" % elapsed
+			print >>sys.stderr, "Undone Operation in %f s" % elapsed
 
 		# END for each run
 
@@ -205,7 +179,7 @@ class TestGeneralPerformance( unittest.TestCase ):
 			Nodes.append( Node( name ) )
 
 		elapsed = time.time() - starttime
-		print "Created %i WRAPPED Nodes ( from STRING ) in %f s ( %f / s )" % ( len( nodenames ), elapsed, len( nodenames ) / elapsed )
+		print >>sys.stderr, "Created %i WRAPPED Nodes ( from STRING ) in %f s ( %f / s )" % ( len( nodenames ), elapsed, len( nodenames ) / elapsed )
 
 
 		# CREATE MAYA NODES FROM DAGPATHS AND OBJECTS
@@ -219,7 +193,7 @@ class TestGeneralPerformance( unittest.TestCase ):
 		# END for each wrapped node
 
 		api_elapsed = time.time() - starttime
-		print "Created %i WRAPPED Nodes ( from APIOBJ ) in %f s ( %f / s ) -> %f %% faster" % ( len( nodenames ), api_elapsed, len( nodenames ) / api_elapsed, (elapsed / api_elapsed) * 100 )
+		print >>sys.stderr, "Created %i WRAPPED Nodes ( from APIOBJ ) in %f s ( %f / s ) -> %f %% faster" % ( len( nodenames ), api_elapsed, len( nodenames ) / api_elapsed, (elapsed / api_elapsed) * 100 )
 
 
 		# CREATE MAYA NODES USING THE FAST CONSTRUCTOR
@@ -233,7 +207,7 @@ class TestGeneralPerformance( unittest.TestCase ):
 		# END for each wrapped node
 
 		api_elapsed = time.time() - starttime
-		print "Created %i WRAPPED Nodes ( from APIOBJ using NodeFromObj) in %f s ( %f / s ) -> %f %% faster" % ( len( nodenames ), api_elapsed, len( nodenames ) / api_elapsed, (elapsed / api_elapsed) * 100 )
+		print >>sys.stderr, "Created %i WRAPPED Nodes ( from APIOBJ using NodeFromObj) in %f s ( %f / s ) -> %f %% faster" % ( len( nodenames ), api_elapsed, len( nodenames ) / api_elapsed, (elapsed / api_elapsed) * 100 )
 
 
 	def test_intarray_creation(self):
@@ -253,14 +227,14 @@ class TestGeneralPerformance( unittest.TestCase ):
 		for i in range( 10000 ):
 			p.focalLength()  # this wraps the API
 		b = time.time()
-		print "%f s : node.focalLength()" % ( b - a )
+		print >>sys.stderr, "%f s : node.focalLength()" % ( b - a )
 
 		# node speedwrapped
 		a = time.time()
 		for i in range( 10000 ):
 			p._api_focalLength()  # this wraps the API directly
 		b = time.time()
-		print "%f s : node._api_focalLength()" % ( b - a )
+		print >>sys.stderr, "%f s : node._api_focalLength()" % ( b - a )
 
 		# node speedwrapped + cached
 		a = time.time()
@@ -268,7 +242,7 @@ class TestGeneralPerformance( unittest.TestCase ):
 		for i in range( 10000 ):
 			api_get_focal_length()  # get rid of the dictionary lookup
 		b = time.time()
-		print "%f s : _api_focalLength()" % ( b - a )
+		print >>sys.stderr, "%f s : _api_focalLength()" % ( b - a )
 
 		# mfn recreate
 		a = time.time()
@@ -276,7 +250,7 @@ class TestGeneralPerformance( unittest.TestCase ):
 			camfn = api.MFnCamera( p.getMObject() )
 			camfn.focalLength()  # this wraps the API
 		b = time.time()
-		print "%f s : recreated + call" % ( b - a )
+		print >>sys.stderr, "%f s : recreated + call" % ( b - a )
 
 		# mfn directly
 		camfn = api.MFnCamera( p.getMObject() )
@@ -284,14 +258,14 @@ class TestGeneralPerformance( unittest.TestCase ):
 		for i in range( 10000 ):
 			camfn.focalLength()  # this wraps the API
 		b = time.time()
-		print "%f s : mfn.focalLenght()" % ( b - a )
+		print >>sys.stderr, "%f s : mfn.focalLenght()" % ( b - a )
 
 		# plug wrapped
 		a = time.time()
 		for i in range( 10000 ):
 			p.fl.asFloat()  # this wraps the API
 		b = time.time()
-		print "%f s : node.plug.asFloat()" % ( b - a )
+		print >>sys.stderr, "%f s : node.plug.asFloat()" % ( b - a )
 
 		# plug cached
 		a = time.time()
@@ -299,7 +273,7 @@ class TestGeneralPerformance( unittest.TestCase ):
 		for i in range( 10000 ):
 			fl.asFloat()  # this wraps the API
 		b = time.time()
-		print "%f s : plug.asFloat()" % ( b - a )
+		print >>sys.stderr, "%f s : plug.asFloat()" % ( b - a )
 
 
 
