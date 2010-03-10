@@ -324,9 +324,6 @@ class TestDataBase( unittest.TestCase ):
 		# END for each node
 		assert len(nodeset) == len(sl)
 		
-		# random access is not yet implemented
-		self.failUnlessRaises(AttributeError, getattr, sl, '__getitem__')
-		
 		# test creation functions
 		node_list = list(sl)
 		nls = node_list[4:15]
@@ -356,6 +353,31 @@ class TestDataBase( unittest.TestCase ):
 			nc += 1
 		# END for each item
 		assert nc == len(sls)
+		
+		# access nodes by index
+		slitems = list()
+		for index in xrange(len(sl)):
+			slitems.append(sl[index])
+		# END for each index
+		assert slitems and slitems[-1] == sl[-1]
+		
+		# COMPONENT ITERATION
+		m = nodes.Mesh()
+		nodes.PolyCube().output > m.inMesh
+		sl = api.MSelectionList()
+		sl.add(m.getMDagPath())
+		sl.add(m.getMDagPath(), m.cf[:])
+		assert len(list(sl.iterComponents())) == 1
+		
+		
+		# PLUG ITERATION
+		p = nodes.Node("persp")
+		sl = api.MSelectionList()
+		sl.add(p.getMDagPath())
+		sl.add(p.t)
+		sl.add(p.rx)
+		assert len(list(sl.iterPlugs())) == 2
+		
 
 	def test_intarray_creation(self):
 		# from range

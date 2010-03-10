@@ -1019,6 +1019,35 @@ class MSelectionList( api.MSelectionList, ArrayBase ):
 		else:
 			return self.hasItem(rhs)
 		# END handle input type
+		
+	def __getitem__(self, index):
+		"""Add [] operator support
+		@param index: index from 0 to len(self), negative values are supported as well
+		@note: this method returns Nodes or Plugs, it will not deal with components.
+		If you need more control over your iteration, use L{toIter} instead"""
+		if index < 0:
+			index = self.length() + index
+		# END handle negative index
+		
+		rval = None
+		try: # dagpath
+			rval = api.MDagPath()
+			self.getDagPath(index, rval)
+		except RuntimeError:
+			try: # plug
+				rval = MPlug.pa[0]
+				self.getPlug(index, rval)
+				rval.attribute()
+				return rval
+			except RuntimeError:
+				# dg node
+				rval = api.MObject()
+				self.getDependNode(index, rval)
+			# END its not an MObject
+		# END handle dagnodes/plugs/dg nodes
+		
+		# its a node
+		return base.NodeFromObj(rval)
 	
 	@staticmethod
 	def fromStrings( iter_strings, **kwargs ):
@@ -1049,6 +1078,25 @@ class MSelectionList( api.MSelectionList, ArrayBase ):
 		"""@return: iterator yielding of Nodes and MPlugs stored in this given selection list
 		@param **kwargs: passed to L{it.iterSelectionList}"""
 		return it.iterSelectionList( self, **kwargs )
+		
+	def iterComponents( self, **kwargs ):
+		"""@return: Iterator yielding node, component pairs, component is guaranteed 
+		to carry a component, implying that this iterator applies a filter
+		@param kwargs: passed on to L{it.iterSelectionList}"""
+		kwargs['handleComponents'] = True
+		pred = lambda pair: not pair[1].isNull()
+		kwargs['predicate'] = pred
+		return it.iterSelectionList( self, **kwargs )
+		
+	def iterPlugs( self, **kwargs ):
+		"""@return: Iterator yielding all plugs on this selection list.
+		@param kwargs: passed on to L{it.iterSelectionList}"""
+		kwargs['handlePlugs'] = True
+		pred = lambda n: isinstance(n, api.MPlug)
+		kwargs['predicate'] = pred
+		return it.iterSelectionList( self, **kwargs )
+		
+		
 	
 class MeshIteratorBase( Abstract ):
 	"""Provides common functionality for all MItMesh classes"""
