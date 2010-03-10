@@ -5,10 +5,9 @@ providing full undo and redo support.
 
 Features
 --------
-   - modify dag or dg using the undo - enabled DG and DAG modifiers
+   - modify dag or dg using the undo-enabled DG and DAG modifiers
    - modify values using Nodes and their plugs ( as the plugs are overridden
    to store undo information )
-   - fully usable including MEL command ( using L{GenericOperationStack}
 
 Limitations
 -----------
@@ -27,6 +26,9 @@ still call the mel command.
 Disable the 'undoable' decorator effectively remove the surroinding mel script calls using
 sys._maya_undo_enabled = False ( default True ). Additionally it will turn off 
 the maya undo queue as a convenience.
+
+If sys._maya_undo_enabled is False, MPlugs will not store undo information anymore
+and not incur any overhead.
 
 @todo: more documentation about how to use the system and how it actually works
 """
@@ -236,7 +238,7 @@ def forceundoable( func ):
 
 def notundoable( func ):
 	"""Decorator wrapping a function into a muteUndo call, thus all undoable operations
-	called from this method will not enter the undostack and thus pollute it.
+	called from this method will not enter the UndoRecorder and thus pollute it.
 	@note: use it if your method cannot support undo, butcalls undoable operations itself
 	@note: all functions using a notundoable should be notundoable themselves
 	@note: does nothing if sys._maya_undo_enabled is False"""
@@ -301,7 +303,122 @@ def undoAndClear( ):
 	for op in reversed(operations):
 		op.undoIt()
 
-#}
+
+class UndoRecorder( object ):
+	"""Utility class allowing to undo and redo operations on the python command 
+	stack so far to be undone and redone separately and independently of maya's 
+	undo queue.
+	
+	It can be used to define sections that need to be undone afterwards, for example
+	to reset a scene to its original state after it was prepared for export.
+	
+	Use the L{startRecording} method to record all future undoable operations 
+	onto the stack. L{endRecording} will finalize the operation, allowing 
+	the L{undo} and L{redo} methods to be used.
+	
+	@note: as opposed to L{undoAndClear}, this utility may be used even if the 
+	user is not at the very beginning of an undoable operation.
+	
+	@note: If this utility is used incorrectly, the undo queue will be in an 
+	inconsistent state which may crash maya or cause unexpected behaviour
+	@note: You may not interleave the start/stop recording areas of different 
+	instances which could happen easily in recursive calls."""
+	__slots__ = ("_orig_stack", "_recorded_commands", "_undoable_helper")
+	
+	# prevents recursive access
+	_is_recording = False
+	_disable_undo = False 
+	
+	def __init__(self):
+		self._orig_stack = None
+		self._recorded_commands = None
+		self._undoable_helper = None
+	
+	def __del__(self):
+		try:
+			self.stopRecording()
+		except AssertionError:
+			# invalid isntances shouldn't bark
+			pass
+		# END exception handling
+	
+	def startRecording(self):
+		"""Start recording all future undoable commands onto this stack.
+		The previous stack will be safed and restored once this class gets destroyed
+		or once L{stopRecording} gets called.
+		@note: this method may only be called once, subsequent calls have no effect
+		@note: This will forcibly enable the undo queue if required until 
+		stopRecording is called."""
+		if self._orig_stack is not None:
+			return
+			
+		if self._is_recording:
+			raise AssertionError("Another instance already started recording")
+			
+		# force undo enabled
+		if not undoInfo( q=1, st=1 ):
+			self.__class__._disable_undo = True
+			cmds.undoInfo( swf=1 )
+		# END undo info handling
+		
+		self._undoable_helper = StartUndo()			# assures we have a stack
+		
+		self.__class__._is_recording = True
+		self._orig_stack = sys._maya_stack
+		sys._maya_stack = list()			# will record future commands 
+		
+	def stopRecording(self):
+		"""Stop recording of undoable comamnds and restore the previous command stack.
+		The instance is now ready to undo and redo the recorded commands
+		@note: this method may only be called once, subsequent calls have no effect"""
+		if self._recorded_commands is not None:
+			return
+		
+		try:
+			if not self._is_recording:
+				raise AssertionError("startRecording was not called")
+				
+			if self._orig_stack is None:
+				raise AssertionError("startRecording was not called on this instance, but on another one")
+			
+			self.__class__._is_recording = False
+			self._recorded_commands = sys._maya_stack
+			sys._maya_stack = self._orig_stack
+			
+			# restore previous undo queue state
+			if self._disable_undo:
+				self.__class__._disable_undo = False
+				cmds.undoInfo( swf=0 )
+			# END handle undo
+		finally:
+			# tigger deletion
+			self._undoable_helper = None
+		# END assure we finish our undo
+		
+		
+	def undo(self):
+		"""Undo all stored operations
+		@note: Must be called at the right time, otherwise the undo queue is in an 
+		inconsistent state.
+		@raise AssertionError: if called before L{stopRecording} as called"""
+		if self._recorded_commands is None:
+			raise AssertionError("Undo called before stopRecording")
+			
+		for op in reversed(self._recorded_commands):
+			op.undoIt()
+		# END for each operation to undo
+		
+	def redo(self):
+		"""Redo all stored operations after they have been undone
+		@raise AssertionError: if called before L{stopRecording}"""
+		if self._recorded_commands is None:
+			raise AssertionError("Redo called before stopRecording")
+			
+		for op in self._recorded_commands:
+			op.doIt()
+		# END for each operation to redo
+	
+#} END utilities
 
 
 

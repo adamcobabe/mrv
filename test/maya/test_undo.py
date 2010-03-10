@@ -99,8 +99,82 @@ class TestUndoQueue( unittest.TestCase ):
 		print "FIX KNOWN UNDO LIMITATION WHICH HAS BEEN SKIPPED TO ALLOW RELEASES"
 		undo.endUndo()
 
-
-
+	def test_undo_stack(self):
+		bmaya.Scene.new(force=1)
+		us = undo.UndoRecorder()
+		
+		# works inside of another undo level as well
+		p = Node("persp")
+		t = Node("top")
+		
+		# ===================
+		undo.startUndo()
+		p.t > t.t
+		
+		########################
+		# startRecording needs to come first
+		self.failUnlessRaises(AssertionError, us.stopRecording)
+		us.startRecording()
+		us.startRecording()	# doesnt matter
+		p.r > t.r
+		
+		# second instance will fail
+		us2 = undo.UndoRecorder()
+		self.failUnlessRaises(AssertionError, us2.startRecording)
+		self.failUnlessRaises(AssertionError, us2.stopRecording)
+		
+		us.stopRecording()
+		us.stopRecording() # doesnt matter
+		########################
+		assert p.r >= t.r
+		assert p.t >= t.t
+		us.undo()
+		assert not p.r >= t.r
+		assert p.t >= t.t
+		
+		us.redo()
+		assert p.r >= t.r
+		us.undo()
+		assert not p.r >= t.r
+		
+		undo.endUndo()
+		# ===================
+		
+		assert p.t >= t.t
+		cmds.undo()
+		assert not p.t >= t.t
+		cmds.redo()
+		assert p.t >= t.t
+		
+		# we should be able to selectively redo it, even after messing with the queue
+		us.redo()
+		assert p.r >= t.r
+		cmds.undo()
+		assert not p.t >= t.t
+		
+		
+		# TEST UNDO GETS ENABLED
+		try:
+			cmds.undoInfo(swf=0)
+			
+			us = undo.UndoRecorder()
+			us.startRecording()
+			assert cmds.undoInfo(q=1, swf=1)
+			
+			p.s > t.s
+			
+			us.stopRecording()
+			assert not cmds.undoInfo(q=1, swf=1)
+			assert p.s >= t.s
+			us.undo()
+			assert not p.s >=t.s
+			us.redo()
+			assert p.s >= t.s
+		
+		finally:
+			cmds.undoInfo(swf=1)
+		# END assure it gets turned back on
+		
 	def test_dgmod( self ):
 		"""mayarv.maya.undo: test dg modifier capabilities
 		@note: DGmod is intensively used by MPlug """

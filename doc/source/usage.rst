@@ -509,9 +509,21 @@ Plugs are can be selected exactly the same way as nodes::
 	>>> select(sl)
 	>>> assert len(getSelection()) == 2
 
+==========
+Namespaces
+==========
+
+==========
+References
+==========
+	
 ====
 Undo
 ====
+api undo
+
+Advanced Uses
+=============
 
 ==========
 Extensions
