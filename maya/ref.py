@@ -91,7 +91,7 @@ class FileReference( iDagItem ):
 		ns = namespace
 		if not ns:										# assure unique namespace
 			nsbasename = filepath.stripext().basename()
-			ns = Namespace.createUnique( nsbasename, incrementFunc = nsfunc )
+			ns = Namespace.findUnique( nsbasename, incrementFunc = nsfunc )
 		else:
 			ns = Namespace( ns )		# assure we have a namespace object
 

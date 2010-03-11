@@ -200,6 +200,13 @@ class TestReferenceRunner( unittest.TestCase ):
 			# END for each dag value
 		# END for each asNode value
 	
+	
+	def _assert_ref_node(self, rfn):
+		assert isinstance(rfn, nodes.Reference)
+		
+		assert rfn.getFileReference().getReferenceNode() == rfn
+	
+	
 	@with_scene('ref2re.ma')
 	def test_misc(self):
 		fr = FileReference
@@ -227,13 +234,12 @@ class TestReferenceRunner( unittest.TestCase ):
 			assert isinstance(ref.getCopyNumber(), int)
 			assert ref.getParent() in tlrs
 			assert ref.getPath(unresolved=0) != ref.getPath(unresolved=1)
-			assert isinstance(ref.getReferenceNode(), nodes.Node)
+			self._assert_ref_node(ref.getReferenceNode())
 			
 			# cannot set namespace of subreferences
 			self.failUnlessRaises(RuntimeError, ref.setNamespace, "something")
 			self._assert_iter_nodes(ref)
 		# END test simple query functions
-		
 		
 		
 		def assert_from_paths(p, **kwargs):

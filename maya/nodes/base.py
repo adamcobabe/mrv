@@ -2496,7 +2496,7 @@ class DagPath( MDagPath, iDagItem ):
 				outPaths.append( childpath )
 		return outPaths
 
-	#}
+	#} END query
 
 	#{ Edit Inplace
 	def pop( self, num ):
@@ -2558,12 +2558,22 @@ class DagPath( MDagPath, iDagItem ):
 	getInclusiveMatrixInverse = MDagPath.inclusiveMatrixInverse
 	getExclusiveMatrixInverse = MDagPath.exclusiveMatrixInverse
 
-	#}
+	#} END name remapping
 
 
 #} END basic types
 
 #{ Default Types
+
+class Reference( DependNode ):
+	"""Implements additional utilities to work with references"""
+	
+	def getFileReference(self):
+		"""@return: L{FileReference} instance initialized with the reference we 
+		represent"""
+		import mayarv.maya.ref as refmod
+		return refmod.FileReference(refnode=self)
+	
 
 class Transform( DagNode ):		# derived just for epydoc
 	"""Precreated class to allow isinstance checking against their types and

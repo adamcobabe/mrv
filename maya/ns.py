@@ -196,12 +196,13 @@ class Namespace( unicode, iDagItem ):
 		return cls( nsname )
 
 	@classmethod
-	def createUnique( cls, basename, incrementFunc = defaultIncrFunc ):
-		"""Create a unique namespace
-		@param basename: the base name of the namespace, like ":mynamespace"
+	def findUnique( cls, basename, incrementFunc = defaultIncrFunc ):
+		"""Find a unique namespace based on basename which does not yet exist
+		in the scene and can be created.
+		@param basename: basename of the namespace, like ":mynamespace" or "mynamespace:subspace"
 		@param incrementFunc: func( basename, index ), returns a unique name generated
 		from the basename and the index representing the current iteration
-		@return: unique namespace that is garantueed not to exist below the current
+		@return: unique namespace that is guaranteed not to exist below the current
 		namespace"""
 		i = 0
 		while True:
@@ -436,9 +437,9 @@ def getCurrent( ):
 	"""see L{Namespace.getCurrent}"""
 	return Namespace.getCurrent()
 
-def createUnique( *args, **kwargs ):
-	"""see L{Namespace.createUnique}"""
-	return Namespace.createUnique( *args, **kwargs )
+def findUnique( *args, **kwargs ):
+	"""see L{Namespace.findUnique}"""
+	return Namespace.findUnique( *args, **kwargs )
 
 def exists( namespace ):
 	"""@return : True if given namespace ( name ) exists"""
