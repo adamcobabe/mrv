@@ -13,10 +13,10 @@ class TestUtil( unittest.TestCase ):
 			optionvars[ key ] = value
 
 			nvalue = optionvars[ key ]
-			self.failUnless( value == nvalue )		# its tuples
+			assert value == nvalue 		# its tuples
 		# END for each key in option vars dict
 
-		self.failUnless( len( list( optionvars.iterkeys() ) ) == len( optionvars.keys() ) )
+		assert len( list( optionvars.iterkeys() ) ) == len( optionvars.keys() ) 
 
 		# iterate values
 		for val in optionvars.itervalues():
@@ -24,7 +24,7 @@ class TestUtil( unittest.TestCase ):
 
 		# iterate paris
 		for key,val in optionvars.iteritems():
-			self.failUnless( optionvars[ key ] == val )
+			assert optionvars[ key ] == val 
 
 
 		# create some option vars
@@ -33,19 +33,19 @@ class TestUtil( unittest.TestCase ):
 		for i,value in enumerate( values ):
 			key = "test%i" % i
 			optionvars[ key ] = value
-			self.failUnless( optionvars.has_key( key ) )
-			self.failUnless( key in optionvars )
-			self.failUnless( optionvars[ key ] == value )
+			assert optionvars.has_key( key ) 
+			assert key in optionvars 
+			assert optionvars[ key ] == value 
 
 			poppedval = optionvars.pop( key )
-			self.failUnless( key not in optionvars )
+			assert key not in optionvars 
 
 			# will return unicode, although we put in strings
 			if isinstance( poppedval, (tuple,list) ):
 				for pval,val in zip( poppedval, value ):
-					self.failUnless( pval == val )
+					assert pval == val 
 			else:
-				self.failUnless( poppedval == value )
+				assert poppedval == value 
 		# END for each testvalue
 
 	def test_misc( self ):

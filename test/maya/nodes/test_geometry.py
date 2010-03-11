@@ -56,12 +56,12 @@ class TestGeometry( unittest.TestCase ):
 			# shaders - object assignment method
 			setfilter = nodes.Shape.fSetsRenderable
 			sets = obj.getConnectedSets( setFilter = setfilter )
-			self.failUnless( len( sets ) == 1 and sets[0] == sg1 )
+			assert len( sets ) == 1 and sets[0] == sg1 
 
 			# TEST OBJECT SET ASSIGNMENTS
 			setfilter = nodes.Shape.fSetsObject
 			sets = obj.getConnectedSets( setFilter = setfilter )
-			self.failUnless( len( sets ) == 2 and sets[0] == set1 and sets[1] == set2 )
+			assert len( sets ) == 2 and sets[0] == set1 and sets[1] == set2 
 		# END assignmnet query
 
 
@@ -71,7 +71,7 @@ class TestGeometry( unittest.TestCase ):
 		for obj in noncomplist:
 			sets = obj.getConnectedSets( nodes.Shape.fSets )
 			for s in sets:
-				self.failUnless( s in ( sg1, set1, set2 ) )
+				assert s in ( sg1, set1, set2 ) 
 		# END non-component lists check
 
 
@@ -85,12 +85,12 @@ class TestGeometry( unittest.TestCase ):
 			# even this method can retrieve membership to default object sets
 			setfilter = nodes.Shape.fSetsObject
 			sets = obj.getComponentAssignments( setFilter = setfilter )
-			self.failUnless( len( sets ) == 2 )
+			assert len( sets ) == 2 
 
 			# but the components must be 0, and it must have our sets
 			for setnode, comp in sets:
-				self.failUnless( comp.isNull() )
-				self.failUnless( setnode in ( set1, set2 ) )
+				assert comp.isNull() 
+				assert setnode in ( set1, set2 ) 
 
 			if obj != p2:
 				continue
@@ -100,19 +100,19 @@ class TestGeometry( unittest.TestCase ):
 			setfilter = nodes.Shape.fSetsRenderable
 			setcomps = obj.getComponentAssignments( setFilter = setfilter )
 
-			self.failUnless( len( setcomps ) == 3 )
+			assert len( setcomps ) == 3 
 
 			for setnode, component in setcomps:
-				self.failUnless( not component.isEmpty() )
+				assert not component.isEmpty() 
 
 				if setnode == sg1:
-					self.failUnless( component.getElement( 0 ) == 0 )
+					assert component.getElement( 0 ) == 0 
 				if setnode == sg2:
-					self.failUnless( component.getElement( 0 ) == 1 )
+					assert component.getElement( 0 ) == 1 
 				if setnode == sg3:
-					self.failUnless( component.getElement( 0 ) == 2 )
-					self.failUnless( component.getElement( 1 ) == 3 )
-					self.failUnless( component.getElementCount( ) == 2 )
+					assert component.getElement( 0 ) == 2 
+					assert component.getElement( 1 ) == 3 
+					assert component.getElementCount( ) == 2 
 			# END for each setcomponent
 		# END for each object
 
@@ -124,14 +124,14 @@ class TestGeometry( unittest.TestCase ):
 
 			for setobj,component in setcomps:
 				if component:
-					self.failUnless( not component.isEmpty() )
+					assert not component.isEmpty() 
 
 					# add and remove
-					self.failUnless( dm.isMemberOf( setobj, component = component ) )
+					assert dm.isMemberOf( setobj, component = component ) 
 
 					dm.removeFrom( setobj, component = component )
 
-					self.failUnless( not setobj.isMember( dm, component = component ) )
+					assert not setobj.isMember( dm, component = component ) 
 
 					dm.addTo( setobj, component = component )
 					#print type( component )
@@ -139,7 +139,7 @@ class TestGeometry( unittest.TestCase ):
 				# END if there is a component assignment
 			# END for each component
 
-			self.failUnless( len( setcomps ) == 3 )
+			assert len( setcomps ) == 3 
 		# END for each deformed surface
 
 

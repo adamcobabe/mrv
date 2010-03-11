@@ -22,18 +22,18 @@ class TestSets( unittest.TestCase ):
 
 		# SET PARTITION HANDLING
 		#########################
-		self.failUnless( len( set1.getPartitions( ) ) == 0 )
+		assert len( set1.getPartitions( ) ) == 0 
 		set1.setPartition( prt1, set1.kReplace )
-		self.failUnless( len( set1.getPartitions() ) == 1 )
-		self.failUnless( set1.getPartitions()[0] == prt1 )
+		assert len( set1.getPartitions() ) == 1 
+		assert set1.getPartitions()[0] == prt1 
 
 		# add same again
 		set1.setPartition( prt1, set1.kAdd )
-		self.failUnless( len( set1.getPartitions() ) == 1 )
+		assert len( set1.getPartitions() ) == 1 
 
 		# remove
 		set1.setPartition( prt1, set1.kRemove )
-		self.failUnless( len( set1.getPartitions( ) ) == 0 )
+		assert len( set1.getPartitions( ) ) == 0 
 
 		# remove again
 		set1.setPartition( prt1, set1.kRemove )
@@ -42,13 +42,13 @@ class TestSets( unittest.TestCase ):
 		# PARTITION MEMBER HANDLING
 		# add multiple sets
 		prt1.addSets( [ set1, set2 ] )
-		self.failUnless( len( prt1.getMembers() ) == 2 )
+		assert len( prt1.getMembers() ) == 2 
 
 		# add again
 		prt1.addSets( [ set1, set2 ] )
 
 		prt1.removeSets( [ set1, set2] )
-		self.failUnless( len( prt1.getMembers() ) == 0 )
+		assert len( prt1.getMembers() ) == 0 
 
 		# remove again
 		prt1.removeSets( [ set1, set2] )
@@ -96,10 +96,10 @@ class TestSets( unittest.TestCase ):
 
 		for i,member in enumerate( memberlist ):
 			s.addMember( member )
-			self.failUnless( s.getMembers( ).length() == i+1 )
-			self.failUnless( s.isMember( member ) )
+			assert s.getMembers( ).length() == i+1 
+			assert s.isMember( member ) 
 			cmds.undo()
-			self.failUnless( s.getMembers( ).length() == i )
+			assert s.getMembers( ).length() == i 
 			cmds.redo()
 		# end for each member
 
@@ -107,61 +107,61 @@ class TestSets( unittest.TestCase ):
 		for i in range( len( memberlist ) ):
 			cmds.undo()
 
-		self.failUnless( s.getMembers().length() == 0 )
+		assert s.getMembers().length() == 0 
 
 		# get it back
 		for i in range( len( memberlist ) ):
 			cmds.redo()
 
-		self.failUnless( s.getMembers().length() == len( memberlist ) )
+		assert s.getMembers().length() == len( memberlist ) 
 
 		# MULTI-MEMBER UNDO/REDO
 		##########################
 		s.removeMembers( memberlist )
-		self.failUnless( s.getMembers().length() == 0 )
+		assert s.getMembers().length() == 0 
 		cmds.undo()
-		self.failUnless( s.getMembers().length() == len( memberlist ) )
+		assert s.getMembers().length() == len( memberlist ) 
 		cmds.redo()
-		self.failUnless( s.getMembers().length() == 0 )
+		assert s.getMembers().length() == 0 
 
 		# add members again
 		s.addMembers( memberlist )
-		self.failUnless( s.getMembers().length() == len( memberlist ) )
+		assert s.getMembers().length() == len( memberlist ) 
 		cmds.undo()
-		self.failUnless( s.getMembers().length() == 0 )
+		assert s.getMembers().length() == 0 
 		cmds.redo()
-		self.failUnless( s.getMembers().length() == len( memberlist ) )
+		assert s.getMembers().length() == len( memberlist ) 
 
 
 		# remove all members
 		for i,member in enumerate( memberlist ):
 			s.removeMember( member )
 
-		self.failUnless( s.getMembers().length() == 0 )
+		assert s.getMembers().length() == 0 
 
 		# ADD/REMOVE MULTIPLE MEMBER
 		######################
 		# add node list
 		s.addMembers( memberlist )
-		self.failUnless( s.getMembers().length() == len( memberlist ) )
+		assert s.getMembers().length() == len( memberlist ) 
 
 		s.clear()
-		self.failUnless( s.getMembers().length() == 0 )
+		assert s.getMembers().length() == 0 
 
 		# Add selection listx
 		sellist = nodes.toSelectionList( memberlist )
 		s.addMembers( sellist )
-		self.failUnless( s.getMembers().length() == sellist.length() )
+		assert s.getMembers().length() == sellist.length() 
 
 		# remove members from sellist
 		s.removeMembers( sellist )
-		self.failUnless( s.getMembers().length() == 0 )
+		assert s.getMembers().length() == 0 
 
 		cmds.undo()
-		self.failUnless( s.getMembers().length() == sellist.length() )
+		assert s.getMembers().length() == sellist.length() 
 
 		cmds.redo()
-		self.failUnless( s.getMembers().length() == 0 )
+		assert s.getMembers().length() == 0 
 
 		
 		# test smart add
@@ -181,13 +181,13 @@ class TestSets( unittest.TestCase ):
 		# TEST CLEAR
 		#############
 		s.addMembers( sellist )
-		self.failUnless( s.getMembers().length() == sellist.length() )
+		assert s.getMembers().length() == sellist.length() 
 
 		s.clear()
-		self.failUnless( s.getMembers().length() == 0 )
+		assert s.getMembers().length() == 0 
 
 		cmds.undo()
-		self.failUnless( s.getMembers().length() == sellist.length() )
+		assert s.getMembers().length() == sellist.length() 
 
 
 		# USING SETMEMBERS
@@ -195,18 +195,18 @@ class TestSets( unittest.TestCase ):
 		members = self._getMemberList()
 		# replace
 		s.setMembers( members[0:2], 0 )
-		self.failUnless( s.getMembers().length() == 2 )
+		assert s.getMembers().length() == 2 
 		
 		# add
 		s.setMembers( members[-2:-1], 1 )
-		self.failUnless( s.getMembers().length() == 3 )
+		assert s.getMembers().length() == 3 
 		
 		# remove
 		s.setMembers( members[0:2], 2 )
-		self.failUnless( s.getMembers().length() == 1 )
+		assert s.getMembers().length() == 1 
 		
 		cmds.undo()
-		self.failUnless( s.getMembers().length() == 3 )
+		assert s.getMembers().length() == 3 
 		
 		
 		# TEST SET PROTOCOLS
@@ -231,12 +231,12 @@ class TestSets( unittest.TestCase ):
 		########
 		# with set
 		sellist = s.getUnion( s2 )
-		self.failUnless( sellist.length() == len( memberlist ) + 1 )
+		assert sellist.length() == len( memberlist ) + 1 
 
 		# with sellist - will create temp set
 		sellist = s.getUnion( s2.getMembers() )
-		self.failUnless( sellist.length() == len( memberlist ) + 1 )
-		self.failUnless( not nodes.objExists( "set4" ) )		# tmp set may not exist
+		assert sellist.length() == len( memberlist ) + 1 
+		assert not nodes.objExists( "set4" ) 		# tmp set may not exist
 
 		# with multiple object sets
 		s.getUnion( [ s2, s3 ] )
@@ -253,16 +253,16 @@ class TestSets( unittest.TestCase ):
 
 		# with set
 		sellist = s.getIntersection( s2 )
-		self.failUnless( sellist.length() == len( fewmembers ) )
+		assert sellist.length() == len( fewmembers ) 
 
 		# with sellist
 		sellist = s.getIntersection( fewmembers )
-		self.failUnless( sellist.length() == len( fewmembers ) )
+		assert sellist.length() == len( fewmembers ) 
 
 		# with multi sets
 		s3.addMembers( fewmembers )
 		sellist = s.getIntersection( [ s2, s3 ] )
-		self.failUnless( sellist.length() == len( fewmembers ) )
+		assert sellist.length() == len( fewmembers ) 
 
 		list( s.iterIntersection( s2 ) )
 
@@ -271,11 +271,11 @@ class TestSets( unittest.TestCase ):
 		# with set
 		s2.removeMember( side )
 		sellist = s.getDifference( s2 )
-		self.failUnless( s.getMembers().length() - s2.getMembers().length() == sellist.length() )
+		assert s.getMembers().length() - s2.getMembers().length() == sellist.length() 
 
 		# with objects
 		sellist = s.getDifference( list( s2.iterMembers() ) )
-		self.failUnless( s.getMembers().length() - s2.getMembers().length() == sellist.length() )
+		assert s.getMembers().length() - s2.getMembers().length() == sellist.length() 
 
 		# with sellist
 		sellist = s.getDifference( s2.getMembers() )
@@ -285,8 +285,8 @@ class TestSets( unittest.TestCase ):
 		s3.addMember( nodes.Node( "front" ) )
 		sellist = s.getDifference( [ s2, s3 ] )
 
-		self.failUnless( len( list( s.iterDifference( [ s2, s3 ] ) ) ) == s.getDifference( [ s2, s3 ] ).length() )
-		self.failUnless( s.getMembers().length() - s2.getMembers().length() - s3.getMembers().length() == sellist.length() )
+		assert len( list( s.iterDifference( [ s2, s3 ] ) ) ) == s.getDifference( [ s2, s3 ] ).length() 
+		assert s.getMembers().length() - s2.getMembers().length() - s3.getMembers().length() == sellist.length() 
 		
 
 	def test_partitions( self ):
@@ -320,17 +320,17 @@ class TestSets( unittest.TestCase ):
 
 			# FORCE
 			s2.addMember( o1, force = 1 )
-			self.failUnless( s2.isMember( o1 ) )
+			assert s2.isMember( o1 ) 
 
 			# MULTIPLE OBJECTS
 			###################
 			self.failUnlessRaises( set.ConstraintError, s1.addMembers, multiobj )			# fails as t is in s2
 			s1.addMembers( [ o2 ] )			# works as t2 is not in any set yet
-			self.failUnless( s1.isMember( o2 ) )
+			assert s1.isMember( o2 ) 
 
 			# FORCE all objects into s1
 			s1.addMembers( multiobj, force = 1 )
-			self.failUnless( s1.getIntersection( multiobj, sets_are_members = 1 ).length() == 2 )
+			assert s1.getIntersection( multiobj, sets_are_members = 1 ).length() == 2 
 
 
 			# and once more
@@ -406,16 +406,16 @@ class TestSets( unittest.TestCase ):
 			if comp.isNull():
 				continue
 
-			self.failUnless( setnode.isMember( p1, component = comp ) )
+			assert setnode.isMember( p1, component = comp ) 
 			# remove the components
 			p1.removeFrom( setnode, component = comp )
 
-			self.failUnless( not setnode.isMember( p1, component = comp ) )
+			assert not setnode.isMember( p1, component = comp ) 
 
 			# add member again
 			setnode.addMember( p1, component = comp, ignore_failure = False )
 
-			self.failUnless( setnode.isMember( p1, component = comp ) )
+			assert setnode.isMember( p1, component = comp ) 
 		# END for each set component assignment
 
 		# create a component with 3 faces
@@ -431,7 +431,7 @@ class TestSets( unittest.TestCase ):
 
 			# force it
 			s1.addTo( sg, component = comp, force = 1 )
-			self.failUnless( s1.isMemberOf( sg, component = comp ) )
+			assert s1.isMemberOf( sg, component = comp ) 
 		# END for each shading engine
 
 		# FORCE WITH OBJECT ASSIGNMENTS

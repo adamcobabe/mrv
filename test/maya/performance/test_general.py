@@ -193,7 +193,7 @@ class TestGeneralPerformance( unittest.TestCase ):
 		# END for each run
 
 		# assure the scene is the same as we undo everything
-		self.failUnless( len( cmds.ls() ) == numObjs )
+		assert len( cmds.ls() ) == numObjs 
 
 
 		# TEST MAYA NODE CREATION RATE

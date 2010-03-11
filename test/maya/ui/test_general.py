@@ -34,11 +34,11 @@ class TestGeneralUI( unittest.TestCase ):
 			except RuntimeError:
 				continue
 
-			self.failUnless( isinstance( inst, ui.BaseUI ) )
+			assert isinstance( inst, ui.BaseUI ) 
 			if not isinstance( inst, ui.BaseUI ):
-				self.failUnless( isinstance( inst, ui.NamedUI ) )
+				assert isinstance( inst, ui.NamedUI ) 
 
-			self.failUnless( hasattr( inst, '__melcmd__' ) )
+			assert hasattr( inst, '__melcmd__' ) 
 
 			# layouts should not stay open
 			if isinstance( inst, ui.Layout ):
@@ -47,7 +47,7 @@ class TestGeneralUI( unittest.TestCase ):
 		# END for each uitype
 
 		col.setParentActive()
-		self.failUnless( len( win.getChildren() ) )
+		assert len( win.getChildren() ) 
 		win.delete()
 
 
@@ -58,11 +58,11 @@ class TestGeneralUI( unittest.TestCase ):
 
 		win = ui.Window( title="Test Window" )
 		win.p_title = "Another Title"
-		self.failUnless( win.p_title == "Another Title" )
+		assert win.p_title == "Another Title" 
 
 		col = ui.ColumnLayout( adj=1 )
-		self.failUnless( col.exists() )
-		self.failUnless( isinstance( col, ui.Layout ) )
+		assert col.exists() 
+		assert isinstance( col, ui.Layout ) 
 		if col:
 			ui.Button( l="first" )
 			ui.Button( l="second" )
@@ -81,44 +81,44 @@ class TestGeneralUI( unittest.TestCase ):
 		
 		win.p_iconify = True
 		win.p_iconify = False
-		self.failUnless( win.p_iconify == False )
+		assert win.p_iconify == False 
 
 		win.p_sizeable = False
 		win.p_sizeable = True
 
 		# on linux ( gnome at least ), they are always sizeable
 		if not cmds.about( linux = 1 ):
-			self.failUnless( win.p_sizeable == True )
+			assert win.p_sizeable == True 
 
 		win.p_iconName = "testicon"
-		self.failUnless( win.p_iconName == "testicon" )
+		assert win.p_iconName == "testicon" 
 
 		win.p_minimizeButton = False
 		win.p_minimizeButton = True
-		self.failUnless( win.p_minimizeButton == True )
+		assert win.p_minimizeButton == True 
 
 		win.p_maximizeButton = False
 		win.p_maximizeButton = True
-		self.failUnless( win.p_maximizeButton == True )
+		assert win.p_maximizeButton == True 
 
 		win.p_toolbox = False
 		win.p_toolbox = True
-		self.failUnless( win.p_toolbox == True )
+		assert win.p_toolbox == True 
 
 		win.p_titleBarMenu = True
 		win.p_titleBarMenu = False
 		if cmds.about( nt = 1 ):
-			self.failUnless( win.p_titleBarMenu == False )
+			assert win.p_titleBarMenu == False 
 
 		win.p_menuBarVisible = True
 		win.p_menuBarVisible = False
-		self.failUnless( win.p_menuBarVisible == False )
+		assert win.p_menuBarVisible == False 
 
 		tlc = win.p_topLeftCorner
 		win.p_topLeftCorner = ( tlc[1], tlc[0] )
 
 		win.getMenuArray()
-		self.failUnless( win.exists() )
+		assert win.exists() 
 		# win.delete()
 
 
@@ -134,10 +134,10 @@ class TestGeneralUI( unittest.TestCase ):
 			b1 = col.add( ui.Button( l="one" ) )
 			b2 = col.add( ui.Button( name=bname, l="two" ) )
 
-			self.failUnless( "mybutton" in b2 )
-			self.failUnless( b1.exists() )
+			assert "mybutton" in b2 
+			assert b1.exists() 
 
-			self.failUnless( col[ str( b1 ) ] == b1 )
+			assert col[ str( b1 ) ] == b1 
 
 			def func( b, *args ):
 				b.p_label = "pressed"
@@ -161,10 +161,10 @@ class TestGeneralUI( unittest.TestCase ):
 				
 			b1.e_released = func2
 
-			self.failUnless( len( col.getChildren( ) ) == 4 )
-			self.failUnless( len( col.getChildrenDeep( ) ) == 6 )
-			self.failUnless( grid.getParent( ) == col )
-			self.failUnless( grid.getParent() is not col )
+			assert len( col.getChildren( ) ) == 4 
+			assert len( col.getChildrenDeep( ) ) == 6 
+			assert grid.getParent( ) == col 
+			assert grid.getParent() is not col 
 		col.setParentActive()
 
 		win.show()
@@ -178,7 +178,7 @@ class TestGeneralUI( unittest.TestCase ):
 		win = ui.Window( title="Test Callback Window" )
 
 		col = win.add( ui.ColumnLayout( adj=1 ) )
-		self.failUnless( win.getChildByName( str( col ) ) == col )
+		assert win.getChildByName( str( col ) ) == col 
 		def func( b, *args ):
 			b.p_label = "pressed"
 			b.p_actionIsSubstitute = 1
@@ -237,11 +237,11 @@ class TestGeneralUI( unittest.TestCase ):
 
 		# RANGE CHECK
 		progress.set( -10 )
-		self.failUnless( progress.get() == 0 )
+		assert progress.get() == 0 
 
 		progress.set( maxrange * 2 )
 		print progress.get()
-		self.failUnless( progress.get() == 100.0 )
+		assert progress.get() == 100.0 
 
 
 		# ABSOLUTE ITERATION
@@ -257,10 +257,10 @@ class TestGeneralUI( unittest.TestCase ):
 
 		# RANGE CHECK
 		progress.set( -10 )
-		self.failUnless( progress.get() == 0 )
+		assert progress.get() == 0 
 
 		progress.set( maxrange * 2 )
-		self.failUnless( progress.get() == maxrange )
+		assert progress.get() == maxrange 
 
 	def test_qa( self ):
 		"""mayarv.maya.ui.qa: test qa interface by setting some checks"""

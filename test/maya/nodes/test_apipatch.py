@@ -49,15 +49,15 @@ class TestDataBase( unittest.TestCase ):
 		# DO CONNECTIONS ( test undo/redo )
 		persp.translate >> front.translate
 
-		self.failUnless( persp.translate & front.translate )	# isConnectedTo
-		self.failUnless( persp.translate.p_input.isNull( ) )
+		assert persp.translate & front.translate 	# isConnectedTo
+		assert persp.translate.p_input.isNull( ) 
 		cmds.undo( )
-		self.failUnless( not persp.translate.isConnectedTo( front.translate ) )
+		assert not persp.translate.isConnectedTo( front.translate ) 
 		cmds.redo( )
-		self.failUnless( front.translate in persp.translate.p_outputs )
+		assert front.translate in persp.translate.p_outputs 
 
 		# check p_output
-		self.failUnless( persp.translate.p_output == front.translate )
+		assert persp.translate.p_output == front.translate 
 		self.failUnlessRaises( IndexError, persp.rotate.getOutput )
 
 		# CHECK CONNECTION FORCING
@@ -66,42 +66,42 @@ class TestDataBase( unittest.TestCase ):
 
 		# overwrite connection
 		side.translate >> front.translate
-		self.failUnless( side.translate >= front.translate )
+		assert side.translate >= front.translate 
 
 		# undo - old connection should be back
 		cmds.undo()
-		self.failUnless( persp.translate >= front.translate )
+		assert persp.translate >= front.translate 
 
 		# disconnect input
 		front.translate.disconnectInput()
-		self.failUnless( not persp.translate >= front.translate )
+		assert not persp.translate >= front.translate 
 
 		cmds.undo()
 
 		# disconnect output
 		persp.t.disconnectOutputs( )
-		self.failUnless( len( persp.translate.p_outputs ) == 0 )
+		assert len( persp.translate.p_outputs ) == 0 
 
 		cmds.undo()
-		self.failUnless( persp.t.isConnectedTo( front.translate ) )
+		assert persp.t.isConnectedTo( front.translate ) 
 
 		# disconnect from
 		persp.t | front.translate
-		self.failUnless( not persp.t & front.t )
+		assert not persp.t & front.t 
 
 		cmds.undo()
-		self.failUnless( persp.t >= front.t )
+		assert persp.t >= front.t 
 
 		# COMPARISONS
-		self.failUnless( persp.t != front.t )
-		self.failUnless( persp.t['tx'] != persp.t['ty'] )
+		assert persp.t != front.t 
+		assert persp.t['tx'] != persp.t['ty'] 
 
 		# affected plugs
 		affectedPlugs = persp.t.affects( )
-		self.failUnless( len( affectedPlugs ) > 1  )
+		assert len( affectedPlugs ) > 1  
 
 		affectedPlugs = persp.t.affected( )
-		self.failUnless( len( affectedPlugs ) > 1  )
+		assert len( affectedPlugs ) > 1  
 		
 		
 		# test multi connections
@@ -158,13 +158,13 @@ class TestDataBase( unittest.TestCase ):
 				if setname == "setCaching":
 					continue
 
-				self.failUnless( fget() == oval )
+				assert fget() == oval 
 
 				cmds.undo()
-				self.failUnless( fget() == curval )
+				assert fget() == curval 
 
 				cmds.redo()
-				self.failUnless( fget() == oval )
+				assert fget() == oval 
 
 				fset( curval )	# reset
 			# END for each function
@@ -175,21 +175,21 @@ class TestDataBase( unittest.TestCase ):
 		# ELEMENT ITERATION
 		matworld.evaluateNumElements( )
 		for elm in matworld:
-			self.failUnless( elm.getParent( ) == matworld )
+			assert elm.getParent( ) == matworld 
 
 		translate = persp.translate
 
-		self.failUnless( len( translate.getChildren() ) == translate.getNumChildren() )
+		assert len( translate.getChildren() ) == translate.getNumChildren() 
 
 		# CHILD ITERATION
 		for child in translate.getChildren( ):
-			self.failUnless( child.getParent( ) == translate )
-		self.failUnless( len( translate.getChildren() ) == 3 )
+			assert child.getParent( ) == translate 
+		assert len( translate.getChildren() ) == 3 
 
 		# SUB PLUGS GENERAL METHOD
-		self.failUnless( len( matworld ) == len( matworld.getSubPlugs() ) )
-		self.failUnless( translate.numChildren() == len( translate.getSubPlugs() ) )
-		self.failUnless( len( translate.getSubPlugs() ) == 3 )
+		assert len( matworld ) == len( matworld.getSubPlugs() ) 
+		assert translate.numChildren() == len( translate.getSubPlugs() ) 
+		assert len( translate.getSubPlugs() ) == 3 
 
 
 		# ARRAY CONNECTIONS
@@ -198,14 +198,14 @@ class TestDataBase( unittest.TestCase ):
 		partition = nodes.createNode( "partition1", "partition" )
 		pma = nodes.createNode( "plusMinusAverage1", "plusMinusAverage" )
 		destplug = persp.translate.connectToArray( pma.input3D, exclusive_connection = True )
-		self.failUnless( persp.translate >= destplug )
+		assert persp.translate >= destplug 
 
 		# exclusive connection should return exisiting plug
-		self.failUnless( persp.translate.connectToArray( pma.input3D, exclusive_connection = True ) == destplug )
+		assert persp.translate.connectToArray( pma.input3D, exclusive_connection = True ) == destplug 
 
 		# but newones can also be created
-		self.failUnless( persp.translate.connectToArray( pma.input3D, exclusive_connection = False ) != destplug )
-		#self.failUnless( objset.partition.connectToArray( partition.sets, exclusive_connection = False ) != destplug )
+		assert persp.translate.connectToArray( pma.input3D, exclusive_connection = False ) != destplug 
+		#assert objset.partition.connectToArray( partition.sets, exclusive_connection = False ) != destplug 
 
 
 		# assure the standin classes are there - otherwise my list there would
@@ -217,12 +217,12 @@ class TestDataBase( unittest.TestCase ):
 		for plug,attrtype in zip( plugs, [ nodes.TypedAttribute, nodes.NumericAttribute ] ):
 			attr = plug.getAttribute( )
 
-			self.failUnless( isinstance( attr, nodes.Attribute ) )
-			self.failUnless( isinstance( attr, attrtype ) )
+			assert isinstance( attr, nodes.Attribute ) 
+			assert isinstance( attr, attrtype ) 
 
 			node = plug.getNode()
-			self.failUnless( isinstance( node, nodes.Node ) )
-			self.failUnless( node == persp )
+			assert isinstance( node, nodes.Node ) 
+			assert node == persp 
 
 		# UNDO / REDO
 		##############
@@ -235,13 +235,13 @@ class TestDataBase( unittest.TestCase ):
 			getattrfunc = getattr( plug, "as"+typename )
 			setattrfunc = getattr( plug, "set"+typename )
 
-			self.failUnless( getattrfunc() == initialval )
+			assert getattrfunc() == initialval 
 			setattrfunc( targetval )
-			self.failUnless( getattrfunc() == targetval )
+			assert getattrfunc() == targetval 
 			cmds.undo()
-			self.failUnless( getattrfunc() == initialval )
+			assert getattrfunc() == initialval 
 			cmds.redo()
-			self.failUnless( getattrfunc() == targetval )
+			assert getattrfunc() == targetval 
 		# END for each tuple in testdb
 
 	def test_matrixData( self ):
@@ -249,21 +249,21 @@ class TestDataBase( unittest.TestCase ):
 		if not ownpackage.mayRun( "apipatch" ): return
 		node = nodes.Node( "persp" )
 		matplug = node.getPlug( "worldMatrix" )
-		self.failUnless( not matplug.isNull() )
-		self.failUnless( matplug.isArray() )
+		assert not matplug.isNull() 
+		assert matplug.isArray() 
 		matplug.evaluateNumElements()			# to assure we have something !
 
-		self.failUnless( matplug.getName() == "persp.worldMatrix" )
-		self.failUnless( len( matplug ) )
+		assert matplug.getName() == "persp.worldMatrix" 
+		assert len( matplug ) 
 
 		matelm = matplug[0]
 		assert matelm == matplug[0.0]		# get by logical index
-		self.failUnless( not matelm.isNull() )
+		assert not matelm.isNull() 
 
 		matdata = matelm.asData( )
-		self.failUnless( isinstance( matdata, nodes.MatrixData ) )
+		assert isinstance( matdata, nodes.MatrixData ) 
 		mmatrix = matdata.matrix( )
-		self.failUnless( isinstance( mmatrix, api.MMatrix ) )
+		assert isinstance( mmatrix, api.MMatrix ) 
 
 	def test_matrix( self ):
 		"""mayarv.maya.nodes: Test the matrices"""
@@ -273,13 +273,13 @@ class TestDataBase( unittest.TestCase ):
 		tmat.setScale( ( 2.0, 4.0, 6.0 ) )
 
 		s = tmat.getScale()
-		self.failUnless( s.x == 2.0 )
-		self.failUnless( s.y == 4.0 )
-		self.failUnless( s.z == 6.0 )
+		assert s.x == 2.0 
+		assert s.y == 4.0 
+		assert s.z == 6.0 
 
 		t = api.MVector( 1.0, 2.0, 3.0 )
 		tmat.setTranslation( t )
-		self.failUnless( t == tmat.getTranslation( ) )
+		assert t == tmat.getTranslation( ) 
 
 		tmat.setRotate( ( 20, 40, 90, 1.0 ) )
 
@@ -294,7 +294,7 @@ class TestDataBase( unittest.TestCase ):
 		myplug.getName()				# special Plug method not available in the pure api object
 		pa.append( myplug )
 
-		self.failUnless( len( pa ) == 4 )
+		assert len( pa ) == 4 
 
 		# SETITEM
 		l = 5
@@ -307,7 +307,7 @@ class TestDataBase( unittest.TestCase ):
 		# __ITER__
 		for plug in pa:
 			plug.getName( )
-			self.failUnless( isinstance( plug, api.MPlug ) )
+			assert isinstance( plug, api.MPlug ) 
 
 		self.failIf( len( pa ) != 5 )
 

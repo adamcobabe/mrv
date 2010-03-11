@@ -40,7 +40,7 @@ class TestGeneral( unittest.TestCase ):
 			except:
 				raise
 
-			self.failUnless( not node._apiobj.isNull() )
+			assert not node._apiobj.isNull() 
 			
 			# skip duplicate types - it truly happens that there is the same typename
 			# with a different parent class - we cannot handle this 
@@ -95,7 +95,7 @@ class TestGeneral( unittest.TestCase ):
 		# try to just use a suberclass directly
 		for transname in cmds.ls( type="transform" ):
 			node = nodes.DagNode( transname )
-			self.failUnless( hasattr( node, "__dict__" ) )
+			assert hasattr( node, "__dict__" ) 
 
 
 	def test_createNodes( self ):
@@ -109,24 +109,24 @@ class TestGeneral( unittest.TestCase ):
 		for i in range( len( names ) ):
 			ntype = types[i]
 			newnode = nodes.createNode( names[i], ntype )
-			self.failUnless( isinstance( newnode, getattr( nodes, capitalize( ntype ) ) ) )
-			self.failUnless( newnode.isValid() and newnode.isAlive() )
+			assert isinstance( newnode, getattr( nodes, capitalize( ntype ) ) ) 
+			assert newnode.isValid() and newnode.isAlive() 
 
 			# test undo
 			cmds.undo()
-			self.failUnless( not newnode.isValid() and newnode.isAlive() )
+			assert not newnode.isValid() and newnode.isAlive() 
 			cmds.redo()
-			self.failUnless( newnode.isValid() and newnode.isAlive() )
+			assert newnode.isValid() and newnode.isAlive() 
 
 			newnsnode = nodes.createNode( nsnames[i], ntype )
-			self.failUnless( isinstance( newnsnode, getattr( nodes, capitalize( ntype ) ) ) )
-			self.failUnless( newnsnode.isValid() and newnsnode.isAlive() )
+			assert isinstance( newnsnode, getattr( nodes, capitalize( ntype ) ) ) 
+			assert newnsnode.isValid() and newnsnode.isAlive() 
 
 			# test undo
 			cmds.undo()
-			self.failUnless( not newnsnode.isValid() and newnsnode.isAlive() )
+			assert not newnsnode.isValid() and newnsnode.isAlive() 
 			cmds.redo()
-			self.failUnless( newnsnode.isValid() and newnsnode.isAlive() )
+			assert newnsnode.isValid() and newnsnode.isAlive() 
 		# END for each created object
 
 		# EMPTY NAME and ROOT
@@ -148,7 +148,7 @@ class TestGeneral( unittest.TestCase ):
 
 		# obj exists should match dg nodes with dag node like path ( as they occupy the same
 		# namespace after all
-		self.failUnless( nodes.objExists( "|node" ) )
+		assert nodes.objExists( "|node" ) 
 
 		# it also clashes if the dg node is created after a  dag node with the same name
 		nodes.createNode( "that|nodename", "mesh" )
@@ -159,22 +159,22 @@ class TestGeneral( unittest.TestCase ):
 		newmesh = nodes.createNode( "parent|nodename", "transform" )
 		newmesh1 = nodes.createNode( "parent|nodename|nodename", "mesh" )
 		newmesh2 = nodes.createNode( "otherparent|nodename|nodename", "mesh" )
-		self.failUnless( newmesh != newmesh1 )
-		self.failUnless( newmesh1 != newmesh2 )
+		assert newmesh != newmesh1 
+		assert newmesh1 != newmesh2 
 
 		# FORCE NEW
 		##############
 		oset = nodes.createNode( "objset", "objectSet", forceNewLeaf = False )
 		newoset = nodes.createNode( "objset", "objectSet", forceNewLeaf = True )
-		self.failUnless( oset != newoset )
+		assert oset != newoset 
 
 		# would expect same set to be returned
 		sameoset = nodes.createNode( "objset", "objectSet", forceNewLeaf = False )
-		self.failUnless( sameoset == oset )
+		assert sameoset == oset 
 
 		# force new and dag paths
 		newmesh3 = nodes.createNode( "otherparent|nodename|nodename", "mesh", forceNewLeaf = True )
-		self.failUnless( newmesh3 != newmesh2 )
+		assert newmesh3 != newmesh2 
 
 
 
@@ -182,18 +182,18 @@ class TestGeneral( unittest.TestCase ):
 		"""mayarv.maya.nodes: check whether we can properly handle node exist checks"""
 		if not ownpackage.mayRun( "general" ): return
 		depnode = nodes.createNode( "node", "facade" )
-		self.failUnless( nodes.objExists( str( depnode ) ) )
+		assert nodes.objExists( str( depnode ) ) 
 
 		# TEST DUPLICATION
 		duplnode = depnode.duplicate( )
-		self.failUnless( duplnode.isValid( ) )
+		assert duplnode.isValid( ) 
 
 		copy2 = depnode.duplicate( "name2" )
-		self.failUnless( str( copy2 ) == "name2" )
+		assert str( copy2 ) == "name2" 
 		# NOTE: currently undo is not opetional
 
 		dagnode = nodes.createNode( "parent|node", "mesh" )
-		self.failUnless( nodes.objExists( str( dagnode ) ) )
+		assert nodes.objExists( str( dagnode ) ) 
 
 		# must clash with dg node ( in maya, dg nodes will block names of dag node leafs ! )
 		self.failUnlessRaises( NameError, nodes.createNode, "parent|node|node", "mesh", renameOnClash=False )
@@ -213,14 +213,14 @@ class TestGeneral( unittest.TestCase ):
 		instnode = duplnodemiddle.addInstancedChild( node )
 
 
-		self.failUnless( instnode._apiobj == node._apiobj ) # compare mobject
-		self.failUnless( instnode != node )		# compare dag paths
+		assert instnode._apiobj == node._apiobj  # compare mobject
+		assert instnode != node 		# compare dag paths
 
 		path = instnode.getDagPath( )
 		childm1 = nodes.Node( "parent|middle1|child" )
 
 		# if it didnt work, he would have returned a "|parent|middle|child"
-		self.failUnless( "|parent|middle1|child" == str(childm1) )
+		assert "|parent|middle1|child" == str(childm1) 
 
 		npath = node.getDagPath( )
 		ipath = instnode.getDagPath( )
@@ -234,11 +234,11 @@ class TestGeneral( unittest.TestCase ):
 		############
 		nodes.select( "persp" )
 		persp = nodes.getSelection()[0]
-		self.failUnless( persp == nodes.Node( "persp" ) )
+		assert persp == nodes.Node( "persp" ) 
 
 		# clear selection
 		nodes.select( )
-		self.failUnless( not nodes.getSelection() )
+		assert not nodes.getSelection() 
 		
 		# undo/redo
 		cmds.undo()
@@ -248,19 +248,19 @@ class TestGeneral( unittest.TestCase ):
 
 		# select object and selection list
 		nodes.select( persp )
-		self.failUnless( len( nodes.getSelection( ) ) == 1 )
+		assert len( nodes.getSelection( ) ) == 1 
 		nodes.select( nodes.toSelectionList( nodes.getSelection( ) ) )
-		self.failUnless( len( nodes.getSelection( ) ) == 1 )
+		assert len( nodes.getSelection( ) ) == 1 
 
 		# select mixed
 		nodes.select( persp, "front" )
-		self.failUnless( len( nodes.getSelection( ) ) == 2 )
+		assert len( nodes.getSelection( ) ) == 2 
 
 
 		# GET BY NAME
 		###############
 		persp = nodes.getByName( "pers*" )[0]
-		self.failUnless( persp == nodes.Node( "persp" ) )
+		assert persp == nodes.Node( "persp" ) 
 		
 		# filter selection
 		##################
@@ -296,19 +296,19 @@ class TestNodeBase( unittest.TestCase ):
 		for i in range( 10 ):		# dg nodes
 			ddg[ nodes.Node( "initialShadingGroup" ) ] = i
 
-		self.failUnless( len( ddg ) == 1 )
+		assert len( ddg ) == 1 
 
 		ddag = dict()
 		for i in range( 10 ):		# dg nodes
 			ddag[ nodes.Node( "persp" ) ] = i
 
-		self.failUnless( len( ddag ) == 1 )
+		assert len( ddag ) == 1 
 
 		# merge both together
 		dall = dict()
 		dall.update( ddg )
 		dall.update( ddag )
-		self.failUnless( len( dall ) == 2 )
+		assert len( dall ) == 2 
 
 
 	def test_wrapDepNode( self ):
@@ -322,7 +322,7 @@ class TestNodeBase( unittest.TestCase ):
 		# self.failUnlessRaises( TypeError, nodes.Node, "this", 1 )  # skip check , maya throws
 
 		# string should be name
-		self.failUnless( str( node ) == node.getName( ) )
+		assert str( node ) == node.getName( ) 
 		repr( node )
 
 
@@ -340,19 +340,19 @@ class TestNodeBase( unittest.TestCase ):
 			plug = getattr( node, attr )
 			assert plug == getattr( node, attr )
 			assert plug == node.findPlug(attr)
-			self.failUnless( not plug.isNull() )
+			assert not plug.isNull() 
 
 		# check connection methods
 		cons = node.getConnections( )
-		self.failUnless( len( cons ) )
+		assert len( cons ) 
 
 
 		# DEPENDENCY INFO
 		persp = nodes.Node( "persp" )
 		affected_attrs = persp.affects( "t" )
-		self.failUnless( len( affected_attrs ) > 1 )
+		assert len( affected_attrs ) > 1 
 		affected_attrs = persp.affected( "t" )
-		self.failUnless( len( affected_attrs ) > 1 )
+		assert len( affected_attrs ) > 1 
 
 
 		# CHECK LAZY WRAPPING
@@ -361,20 +361,20 @@ class TestNodeBase( unittest.TestCase ):
 		t = node.getType()
 		for state in [1,0]:
 			node.setLocked( state )
-			self.failUnless( node.isLocked() == state )
+			assert node.isLocked() == state 
 
 		# ATTRIBUTES
 		attr = node.getAttribute( 0 )
 		attr.getName( )
-		self.failUnless( not attr.isNull() )
+		assert not attr.isNull() 
 
 		for i in xrange( node.attributeCount() ):
 			attr = node.getAttribute( i )
-			self.failUnless( not attr.isNull() )
+			assert not attr.isNull() 
 
 		# CHECK namespaces - should be root namespace
 		ns = node.getNamespace( )
-		self.failUnless( ns == nodes.Namespace.root )
+		assert ns == nodes.Namespace.root 
 		
 
 		# RENAME DEP NODES
@@ -382,14 +382,14 @@ class TestNodeBase( unittest.TestCase ):
 		node = nodes.createNode( "mynode", "facade" )
 		renamed = node.rename( "myrenamednode" )
 
-		self.failUnless( renamed == "myrenamednode" )
-		self.failUnless( node == renamed )
+		assert renamed == "myrenamednode" 
+		assert node == renamed 
 
 		# undo - redo
 		cmds.undo()
-		self.failUnless( node == "mynode" )
+		assert node == "mynode" 
 		cmds.redo()
-		self.failUnless( node == "myrenamednode" )
+		assert node == "myrenamednode" 
 
 
 		# trigger namespace error
@@ -400,14 +400,14 @@ class TestNodeBase( unittest.TestCase ):
 
 		# multi undo - namespace is one operation in this one
 		cmds.undo()
-		self.failUnless( not nsm.exists( "nsdoesnotexist" ) )
+		assert not nsm.exists( "nsdoesnotexist" ) 
 		cmds.redo()
-		self.failUnless( node.isValid() )
+		assert node.isValid() 
 
 
 		# rename to same name
 		renamed = node.rename( "nsdoesnotexist" )	# should be fine
-		self.failUnless( renamed == node )
+		assert renamed == node 
 
 		# othernode with different type exists
 		othernode = nodes.createNode( "othernode", "groupId" )
@@ -452,8 +452,8 @@ class TestNodeBase( unittest.TestCase ):
 		rbase = nodes.createNode( "reparentBase", "transform" )
 
 		# test basic functions
-		self.failUnless( rbase.getApiType() == api.MFn.kTransform )
-		self.failUnless( rbase.hasFn( api.MFn.kTransform ) )
+		assert rbase.getApiType() == api.MFn.kTransform 
+		assert rbase.hasFn( api.MFn.kTransform ) 
 
 		baseinst = base.addInstancedChild( mesh )
 		obaseinst = obase.addInstancedChild( mesh )
@@ -466,14 +466,14 @@ class TestNodeBase( unittest.TestCase ):
 		assert nodes.Node( "subbase|mesh" ) == baseinst
 		assert nodes.Node( "subbase2|mesh" ) == obaseinst
 
-		self.failUnless( mesh.isValid() and baseinst.isValid() and obaseinst.isValid() )
+		assert mesh.isValid() and baseinst.isValid() and obaseinst.isValid() 
 
 		# assure we catch this possibly damaage
 		self.failUnlessRaises( RuntimeError, mesh.reparent, rbase, raiseOnInstance=True )
 
 		# instances are gone should be gone
 		mesh = mesh.reparent( rbase, raiseOnInstance=False )
-		self.failUnless( mesh.isValid() and not baseinst.isValid() and not obaseinst.isValid() )
+		assert mesh.isValid() and not baseinst.isValid() and not obaseinst.isValid() 
 		
 		# try unparent
 		meshtrans = mesh.getTransform()
@@ -492,11 +492,11 @@ class TestNodeBase( unittest.TestCase ):
 		obasemeshinst = obase.addInstancedChild( basemesh )
 
 		duplmesh = obasemeshinst.duplicate( "newmeshname" )	# is a separate copy !
-		self.failUnless( duplmesh != obasemeshinst )
+		assert duplmesh != obasemeshinst 
 
 		dupltrans = base.duplicate( "duplbase" )
 		baseduplmesh = dupltrans.getChildrenByType( nodes.Mesh )[0]
-		self.failUnless( baseduplmesh != basemesh )		# its a separate copy
+		assert baseduplmesh != basemesh 		# its a separate copy
 
 	def test_wrapDagNode( self ):
 		"""mayarv.maya.nodes: create and access dag nodes"""
@@ -512,25 +512,25 @@ class TestNodeBase( unittest.TestCase ):
 		duplbase = nodes.createNode( "parent|this|other|duplbase", "mesh" )
 		transcopy = duplbase.getTransform( ).duplicate()
 		copy = duplbase.duplicate( "parent|this|other|duplcopy" )
-		self.failUnless( copy != duplbase )
-		self.failUnless( str( copy ) != str( duplbase ) )
-		self.failUnless( str( copy ) == "|parent|this|other|duplcopy" )
+		assert copy != duplbase 
+		assert str( copy ) != str( duplbase ) 
+		assert str( copy ) == "|parent|this|other|duplcopy" 
 
 		# TEST ADDITIONAL OPTIONS
 		for i in range( 1,3 ):
 			ocopy = duplbase.duplicate(  )
-			self.failUnless( str( ocopy ) == str( duplbase ) + str( i ) )
+			assert str( ocopy ) == str( duplbase ) + str( i ) 
 
 			ocopy = duplbase.duplicate( newTransform=1 )
-			self.failUnless( ocopy.getBasename( ) == duplbase.getBasename() )
-			self.failUnless( str( ocopy.getParent() ) == str( duplbase.getParent() ) + str( i + 1 ) )
+			assert ocopy.getBasename( ) == duplbase.getBasename() 
+			assert str( ocopy.getParent() ) == str( duplbase.getParent() ) + str( i + 1 ) 
 
 			# undo both duplications and redo
 			# CRASHES MAYA AFTER REDO
 			# and if someone tries to access an object already created
 			#cmds.undo()
 			#cmds.undo()
-			#self.failUnless( duplbase.isValid() )
+			#assert duplbase.isValid() 
 			#cmds.redo()
 			#cmds.redo()
 		# END for each copy
@@ -542,9 +542,9 @@ class TestNodeBase( unittest.TestCase ):
 
 		# REPARENT UNDO TEST
 		cmds.undo()
-		self.failUnless( mesh.getParent() == parent )
+		assert mesh.getParent() == parent 
 		cmds.redo()
-		self.failUnless( mesh.getParent() == otherparent )
+		assert mesh.getParent() == otherparent 
 
 
 
@@ -558,7 +558,7 @@ class TestNodeBase( unittest.TestCase ):
 
 		# now it works
 		othermesh.rename( "mesh", renameOnClash = True )
-		self.failUnless( othermesh.getBasename( ) == "mesh" )
+		assert othermesh.getBasename( ) == "mesh" 
 
 
 		# shape under root
@@ -580,11 +580,11 @@ class TestNodeBase( unittest.TestCase ):
 
 		wtransnewparent = wtrans.setParent( parent )
 		assert wtrans == wtransnewparent
-		self.failUnless( wtransnewparent.getInstanceCount( 1 ) == 1 )
+		assert wtransnewparent.getInstanceCount( 1 ) == 1 
 		wtransnewparent.addParent( oparent )
-		self.failUnless( wtransnewparent.getInstanceCount( 1 ) == 2 )
+		assert wtransnewparent.getInstanceCount( 1 ) == 2 
 		wtransnewparent.removeParent( oparent )
-		self.failUnless( wtrans.getInstanceCount( 1 ) == 1 )
+		assert wtrans.getInstanceCount( 1 ) == 1 
 
 
 
@@ -598,10 +598,10 @@ class TestNodeBase( unittest.TestCase ):
 		# DUPLICATE ( Dag only )
 		#########################
 		newmesh = mesh.duplicate( "|duplparent|duplmesh" )
-		self.failUnless( str( newmesh ) == "|duplparent|duplmesh" )
+		assert str( newmesh ) == "|duplparent|duplmesh" 
 		self.failUnlessRaises( RuntimeError, mesh.duplicate, "|duplparent2|doesntexistns:duplmesh",
 							  	autocreateNamespace = False )
-		self.failUnless( newmesh != mesh )
+		assert newmesh != mesh 
 		instbase = nodes.createNode( "|duplparent2|newnamespace:instmesh", "transform" )
 		meshinst = instbase.addInstancedChild( mesh )
 		meshinstname = str( meshinst )
@@ -611,19 +611,19 @@ class TestNodeBase( unittest.TestCase ):
 		cmds.undo()
 
 		# this object will end up pointing to the same object , as it came from, use string test
-		self.failUnless( not nodes.objExists( meshinstname ) )
+		assert not nodes.objExists( meshinstname ) 
 		cmds.redo()
 		cmds.undo()
 		cmds.redo()
-		self.failUnless( meshinst != mesh )
-		self.failUnless( meshinst.isAlive() and meshinst.isValid() and str( meshinst ) == meshinstname )
+		assert meshinst != mesh 
+		assert meshinst.isAlive() and meshinst.isValid() and str( meshinst ) == meshinstname 
 
 		# Duplicate TRANSFORM ( just a name given )
 		# dag paths should be different although object is the same
 		mesh = nodes.createNode( "|parent|mybeautifuluniquemeshname", "mesh" )
 		meshassert = nodes.createNode( "|parent|mesh", "mesh" )
 		meshself = nodes.Node( "|parent|mybeautifuluniquemeshname" )
-		self.failUnless( mesh == meshself )
+		assert mesh == meshself 
 
 		# connect it, to track the instance by connection
 		persp = nodes.Node( "persp" )
@@ -642,7 +642,7 @@ class TestNodeBase( unittest.TestCase ):
 
 
 		meshinstname = mesh.getTransform().getFullChildName( "newns:meshinst" )
-		self.failUnless( isinstance( meshinst, nodes.Mesh ) )
+		assert isinstance( meshinst, nodes.Mesh ) 
 
 	def test_removeChild( self ):
 		"""mayarv.maya.nodes: test how remove child responds"""
@@ -655,10 +655,10 @@ class TestNodeBase( unittest.TestCase ):
 			removeditem = base.removeChild( item, allowZeroParents=True )
 
 			# PATHS ARE INVALID NOW - object is nowhere to be found
-			self.failUnless( not removeditem.isValid() and removeditem.isAlive() )
+			assert not removeditem.isValid() and removeditem.isAlive() 
 
 			cmds.undo()
-			self.failUnless( removeditem.isValid() and removeditem.isAlive() )
+			assert removeditem.isValid() and removeditem.isAlive() 
 		# END for each removeChild item
 
 
@@ -666,11 +666,11 @@ class TestNodeBase( unittest.TestCase ):
 		"""mayarv.nodes.maya: DependeNode.__getitem__"""
 		if not ownpackage.mayRun( "general" ): return
 		mesh = nodes.createNode( "p1|p2|mesh", "mesh" )
-		self.failUnless( len( list( mesh.iterParents() ) ) == 2 )
+		assert len( list( mesh.iterParents() ) ) == 2 
 		p2 = mesh.getParent()
 		p1 = p2.getParent()
-		self.failUnless( mesh[-1] == p2 )
-		self.failUnless( mesh[-2] == p1 )
+		assert mesh[-1] == p2 
+		assert mesh[-2] == p1 
 		self.failUnlessRaises( IndexError, mesh.__getitem__, -3 )
 
 	def test_childEditing( self ):
@@ -693,7 +693,7 @@ class TestNodeBase( unittest.TestCase ):
 		for item in itemlist:
 			baseiteminst = base.addInstancedChild( item )
 			base.addInstancedChild( item )
-			self.failUnless( item != baseiteminst and baseiteminst.isValid() and item.isValid() )
+			assert item != baseiteminst and baseiteminst.isValid() and item.isValid() 
 
 			instlist.append( baseiteminst )
 
@@ -701,10 +701,10 @@ class TestNodeBase( unittest.TestCase ):
 			# undo basemesh
 			cmds.undo()
 			cmds.undo()
-			self.failUnless( not baseiteminst.isValid() and baseiteminst.isAlive() )
+			assert not baseiteminst.isValid() and baseiteminst.isAlive() 
 
 			cmds.redo()
-			self.failUnless( baseiteminst.isValid() and baseiteminst.isAlive() )
+			assert baseiteminst.isValid() and baseiteminst.isAlive() 
 		# END for each object including undo/redo
 
 
@@ -717,13 +717,13 @@ class TestNodeBase( unittest.TestCase ):
 			inst = obase.addChild( inst, keepExistingParent=False )
 			obase.addChild( inst, keepExistingParent=False )	 # duplicate adds are not problem
 
-			self.failUnless( inst.isValid() and inst.isAlive() )
-			self.failUnless( orig.isValid() )			# original may not be influenced by that operation
+			assert inst.isValid() and inst.isAlive() 
+			assert orig.isValid() 			# original may not be influenced by that operation
 
 			# undo / redo
 			cmds.undo()
 			#cmds.undo()	# just one undo counts
-			self.failUnless( inst.isValid() and orig.isValid() )
+			assert inst.isValid() and orig.isValid() 
 
 			cmds.redo()
 		# END for each instance
@@ -734,12 +734,12 @@ class TestNodeBase( unittest.TestCase ):
 		# RENAME ON CLASH = True
 		otransname = str( otrans )
 		renamedtrans = obase.addChild( otrans, renameOnClash = True )
-		self.failUnless( renamedtrans.isValid() )
+		assert renamedtrans.isValid() 
 		renamedname = str( renamedtrans )
-		self.failUnless( renamedname != otransname )
+		assert renamedname != otransname 
 
 		cmds.undo( )
-		self.failUnless( nodes.objExists( otransname ) and not nodes.objExists( renamedname ) )
+		assert nodes.objExists( otransname ) and not nodes.objExists( renamedname ) 
 
 		cmds.redo()
 
@@ -750,34 +750,34 @@ class TestNodeBase( unittest.TestCase ):
 		m = nodes.Node( "m" )			# mesh, two direct and two indirect instances
 		c1 = nodes.createNode( "|c1", "transform" )
 
-		self.failUnless( m.getInstanceCount( 0 ) == 2 )
-		self.failUnless( m.getInstanceCount( 1 ) == 4 )
+		assert m.getInstanceCount( 0 ) == 2 
+		assert m.getInstanceCount( 1 ) == 4 
 
 		# test parenting
 		mci = c1.addInstancedChild( m )
 
 		# common._saveTempFile( "instancetest.ma" )
-		self.failUnless( m.getInstanceCount( 0 ) == 3 )
-		self.failUnless( m.getInstanceCount( 1 ) == 5 )	# direct + indirect
+		assert m.getInstanceCount( 0 ) == 3 
+		assert m.getInstanceCount( 1 ) == 5 	# direct + indirect
 
 		c1.removeChild( mci )
 
-		self.failUnless( m.getInstanceCount( 0 ) == 2 )
-		self.failUnless( m.getInstanceCount( 1 ) == 4 )	# direct + indirect
+		assert m.getInstanceCount( 0 ) == 2 
+		assert m.getInstanceCount( 1 ) == 4 	# direct + indirect
 
 		# check reparent
 		d1 = nodes.createNode( "|d1", "transform" )
 		c1 = c1.reparent( d1 )
 
-		self.failUnless( m.getInstanceCount( 0 ) == 2 )
-		self.failUnless( m.getInstanceCount( 1 ) == 4 )
+		assert m.getInstanceCount( 0 ) == 2 
+		assert m.getInstanceCount( 1 ) == 4 
 
 		# reparent an instanced transform under d1
 		a2 = nodes.Node( "a2" )
 
 		a2 = a2.reparent( d1, raiseOnInstance=0 )			# destroys instances
-		self.failUnless( m.getInstanceCount( 0 ) == 2 )
-		self.failUnless( m.getInstanceCount( 1 ) == 2 )
+		assert m.getInstanceCount( 0 ) == 2 
+		assert m.getInstanceCount( 1 ) == 2 
 
 
 	def test_instanceTraversal( self ):
@@ -799,33 +799,33 @@ class TestNodeBase( unittest.TestCase ):
 
 		# INSTANCE TRAVERSAL
 		for inst in instances:
-			self.failUnless( inst.getInstanceCount( False ) == 4 )
-			self.failUnless( inst == inst.getInstance( inst.getInstanceNumber( ) ) )
+			assert inst.getInstanceCount( False ) == 4 
+			assert inst == inst.getInstance( inst.getInstanceNumber( ) ) 
 			for instinst in inst.iterInstances( excludeSelf = True ):
-				self.failUnless( instinst != inst )
+				assert instinst != inst 
 			foundself = False
 			for instinst in inst.iterInstances( excludeSelf = False ):
 				if instinst == inst:
 					foundself = True
-			self.failUnless( foundself )
+			assert foundself 
 
 			base.removeChild( inst )	# remove one inst
-			self.failUnless( inst.getInstanceCount( False ) == 3 )
+			assert inst.getInstanceCount( False ) == 3 
 			base.addInstancedChild( inst )	# readd it
 			# END for each instance path
 		# END for each instanced node
 
 		# TRAVERSE NON-INSTANCED  - should have one or 0
-		self.failUnless( len( list(( base.iterInstances( excludeSelf = True ) )) ) == 0 )
-		self.failUnless( len( list(( base.iterInstances( excludeSelf = False ) )) ) == 1 )
+		assert len( list(( base.iterInstances( excludeSelf = True ) )) ) == 0 
+		assert len( list(( base.iterInstances( excludeSelf = False ) )) ) == 1 
 
 		# TEST DIRECT VS INDIRECT INSTANCES
 		baseinst = base.addParent( obase )
-		self.failUnless( base.getInstanceCount( False ) == 2 )
-		self.failUnless( trans.getInstanceCount( False ) != trans.getInstanceCount( True ) )
+		assert base.getInstanceCount( False ) == 2 
+		assert trans.getInstanceCount( False ) != trans.getInstanceCount( True ) 
 
 		# iteration is always over all instances
-		self.failUnless( len( list( ( trans.iterInstances(excludeSelf=False))) ) == trans.getInstanceCount( True ) )
+		assert len( list( ( trans.iterInstances(excludeSelf=False))) ) == trans.getInstanceCount( True ) 
 
 
 	def test_displaySettings( self ):
@@ -837,27 +837,27 @@ class TestNodeBase( unittest.TestCase ):
 
 		# TEMPLATE
 		##########
-		self.failUnless( mesh.isTemplate() )
+		assert mesh.isTemplate() 
 		cmds.undo()
-		self.failUnless( not mesh.isTemplate() )
+		assert not mesh.isTemplate() 
 
 		a1 = mesh.getRoot()
 		a1.v.setInt( 0 )
 
 		# VISIBLE
 		#########
-		self.failUnless( not mesh.isVisible( ) )
+		assert not mesh.isVisible( ) 
 		cmds.undo()
-		self.failUnless( mesh.isVisible( ) )
+		assert mesh.isVisible( ) 
 
 		# DRAWING OVERRIDES
 		###################
 		a1.do['ove'].setInt( 1 )
 		a1.do['ovdt'].setInt( 2 )
-		self.failUnless( mesh.getDisplayOverrideValue( 'ovdt' ) == 2 )
+		assert mesh.getDisplayOverrideValue( 'ovdt' ) == 2 
 		cmds.undo()
 		cmds.undo()
-		self.failUnless( mesh.getDisplayOverrideValue( 'ovdt' ) == None )
+		assert mesh.getDisplayOverrideValue( 'ovdt' ) == None 
 
 
 	def test_addremoveAttr( self ):
@@ -872,14 +872,14 @@ class TestNodeBase( unittest.TestCase ):
 		trans.addAttribute( attr )
 		attrplug = trans.longnumattr
 		attrplug.setInt( 10 )
-		self.failUnless( attrplug.asInt() == 10 )
+		assert attrplug.asInt() == 10 
 
 		# adding same attribute to several objects - DOES NOT WORK
 		# CREATE A NEW ONE
 		attrnew = nattr.create( "longnumattr", "sna", api.MFnNumericData.kLong, 5 )
 		trans2.addAttribute( attrnew )
 		trans2.sna.setInt( 20 )
-		self.failUnless( trans2.sna.asInt() == 20 and trans.sna.asInt() == 10 )
+		assert trans2.sna.asInt() == 20 and trans.sna.asInt() == 10 
 
 		# remove the attribute - with Attribute class this time
 		trans.removeAttribute( attrplug.getAttribute() )
@@ -891,15 +891,15 @@ class TestNodeBase( unittest.TestCase ):
 
 	def _checkIdentity( self, t ):
 		"""Assure that t is identity"""
-		self.failUnless( t.t['tx'].asFloat() == 0.0 )
-		self.failUnless( t.t['ty'].asFloat() == 0.0 )
-		self.failUnless( t.t['tz'].asFloat() == 0.0 )
-		self.failUnless( t.r['rx'].asFloat() == 0.0 )
-		self.failUnless( t.r['ry'].asFloat() == 0.0 )
-		self.failUnless( t.r['rz'].asFloat() == 0.0 )
-		self.failUnless( t.s['sx'].asFloat() == 1.0 )
-		self.failUnless( t.s['sy'].asFloat() == 1.0 )
-		self.failUnless( t.s['sz'].asFloat() == 1.0 )
+		assert t.t['tx'].asFloat() == 0.0 
+		assert t.t['ty'].asFloat() == 0.0 
+		assert t.t['tz'].asFloat() == 0.0 
+		assert t.r['rx'].asFloat() == 0.0 
+		assert t.r['ry'].asFloat() == 0.0 
+		assert t.r['rz'].asFloat() == 0.0 
+		assert t.s['sx'].asFloat() == 1.0 
+		assert t.s['sy'].asFloat() == 1.0 
+		assert t.s['sz'].asFloat() == 1.0 
 
 	def test_keepWorldSpace( self ):
 		"""mayarv.maya.nodes.base: keep ws transformation when reparenting"""
@@ -928,7 +928,7 @@ class TestNodeBase( unittest.TestCase ):
 		for ma in mainattrs:
 			for sa in subattrs:
 				value = getattr( t, ma )[ma+sa].asFloat( )
-				self.failUnless( value == count )
+				assert value == count 
 				count += 1.0
 			# end
 		#end

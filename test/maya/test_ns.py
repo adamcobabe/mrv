@@ -15,17 +15,17 @@ class TestReferenceRunner( unittest.TestCase ):
 
 		rootns = Namespace( Namespace.root )
 		childns = rootns.getChildren( )
-		self.failUnless( rootns.isRoot() )
-		self.failUnless( len( childns ) == 3 )
+		assert rootns.isRoot() 
+		assert len( childns ) == 3 
 
 		for ns in childns:
-			self.failUnless( ns.getParent( ) == rootns )
-			self.failUnless( ns.isAbsolute() )
+			assert ns.getParent( ) == rootns 
+			assert ns.isAbsolute() 
 			allChildren = ns.getChildrenDeep( )
-			self.failUnless( len( allChildren ) == 2 )
+			assert len( allChildren ) == 2 
 
 			for child in allChildren:
-				self.failUnless( len( child.getParentDeep() ) )
+				assert len( child.getParentDeep() ) 
 
 		# end for each childns
 
@@ -40,20 +40,20 @@ class TestReferenceRunner( unittest.TestCase ):
 		for ns in [ "newns", "newns:child", "longer:namespace",":hello:world:here" ]:
 			curns = Namespace.getCurrent()
 			newns = Namespace.create( ns )
-			self.failUnless( newns.exists() )
-			self.failUnless( Namespace.getCurrent() == curns )
+			assert newns.exists() 
+			assert Namespace.getCurrent() == curns 
 
 			# test undo: creation
 			cmds.undo()
-			self.failUnless( not newns.exists() )
+			assert not newns.exists() 
 			cmds.redo()
-			self.failUnless( newns.exists() )
+			assert newns.exists() 
 
 			# test undo: change current
 			newns.setCurrent()
-			self.failUnless( Namespace.getCurrent() == newns )
+			assert Namespace.getCurrent() == newns 
 			cmds.undo()
-			self.failUnless( Namespace.getCurrent() == curns )
+			assert Namespace.getCurrent() == curns 
 
 
 
@@ -62,22 +62,22 @@ class TestReferenceRunner( unittest.TestCase ):
 		for ns in childns:
 			newname = str( ns ) + "_renamed"
 			renamedns = ns.rename( newname )
-			self.failUnless( renamedns == renamedns )
-			self.failUnless( renamedns.exists() )
+			assert renamedns == renamedns 
+			assert renamedns.exists() 
 
 		# delete all child namepaces
 		childns = rootns.getChildren()
 
 		# check relative namespace
 		for ns in childns:
-			self.failUnless( not ns.getRelativeTo( rootns ).isAbsolute() )
+			assert not ns.getRelativeTo( rootns ).isAbsolute() 
 
 		for ns in childns:
 			allchildren = ns.getChildrenDeep()
 			ns.delete( move_to_namespace = rootns )
-			self.failUnless( not ns.exists() )
+			assert not ns.exists() 
 			for child in allChildren:
-				self.failUnless( not child.exists() )
+				assert not child.exists() 
 
 
 		# ITER ROOT NAMESPACE - REAL OBJECTS
@@ -85,34 +85,34 @@ class TestReferenceRunner( unittest.TestCase ):
 		numobjs = 0
 		for obj in Namespace( ":" ).iterNodes( depth = 0 ):
 			numobjs += 1
-		self.failUnless( numobjs != 0 )
-		self.failUnless( Namespace.getCurrent() == curns )
+		assert numobjs != 0 
+		assert Namespace.getCurrent() == curns 
 
 		# ITER STRINGS
 		newnumobjs = 0
 		for obj in Namespace( ":" ).getNodeStrings( depth = 0, asStrings = 1 ):
 			newnumobjs += 1
 
-		self.failUnless( Namespace.getCurrent() == curns )
-		self.failUnless( newnumobjs == numobjs )
+		assert Namespace.getCurrent() == curns 
+		assert newnumobjs == numobjs 
 
 		# empty namespace must come out as root
 		ns = Namespace( "" )
-		self.failUnless( ns == Namespace.root )
+		assert ns == Namespace.root 
 
 		# TEST SPLIT
 		###########
 		t = Namespace.splitNamespace( "hello:world" )
-		self.failUnless( t[0] == ":hello" and t[1] == "world" )
+		assert t[0] == ":hello" and t[1] == "world" 
 
 		t = Namespace.splitNamespace( ":hello:world:there" )
-		self.failUnless( t[0] == ":hello:world" and t[1] == "there" )
+		assert t[0] == ":hello:world" and t[1] == "there" 
 
 
 		# TEST TORELATIVE
 		#################
-		self.failUnless( Namespace( "hello" ).toRelative( ) == "hello" )
-		self.failUnless( Namespace( ":hello" ).toRelative( ) == "hello" )
+		assert Namespace( "hello" ).toRelative( ) == "hello" 
+		assert Namespace( ":hello" ).toRelative( ) == "hello" 
 
 		# TEST REPLACEMENT
 		#####################
@@ -121,21 +121,21 @@ class TestReferenceRunner( unittest.TestCase ):
 		newnssingle = Namespace( "nns" )
 		newnsmulti = Namespace( "nns1:nns2" )
 
-		self.failUnless( rootns.substitute( rootrel, newnssingle ) == ":nns:rootnsrel" )
-		self.failUnless( rootns.substitute( rootrel, newnsmulti ) == ":nns1:nns2:rootnsrel" )
+		assert rootns.substitute( rootrel, newnssingle ) == ":nns:rootnsrel" 
+		assert rootns.substitute( rootrel, newnsmulti ) == ":nns1:nns2:rootnsrel" 
 
-		self.failUnless( rootns.substitute( rootabs, newnssingle ) == ":nns:rootnsabs" )
-		self.failUnless( rootns.substitute( rootabs, newnsmulti ) == ":nns1:nns2:rootnsabs" )
+		assert rootns.substitute( rootabs, newnssingle ) == ":nns:rootnsabs" 
+		assert rootns.substitute( rootabs, newnsmulti ) == ":nns1:nns2:rootnsabs" 
 
-		self.failUnless( ns2.substitute( multins, newnssingle ) == "ns1:nns:multinsrel" )
-		self.failUnless( ns2.substitute( multins, newnsmulti ) == "ns1:nns1:nns2:multinsrel" )
+		assert ns2.substitute( multins, newnssingle ) == "ns1:nns:multinsrel" 
+		assert ns2.substitute( multins, newnsmulti ) == "ns1:nns1:nns2:multinsrel" 
 
-		self.failUnless( ns2.substitute( multinabs, newnssingle ) == ":ns1:nns:ns3:nns:multinabs" )
-		self.failUnless( ns2.substitute( multinabs, newnsmulti ) == ":ns1:nns1:nns2:ns3:nns1:nns2:multinabs" )
+		assert ns2.substitute( multinabs, newnssingle ) == ":ns1:nns:ns3:nns:multinabs" 
+		assert ns2.substitute( multinabs, newnsmulti ) == ":ns1:nns1:nns2:ns3:nns1:nns2:multinabs" 
 
 		# empty replacement - remove ns
-		self.failUnless( ns2.substitute( multins, "" ) == "ns1:multinsrel" )
-		self.failUnless( ns.substitute( nsabs, "" ) == ":absolute" )
+		assert ns2.substitute( multins, "" ) == "ns1:multinsrel" 
+		assert ns.substitute( nsabs, "" ) == ":absolute" 
 		
 		# namespaces have slots
 		self.failUnlessRaises( AttributeError, setattr, ns, "myattr", 2 )

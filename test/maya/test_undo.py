@@ -40,23 +40,23 @@ class TestUndoQueue( unittest.TestCase ):
 		op = TestUndoQueue.TestOperation()
 		op.doIt( )			# apply operation
 
-		self.failUnless( len( sys._maya_stack ) == 1 )
-		self.failUnless( sys._maya_stack_depth == 1 )
+		assert len( sys._maya_stack ) == 1 
+		assert sys._maya_stack_depth == 1 
 
 
 		undo.endUndo()
 
 		# STACK MUST BE EMPTY#
 		# as it has been taken by the command
-		self.failUnless( len( sys._maya_stack ) == 0 )
+		assert len( sys._maya_stack ) == 0 
 
 		# UNDO
 		cmds.undo()
-		self.failUnless( op.numDoit == op.numUndoIt )
+		assert op.numDoit == op.numUndoIt 
 
 		# REDO
 		cmds.redo()
-		self.failUnless( op.numDoit - 1 == op.numUndoIt )
+		assert op.numDoit - 1 == op.numUndoIt 
 
 		# OP WITHOUT PUSH
 		self.failUnlessRaises( AssertionError, TestUndoQueue.TestOperation )
@@ -215,7 +215,7 @@ class TestUndoQueue( unittest.TestCase ):
 		# start undo
 		uobj = undo.StartUndo( )
 		dgmod = undo.DGModifier( )
-		self.failUnless( len( sys._maya_stack ) == 1 )
+		assert len( sys._maya_stack ) == 1 
 
 		dgmod.connect( persp.message, front.isHistoricallyInteresting )
 		dgmod.doIt( )
@@ -223,14 +223,14 @@ class TestUndoQueue( unittest.TestCase ):
 		# create undo step
 		del( uobj )
 
-		self.failUnless( len( sys._maya_stack ) == 0 )
+		assert len( sys._maya_stack ) == 0 
 		cmds.undo()	# undo connection
 		# check connection - should be undone
-		self.failUnless( not persp.message.isConnectedTo( front.isHistoricallyInteresting ) )
+		assert not persp.message.isConnectedTo( front.isHistoricallyInteresting ) 
 
 		cmds.redo()
 		# redo it and check connection
-		self.failUnless( persp.message.isConnectedTo( front.isHistoricallyInteresting ) )
+		assert persp.message.isConnectedTo( front.isHistoricallyInteresting ) 
 
 		# connect and break existing conenction
 		uobj = undo.StartUndo( )
@@ -240,11 +240,11 @@ class TestUndoQueue( unittest.TestCase ):
 		dgmod.doIt( )
 		del( uobj )
 
-		self.failUnless( side.message.isConnectedTo( front.isHistoricallyInteresting ) )
+		assert side.message.isConnectedTo( front.isHistoricallyInteresting ) 
 		cmds.undo()
 
 		# old connection should be back
-		self.failUnless( persp.message.isConnectedTo( front.isHistoricallyInteresting ) )
+		assert persp.message.isConnectedTo( front.isHistoricallyInteresting ) 
 
 
 		# undo first change
@@ -269,13 +269,13 @@ class TestUndoQueue( unittest.TestCase ):
 		dagmod.doIt()
 
 		handle = om.MObjectHandle( obj )
-		self.failUnless( handle.isValid() and handle.isAlive() )
+		assert handle.isValid() and handle.isAlive() 
 
 		undo.endUndo()
 
 		cmds.undo()
-		self.failUnless( not handle.isValid() and handle.isAlive() )
+		assert not handle.isValid() and handle.isAlive() 
 
 		cmds.redo()
-		self.failUnless( handle.isValid() and handle.isAlive() )
+		assert handle.isValid() and handle.isAlive() 
 

@@ -24,13 +24,13 @@ class TestStorage( unittest.TestCase ):
 
 		def checkTestValue( self, mydict ):
 			sval = mydict.get( "string" )
-			self.failUnless( sval == "hello world" )
+			assert sval == "hello world" 
 
 			fval = mydict.get( 1 )
-			self.failUnless( fval == 3.0 )
+			assert fval == 3.0 
 
 			lval = mydict.get( "list" )
-			self.failUnless( len( lval ) == 3 )
+			assert len( lval ) == 3 
 
 
 		for filetype in [ ".ma", ".mb" ]:
@@ -68,11 +68,11 @@ class TestStorage( unittest.TestCase ):
 			##################################
 			storagenode.clearData( "test" )
 			pydatacleared = storagenode.getPythonData( "test", autoCreate =False )
-			self.failUnless( not pydatacleared.has_key( "string" ) )
+			assert not pydatacleared.has_key( "string" ) 
 
 			cmds.undo()
 			pydataundone = storagenode.getPythonData( "test", autoCreate =False )
-			self.failUnless( pydataundone.has_key( "string" ) )
+			assert pydataundone.has_key( "string" ) 
 
 
 			# CREATE REFERENCE
@@ -99,7 +99,7 @@ class TestStorage( unittest.TestCase ):
 
 			checkTestValue( self, pyval )
 			sval = pyval[ 'refchange' ]
-			self.failUnless( sval == "changed in reference" )
+			assert sval == "changed in reference" 
 
 
 			# DUPLICATION
@@ -113,7 +113,7 @@ class TestStorage( unittest.TestCase ):
 				# assure that its a real copy , not just something shallow
 				if not is_shallow:
 					data[ 'other' ] = 2
-					self.failUnless( not ddata.has_key( 'other' ) )
+					assert not ddata.has_key( 'other' ) 
 			# END for each copy type
 
 
@@ -134,9 +134,9 @@ class TestStorage( unittest.TestCase ):
 		data = snode.dta
 		val = snode.getPythonData( "test", autoCreate=True )
 		oval = snode.getPythonData( "othertest", autoCreate=True )
-		self.failUnless( len( data ) == 2 )
+		assert len( data ) == 2 
 		# have two right now, no prefix
-		self.failUnless( len( snode.getDataIDs() ) == 2 )
+		assert len( snode.getDataIDs() ) == 2 
 
 		# CLEAR EMPTY DATA
 		######################
@@ -147,16 +147,16 @@ class TestStorage( unittest.TestCase ):
 		############
 		snode._attrprefix = "prefix"				# must create new one
 		pval = snode.getPythonData( "othertest", autoCreate=True )
-		self.failUnless( len( data ) == 3 )
-		self.failUnless( pval._plug.getParent()['id'].asString() == "prefixothertest" )
+		assert len( data ) == 3 
+		assert pval._plug.getParent()['id'].asString() == "prefixothertest" 
 
 		# now that we have a prefix, we only see prefixed attributes
-		self.failUnless( len( snode.getDataIDs() ) == 1 )
+		assert len( snode.getDataIDs() ) == 1 
 
 		# STORAGE PLUGS ( MAIN PLUG )
 		# contains connection plug too
 		mainplug = snode.findStoragePlug( "othertest" )
-		self.failUnless( mainplug == pval._plug.getParent() )
+		assert mainplug == pval._plug.getParent() 
 
 
 		# CONNECTION PLUGS
@@ -167,9 +167,9 @@ class TestStorage( unittest.TestCase ):
 		for c in range( 10 ):
 			nextplug = conarray.getByLogicalIndex( c )
 			persp.message >> nextplug
-			self.failUnless( persp.message >= nextplug )
-		self.failUnless( len( conarray ) == 10 )
-		self.failUnless( len( persp.message.p_outputs ) == 10 )
+			assert persp.message >= nextplug 
+		assert len( conarray ) == 10 
+		assert len( persp.message.p_outputs ) == 10 
 
 	def test_storageSetHandling( self ):
 		"""mayarv.maya.nodes.storage: test built-in sethandling"""
@@ -183,7 +183,7 @@ class TestStorage( unittest.TestCase ):
 		# error checking 
 		
 		objset = snode.getObjectSet( did, 0, autoCreate = True )
-		self.failUnless( isinstance( objset, nodes.ObjectSet ) )
+		assert isinstance( objset, nodes.ObjectSet ) 
 		assert len(snode.getSetsByID(did)) == 1
 
 		# does not exist anymore
@@ -192,17 +192,17 @@ class TestStorage( unittest.TestCase ):
 
 		# objset should be valid again
 		cmds.redo()
-		self.failUnless( objset.isValid() and objset.isAlive() )
+		assert objset.isValid() and objset.isAlive() 
 
 		# del set
 		snode.deleteObjectSet( did, 0 )
-		self.failUnless( not objset.isValid() and objset.isAlive() )
+		assert not objset.isValid() and objset.isAlive() 
 		self.failUnlessRaises( AttributeError, snode.getObjectSet, did, 0, False ) 
 		cmds.undo()
-		self.failUnless( objset.isValid() )
+		assert objset.isValid() 
 		assert snode.getObjectSet(did, 0, False) == objset
 		cmds.redo()
-		self.failUnless( not objset.isValid() )
+		assert not objset.isValid() 
 		self.failUnlessRaises( AttributeError, snode.getObjectSet, did, 0, False )
 		cmds.undo()	# undo deletion after all
 		assert objset.isValid()
@@ -215,46 +215,46 @@ class TestStorage( unittest.TestCase ):
 		# PARTITION HANDLING
 		#######################
 		partition = snode.setPartition( did, True )
-		self.failUnless( snode.getPartition( did ) is not None )
+		assert snode.getPartition( did ) is not None 
 		cmds.undo()
-		self.failUnless( snode.getPartition( did ) is None )
+		assert snode.getPartition( did ) is None 
 		cmds.redo()	# set is available again
 
 		# delete the single set we have, partition should be gone as well
 		snode.deleteObjectSet( did, 0 )
-		self.failUnless( not partition.isValid() )
+		assert not partition.isValid() 
 		cmds.undo()
-		self.failUnless( partition.isValid() )
+		assert partition.isValid() 
 
 		# disable partition
 		snode.setPartition( did, False )
-		self.failUnless( snode.isAlive() and snode.isValid() )		# recently it would be deleted
-		self.failUnless( snode.getPartition( did ) is None )
+		assert snode.isAlive() and snode.isValid() 		# recently it would be deleted
+		assert snode.getPartition( did ) is None 
 		snode.setPartition( did, True )
 
 		# new set, check partition
 		oset = snode.getObjectSet( did, 1, autoCreate = 1 )
-		self.failUnless( isinstance( oset, nodes.ObjectSet ) )
-		self.failUnless( len( oset.getPartitions() ) == 1 )
-		self.failUnless( oset.getPartitions()[0] == snode.getPartition( did ) )
+		assert isinstance( oset, nodes.ObjectSet ) 
+		assert len( oset.getPartitions() ) == 1 
+		assert oset.getPartitions()[0] == snode.getPartition( did ) 
 
 		cmds.undo()
-		self.failUnless( len( oset.getPartitions() ) == 0 )
+		assert len( oset.getPartitions() ) == 0 
 		cmds.redo()
 
 		# set is in multiple partitions, some from us, some from the user
 		myprt = nodes.createNode( "mypartition", "partition" )
 		myprt.addSets( oset )
-		self.failUnless( myprt != snode.getPartition( did ) )
+		assert myprt != snode.getPartition( did ) 
 		snode.setPartition( did, False )
-		self.failUnless( myprt.getSets( )[0] == oset )
-		self.failUnless( len( oset.getPartitions() ) == 1 )
+		assert myprt.getSets( )[0] == oset 
+		assert len( oset.getPartitions() ) == 1 
 
 		# undo / redo
 		cmds.undo()
-		self.failUnless( len( oset.getPartitions() ) == 2 )
+		assert len( oset.getPartitions() ) == 2 
  		cmds.redo()
-		self.failUnless( len( oset.getPartitions() ) == 1 )
+		assert len( oset.getPartitions() ) == 1 
 
 
 

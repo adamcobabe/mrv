@@ -36,14 +36,14 @@ class TestSceneRunner( unittest.TestCase ):
 		ncb = len( Scene.Callbacks._callbacks.get( sid , [] ) )
 
 		Scene.Callbacks.addListener( listenerID, function, sid )
-		self.failUnless( len( Scene.Callbacks._callbacks[ sid ] ) == ncb + 1 )
+		assert len( Scene.Callbacks._callbacks[ sid ] ) == ncb + 1 
 
 		# make a new scene - we should be called
 		callbackTriggerFunc()
-		self.failUnless( self.called )
+		assert self.called 
 
 		Scene.Callbacks.removeListener( listenerID, sid )
-		self.failUnless( len( Scene.Callbacks._callbacks[ sid ] ) == ncb )
+		assert len( Scene.Callbacks._callbacks[ sid ] ) == ncb 
 
 	def test_cbgroup_zero( self ):
 		"""mayarv.maya.scene: use group 0 check callbacks """
@@ -73,11 +73,11 @@ class TestSceneRunner( unittest.TestCase ):
 
 	def test_open( self ):
 		"""mayarv.maya.scene: open file"""
-		self.failUnless( isinstance( Scene.open( common.get_maya_file( "empty.ma" ), force=True ), Path ) )
+		assert isinstance( Scene.open( common.get_maya_file( "empty.ma" ), force=True ), Path ) 
 
 	def test_new( self ):
 		"""mayarv.maya.scene: force a new scene """
-		self.failUnless( isinstance( Scene.new( force=1 ), Path ) )
+		assert isinstance( Scene.new( force=1 ), Path ) 
 
 	def test_saveAs( self ):
 		"""mayarv.maya.scene: safe a file under new names and with different formats"""
@@ -86,7 +86,7 @@ class TestSceneRunner( unittest.TestCase ):
 		for filename in files:
 			mayafile = tmppath / filename
 			Scene.save( mayafile , force=1 )
-			self.failUnless( mayafile.exists() )
+			assert mayafile.exists() 
 
 		# must work for untitled files as well
 		Scene.new( force = 1 )

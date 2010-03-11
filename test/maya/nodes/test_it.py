@@ -29,8 +29,8 @@ class TestGeneral( unittest.TestCase ):
 		nurbs = nodes.createNode( "parent|nurbs", "nurbsSurface" )
 
 
-		self.failUnless( len( list( iterDagNodes( dagpath=1 ) ) ) == 16 )
-		self.failUnless( len( list( iterDagNodes( dagpath=0 ) ) ) == 15 )
+		assert len( list( iterDagNodes( dagpath=1 ) ) ) == 16 
+		assert len( list( iterDagNodes( dagpath=0 ) ) ) == 15 
 
 		# BREADTH FIRST
 		################
@@ -39,7 +39,7 @@ class TestGeneral( unittest.TestCase ):
 			if item != trans:
 				continue
 			# now the following ones are known !
-			self.failUnless( dagiter.next() == trans2 )
+			assert dagiter.next() == trans2 
 			break
 
 		# DEPTH FIRST
@@ -48,7 +48,7 @@ class TestGeneral( unittest.TestCase ):
 		for item in dagiter:
 			if item != trans:
 				continue
-			self.failUnless( dagiter.next() == transinst )
+			assert dagiter.next() == transinst 
 			break
 
 		# ROOT
@@ -57,7 +57,7 @@ class TestGeneral( unittest.TestCase ):
 		for rootnode in ( trans2, trans2.getMDagPath() ):
 			dagiter = iterDagNodes( root=rootnode,depth=1,asNode=1 )
 			nextobj = dagiter.next()
-			self.failUnless( nextobj == trans2 )
+			assert nextobj == trans2 
 		# END for each root type
 		
 		# MObject only works for instances it appears
@@ -70,11 +70,11 @@ class TestGeneral( unittest.TestCase ):
 		# TYPES
 		# single
 		dagiter = iterDagNodes(api.MFn.kMesh, asNode=1 )
-		self.failUnless( len( list( dagiter ) ) == 1 )
+		assert len( list( dagiter ) ) == 1 
 
 		# multiple
 		dagiter = iterDagNodes( api.MFn.kMesh,api.MFn.kNurbsSurface, asNode=1 )
-		self.failUnless( len( list( dagiter ) ) == 2 )
+		assert len( list( dagiter ) ) == 2 
 
 
 	def test_iterSelectionList( self ):
@@ -106,9 +106,9 @@ class TestGeneral( unittest.TestCase ):
 			slist = list( seliter )
 	
 			numassignments = 10
-			self.failUnless(  len( slist ) == numassignments )
+			assert  len( slist ) == numassignments 
 			for node,component in slist:
-				self.failUnless( isinstance( component, ( nodes.Component, api.MObject ) ) )
+				assert isinstance( component, ( nodes.Component, api.MObject ) ) 
 	
 	
 			# NO COMPONENT SUPPORT
@@ -116,10 +116,10 @@ class TestGeneral( unittest.TestCase ):
 			# it will just return the objects without components then
 			seliter = iterSelectionList( sellist, asNode=1, handlePlugs=handlePlugs, handleComponents=0 )
 			slist = list( seliter )
-			self.failUnless(  len( slist ) == numassignments )
+			assert  len( slist ) == numassignments 
 	
 			for node in slist:
-				self.failUnless( not isinstance( node, tuple ) )
+				assert not isinstance( node, tuple ) 
 				
 			# PLUGS
 			#######
@@ -137,7 +137,7 @@ class TestGeneral( unittest.TestCase ):
 					pcount += isinstance( node, api.MPlug )
 				# END handle special case
 			# END handle plugs
-			self.failUnless( pcount == 2 )  
+			assert pcount == 2   
 		# END handle each possible plug mode )
 		
 		# test all code branches
@@ -193,8 +193,8 @@ class TestGeneral( unittest.TestCase ):
 		# NODE LEVEL
 		#############
 		graphiter = iterGraph( persp, input=0, plug=0, asNode=1 )
-		self.failUnless( graphiter.next() == persp )
-		self.failUnless( graphiter.next() == front )
+		assert graphiter.next() == persp 
+		assert graphiter.next() == front 
 		self.failUnlessRaises( StopIteration, graphiter.next )
 
 		# apparently, one cannot easily traverse plugs if just a root node was given
@@ -216,8 +216,8 @@ class TestGeneral( unittest.TestCase ):
 		# PLUG LEVEL
 		#############
 		graphiter = iterGraph( persp.t, input=0, plug=1, asNode=1 )
-		self.failUnless( graphiter.next() == persp.t )
-		self.failUnless( graphiter.next() == front.t )
+		assert graphiter.next() == persp.t 
+		assert graphiter.next() == front.t 
 
 		# TODO: PLUGLEVEL  + filter
 		# Currently I do not really have any application for this, so lets wait
@@ -270,13 +270,13 @@ class TestGeneral( unittest.TestCase ):
 		oset = nodes.createNode( "set", "objectSet" )
 
 		# one type id
-		self.failUnless( len( list( iterDgNodes( api.MFn.kFacade ) ) ) == 2 )
-		self.failUnless( oset in iterDgNodes( api.MFn.kSet, asNode=1 ) )
+		assert len( list( iterDgNodes( api.MFn.kFacade ) ) ) == 2 
+		assert oset in iterDgNodes( api.MFn.kSet, asNode=1 ) 
 
 		# multiple type ids
 		filteredNodes = list( iterDgNodes( api.MFn.kSet, api.MFn.kGroupId, asNode=1 ) )
 		for node in [ gid, oset ]:
-			self.failUnless( node in filteredNodes )
+			assert node in filteredNodes 
 
 		# asNode
 		assert isinstance(iterDgNodes(asNode=0).next(), api.MObject)
