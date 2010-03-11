@@ -512,6 +512,24 @@ Plugs are can be selected exactly the same way as nodes::
 ==========
 Namespaces
 ==========
+Namespaces provide a separate room for Nodes to exist in, hence they help to reduce the probability of name clashes when handling references or when importing files. Namespaces may be nested, hence they are forming a hierarchy that you may traverse freely using the ``mayarv.interface.iDagItem`` interface.
+
+Handling namespaces is straightforward, you may retrieve the namespace of a node, create and rename namespaces as well as query their objects.
+	>>> from mayarv.maya.ns import *
+	>>> assert p.getNamespace() == RootNamespace
+	>>> assert len(RootNamespace.getChildren()) == 2     # we created 2 namespaces implicitly with objects
+		
+	>>> barns = Namespace.create("foo:bar")
+	>>> foons = barns.getParent()
+	>>> assert len(RootNamespace.getChildren()) == 3
+		
+	>>> assert len(barns.getSelectionList()) == 0 and len(RootNamespace.getNodeStrings()) != 0
+	
+Although you can set the namespace of individual nodes, it is also possible to move all objects in one namespace to another::
+	>>>  
+	
+Renaming of namespaces as well as their deletion is supported as well::
+	>>>
 
 ==========
 References

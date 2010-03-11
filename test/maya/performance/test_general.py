@@ -241,7 +241,7 @@ class TestGeneralPerformance( unittest.TestCase ):
 
 		# RENAME PERFORMANCE
 		st = time.time()
-		for node in (n for n in tmplist if isinstance(n, nodes.DagNode)):
+		for node in tmplist:
 			node.rename(node.getBasename()[:-1])
 		# END for each node 
 		elapsed = time.time() - st
@@ -367,11 +367,7 @@ class TestGeneralPerformance( unittest.TestCase ):
 			# RENAME
 			st = time.time()
 			for node in node_list:
-				if isinstance(node, nodes.DagNode):
-					node.rename(node.getBasename()[:-1])
-				else:
-					node.rename(node.name()[:-1])
-				# END rename nodes handling
+				node.rename(node.getBasename()[:-1])
 			# END for each node to rename
 			elapsed = time.time() - st
 			print >>sys.stderr, "Renamed %i %s nodes in  %f s ( %f nodes / s )" % (nn, node_type, elapsed, nn/elapsed)

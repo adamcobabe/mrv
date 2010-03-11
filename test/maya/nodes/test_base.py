@@ -406,4 +406,22 @@ class TestTransform( unittest.TestCase ):
 		assert len(getSelection()) == 2
 		
 		
+		# NAMESPACES
+		############
+		from mayarv.maya.ns import *
+		assert p.getNamespace() == RootNamespace
+		# we created 2 namespaces implicitly with objects
+		assert len(RootNamespace.getChildren()) == 2
 		
+		barns = Namespace.create("foo:bar")
+		foons = barns.getParent()
+		assert len(RootNamespace.getChildren()) == 3
+		
+		assert len(barns.getSelectionList()) == 0 and len(RootNamespace.getNodeStrings()) != 0
+		
+		
+		# editing namespaces
+		m.setNamespace(barns)
+		assert m.getNamespace() == barns
+		
+		barns.moveNodes(foons)

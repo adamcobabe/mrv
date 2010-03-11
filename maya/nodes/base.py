@@ -1070,12 +1070,16 @@ class DependNode( Node, iDuplicatable ):		# parent just for epydoc -
 
 		self._addRemoveAttr( attr, False )
 
+	@undoable
+	def setNamespace(self, newns, **kwargs ):
+		"""@return: self after being moved to the given namespace. This will effectively
+		rename the object.
+		@param newns: Namespace instance to put this Node into
+		@param **kwargs: to be passed to L{rename}"""
+		namespace, objname = nsm.Namespace.splitNamespace(self.getBasename())
+		return self.rename(newns + objname, **kwargs)
+
 	#} END edit
-
-	#{ Locking
-
-
-	#} END locking
 
 	@undoable
 	def setLocked( self, state ):
@@ -1126,7 +1130,7 @@ class DependNode( Node, iDuplicatable ):		# parent just for epydoc -
 		"""@return: list of attributes affecting this one"""
 		return self.getDependencyInfo( attribute, by = True )
 
-	#}
+	#} END connections and attribtues
 
 	#{ Status
 	def isValid( self ):
@@ -1148,7 +1152,6 @@ class DependNode( Node, iDuplicatable ):		# parent just for epydoc -
 
 	getApiObject = getMObject		# overridden from Node
 
-
 	def getReferenceFile( self ):
 		"""@return: name ( str ) of file this node is coming from - it could contain
 		a copy number as {x}
@@ -1156,6 +1159,12 @@ class DependNode( Node, iDuplicatable ):		# parent just for epydoc -
 		that out"""
 		# apparently, we have to use MEL here :(
 		return cmds.referenceQuery( str( self ) , f=1 )
+
+	def getBasename(self):
+		"""@return: name of this instance
+		@note: it is mainly for compatability with dagNodes which need this method 
+		in order to return the name of their leaf node"""
+		return self.name()
 
 	#}END general query
 
@@ -1772,7 +1781,8 @@ class DagNode( Entity, iDagItem ):	# parent just for epydoc
 		"""@return: fully qualified ( long ) name of this dag node"""
 		return self.fullPathName( )
 
-
+	# override dependnode implementation with the original one
+	getBasename = iDagItem.getBasename
 	#{ DAG Query
 
 	def getParentAtIndex( self, index ):

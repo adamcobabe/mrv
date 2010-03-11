@@ -375,7 +375,7 @@ class TestNodeBase( unittest.TestCase ):
 		# CHECK namespaces - should be root namespace
 		ns = node.getNamespace( )
 		self.failUnless( ns == nodes.Namespace.root )
-
+		
 
 		# RENAME DEP NODES
 		######################
@@ -425,6 +425,23 @@ class TestNodeBase( unittest.TestCase ):
 
 		# works if rename enabeld though
 		node.rename( "othernode" )
+		
+	def test_namespace_adjustment(self):
+		dag = nodes.Transform()
+		dg = nodes.Network()
+		
+		childns = nsm.Namespace.create(":foo:bar")
+		parentns = childns.getParent()
+		
+		for node in (dag, dg):
+			assert node.getNamespace() == nsm.RootNamespace
+			assert isinstance(node.setNamespace(childns), nodes.Node)
+			
+			assert node.getNamespace() == childns
+			assert node.setNamespace(parentns).getNamespace() == parentns
+			assert node.setNamespace(nsm.RootNamespace).getNamespace() == nsm.RootNamespace
+		# END for each node
+		
 
 	def test_reparentAndInstances( self ):
 		"""mayarv.maya.nodes: see of reparenting is responding when instances are involved"""

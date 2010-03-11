@@ -11,7 +11,7 @@ class TestSetsPerformance( unittest.TestCase ):
 	@with_scene('mesh40k.mb')
 	def test_set_assignments(self):
 		m = nodes.Node('mesh40k')
-		isb = nodes.Node("initialShadingGroup")
+		isb = nodes.ShadingEngine()
 		
 		for ignore_failure in range(2):
 			if ignore_failure > 0:
