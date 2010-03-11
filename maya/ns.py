@@ -212,7 +212,7 @@ class Namespace( unicode, iDagItem ):
 			if not testns.exists():
 				return testns
 		# END while loop
-		raise ValueError( "Should never come here" )
+		raise AssertionError("Should never get here")
 
 	def exists( self ):
 		"""@return: True if this namespace exists"""
@@ -328,18 +328,20 @@ class Namespace( unicode, iDagItem ):
 	@classmethod
 	def _getNamespaceObjects( cls, namespace, sellist, curdepth, maxdepth, asStrings ):
 		"""if as strings is given, the sellist returned will be a list of strings"""
-		if maxdepth and not ( curdepth < maxdepth ):
+		if maxdepth > -1 and curdepth > maxdepth:
 			return
 
 		namespace.setCurrent()
-		objs = cmds.namespaceInfo( lod=1 )
+		objs = cmds.namespaceInfo( lod=1, dp=1 )	# need full paths
 		if objs:
 			# REMOVE INVALID OBJECTS
 			############################
 			# its very annoying that maya wholeheartedly retuns special objects that noone can work with
 			if namespace == Namespace.root:
 				
-				forbiddenlist = set(("groundPlane", "groundPlane_transform", "world", "CubeCompass", "Manipulator1", "UniversalManip", "defaultCreaseDataSet"))
+				forbiddenlist = set(	("|groundPlane_transform|groundPlane", "|groundPlane_transform", "world", 
+										"CubeCompass", "Manipulator1", "UniversalManip", 
+										"defaultCreaseDataSet", ''))
 				for item in forbiddenlist:
 					try:
 						objs.remove( item )
@@ -373,12 +375,12 @@ class Namespace( unicode, iDagItem ):
 	# END lod recursive method
 
 
-	def getSelectionList( self, depth=1, asStrings = False, childPredicate = lambda x: True  ):
+	def getSelectionList( self, depth=0, asStrings = False, childPredicate = lambda x: True  ):
 		"""@return: selection list containing all objects in the namespace ( or list of strings if
 		asStrings is True )
-		@param depth: if 1, only objects in this namespace will be returned
-		if 0, all subnamespaces will be included as well,
-		if 0<depth<x include all objects up to the x subnamespace
+		@param depth: if 0, only objects in this namespace will be returned
+		if -1, all subnamespaces will be included as well, the depth is unlimited
+		if 0<depth<x include all objects up to the 'depth' subnamespace
 		@param childPredicate: return True for all childnamespaces to include in your query
 		@param asStrings: if true, the selection list returned will be a list of strings instead
 		of a MSelectionList.
@@ -387,9 +389,10 @@ class Namespace( unicode, iDagItem ):
 		@note: use iterSelectionList to operate on it"""
 		sellist = None
 		if asStrings:
-			sellist = []
+			sellist = list()
 		else:
 			sellist = api.MSelectionList()
+		# END handle asAtrings
 
 		if not self.exists():
 			return sellist
@@ -411,37 +414,36 @@ class Namespace( unicode, iDagItem ):
 		return self.getSelectionList( **kwargs )
 
 
-	def iterNodes( self, depth=1, childPredicate = lambda x: True, **kwargs ):
+	def iterNodes( self, depth=0, childPredicate = lambda x: True, **kwargs ):
 		"""As above, but returns iterator on all objects in the namespace
 		@param **kwargs: given to the selection list iterator
 		@note: this is a convenience method
 		@note: the method is inherently inefficient as a full list of object names
-		in the naemspace will be prepared in the first place. By default, you will 
+		in the naemspace will be prepared at first. By default, you will 
 		receive wrapped Nodes, see L{iterSelectionList} for more information"""
 		from nodes.it import iterSelectionList
 		sellist = self.getSelectionList( depth = depth, childPredicate = childPredicate, asStrings = False )
 
 		return iterSelectionList( sellist, **kwargs )
 
-
 	#} END object retrieval
 	
 	
 
 #{ Static Access
-def create( *args ):
+def createNamespace( *args ):
 	"""see L{Namespace.create}"""
 	return Namespace.create( *args )
 
-def getCurrent( ):
+def getCurrentNamespace( ):
 	"""see L{Namespace.getCurrent}"""
 	return Namespace.getCurrent()
 
-def findUnique( *args, **kwargs ):
+def findUniqueNamespace( *args, **kwargs ):
 	"""see L{Namespace.findUnique}"""
 	return Namespace.findUnique( *args, **kwargs )
 
-def exists( namespace ):
+def existsNamespace( namespace ):
 	"""@return : True if given namespace ( name ) exists"""
 	return Namespace( namespace ).exists()
 

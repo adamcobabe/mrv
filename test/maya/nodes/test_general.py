@@ -400,7 +400,7 @@ class TestNodeBase( unittest.TestCase ):
 
 		# multi undo - namespace is one operation in this one
 		cmds.undo()
-		assert not nsm.exists( "nsdoesnotexist" ) 
+		assert not nsm.existsNamespace( "nsdoesnotexist" ) 
 		cmds.redo()
 		assert node.isValid() 
 

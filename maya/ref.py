@@ -20,6 +20,20 @@ class FileReferenceError( MayaRVError ):
 #}
 
 
+#{ Utilities 
+
+def createReference( *args, **kwargs ):
+	"""create a new reference, see L{FileReference.create} for more information"""
+	return FileReference.create(*args, **kwargs)
+
+def listReferences( *args, **kwargs ):
+	"""List intermediate references of in the scene, see L{FileReference.ls} for 
+	more information"""
+	return FileReference.ls( *args, **kwargs )
+
+#} END utilities 
+
+
 class FileReference( iDagItem ):
 	"""Represents a Maya file reference
 	@note: do not cache these instances but get a fresh one when you have to work with it
@@ -260,36 +274,32 @@ class FileReference( iDagItem ):
 	#} listing
 	
 	#{ Nodes Query
-	def iterNodes( self, asNode = True, dag=True, dg=True,
+	def iterNodes( self, asNode = True, dag=False,
 				  assemblies=False, assembliesInReference=False,
 				  predicate = None):
 		"""Creates iterator over nodes in this reference
 		@param asNode: if True, return wrapped Nodes, if False string names will
 		be returned
-		@param dag: if True, return dag nodes.
-		@param dg: if True, return dg nodes. Mutually exclusive with 'dag' flag
+		@param dag: if True, return dag nodes only. Otherwise return dependency nodes 
+		as well.
 		@param assemblies: if True, return only dagNodes with no parent
 		@param assembliesInReference: if True, return only dag nodes that have no
 		parent in their own reference. They may have a parent not coming from their
 		reference though. This flag has a big negative performance impact. Only works
-		if asNode = 1
+		if asNode = 1. If assemblies is True as well, it is likely that not all 
+		reference assemblies will be found as it serves as a pre-filter.
 		@param predicate: if function returns True for Mode|string n, n will be yielded.
 		Defaults to return True for all.
 		@raise ValueError: if incompatible arguments have been given """
 		import mayarv.maya.nodes as nodes
+		# COULD use MFileIO::getReferenceNodes, but it will only return partial names which 
+		# in turn destroys anyone who wants to work with it. Its much faster, but simply not usable
 		allnodes = noneToList( cmds.referenceQuery( self.getPath(copynumber=1), n=1, dp=1 ) )
 
 
-		if dg and dag:
-			raise ValueError("Please specify either dg or dag, not both flags")
-		# END handle dg/dag flags
-	
 		# additional ls filtering
 		filterargs = dict()
-		if not dag:
-			filterargs[ 'dep' ] = 1
-
-		if not dg:
+		if dag:
 			filterargs[ 'type' ] = "dagNode"
 
 		if assemblies:
@@ -299,6 +309,7 @@ class FileReference( iDagItem ):
 		# APPLY ADDITIONAL FILTER
 		if filterargs:
 			allnodes = noneToList( cmds.ls( allnodes, **filterargs ) )
+		# END pre-filter string nodes 
 
 
 		myfilter = And( )

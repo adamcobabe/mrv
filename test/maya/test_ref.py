@@ -170,33 +170,32 @@ class TestReferenceRunner( unittest.TestCase ):
 		# test all branches of node iteration
 		for asNode in range(2):
 			for dag in range(2):
-				for dg in range(2):
-					for assemblies in range(2):
-						for air in range(2):
-							for predicate_var in (True, False):
-								predicate = lambda n: predicate_var
-								try:
-									node_list = list(ref.iterNodes(asNode=asNode, dag=dag, dg=dg, 
-																assemblies=assemblies, assembliesInReference=air, 
+				for assemblies in range(2):
+					for air in range(2):
+						for predicate_var in (True, False):
+							predicate = lambda n: predicate_var
+							try:
+								node_list = list(ref.iterNodes(asNode=asNode, dag=dag, 
+																assemblies=assemblies, 
+																assembliesInReference=air, 
 																predicate=predicate ))
-								except ValueError:
-									continue
-								# END handle unsupported combinations
-								
-								if asNode:
-									for node in node_list:
-										assert isinstance(node, nodes.Node)
-										if dag: 
-											assert isinstance(node, nodes.DagNode)
-										# END check dag node
-									# END for each node
-								# END as Node
-								if not predicate_var:
-									assert len(node_list) == 0
-							# END for each predicate value
-						# END for each air value 
-					# END for each assembly value
-				# END for each dg value
+							except ValueError:
+								continue
+							# END handle unsupported combinations
+							
+							if asNode:
+								for node in node_list:
+									assert isinstance(node, nodes.Node)
+									if dag: 
+										assert isinstance(node, nodes.DagNode)
+									# END check dag node
+								# END for each node
+							# END as Node
+							if not predicate_var:
+								assert len(node_list) == 0
+						# END for each predicate value
+					# END for each air value 
+				# END for each assembly value
 			# END for each dag value
 		# END for each asNode value
 	
@@ -272,10 +271,25 @@ class TestReferenceRunner( unittest.TestCase ):
 		# END for each converter
 		
 		
+		# TEST NAMESPACE
+		tlns = tlr.getNamespace()
+		assert len(tlns.getChildren()) == 2 and len(tlns.getChildrenDeep()) == 2
+		
+		# tl ref has four meshes
+		assert len(list(tlns.getSelectionList().toIter(nodes.api.MFn.kMesh))) == 4
+		
+		# both subrefs have 10+8 additional meshes
+		assert len(list(tlns.getSelectionList(depth=1).toIter(nodes.api.MFn.kMesh))) == 22
+		
+		# unlimited depth desnt change a thing
+		assert len(list(tlns.getSelectionList(depth=-1).toIter(nodes.api.MFn.kMesh))) == 22
+		
 		
 		# predicate check
 		allow_none = lambda x: False
 		assert len(fr.ls(predicate=allow_none)) == 0
+		
+		assert fr.ls() == listReferences()
 		
 		# lsDeep
 		assert len(fr.lsDeep()) == 6

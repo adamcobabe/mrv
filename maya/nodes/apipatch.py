@@ -1068,15 +1068,17 @@ class MSelectionList( api.MSelectionList, ArrayBase ):
 		@param **kwargs: passed to L{base.toComponentSelectionList}"""
 		return base.toComponentSelectionList(iter_components, **kwargs)
 		
-	def toList( self, **kwargs ):
+	def toList( self, *args, **kwargs ):
 		"""@return: list with the contents of this MSelectionList
+		@param *args: passed to L{it.iterSelectionList}
 		@param **kwargs: passed to L{it.iterSelectionList}"""
-		return list(self.toIter(**kwargs))
+		return list(self.toIter(*args, **kwargs))
 		
-	def toIter( self, **kwargs ):
+	def toIter( self, *args, **kwargs ):
 		"""@return: iterator yielding of Nodes and MPlugs stored in this given selection list
+		@param *args: passed to L{it.iterSelectionList}
 		@param **kwargs: passed to L{it.iterSelectionList}"""
-		return it.iterSelectionList( self, **kwargs )
+		return it.iterSelectionList( self, *args, **kwargs )
 		
 	def iterComponents( self, **kwargs ):
 		"""@return: Iterator yielding node, component pairs, component is guaranteed 

@@ -83,7 +83,7 @@ class TestReferenceRunner( unittest.TestCase ):
 		# ITER ROOT NAMESPACE - REAL OBJECTS
 		curns = Namespace.getCurrent()
 		numobjs = 0
-		for obj in Namespace( ":" ).iterNodes( depth = 0 ):
+		for obj in RootNamespace.iterNodes( depth = 0 ):
 			numobjs += 1
 		assert numobjs != 0 
 		assert Namespace.getCurrent() == curns 
@@ -93,8 +93,9 @@ class TestReferenceRunner( unittest.TestCase ):
 		for obj in Namespace( ":" ).getNodeStrings( depth = 0, asStrings = 1 ):
 			newnumobjs += 1
 
+		assert newnumobjs == numobjs
 		assert Namespace.getCurrent() == curns 
-		assert newnumobjs == numobjs 
+		 
 
 		# empty namespace must come out as root
 		ns = Namespace( "" )

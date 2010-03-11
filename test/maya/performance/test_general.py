@@ -4,6 +4,7 @@ from mayarv.test.maya import *
 import mayarv.maya as bmaya
 import mayarv.maya.nodes as nodes
 import mayarv.maya.ns as ns
+from mayarv.maya.ref import *
 from mayarv.maya.nodes import Node, NodeFromObj
 import mayarv.test.maya as common
 import mayarv.maya.nodes.it as it
@@ -144,19 +145,27 @@ class TestGeneralPerformance( unittest.TestCase ):
 			
 			# iterate namespaces
 			for namespace in chain((ns.RootNamespace, ), ns.RootNamespace.getChildrenDeep()):
-				# direct strings
-				st = time.time()
-				nn = len(namespace.getNodeStrings())
-				elapsed = time.time() - st
-				print >>sys.stderr, "%r.getNodeStrings: got %i nodes in %f s ( %f / s )" % (namespace, nn, elapsed, nn / elapsed)
-				
-				# selection list
-				st = time.time()
-				nn = len(namespace.getSelectionList())
-				elapsed = time.time() - st
-				print >>sys.stderr, "%r.getSelectionList: got %i nodes on selection list in %f s ( %f / s )" % (namespace, nn, elapsed, nn / elapsed)
+				self._iterate_namespace(namespace)
 			# END for each namespace
 		# END for each run
+
+	def _iterate_namespace(self, namespace, unlimited_depth=False):
+		depth=0
+		if unlimited_depth:
+			depth=-1
+		# END handle depth
+		
+		# direct strings
+		st = time.time()
+		nn = len(namespace.getNodeStrings(depth=depth))
+		elapsed = time.time() - st
+		print >>sys.stderr, "%r.getNodeStrings: got %i nodes in %f s ( %f / s )" % (namespace, nn, elapsed, nn / elapsed)
+		
+		# selection list
+		st = time.time()
+		nn = len(namespace.getSelectionList(depth=depth))
+		elapsed = time.time() - st
+		print >>sys.stderr, "%r.getSelectionList: got %i nodes on selection list in %f s ( %f / s )" % (namespace, nn, elapsed, nn / elapsed)
 
 	def test_createNodes( self ):
 		"""mayarv.maya.benchmark.general: test random node creation performance"""
@@ -373,7 +382,27 @@ class TestGeneralPerformance( unittest.TestCase ):
 			print >>sys.stderr, "Renamed %i %s nodes in  %f s ( %f nodes / s )" % (nn, node_type, elapsed, nn/elapsed)
 		# END for each node type
 		
-
+		
+	def test_ref_iteration(self):
+		bmaya.Scene.new(force=1)
+		scene_file = common.get_maya_file( "large_scene_2500.mb" )
+		ref = createReference(scene_file)
+		
+		# ref node iteration
+		for kwargs in ( {'asNode':False}, {'asNode':0,'assemblies':True, 'dag':1}, 
+			{'asNode':1,'assembliesInReference':True}):
+			st = time.time()
+			nodes_list = list(ref.iterNodes(**kwargs))
+			elapsed = time.time() - st
+			# print nodes_list
+			nn = len(nodes_list)
+			print >>sys.stderr, "ref.iterNodes(%s): iterated %i nodes in  %f s ( %f nodes / s )" % (kwargs, nn, elapsed, nn/elapsed)
+		# END for each kwarg
+		
+		# try namespace iteration
+		self._iterate_namespace(ref.getNamespace(), unlimited_depth=True)
+		
+		
 
 
 #{ Name Generators

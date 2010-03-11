@@ -100,13 +100,11 @@ class MetaClassCreatorNodes( MetaClassCreator ):
 
 		rvalfunc = None
 		# adjust function according to DB
-		# print "%s.%s : %s" % ( mfncls, funcname, funcMutatorDB )
 		if funcMutatorDB:
 			try:
 				mfnfuncname, entry = funcMutatorDB.getEntry( funcname )
 				# delete function ?
 				if entry.flag == MfnMemberMap.kDelete:
-					print "deleted function"
 					return None
 
 				rvalfunc = entry.rvalfunc
