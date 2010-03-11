@@ -8,6 +8,7 @@ import mayarv.maya.undo as undo
 import mayarv.maya.nodes as nodes
 import maya.cmds as cmds
 import maya.OpenMaya as api
+from itertools import izip
 import sys
 import time
 
@@ -37,20 +38,20 @@ class TestPlugPerformance( unittest.TestCase ):
 		
 		# multiconnect 
 		st = time.time()
-		api.MPlug.connectMultiToMulti(pir(sn2.a, r), pir(tn2.ab, r), force=False)
+		api.MPlug.connectMultiToMulti(izip(pir(sn2.a, r), pir(tn2.ab, r)), force=False)
 		elapsed = time.time() - st
 		print >> sys.stderr, "Multi-Connected %i different multi-plugs in %f s ( %f / s )" % (len(r), elapsed, len(r) / elapsed)
 		
 		# multiconnect with force worstcase
 		st = time.time()
-		api.MPlug.connectMultiToMulti(pir(sn.a, r), pir(tn2.ab, r), force=True)
+		api.MPlug.connectMultiToMulti(izip(pir(sn.a, r), pir(tn2.ab, r)), force=True)
 		elapsed = time.time() - st
 		print >> sys.stderr, "Multi-Connected %i different multi-plugs with worstcase FORCE in %f s ( %f / s )" % (len(r), elapsed, len(r) / elapsed)
 		
 		# multiconnect with force bestcase
 		r = range(len(r), len(r)+len(r))
 		st = time.time()
-		api.MPlug.connectMultiToMulti(pir(sn3.a, r), pir(tn3.ab, r), force=True)
+		api.MPlug.connectMultiToMulti(izip(pir(sn3.a, r), pir(tn3.ab, r)), force=True)
 		elapsed = time.time() - st
 		print >> sys.stderr, "Multi-Connected %i different multi-plugs with bestcase FORCE in %f s ( %f / s )" % (len(r), elapsed, len(r) / elapsed)
 	

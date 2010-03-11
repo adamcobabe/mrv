@@ -5,6 +5,7 @@ import mayarv.maya.nodes as nodes
 import maya.cmds as cmds
 import maya.OpenMaya as api
 import mayarv.test.maya.nodes as ownpackage
+from itertools import izip
 
 class TestDataBase( unittest.TestCase ):
 	""" Test data classes  """
@@ -116,21 +117,21 @@ class TestDataBase( unittest.TestCase ):
 		
 		# connect 10 to 10 
 		r = range(10)
-		api.MPlug.connectMultiToMulti(	pir(sn.a, r), pir(tn.affectedBy, r), force=False) 
+		api.MPlug.connectMultiToMulti(	izip(pir(sn.a, r), pir(tn.affectedBy, r)), force=False) 
 		for i in r:
 			assert sn.a.getByLogicalIndex(i).isConnectedTo(tn.affectedBy.getByLogicalIndex(i))
 		# END make connection assertion
 		
 		# connection of overlapping range fails without force
 		r = range(5, 15)
-		self.failUnlessRaises(RuntimeError, api.MPlug.connectMultiToMulti, pir(sn2.a, r), pir(tn.affectedBy, r), force=False)
+		self.failUnlessRaises(RuntimeError, api.MPlug.connectMultiToMulti, izip(pir(sn2.a, r), pir(tn.affectedBy, r)), force=False)
 		
 		# there no connection should have worked ( its atomic )
 		# hence slot 10 is free
 		persp.tx > tn.affectedBy.getByLogicalIndex(10)
 		
 		# force connection works
-		api.MPlug.connectMultiToMulti(pir(sn2.a, r), pir(tn.affectedBy, r), force=True)
+		api.MPlug.connectMultiToMulti(izip(pir(sn2.a, r), pir(tn.affectedBy, r)), force=True)
 		
 		for i in r:
 			assert sn2.a.getByLogicalIndex(i).isConnectedTo(tn.affectedBy.getByLogicalIndex(i))

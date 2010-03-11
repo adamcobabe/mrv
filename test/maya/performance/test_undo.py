@@ -69,7 +69,7 @@ class TestUndoPerformance( unittest.TestCase ):
 			elapsed = time.time() - starttime
 			all_elapsed[undoEnabled].append( elapsed )
 
-			print "UNDO: DECORATED %s: %i ops in %f s ( %f / s )" % ( undo, numops, elapsed, numops / elapsed )
+			print >> sys.stderr, "UNDO: DECORATED %s: %i ops in %f s ( %f / s )" % ( undo, numops, elapsed, numops / elapsed )
 
 
 			starttime = time.time()
@@ -79,10 +79,10 @@ class TestUndoPerformance( unittest.TestCase ):
 			elapsed = time.time() - starttime
 			all_elapsed[undoEnabled].append( elapsed )
 
-			print "UNDO: MANUAL %s: %i ops in %f s ( %f / s )" % ( undo, numops, elapsed, numops / elapsed )
+			print >> sys.stderr, "UNDO: MANUAL %s: %i ops in %f s ( %f / s )" % ( undo, numops, elapsed, numops / elapsed )
 			starttime = time.time()
 
-			print "UNDO: DECORATED is %f %% faster than manually implemented functions !" % ( 100 - ( elapsed_deco / elapsed ) * 100 )
+			print >> sys.stderr, "UNDO: DECORATED is %f %% faster than manually implemented functions !" % ( 100 - ( elapsed_deco / elapsed ) * 100 )
 
 			if undoEnabled:
 				cmds.undo()
@@ -91,7 +91,7 @@ class TestUndoPerformance( unittest.TestCase ):
 				cmds.redo()
 				elapsed = time.time() - starttime
 
-				print "UNDO: CALL TIME: %i operations in %f s ( %f / s )" % ( totalops, elapsed, totalops / elapsed )
+				print >> sys.stderr, "UNDO: CALL TIME: %i operations in %f s ( %f / s )" % ( totalops, elapsed, totalops / elapsed )
 			#END if undo enabled
 		# END for each undo queue state
 
@@ -99,6 +99,6 @@ class TestUndoPerformance( unittest.TestCase ):
 		difference = all_elapsed[1][1] - all_elapsed[0][1]
 
 		# RATIOS between enabled undo system and without
-		print "UNDO: RATIO UNDO QUEUE ON/OFF: %f s (on) vs %f s (off) = %f %% speedup on disabled queue ( difference [s] = %f )" % (all_elapsed[1][0], all_elapsed[0][0], ratio, difference )
+		print >> sys.stderr, "UNDO: RATIO UNDO QUEUE ON/OFF: %f s (on) vs %f s (off) = %f %% speedup on disabled queue ( difference [s] = %f )" % (all_elapsed[1][0], all_elapsed[0][0], ratio, difference )
 
 

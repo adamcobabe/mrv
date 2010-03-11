@@ -34,7 +34,7 @@ class TestGeneralPerformance( unittest.TestCase ):
 	def test_buildTestScene( self ):
 		"""mayarv.maya.benchmark.general: build test scene with given amount of nodes  """
 		return 	# disabled
-		
+		 
 		numNodes = 100000
 		cmds.undoInfo( st=0 )
 		targetFile = common.get_maya_file( "large_scene_%i.mb" % numNodes )
@@ -261,58 +261,103 @@ class TestGeneralPerformance( unittest.TestCase ):
 
 		p = Node('perspShape')
 
+		# method access
+		a = time.time()
+		na = 10000
+		for i in xrange( na ):
+			p.focalLength  # this wraps the API
+		b = time.time()
+		print >>sys.stderr, "%f s (%f/s) : node.focalLength" % ( b - a, na/(b-a) )
+
 		# node wrapped
 		a = time.time()
-		for i in range( 10000 ):
+		for i in xrange( na ):
 			p.focalLength()  # this wraps the API
 		b = time.time()
-		print >>sys.stderr, "%f s : node.focalLength()" % ( b - a )
+		print >>sys.stderr, "%f s (%f/s) : node.focalLength()" % ( b - a, na/(b-a) )
 
 		# node speedwrapped
 		a = time.time()
-		for i in range( 10000 ):
+		for i in xrange( na ):
 			p._api_focalLength()  # this wraps the API directly
 		b = time.time()
-		print >>sys.stderr, "%f s : node._api_focalLength()" % ( b - a )
+		print >>sys.stderr, "%f s (%f/s): node._api_focalLength()" % ( b - a, na/(b-a) )
 
 		# node speedwrapped + cached
 		a = time.time()
 		api_get_focal_length = p._api_focalLength
-		for i in range( 10000 ):
+		for i in xrange( na ):
 			api_get_focal_length()  # get rid of the dictionary lookup
 		b = time.time()
-		print >>sys.stderr, "%f s : _api_focalLength()" % ( b - a )
+		print >>sys.stderr, "%f s (%f/s): _api_focalLength()" % ( b - a, na/(b-a) )
 
 		# mfn recreate
 		a = time.time()
-		for i in range( 10000 ):
+		for i in xrange( na ):
 			camfn = api.MFnCamera( p.getMObject() )
 			camfn.focalLength()  # this wraps the API
 		b = time.time()
-		print >>sys.stderr, "%f s : recreated + call" % ( b - a )
+		print >>sys.stderr, "%f s (%f/s): recreated + call" % ( b - a, na/(b-a) )
 
 		# mfn directly
 		camfn = api.MFnCamera( p.getMObject() )
 		a = time.time()
-		for i in range( 10000 ):
+		for i in xrange( na ):
 			camfn.focalLength()  # this wraps the API
 		b = time.time()
-		print >>sys.stderr, "%f s : mfn.focalLenght()" % ( b - a )
+		print >>sys.stderr, "%f s (%f/s): mfn.focalLenght()" % ( b - a, na/(b-a) )
 
 		# plug wrapped
 		a = time.time()
-		for i in range( 10000 ):
+		for i in xrange( na ):
 			p.fl.asFloat()  # this wraps the API
 		b = time.time()
-		print >>sys.stderr, "%f s : node.plug.asFloat()" % ( b - a )
+		print >>sys.stderr, "%f s (%f/s): node.plug.asFloat()" % ( b - a, na/(b-a) )
 
+		# single plug access
+		a = time.time()
+		for i in xrange( na ):
+			p.fl
+		b = time.time()
+		print >>sys.stderr, "%f s (%f/s): node.fl" % ( b - a, na/(b-a) )
+		
 		# plug cached
 		a = time.time()
 		fl = p.fl
-		for i in range( 10000 ):
+		for i in xrange( na ):
 			fl.asFloat()  # this wraps the API
 		b = time.time()
-		print >>sys.stderr, "%f s : plug.asFloat()" % ( b - a )
+		print >>sys.stderr, "%f s (%f/s): plug.asFloat()" % ( b - a, na/(b-a) )
+		
+	
+	def test_create_nodes(self):
+		bmaya.Scene.new(force=1)
+		
+		nn = 1000
+		for node_type in ("network", "transform"):
+			# CREATE NODES
+			st = time.time()
+			node_list = list()
+			for number in xrange(nn):
+				n = nodes.createNode(node_type, node_type)
+				node_list.append(n)
+			# END for each node to created
+			elapsed = time.time() - st
+			print >>sys.stderr, "Created %i %s nodes in  %f s ( %f nodes / s )" % (nn, node_type, elapsed, nn/elapsed)
+			
+			# RENAME
+			st = time.time()
+			for node in node_list:
+				if isinstance(node, nodes.DagNode):
+					node.rename(node.getBasename()[:-1])
+				else:
+					node.rename(node.name()[:-1])
+				# END rename nodes handling
+			# END for each node to rename
+			elapsed = time.time() - st
+			print >>sys.stderr, "Renamed %i %s nodes in  %f s ( %f nodes / s )" % (nn, node_type, elapsed, nn/elapsed)
+		# END for each node type
+		
 
 
 

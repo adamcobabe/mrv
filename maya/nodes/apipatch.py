@@ -406,12 +406,11 @@ class MPlug( api.MPlug, util.iDagItem ):
 
 	@classmethod
 	@undoable
-	def connectMultiToMulti(self, iter_source, iter_destination, force=False):
+	def connectMultiToMulti(self, iter_source_destination, force=False):
 		"""Connect multiple source plugs to the same amount of detsination plugs.
 		@note: This method provides the most efficient way to connect a large known 
 		amount of plugs to each other
-		@param iter_source: Iterator yielding the source plug for a connection
-		@param iter_destination: Iterator yielding the destination plug for a connection
+		@param iter_source_destination: Iterator yielding pairs of source and destination plugs to connect
 		@param force: If True, existing input connections on the destination side will 
 		be broken automatically. Otherwise the whole operation will fail if one 
 		connection could not be made.
@@ -419,7 +418,7 @@ class MPlug( api.MPlug, util.iDagItem ):
 		@note: In the current implementation, performance will be hurt if force 
 		is specified as each destination has to be checked for a connection in advance"""
 		mod = undo.DGModifier( )
-		for source, dest in itertools.izip(iter_source, iter_destination):
+		for source, dest in iter_source_destination:
 			if force:
 				destinputplug = dest.p_input
 				if not destinputplug.isNull():

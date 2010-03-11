@@ -32,7 +32,7 @@ class TestCalculations( unittest.TestCase ):
 			nodecount += 1
 		# END for each object
 		elapsed = time.time() - starttime
-		print "Randomized %i node translations in %f s ( %f / s )" % ( nodecount, elapsed, nodecount / elapsed )
+		print >> sys.stderr, "Randomized %i node translations in %f s ( %f / s )" % ( nodecount, elapsed, nodecount / elapsed )
 
 		# save tmp
 		common._saveTempFile( "randomscene.mb" )
@@ -55,7 +55,7 @@ class TestCalculations( unittest.TestCase ):
 		pos /= float( nodecount )
 		elapsed = time.time() - starttime
 
-		print "Average position of %i nodes is: <%f,%f,%f> in %f s" % ( nodecount, pos.x,pos.y,pos.z, elapsed )
+		print >> sys.stderr, "Average position of %i nodes is: <%f,%f,%f> in %f s" % ( nodecount, pos.x,pos.y,pos.z, elapsed )
 
 
 		# NOW SET ALL NODES TO THE GIVEN VALUE
@@ -66,7 +66,7 @@ class TestCalculations( unittest.TestCase ):
 		# END for each node
 
 		elapsed = time.time() - starttime
-		print "Set %i nodes to average position in %f s ( %f / s )" % ( nodecount, elapsed, nodecount / elapsed )
+		print >> sys.stderr, "Set %i nodes to average position in %f s ( %f / s )" % ( nodecount, elapsed, nodecount / elapsed )
 		
 
 		common._saveTempFile( "averaged.mb" )
@@ -79,7 +79,7 @@ class TestCalculations( unittest.TestCase ):
 		# END for each node
 		
 		new_elapsed = time.time() - starttime
-		print "Set the same %i nodes back to null in %f s ( %f / s ) ( cached functions speedup = %f %%)" % ( nodecount, new_elapsed, nodecount / new_elapsed, (elapsed / new_elapsed)*100 )
+		print >> sys.stderr, "Set the same %i nodes back to null in %f s ( %f / s ) ( cached functions speedup = %f %%)" % ( nodecount, new_elapsed, nodecount / new_elapsed, (elapsed / new_elapsed)*100 )
 		
 		
 		starttime = time.time()
@@ -88,7 +88,7 @@ class TestCalculations( unittest.TestCase ):
 			node._api_setTranslation( pos, api.MSpace.kWorld )
 		# END for each node
 		api_new_elapsed = time.time() - starttime
-		print "Set the same %i nodes back to average in %f s ( %f / s ) ( new api functions speedup = %f %%)" % ( nodecount, api_new_elapsed, nodecount / api_new_elapsed, (elapsed / api_new_elapsed)*100 )
+		print >> sys.stderr, "Set the same %i nodes back to average in %f s ( %f / s ) ( new api functions speedup = %f %%)" % ( nodecount, api_new_elapsed, nodecount / api_new_elapsed, (elapsed / api_new_elapsed)*100 )
 		
 		
 		starttime = time.time()
@@ -97,6 +97,6 @@ class TestCalculations( unittest.TestCase ):
 			node._api_setTranslation( null, api.MSpace.kWorld )
 		# END for each node
 		api_new_elapsed = time.time() - starttime
-		print "Set the same %i nodes back to null in %f s ( %f / s ) ( cached api functions speedup = %f %%)" % ( nodecount, api_new_elapsed, nodecount / api_new_elapsed, (elapsed / api_new_elapsed)*100 )
+		print >> sys.stderr, "Set the same %i nodes back to null in %f s ( %f / s ) ( cached api functions speedup = %f %%)" % ( nodecount, api_new_elapsed, nodecount / api_new_elapsed, (elapsed / api_new_elapsed)*100 )
 		
 		
