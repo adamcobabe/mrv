@@ -69,8 +69,8 @@ class TestReferenceRunner( unittest.TestCase ):
 			self.failUnless( not isinstance( refnode, basestring ) )
 
 			# it should always find our reference as well
-			self.failUnless( FileReference.find( [ref] )[0] == ref )
-			self.failUnless( FileReference.find( [ref], ignore_extension = True )[0] == ref )
+			self.failUnless( FileReference.fromPaths( [ref] )[0] == ref )
+			self.failUnless( FileReference.fromPaths( [ref], ignore_extension = True )[0] == ref )
 
 		# END for each reference
 
@@ -101,7 +101,7 @@ class TestReferenceRunner( unittest.TestCase ):
 				newrefs.append( ref )
 
 				# should found newref
-				findresult = FileReference.find( [ ref ] )
+				findresult = FileReference.fromPaths( [ ref ] )
 				self.failUnless( len( findresult ) == 1 and findresult[0] == ref )
 				self.failUnless( ref in findresult )	# see that >in< operator works
 
@@ -145,13 +145,13 @@ class TestReferenceRunner( unittest.TestCase ):
 
 		# slowly import step by step
 		firstsubref = subrefbases[0]
-		childrefs = firstsubref.importRef( depth = 1 )
+		childrefs = firstsubref.importRef( depth = 0 )
 		self.failUnless( not cmds.objExists( firstsubref._refnode ) )
 		self.failUnless( len( childrefs ) == 4 )
 
 		# import alltogehter
 		sndsubref = subrefbases[1]
-		childrefs = sndsubref.importRef( depth = 0 )
+		childrefs = sndsubref.importRef( depth = -1 )
 		self.failUnless( len( childrefs ) == 0 )
 
 		# NOTE: only have two  - the test changed
