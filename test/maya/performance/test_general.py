@@ -37,7 +37,7 @@ class TestGeneralPerformance( unittest.TestCase ):
 		return nodes.createNode( name, nodetype, renameOnClash=True )
 
 
-	def test_buildTestScene( self ):
+	def _test_buildTestScene( self ):
 		"""mayarv.maya.benchmark.general: build test scene with given amount of nodes  """
 		return 	# disabled
 		 
@@ -65,7 +65,7 @@ class TestGeneralPerformance( unittest.TestCase ):
 		bmaya.Scene.save( targetFile )
 
 
-	def test_dagwalking( self ):
+	def _test_dagwalking( self ):
 		"""mayarv.maya.benchmark.general.dagWalking: see how many nodes per second we walk"""
 
 		# numnodes = [ 2500, 25000, 100000 ]
@@ -167,7 +167,7 @@ class TestGeneralPerformance( unittest.TestCase ):
 		elapsed = time.time() - st
 		print >>sys.stderr, "%r.getSelectionList: got %i nodes on selection list in %f s ( %f / s )" % (namespace, nn, elapsed, nn / elapsed)
 
-	def test_createNodes( self ):
+	def _test_createNodes( self ):
 		"""mayarv.maya.benchmark.general: test random node creation performance"""
 		bmaya.Scene.new( force = True )
 		runs = [ 100,2500 ]
@@ -258,12 +258,12 @@ class TestGeneralPerformance( unittest.TestCase ):
 		print >>sys.stderr, "Renamed %i WRAPPED Nodes in %f s ( %f / s )" % ( ltl, elapsed, ltl / elapsed )
 
 
-	def test_intarray_creation(self):
+	def _test_intarray_creation(self):
 		pass
 		# is tested in test_geometry through the Mesh class
 	
 	@with_scene("samurai_jet_graph.mb")
-	def test_graph_iteration(self):
+	def _test_graph_iteration(self):
 		root = nodes.Node('Jetctrllers')
 		for rootitem in (root, root.drawInfo):
 			for breadth in range(2):
@@ -282,7 +282,7 @@ class TestGeneralPerformance( unittest.TestCase ):
 		# END for each root
 		
 
-	def test_wrappedFunctionCall( self ):
+	def _test_wrappedFunctionCall( self ):
 		"""mayarv.maya.benchmark.general: test wrapped funtion calls and compare them"""
 
 		bmaya.Scene.new( force = True )
@@ -358,7 +358,7 @@ class TestGeneralPerformance( unittest.TestCase ):
 		print >>sys.stderr, "%f s (%f/s): plug.asFloat()" % ( b - a, na/(b-a) )
 		
 	
-	def test_create_nodes(self):
+	def _test_create_nodes(self):
 		bmaya.Scene.new(force=1)
 		
 		nn = 1000
@@ -387,17 +387,26 @@ class TestGeneralPerformance( unittest.TestCase ):
 		bmaya.Scene.new(force=1)
 		scene_file = common.get_maya_file( "large_scene_2500.mb" )
 		ref = createReference(scene_file)
+		ref2 = createReference(scene_file)
 		
-		# ref node iteration
-		for kwargs in ( {'asNode':False}, {'asNode':0,'assemblies':True, 'dag':1}, 
-			{'asNode':1,'assembliesInReference':True}):
-			st = time.time()
-			nodes_list = list(ref.iterNodes(**kwargs))
-			elapsed = time.time() - st
-			# print nodes_list
-			nn = len(nodes_list)
-			print >>sys.stderr, "ref.iterNodes(%s): iterated %i nodes in  %f s ( %f nodes / s )" % (kwargs, nn, elapsed, nn/elapsed)
-		# END for each kwarg
+		for asNode in range(2):
+			for dag in range(2):
+				for assemblies in range(2):
+					for air in range(2):
+						try:
+							st = time.time()
+							nodes_list = list(ref.iterNodes(asNode=asNode, dag=dag, assemblies=assemblies, assembliesInReference=air))
+							elapsed = time.time() - st
+							
+							nn = len(nodes_list)
+							print >>sys.stderr, "ref.iterNodesAPI(asNode=%i, dag=%i, assemblies=%i, air=%i): iterated %i nodes in  %f s ( %f nodes / s )" % (asNode, dag, assemblies, air, nn, elapsed, nn/elapsed)
+						except ValueError:
+							continue
+						# END ignore incorrect args
+					# END for each air value
+				# END for each assemblies value
+			# END for each dag value
+		# END for each asNode option
 		
 		# try namespace iteration
 		self._iterate_namespace(ref.getNamespace(), unlimited_depth=True)

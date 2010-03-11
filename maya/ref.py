@@ -11,6 +11,7 @@ from mayarv.maya.util import noneToList
 from mayarv.util import iDagItem
 import undo
 import maya.cmds as cmds
+import maya.OpenMaya as api
 from itertools import ifilter
 
 #{ Exceptions
@@ -274,78 +275,112 @@ class FileReference( iDagItem ):
 	#} listing
 	
 	#{ Nodes Query
-	def iterNodes( self, asNode = True, dag=False,
-				  assemblies=False, assembliesInReference=False,
-				  predicate = None):
+	def iterNodes( self, *args, **kwargs):
 		"""Creates iterator over nodes in this reference
-		@param asNode: if True, return wrapped Nodes, if False string names will
-		be returned
-		@param dag: if True, return dag nodes only. Otherwise return dependency nodes 
-		as well.
-		@param assemblies: if True, return only dagNodes with no parent
+		@param *args: MFn.kType filter ids to be used to pre-filter all nodes.
+		If you know what you are looking for, setting this can greatly improve 
+		performance !
+		@param asNode: if True, default True, return wrapped Nodes, if False MDagPaths
+		or MObjects will be returned
+		@param dag: if True, default False, return dag nodes only. Otherwise return dependency nodes 
+		as well. Enables assemblies and assembilesInReference.
+		@param assemblies: if True, return only dagNodes with no parent. Needs dag and 
+		is mutually exclusive with assembilesInReference.
 		@param assembliesInReference: if True, return only dag nodes that have no
 		parent in their own reference. They may have a parent not coming from their
-		reference though. This flag has a big negative performance impact. Only works
-		if asNode = 1. If assemblies is True as well, it is likely that not all 
-		reference assemblies will be found as it serves as a pre-filter.
-		@param predicate: if function returns True for Mode|string n, n will be yielded.
+		reference though. This flag has a big negative performance impact and requires
+		dag.
+		@param predicate: if function returns True for Node|MObject|MDagPath n, n will be yielded.
 		Defaults to return True for all.
-		@raise ValueError: if incompatible arguments have been given """
-		import mayarv.maya.nodes as nodes
-		# COULD use MFileIO::getReferenceNodes, but it will only return partial names which 
-		# in turn destroys anyone who wants to work with it. Its much faster, but simply not usable
-		allnodes = noneToList( cmds.referenceQuery( self.getPath(copynumber=1), n=1, dp=1 ) )
-
-
-		# additional ls filtering
-		filterargs = dict()
+		@param **kwargs: additional kwargs will be passed to either L{iterDagNodes}
+		or L{iterDgNodes} ( dag = False ).
+		@raise ValueError: if incompatible arguments have been given"""
+		import nodes
+		
+		rns = self.getNamespace()
+		asNode = kwargs.get('asNode', True)
+		predicate = kwargs.get('predicate', lambda n: True)
+		kwargs['asNode'] = False	# we will do it
+		
+		dag = kwargs.pop('dag', False)
+		assemblies = kwargs.pop('assemblies', False)
+		assembliesInReference = kwargs.pop('assembliesInReference', False)
+		
+		
+		if ( assemblies or assembliesInReference ) and not dag:
+			raise ValueError("Cannot list assemblies of any kind if dag is not specified")
+		
+		if assemblies and assembliesInReference:
+			raise ValueError("assemblies and assembilesInReference are mutually exclusive")
+		
+		# CONSTRUCT PREDICATE
+		iter_type = None
+		pred = None
+		rnsIsRootOf = rns.isRootOf
 		if dag:
-			filterargs[ 'type' ] = "dagNode"
-
-		if assemblies:
-			filterargs[ 'assemblies' ] = 1
-
-
-		# APPLY ADDITIONAL FILTER
-		if filterargs:
-			allnodes = noneToList( cmds.ls( allnodes, **filterargs ) )
-		# END pre-filter string nodes 
-
-
-		myfilter = And( )
-		# ASSEMBILES IN REFERENCE ?
-		if assembliesInReference:
-			if not asNode:
-				raise ValueError( "assembliesInReference requires asNode to be 1" )
-
-			rns = self.getNamespace()
-
-			def isRootInReference(n):
-				if not isinstance(n, nodes.DagNode):
+			# cache functions for 10% more performance
+			mfndag = api.MFnDagNode()
+			mfndagSetObject = mfndag.setObject
+			mfndagParentNamespace = mfndag.parentNamespace
+			MDagPath = api.MDagPath
+			mdppop = MDagPath.pop
+			mdplen = MDagPath.length
+			
+			def check_dag_ns(n):
+				mfndagSetObject(n)
+				if not rnsIsRootOf(Namespace(mfndagParentNamespace())):
 					return False
-				# END ignore non-dag nodes
+				# END first namespace check
 				
-				parent = n.getParent()
-				if parent is None:
-					return True
-
-				return not rns.isRootOf(parent.getNamespace())
-			# END filter method
-
-			myfilter.functions.append( isRootInReference )
-		# END assembliesInReference
-
-		if predicate:
-			myfilter.functions.append( predicate )
-
-		nodesIter = None
-		if asNode:
-			nodesIter = ( nodes.Node( name ) for name in allnodes )
+				# assemblies have no parents
+				if assemblies: 
+					nc = MDagPath(n)
+					mdppop(nc, 1)
+					if mdplen(nc) != 0:
+						return False
+					# END check length
+				elif assembliesInReference:
+					nc = MDagPath(n)
+					mdppop(nc, 1)
+					if mdplen(nc) != 0:
+						# check whether parent is in a different namespace
+						mfndagSetObject(n)
+						if rnsIsRootOf(Namespace(mfndagParentNamespace())):
+							return False
+						# END check parent rns
+					# END check length
+				# END handle assemblies
+				return True
+			# END filter
+			
+			pred = check_dag_ns
+			iter_type = nodes.it.iterDagNodes
 		else:
-			nodesIter = iter( allnodes )
-		# END handle conversion
-
-		return ifilter( myfilter, nodesIter )
+			mfndep = api.MFnDependencyNode()
+			mfndepSetObject = mfndep.setObject
+			mfndepParentNamespace = mfndep.parentNamespace
+			
+			def check_ns(n):
+				mfndepSetObject(n)
+				if not rnsIsRootOf(Namespace(mfndepParentNamespace())):
+					return False
+				# END first namespace check
+				return True
+			# END filter
+			
+			pred = check_ns
+			iter_type = nodes.it.iterDgNodes
+		# END handle dag/dg mode predicate
+		
+		kwargs['predicate'] = pred
+		
+		# have to iterate it manually in order to get the toNode conversion right
+		for n in iter_type(*args, **kwargs):
+			if asNode:
+				n = nodes.NodeFromObj(n)
+			if predicate(n):
+				yield n
+		# END for each node in iteartion
 	#} nodes query
 
 	#{ Edit
@@ -475,7 +510,7 @@ class FileReference( iDagItem ):
 	def getReferenceNode( self ):
 		"""@return: wrapped reference node managing this reference"""
 		import mayarv.maya.nodes as nodes
-		return nodes.Node( self._refnode )
+		return nodes.NodeFromStr( self._refnode )
 
 	#}END query methods
 

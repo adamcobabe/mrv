@@ -799,6 +799,14 @@ class NodeFromObj( object ):
 		# makes a little bit of sense.
 		clsinstance.__init__(apiobj_or_dagpath)
 		return clsinstance
+		
+		
+class NodeFromStr( object ):
+	"""Virtual constructor similar to L{NodeFromObj}, but it will only accept strings
+	to produce a wrapped node as fast as possible. Therefore, the error checking is 
+	left out."""
+	def __new__ ( cls, node_string ):
+		return NodeFromObj(toApiobjOrDagPath(node_string))
 
 
 class DependNode( Node, iDuplicatable ):		# parent just for epydoc -
@@ -860,7 +868,7 @@ class DependNode( Node, iDuplicatable ):		# parent just for epydoc -
 		it never really worked to undo a mel command from within python, executed using a dgmodifier - unfortunately
 		it does not return any result making it hard to find the newly duplicated object !"""
 		# returns name of duplicated node
-		duplnode = Node( cmds.duplicate( str( self ) )[0] )
+		duplnode = NodeFromStr( cmds.duplicate( str( self ) )[0] )
 
 		# RENAME
 		###########
@@ -1597,7 +1605,7 @@ class DagNode( Entity, iDagItem ):	# parent just for epydoc
 		# TARGET EXISTS ?
 		#####################
 		if '|' in newpath and objExists( newpath ):
-			exnode = Node( newpath )
+			exnode = NodeFromStr( newpath )
 			if not isinstance( exnode, self.__class__ ):
 				raise RuntimeError( "Existing object at path %s was of type %s, should be %s"
 									% ( newpath, exnode.__class__.__name__, self.__class__.__name__ ) )
@@ -1669,7 +1677,7 @@ class DagNode( Entity, iDagItem ):	# parent just for epydoc
 			# present in a generic newly created transform node
 			parentnode = None
 			if cmds.objExists( parentnodepath ):
-				parentnode = Node( parentnodepath )
+				parentnode = NodeFromStr( parentnodepath )
 			elif parentnodepath != '':
 				parentnode = createNode( parentnodepath, "transform",
 			     						  renameOnClash=renameOnClash,
