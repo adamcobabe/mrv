@@ -9,7 +9,7 @@ import sys
 class TestGeometryPerformance( unittest.TestCase ):
 	
 	@with_scene('mesh40k.mb')
-	def _test_mesh_iteration(self):
+	def test_mesh_iteration(self):
 		m = nodes.Node('mesh40k')
 		nv = m.numVertices()
 		ne = m.numEdges()

@@ -135,7 +135,7 @@ class TestTransform( unittest.TestCase ):
 		assert pns.getChildren()[0] == sns
 		
 		assert len(sns.getSelectionList()) == 1
-		assert len(pns.listObjectStrings()) == 0
+		assert len(pns.getNodeStrings()) == 0
 		assert len(pns.getSelectionList(depth=2)) == 1
 		
 		# DAG MANIPULATION

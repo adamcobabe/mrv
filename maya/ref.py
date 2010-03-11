@@ -111,11 +111,11 @@ class FileReference( Path, iDagItem ):
 		ns = namespace
 		if not ns:										# assure unique namespace
 			nsbasename = filepath.stripext().basename()
-			ns = Namespace.getUnique( nsbasename, incrementFunc = nsfunc )
+			ns = Namespace.createUnique( nsbasename, incrementFunc = nsfunc )
 		else:
 			ns = Namespace( ns )		# assure we have a namespace object
 
-		ns = ns.getRelativeTo( Namespace( Namespace.rootNamespace ) )
+		ns = ns.getRelativeTo( Namespace( Namespace.root ) )
 		if ns.exists():
 			raise ValueError( "Namespace %s for %s does already exist" % (ns,filepath) )
 

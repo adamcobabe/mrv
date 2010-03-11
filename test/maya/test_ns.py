@@ -13,7 +13,7 @@ class TestReferenceRunner( unittest.TestCase ):
 		"""mayarv.maya.ns: test all namespace functionality """
 		bmaya.Scene.open( common.get_maya_file( "namespace.ma" ), force=True )
 
-		rootns = Namespace( Namespace.rootNamespace )
+		rootns = Namespace( Namespace.root )
 		childns = rootns.getChildren( )
 		self.failUnless( rootns.isRoot() )
 		self.failUnless( len( childns ) == 3 )
@@ -29,7 +29,11 @@ class TestReferenceRunner( unittest.TestCase ):
 
 		# end for each childns
 
+		# cannot delete root namespace
 		self.failUnlessRaises( ValueError, rootns.delete )
+		
+		# default constructor creates root namesapce
+		assert Namespace() == RootNamespace
 
 
 		# create a few namespaces
@@ -79,14 +83,14 @@ class TestReferenceRunner( unittest.TestCase ):
 		# ITER ROOT NAMESPACE - REAL OBJECTS
 		curns = Namespace.getCurrent()
 		numobjs = 0
-		for obj in Namespace( ":" ).iterObjects( depth = 0 ):
+		for obj in Namespace( ":" ).iterNodes( depth = 0 ):
 			numobjs += 1
 		self.failUnless( numobjs != 0 )
 		self.failUnless( Namespace.getCurrent() == curns )
 
 		# ITER STRINGS
 		newnumobjs = 0
-		for obj in Namespace( ":" ).listObjectStrings( depth = 0, as_strings = 1 ):
+		for obj in Namespace( ":" ).getNodeStrings( depth = 0, asStrings = 1 ):
 			newnumobjs += 1
 
 		self.failUnless( Namespace.getCurrent() == curns )
@@ -94,7 +98,7 @@ class TestReferenceRunner( unittest.TestCase ):
 
 		# empty namespace must come out as root
 		ns = Namespace( "" )
-		self.failUnless( ns == Namespace.rootNamespace )
+		self.failUnless( ns == Namespace.root )
 
 		# TEST SPLIT
 		###########

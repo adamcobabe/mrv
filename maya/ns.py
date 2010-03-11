@@ -3,35 +3,12 @@
 Allows convenient access and handling of namespaces in an object oriented manner
 @todo: more documentation
 """
-from mayarv.maya import undo
+import undo
 from mayarv.maya.util import noneToList, MuteUndo
 from mayarv.util import iDagItem, CallOnDeletion
 import maya.cmds as cmds
 import maya.OpenMaya as api
 import re
-
-
-
-#{ Static Access
-def create( *args ):
-	"""see L{Namespace.create}"""
-	return Namespace.create( *args )
-
-def getCurrent( ):
-	"""see L{Namespace.getCurrent}"""
-	return Namespace.getCurrent()
-
-def getUnique( *args, **kwargs ):
-	"""see L{Namespace.getUnique}"""
-	return Namespace.getUnique( *args, **kwargs )
-
-def exists( namespace ):
-	"""@return : True if given namespace ( name ) exists"""
-	return Namespace( namespace ).exists()
-
-#} END Static Access
-
-
 
 class Namespace( unicode, iDagItem ):
 	""" Represents a Maya namespace
@@ -41,7 +18,7 @@ class Namespace( unicode, iDagItem ):
 	   - Path separator is ':'"""
 	re_find_duplicate_sep = re.compile( ":{2,}" )
 	_sep = ':'
-	rootNamespace = ':'
+	root = ':'
 	_defaultns = [ 'UI','shared' ]			# default namespaces that we want to ignore in our listings
 	defaultIncrFunc = lambda b,i: "%s%02i" % ( b,i )
 	
@@ -50,7 +27,7 @@ class Namespace( unicode, iDagItem ):
 
 	#{ Overridden Methods
 
-	def __new__( cls, namespacepath, absolute = True ):
+	def __new__( cls, namespacepath=root, absolute = True ):
 		""" Initialize the namespace with the given namespace path
 		@param namespacepath: the namespace to wrap - it should be absolut to assure
 		relative namespaces will not be interpreted in an unforseen manner ( as they
@@ -60,7 +37,7 @@ class Namespace( unicode, iDagItem ):
 		@note: the namespace does not need to exist, but many methods will not work if so.
 		NamespaceObjects returned by methods of this class are garantueed to exist"""
 
-		if namespacepath != cls.rootNamespace:
+		if namespacepath != cls.root:
 			if absolute:
 				if not namespacepath.startswith( ":" ):		# do not force absolute namespace !
 					namespacepath = ":" + namespacepath
@@ -85,7 +62,6 @@ class Namespace( unicode, iDagItem ):
 	#}END Overridden Methods
 
 	#{Edit Methods
-
 	@classmethod
 	@undo.undoable
 	def create( cls, namespaceName ):
@@ -93,6 +69,7 @@ class Namespace( unicode, iDagItem ):
 		@param namespaceName: the name of the namespace, absolute or relative -
 		it may contain subspaces too, i.e. :foo:bar.
 		fred:subfred is a relative namespace, created in the currently active namespace
+		@note: if the target namespace already exists, it will be returned
 		@return: the create Namespace object"""
 		newns = cls( namespaceName )
 
@@ -102,7 +79,7 @@ class Namespace( unicode, iDagItem ):
 		cleanup = CallOnDeletion( None )
 		if newns.isAbsolute():	# assure root is current if we are having an absolute name
 			previousns = Namespace.getCurrent()
-			cls( Namespace.rootNamespace ).setCurrent( )
+			cls( Namespace.root ).setCurrent( )
 			cleanup.callableobj = lambda : previousns.setCurrent()
 
 		# create each token accordingly ( its not root here )
@@ -122,7 +99,6 @@ class Namespace( unicode, iDagItem ):
 		# END for each token
 
 		return newns
-
 
 	def rename( self, newName ):
 		"""Rename this namespace to newName - the original namespace will cease to exist
@@ -144,7 +120,7 @@ class Namespace( unicode, iDagItem ):
 		moveChildren( self, newnamespace )
 		return newnamespace
 
-	def moveObjects( self, targetNamespace, force = True, autocreate=True ):
+	def moveNodes( self, targetNamespace, force = True, autocreate=True ):
 		"""Move objects from this to the targetNamespace
 		@param force: if True, namespace clashes will be resolved by renaming, if false
 		possible clashes would result in an error
@@ -156,16 +132,16 @@ class Namespace( unicode, iDagItem ):
 
 		cmds.namespace( mv=( self, targetNamespace ), force = force )
 
-	def delete( self, move_to_namespace = rootNamespace, autocreate=True ):
+	def delete( self, move_to_namespace = root, autocreate=True ):
 		"""Delete this namespace and move it's obejcts to the given move_to_namespace
 		@param move_to_namespace: if None, the namespace to be deleted must be empty
 		If Namespace, objects in this namespace will be moved there prior to namespace deletion
 		move_to_namespace must exist
 		@param autocreate: if True, move_to_namespace will be created if it does not exist yet
-		@note: can handle sub-namespace properly
+		@note: can handle sub-namespaces properly
 		@raise RuntimeError:
 		@todo: Implement undo !"""
-		if self == self.rootNamespace:
+		if self == self.root:
 			raise ValueError( "Cannot delete root namespace" )
 
 		if not self.exists():					# its already gone - all fine
@@ -190,7 +166,7 @@ class Namespace( unicode, iDagItem ):
 		self.setCurrent( )
 
 		if move_to_namespace:
-			self.moveObjects( move_to_namespace, autocreate=autocreate )
+			self.moveNodes( move_to_namespace, autocreate=autocreate )
 
 		# finally delete the namespace
 		cmds.namespace( rm=self )
@@ -220,7 +196,7 @@ class Namespace( unicode, iDagItem ):
 		return cls( nsname )
 
 	@classmethod
-	def getUnique( cls, basename, incrementFunc = defaultIncrFunc ):
+	def createUnique( cls, basename, incrementFunc = defaultIncrFunc ):
 		"""Create a unique namespace
 		@param basename: the base name of the namespace, like ":mynamespace"
 		@param incrementFunc: func( basename, index ), returns a unique name generated
@@ -248,12 +224,12 @@ class Namespace( unicode, iDagItem ):
 
 	def getParent( self ):
 		"""@return: parent namespace of this instance"""
-		if self == self.rootNamespace:
+		if self == self.root:
 			return None
 
 		parent = iDagItem.getParent( self )	# considers children like ":bar" being a root
 		if parent == None:	# we are just child of the root namespcae
-			parent = self.rootNamespace
+			parent = self.root
 		return self.__class__( parent )
 
 	def getChildren( self, predicate = lambda x: True ):
@@ -276,7 +252,7 @@ class Namespace( unicode, iDagItem ):
 		@note: the root namespace cannot be relative - if this is of interest for you,
 		you have to check for it. This method gracefully ignores that fact to make
 		it more convenient to use as one does not have to be afraid of exceptions"""
-		#if self == self.rootNamespace:
+		#if self == self.root:
 		#	raise ValueError( "The root namespace cannot be relative" )
 
 		if not self.startswith( ":" ):
@@ -312,7 +288,7 @@ class Namespace( unicode, iDagItem ):
 
 		rpos = objectname.rfind( Namespace._sep )
 		if rpos == -1:
-			return ( Namespace.rootNamespace, objectname )
+			return ( Namespace.root, objectname )
 
 		return ( cls( objectname[:rpos] ), objectname[rpos+1:] )
 
@@ -324,7 +300,7 @@ class Namespace( unicode, iDagItem ):
 	def substitute( self, find_in, replacement ):
 		"""@return: string with our namespace properly substituted with replacement such
 		that the result is a properly formatted object name ( with or without namespace
-		depenging of the value of replacement
+		depending of the value of replacement )
 		As this method is based on string replacement, self might as well match sub-namespaces
 		if it is relative
 		@note: if replacement is an empty string, it will effectively cut the matched namespace
@@ -332,7 +308,7 @@ class Namespace( unicode, iDagItem ):
 		@note: handles replacement of subnamespaces correctly as well
 		@note: as it operates on strings, the actual namespaces do not need to exist"""
 		# special case : we are root
-		if self == Namespace.rootNamespace:
+		if self == Namespace.root:
 			return self._removeDuplicateSep( self.__class__( replacement, absolute=False ) + find_in )
 
 		# do the replacement
@@ -346,7 +322,7 @@ class Namespace( unicode, iDagItem ):
 	#} END query methods
 
 
-	#{ Iterators
+	#{ Object Retrieval
 
 	@classmethod
 	def _getNamespaceObjects( cls, namespace, sellist, curdepth, maxdepth, asStrings ):
@@ -360,9 +336,9 @@ class Namespace( unicode, iDagItem ):
 			# REMOVE INVALID OBJECTS
 			############################
 			# its very annoying that maya wholeheartedly retuns special objects that noone can work with
-			if namespace == Namespace.rootNamespace:
+			if namespace == Namespace.root:
 				
-				forbiddenlist = [ "groundPlane", "groundPlane_transform", "world", "CubeCompass", "Manipulator1", "UniversalManip", "defaultCreaseDataSet" ]
+				forbiddenlist = set(("groundPlane", "groundPlane_transform", "world", "CubeCompass", "Manipulator1", "UniversalManip", "defaultCreaseDataSet"))
 				for item in forbiddenlist:
 					try:
 						objs.remove( item )
@@ -396,20 +372,20 @@ class Namespace( unicode, iDagItem ):
 	# END lod recursive method
 
 
-	def getSelectionList( self, depth=1, as_strings = False, child_predicate = lambda x: True  ):
+	def getSelectionList( self, depth=1, asStrings = False, childPredicate = lambda x: True  ):
 		"""@return: selection list containing all objects in the namespace ( or list of strings if
-		as_strings is True )
+		asStrings is True )
 		@param depth: if 1, only objects in this namespace will be returned
 		if 0, all subnamespaces will be included as well,
 		if 0<depth<x include all objects up to the x subnamespace
-		@param child_predicate: return True for all childnamespaces to include in your query
-		@param as_strings: if true, the selection list returned will be a list of strings instead
-		of a selection list object.
-		Use L{listObjectStrings} to have a more specific name for the method
+		@param childPredicate: return True for all childnamespaces to include in your query
+		@param asStrings: if true, the selection list returned will be a list of strings instead
+		of a MSelectionList.
+		Use L{getNodeStrings} to have a more specific name for the method
 		@note: if the namespace does not exist, an empty selection list will be returned
 		@note: use iterSelectionList to operate on it"""
 		sellist = None
-		if as_strings:
+		if asStrings:
 			sellist = []
 		else:
 			sellist = api.MSelectionList()
@@ -422,28 +398,54 @@ class Namespace( unicode, iDagItem ):
 		# assure we do not record this and alter the undoqueue
 		disableUndo = MuteUndo()
 		curns = self.getCurrent()		# store for later
-		self._getNamespaceObjects( self, sellist, 0, depth, as_strings )
+		self._getNamespaceObjects( self, sellist, 0, depth, asStrings )
 		curns.setCurrent()				# reset current
 
 		return sellist
 
-	def listObjectStrings( self, **kwargs ):
+	def getNodeStrings( self, **kwargs ):
 		"""As above, but returns a list of strings instead of as selection list
 		@note: this convenience method supports all arguments as L{getSelectionList}"""
-		kwargs[ "as_strings" ] = 1
+		kwargs[ "asStrings" ] = 1
 		return self.getSelectionList( **kwargs )
 
 
-	def iterObjects( self, depth=1, child_predicate = lambda x: True, **kwargs ):
+	def iterNodes( self, depth=1, childPredicate = lambda x: True, **kwargs ):
 		"""As above, but returns iterator on all objects in the namespace
 		@param **kwargs: given to the selection list iterator
 		@note: this is a convenience method
 		@note: the method is inherently inefficient as a full list of object names
-		in the naemspace will be retrieved anyway"""
+		in the naemspace will be prepared in the first place. By default, you will 
+		receive wrapped Nodes, see L{iterSelectionList} for more information"""
 		from nodes.it import iterSelectionList
-		sellist = self.getSelectionList( depth = depth, child_predicate = child_predicate, as_strings = False )
+		sellist = self.getSelectionList( depth = depth, childPredicate = childPredicate, asStrings = False )
 
 		return iterSelectionList( sellist, **kwargs )
 
 
-	#} END objects
+	#} END object retrieval
+	
+	
+
+#{ Static Access
+def create( *args ):
+	"""see L{Namespace.create}"""
+	return Namespace.create( *args )
+
+def getCurrent( ):
+	"""see L{Namespace.getCurrent}"""
+	return Namespace.getCurrent()
+
+def createUnique( *args, **kwargs ):
+	"""see L{Namespace.createUnique}"""
+	return Namespace.createUnique( *args, **kwargs )
+
+def exists( namespace ):
+	"""@return : True if given namespace ( name ) exists"""
+	return Namespace( namespace ).exists()
+
+
+RootNamespace = Namespace(Namespace.root)
+
+#} END Static Access
+

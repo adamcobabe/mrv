@@ -524,6 +524,7 @@ api undo
 
 Advanced Uses
 =============
+UndoRecorder
 
 ==========
 Extensions

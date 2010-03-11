@@ -374,7 +374,7 @@ class TestNodeBase( unittest.TestCase ):
 
 		# CHECK namespaces - should be root namespace
 		ns = node.getNamespace( )
-		self.failUnless( ns == nodes.Namespace.rootNamespace )
+		self.failUnless( ns == nodes.Namespace.root )
 
 
 		# RENAME DEP NODES

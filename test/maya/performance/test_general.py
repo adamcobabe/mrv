@@ -3,15 +3,20 @@
 from mayarv.test.maya import *
 import mayarv.maya as bmaya
 import mayarv.maya.nodes as nodes
+import mayarv.maya.ns as ns
 from mayarv.maya.nodes import Node, NodeFromObj
 import mayarv.test.maya as common
-import sys
+import mayarv.maya.nodes.it as it
+
 import maya.cmds as cmds
 import maya.OpenMaya as api
+
+import sys
 import string
 import random
 import time
-import mayarv.maya.nodes.it as it
+from itertools import chain
+
 
 class TestGeneralPerformance( unittest.TestCase ):
 	"""Tests to benchmark general performance"""
@@ -136,7 +141,21 @@ class TestGeneralPerformance( unittest.TestCase ):
 				elapsed = time.time() - st
 				print >>sys.stderr, "iterDgNodes: Walked %i nodes (asNode=%i) in %f s ( %f / s )" % ( nc, asNode, elapsed, nc / elapsed )
 			# END for each node
-
+			
+			# iterate namespaces
+			for namespace in chain((ns.RootNamespace, ), ns.RootNamespace.getChildrenDeep()):
+				# direct strings
+				st = time.time()
+				nn = len(namespace.getNodeStrings())
+				elapsed = time.time() - st
+				print >>sys.stderr, "%r.getNodeStrings: got %i nodes in %f s ( %f / s )" % (namespace, nn, elapsed, nn / elapsed)
+				
+				# selection list
+				st = time.time()
+				nn = len(namespace.getSelectionList())
+				elapsed = time.time() - st
+				print >>sys.stderr, "%r.getSelectionList: got %i nodes on selection list in %f s ( %f / s )" % (namespace, nn, elapsed, nn / elapsed)
+			# END for each namespace
 		# END for each run
 
 	def test_createNodes( self ):

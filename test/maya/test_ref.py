@@ -107,7 +107,7 @@ class TestReferenceRunner( unittest.TestCase ):
 
 
 				# iterate the objects
-				for node in ref.getNamespace( ).iterObjects( ):
+				for node in ref.getNamespace( ).iterNodes( ):
 					if node.getApiType() != api.MFn.kReference:
 						filename = node.getReferenceFile( )
 						self.failUnless( FileReference( filepath=filename ) == ref )
