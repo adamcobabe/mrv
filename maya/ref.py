@@ -20,7 +20,7 @@ class FileReferenceError( MayaRVError ):
 #}
 
 
-class FileReference( Path, iDagItem ):
+class FileReference( iDagItem ):
 	"""Represents a Maya file reference
 	@note: do not cache these instances but get a fresh one when you have to work with it
 	@note: as FileReference is also a iDagItem, all the respective methods, especially for
@@ -39,34 +39,39 @@ class FileReference( Path, iDagItem ):
 		return path,cpn
 
 	#{ Object Overrides
-
-	def __new__( cls, filepath = None, refnode = None, **kwargs ):
-		def handleCreation( refnode , **kwargs ):
-			""" Initialize the instance by a reference node - lets not trust paths """
-			unresolved = kwargs.pop( "unresolved", False )
-			path = cmds.referenceQuery( refnode, filename=1, un=unresolved )
-			path, cpn = cls._splitCopyNumber( path )
-			self = Path.__new__( cls, path )
-			self._refnode = refnode					# keep it for now
-			return self
-		# END creation handler
-
+	def _initFromRefNode( self, refnode, unresolved=False ):
+		""" Initialize the instance by a reference node - lets not trust paths """
+		path = cmds.referenceQuery( refnode, filename=1, un=unresolved )
+		path, cpn = self._splitCopyNumber( path )
+		
+		self._refnode = refnode
+	
+	def __init__( self, filepath = None, refnode = None, unresolved=False ):
 		if refnode:
-			return handleCreation( str( refnode ), **kwargs )
+			return self._initFromRefNode( str( refnode ), unresolved )
 		elif filepath:
-			return handleCreation( cmds.referenceQuery( filepath, rfn=1 ), **kwargs )
+			return self._initFromRefNode( cmds.referenceQuery( filepath, rfn=1 ), unresolved )
 		raise ValueError( "Specify either filepath or refnode to initialize the instance from" )
 
 	def __eq__( self, other ):
 		"""Special treatment for other filereferences"""
-		# need equal copy numbers as well as equal paths
+		# need equal copy numbers as well as equal paths - the refnode encapsulates all this
 		if isinstance( other, FileReference ):
-			return self.getCopyNumber() == other.getCopyNumber() and Path.__eq__( self, other )
+			return self._refnode == other._refnode
 
-		return Path.__eq__( self, other )
+		return self.getPath() == other
 
 	def __ne__( self, other ):
 		return not self.__eq__( other )
+
+	def __hash__(self):
+		return hash(self.getPath(copynumber=1))
+
+	def __str__(self):
+		return str(self.getPath())
+		
+	def __repr__(self):
+		return "FileReference(%s)" % str(self.getPath(copynumber=1))
 
 	#} END object overrides
 
@@ -117,7 +122,7 @@ class FileReference( Path, iDagItem ):
 		ignore that issue as the main reference removal worked at that point.
 		@note: **kwargs passed to namespace.delete """
 		ns = self.getNamespace( )
-		cmds.file( self.getFullPath( ), rr=1 )
+		cmds.file( self.getPath( copynumber=1 ), rr=1 )
 		try:
 			ns.delete( **kwargs )
 		except RuntimeError:
@@ -127,12 +132,12 @@ class FileReference( Path, iDagItem ):
 	def replace( self, filepath ):
 		"""Replace this reference with filepath
 		@param filepath: the path to the file to replace this reference with
-		@return: FileReference with the updated reference
-		@note: you should not use the original ref instance anymore as its
-		path still uses the old path"""
-		filepath = Path( self._splitCopyNumber( filepath )[0] )
+		Reference instances will be handled as well.
+		@return: self"""
+		filepath = (isinstance(filepath, type(self)) and filepath.getPath()) or filepath
+		filepath = self._splitCopyNumber( filepath )[0]
 		cmds.file( filepath, lr=self._refnode )
-		return FileReference( refnode = self._refnode )		# return update object
+		return self
 
 	@undo.notundoable
 	def importRef( self, depth=0 ):
@@ -147,7 +152,7 @@ class FileReference( Path, iDagItem ):
 			# load ref
 			reference.setLoaded( True )
 			children = reference.getChildren()
-			cmds.file( reference.getFullPath(), importReference=1 )
+			cmds.file( reference.getPath(copynumber=1), importReference=1 )
 
 			if curdepth == maxdepth:
 				return children
@@ -167,9 +172,12 @@ class FileReference( Path, iDagItem ):
 
 	@classmethod
 	def fromPaths( cls, paths, **kwargs ):
-		"""Find the reference for each path in paths
-		@param paths: a list of paths whose references in the scene should be 
-		returned.
+		"""Find the reference for each path in paths. If you provide the path X
+		2 times, but you only have one reference to X, the return value will be 
+		[ FileReference(X), None ] as there are less references than provided paths.
+		@param paths: a list of paths or references whose references in the scene 
+		should be returned. In case a reference is found, its plain path will be 
+		used instead.
 		@param ignore_extension: if True, default False, the extension will be ignored
 		during the search, only the actual base name will matter.
 		This way, an MA file will be matched with an MB file. 
@@ -188,36 +196,35 @@ class FileReference( Path, iDagItem ):
 		refs = cls.ls( **kwargs )
 
 		# build dict for fast lookup
+		# It will keep each reference
 		lut = dict()
-		pathscp = paths[:]								# copy them before change !
-
+		pathscp = [ (isinstance(p, cls) and p.getPath()) or Path(p) for p in paths ]
+		
+		conv = lambda f: f
 		if ignore_ext:
-			# actually, keep the instance number - just count it up
-			countlut = dict()
-			# as keys we do not allow environment variables, as there could be
-			# versions with and without vars,although all pointing to the same path,
-			# pure string comparison will not find them
-			def getCountTuple( filepath ):
-				pathnoext = Path( filepath ).expandvars().splitext()[0]
-				count = countlut.get( pathnoext, 0 )
-				countlut[ pathnoext ] = count + 1
-				return ( pathnoext , count )
-
-			for ref in refs:
-				lut[ getCountTuple( ref ) ] = ref			# keys have no ext
-
-			countlut = dict()
-			for i,path in enumerate( pathscp ):
-				pathscp[i] = getCountTuple( path )
-		else:
-			lut.update( ( ref, ref ) for ref in refs )		# ref will take care about the comparison
-		# END split extensions on request
-
-		# remove the keys once we hit them !
+			conv = lambda f: f.expandvars().splitext()[0]
+		# END ignore extension converter
+		
+		def getCountTuple( filepath, lut ):
+			count = lut.get( filepath, 0 )
+			lut[ filepath ] = count + 1
+			return ( filepath , count )
+		# END utility
+		
+		clut = dict()
+		for ref in refs:
+			lut[ getCountTuple(conv(ref.getPath()), clut) ] = ref			# keys have no ext
+		# END for each ref to put into lut
+		
+		clut.clear()
+		for i,path in enumerate( pathscp ):
+			pathscp[i] = getCountTuple(conv(path), clut)
+		# END for each path to prepare
+		
 		outlist = list()
 		for path in pathscp:
-			ref = lut.get( path, None )
-			outlist.append( ref )
+			ref_or_none = lut.get( path, None )
+			outlist.append( ref_or_none )
 			# no need to delete the keys as they have to be unique anyway
 		# END for each path to find
 		return outlist
@@ -227,11 +234,15 @@ class FileReference( Path, iDagItem ):
 		""" list all references in the scene or under the given root
 		@param rootReference: if not empty, the references below it will be returned.
 		Otherwise all scene references will be listed.
+		May be string, Path or FileReference
 		@param predicate: method returning true for each valid file reference object that 
 		should be part of the return value.
 		@param unresolved: if True, paths will not be resolved, thus you will see environment variables,
 		but the effects of the dirmap will not be visible either.
 		@return: list of L{FileReference}s objects"""
+		if isinstance(rootReference, cls):
+			rootReference = rootReference.getPath()
+		# END handle non-string type
 		out = list()
 		for reffile in cmds.file( str( rootReference ), q=1, r=1, un=unresolved ):
 			refinst = FileReference( filepath = reffile, unresolved = unresolved )
@@ -270,7 +281,7 @@ class FileReference( Path, iDagItem ):
 		@param predicate: if function returns True for Mode|string n, n will be yielded.
 		Defaults to return True for all.
 		@raise ValueError: if incompatible arguments have been given """
-		allnodes = noneToList( cmds.referenceQuery( self.getFullPath(), n=1, dp=1 ) )
+		allnodes = noneToList( cmds.referenceQuery( self.getPath(copynumber=1), n=1, dp=1 ) )
 
 		# additional ls filtering
 		filterargs = dict()
@@ -382,7 +393,7 @@ class FileReference( Path, iDagItem ):
 			shortname = namespace.getBasename( )
 
 		# set the namespace
-		cmds.file( self.getFullPath(), e=1, ns=shortname )
+		cmds.file( self.getPath(copynumber=1), e=1, ns=shortname )
 
 	#}END edit
 
@@ -391,7 +402,7 @@ class FileReference( Path, iDagItem ):
 	def exists( self ):
 		"""@return: True if our file reference exists in maya"""
 		try:
-			self.getFullPath( )
+			self.getPath(copynumber=1)
 		except RuntimeError:
 			return False
 		else:
@@ -414,18 +425,18 @@ class FileReference( Path, iDagItem ):
 
 	def getChildren( self , predicate = lambda x: True ):
 		""" @return: all intermediate child references of this instance """
-		return self.ls( rootReference = self.getFullPath(), predicate = predicate )
+		return self.ls( rootReference = self.getPath(copynumber=1), predicate = predicate )
 
 
 	def getCopyNumber( self ):
 		"""@return: the references copy number - starting at 0 for the first reference
 		@note: we do not cache the copy number as mayas internal numbering can change on
 		when references change - the only stable thing is the reference node name"""
-		return self._splitCopyNumber( self.getFullPath() )[1]
+		return self._splitCopyNumber( self.getPath(copynumber=1) )[1]
 
 	def getNamespace( self ):
 		"""@return: namespace object of the full namespace holding all objects in this reference"""
-		fullpath = self.getFullPath()
+		fullpath = self.getPath(copynumber=1)
 		refspace = cmds.file( fullpath, q=1, ns=1 )
 		parentspace = cmds.file( fullpath, q=1, pns=1 )[0]		# returns lists, although its always just one string
 		if parentspace:
@@ -433,12 +444,18 @@ class FileReference( Path, iDagItem ):
 		# END handle parent namespace
 		return Namespace( ":" + parentspace + refspace )
 
-	def getFullPath( self , unresolved = False ):
-		"""@return: string with full path including copy number
+	def getPath( self, copynumber=False, unresolved = False ):
+		"""@return: Path object with the path containing the reference's data
+		@param copynumber: If True, the returned path will include the copy number.
+		As it will be a path object, it might not be fully usable in that state
 		@param unresolved: see L{ls}
 		@note: we always query it from maya as our numbers change if some other
 		reference is being removed and cannot be trusted"""
-		return cmds.referenceQuery( self._refnode, f=1, un=unresolved )
+		path_str = cmds.referenceQuery( self._refnode, f=1, un=unresolved )
+		if not copynumber:
+			path_str = self._splitCopyNumber( path_str )[0]
+		# END handle copy number
+		return Path(path_str)
 
 	def getReferenceNode( self ):
 		"""@return: wrapped reference node managing this reference"""

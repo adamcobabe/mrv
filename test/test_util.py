@@ -34,11 +34,6 @@ class TestDAGTree( unittest.TestCase ):
 		sequence = [ 0, 0, 1 ]
 		self.failUnless( len( filter( Or( bool, lambda x: not bool(x) ), sequence ) ) == 3 )
 
-		# regex
-		regex = re.compile( "\w" )
-		seq = [ "%", "s" ]
-		self.failUnless( len( filter( RegexHasMatch( regex ), seq ) ) == 1 )
-
 
 	def test_intGenerator( self ):
 		"""mayarv.util: test IntKeygenerator"""

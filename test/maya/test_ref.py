@@ -6,7 +6,6 @@ import maya.cmds as cmds
 from mayarv.maya.ref import *
 from mayarv.maya.ns import *
 import mayarv.maya as bmaya
-from mayarv.util import RegexHasMatch
 import re
 import os
 
@@ -20,20 +19,20 @@ class TestReferenceRunner( unittest.TestCase ):
 		bmaya.Scene.open( common.get_maya_file( "refbase.ma" ), force=True )
 		allRefs = FileReference.ls( )
 
-		self.failUnless( len( allRefs ) != 0 )
+		assert len( allRefs ) != 0 
 
 		for ref in allRefs:
 			ref.getChildrenDeep( )		# try function
 
 
-			self.failUnless( isinstance( ref.p_copynumber, int ) )
-			self.failUnless( isinstance( ref.p_namespace, Namespace ) )
+			assert isinstance( ref.p_copynumber, int ) 
+			assert isinstance( ref.p_namespace, Namespace ) 
 
 			# change root reference namespaces
 			if ref.isRoot( ):
 				curNS = ref.p_namespace
 				ref.setNamespace( curNS.getBasename( ) + "_renamed" )
-				self.failUnless( str( ref.getNamespace( ) ).endswith( "_renamed" ) )
+				assert str( ref.getNamespace( ) ).endswith( "_renamed" ) 
 			# END if is root
 
 			# get children
@@ -41,36 +40,36 @@ class TestReferenceRunner( unittest.TestCase ):
 			def childTest( refobj ):
 				subrefs = refobj.getChildren( )
 				for subref in subrefs:
-					self.failUnless( subref.getParent( ) )
-					self.failUnless( not subref.isRoot() )
+					assert subref.getParent( ) 
+					assert not subref.isRoot() 
 					childTest( subref )
 			# END childTest
 
 			childTest( ref )
 
 			# load-unload test
-			self.failUnless( ref.isLoaded( ) )
+			assert ref.isLoaded( ) 
 			ref.p_loaded = False
-			self.failUnless( not ref.p_loaded )
+			assert not ref.p_loaded 
 			ref.p_loaded = True
-			self.failUnless( ref.p_loaded )
+			assert ref.p_loaded 
 
 			# lock test
-			self.failUnless( ref.isLocked( ) == False )
+			assert ref.isLocked( ) == False 
 			ref.p_locked = True
-			self.failUnless( ref.p_locked == True )
+			assert ref.p_locked == True 
 			ref.p_locked = False
-			self.failUnless( ref.p_locked == False )
+			assert ref.p_locked == False 
 
 			ref.cleanup( )
 			ref.cleanup( unresolvedEdits=False )
 
 			refnode = ref.getReferenceNode( )
-			self.failUnless( not isinstance( refnode, basestring ) )
+			assert not isinstance( refnode, basestring ) 
 
 			# it should always find our reference as well
-			self.failUnless( FileReference.fromPaths( [ref] )[0] == ref )
-			self.failUnless( FileReference.fromPaths( [ref], ignore_extension = True )[0] == ref )
+			assert FileReference.fromPaths( [ref] )[0] == ref 
+			assert FileReference.fromPaths( [ref], ignore_extension = True )[0] == ref 
 
 		# END for each reference
 
@@ -89,32 +88,44 @@ class TestReferenceRunner( unittest.TestCase ):
 				for node in ref.iterNodes( asNode = 1 ):
 					pass
 
-				self.failUnless( ref.p_loaded == load )
+				assert ref.p_loaded == load 
 				
 				# on windows inner maya paths use slash and paths outside of maya use backslash
 				# would prefer to use normpath but python 2.5 is buggy with slash-backslash conversion here
-				self.failUnless( os.path.abspath(ref) == newreffile ) 
-				self.failUnless( ref.exists() )
+				assert os.path.abspath(ref.getPath()) == newreffile  
+				assert ref.exists() 
 
 				# try to create a reference with the same namespace
 				#self.failUnlessRaises( ValueError, ref.create, ref, load = load, namespace = ref.p_namespace )
 				newrefs.append( ref )
+				
+				# check getPath and copy number
+				if ref.getCopyNumber() != 0:
+					assert ref.getPath(copynumber=1) != ref.getPath(copynumber=0)
+				# END check copy number
 
 				# should found newref
 				findresult = FileReference.fromPaths( [ ref ] )
-				self.failUnless( len( findresult ) == 1 and findresult[0] == ref )
-				self.failUnless( ref in findresult )	# see that >in< operator works
+				assert len( findresult ) == 1 and findresult[0].getPath() == ref.getPath() 
+				assert ref.getPath() in findresult 	# see that >in< operator works
 
 
 				# iterate the objects
 				for node in ref.getNamespace( ).iterNodes( ):
 					if node.getApiType() != api.MFn.kReference:
 						filename = node.getReferenceFile( )
-						self.failUnless( FileReference( filepath=filename ) == ref )
+						assert FileReference( filepath=filename ) == ref 
 				# END for each node in filename
 
 			# END for each filename
 		# END for load state
+		
+		assert len(newrefs) == len(filenames) * 2	# one for each load state
+		
+		# check hashing 
+		newrefsset = set(newrefs)
+		assert len(newrefsset) == len(newrefs)
+		assert len(newrefsset | newrefsset) == len(newrefs)
 
 		# delete all unloaded files
 		loadedrefs = filter( lambda x: x.isLoaded(), newrefs )
@@ -122,7 +133,7 @@ class TestReferenceRunner( unittest.TestCase ):
 
 		for ref in unloadedrefs:
 			ref.remove( )
-			self.failUnless( not ref.exists() )
+			assert not ref.exists() 
 			self.failUnlessRaises( RuntimeError, ref.getNamespace )
 
 		# cross-replace references
@@ -132,33 +143,25 @@ class TestReferenceRunner( unittest.TestCase ):
 			refpath = str( ref )
 
 			refreplace = ref.replace( oref )
-			self.failUnless( refreplace == str( oref ) )	# comparison with fileref might fail due to copy numbers
+			assert refreplace == str(oref)
 
 			orefreplace = oref.replace( refpath )
-			self.failUnless( orefreplace == refpath )
+			assert orefreplace == str(refpath)		# copy numbers may change things 
 		# END for each 2nd loaded ref
 
 
 		# import references
-		subrefbases = FileReference.ls( predicate = RegexHasMatch( re.compile( ".*subrefbase.ma" ) ) )
-		self.failUnless( len( subrefbases ) == 2 )			# check predicate works
+		subrefbases = FileReference.ls( predicate = lambda r: r.getPath().endswith("subrefbase.ma"))
+		assert len( subrefbases ) == 2 			# check predicate works
 
 		# slowly import step by step
 		firstsubref = subrefbases[0]
 		childrefs = firstsubref.importRef( depth = 0 )
-		self.failUnless( not cmds.objExists( firstsubref._refnode ) )
-		self.failUnless( len( childrefs ) == 4 )
+		assert not cmds.objExists( firstsubref._refnode ) 
+		assert len( childrefs ) == 4 
 
 		# import alltogehter
 		sndsubref = subrefbases[1]
 		childrefs = sndsubref.importRef( depth = -1 )
-		self.failUnless( len( childrefs ) == 0 )
-
-		# NOTE: only have two  - the test changed
-		# final test
-		# finalsubref = subrefbases[2]
-		# self.failUnless( len( finalsubref.importRef( depth = 2 ) ) != 0 )
-
-
-
+		assert len( childrefs ) == 0 
 

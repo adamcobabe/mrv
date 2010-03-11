@@ -806,16 +806,6 @@ class MetaCopyClsMembers( type ):
 ################
 #{ Predicates
 
-class RegexHasMatch( object ):
-	"""For use with python's filter method, returns True if regex matches
-	Use: filter( And( f1,f2,fn ), sequence ) """
-	def __init__( self, compiledRegex ):
-		"""@param compiledRegex: matches incoming objects """
-		self.regex = compiledRegex
-
-	def __call__( self, x ):
-		return self.regex.match( x ) != None
-
 # general boolean
 class And( object ):
 	"""For use with python's filter method, simulates logical AND

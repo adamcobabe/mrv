@@ -135,16 +135,14 @@ class Path( _base, iDagItem ):
 	def __eq__( self, other ):
 		"""Comparison method with expanded variables, just to assure
 		the comparison yields the results we would expect"""
-		if not isinstance( other, basestring ):
-			return False
-		return unicode( os.path.expandvars( self ) ) == unicode( os.path.expandvars( other ) )
+		return unicode( os.path.expandvars( self ) ) == unicode( os.path.expandvars( unicode(other) ) )
 
 	def __ne__( self, other ):
 		return not self.__eq__( other )
 
 	def __hash__( self ):
 		"""Expanded hash method"""
-		return unicode( self._expandvars() ).__hash__()
+		return hash( unicode( self._expandvars() ) )
 
 	#} END Special Python methods
 
