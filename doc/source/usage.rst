@@ -526,10 +526,21 @@ Handling namespaces is straightforward, you may retrieve the namespace of a node
 	>>> assert len(barns.getSelectionList()) == 0 and len(RootNamespace.getNodeStrings()) != 0
 	
 Although you can set the namespace of individual nodes, it is also possible to move all objects in one namespace to another::
-	>>>  
+	>>> m.setNamespace(barns)
+	>>> assert m.getNamespace() == barns
+		
+	>>> barns.moveNodes(foons)
+	>>> assert foons.iterNodes().next() == m 
 	
 Renaming of namespaces as well as their deletion is supported as well::
-	>>>
+	>>> foons.delete()
+	>>> assert not barns.exists() and not foons.exists()
+	>>> assert m.getNamespace() == RootNamespace
+		
+	>>> subns = Namespace.create("sub")
+	>>> subnsrenamed = subns.rename("bar")
+	>>> assert subnsrenamed != subns
+	>>> assert subnsrenamed.exists() and not subns.exists()
 
 ==========
 References

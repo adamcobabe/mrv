@@ -425,3 +425,14 @@ class TestTransform( unittest.TestCase ):
 		assert m.getNamespace() == barns
 		
 		barns.moveNodes(foons)
+		assert foons.iterNodes().next() == m
+		
+		# deleting / rename
+		foons.delete()
+		assert not barns.exists() and not foons.exists()
+		assert m.getNamespace() == RootNamespace
+		
+		subns = Namespace.create("sub")
+		subnsrenamed = subns.rename("bar")
+		assert subnsrenamed != subns
+		assert subnsrenamed.exists() and not subns.exists() 
