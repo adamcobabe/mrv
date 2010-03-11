@@ -101,7 +101,7 @@ class TestUndoQueue( unittest.TestCase ):
 
 	def test_undo_stack(self):
 		bmaya.Scene.new(force=1)
-		us = undo.UndoRecorder()
+		ur = undo.UndoRecorder()
 		
 		# works inside of another undo level as well
 		p = Node("persp")
@@ -113,28 +113,28 @@ class TestUndoQueue( unittest.TestCase ):
 		
 		########################
 		# startRecording needs to come first
-		self.failUnlessRaises(AssertionError, us.stopRecording)
-		us.startRecording()
-		us.startRecording()	# doesnt matter
+		self.failUnlessRaises(AssertionError, ur.stopRecording)
+		ur.startRecording()
+		ur.startRecording()	# doesnt matter
 		p.r > t.r
 		
 		# second instance will fail
-		us2 = undo.UndoRecorder()
-		self.failUnlessRaises(AssertionError, us2.startRecording)
-		self.failUnlessRaises(AssertionError, us2.stopRecording)
+		ur2 = undo.UndoRecorder()
+		self.failUnlessRaises(AssertionError, ur2.startRecording)
+		self.failUnlessRaises(AssertionError, ur2.stopRecording)
 		
-		us.stopRecording()
-		us.stopRecording() # doesnt matter
+		ur.stopRecording()
+		ur.stopRecording() # doesnt matter
 		########################
 		assert p.r >= t.r
 		assert p.t >= t.t
-		us.undo()
+		ur.undo()
 		assert not p.r >= t.r
 		assert p.t >= t.t
 		
-		us.redo()
+		ur.redo()
 		assert p.r >= t.r
-		us.undo()
+		ur.undo()
 		assert not p.r >= t.r
 		
 		undo.endUndo()
@@ -147,7 +147,7 @@ class TestUndoQueue( unittest.TestCase ):
 		assert p.t >= t.t
 		
 		# we should be able to selectively redo it, even after messing with the queue
-		us.redo()
+		ur.redo()
 		assert p.r >= t.r
 		cmds.undo()
 		assert not p.t >= t.t
@@ -157,23 +157,51 @@ class TestUndoQueue( unittest.TestCase ):
 		try:
 			cmds.undoInfo(swf=0)
 			
-			us = undo.UndoRecorder()
-			us.startRecording()
+			ur = undo.UndoRecorder()
+			ur.startRecording()
 			assert cmds.undoInfo(q=1, swf=1)
 			
 			p.s > t.s
 			
-			us.stopRecording()
+			ur.stopRecording()
 			assert not cmds.undoInfo(q=1, swf=1)
 			assert p.s >= t.s
-			us.undo()
+			ur.undo()
 			assert not p.s >=t.s
-			us.redo()
+			ur.redo()
 			assert p.s >= t.s
 		
 		finally:
 			cmds.undoInfo(swf=1)
 		# END assure it gets turned back on
+		
+		
+		# TEST UNDO QUEUE INTEGRATION
+		# if we never called startRecording, it will not do anything
+		ur = undo.UndoRecorder()
+		p.tx > t.tx
+		del(ur)
+		
+		assert p.tx >= t.tx
+		cmds.undo()
+		assert not p.tx >= t.tx
+		cmds.redo()
+		assert p.tx >= t.tx
+		
+		# If we recorded something, it will be part of the undo queue if 
+		# undo was not called
+		ur = undo.UndoRecorder()
+		ur.startRecording()
+		p.ty > t.ty
+		ur.stopRecording()
+		
+		assert p.ty >= t.ty
+		cmds.undo()
+		assert not p.ty >= t.ty
+		cmds.redo()
+		assert p.ty >= t.ty
+		
+		
 		
 	def test_dgmod( self ):
 		"""mayarv.maya.undo: test dg modifier capabilities

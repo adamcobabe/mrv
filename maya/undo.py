@@ -316,14 +316,17 @@ class UndoRecorder( object ):
 	onto the stack. L{endRecording} will finalize the operation, allowing 
 	the L{undo} and L{redo} methods to be used.
 	
+	If you never call startRecording, the instance does not do anything.
+	If you call startRecording and stopRecording but do not call L{undo}, it 
+	will integrate itself transparently with the default undo queue.
+	
 	@note: as opposed to L{undoAndClear}, this utility may be used even if the 
 	user is not at the very beginning of an undoable operation.
-	
 	@note: If this utility is used incorrectly, the undo queue will be in an 
 	inconsistent state which may crash maya or cause unexpected behaviour
 	@note: You may not interleave the start/stop recording areas of different 
 	instances which could happen easily in recursive calls."""
-	__slots__ = ("_orig_stack", "_recorded_commands", "_undoable_helper")
+	__slots__ = ("_orig_stack", "_recorded_commands", "_undoable_helper", "_undo_called")
 	
 	# prevents recursive access
 	_is_recording = False
@@ -333,6 +336,7 @@ class UndoRecorder( object ):
 		self._orig_stack = None
 		self._recorded_commands = None
 		self._undoable_helper = None
+		self._undo_called =False
 	
 	def __del__(self):
 		try:
@@ -341,6 +345,8 @@ class UndoRecorder( object ):
 			# invalid isntances shouldn't bark
 			pass
 		# END exception handling
+		
+	#{ Interface 
 	
 	def startRecording(self):
 		"""Start recording all future undoable commands onto this stack.
@@ -366,6 +372,10 @@ class UndoRecorder( object ):
 		self.__class__._is_recording = True
 		self._orig_stack = sys._maya_stack
 		sys._maya_stack = list()			# will record future commands 
+		
+		# put ourselves on the previous undo queue which allows us to integrate 
+		# with the original undo stack if that is required
+		self._orig_stack.append(self)
 		
 	def stopRecording(self):
 		"""Stop recording of undoable comamnds and restore the previous command stack.
@@ -400,6 +410,8 @@ class UndoRecorder( object ):
 		"""Undo all stored operations
 		@note: Must be called at the right time, otherwise the undo queue is in an 
 		inconsistent state.
+		@note: If this method is never being called, the undo-stack will undo itself
+		as part of mayas undo queue, and thus behaves transparently
 		@raise AssertionError: if called before L{stopRecording} as called"""
 		if self._recorded_commands is None:
 			raise AssertionError("Undo called before stopRecording")
@@ -407,6 +419,7 @@ class UndoRecorder( object ):
 		for op in reversed(self._recorded_commands):
 			op.undoIt()
 		# END for each operation to undo
+		self._undo_called = True
 		
 	def redo(self):
 		"""Redo all stored operations after they have been undone
@@ -417,6 +430,34 @@ class UndoRecorder( object ):
 		for op in self._recorded_commands:
 			op.doIt()
 		# END for each operation to redo
+		
+		# this reverts the effect of the undo
+		self._undo_called = False
+		
+	#} END interface 
+	
+	#{ Internal
+	def doIt( self ):
+		"""Called only if the user didn't call undo"""
+		if self._undo_called or not self._recorded_commands:
+			return
+			
+		# we have not been called, and now the user hits redo on the whole 
+		# operation 
+		for op in self._recorded_commands:
+			op.doIt()
+		# END for each operation
+
+	def undoIt( self ):
+		"""called only if the user didnt call undo"""
+		if self._undo_called or not self._recorded_commands:
+			return
+			
+		# we have not be undone, hence we are part of the default undo queue
+		for op in reversed(self._recorded_commands):
+			op.undoIt()
+		# END for each operation
+	#} END internal
 	
 #} END utilities
 
