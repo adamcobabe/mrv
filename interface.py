@@ -90,7 +90,6 @@ class iDagItem( Interface ):
 		@param predicate: returns true if x may be returned
 		@note: the child objects returned are supposed to be valid paths, not just relative paths"""
 		out = []
-
 		if order == self.kOrder_DepthFirst:
 			def depthSearch( child ):
 				if not predicate( c ):

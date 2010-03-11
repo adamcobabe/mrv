@@ -26,32 +26,28 @@ class FileReference( iDagItem ):
 	@note: as FileReference is also a iDagItem, all the respective methods, especially for
 	parent/child iteration and query can be used as well"""
 	editTypes = [	'setAttr','addAttr','deleteAttr','connectAttr','disconnectAttr','parent' ]
-	_sep = '/'	# iDagItem configuration
+	_sep = '/'					# iDagItem configuration
+	__slots__ = '_refnode'
 
 	@classmethod
 	def _splitCopyNumber( cls, path ):
 		"""@return: ( path, copynumber ), copynumber is at least 0 """
-		buf = path.split( '{' )
-		cpn = 0
-		if len( buf ) > 1:
-			cpn = int( buf[1][:-1] )
-			path = buf[0]
-		return path,cpn
+		lbraceindex = path.rfind( '{' )
+		if lbraceindex == -1:
+			return (path, 0)
+		# END handle no brace found
+		
+		return (path[:lbraceindex], int(path[lbraceindex+1:-1]))
 
 	#{ Object Overrides
-	def _initFromRefNode( self, refnode, unresolved=False ):
-		""" Initialize the instance by a reference node - lets not trust paths """
-		path = cmds.referenceQuery( refnode, filename=1, un=unresolved )
-		path, cpn = self._splitCopyNumber( path )
-		
-		self._refnode = refnode
-	
-	def __init__( self, filepath = None, refnode = None, unresolved=False ):
+	def __init__( self, filepath = None, refnode = None ):
 		if refnode:
-			return self._initFromRefNode( str( refnode ), unresolved )
+			self._refnode = str(refnode)
 		elif filepath:
-			return self._initFromRefNode( cmds.referenceQuery( filepath, rfn=1 ), unresolved )
-		raise ValueError( "Specify either filepath or refnode to initialize the instance from" )
+			self._refnode = cmds.referenceQuery( filepath, rfn=1 )
+		else:
+			raise ValueError( "Specify either filepath or refnode to initialize the instance from" )
+		# END handle input
 
 	def __eq__( self, other ):
 		"""Special treatment for other filereferences"""
@@ -230,22 +226,20 @@ class FileReference( iDagItem ):
 		return outlist
 
 	@classmethod
-	def ls( cls, rootReference = "", predicate = lambda x: True, unresolved = False ):
+	def ls( cls, rootReference = "", predicate = lambda x: True):
 		""" list all references in the scene or under the given root
 		@param rootReference: if not empty, the references below it will be returned.
 		Otherwise all scene references will be listed.
 		May be string, Path or FileReference
 		@param predicate: method returning true for each valid file reference object that 
 		should be part of the return value.
-		@param unresolved: if True, paths will not be resolved, thus you will see environment variables,
-		but the effects of the dirmap will not be visible either.
 		@return: list of L{FileReference}s objects"""
 		if isinstance(rootReference, cls):
-			rootReference = rootReference.getPath()
+			rootReference = rootReference.getPath(copynumber=1)
 		# END handle non-string type
 		out = list()
-		for reffile in cmds.file( str( rootReference ), q=1, r=1, un=unresolved ):
-			refinst = FileReference( filepath = reffile, unresolved = unresolved )
+		for reffile in cmds.file( str( rootReference ), q=1, r=1 ):
+			refinst = FileReference( filepath = reffile )
 			if predicate( refinst ):
 				out.append( refinst )
 		# END for each reference file
@@ -256,10 +250,11 @@ class FileReference( iDagItem ):
 		""" Return all references recursively
 		@param **kwargs: support for arguments as in L{ls}, hence you can use the 
 		rootReference flag to restrict the set of returned FileReferences."""
+		kwargs['predicate'] = predicate
 		refs = cls.ls( **kwargs )
 		out = refs
 		for ref in refs:
-			out.extend( ref.getChildrenDeep( order = iDagItem.kOrder_BreadthFirst, predicate=predicate ) )
+			out.extend(ref.getChildrenDeep(order=cls.kOrder_BreadthFirst, predicate=predicate))
 		return out
 
 	#} listing
@@ -271,8 +266,8 @@ class FileReference( iDagItem ):
 		"""Creates iterator over nodes in this reference
 		@param asNode: if True, return wrapped Nodes, if False string names will
 		be returned
-		@param dag: if True, return dag nodes
-		@param dg: if True, return dg nodes
+		@param dag: if True, return dag nodes.
+		@param dg: if True, return dg nodes. Mutually exclusive with 'dag' flag
 		@param assemblies: if True, return only dagNodes with no parent
 		@param assembliesInReference: if True, return only dag nodes that have no
 		parent in their own reference. They may have a parent not coming from their
@@ -281,8 +276,14 @@ class FileReference( iDagItem ):
 		@param predicate: if function returns True for Mode|string n, n will be yielded.
 		Defaults to return True for all.
 		@raise ValueError: if incompatible arguments have been given """
+		import mayarv.maya.nodes as nodes
 		allnodes = noneToList( cmds.referenceQuery( self.getPath(copynumber=1), n=1, dp=1 ) )
 
+
+		if dg and dag:
+			raise ValueError("Please specify either dg or dag, not both flags")
+		# END handle dg/dag flags
+	
 		# additional ls filtering
 		filterargs = dict()
 		if not dag:
@@ -308,12 +309,16 @@ class FileReference( iDagItem ):
 
 			rns = self.getNamespace()
 
-			def isRootInReference( n ):
+			def isRootInReference(n):
+				if not isinstance(n, nodes.DagNode):
+					return False
+				# END ignore non-dag nodes
+				
 				parent = n.getParent()
 				if parent is None:
 					return True
 
-				return not rns.isRootOf( parent.getNamespace() )
+				return not rns.isRootOf(parent.getNamespace())
 			# END filter method
 
 			myfilter.functions.append( isRootInReference )
@@ -324,7 +329,6 @@ class FileReference( iDagItem ):
 
 		nodesIter = None
 		if asNode:
-			import mayarv.maya.nodes as nodes
 			nodesIter = ( nodes.Node( name ) for name in allnodes )
 		else:
 			nodesIter = iter( allnodes )
@@ -425,7 +429,7 @@ class FileReference( iDagItem ):
 
 	def getChildren( self , predicate = lambda x: True ):
 		""" @return: all intermediate child references of this instance """
-		return self.ls( rootReference = self.getPath(copynumber=1), predicate = predicate )
+		return self.ls( rootReference = self, predicate = predicate )
 
 
 	def getCopyNumber( self ):

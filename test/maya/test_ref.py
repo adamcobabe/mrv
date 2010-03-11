@@ -1,11 +1,12 @@
 # -*- coding: utf-8 -*-
 """ Test the reference methods """
 import unittest
-import mayarv.test.maya as common
+from mayarv.test.maya import *
 import maya.cmds as cmds
 from mayarv.maya.ref import *
 from mayarv.maya.ns import *
 import mayarv.maya as bmaya
+import mayarv.maya.nodes as nodes
 import re
 import os
 
@@ -13,10 +14,9 @@ import os
 class TestReferenceRunner( unittest.TestCase ):
 	""" Test the database """
 
-
-	def test_listAndQuery( self ):
+	@with_scene('refbase.ma')
+	def _test_listAndQuery( self ):
 		"""mayarv.maya.ref: list some references and query their information """
-		bmaya.Scene.open( common.get_maya_file( "refbase.ma" ), force=True )
 		allRefs = FileReference.ls( )
 
 		assert len( allRefs ) != 0 
@@ -73,15 +73,15 @@ class TestReferenceRunner( unittest.TestCase ):
 
 		# END for each reference
 
-	def test_referenceCreation( self ):
+	@with_scene('refbase.ma')
+	def _test_referenceCreation( self ):
 		"""mayarv.maya.ref: create , delete and replace references"""
 		# create some new references
-		bmaya.Scene.open( common.get_maya_file( "refbase.ma" ), force=True )
 		filenames = [ "sphere.ma", "cube.ma", "empty.ma", "cylinder.ma", "subrefbase.ma" ]
 		newrefs = []
 		for load in range( 2 ):
 			for filename in filenames:
-				newreffile = common.get_maya_file( filename )
+				newreffile = get_maya_file( filename )
 				ref = FileReference.create( newreffile , load = load )
 				
 				# quick iteration
@@ -164,4 +164,134 @@ class TestReferenceRunner( unittest.TestCase ):
 		sndsubref = subrefbases[1]
 		childrefs = sndsubref.importRef( depth = -1 )
 		assert len( childrefs ) == 0 
+		
+	
+	def _assert_iter_nodes(self, ref):
+		# test all branches of node iteration
+		for asNode in range(2):
+			for dag in range(2):
+				for dg in range(2):
+					for assemblies in range(2):
+						for air in range(2):
+							for predicate_var in (True, False):
+								predicate = lambda n: predicate_var
+								try:
+									node_list = list(ref.iterNodes(asNode=asNode, dag=dag, dg=dg, 
+																assemblies=assemblies, assembliesInReference=air, 
+																predicate=predicate ))
+								except ValueError:
+									continue
+								# END handle unsupported combinations
+								
+								if asNode:
+									for node in node_list:
+										assert isinstance(node, nodes.Node)
+										if dag: 
+											assert isinstance(node, nodes.DagNode)
+										# END check dag node
+									# END for each node
+								# END as Node
+								if not predicate_var:
+									assert len(node_list) == 0
+							# END for each predicate value
+						# END for each air value 
+					# END for each assembly value
+				# END for each dg value
+			# END for each dag value
+		# END for each asNode value
+	
+	@with_scene('ref2re.ma')
+	def test_misc(self):
+		fr = FileReference
+		# exactly two refs
+		tlrs = fr.ls()
+		assert len(tlrs) == 2
+		
+		# 4 subrefs each
+		subrefs = set()
+		for tlr in tlrs:
+			subrefs.update(set(fr.ls(rootReference=tlr)))
+			
+			self._assert_iter_nodes(tlr)
+		# END for each top level reference
+		assert len(subrefs) == 4
+		
+		# ASSORTED QUERY
+		for ref in subrefs:
+			assert not ref.isLocked() and not ref.p_locked
+			assert ref.exists()
+			assert ref.isLoaded() and ref.p_loaded
+			assert ref.getNamespace() == ref.p_namespace
+			assert isinstance(ref.p_namespace, Namespace)
+			assert len(ref.getChildren()) == 0
+			assert isinstance(ref.getCopyNumber(), int)
+			assert ref.getParent() in tlrs
+			assert ref.getPath(unresolved=0) != ref.getPath(unresolved=1)
+			assert isinstance(ref.getReferenceNode(), nodes.Node)
+			
+			# cannot set namespace of subreferences
+			self.failUnlessRaises(RuntimeError, ref.setNamespace, "something")
+			self._assert_iter_nodes(ref)
+		# END test simple query functions
+		
+		
+		
+		def assert_from_paths(p, **kwargs):
+			# one item 
+			match = fr.fromPaths([p], **kwargs)
+			assert len(match) == 1 and match[0].getPath() == tlr.getPath()
+			
+			# two items
+			match = fr.fromPaths([p, p], **kwargs)
+			assert len(match) == 2 and tlrs[0] in match and tlrs[1] in match
+			
+			# three items, one is None
+			match = fr.fromPaths([p, p, p], **kwargs)
+			assert len(match) == 3 and match[-1] is None and tlrs[0] in match and tlrs[1] in match
+		# END utility
+		
+		# fromPaths
+		# we have two tlrs pointing to the same file
+		tlr = tlrs[0]
+		for tconv in (lambda r: r, str):
+			assert_from_paths(tconv(tlr))
+			
+			if tconv is not str:
+				basepath = tlr.getPath().splitext()[0]
+				basepath += ".mb"
+				
+				# it should match even though mb is referenced
+				assert_from_paths(basepath, ignore_extension=True)
+			# END special ref test
+		# END for each converter
+		
+		
+		
+		# predicate check
+		allow_none = lambda x: False
+		assert len(fr.ls(predicate=allow_none)) == 0
+		
+		# lsDeep
+		assert len(fr.lsDeep()) == 6
+		assert len(fr.lsDeep(rootReference=tlrs[0])) == 2	# doesnt return root
+		
+		# lsDeep predicate
+		assert len(fr.lsDeep(predicate=allow_none)) == 0
+		
+		
+		
+		# import deep
+		assert len(tlrs[0].importRef(depth=-1)) == 0
+		assert not tlrs[0].exists()
+		assert len(fr.ls()) == 1
+		
+		# import one, then remove remainders
+		subrefs = tlrs[1].importRef()
+		assert len(subrefs) == 2
+		
+		for sr in subrefs:
+			assert sr.exists()
+			sr.remove()
+			assert not sr.exists()
+		# END remove subref
 
