@@ -15,7 +15,7 @@ class TestReferenceRunner( unittest.TestCase ):
 	""" Test the database """
 
 	@with_scene('refbase.ma')
-	def _test_listAndQuery( self ):
+	def test_listAndQuery( self ):
 		"""mayarv.maya.ref: list some references and query their information """
 		allRefs = FileReference.ls( )
 
@@ -74,7 +74,7 @@ class TestReferenceRunner( unittest.TestCase ):
 		# END for each reference
 
 	@with_scene('refbase.ma')
-	def _test_referenceCreation( self ):
+	def test_referenceCreation( self ):
 		"""mayarv.maya.ref: create , delete and replace references"""
 		# create some new references
 		filenames = [ "sphere.ma", "cube.ma", "empty.ma", "cylinder.ma", "subrefbase.ma" ]

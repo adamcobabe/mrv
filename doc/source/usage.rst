@@ -592,7 +592,7 @@ The example uses files from the test system and respective utilities::
 	>>> assert not refa.exists() and not refb.exists()
 	>>> assert len(FileReference.ls()) == 0 
 
-	
+
 ==============
 Scene Handling
 ==============
