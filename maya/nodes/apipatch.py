@@ -611,6 +611,28 @@ class MPlug( api.MPlug, util.iDagItem ):
 				out.append( inplug )
 		# END array handling
 		return out
+		
+	def iterGraph( self, *args, **kwargs ):
+		"""@return: graph iterator with self as root, supporting all arguments.
+		Plugs are returned by default, but this can be specified explicitly using 
+		the plug=True kwarg"""
+		import it
+		kwargs['plug'] = kwargs.get('plug', True)
+		return it.iterGraph(self, *args, **kwargs)
+		
+	def iterInputGraph( self, *args, **kwargs ):
+		"""@return: iterator over the graph starting at this plug in input(upstream) direction.
+		Plugs will be returned by default
+		@param *args, **kwargs: passed to L{iterGraph}"""
+		kwargs['input'] = True
+		return self.iterGraph(*args, **kwargs)
+		
+	def iterOutputGraph( self, *args, **kwargs ):
+		"""@return: iterator over the graph starting at this plug in output(downstream) direction.
+		Plugs will be returned by default
+		@param *args, **kwargs: passed to L{iterGraph}"""
+		kwargs['input'] = False
+		return self.iterGraph(*args, **kwargs)
 
 	def getInput( self ):
 		"""@return: plug being the source of a connection to this plug or a null plug

@@ -1,6 +1,7 @@
 # -*- coding: utf-8 -*-
 """ Test general nodes features """
 import unittest
+from mayarv.test.maya import *
 import mayarv.maya.nodes as nodes
 import maya.cmds as cmds
 import maya.OpenMaya as api
@@ -243,6 +244,21 @@ class TestDataBase( unittest.TestCase ):
 			cmds.redo()
 			assert getattrfunc() == targetval 
 		# END for each tuple in testdb
+		
+	@with_scene('empty.ma')
+	def test_plug_itertools(self):
+		p = nodes.Node('persp')
+		( p.tx > p.ty ) > p.tz
+		
+		# check future
+		pxf = list(p.tx.iterOutputGraph())
+		assert len(pxf) == 3
+		assert pxf[0] == p.tx and pxf[1] == p.ty and pxf[2] == p.tz
+		
+		# check history
+		pzh = list(p.tz.iterInputGraph())
+		assert len(pzh) == 3
+		assert pzh[0] == p.tz and pzh[1] == p.ty and pzh[2] == p.tx 
 
 	def test_matrixData( self ):
 		"""mayarv.maya.nodes: test matrix data"""

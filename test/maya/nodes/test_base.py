@@ -295,7 +295,7 @@ class TestTransform( unittest.TestCase ):
 		matrix = matfn.matrix()                       # wrap data manually
 
 		dat = pewm.asData()							# or get a wrapped version right away
-		assert matrix == dat.matrix()				
+		assert matrix == dat.matrix()
 	
 		
 		# set values
@@ -314,10 +314,10 @@ class TestTransform( unittest.TestCase ):
 		assert m.numPolygons() == 6
 		
 		# compounds and arrays
-		pc = p.t.getChildren()
-		assert len(pc) == 3
-		assert (pc[0] == p.tx) and (pc[1] == p.ty)
-		assert pc[2] == p.t['tz']
+		ptc = p.t.getChildren()
+		assert len(ptc) == 3
+		assert (ptc[0] == p.tx) and (ptc[1] == p.ty)
+		assert ptc[2] == p.t['tz']
 		assert p.tx.getParent() == p.t
 		assert p.t.isCompound()
 		assert p.tx.isChild()
@@ -327,7 +327,17 @@ class TestTransform( unittest.TestCase ):
 		
 		for element_plug in p.wm:
 			assert element_plug.isElement()
+			
+		# graph traversal
+		mihistory = list(m.inMesh.iterInputGraph())
+		assert len(mihistory) > 2
+		assert mihistory[0] == m.inMesh
+		assert mihistory[2] == pc.output		# ignore groupparts
 		
+		pcfuture = list(pc.output.iterOutputGraph())
+		assert len(pcfuture) > 2
+		assert pcfuture[0] == pc.output
+		assert pcfuture[2] == m.inMesh			# ignore groupparts
 		
 		# ATTRIBUTES #
 		cattr = CompoundAttribute.create("compound", "co")

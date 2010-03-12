@@ -249,7 +249,8 @@ def iterDagNodes( *args, **kwargs ):
 	# END if using mobjects
 
 def iterGraph( nodeOrPlug, *args, **kwargs ):
-	""" Iterate Dependency Graph (DG) Nodes or Plugs starting at a specified root Node or Plug,
+	""" Iterate Dependency Graph (DG) Nodes or Plugs starting at a specified root Node or Plug.
+	The iteration _includes_ the root node or plug.
 	The following keywords will affect order and behavior of traversal:
 	@param nodeOrPlug: Node, MObject or MPlug to start the iteration at
 	@param *args: list of MFn node types
@@ -272,7 +273,8 @@ def iterGraph( nodeOrPlug, *args, **kwargs ):
 	If False, MObjects will be returned
 	@param predicate: method returning True if passed in iteration element can be yielded
 	default: lambda x: True
-	@yield: MObject, Node or Plug depending on the configuration flags"""
+	@yield: MObject, Node or Plug depending on the configuration flags, first yielded item is 
+	always the root node or plug."""
 	try:
 		iterator = getGraphIterator( nodeOrPlug, *args, **kwargs )
 	except RuntimeError:

@@ -362,6 +362,7 @@ All other types need to be created and adjusted using their respective data func
 	>>> assert mc.numPolygons() == 5
 	>>> assert m.numPolygons() == 6
 	
+	
 Compound Plugs and Plug-Arrays
 -------------------------------------
 Compound Attributes are attributes which by themselves only serve as a parent for one or more child aattributes. Array attributes are Attributes which can have any amount of homogeneous elements. Compound- and Array Attributes can be combined to create complex special purpose Attribute types.
@@ -373,10 +374,10 @@ A simple example for a compound plug is the translate attribute of a transform, 
 Array plugs are used to access the transform's worldMatrix data, which contains one world matrix per direct instance of the transform.
 
 The following example shows the traversal of these attribute types::
-	>>> pc = p.t.getChildren()
-	>>> assert len(pc) == 3
-	>>> assert (pc[0] == p.tx) and (pc[1] == p.ty)
-	>>> assert pc[2] == p.t['tz']
+	>>> ptc = p.t.getChildren()
+	>>> assert len(ptc) == 3
+	>>> assert (ptc[0] == p.tx) and (ptc[1] == p.ty)
+	>>> assert ptc[2] == p.t['tz']
 	>>> assert p.tx.getParent() == p.t
 	>>> assert p.t.isCompound()
 	>>> assert p.tx.isChild()
@@ -387,6 +388,21 @@ The following example shows the traversal of these attribute types::
 	>>> for element_plug in p.wm:
 	>>> 	assert element_plug.isElement()
 
+Graph Travseral
+-----------------
+Using the ``iter(Input|Output)Graph`` methods, complex and fast traversals of the dependency graph are made easy::
+	>>> mihistory = list(m.inMesh.iterInputGraph())
+	>>> assert len(mihistory) > 2
+	>>> assert mihistory[0] == m.inMesh
+	>>> assert mihistory[2] == pc.output		# ignore groupparts
+		
+	>>> pcfuture = list(pc.output.iterOutputGraph())
+	>>> assert len(pcfuture) > 2
+	>>> assert pcfuture[0] == pc.output
+	>>> assert pcfuture[2] == m.inMesh			# ignore groupparts 
+	
+Please note that the traversal can be configured in many ways to meet your specific requirements.
+	
 Attributes
 ==========
 As attributes are just describing the type and further meta information of data, their most interesting purpose is to create new attributes which can be customized to fully suit your specific needs. 
