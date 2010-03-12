@@ -159,16 +159,21 @@ def iterDgNodes( *args, **kwargs ):
 	@param asNode: if True, default True, the returned value will be wrapped as node
 	@param predicate: returns True for every iteration element that may be returned by the iteration,
 	default : lambda x: True"""
-	iterObj = getDgIterator( *args, **kwargs )
+	iterator = getDgIterator( *args, **kwargs )
 	predicate = kwargs.get( "predicate", lambda x: True )
 	asNode = kwargs.get( "asNode", True )
-	while not iterObj.isDone() :
-		node = iterObj.thisNode()
+	
+	isDone = iterator.isDone
+	thisNode = iterator.thisNode
+	next = iterator.next
+	
+	while not isDone() :
+		node = thisNode()
 		if asNode:
 			node = NodeFromObj( node )
 		if predicate( node ):
 			yield node
-		iterObj.next()
+		next()
 	# END for each obj in iteration
 
 # Iterators on dag nodes hierarchies using MItDag (ie listRelatives)
@@ -197,33 +202,39 @@ def iterDagNodes( *args, **kwargs ):
 	# instances must not be returned multiple times
 	# could use a dict but it requires "obj1 is obj2" and not only "obj1 == obj2" to return true to
 	iterator = getDagIterator( *args, **kwargs )
-
+	isDone = iterator.isDone
+	next = iterator.next
+	
 	dagpath = kwargs.get('dagpath', True)
 	asNode = kwargs.get('asNode', True )
 	predicate = kwargs.get('predicate', lambda x: True )
+	
 	if dagpath:
-		while not iterator.isDone( ) :
+		getPath = iterator.getPath
+		while not isDone( ) :
 			rval = MDagPath( )
-			iterator.getPath( rval )
+			getPath( rval )
 			if asNode:
 				rval = NodeFromObj( rval )
 			if predicate( rval ):
 				yield rval
 			
-			iterator.next()
+			next()
 		# END while not is done
 	# END if using dag paths
 	else:
 		# NOTE: sets don't work here, as more than == comparison is required
-		instanceset = []
-
-		while not iterator.isDone() :
-			rval = iterator.currentItem()
-			if iterator.isInstanced( True ):
+		instanceset = list()
+		currentItem = iterator.currentItem
+		isInstanced = iterator.isInstanced
+		
+		while not isDone() :
+			rval = currentItem()
+			if isInstanced( True ):
 				if rval not in instanceset:
 					instanceset.append( rval )
 				else:
-					iterator.next()
+					next()
 					continue
 				# END if object not yet returned
 			# END handle instances
@@ -233,7 +244,7 @@ def iterDagNodes( *args, **kwargs ):
 			if predicate( rval ):
 				yield rval
 			
-			iterator.next()
+			next()
 		# END while not is done
 	# END if using mobjects
 
@@ -263,25 +274,30 @@ def iterGraph( nodeOrPlug, *args, **kwargs ):
 	default: lambda x: True
 	@yield: MObject, Node or Plug depending on the configuration flags"""
 	try:
-		iterObj = getGraphIterator( nodeOrPlug, *args, **kwargs )
+		iterator = getGraphIterator( nodeOrPlug, *args, **kwargs )
 	except RuntimeError:
 		# may raise if iteration would yield no results
 		raise StopIteration()
 
-	retrievePlugs = not iterObj.atNodeLevel( )
+	retrievePlugs = not iterator.atNodeLevel( )
 	asNode = kwargs.get( "asNode", True )
 	predicate = kwargs.get( 'predicate', lambda x: True )
+
+	isDone = iterator.isDone
+	next = iterator.next
+	thisPlug = iterator.thisPlug
+	currentItem = iterator.currentItem
 
 	# iterates and yields MObjects
 	rval = None
 	# if node filters are used, it easily threw NULL Object returned errors
 	# just because the iteration is depleted - catching this now
 	try:
-		while not iterObj.isDone():
+		while not isDone():
 			if retrievePlugs:
-				rval = iterObj.thisPlug()
+				rval = thisPlug()
 			else:
-				rval = iterObj.currentItem()
+				rval = currentItem()
 				if asNode:
 					rval = NodeFromObj( rval )
 				# END handle asNode
@@ -290,7 +306,7 @@ def iterGraph( nodeOrPlug, *args, **kwargs ):
 			if predicate( rval ):
 				yield rval
 	
-			iterObj.next()
+			next()
 		# END of iteration
 	except RuntimeError:
 		raise StopIteration()
@@ -325,12 +341,15 @@ def iterSelectionList( sellist, filterType = api.MFn.kInvalid, predicate = lambd
 	kNullObj = MObject()
 	if handlePlugs:
 		# version compatibility - maya 8.5 still defines a plug ptr class that maya 2005 lacks
-		is_plug = lambda obj: isinstance( obj, api.MPlug )
+		plug_types = api.MPlug
 		if cmds.about( v=1 ).startswith( "8.5" ):
-			is_plug = lambda obj: isinstance( obj, ( api.MPlug, api.MPlugPtr ) )
+			plug_types = ( api.MPlug, api.MPlugPtr )
 
 		# SELECTION LIST MODE
 		kInvalid = api.MFn.kInvalid
+		getDagPath = sellist.getDagPath
+		getPlug = sellist.getPlug
+		getDependNode = sellist.getDependNode
 		for i in xrange( sellist.length() ):
 			# DAG PATH
 			rval = None
@@ -339,19 +358,19 @@ def iterSelectionList( sellist, filterType = api.MFn.kInvalid, predicate = lambd
 				rval = MDagPath( )
 				if handleComponents:
 					component = MObject()
-					sellist.getDagPath( i, rval, component )
+					getDagPath( i, rval, component )
 					if asNode and not component.isNull():
 						component = Component( component )
 					# END handle asNode
 				else:
-					sellist.getDagPath( i, rval )
+					getDagPath( i, rval )
 				# END handle components in DagPaths
 			except RuntimeError:
 				# TRY PLUG - first as the object could be returned as well if called
 				# for DependNode
 				try:
 					rval = nullplugarray[0]
-					sellist.getPlug( i, rval )
+					getPlug( i, rval )
 					# try to access the attribute - if it is not really a plug, it will
 					# fail and throw - for some reason maya can put just the depend node into
 					# a plug
@@ -359,25 +378,23 @@ def iterSelectionList( sellist, filterType = api.MFn.kInvalid, predicate = lambd
 				except RuntimeError:
 				# TRY DG NODE
 					rval = MObject( )
-					sellist.getDependNode( i, rval )
+					getDependNode( i, rval )
 				# END its not an MObject
 			# END handle dagnodes/plugs/dg nodes
 
 			# should have rval now
-			if is_plug( rval ):
+			if isinstance( rval, plug_types ):
 				# apply filter
 				if filterType != kInvalid and rval.getNodeMObject().apiType() != filterType:
 					continue
 					# END apply filter type
 			else:
 				if filterType != kInvalid:
-					# must be dag or dg node
-					if isinstance( rval, MDagPath ):
-						if rval.node().apiType() != filterType:
-							continue
-					elif rval.apiType() != filterType: 
+					# must be MDagPath or MObject
+					if rval.apiType() != filterType:
 						continue
 				# END filter handling
+				
 				if asNode:
 					rval = NodeFromObj( rval )
 			# END plug handling
@@ -395,24 +412,30 @@ def iterSelectionList( sellist, filterType = api.MFn.kInvalid, predicate = lambd
 		kDagSelectionItem = api.MItSelectionList.kDagSelectionItem
 		kDNselectionItem = api.MItSelectionList.kDNselectionItem
 		rval = None
-		while not iterator.isDone():
+		
+		isDone = iterator.isDone
+		itemType = iterator.itemType
+		getDagPath = iterator.getDagPath
+		getDependNode = iterator.getDependNode
+		next = iterator.next
+		while not isDone():
 			# try dag object
 			component = kNullObj
-			itemtype = iterator.itemType( )
+			itemtype = itemType( )
 			if itemtype == kDagSelectionItem:
 				rval = MDagPath( )
 				if handleComponents:
 					component = MObject( )
-					iterator.getDagPath( rval, component )
+					getDagPath( rval, component )
 					if asNode and not component.isNull():
 						component = Component( component )
 					# END handle component conversion
 				else:
-					iterator.getDagPath( rval )
+					getDagPath( rval )
 				# END handle components
 			elif itemtype == kDNselectionItem:
 				rval = MObject()
-				iterator.getDependNode( rval )
+				getDependNode( rval )
 			else:
 				# cannot handle the item, its animSelection item  - skip for now
 				raise NotImplementedError("todo anim selection item")
@@ -429,6 +452,6 @@ def iterSelectionList( sellist, filterType = api.MFn.kInvalid, predicate = lambd
 			if predicate( rval ):
 				yield rval
 			
-			iterator.next()
+			next()
 		# END while not done
 

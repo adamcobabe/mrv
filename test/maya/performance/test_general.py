@@ -396,7 +396,7 @@ class TestGeneralPerformance( unittest.TestCase ):
 							elapsed = time.time() - st
 							
 							nn = len(nodes_list)
-							print >>sys.stderr, "ref.iterNodesAPI(asNode=%i, dag=%i, assemblies=%i, air=%i): iterated %i nodes in  %f s ( %f nodes / s )" % (asNode, dag, assemblies, air, nn, elapsed, nn/elapsed)
+							print >>sys.stderr, "ref.iterNodes(asNode=%i, dag=%i, assemblies=%i, air=%i): iterated %i nodes in  %f s ( %f nodes / s )" % (asNode, dag, assemblies, air, nn, elapsed, nn/elapsed)
 						except ValueError:
 							continue
 						# END ignore incorrect args
