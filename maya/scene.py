@@ -8,15 +8,17 @@ as disambiguation to a filesystem file.
 """
 __all__ = [ 'Scene' ]
 
+import util as mutil
 import mayarv.util as util
 import maya.OpenMaya as api
 import maya.cmds as cmds
 from mayarv.path import Path
 
+import inspect 
 
 
-class _SceneCallbacks( util.EventSender ):
-	""" Implements Scene Callbacks """
+class _SceneEvent( mutil.CallbackEventBase ):
+	""" Implements Scene Callbacks"""
 
 	_checkCBSet = set( ( 	api.MSceneMessage.kBeforeNewCheck,
 							api.MSceneMessage.kBeforeSaveCheck ) )
@@ -27,24 +29,54 @@ class _SceneCallbacks( util.EventSender ):
 								api.MSceneMessage.kBeforeReferenceCheck,
 								api.MSceneMessage.kBeforeLoadReferenceCheck  ) )
 
-	_cbgroupToMethod = { 	0 : api.MSceneMessage.addCheckCallback,
-							1 : api.MSceneMessage.addCheckFileCallback,
-							2 : api.MSceneMessage.addCallback }
+	#( Configuration
+	use_weakref = False
+	remove_on_error = True
+	
+	# weakref sender as Scene is a singleton anyway
+	weakref_sender = True
+	#) END configuration
+
+	# get the proper registration method
+	def _getRegisterFunction(self, eventID):
+		reg_method = api.MSceneMessage.addCallback
+		if eventID in self._checkCBSet:
+			reg_method = api.MSceneMessage.addCheckCallback
+		elif eventID in self._checkFileCBSet:
+			reg_method = api.MSceneMessage.addCheckFileCallback
+		# END find registration method
+		return reg_method
+		
+# END SceneEvent
 
 
 
-class Scene( util.Singleton ):
-	"""Singleton Class allowing access to the maya scene"""
+class Scene( util.Singleton, util.EventSender ):
+	"""Singleton Class allowing access to the maya scene
+	
+	You can register all events available in MSceneMessage easily usnig the following 
+	syntax::
+		>>> scene.kBeforeSoftwareRender = myFunctionObject
+	
+	"""
 
 
 	kFileTypeMap = { 	""	  : "mayaAscii",		# treat untitled scenes as ma
 						".ma" : "mayaAscii",
 						".mb" : "mayaBinary" }
 
-	#{ Public Members
-	events = _SceneCallbacks()
-	#}
+	#{ Events 
+	sender_as_argument = False
+	
+	# create events from 'kEventName', creating a corresponding event named 
+	# 'eventName'
+	for eidName, eid in ((n,v) for n,v in inspect.getmembers(api.MSceneMessage) if n.startswith('k')):
+		locals()[util.uncapitalize(eidName[1:])] = _SceneEvent(eid)
+	# END for each message id to create
+	
+	#} END events
 
+	
 
 	#{ Edit Methods
 	@classmethod

@@ -24,23 +24,29 @@ class TestScene( unittest.TestCase ):
 		self.called = True
 	#}
 
-	def _runMessageTest( self, mMessageID, eventfunc, callbackTriggerFunc ):
+	def _runMessageTest( self, eventName, eventfunc, callbackTriggerFunc ):
+		
+		event_inst = getattr(Scene, eventName)
+		assert event_inst._callbackId is None
+		
 		# register for event
+		setattr(Scene(), eventName, eventfunc)
 		
 		self.called = False 
 		callbackTriggerFunc()
 		assert self.called
 		
-		# deregister
-		self.fail("todo: remove event")
-
+		
+		assert event_inst._callbackId is not None
+		getattr(Scene(), eventName).remove(eventfunc)
+		assert event_inst._callbackId is None
 
 	def test_cbgroup_zero( self ):
 		"""mayarv.maya.scene: use group 0 check callbacks """
 		if env.getAppVersion( )[0] == 8.5:
 			return
 
-		self._runMessageTest( api.MSceneMessage.kBeforeNewCheck,
+		self._runMessageTest( 'beforeNewCheck',
 							 	lambda *args: self.cbgroup_zero(*args ),
 								Scene.new )
 
@@ -49,15 +55,15 @@ class TestScene( unittest.TestCase ):
 		if env.getAppVersion( )[0] == 8.5:
 			return
 
-		scenepath = common.get_maya_file( "sphere.ma" )
+		scenepath = get_maya_file( "sphere.ma" )
 		triggerFunc = lambda : Scene.open( scenepath, force = 1 )
-		self._runMessageTest( api.MSceneMessage.kBeforeOpenCheck,
+		self._runMessageTest( "beforeOpenCheck",
 							 	lambda *args: self.cbgroup_one(*args ),
 								triggerFunc )
 
 	def test_cbgroup_twp( self ):
 		"""mayarv.maya.scene: Test ordinary scene callbacks """
-		self._runMessageTest( api.MSceneMessage.kBeforeNew,
+		self._runMessageTest( "beforeNew",
 							 	lambda *args: self.cbgroup_two( *args ),
 								lambda: Scene.new( force = True ) )
 

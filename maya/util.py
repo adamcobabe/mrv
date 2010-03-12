@@ -2,9 +2,12 @@
 """All kinds of utility methods and classes that are used in more than one modules """
 import maya.mel as mm
 import maya.cmds as cmds
+import maya.OpenMaya as api
 import mayarv.util as util
 from mayarv.util import capitalize,uncapitalize
 import networkx.exception as networkxexc
+
+import weakref
 
 #{ Utility Functions
 def noneToList( res ):
@@ -344,3 +347,85 @@ class MetaClassCreator( type ):
 
 
 		return newcls
+
+
+class CallbackEventBase( util.Event ):
+	"""Allows the mapping of MMessage callbacks to mayarv's event sender system.
+	This event will register a new message once the first event receiver registers
+	itself. Once the last event receiver deregisters, the message will be deregistered in 
+	maya as well.
+	
+	Derived types have to implement the L{_getRegisterFunction}
+	@note: Its important that you care about deregistering your event to make sure the maya event can 
+	be deregistered. Its worth knowing that the eventSender in question is strongly 
+	bound to his callback event, so it cannot be deleted while the event is active."""
+
+	#{ Configuration 
+	# by default, owner of this Event ( the Sender ) will be strongly bound to the 
+	# callback so that it cannot go out of scope until the callback has been 
+	# deregistered. Set this True to weakref the sender, hence it can go out of
+	# scope
+	weakref_sender = False
+	#} END configuration 
+
+	def __init__( self, eventId, **kwargs ):
+		"""Initialize our instance with the callbackID we are to represent."""
+		super( CallbackEventBase, self ).__init__( **kwargs )
+		self._eventID = eventId
+		self._callbackId = None
+		
+	def _getRegisterFunction(self, eventID):
+		"""@return: MMessage::register* compatible callback function which can be 
+		used to register the given eventID"""
+		raise NotImplementedError("To be implemented in subclass")
+
+	def _removeCallback(self):
+		"""Removes the registered MMessage callback if possible"""
+		if self._callbackId:
+			api.MMessage.removeCallback(self._callbackId)
+			self._callbackId = None
+		# END remove callback
+
+	def send( self, inst, *args, **kwargs ):
+		"""Sets our instance prior to calling the super class
+		@note: must not be called manually"""
+		# fake the instance
+		if isinstance(inst, weakref.ReferenceType):
+			inst = inst()
+			# stop distpatching if instance is out of scope
+			if inst is None:
+				self._removeCallback()
+				return
+			# END handle inst out of scope
+		# END handle weakrefs 
+		self._last_inst_ref = weakref.ref(inst)
+		super(CallbackEventBase, self).send(*args, **kwargs)
+
+	def __set__(  self, inst, eventfunc ):
+		eventset = self._getFunctionSet( inst )
+
+		# REGISTER MCALLBACK IF THIS IS THE FIRST EVENTRECEIVER
+		if not eventset:
+			reg_method = self._getRegisterFunction(self._eventID)
+			
+			myinst = inst
+			if self.weakref_sender:
+				myinst = weakref.ref(inst)
+			# END handle weakref
+			
+			dyncall = lambda *args, **kwargs: self.send(myinst, *args, **kwargs)
+			self._callbackId = reg_method(self._eventID, dyncall)
+		# END create event
+
+		super( CallbackEventBase, self ).__set__( inst, eventfunc )
+		
+	def remove(self, eventfunc):
+		"""Also removes our callback if the last receiver is gone"""
+		super(CallbackEventBase, self).remove(eventfunc)
+		inst = self._get_last_instance()
+		functions = self._getFunctionSet( inst )
+		
+		if not functions and self._callbackId:
+			self._removeCallback()
+		# END dergister event
+		

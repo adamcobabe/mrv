@@ -278,7 +278,7 @@ class Event( object ):
 
 
 	def __init__( self, **kwargs ):
-		"""@param weak: if True, default class configuration use_weak_ref, weak
+		"""@param weak: if True, default class configuration use_weakref, weak
 		references will be created for event handlers, if False it will be strong
 		references
 		@param remove_failed: if True, defailt False, failed callback handlers
@@ -288,7 +288,7 @@ class Event( object ):
 		self.sender_as_argument = kwargs.get("sender_as_argument", self.__class__.sender_as_argument)
 		self._last_inst_ref = None
 
-	def _toKeyFunc( self, eventfunc ):
+	def _func_to_key( self, eventfunc ):
 		"""@return: an eventfunction suitable to be used as key in our instance
 		event set"""
 		if self.use_weakref:
@@ -300,7 +300,7 @@ class Event( object ):
 		# END if use weak ref
 		return eventfunc
 
-	def _keyToFunc( self, eventkey ):
+	def _key_to_func( self, eventkey ):
 		"""@return: event function from the given eventkey as stored in
 		our events set.
 		@note: this is required as the event might be weakreffed or not"""
@@ -321,7 +321,7 @@ class Event( object ):
 
 	def __set__( self, inst, eventfunc ):
 		"""Set a new event to our object"""
-		self._getFunctionSet(inst).add( self._toKeyFunc( eventfunc ) )
+		self._getFunctionSet(inst).add( self._func_to_key( eventfunc ) )
 
 	def __get__( self, inst, cls = None ):
 		"""Always return self, but keep the instance in case
@@ -364,7 +364,7 @@ class Event( object ):
 		
 		for function in callbackset:
 			try:
-				func = self._keyToFunc( function )
+				func = self._key_to_func( function )
 				if func is None:
 					print "Listener for callback of %s was not available anymore" % self
 					failed_callbacks.append( function )
@@ -405,7 +405,7 @@ class Event( object ):
 		"""remove the given function from this event
 		@note: will not raise if eventfunc does not exist"""
 		inst = self._get_last_instance()
-		eventfunc = self._toKeyFunc( eventfunc )
+		eventfunc = self._func_to_key( eventfunc )
 		try:
 			self._getFunctionSet( inst ).remove( eventfunc )
 		except KeyError:
@@ -439,7 +439,7 @@ class EventSender( object ):
 	and deregister using
 	yourinstance.event.remove( callable )
 
-	@note: if use_weak_ref is True, we will weakref the eventfunction, and deal
+	@note: if use_weakref is True, we will weakref the eventfunction, and deal
 	properly with instance methods which would go out of scope immediatly otherwise
 
 	@note: using weak-references to ensure one does not keep objects alive,
