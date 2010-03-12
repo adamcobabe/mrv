@@ -6,15 +6,10 @@ as disambiguation to a filesystem file.
 
 @todo: more documentation
 """
-# export filter
 __all__ = [ 'Scene' ]
 
-
-#import mayarv.maya.util as util
 import mayarv.util as util
-import ref as refmod
-
-import maya.OpenMaya as om
+import maya.OpenMaya as api
 import maya.cmds as cmds
 from mayarv.path import Path
 
@@ -23,18 +18,18 @@ from mayarv.path import Path
 class _SceneCallbacks( util.EventSender ):
 	""" Implements Scene Callbacks """
 
-	_checkCBSet = set( ( 	om.MSceneMessage.kBeforeNewCheck,
-							om.MSceneMessage.kBeforeSaveCheck ) )
+	_checkCBSet = set( ( 	api.MSceneMessage.kBeforeNewCheck,
+							api.MSceneMessage.kBeforeSaveCheck ) )
 
-	_checkFileCBSet = set( ( 	om.MSceneMessage.kBeforeImportCheck,
-							  	om.MSceneMessage.kBeforeOpenCheck,
-								om.MSceneMessage.kBeforeExportCheck,
-								om.MSceneMessage.kBeforeReferenceCheck,
-								om.MSceneMessage.kBeforeLoadReferenceCheck  ) )
+	_checkFileCBSet = set( ( 	api.MSceneMessage.kBeforeImportCheck,
+							  	api.MSceneMessage.kBeforeOpenCheck,
+								api.MSceneMessage.kBeforeExportCheck,
+								api.MSceneMessage.kBeforeReferenceCheck,
+								api.MSceneMessage.kBeforeLoadReferenceCheck  ) )
 
-	_cbgroupToMethod = { 	0 : om.MSceneMessage.addCheckCallback,
-							1 : om.MSceneMessage.addCheckFileCallback,
-							2 : om.MSceneMessage.addCallback }
+	_cbgroupToMethod = { 	0 : api.MSceneMessage.addCheckCallback,
+							1 : api.MSceneMessage.addCheckFileCallback,
+							2 : api.MSceneMessage.addCallback }
 
 
 
@@ -53,18 +48,21 @@ class Scene( util.Singleton ):
 
 	#{ Edit Methods
 	@classmethod
-	def open( cls, filePath, force=False, **kwargs ):
-		""" Open a scene
-		@param filePath: The path to the file to be opened
-		If None or "", the currently loaded file will reopened
+	def open( cls, scenepath=None, force=False, **kwargs ):
+		""" Open the scene at the given scenepath
+		@param scenepath: The path to the file to be opened
+		If None, the currently loaded file will reopened
 		@param force - if True, the new scene will be loaded although currently
 		loaded contains unsaved changes
-		@return: a path object to the loaded scene"""
-		if filePath is None or filePath == "":
-			filePath = cls.getName()
+		@param **kwargs: passed to *cmds.file*
+		@return: a Path to the loaded scene"""
+		if not scenepath:
+			scenepath = cls.getName()
 
 		# NOTE: it will return the last loaded reference instead of the loaded file - lets fix this !
-		sourcePath = Path( filePath )
+		sourcePath = Path( scenepath )
+		kwargs.pop('open', kwargs.pop('o', None))
+		kwargs.pop('force', kwargs.pop('f', None))
 		lastReference = cmds.file( sourcePath.abspath(), open=1, force=force, **kwargs )
 		return Path( sourcePath )
 
@@ -73,24 +71,39 @@ class Scene( util.Singleton ):
 		""" Create a new scene
 		@param force: if True, the new scene will be created even though there
 		are unsaved modifications
-		@return: Path object with name of current file"""
+		@param **kwargs: passed to *cmds.file*
+		@return: Path with name of the new file"""
+		kwargs.pop('new', kwargs.pop('n', None))
+		kwargs.pop('force', kwargs.pop('f', None))
 		return Path( cmds.file( new = True, force = force, **kwargs ) )
 
 	@classmethod
-	def rename( cls, new_scenepath ):
-		"""Rename the currently loaded file to be the file at new_scenepath
+	def rename( cls, scenepath ):
+		"""Rename the currently loaded file to be the file at scenepath
+		@param scenepath: string or Path pointing describing the new location of the scene.
+		@return: Path to scenepath
 		@note: as opposed to the normal file -rename it will also adjust the
-		extension which for some annoying reason is not easily done with the default command"""
-		cmds.file( rename = new_scenepath )
-		cmds.file( type = cls.kFileTypeMap[ Path( new_scenepath ).p_ext ] )
+		extension
+		@raise RuntimeError: if the scene's extension is not supported."""
+		scenepath = Path(scenepath)
+		try:
+			cmds.file( rename = scenepath.expandvars() )
+			cmds.file( type = cls.kFileTypeMap[ scenepath.p_ext ] )
+		except KeyError:
+			raise RuntimeError( "Unsupported filetype of: " + scenepath  )
+		# END exception handling
+		
+		return scenepath
 
 	@classmethod
-	def save( cls, scenepath=None, autodelete_unknown = False, **kwargs ):
-		"""The save the currently opened scene under scenepath in the respective format
-		@param scenepath: if None or "", the currently opened scene will be used
-		@param autodelete_unknown: if true, unknown nodes will automatically be deleted
+	def save( cls, scenepath=None, autodeleteUnknown = False, **kwargs ):
+		"""Save the currently opened scene under scenepath in the respective format
+		@param scenepath: if None, the currently opened scene will be saved, otherwise 
+		the name will be changed. Paths leading to the file will automatically be created.
+		@param autodeleteUnknown: if true, unknown nodes will automatically be deleted
 		before an attempt is made to change the maya file's type
-		@param **kwargs: passed to cmds.file """
+		@param **kwargs: passed to cmds.file
+		@return: Path at which the scene has been saved."""
 		if scenepath is None or scenepath == "":
 			scenepath = cls.getName( )
 
@@ -102,22 +115,69 @@ class Scene( util.Singleton ):
 		except KeyError:
 			raise RuntimeError( "Unsupported filetype of: " + scenepath  )
 
-		# is it a safe as ?
-		if cls.getName() != scenepath:
-			cmds.file( rename=scenepath.expandvars() )
+		# is it a save as ?
+		if curscene != scenepath:
+			cls.rename(scenepath)
 
 		# assure path exists
 		parentdir = scenepath.dirname( )
 		if not parentdir.exists( ):
 			parentdir.makedirs( )
+		# END assure parent path exists
 
 		# delete unknown before changing types ( would result in an error otherwise )
-		if autodelete_unknown and curscenetype != filetype:
+		if autodeleteUnknown and curscenetype != filetype:
 			cls.deleteUnknownNodes()
+		# END handle unkonwn nodes
 
 		# safe the file
+		kwargs.pop('save', kwargs.pop('s', None))
+		kwargs.pop('type', kwargs.pop('typ', None))
 		return Path( cmds.file( save=True, type=filetype, **kwargs ) )
 
+	@classmethod
+	def export(cls, outputFile, nodeListOrIterable=None, **kwargs):
+		"""Export the given nodes or everything into the file at path
+		@param outputFile: Path object or path string to which the data should 
+		be written to. Parent directories will be created as needed
+		@param nodeListOrIterable: if None, everything will be exported. 
+		Otherwise it may be an MSelectionList ( recommended ), or a list of
+		Nodes, MObjects or MDagPaths
+		@param **kwargs: passed to cmds.file, see the mel docs for modifying 
+		flags
+		@return: Path to which the data was exported"""
+		outputFile = Path(outputFile) 
+		if not outputFile.dirname().isdir():
+			outputFile.dirname().makedirs()
+		# END create parent dirs
+		
+		prev_selection = None
+		if nodeListOrIterable is None:
+			kwargs['exportAll'] = True
+		else:
+			# export selected mode
+			kwargs['exportSelected'] = True
+			prev_selection = api.MSelectionList()
+			api.MGlobal.getActiveSelectionList(prev_selection)
+			
+			import nodes
+			nodes.select(nodes.toSelectionList(nodeListOrIterable))
+		# END handle nodes
+		
+		typ = kwargs.pop('type', kwargs.pop('typ', cls.kFileTypeMap.get(outputFile.p_ext, None)))
+		if typ is None:
+			raise RuntimeError("Invalid type in %s" % outputFile)
+		# END handle type 
+		
+		try:
+			cmds.file(outputFile, type=typ, **kwargs)
+			return outputFile
+		finally:
+			if prev_selection is not None:
+				api.MGlobal.setActiveSelectionList(prev_selection)
+			# END if we have a selection to restore
+		# END handle selection
+		
 	#} END edit methods
 
 	#{ Utilities
@@ -143,11 +203,6 @@ class Scene( util.Singleton ):
 		return cmds.file( q=1, amf=True )
 	#} END query methods
 
-
-	#{ Properties
-	p_name = property( lambda self: self.getName() )
-	p_anyModified = property( lambda self: self.isModified() )
-	#} END Properties
 
 # END SCENE
 

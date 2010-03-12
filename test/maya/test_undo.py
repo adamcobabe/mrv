@@ -5,7 +5,7 @@ import mayarv.maya as bmaya
 import maya.cmds as cmds
 import mayarv.maya.undo as undo
 from mayarv.maya.nodes import *
-import maya.OpenMaya as om
+import maya.OpenMaya as api
 import sys
 
 class TestUndoQueue( unittest.TestCase ):
@@ -268,7 +268,7 @@ class TestUndoQueue( unittest.TestCase ):
 		dagmod.renameNode( obj, "thisnewnode" )
 		dagmod.doIt()
 
-		handle = om.MObjectHandle( obj )
+		handle = api.MObjectHandle( obj )
 		assert handle.isValid() and handle.isAlive() 
 
 		undo.endUndo()

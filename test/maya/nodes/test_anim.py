@@ -3,7 +3,7 @@
 from mayarv.test.maya import *
 
 import maya.OpenMaya as api
-import maya.OpenMayaAnim as manim
+import maya.OpenMayaAnim as apianim
 
 import mayarv.maya as mrvmaya
 import mayarv.maya.nodes as nodes
@@ -14,7 +14,7 @@ class TestAnim( unittest.TestCase ):
 	def test_anim_overrides(self):
 		# create test anim curve
 		p = nodes.Node('persp')
-		anim_curve = nodes.anim.manim.MFnAnimCurve().create(p.rx)
+		anim_curve = nodes.anim.apianim.MFnAnimCurve().create(p.rx)
 		assert isinstance(anim_curve, nodes.api.MObject)		
 		
 		# test mfn wrapping
@@ -55,7 +55,7 @@ class TestAnim( unittest.TestCase ):
 		
 		# translate is animated
 		for tc in p.translate.getChildren():
-			manim.MFnAnimCurve().create(tc)	
+			apianim.MFnAnimCurve().create(tc)	
 		# END set animation
 		
 		# test animation iteration

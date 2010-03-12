@@ -1,7 +1,6 @@
 # -*- coding: utf-8 -*-
 """All kinds of utility methods and classes that are used in more than one modules """
 import maya.mel as mm
-import maya.OpenMaya as om
 import maya.cmds as cmds
 import mayarv.util as util
 from mayarv.util import capitalize,uncapitalize

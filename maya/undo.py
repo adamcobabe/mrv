@@ -58,11 +58,11 @@ def __initialize():
 
 
 #{ Undo Plugin
-import maya.OpenMaya as om
+import maya.OpenMaya as api
 import maya.OpenMayaMPx as mpx
 
 # cache
-isUndoing = om.MGlobal.isUndoing
+isUndoing = api.MGlobal.isUndoing
 undoInfo = cmds.undoInfo
 
 
@@ -139,7 +139,7 @@ class UndoCmd( mpx.MPxCommand ):
 	# Syntax creator
 	@staticmethod
 	def createSyntax( ):
-		syntax = om.MSyntax()
+		syntax = api.MSyntax()
 
 		# id - just for information and debugging
 		syntax.addFlag( UndoCmd.fId, "-callInfo", syntax.kString )
@@ -647,7 +647,7 @@ class DGModifier( Operation ):
 	have nothing on it. This requiredment is related to the undo queue mechanism
 	@note: May NOT derive directly from dg modifier!"""
 	__slots__ = ( "_modifier", )
-	_modifier_class_ = om.MDGModifier		# do be overridden by subclasses
+	_modifier_class_ = api.MDGModifier		# do be overridden by subclasses
 
 	def __init__( self ):
 		"""Initialize our base classes explicitly"""
@@ -671,7 +671,7 @@ class DGModifier( Operation ):
 class DagModifier( DGModifier ):
 	"""undo-aware DAG modifier, copying all extra functions from DGModifier"""
 	__slots__ = tuple()
-	_modifier_class_ = om.MDagModifier
+	_modifier_class_ = api.MDagModifier
 	
 
 # keep aliases

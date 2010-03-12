@@ -2,7 +2,7 @@
 """ Contains implementations of animation specific types and utilities """
 import base
 import maya.OpenMaya as api
-import maya.OpenMayaAnim as manim
+import maya.OpenMayaAnim as apianim
 import util
 
 class AnimCurve( base.DependNode ):
@@ -19,12 +19,12 @@ class AnimCurve( base.DependNode ):
 		MObjects otherwise ( to gain performance )"""
 		selection_list = base.toSelectionList(iter_nodes)
 		anim_plugs = api.MPlugArray()
-		manim.MAnimUtil.findAnimatedPlugs(selection_list, anim_plugs, False)
+		apianim.MAnimUtil.findAnimatedPlugs(selection_list, anim_plugs, False)
 		
 		# it will append to this array !
 		objs = api.MObjectArray()
 		for anim_plug in anim_plugs:
-			manim.MAnimUtil.findAnimation(anim_plug, objs)
+			apianim.MAnimUtil.findAnimation(anim_plug, objs)
 		# END for each animated plug
 		
 		if asNode:
@@ -32,7 +32,6 @@ class AnimCurve( base.DependNode ):
 		else:
 			return objs
 		# END handle return type
-
 
 	def getTangent( self, index, isInTangent ):
 		"""@return: tuple(x,y) tuple containing the x and y positions of the 
