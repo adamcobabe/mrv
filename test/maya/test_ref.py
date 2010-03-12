@@ -276,13 +276,13 @@ class TestReferenceRunner( unittest.TestCase ):
 		assert len(tlns.getChildren()) == 2 and len(tlns.getChildrenDeep()) == 2
 		
 		# tl ref has four meshes
-		assert len(list(tlns.getSelectionList().toIter(nodes.api.MFn.kMesh))) == 4
+		assert len(list(tlns.iterNodes(nodes.api.MFn.kMesh))) == 4
 		
 		# both subrefs have 10+8 additional meshes
-		assert len(list(tlns.getSelectionList(depth=1).toIter(nodes.api.MFn.kMesh))) == 22
+		assert len(list(tlns.iterNodes(nodes.api.MFn.kMesh, depth=1))) == 22
 		
 		# unlimited depth desnt change a thing
-		assert len(list(tlns.getSelectionList(depth=-1).toIter(nodes.api.MFn.kMesh))) == 22
+		assert len(list(tlns.iterNodes(nodes.api.MFn.kMesh, depth=-1))) == 22
 		
 		
 		# predicate check

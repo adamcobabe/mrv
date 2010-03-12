@@ -375,9 +375,10 @@ class FileReference( iDagItem ):
 		kwargs['predicate'] = pred
 		
 		# have to iterate it manually in order to get the toNode conversion right
+		NodeFromObj = nodes.NodeFromObj
 		for n in iter_type(*args, **kwargs):
 			if asNode:
-				n = nodes.NodeFromObj(n)
+				n = NodeFromObj(n)
 			if predicate(n):
 				yield n
 		# END for each node in iteartion

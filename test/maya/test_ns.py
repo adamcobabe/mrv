@@ -90,7 +90,7 @@ class TestReferenceRunner( unittest.TestCase ):
 
 		# ITER STRINGS
 		newnumobjs = 0
-		for obj in Namespace( ":" ).getNodeStrings( depth = 0, asStrings = 1 ):
+		for obj in Namespace( ":" ).iterNodes( depth = 0, asNode = 0 ):
 			newnumobjs += 1
 
 		assert newnumobjs == numobjs

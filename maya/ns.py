@@ -4,7 +4,7 @@ Allows convenient access and handling of namespaces in an object oriented manner
 @todo: more documentation
 """
 import undo
-from mayarv.maya.util import noneToList, MuteUndo
+from mayarv.maya.util import noneToList
 from mayarv.util import iDagItem, CallOnDeletion
 import maya.cmds as cmds
 import maya.OpenMaya as api
@@ -269,7 +269,7 @@ class Namespace( unicode, iDagItem ):
 		namespace exists
 		@return: relative namespace"""
 		if not self.isAbsolute() or not basenamespace.isAbsolute( ):
-			raise ValueError( "All involved namespaces need to be absoslute: " + self + " , " + basenamespace )
+			raise ValueError( "All involved namespaces need to be absolute: " + self + " , " + basenamespace )
 
 		suffix = self._sep
 		if basenamespace.endswith( self._sep ):
@@ -325,107 +325,99 @@ class Namespace( unicode, iDagItem ):
 
 	#{ Object Retrieval
 
-	@classmethod
-	def _getNamespaceObjects( cls, namespace, sellist, curdepth, maxdepth, asStrings ):
-		"""if as strings is given, the sellist returned will be a list of strings"""
-		if maxdepth > -1 and curdepth > maxdepth:
-			return
-
-		namespace.setCurrent()
-		objs = cmds.namespaceInfo( lod=1, dp=1 )	# need full paths
-		if objs:
-			# REMOVE INVALID OBJECTS
-			############################
-			# its very annoying that maya wholeheartedly retuns special objects that noone can work with
-			if namespace == Namespace.root:
-				
-				forbiddenlist = set(	("|groundPlane_transform|groundPlane", "|groundPlane_transform", "world", 
-										"CubeCompass", "Manipulator1", "UniversalManip", 
-										"defaultCreaseDataSet", ''))
-				for item in forbiddenlist:
-					try:
-						objs.remove( item )
-					except ValueError:
-						# this list contains objects that might not exist in all scenes or all maya versions 
-						pass 
-					# END exception handling
-				# END for each item to remove
-			# END forbidden object removal
-
-
-			# OBJECT OUTPUT HANDLING
-			#########################
-			if asStrings:
-				sellist.extend( objs )
-			else:
-				for obj in objs:
-					try:
-						sellist.add( obj )
-					except RuntimeError:
-						# sometimes there are invalid or special objects that cannot be put onto
-						# the list apparently ... nothing will always work here :/
-						print "Failed to put object '%s' onto selection list" % obj
-					# END add exception handling
-				# END for each obj in string object list
-			# END if selection list is required
-		# END if there are objects
-
-		for child in namespace.getChildren():	# children are abolute
-			Namespace._getNamespaceObjects( child, sellist, curdepth + 1, maxdepth, asStrings )
-	# END lod recursive method
-
-
-	def getSelectionList( self, depth=0, asStrings = False, childPredicate = lambda x: True  ):
-		"""@return: selection list containing all objects in the namespace ( or list of strings if
-		asStrings is True )
-		@param depth: if 0, only objects in this namespace will be returned
+	def iterNodes( self, *args, **kwargs ):
+		"""Return an iterator on all objects in the namespace
+		@param *args: MFn.kType filter types to be used to pre-filter the nodes 
+		in the namespace. This can greatly improve performance !
+		@param asNode: if true, default True, Nodes will be yielded. If False, 
+		you will receive MDagPaths or MObjects depending on the 'dag' kwarg
+		@param dag: if True, default False, only dag nodes will be returned, otherwise you will 
+		receive dag nodes and dg nodes. Instance information will be lost on the way
+		though.
+		@param depth: if 0, default 0, only objects in this namespace will be returned
 		if -1, all subnamespaces will be included as well, the depth is unlimited
 		if 0<depth<x include all objects up to the 'depth' subnamespace
-		@param childPredicate: return True for all childnamespaces to include in your query
-		@param asStrings: if true, the selection list returned will be a list of strings instead
-		of a MSelectionList.
-		Use L{getNodeStrings} to have a more specific name for the method
-		@note: if the namespace does not exist, an empty selection list will be returned
-		@note: use iterSelectionList to operate on it"""
-		sellist = None
-		if asStrings:
-			sellist = list()
+		@param **kwargs: given to l{iterDagNodes} or L{iterDgNodes}, which includes the 
+		option to provide a predicate function
+		@note: this method is quite similar to L{FileReference.iterNodes}, but 
+		has a different feature set and needs this code here for maximum performance"""
+		import nodes
+		dag = kwargs.pop('dag', False)
+		asNode = kwargs.get('asNode', True)
+		predicate = kwargs.pop('predicate', lambda n: True)
+		depth = kwargs.pop('depth', 0)
+		
+		# we handle node conversion
+		kwargs['asNode'] = False
+		pred = None
+		iter_type = None
+		selfIsRootOf = self.isRootOf
+		nsGetRelativeTo = type(self).getRelativeTo
+		if dag:
+			mfndag = api.MFnDagNode()
+			mfndagSetObject = mfndag.setObject
+			mfndagParentNamespace = mfndag.parentNamespace
+			
+			def check_filter(n):
+				mfndagSetObject(n)
+				nns = Namespace(mfndagParentNamespace())
+				if not selfIsRootOf(nns):
+					return False
+				# END first namespace check
+				
+				# check depth
+				if depth > -1:
+					if self == nns:		# its depth 0
+						return True
+					
+					relans = nsGetRelativeTo(nns, self)
+					# one separator means two subpaths
+					if relans.count(':')+1 > depth:
+						return False
+				# END handle depth
+				return True
+			# END filter
+			
+			iter_type = nodes.it.iterDagNodes
+			pred = check_filter
 		else:
-			sellist = api.MSelectionList()
-		# END handle asAtrings
+			iter_type = nodes.it.iterDgNodes
+			mfndep = api.MFnDependencyNode()
+			mfndepSetObject = mfndep.setObject
+			mfndepParentNamespace = mfndep.parentNamespace
+			
+			def check_filter(n):
+				mfndepSetObject(n)
+				nns = Namespace(mfndepParentNamespace())
+				if not selfIsRootOf(nns):
+					return False
+				# END first namespace check
+				
+				# duplicated to be as fast as possible
+				# check depth
+				if depth > -1:
+					if self == nns:		# its depth 0
+						return True
+					
+					relans = nsGetRelativeTo(nns, self)
+					if relans.count(':')+1 > depth:
+						return False
+				# END handle depth
+				return True
+			# END filter
+			iter_type = nodes.it.iterDgNodes
+			pred = check_filter
+		# END dag handling
+		
 
-		if not self.exists():
-			return sellist
-
-		# FILL SELLIST
-		#################
-		# assure we do not record this and alter the undoqueue
-		disableUndo = MuteUndo()
-		curns = self.getCurrent()		# store for later
-		self._getNamespaceObjects( self, sellist, 0, depth, asStrings )
-		curns.setCurrent()				# reset current
-
-		return sellist
-
-	def getNodeStrings( self, **kwargs ):
-		"""As above, but returns a list of strings instead of as selection list
-		@note: this convenience method supports all arguments as L{getSelectionList}"""
-		kwargs[ "asStrings" ] = 1
-		return self.getSelectionList( **kwargs )
-
-
-	def iterNodes( self, depth=0, childPredicate = lambda x: True, **kwargs ):
-		"""As above, but returns iterator on all objects in the namespace
-		@param **kwargs: given to the selection list iterator
-		@note: this is a convenience method
-		@note: the method is inherently inefficient as a full list of object names
-		in the naemspace will be prepared at first. By default, you will 
-		receive wrapped Nodes, see L{iterSelectionList} for more information"""
-		from nodes.it import iterSelectionList
-		sellist = self.getSelectionList( depth = depth, childPredicate = childPredicate, asStrings = False )
-
-		return iterSelectionList( sellist, **kwargs )
-
+		kwargs['predicate'] = pred
+		NodeFromObj = nodes.NodeFromObj
+		for n in iter_type(*args, **kwargs):
+			if asNode:
+				n = NodeFromObj(n)
+			if predicate(n):
+				yield n
+		# END for each object to yield
 	#} END object retrieval
 	
 	

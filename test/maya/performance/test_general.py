@@ -37,7 +37,7 @@ class TestGeneralPerformance( unittest.TestCase ):
 		return nodes.createNode( name, nodetype, renameOnClash=True )
 
 
-	def _test_buildTestScene( self ):
+	def test_buildTestScene( self ):
 		"""mayarv.maya.benchmark.general: build test scene with given amount of nodes  """
 		return 	# disabled
 		 
@@ -65,7 +65,7 @@ class TestGeneralPerformance( unittest.TestCase ):
 		bmaya.Scene.save( targetFile )
 
 
-	def _test_dagwalking( self ):
+	def test_dagwalking( self ):
 		"""mayarv.maya.benchmark.general.dagWalking: see how many nodes per second we walk"""
 
 		# numnodes = [ 2500, 25000, 100000 ]
@@ -155,19 +155,16 @@ class TestGeneralPerformance( unittest.TestCase ):
 			depth=-1
 		# END handle depth
 		
-		# direct strings
-		st = time.time()
-		nn = len(namespace.getNodeStrings(depth=depth))
-		elapsed = time.time() - st
-		print >>sys.stderr, "%r.getNodeStrings: got %i nodes in %f s ( %f / s )" % (namespace, nn, elapsed, nn / elapsed)
-		
-		# selection list
-		st = time.time()
-		nn = len(namespace.getSelectionList(depth=depth))
-		elapsed = time.time() - st
-		print >>sys.stderr, "%r.getSelectionList: got %i nodes on selection list in %f s ( %f / s )" % (namespace, nn, elapsed, nn / elapsed)
+		for asNode in range(2):
+			for dag in range(2):
+				st = time.time()
+				nn = len(list(namespace.iterNodes(asNode=asNode, dag=dag, depth=depth)))
+				elapsed = time.time() - st
+				print >>sys.stderr, "%r.iterNodes(asNode=%i, dag=%i, depth=%i): got %i nodes in %f s ( %f / s )" % (namespace, asNode, dag, depth, nn, elapsed, nn / elapsed)
+			# END for each dag value
+		# END for each asNode value
 
-	def _test_createNodes( self ):
+	def test_createNodes( self ):
 		"""mayarv.maya.benchmark.general: test random node creation performance"""
 		bmaya.Scene.new( force = True )
 		runs = [ 100,2500 ]
@@ -258,12 +255,12 @@ class TestGeneralPerformance( unittest.TestCase ):
 		print >>sys.stderr, "Renamed %i WRAPPED Nodes in %f s ( %f / s )" % ( ltl, elapsed, ltl / elapsed )
 
 
-	def _test_intarray_creation(self):
+	def test_intarray_creation(self):
 		pass
 		# is tested in test_geometry through the Mesh class
 	
 	@with_scene("samurai_jet_graph.mb")
-	def _test_graph_iteration(self):
+	def test_graph_iteration(self):
 		root = nodes.Node('Jetctrllers')
 		for rootitem in (root, root.drawInfo):
 			for breadth in range(2):
@@ -282,7 +279,7 @@ class TestGeneralPerformance( unittest.TestCase ):
 		# END for each root
 		
 
-	def _test_wrappedFunctionCall( self ):
+	def test_wrappedFunctionCall( self ):
 		"""mayarv.maya.benchmark.general: test wrapped funtion calls and compare them"""
 
 		bmaya.Scene.new( force = True )
@@ -358,7 +355,7 @@ class TestGeneralPerformance( unittest.TestCase ):
 		print >>sys.stderr, "%f s (%f/s): plug.asFloat()" % ( b - a, na/(b-a) )
 		
 	
-	def _test_create_nodes(self):
+	def test_create_nodes(self):
 		bmaya.Scene.new(force=1)
 		
 		nn = 1000

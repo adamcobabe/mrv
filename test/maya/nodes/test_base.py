@@ -134,9 +134,9 @@ class TestTransform( unittest.TestCase ):
 		pns = sns.getParent()
 		assert pns.getChildren()[0] == sns
 		
-		assert len(sns.getSelectionList()) == 1
-		assert len(pns.getNodeStrings()) == 0
-		assert len(pns.getSelectionList(depth=1)) == 1
+		assert len(list(sns.iterNodes())) == 1
+		assert len(list(pns.iterNodes())) == 0
+		assert len(list(pns.iterNodes(depth=1))) == 1
 		
 		# DAG MANIPULATION
 		##################
@@ -417,7 +417,7 @@ class TestTransform( unittest.TestCase ):
 		foons = barns.getParent()
 		assert len(RootNamespace.getChildren()) == 3
 		
-		assert len(barns.getSelectionList()) == 0 and len(RootNamespace.getNodeStrings()) != 0
+		assert len(list(barns.iterNodes())) == 0 and len(list(RootNamespace.iterNodes())) != 0
 		
 		
 		# editing namespaces
