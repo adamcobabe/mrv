@@ -380,6 +380,66 @@ class TestDataBase( unittest.TestCase ):
 		assert len(list(sl.iterPlugs())) == 2
 		
 
+	def test_array_creation(self):
+		def assert_matches(ar, items):
+			assert len(ar) == len(items)
+			for i in xrange(len(ar)):
+				assert ar[i] == items[i]
+			# END assert array entry matches item entry
+		# END assert items
+			
+		# test all random access types
+		def assert_creation(cls, items):
+			# from multiple
+			ar = cls.fromMultiple(*items)
+			assert_matches(ar, items)
+			
+			# from iter
+			ar = cls.fromIter(iter(items))
+			assert_matches(ar, items)
+			
+			# from list
+			ar = cls.fromList(items)
+			assert_matches(ar, items)
+			
+			# test iteration
+			ne = 0
+			for elm in ar:
+				ne += 1
+			assert len(ar) == ne
+		# END assert items
+		
+		col1 = api.MColor(1.0, 1.0)
+		col2 = api.MColor(1.0, 2.0)
+		col3 = api.MColor(1.0, 3.0)
+		
+		p1 = api.MPoint(1.0, 1.0)
+		p2 = api.MPoint(1.0, 2.0)
+		p3 = api.MPoint(1.0, 3.0)
+		
+		fp1 = api.MFloatPoint(1.0, 1.0)
+		fp2 = api.MFloatPoint(1.0, 2.0)
+		fp3 = api.MFloatPoint(1.0, 3.0)
+		
+		fv1 = api.MFloatVector(1.0, 1.0)
+		fv2 = api.MFloatVector(1.0, 2.0)
+		fv3 = api.MFloatVector(1.0, 3.0)
+		
+		v1 = api.MVector(1.0, 1.0)
+		v2 = api.MVector(1.0, 2.0)
+		v3 = api.MVector(1.0, 3.0)
+		
+		for cls, items in ((api.MIntArray, (4,6,7)),
+							(api.MDoubleArray, (4.0,6.0,7.0)),
+							(api.MFloatArray, (4.0,6.0,7.0)),
+							(api.MColorArray, (col1, col2, col3)),
+							(api.MPointArray, (p1, p2, p3)), 
+							(api.MFloatPointArray, (fp1, fp2, fp3)), 
+							(api.MFloatVectorArray, (fv1, fv2, fv3)),
+							(api.MVectorArray, (v1, v2, v3))):
+			assert_creation(cls, items)
+		# END for each cls/items
+
 	def test_intarray_creation(self):
 		# from range
 		self.failUnlessRaises(ValueError, api.MIntArray.fromRange, 3, 2)
@@ -387,15 +447,3 @@ class TestDataBase( unittest.TestCase ):
 		ia = api.MIntArray.fromRange(2,4)
 		assert len(ia) == 2 and ia[0] == 2 and ia[1] == 3
 		
-		# from individual
-		ia = api.MIntArray.fromMultiple(4,6,7)
-		assert len(ia) == 3 and ia[0] == 4 and ia[1] == 6 and ia[2] == 7
-		
-		# from iter
-		items = (4,6,7)
-		ia = api.MIntArray.fromIter(iter(items))
-		assert len(ia) == 3 and ia[0] == 4 and ia[1] == 6 and ia[2] == 7
-		
-		# from list
-		ia = api.MIntArray.fromList(items)
-		assert len(ia) == 3 and ia[0] == 4 and ia[1] == 6 and ia[2] == 7

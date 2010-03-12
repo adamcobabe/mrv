@@ -572,8 +572,14 @@ Adding Convenience
 Improving the Database
 ======================
 
+====================
+Debugging Utilitites
+====================
 
-
+====================
+Development Workflow
+====================
+suggest TDD, BTD
 
 ===============
 Common Mistakes

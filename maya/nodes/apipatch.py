@@ -863,12 +863,57 @@ class ArrayBase( Abstract ):
 	def __setitem__ ( self, index, item ):
 		"""@note: does not work as it expects a pointer type - probably a bug"""
 		return self.set( item, index )
+		
+	@classmethod
+	def fromMultiple(cls, *args):
+		"""@return: Array created from the given elements"""
+		ia = cls()
+		ia.setLength(len(args))
+		
+		ci = 0
+		for elm in args:
+			ia[ci] = elm
+			ci += 1
+		# END for each index
+		
+		return ia
+		
+	@classmethod
+	def fromIter(cls, iter):
+		"""@return: Array created from elements yielded by iter
+		@note: this one is less efficient than L{fromList} as the final length 
+		of the array is not predetermined"""
+		ia = cls()
+		append = ia.append
+		for index in iter:
+			append(index)
+		return ia
+	
+	@classmethod
+	def fromList(cls, list):
+		"""@return: Array created from the given list of elements"""
+		ia = cls()
+		ia.setLength(len(list))
+		
+		ci = 0
+		set = ia.set
+		for elm in list:
+			set(elm, ci)
+			ci += 1
+		# END for each item
+		
+		return ia
 
 
 _plugarray_getitem = api.MPlugArray.__getitem__
 _objectarray_getitem = api.MObjectArray.__getitem__
 _colorarray_getitem = api.MColorArray.__getitem__
 _pointarray_getitem = api.MPointArray.__getitem__
+_floatpointarray_getitem = api.MFloatPointArray.__getitem__
+_doublearray_getitem = api.MDoubleArray.__getitem__
+_floatarray_getitem = api.MFloatArray.__getitem__
+_floatvectorarray_getitem = api.MFloatVectorArray.__getitem__
+_vectorarray_getitem = api.MVectorArray.__getitem__
 class MPlugArray( api.MPlugArray, ArrayBase ):
 	""" Wrap MPlugArray to make it compatible to pythonic contructs
 	@note: for performance reasons, we do not provide negative index support"""
@@ -929,10 +974,68 @@ class MPointArray( api.MPointArray, ArrayBase ):
 		global _pointarray_getitem
 		for i in xrange(len(self)):
 			yield _pointarray_getitem( self,  i )
-	
 
-class MIntArray( api.MIntArray ):
+
+class MFloatVectorArray( api.MFloatVectorArray, ArrayBase ):
+	""" Wrap MFloatVector to make it compatible to pythonic contructs.
+	@note: for performance reasons, we do not provide negative index support"""
+	_apicls = api.MFloatVectorArray
+	
+	def __iter__( self ):
+		"""@return: iterator object"""
+		global _floatvectorarray_getitem
+		for i in xrange(len(self)):
+			yield _floatvectorarray_getitem( self,  i )
+			
+
+class MVectorArray( api.MVectorArray, ArrayBase ):
+	"""@note: for performance reasons, we do not provide negative index support"""
+	_apicls = api.MVectorArray
+	
+	def __iter__( self ):
+		"""@return: iterator object"""
+		global _vectorarray_getitem
+		for i in xrange(len(self)):
+			yield _vectorarray_getitem( self,  i )
+
+
+class MFloatPointArray( api.MFloatPointArray, ArrayBase ):
+	""" Wrap MFloatPoint to make it compatible to pythonic contructs.
+	@note: for performance reasons, we do not provide negative index support"""
+	_apicls = api.MFloatPointArray
+	
+	def __iter__( self ):
+		"""@return: iterator object"""
+		global _floatpointarray_getitem
+		for i in xrange(len(self)):
+			yield _floatpointarray_getitem( self,  i )
+
+
+class MDoubleArray( api.MDoubleArray, ArrayBase ):
+	"""@note: for performance reasons, we do not provide negative index support"""
+	_apicls = api.MDoubleArray
+	
+	def __iter__( self ):
+		"""@return: iterator object"""
+		global _doublearray_getitem
+		for i in xrange(len(self)):
+			yield _doublearray_getitem( self,  i )
+			
+			
+class MFloatArray( api.MFloatArray, ArrayBase ):
+	"""@note: for performance reasons, we do not provide negative index support"""
+	_apicls = api.MFloatArray
+	
+	def __iter__( self ):
+		"""@return: iterator object"""
+		global _floatarray_getitem
+		for i in xrange(len(self)):
+			yield _floatarray_getitem( self,  i )
+			
+
+class MIntArray( api.MIntArray, ArrayBase ):
 	"""Attach additional creator functions"""
+	_apicls = api.MIntArray
 	
 	@classmethod
 	def fromRange(cls, i, j):
@@ -950,8 +1053,9 @@ class MIntArray( api.MIntArray ):
 		
 		# wouldn't it be great to have a real for loop now ?
 		ci = 0
+		set = ia.set
 		for i in xrange(i, j):
-			ia[ci] = i
+			set(i, ci)
 			ci += 1
 		# END for each integer
 		
@@ -959,44 +1063,6 @@ class MIntArray( api.MIntArray ):
 		#for ci, i in enumerate(xrange(i, j)):
 		#	ia[ci] = i
 		# END for each index/value pair
-		
-		return ia
-
-	@classmethod
-	def fromMultiple(cls, *args):
-		"""@return: MIntArray created from the given indices"""
-		ia = api.MIntArray()
-		ia.setLength(len(args))
-		
-		ci = 0
-		for index in args:
-			ia[ci] = index
-			ci += 1
-		# END for each index
-		
-		return ia
-		
-	@classmethod
-	def fromIter(cls, iter):
-		"""@return: MIntArray created from indices yielded by iter
-		@note: this one is less efficient than L{fromMultiple} as the final length 
-		of the array is not predetermined"""
-		ia = api.MIntArray()
-		for index in iter:
-			ia.append(index)
-		return ia
-	
-	@classmethod
-	def fromList(cls, list):
-		"""@return: MIntArray created from the given list of indices"""
-		ia = api.MIntArray()
-		ia.setLength(len(list))
-		
-		ci = 0
-		for index in list:
-			ia[ci] = index
-			ci += 1
-		# END for each item
 		
 		return ia
 
@@ -1061,6 +1127,14 @@ class MSelectionList( api.MSelectionList, ArrayBase ):
 		@param **kwargs: passed to L{base.toSelectionList}"""
 		return base.toSelectionList(iter_items, **kwargs)
 		
+	# We need to override the respective method on the base class as it wouldnt work
+	fromIter = fromList
+	
+	@staticmethod
+	def fromMultiple( *args, **kwargs ):
+		"""Alternative form of L{fromList} as *args can be passed in."""
+		return MSelectionList.fromList(args, **kwargs)
+	
 	@staticmethod
 	def fromComponentList( iter_components, **kwargs ):
 		"""@return: MSelectionList as initialized from the given list of tuple( DagNode, Component ), 
@@ -1096,7 +1170,6 @@ class MSelectionList( api.MSelectionList, ArrayBase ):
 		pred = lambda n: isinstance(n, api.MPlug)
 		kwargs['predicate'] = pred
 		return it.iterSelectionList( self, **kwargs )
-		
 		
 	
 class MeshIteratorBase( Abstract ):
