@@ -391,7 +391,8 @@ class FileReference( iDagItem ):
 		@param unresolvedEdits: if True, only dangling connections will be removed,
 		if False, all reference edits will be removed - the reference will be unloaded for beforehand.
 		The loading state of the reference will stay unchanged after the operation.
-		@param editTypes: list of edit types to remove during cleanup"""
+		@param editTypes: list of edit types to remove during cleanup
+		@return: self"""
 		wasloaded = self.p_loaded
 		if not unresolvedEdits:
 			self.p_loaded = False
@@ -401,12 +402,15 @@ class FileReference( iDagItem ):
 
 		if not unresolvedEdits:
 			self.p_loaded = wasloaded
+			
+		return self
 
 	@undo.notundoable
 	def setLocked( self, state ):
 		"""Set the reference to be locked or unlocked
 		@param state: if True, the reference is locked , if False its unlocked and
-		can be altered"""
+		can be altered
+		@return: self"""
 		if self.isLocked( ) == state:
 			return
 
@@ -419,11 +423,14 @@ class FileReference( iDagItem ):
 
 		# reset the loading state
 		self.p_loaded = wasloaded
+		
+		return self
 
 	@undo.notundoable
 	def setLoaded( self, state ):
 		"""set the reference loaded or unloaded
-		@param state: True = unload reference, True = load reference """
+		@param state: True = unload reference, True = load reference 
+		@return: self"""
 
 		if state == self.isLoaded( ):			# already desired state
 			return
@@ -433,18 +440,22 @@ class FileReference( iDagItem ):
 		else:
 			cmds.file( unloadReference=self._refnode )
 
+		return self
 
 	@undo.notundoable
 	def setNamespace( self, namespace ):
 		"""set the reference to use the given namespace
 		@param namespace: Namespace instance or name of the short namespace
-		@raise RuntimeError: if namespace already exists or if reference is not root"""
+		@raise RuntimeError: if namespace already exists or if reference is not root
+		@return: self"""
 		shortname = namespace
 		if isinstance( namespace, Namespace ):
 			shortname = namespace.getBasename( )
 
 		# set the namespace
 		cmds.file( self.getPath(copynumber=1), e=1, ns=shortname )
+		
+		return self
 
 	#}END edit
 
@@ -516,6 +527,7 @@ class FileReference( iDagItem ):
 	#}END query methods
 
 	#{ Properties
+	p_path = property( getPath )
 	p_locked = property( isLocked, setLocked )
 	p_loaded = property( isLoaded, setLoaded )
 	p_copynumber = property( getCopyNumber )

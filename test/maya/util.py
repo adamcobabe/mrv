@@ -4,11 +4,13 @@ from mayarv.maya.scene import Scene
 import tempfile
 
 def save_for_debugging(scene_name):
-	"""Save the currently actve scene as MayaAscii for debugging purposes"""
+	"""Save the currently actve scene as MayaAscii for debugging purposes
+	@return: absolute path string at which the file was saved"""
 	scene_path = os.path.join(tempfile.gettempdir(), scene_name + ".ma")
 	Scene.save(scene_path, force=True)
 	
 	print "Saved scene for debugging at: %r" % scene_path
+	return scene_path
 
 def get_maya_file( filename ):
 	"""@return: path to specified maya ( test ) file """

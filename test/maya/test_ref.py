@@ -31,7 +31,7 @@ class TestReferenceRunner( unittest.TestCase ):
 			# change root reference namespaces
 			if ref.isRoot( ):
 				curNS = ref.p_namespace
-				ref.setNamespace( curNS.getBasename( ) + "_renamed" )
+				assert ref.setNamespace( curNS.getBasename( ) + "_renamed" ) == ref
 				assert str( ref.getNamespace( ) ).endswith( "_renamed" ) 
 			# END if is root
 
@@ -51,17 +51,17 @@ class TestReferenceRunner( unittest.TestCase ):
 			assert ref.isLoaded( ) 
 			ref.p_loaded = False
 			assert not ref.p_loaded 
-			ref.p_loaded = True
+			assert ref.setLoaded(True) == ref 
 			assert ref.p_loaded 
 
 			# lock test
 			assert ref.isLocked( ) == False 
 			ref.p_locked = True
 			assert ref.p_locked == True 
-			ref.p_locked = False
+			assert ref.setLocked(False) == ref
 			assert ref.p_locked == False 
 
-			ref.cleanup( )
+			assert ref.cleanup( ) == ref
 			ref.cleanup( unresolvedEdits=False )
 
 			refnode = ref.getReferenceNode( )
@@ -92,7 +92,8 @@ class TestReferenceRunner( unittest.TestCase ):
 				
 				# on windows inner maya paths use slash and paths outside of maya use backslash
 				# would prefer to use normpath but python 2.5 is buggy with slash-backslash conversion here
-				assert os.path.abspath(ref.getPath()) == newreffile  
+				assert os.path.abspath(ref.getPath()) == newreffile
+				assert ref.getPath() == ref.p_path
 				assert ref.exists() 
 
 				# try to create a reference with the same namespace
@@ -233,6 +234,7 @@ class TestReferenceRunner( unittest.TestCase ):
 			assert isinstance(ref.getCopyNumber(), int)
 			assert ref.getParent() in tlrs
 			assert ref.getPath(unresolved=0) != ref.getPath(unresolved=1)
+			assert ref.p_path == ref.getPath()
 			self._assert_ref_node(ref.getReferenceNode())
 			
 			# cannot set namespace of subreferences

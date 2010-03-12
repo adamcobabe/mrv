@@ -446,3 +446,35 @@ class TestTransform( unittest.TestCase ):
 		subnsrenamed = subns.rename("bar")
 		assert subnsrenamed != subns
 		assert subnsrenamed.exists() and not subns.exists() 
+		
+		
+		# REFERENCES 
+		#############
+		from mayarv.maya.ref import FileReference
+		refa = FileReference.create(get_maya_file('ref8m.ma'))     # file with 8 meshes
+		refb = FileReference.create(get_maya_file('ref2re.ma'))    # two subreferences with subreferences
+		
+		assert refa.p_loaded and refb.isLoaded()
+		assert len(FileReference.ls()) == 2
+		
+		assert len(refa.getChildren()) == 0 and len(refb.getChildren()) == 2
+		subrefa, subrefb = refb.getChildren()
+		
+		assert subrefa.p_namespace != subrefb.getNamespace()
+		assert subrefa.p_path == subrefb.getPath()
+		assert subrefa.getParent() == refb
+		
+		refa.p_loaded = False
+		assert not refa.p_loaded
+		assert refa.setLoaded(True).isLoaded()
+		
+		assert len(list(refa.iterNodes(api.MFn.kMesh))) == 8
+		
+		refa.remove(); refb.remove()
+		assert not refa.exists() and not refb.exists()
+		assert len(FileReference.ls()) == 0
+		
+		
+		
+		
+		

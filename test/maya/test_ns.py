@@ -20,7 +20,9 @@ class TestReferenceRunner( unittest.TestCase ):
 
 		for ns in childns:
 			assert ns.getParent( ) == rootns 
-			assert ns.isAbsolute() 
+			assert ns.isAbsolute()
+			assert ns.p_isabsolute == ns.isAbsolute()
+			assert ns.exists() == ns.p_exists
 			allChildren = ns.getChildrenDeep( )
 			assert len( allChildren ) == 2 
 
@@ -50,7 +52,7 @@ class TestReferenceRunner( unittest.TestCase ):
 			assert newns.exists() 
 
 			# test undo: change current
-			newns.setCurrent()
+			assert newns.setCurrent() == newns
 			assert Namespace.getCurrent() == newns 
 			cmds.undo()
 			assert Namespace.getCurrent() == curns 

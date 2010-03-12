@@ -187,12 +187,15 @@ class Namespace( unicode, iDagItem ):
 	@undo.undoable
 	def setCurrent( self ):
 		"""Set this namespace to be the current one - new objects will be put in it
-		by default"""
+		by default
+		@return: self"""
 		# THIS IS FASTER !
 		melop = undo.GenericOperation( )
 		melop.addDoit( cmds.namespace, set = self )
 		melop.addUndoit( cmds.namespace, set = Namespace.getCurrent() )
 		melop.doIt()
+		
+		return self
 
 	#} END edit methods
 
@@ -431,6 +434,10 @@ class Namespace( unicode, iDagItem ):
 		# END for each object to yield
 	#} END object retrieval
 	
+	
+	# Properties 
+	p_exists = property(exists)
+	p_isabsolute = property(isAbsolute)
 	
 
 #{ Static Access
