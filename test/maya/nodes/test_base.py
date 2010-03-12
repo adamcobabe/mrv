@@ -6,6 +6,13 @@ import mayarv.maya.nodes as nodes
 import maya.OpenMaya as api
 import maya.cmds as cmds
 
+from mayarv.maya.nodes import *
+from mayarv.maya.ns import *
+from mayarv.maya.ref import FileReference
+import mayarv.maya as mrv
+import __builtin__
+set = __builtin__.set		# fix set, it was overwritten by the set module when importing nodes *
+
 class TestTransform( unittest.TestCase ):
 	
 	def test_tranformation_overrides(self):
@@ -48,8 +55,6 @@ class TestTransform( unittest.TestCase ):
 		bmaya.Scene.new(force=True)
 		# NOTE: If this test fails ( because of name changes for instance ), the 
 		# documentation needs to be fixed as well, usage.rst.
-		from mayarv.maya.nodes import *
-		import __builtin__
 		
 		# NODES
 		#######
@@ -59,7 +64,7 @@ class TestTransform( unittest.TestCase ):
 		assert p != t
 		assert p in [p]
 		
-		s = __builtin__.set()
+		s = set()
 		s.add(p)
 		s.add(t)
 		assert p in s and t in s and len(s | s) == 2
@@ -418,7 +423,6 @@ class TestTransform( unittest.TestCase ):
 		
 		# NAMESPACES
 		############
-		from mayarv.maya.ns import *
 		assert p.getNamespace() == RootNamespace
 		# we created 2 namespaces implicitly with objects
 		assert len(RootNamespace.getChildren()) == 2
@@ -450,7 +454,6 @@ class TestTransform( unittest.TestCase ):
 		
 		# REFERENCES 
 		#############
-		from mayarv.maya.ref import FileReference
 		refa = FileReference.create(get_maya_file('ref8m.ma'))     # file with 8 meshes
 		refb = FileReference.create(get_maya_file('ref2re.ma'))    # two subreferences with subreferences
 		
@@ -475,6 +478,24 @@ class TestTransform( unittest.TestCase ):
 		assert len(FileReference.ls()) == 0
 		
 		
+		# SCENE
+		#######
+		empty_scene = get_maya_file('empty.ma')
+		mrv.Scene.open(empty_scene, force=1)
+		assert mrv.Scene.getName() == empty_scene
+		
+		files = list()
+		def beforeAndAfterNewCB( data ):
+			assert data is None
+			files.append(mrv.Scene.getName())
+			
+		mrv.Scene.beforeNew = beforeAndAfterNewCB
+		mrv.Scene.afterNew = beforeAndAfterNewCB
+		
+		assert len(files) == 0
+		mrv.Scene.new()
+		assert len(files) == 2
+		assert files[0] == empty_scene
 		
 		
 		

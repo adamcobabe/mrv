@@ -596,6 +596,24 @@ The example uses files from the test system and respective utilities::
 ==============
 Scene Handling
 ==============
+The 'Scene' is a singleton class which may be used to interact with the scene and to manage scene messages. It is a mix of functionality from the ``file`` MEL command and the ``MSceneMessage`` API class. The following example uses utilities and scenes from the test system::
+	>>> import mayarv.maya as mrv
+	>>> empty_scene = get_maya_file('empty.ma')
+	>>> mrv.Scene.open(empty_scene, force=1)
+	>>> assert mrv.Scene.getName() == empty_scene
+		
+	>>> files = list()
+	>>> def beforeAndAfterNewCB( data ):
+	>>> 	assert data is None
+	>>> 	files.append(mrv.Scene.getName())
+			
+	>>> mrv.Scene.beforeNew = beforeAndAfterNewCB
+	>>> mrv.Scene.afterNew = beforeAndAfterNewCB
+		
+	>>> assert len(files) == 0
+	>>> mrv.Scene.new()
+	>>> assert len(files) == 2
+	>>> assert files[0] == empty_scene
 	
 ====
 Undo
