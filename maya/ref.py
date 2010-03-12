@@ -6,7 +6,7 @@ Allows convenient access and handling of references in an object oriented manner
 from mayarv.path import Path
 from mayarv.util import And
 from mayarv.exc import *
-from mayarv.maya.ns import Namespace
+from mayarv.maya.ns import Namespace, _isRootOf
 from mayarv.maya.util import noneToList
 from mayarv.util import iDagItem
 import undo
@@ -298,6 +298,7 @@ class FileReference( iDagItem ):
 		import nodes
 		
 		rns = self.getNamespace()
+		rnsrela = rns.toRelative()+':'
 		asNode = kwargs.get('asNode', True)
 		predicate = kwargs.get('predicate', lambda n: True)
 		kwargs['asNode'] = False	# we will do it
@@ -316,7 +317,6 @@ class FileReference( iDagItem ):
 		# CONSTRUCT PREDICATE
 		iter_type = None
 		pred = None
-		rnsIsRootOf = rns.isRootOf
 		if dag:
 			# cache functions for 10% more performance
 			mfndag = api.MFnDagNode()
@@ -328,7 +328,7 @@ class FileReference( iDagItem ):
 			
 			def check_dag_ns(n):
 				mfndagSetObject(n)
-				if not rnsIsRootOf(Namespace(mfndagParentNamespace())):
+				if not _isRootOf(rnsrela, mfndagParentNamespace()):
 					return False
 				# END first namespace check
 				
@@ -345,7 +345,7 @@ class FileReference( iDagItem ):
 					if mdplen(nc) != 0:
 						# check whether parent is in a different namespace
 						mfndagSetObject(n)
-						if rnsIsRootOf(Namespace(mfndagParentNamespace())):
+						if _isRootOf(rnsrela, mfndagParentNamespace()):
 							return False
 						# END check parent rns
 					# END check length
@@ -362,7 +362,7 @@ class FileReference( iDagItem ):
 			
 			def check_ns(n):
 				mfndepSetObject(n)
-				if not rnsIsRootOf(Namespace(mfndepParentNamespace())):
+				if not _isRootOf(rnsrela, mfndepParentNamespace()):
 					return False
 				# END first namespace check
 				return True

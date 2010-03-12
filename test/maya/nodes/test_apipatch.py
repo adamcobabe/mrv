@@ -335,6 +335,13 @@ class TestDataBase( unittest.TestCase ):
 			sls = selfun(iter(slsnodes))
 			assert isinstance(sls, api.MSelectionList) and len(sls) == len(slsnodes) 
 		# END for each variant
+		
+		# from multiple
+		assert len(api.MSelectionList.fromMultiple(*nls)) == len(nls)
+		
+		# from iter
+		assert len(api.MSelectionList.fromIter(iter(nls))) == len(nls)
+		
 
 		# test conversion methods
 		assert list(sl) == sl.toList()
@@ -378,6 +385,8 @@ class TestDataBase( unittest.TestCase ):
 		sl.add(p.t)
 		sl.add(p.rx)
 		assert len(list(sl.iterPlugs())) == 2
+		
+		
 		
 
 	def test_array_creation(self):

@@ -10,6 +10,18 @@ import maya.cmds as cmds
 import maya.OpenMaya as api
 import re
 
+#{ internal utilties
+def _isRootOf( root, other ):
+	"""@return: True if other which may be a string, is rooted at 'root
+	@param other: '' = root namespace'
+	hello:world => :hello:world
+	@param root: may be namespace or string. It must not have a ':' in front, 
+	hence it must be a relative naespace, and must end with a ':'.
+	@note: the arguments are very specific, but this allows the method 
+	to be faster than usual"""
+	return (other+':').startswith(root)
+#} END internal utilities
+
 class Namespace( unicode, iDagItem ):
 	""" Represents a Maya namespace
 	Namespaces follow the given nameing conventions:
@@ -351,8 +363,8 @@ class Namespace( unicode, iDagItem ):
 		kwargs['asNode'] = False
 		pred = None
 		iter_type = None
-		selfIsRootOf = self.isRootOf
 		nsGetRelativeTo = type(self).getRelativeTo
+		selfrela = self.toRelative()+':'
 		if dag:
 			mfndag = api.MFnDagNode()
 			mfndagSetObject = mfndag.setObject
@@ -360,19 +372,18 @@ class Namespace( unicode, iDagItem ):
 			
 			def check_filter(n):
 				mfndagSetObject(n)
-				nns = Namespace(mfndagParentNamespace())
-				if not selfIsRootOf(nns):
+				ns = mfndagParentNamespace()
+				if not _isRootOf(selfrela, ns):
 					return False
-				# END first namespace check
 				
 				# check depth
 				if depth > -1:
-					if self == nns:		# its depth 0
+					ns = Namespace(ns)
+					if self == ns:		# its depth 0
 						return True
 					
-					relans = nsGetRelativeTo(nns, self)
 					# one separator means two subpaths
-					if relans.count(':')+1 > depth:
+					if nsGetRelativeTo(ns, self).count(':')+1 > depth:
 						return False
 				# END handle depth
 				return True
@@ -388,19 +399,19 @@ class Namespace( unicode, iDagItem ):
 			
 			def check_filter(n):
 				mfndepSetObject(n)
-				nns = Namespace(mfndepParentNamespace())
-				if not selfIsRootOf(nns):
+				ns = mfndepParentNamespace()
+				if not _isRootOf(selfrela, ns):
 					return False
 				# END first namespace check
 				
 				# duplicated to be as fast as possible
 				# check depth
 				if depth > -1:
-					if self == nns:		# its depth 0
+					ns = Namespace(ns)
+					if self == ns:		# its depth 0
 						return True
 					
-					relans = nsGetRelativeTo(nns, self)
-					if relans.count(':')+1 > depth:
+					if nsGetRelativeTo(ns, self).count(':')+1 > depth:
 						return False
 				# END handle depth
 				return True
