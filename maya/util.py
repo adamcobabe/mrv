@@ -7,14 +7,23 @@ import mayarv.util as util
 from mayarv.util import capitalize,uncapitalize
 import networkx.exception as networkxexc
 
-#{ Return Value Conversion
+#{ Utility Functions
 def noneToList( res ):
 	"""@return: list instead of None"""
 	if res is None:
 		return []
 	return res
-#}
+	
+def isIterable( obj ):
+	return hasattr(obj,'__iter__') and not isinstance(obj,basestring)
 
+def pythonToMel(arg):
+	if isinstance(arg,basestring):
+		return u'"%s"' % cmds.encodeString(arg)
+	elif isIterable(arg):
+		return u'{%s}' % ','.join( map( pythonToMel, arg) )
+	return unicode(arg)
+#} END utility functions
 
 
 
@@ -67,32 +76,9 @@ def propertyQE( inCmd, flag, methodName = None ):
 	queryFunc = queryMethod( inCmd, flag, methodName = methodName )
 	return property( queryFunc, editFunc )
 
-#}
-
-def isIterable( obj ):
-	return hasattr(obj,'__iter__') and not isinstance(obj,basestring)
-
-def pythonToMel(arg):
-	if isinstance(arg,basestring):
-		return u'"%s"' % cmds.encodeString(arg)
-	elif isIterable(arg):
-		return u'{%s}' % ','.join( map( pythonToMel, arg) )
-	return unicode(arg)
-
-def padScalar( scalar, padding ):
-	"""@return: string of integer padded with "0" to have at least padvalue characters,
-	i.e. 5 becomes 0005 if padvalue is 4, 1000 will stay 1000 in that case
-	@param scalar: scalar values, like integer or loat
-	@param padding: minimum amount of characters the output string should have"""
-	scalarstr = str( scalar )
-	pad = max( padding - len( scalarstr ), 0 )
-	return "0"*pad + scalarstr
+#} END mel function wrappers
 
 
-
-############################
-#### Classes		  	####
-##########################
 
 #{ Utitliy Classes
 
@@ -162,10 +148,9 @@ class Mel(util.Singleton):
 	info = staticmethod( lambda *args: Mel._melprint( "print", *args ) )
 
 
-
 class OptionVarDict( util.Singleton ):
 	"""	 A singleton dictionary-like class for accessing and modifying optionVars.
-	@note: Idea and base Implementation from PyMel, modified by mayarv """
+	@note: Idea and base Implementation from PyMel, modified to adapt to mayarv """
 	class OptionVarList(tuple):
 		def __new__( cls, key, val ):
 			"""modify constructor to work with tuple"""
@@ -264,106 +249,6 @@ class OptionVarDict( util.Singleton ):
 # use it as singleton
 optionvars = OptionVarDict()
 
-class EventSender( object ):
-	""" Base type taking over the management part when wrapping maya messages into an
-	appropriate python class.
-
-	It has the advantage of easier usage as you can pass in any function with the
-	appropriate signature"""
-	
-	__slots__ = ( "_middict", "_callbacks" )
-
-	def __init__( self ):
-		"""initialize our base variables"""
-		self._middict = {}						# callbackGroup -> maya callback id
-		self._callbacks = {}				# callbackGroup -> ( callbackStringID -> Callacble )
-
-	def _addMasterCallback( self, callbackID, *args, **kwargs ):
-		"""Called once the base has to add actual maya callback.
-		It will be added once the first client adds himself, or removed otherwise once the last
-		client removed himself.
-		Make sure your method registers this _call method with *args and **kwargs to allow
-		it to acftually deliver the call to all registered clients
-		@param existingID: if -1, the callback is to be added - in that case you have to
-		return the created unique message id
-		@param callbackID: if not None, specifies the callback type that was requested"""
-		raise NotImplementedError()
-
-	def _getCallbackGroup( self, callbackID ):
-		""" Returns a group where this callbackID passed to the addListener method belongs to.
-		By default, one callbackID describes one callback group
-		@note: override if you have different callback groups, thus different kinds of callbacks
-		that you have to register with different methods"""
-		return callbackID
-
-	def _call( self, *args, **kwargs ):
-		""" Iterate over listeners and call them. The method expects the last
-		argument to be the callback group that _addMasterCallback method supplied to the
-		callback creation method
-		@note: will throw only in debug mode
-		@todo: implement debug mode !"""
-		cbgroup = args[-1]
-		if cbgroup not in self._callbacks:
-			raise KeyError( "Callback group: " + cbgroup + " did not exist" )
-
-		cbdict = self._callbacks[ cbgroup ]
-		for callback in cbdict.itervalues():
-			try:
-				callback( *args, **kwargs )
-			except:
-				print( "ERROR: Callback failed" )
-				raise
-
-		# END callback loop
-
-	def addListener( self, listenerID, callback, callbackID = None, *args, **kwargs ):
-		""" Call to register to receive events triggered by this class
-		@param listenerID: hashable item identifying you
-		@param callback: callable method, being called with the arguments of the respective
-		callback - read the derived classes documentation about the signature
-		@param callbackID: will be passed to the callback creator allowing it to create the desired callback
-		@raise ValueError: if the callback could not be registered
-		@note: Override this method if you need to add specific signature arguments, and call
-		base method afterwardss"""
-
-		cbgroup = self._getCallbackGroup( callbackID )
-		cbdict = self._callbacks.get( cbgroup, dict() )
-		if len( cbdict ) == 0: self._callbacks[ cbgroup ] = cbdict		# assure the dict is actually in there !
-
-		# are we there already ?
-		if listenerID in cbdict:
-			return
-
-		# assure we get a callback
-		if len( cbdict ) == 0:
-			try:
-				self._middict[ cbgroup ] = self._addMasterCallback( cbgroup, callbackID, *args, **kwargs )
-			except RuntimeError:
-				raise ValueError( "Maya Message ID is supposed to be set to an approproriate value, got " + str( self._middict[ cbgroup ] ) )
-
-		# store the callable for later use
-		cbdict[ listenerID ] = callback
-
-
-	def removeListener( self, listenerID, callbackID = None ):
-		"""Remove the listener with the given listenerID so it will not be notified anymore if
-		events occour. Never raises
-		@param callbackID: must be the callbackID you added the listener with"""
-		cbgroup = self._getCallbackGroup( callbackID )
-		if cbgroup not in self._callbacks:
-			return
-
-		cbdict = self._callbacks[ cbgroup ]
-		try:
-			del( cbdict[ listenerID ] )
-		except KeyError:
-			pass
-
-		# if there are no listeners, remove the callback
-		if len( cbdict ) == 0:
-			mid = self._middict[ cbgroup ]
-			om.MSceneMessage.removeCallback( mid )
-
 
 class MuteUndo( object ):
 	"""Instantiate this class to disable the maya undo queue - on deletion, the
@@ -379,7 +264,6 @@ class MuteUndo( object ):
 		cmds.undoInfo( swf = self.prevstate )
 
 #} END utility classes
-
 
 
 class StandinClass( object ):
@@ -406,9 +290,6 @@ class StandinClass( object ):
 	def __call__( self, *args, **kwargs ):
 		newcls = self.createCls( )
 		return newcls( *args, **kwargs )
-
-
-
 
 
 class MetaClassCreator( type ):

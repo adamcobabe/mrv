@@ -78,7 +78,7 @@ class TestStorage( unittest.TestCase ):
 			# CREATE REFERENCE
 			##################
 			bmaya.Scene.new( force = True )
-			bmaya.Scene.createReference( filepath, namespace="referenced" )
+			bmaya.ref.createReference( filepath, namespace="referenced" )
 
 			refstoragenode = nodes.Node( "referenced:storage" )
 			refcomparator = nodes.Node( "referenced:trans" )

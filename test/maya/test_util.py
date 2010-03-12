@@ -47,11 +47,3 @@ class TestUtil( unittest.TestCase ):
 			else:
 				assert poppedval == value 
 		# END for each testvalue
-
-	def test_misc( self ):
-		"""mayarv.maya.util: test misc. methods"""
-		assert padScalar( 2, 4 ) == "0002"
-		assert padScalar( 2, 1 ) == "2"
-		assert padScalar( 2, 0 ) == "2"
-		assert padScalar( 2, -1 ) == "2"
-		assert padScalar( 22, 2 ) == "22"

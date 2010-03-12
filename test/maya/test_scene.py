@@ -10,13 +10,8 @@ import shutil
 import mayarv.test.maya as common
 from mayarv.path import Path
 
-class TestSceneRunner( unittest.TestCase ):
+class TestScene( unittest.TestCase ):
 	""" Test the database """
-
-	def setUp( self ):
-		""" Initialize test scene """
-		self.called = False				# reset callback check
-
 
 	#{ Callback methods
 	def cbgroup_zero( self, boolStatusRef, clientData ):
@@ -29,29 +24,24 @@ class TestSceneRunner( unittest.TestCase ):
 		self.called = True
 	#}
 
-	def _runMessageTest( self, listenerID, sceneMessageID, function, callbackTriggerFunc ):
-		""" Run a message test for the given sceneMessageID
-		@param callbackTriggerFunc: called to trigger the callback we are testing"""
-		sid = sceneMessageID
-		ncb = len( Scene.Callbacks._callbacks.get( sid , [] ) )
-
-		Scene.Callbacks.addListener( listenerID, function, sid )
-		assert len( Scene.Callbacks._callbacks[ sid ] ) == ncb + 1 
-
-		# make a new scene - we should be called
+	def _runMessageTest( self, mMessageID, eventfunc, callbackTriggerFunc ):
+		# register for event
+		
+		self.called = False 
 		callbackTriggerFunc()
-		assert self.called 
+		assert self.called
+		
+		# deregister
+		self.fail("todo: remove event")
 
-		Scene.Callbacks.removeListener( listenerID, sid )
-		assert len( Scene.Callbacks._callbacks[ sid ] ) == ncb 
 
 	def test_cbgroup_zero( self ):
 		"""mayarv.maya.scene: use group 0 check callbacks """
 		if env.getAppVersion( )[0] == 8.5:
 			return
 
-		self._runMessageTest( "test_two", om.MSceneMessage.kBeforeNewCheck,
-							 	lambda *args: TestSceneRunner.cbgroup_zero( self,*args ),
+		self._runMessageTest( om.MSceneMessage.kBeforeNewCheck,
+							 	lambda *args: self.cbgroup_zero(*args ),
 								Scene.new )
 
 	def test_cbgroup_one( self ):
@@ -61,14 +51,14 @@ class TestSceneRunner( unittest.TestCase ):
 
 		scenepath = common.get_maya_file( "sphere.ma" )
 		triggerFunc = lambda : Scene.open( scenepath, force = 1 )
-		self._runMessageTest( "test_one", om.MSceneMessage.kBeforeOpenCheck,
-							 	lambda *args: TestSceneRunner.cbgroup_one( self,*args ),
+		self._runMessageTest( om.MSceneMessage.kBeforeOpenCheck,
+							 	lambda *args: self.cbgroup_one(*args ),
 								triggerFunc )
 
 	def test_cbgroup_twp( self ):
 		"""mayarv.maya.scene: Test ordinary scene callbacks """
-		self._runMessageTest( "test_two", om.MSceneMessage.kBeforeNew,
-							 	lambda *args: TestSceneRunner.cbgroup_two( self,*args ),
+		self._runMessageTest( om.MSceneMessage.kBeforeNew,
+							 	lambda *args: self.cbgroup_two( *args ),
 								lambda: Scene.new( force = True ) )
 
 	def test_open( self ):
@@ -93,10 +83,4 @@ class TestSceneRunner( unittest.TestCase ):
 		Scene.save( tmppath / files[-1], force = 1 )
 
 		shutil.rmtree( tmppath )	# cleanup
-
-
-
-	def tearDown( self ):
-		""" Cleanup """
-		pass
 

@@ -138,7 +138,7 @@ class TestGeometryPerformance( unittest.TestCase ):
 			colors[cid] = c
 		# END for each color id
 	
-		m.setVertexColors(colors, vids, nodes.api.MDGModifier(), nodes.api.MFnMesh.kRGB)
+		m.setVertexColors(colors, vids, nodes.api.MDGModifier())
 		
 		elapsed = time.time() - st
 		nc = len(colors)
