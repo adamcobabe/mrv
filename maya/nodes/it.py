@@ -435,12 +435,9 @@ def iterSelectionList( sellist, filterType = api.MFn.kInvalid, predicate = lambd
 				else:
 					getDagPath( rval )
 				# END handle components
-			elif itemtype == kDNselectionItem:
+			else:
 				rval = MObject()
 				getDependNode( rval )
-			else:
-				# cannot handle the item, its animSelection item  - skip for now
-				raise NotImplementedError("todo anim selection item")
 			# END handle item type
 			
 			if asNode:

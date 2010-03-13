@@ -1,5 +1,14 @@
-import maya.standalone
-maya.standalone.initialize()
+# assure site is properly setup
+import sys
+import site
+# assure all sitelibs are available, important for OSX
+for syspath in sys.path:
+	if syspath.endswith('site-packages'):
+		site.addsitedir(syspath, set(sys.path))
+# END for each syspath
+
+# init maya
+import mayarv.maya
 
 import os
 

@@ -90,8 +90,32 @@ def init_modules( filepath, moduleprefix, recurse=False, self_module = None):
 #{ Initialization
 def _init_syspath( ):
 	""" Initialize the path such that additional modules can be found"""
+	import site
+	mrvroot = os.path.split( __file__ )[0]
+	
+	# fix sys.path: if there are empty entries and our cwd is the mrvroot
+	# we will be in trouble as we try to import our own 'maya' module which 
+	# will not 
+	if mrvroot == os.getcwd():
+		while '' in sys.path:
+			sys.path.remove('')
+		# END while we have whitespace
+	# END find and remove empty paths
+	
+	# process additional site-packackes
+	# The startup script may add additional site-package paths, but if these
+	# are non-default, they will not be handled which leads to an incomplete 
+	# environment. Hence we process them.
+	# Fortunately, the function handles multiple initializations gracefully
+	for syspath in sys.path:
+		if syspath.endswith('site-packages'):
+			site.addsitedir(syspath, set(sys.path))
+		# END found site-packages path
+	# END for each path to possibly initialize
+	
+	
 	# get external base
-	extbase = os.path.join( os.path.split( __file__ )[0], "ext" )
+	extbase = os.path.join( mrvroot, "ext" )
 
 	# pyparsing
 	pyparsing = os.path.join( extbase, "pyparsing", "src" )

@@ -40,10 +40,17 @@ Install nose in maya's python site-libararies.
 
 ---
 OSX
----
-As MayaRV will be run using ''mayapy'' on this system, it is required to install nose in the maya site libraries. 
+--- 
+'''TODO: Detail this, it uses the default system interpreter, any of its sitelibraries will work.'''
 
-'''TODO: Detail this'''
+Maya2011 and onward
+-------------------
+Starting with Maya2010, maya is delivered as 64 bit birnary. The default interpreter in your path should be 64 bits as well, but if it is not, you have to make some adjustments. 
+
+To allow the mrv startup script to find a python interpreter compiled for 64 bit, it will be sufficient to put a symbolic link to ``python2.6`` into your /usr/bin directory which points to the interpreter in question. 
+
+``mayapy`` in your maya installation directory will work in case you don't want to build your own one, using macports for instance. In that case you need to put a symbolic link named ``python2.6`` into your ``/Applications/Autodesk/maya2010/Maya.app/Contents/bin`` directory which needs to be inserted to the first position of your PATH. To run the unit tests, you might have to install ``nose`` into maya's site-packages directory.
+
 
 .. _runtestsdoc-label:
 Running Tests

@@ -137,6 +137,7 @@ class _OIShell( _PlugShell ):
 		if not isinstance( args[1], OIFacadePlug ):
 			raise AssertionError( "Invalid PlugType: Need %r, got %r (%s)" % ( OIFacadePlug, args[1].__class__ , args[1]) )
 
+		# NOTE deprecated in python 2.6 and without effect in our case
 		super( _OIShell, self ).__init__( *args )
 
 
@@ -187,9 +188,10 @@ class _IOShell( _PlugShell ):
 			self.iomap = dict() 							# plugname -> oiplug
 			super( _IOShell, self ).__init__(  )			# initialize empty
 		# END class mode
-		else:
+		#else:
+		# NOTE: This is deprecated in python 2.6 and doesnt do anything in our case
 			# we do not do anything special in shell mode ( at least value-wise
-			super( _IOShell, self ).__init__( *args )	# init base
+		#	super( _IOShell, self ).__init__( *args )	# init base
 		# END INSTANCE ( SHELL ) MODE
 
 	def __call__( self, *args ):
