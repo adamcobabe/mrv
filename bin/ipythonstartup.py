@@ -33,7 +33,7 @@ def setup_ipython():
 	
 	# make default imports
 	ip = IPython.ipapi.get()
-	ip.ex("from mayarv.maya.nodes import *")
+	ip.ex("from mayarv.maya.all import *")
 
 def init_ipython():
 	"""Get the main ipython system up and running"""

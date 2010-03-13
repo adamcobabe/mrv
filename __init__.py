@@ -68,7 +68,7 @@ def init_modules( filepath, moduleprefix, recurse=False, self_module = None):
 			continue
 
 		modulename = path.p_namebase
-		if modulename.startswith( "_" ) or modulename.startswith( "." ):
+		if modulename.startswith( "_" ) or modulename.startswith( "." ) or modulename == 'all':
 			continue
 
 		fullModuleName = moduleprefix + modulename
