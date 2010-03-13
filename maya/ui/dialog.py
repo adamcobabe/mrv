@@ -8,6 +8,7 @@ import base as uibase
 import maya.cmds as cmds
 import maya.utils as mutils
 import mayarv.util as util
+from mayarv.interface import iPrompt, iChoiceDialog, iProgressIndicator
 
 #{ Exceptions
 ################################################################################
@@ -44,7 +45,7 @@ class PromptDialog( Dialog ):
 		return self._text
 
 
-class Prompt( util.iPrompt ):
+class Prompt( iPrompt ):
 	"""Implements the prompt interface using a prompt dialog"""
 
 	def prompt( self ):
@@ -77,7 +78,7 @@ class Prompt( util.iPrompt ):
 		return self.confirmDefault
 
 
-class ChoiceDialog( util.iChoiceDialog ):
+class ChoiceDialog( iChoiceDialog ):
 	"""Maya implementation of the generic choice dialog interface"""
 
 	def getChoice( self ):
@@ -94,7 +95,7 @@ class ChoiceDialog( util.iChoiceDialog ):
 									ds = self.cancel_choice )
 
 
-class ProgressWindow( util.iProgressIndicator ):
+class ProgressWindow( iProgressIndicator ):
 	"""Simple progress window wrpping the default maya progress window"""
 	def __init__( self, **kwargs ):
 		"""Everything that iProgress indicator and Maya Progress Window support"""

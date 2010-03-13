@@ -5,7 +5,8 @@ Contains some basic  classes that are required to run the UI system
 @todo: more documentation
 """
 import maya.cmds as cmds
-from mayarv.util import capitalize, iDagItem
+from mayarv.util import capitalize
+from mayarv.interface import iDagItem
 from util import EventSenderUI
 import util as uiutil
 from mayarv.exc import MayaRVError

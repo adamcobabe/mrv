@@ -13,8 +13,8 @@ NOT: thisImportedClass BUT: module.thisImportedClass !
 """
 import base
 import mayarv.maya.undo as undo
-
 import mayarv.util as util
+from mayarv.interface import iDagItem 
 from mayarv.util import getPythonIndex
 import maya.OpenMaya as api
 import maya.cmds as cmds
@@ -237,7 +237,7 @@ class MTransformationMatrix( api.MTransformationMatrix, PatchMatrix ):
 ##########################
 
 #{ Basic Types
-class MPlug( api.MPlug, util.iDagItem ):
+class MPlug( api.MPlug, iDagItem ):
 	""" Wrap a maya plug to assure we always get Nodes ( instead of MObjects )
 	By overridding many object methods, the access to plugs becomes very pythonic"""
 	# __slots__ = []  	 apparently it will always have a dict

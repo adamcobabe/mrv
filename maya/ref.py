@@ -5,10 +5,10 @@ Allows convenient access and handling of references in an object oriented manner
 """
 from mayarv.path import Path
 from mayarv.util import And
-from mayarv.exc import *
+from mayarv.exc import MayaRVError
 from mayarv.maya.ns import Namespace, _isRootOf
 from mayarv.maya.util import noneToList
-from mayarv.util import iDagItem
+from mayarv.interface import iDagItem
 import undo
 import maya.cmds as cmds
 import maya.OpenMaya as api
