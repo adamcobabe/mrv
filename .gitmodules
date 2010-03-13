@@ -1,6 +1,6 @@
 [submodule "ext/networkx"]
 	path = ext/networkx
-	url = git://gitorious.org/networkx/networkxmirror.git
+	url = git://gitorious.org/~byron/networkx/mayarv-networkx.git
 [submodule "ext/pydot"]
 	path = ext/pydot
 	url = git://gitorious.org/pydot/mainlinemirror.git

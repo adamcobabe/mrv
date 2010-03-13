@@ -2,6 +2,7 @@
 """Test misc utility classes """
 import unittest
 from mayarv.util import *
+from mayarv.interface import *
 import re
 import weakref
 
