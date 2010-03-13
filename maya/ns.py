@@ -5,7 +5,8 @@ Allows convenient access and handling of namespaces in an object oriented manner
 """
 import undo
 from mayarv.maya.util import noneToList
-from mayarv.util import iDagItem, CallOnDeletion
+from mayarv.interface import iDagItem
+from mayarv.util import CallOnDeletion
 import maya.cmds as cmds
 import maya.OpenMaya as api
 import re

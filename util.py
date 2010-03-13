@@ -5,11 +5,7 @@ from collections import deque as Deque
 import weakref
 import inspect
 import itertools
-from interface import *
-
-############################
-#### Methods 		  	####
-##########################
+from interface import iDuplicatable
 
 def decodeString( valuestr ):
 	""" @return: int,float or str from string valuestr - a string that encodes a
@@ -65,7 +61,6 @@ def getPythonIndex( index, length ):
 	-1 will result in the last array element's index"""
 	if index > -1: return index
 	return length + index			# yes, length be better 1 or more ;)
-
 
 def copyClsMembers( sourcecls, destcls, overwritePrefix = None, forbiddenMembers = [] ):
 	"""Copy the members or sourcecls to destcls while ignoring member names in forbiddenMembers
@@ -181,10 +176,6 @@ def iterNetworkxGraph( graph, startItem, direction = 0, prune = lambda i,g: Fals
 		addToStack( stack, directionfunc( item ), branch_first, nd )
 	# END for each item on work stack
 
-
-############################
-#### Classes 		  	####
-##########################
 
 
 class Call( object ):
@@ -426,8 +417,10 @@ class Event( object ):
 class EventSender( object ):
 	"""Base class for all classes that want to provide a common callback interface
 	to supply event information to clients.
+	
 	Usage
 	-----
+	
 	Derive from this class and define your callbacks like :
 	event = Event( )
 	Call it using
@@ -472,7 +465,6 @@ class EventSender( object ):
 			pass
 		# END exception handling
 	
-
 
 class InterfaceMaster( iDuplicatable ):
 	"""Base class making the derived class an interface provider, allowing interfaces
@@ -612,7 +604,6 @@ class InterfaceMaster( iDuplicatable ):
 
 		# provide class variables ?
 
-
 	def getInterface( self, interfaceName ):
 		"""@return: an interface registered with interfaceName
 		@raise ValueError: if no such interface exists"""
@@ -632,8 +623,6 @@ class InterfaceMaster( iDuplicatable ):
 		return self._idict.keys()
 
 	#} END interface
-
-
 
 
 class Singleton(object) :
@@ -813,9 +802,6 @@ class MetaCopyClsMembers( type ):
 		return super( MetaCopyClsMembers, metacls ).__new__( metacls, name, bases, clsdict )
 
 
-###################
-## PREDICATES ###
-################
 #{ Predicates
 
 # general boolean
