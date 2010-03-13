@@ -25,21 +25,20 @@ class TestScene( unittest.TestCase ):
 	#}
 
 	def _runMessageTest( self, eventName, eventfunc, callbackTriggerFunc ):
-		
-		event_inst = getattr(Scene, eventName)
-		assert event_inst._callbackId is None
+		sc = Scene()	# singleton
+		event_inst = getattr(sc, eventName)
+		assert event_inst._getCallbackID(sc) is None
 		
 		# register for event
 		setattr(Scene(), eventName, eventfunc)
+		assert event_inst._getCallbackID(sc) is not None
 		
 		self.called = False 
 		callbackTriggerFunc()
 		assert self.called
 		
-		
-		assert event_inst._callbackId is not None
 		getattr(Scene(), eventName).remove(eventfunc)
-		assert event_inst._callbackId is None
+		assert event_inst._getCallbackID(sc) is None
 
 	def test_cbgroup_zero( self ):
 		"""mayarv.maya.scene: use group 0 check callbacks """

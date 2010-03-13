@@ -33,7 +33,6 @@ class _SceneEvent( mutil.CallbackEventBase ):
 	use_weakref = False
 	remove_on_error = True
 	
-	# weakref sender as Scene is a singleton anyway
 	weakref_sender = True
 	#) END configuration
 

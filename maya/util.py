@@ -102,7 +102,6 @@ class Mel(util.Singleton):
 			strArgs = map( pythonToMel, args)
 
 			cmd = '%s(%s)' % ( command, ','.join( strArgs ) )
-			#print cmd
 			try:
 				return mm.eval(cmd)
 			except RuntimeError, msg:
@@ -133,7 +132,6 @@ class Mel(util.Singleton):
 	def mprint(*args):
 		"""mel print command in case the python print command doesn't cut it. i have noticed that python print does not appear
 		in certain output, such as the rush render-queue manager."""
-		#print r"""print (%s\\n);""" % pythonToMel( ' '.join( map( str, args)))
 		mm.eval( r"""print (%s);""" % pythonToMel( ' '.join( map( str, args))) + '\n' )
 
 	@staticmethod
@@ -360,44 +358,81 @@ class CallbackEventBase( util.Event ):
 	be deregistered. Its worth knowing that the eventSender in question is strongly 
 	bound to his callback event, so it cannot be deleted while the event is active."""
 
-	#{ Configuration 
-	# by default, owner of this Event ( the Sender ) will be strongly bound to the 
-	# callback so that it cannot go out of scope until the callback has been 
-	# deregistered. Set this True to weakref the sender, hence it can go out of
-	# scope
-	weakref_sender = False
-	#} END configuration 
+	#{ Utility Classes
+	class CBStorageFunction(object):
+		__slots__ = '_callbackID'
+		def __init__(self, callbackID=None):
+			self.setCallbackID(callbackID)
+		
+		def setCallbackID(self, callbackID):
+			self._callbackID = callbackID
+		
+		def getCallbackID(self):
+			return self._callbackID
+		
+		def removeCallback(self):
+			if self._callbackID:
+				api.MMessage.removeCallback(self._callbackID)
+				self._callbackID = None
+			# END 
+		
+		def __call__(self, *args, **kwargs):
+			return self._callbackID
+	#} END utility classes
 
 	def __init__( self, eventId, **kwargs ):
 		"""Initialize our instance with the callbackID we are to represent."""
 		super( CallbackEventBase, self ).__init__( **kwargs )
 		self._eventID = eventId
-		self._callbackId = None
 		
+	#{ Subclass Implementation Needed
 	def _getRegisterFunction(self, eventID):
 		"""@return: MMessage::register* compatible callback function which can be 
 		used to register the given eventID"""
 		raise NotImplementedError("To be implemented in subclass")
 
-	def _removeCallback(self):
-		"""Removes the registered MMessage callback if possible"""
-		if self._callbackId:
-			api.MMessage.removeCallback(self._callbackId)
-			self._callbackId = None
-		# END remove callback
+	#} END subclass implementation needed
 
+	#{ CallbackID handling
+	def _storeCallbackID(self, inst, callbackID):
+		"""Store the given callbackID in the event sender instance. 
+		We do that by registering it as function for the given instance which 
+		returns the callback ID on call"""
+		storage = self._getCallbackIDStorage(inst, create=True)
+		storage.setCallbackID(callbackID)
+		
+	def _getCallbackIDStorage(self, inst, create=False):
+		"""@return: Callback storage function if it exists or None
+		@param create: if True, the storage will be created if needed, hence 
+		you will always receive a valid storage"""
+		functions = self._getFunctionSet(inst)
+		storage_functions = [ cb for cb in functions if isinstance(cb, self.CBStorageFunction) ]
+		if not storage_functions:
+			if not create:
+				return None
+			
+			sf = self.CBStorageFunction()
+			functions.add(sf)
+			return sf
+		# END handle storage does not exists
+		
+		assert len(storage_functions) == 1, "Expecting only one storage function, found %i" % len(storage_functions)
+		return storage_functions[0]
+		
+	def _getCallbackID(self, inst):
+		"""@return: stored callback ID or None"""
+		storage = self._getCallbackIDStorage(inst)
+		if storage is None:
+			return None
+		return storage.getCallbackID()
+		
+	#} END handle callback ID
+
+	
 	def send( self, inst, *args, **kwargs ):
 		"""Sets our instance prior to calling the super class
 		@note: must not be called manually"""
 		# fake the instance
-		if isinstance(inst, weakref.ReferenceType):
-			inst = inst()
-			# stop distpatching if instance is out of scope
-			if inst is None:
-				self._removeCallback()
-				return
-			# END handle inst out of scope
-		# END handle weakrefs 
 		self._last_inst_ref = weakref.ref(inst)
 		super(CallbackEventBase, self).send(*args, **kwargs)
 
@@ -408,13 +443,9 @@ class CallbackEventBase( util.Event ):
 		if not eventset:
 			reg_method = self._getRegisterFunction(self._eventID)
 			
-			myinst = inst
-			if self.weakref_sender:
-				myinst = weakref.ref(inst)
-			# END handle weakref
-			
-			dyncall = lambda *args, **kwargs: self.send(myinst, *args, **kwargs)
-			self._callbackId = reg_method(self._eventID, dyncall)
+			dyncall = lambda *args, **kwargs: self.send(inst, *args, **kwargs)
+			callbackID = reg_method(self._eventID, dyncall)
+			self._storeCallbackID(inst, callbackID)
 		# END create event
 
 		super( CallbackEventBase, self ).__set__( inst, eventfunc )
@@ -425,7 +456,12 @@ class CallbackEventBase( util.Event ):
 		inst = self._get_last_instance()
 		functions = self._getFunctionSet( inst )
 		
-		if not functions and self._callbackId:
-			self._removeCallback()
+		# if there is only one item left, this should be our storage function
+		if len(functions) == 1:
+			cbstorage = iter(functions).next()
+			assert isinstance(cbstorage, self.CBStorageFunction)
+			
+			cbstorage.removeCallback()
+			functions.remove(cbstorage)
 		# END dergister event
 		

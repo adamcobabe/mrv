@@ -615,6 +615,10 @@ The 'Scene' is a singleton class which may be used to interact with the scene an
 	>>> assert len(files) == 2
 	>>> assert files[0] == empty_scene
 	
+It is important to remove callbacks once you are done with them to allow the maya callbacks to be cleaned up properly::
+	>>> mrv.Scene.beforeNew.remove(beforeAndAfterNewCB)
+	>>> mrv.Scene.afterNew.remove(beforeAndAfterNewCB)
+	
 ====
 Undo
 ====

@@ -497,5 +497,8 @@ class TestTransform( unittest.TestCase ):
 		assert len(files) == 2
 		assert files[0] == empty_scene
 		
+		mrv.Scene.beforeNew.remove(beforeAndAfterNewCB)
+		mrv.Scene.afterNew.remove(beforeAndAfterNewCB)
+		
 		
 		
