@@ -95,8 +95,9 @@ def _init_syspath( ):
 	
 	# fix sys.path: if there are empty entries and our cwd is the mrvroot
 	# we will be in trouble as we try to import our own 'maya' module which 
-	# will not 
-	if mrvroot == os.getcwd():
+	# will not
+	# realpath to handle links correctly
+	if os.path.realpath(mrvroot) == os.path.realpath(os.getcwd()):
 		while '' in sys.path:
 			sys.path.remove('')
 		# END while we have whitespace

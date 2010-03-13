@@ -1,5 +1,5 @@
 #!/bin/bash
-# imayarv [ mayaversion ] [ args ]
+# imrv [ mayaversion ] [ args ]
 # Maya version can be 8.5, 2008, 2009 and so forth
 # 
 # start a python shell suitable to run maya and launch ipython in it
@@ -16,4 +16,4 @@ fi
 
 # determine which file to start based on existing ones, prefer .py
 startupfile=`[[ -f $base/ipythonstartup.py ]] && echo $base/ipythonstartup.py || echo $base/ipythonstartup.pyc`
-$base/mayarv $firstArg -i $startupfile $@
+$base/mrv $firstArg -i $startupfile $@
