@@ -74,6 +74,21 @@ With MayaRV, events are properties of the class prefixed with *e_*. You can assi
 Show the window to see a simple UI with two vertically arranged buttons, if 'one' is pressed, 'two' will be affected::
 	>>> win.show()
 
+Managing Instance Lifetime
+==========================
+The user interface elements created from within python are only wrappers, hence they are not linked to the lifetime of the actual UI element by default.
+
+This implies that they will be destroyed once they go out of scope ( and the pyhton reference count reaches zero ).
+
+In conjunction with events, this can be fatal as the event receiver might just have been deleted. To prevent this, all ``e_eventName`` events will strongly bind their event receivers, keeping the wrapper objects alive. This is possible by passing a strong reference of the event sender object to the maya event, which will then dispatch the event to all strongly bound event receivers.
+
+Once the UI gets deleted though, maya does *not* properly destroy the callback objects which binds the event sender, hence it would never go out of scope, as well as its event receivers will keep floating around.
+
+A partial aid is implemented with the ``uiDeleted`` callback. If overridden, it should be used to register own events and to remove own event receivers. 
+Nonetheless, your own instance is unlikely to ever be deleted as the callback registered to maya still holds a reference to your instance, although it will never fire. Its equivalent to a memory leak.
+
+This means you should refrain from storing large amounts of data on an instance which also registers events using ``e_eventName``, and if so, to implemented the ``uiDeleted`` method to release all your memory yourself as good as possible, by deleting your respective member variables.
+
 Building Modular User Interfaces
 =================================
 With these basics, you are already able to define user interfaces and make them functional. Quickly you will realize that you will always end up with first defining the UI and events, and secondly you define individual controls are supposed to behave on user interaction. 

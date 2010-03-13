@@ -461,6 +461,18 @@ class EventSender( object ):
 		"""@return: list of event ids that exist on our class"""
 		return [ name for name,member in inspect.getmembers( cls, lambda m: isinstance( m, Event ) ) ]
 
+	def clearAllEvents(self):
+		"""Remove all event receivers for all events registered in this instance.
+		@note: This usually doesn't need to be called directly, but might be useful 
+		in conjunction with other system that do not release your strongly bound 
+		instance"""
+		try:
+			delattr(self, Event._inst_event_attr)
+		except AttributeError:
+			pass
+		# END exception handling
+	
+
 
 class InterfaceMaster( iDuplicatable ):
 	"""Base class making the derived class an interface provider, allowing interfaces

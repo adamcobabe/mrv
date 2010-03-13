@@ -186,8 +186,18 @@ class NamedUI( unicode, BaseUI , iDagItem, EventSenderUI ):
 				raise RuntimeError( "Creation of %s using melcmd %s failed: %s" % ( cls, cls.__melcmd__, str( e ) ) )
 			# END name handling
 		# END auto-creation as required
-
-		return unicode.__new__( cls, name )
+		
+		inst = unicode.__new__( cls, name )
+		
+		# UI DELETED HANDLING
+		# check for ui deleted override on subclass. If so, we initialize a run-once event
+		# to get notification. We use cmds for this as we can spare the callbackID handling 
+		# in that case ( run-once is not available in the API )
+		if cls.uiDeleted != NamedUI.uiDeleted:
+			cmds.scriptJob(uiDeleted=(name, inst.uiDeleted), runOnce=1) 
+		# END register ui deleted event
+		
+		return inst
 
 	def __repr__( self ):
 		return u"%s('%s')" % ( self.__class__.__name__, self )
@@ -219,7 +229,6 @@ class NamedUI( unicode, BaseUI , iDagItem, EventSenderUI ):
 		# END for each forbidden key
 
 		super( NamedUI, self ).__init__( *args, **kwargs )
-		#return BaseUI.__init__( self, *args, **kwargs )
 	#} END overridden methods
 
 	#{ Hierachy Handling
@@ -259,7 +268,20 @@ class NamedUI( unicode, BaseUI , iDagItem, EventSenderUI ):
 
 	#}	END hierarchy handling
 
-
+	def uiDeleted(self):
+		"""If overridden in subclass, it will be called once the UI gets deleted 
+		within maya ( i.e. the user closed the window )eee
+		The base implementation assures that all event-receivers that are bound to 
+		your events will be freed, allowing them to possibly be destroyed as well.
+		
+		Use this callback to register yourself from all your event senders, then call 
+		the base class method.
+		@note: This is not related to the __del__ method of your object. Its worth
+		noting that your instance will be strongly bound to a maya event, hence 
+		your instance will exist as long as your user interface element exists 
+		within maya."""
+		self.clearAllEvents()
+	
 	def type( self ):
 		"""@return: the python class able to create this class
 		@note: The return value is NOT the type string, but a class """

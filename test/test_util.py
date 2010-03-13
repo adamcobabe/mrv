@@ -292,3 +292,10 @@ class TestDAGTree( unittest.TestCase ):
 		sw = weakref.ref(sender)
 		del(sender)
 		assert sw() is None
+		
+		
+		# clear all events
+		sender = Sender()
+		sender.estrong = Sender.needs_sender
+		sender.clearAllEvents()
+		assert not sender.estrong._getFunctionSet(sender)
