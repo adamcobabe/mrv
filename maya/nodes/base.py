@@ -1101,8 +1101,8 @@ class DependNode( Node, iDuplicatable ):		# parent just for epydoc -
 		depfn = api.MFnDependencyNode( self.getMObject() )
 
 		op = undo.GenericOperation( )
-		op.addDoit( depfn.setLocked, state )
-		op.addUndoit( depfn.setLocked, curstate )
+		op.setDoitCmd( depfn.setLocked, state )
+		op.setUndoitCmd( depfn.setLocked, curstate )
 		op.doIt()
 
 
@@ -1363,8 +1363,8 @@ class DagNode( Entity, iDagItem ):	# parent just for epydoc
 		# The method will not fail if the child cannot be found in child list
 		# just go ahead
 
-		op.addDoit( dagfn.removeChild, childNode._apiobj )
-		op.addUndoit( self.addChild, childNode, keepExistingParent=True )	# TODO: add child to position it had
+		op.setDoitCmd( dagfn.removeChild, childNode._apiobj )
+		op.setUndoitCmd( self.addChild, childNode, keepExistingParent=True )	# TODO: add child to position it had
 		op.doIt()
 
 		return NodeFromObj( childNode._apiobj )	# will attach A new dag path respectively - it will just pick the first one it gets
@@ -2600,8 +2600,8 @@ class Transform( DagNode ):		# derived just for epydoc
 		curtransformation = self.transformation()
 		setter = self._api_set
 		op = undo.GenericOperation()
-		op.addDoit( setter, transformation )
-		op.addUndoit( setter, curtransformation )
+		op.setDoitCmd( setter, transformation )
+		op.setUndoitCmd( setter, curtransformation )
 		op.doIt()
 
 	#} END mfntransform overrides

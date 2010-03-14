@@ -10,6 +10,7 @@ from mayarv.maya.nodes import *
 from mayarv.maya.ns import *
 from mayarv.maya.ref import FileReference
 import mayarv.maya as mrv
+import mayarv.maya.undo as undo
 import __builtin__
 set = __builtin__.set		# fix set, it was overwritten by the set module when importing nodes *
 
@@ -501,4 +502,37 @@ class TestTransform( unittest.TestCase ):
 		mrv.Scene.afterNew.remove(beforeAndAfterNewCB)
 		
 		
+		# UNDO
+		######
+		@undoable
+		def undoable_func( delobj ):
+			p.tx > p.tz
+			delobj.delete()
+		
+		t = Transform()
+		assert not p.tx.isConnectedTo(p.tz)
+		assert t.isValid() and t.isAlive()
+		undoable_func(t)
+		assert p.tx >= p.tz
+		assert not t.isValid() and t.isAlive()
+		
+		cmds.undo()
+		assert not p.tx.isConnectedTo(p.tz)
+		assert t.isValid() and t.isAlive()
+		
+		# Advanced Uses #
+		ur = undo.UndoRecorder()
+		ur.startRecording()
+		p.tx > p.ty
+		p.tx > p.tz
+		ur.stopRecording()
+		p.t > t.t
+		
+		assert p.tx >= p.ty
+		assert p.tx >= p.tz
+		assert p.t >= t.t
+		ur.undo()
+		assert not p.tx >= p.ty
+		assert not p.tx >= p.tz
+		assert p.t >= t.t
 		

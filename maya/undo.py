@@ -517,13 +517,13 @@ class GenericOperation( Operation ):
 		self._undoargs = None
 		self._undokwargs = None
 
-	def addDoit( self, func, *args, **kwargs ):
+	def setDoitCmd( self, func, *args, **kwargs ):
 		"""Add the doit call to our instance"""
 		self._dofunc = func
 		self._doargs = args
 		self._dokwargs = kwargs
 
-	def addUndoit( self, func, *args, **kwargs ):
+	def setUndoitCmd( self, func, *args, **kwargs ):
 			"""Add the undoit call to our instance"""
 			self._undofunc = func
 			self._undoargs = args

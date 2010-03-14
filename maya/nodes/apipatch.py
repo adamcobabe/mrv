@@ -374,8 +374,8 @@ class MPlug( api.MPlug, iDagItem ):
 	def _handleAttrSet( self, state, getfunc, setfunc ):
 		"""Generic attribute handling"""
 		op = undo.GenericOperation()
-		op.addDoit( setfunc, state )
-		op.addUndoit( setfunc, getfunc( ) )
+		op.setDoitCmd( setfunc, state )
+		op.setUndoitCmd( setfunc, getfunc( ) )
 		op.doIt()
 
 	@undoable
@@ -777,8 +777,8 @@ class MPlug( api.MPlug, iDagItem ):
 					curdata = api.MObject()
 				op = undo.GenericOperation( )
 
-				op.addDoit( setattrfunc, self, data )
-				op.addUndoit( setattrfunc, self, curdata )
+				op.setDoitCmd( setattrfunc, self, data )
+				op.setUndoitCmd( setattrfunc, self, curdata )
 
 				op.doIt()
 			# END wrapped method
@@ -789,8 +789,8 @@ class MPlug( api.MPlug, iDagItem ):
 				curdata = getattrfunc( self )
 				op = undo.GenericOperation( )
 
-				op.addDoit( setattrfunc, self, data )
-				op.addUndoit( setattrfunc, self, curdata )
+				op.setDoitCmd( setattrfunc, self, data )
+				op.setUndoitCmd( setattrfunc, self, curdata )
 
 				op.doIt()
 			# END wrappedSetAttr method

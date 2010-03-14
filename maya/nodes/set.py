@@ -162,8 +162,8 @@ class ObjectSet:
 			doitfunc = tmp
 		# END variable switching
 			
-		op.addDoit( doitfunc, *args )
-		op.addUndoit( undoitfunc, *args )
+		op.setDoitCmd( doitfunc, *args )
+		op.setUndoitCmd( undoitfunc, *args )
 		op.doIt( )
 		
 		return self._checkMemberAddResult( member, component, mode, ignore_failure, True )
@@ -201,8 +201,8 @@ class ObjectSet:
 		# END function swapping
 		
 		op = undo.GenericOperation()	
-		op.addDoit( doitfunc, sellist )
-		op.addUndoit( undoitfunc, sellist )
+		op.setDoitCmd( doitfunc, sellist )
+		op.setUndoitCmd( undoitfunc, sellist )
 		op.doIt()
 		
 		return self._checkMemberAddResult( sellist, None, mode, ignore_failure, False )

@@ -106,8 +106,8 @@ class Namespace( unicode, iDagItem ):
 			# put operation on the queue - as we create empty namespaces, we can delete
 			# them at any time
 			op = undo.GenericOperation( )
-			op.addDoit( cmds.namespace, p=base.getParent() , add=base.getBasename() )
-			op.addUndoit(cmds.namespace, rm=base )
+			op.setDoitCmd( cmds.namespace, p=base.getParent() , add=base.getBasename() )
+			op.setUndoitCmd(cmds.namespace, rm=base )
 			op.doIt( )
 		# END for each token
 
@@ -192,8 +192,8 @@ class Namespace( unicode, iDagItem ):
 		@return: self"""
 		# THIS IS FASTER !
 		melop = undo.GenericOperation( )
-		melop.addDoit( cmds.namespace, set = self )
-		melop.addUndoit( cmds.namespace, set = Namespace.getCurrent() )
+		melop.setDoitCmd( cmds.namespace, set = self )
+		melop.setUndoitCmd( cmds.namespace, set = Namespace.getCurrent() )
 		melop.doIt()
 		
 		return self

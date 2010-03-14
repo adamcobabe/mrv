@@ -50,8 +50,8 @@ def undoable_in_double3_as_vector(function, vec_old_value, vec_new_value):
 	getX method
 	@param vec_new_value: vector with new value that is to be set"""
 	op = undo.GenericOperation()
-	op.addDoit( in_double3_as_vector, function, vec_new_value)
-	op.addUndoit( in_double3_as_vector, function, vec_old_value )
+	op.setDoitCmd( in_double3_as_vector, function, vec_new_value)
+	op.setUndoitCmd( in_double3_as_vector, function, vec_old_value )
 	return op.doIt()
 	
 
