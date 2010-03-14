@@ -136,25 +136,6 @@ def _init_syspath( ):
 # end __init_syspath
 
 
-def _init_decorators( ):
-	"""Installs general decorators
-
-	Decorators will help maintaining the system - this method installs
-	them in the __builtin__ namespace to make them available to all L{mayarv}
-	classes """
-	import decorator
-
-	pred = lambda x: isfunction( x ) and not x.func_name.startswith( "_" )
-	decorator_functions = [ func for func in decorator.__dict__.itervalues() if pred( func ) ]
-
-	# put decoratrors into __builtin__ namespace
-	for func in decorator_functions:
-		__builtin__.__dict__[ func.func_name ] = func
-
-	# add the interface class to the builtin namespace also
-	__builtin__.__dict__[ 'interface' ] = decorator.interface
-
-
 def _init_configProvider( ):
 	""" Install the configuration provider system
 
@@ -195,7 +176,6 @@ def _init_python( ):
 # INITIALIZE
 #############
 _init_syspath( )
-_init_decorators( )
 _init_configProvider( )
 _init_internationalization( )
 _init_logging( )
