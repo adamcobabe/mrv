@@ -6,9 +6,12 @@ data within maya scenes.
 
 @todo: more documentation, how to use the system
 """
+import os
 import mayarv.maya.undo as undo
 from mayarv.util import iDuplicatable
 import maya.cmds as cmds
+	
+__all__ = ("StorageBase", "StorageNode", "PyPickleData")
 
 # this __import__ is absolutely required as - for some reason and in conjunction 
 # with plugin loading - the 'typ' module get initialized twice if 
@@ -24,19 +27,9 @@ def __initialize( nodes_module ):
 	"""Assure our plugin is loaded - called during module intialization.
 	Its a tough time to run, it feels more like bootstrapping as we initialize
 	ourselves although the system is not quite there yet."""
-	import os
-
 	pluginpath = os.path.splitext( __file__ )[0] + ".py"
 	if not cmds.pluginInfo( pluginpath, q=1, loaded=1 ):
 		cmds.loadPlugin( pluginpath )
-
-	# We simply inherit from the DependNode, and thus do not need to be added
-	# to the custom type system
-
-	# register plugin data in the respective class
-	nodes_module.registerPluginDataTrackingDict( PyPickleData.kPluginDataId, sys._maya_pyPickleData_trackingDict )
-	
-	
 
 #} END initialization
 
@@ -52,16 +45,11 @@ import copy
 
 #{ Storage Plugin
 
-####################
-## Tracking Dict
+# TRACKING DICT
 # assure we only have it once
 if not hasattr( sys, "_maya_pyPickleData_trackingDict" ):
-	sys._maya_pyPickleData_trackingDict = {}
+	sys._maya_pyPickleData_trackingDict = dict()
 
-
-############################
-## Storage Node
-######################
 
 def addStorageAttributes( cls, dataType ):
 	""" Call this method with your MPxNode derived class to add attributes
@@ -101,10 +89,10 @@ def addStorageAttributes( cls, dataType ):
 	return cls.aData
 
 
-class StorageMayaNode( mpx.MPxNode ):
+class StoragePluginNode( mpx.MPxNode ):
 	""" Base Class defining the storage node data interfaces  """
 
-	kPluginNodeTypeName = "StorageNode"
+	kPluginNodeTypeName = "storageNode"
 	kPluginNodeId = api.MTypeId( 0x0010D134 )
 
 	aData = api.MObject()
@@ -114,19 +102,14 @@ class StorageMayaNode( mpx.MPxNode ):
 
 	@staticmethod
 	def creator( ):
-		return mpx.asMPxPtr( StorageMayaNode() )
+		return mpx.asMPxPtr( StoragePluginNode() )
 
 
-def initStorageMayaNodeAttrs( ):
+def initStoragePluginNodeAttrs( ):
 	"""Called to initialize the attributes of the storage node"""
-	addStorageAttributes( StorageMayaNode, PyPickleData.kPluginDataId )
+	addStorageAttributes( StoragePluginNode, PyPickleData.kPluginDataId )
 
 
-
-############################
-## Custom Data
-##################
-# Used as custom storage
 class PyPickleData( mpx.MPxData ):
 	"""Allows to access a pickled data object natively within a maya file.
 	In ascii mode, the pickle will be encoded into string data, in binary mode
@@ -214,7 +197,6 @@ class PyPickleData( mpx.MPxData ):
 			intval = scriptutil.getInt( intptr )
 
 			# convert to chars - endianess should be taken care of by python
-			#for shift in [ 24, 16, 8, 0 ]:
 			for shift in shiftlist:
 				sio.write( chr( ( intval >> shift ) & bitmask ) )
 			# END for each byte
@@ -227,7 +209,6 @@ class PyPickleData( mpx.MPxData ):
 		"""cPickle to cStringIO, encode with base64 encoding"""
 		self._writeToStream( out, False )
 
-
 	def readASCII(self, args, lastParsedElement ):
 		"""Read base64 element and decode to cStringIO, then unpickle"""
 		parsedIndex = api.MScriptUtil.getUint( lastParsedElement )
@@ -239,8 +220,6 @@ class PyPickleData( mpx.MPxData ):
 
 		# update tracking dict
 		sys._maya_pyPickleData_trackingDict[ mpx.asHashable( self ) ] = self.__data
-
-
 
 	def copy( self, other ):
 		"""Copy other into self - allows copy pointers as maya copies the data each
@@ -260,18 +239,18 @@ class PyPickleData( mpx.MPxData ):
 		return self.kDataName
 
 
-
-# initialize the plug-in
 def initializePlugin(mobject):
 	mplugin = mpx.MFnPlugin( mobject )
 	mplugin.registerData( PyPickleData.kDataName, PyPickleData.kPluginDataId, PyPickleData.creator )
-	mplugin.registerNode( 	StorageMayaNode.kPluginNodeTypeName, StorageMayaNode.kPluginNodeId, StorageMayaNode.creator, initStorageMayaNodeAttrs, mpx.MPxNode.kDependNode )
+	mplugin.registerNode( 	StoragePluginNode.kPluginNodeTypeName, StoragePluginNode.kPluginNodeId, StoragePluginNode.creator, initStoragePluginNodeAttrs, mpx.MPxNode.kDependNode )
+	
+	# register plugin data in the respective class
+	nodes.registerPluginDataTrackingDict( PyPickleData.kPluginDataId, sys._maya_pyPickleData_trackingDict )
 
-# Uninitialize script plug-in
 def uninitializePlugin( mobject ):
 	mplugin = mpx.MFnPlugin( mobject )
 	mplugin.deregisterData( PyPickleData.kPluginDataId )
-	mplugin.deregisterNode( StorageMayaNode.kPluginNodeId )
+	mplugin.deregisterNode( StoragePluginNode.kPluginNodeId )
 
 #} END plugin
 
@@ -622,7 +601,6 @@ class StorageBase( iDuplicatable ):
 			return
 		else:
 			# if this is the last set, remove the partition as well
-			#su = undo.StartUndo()			# make the following operations atomic
 			if len( self.getSetsByID( dataID ) ) == 1:
 				self.setPartition( dataID, False )
 
@@ -691,9 +669,6 @@ class StorageBase( iDuplicatable ):
 		# nothing found, there is no partition yet
 		return None
 
-
-
-
 	#} END set handling
 
 	# Query General
@@ -735,7 +710,4 @@ class StorageNode( nodes.DependNode, StorageBase ):
 
 	#} END overridden methods
 
-
-#}
-
-
+#} END storage access

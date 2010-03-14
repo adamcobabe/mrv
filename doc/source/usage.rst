@@ -669,3 +669,39 @@ This allows for interesting uses considering that you can, at any time undo, you
 	>>> assert not p.tx >= p.tz
 	>>> assert p.t >= t.t
 
+	
+===========
+Persistence
+===========
+Being able to use python data natively within your program is a great plus - unfortunately there is no default way to store that data in a native format within the maya scene. Everyone who desires to store python data would need to implement marshalling functions to convert python data to maya compatible data to be stored in nodes, and vice versa, which is timeconsuming and a possible source of bugs.
+
+MayaRV tackles the problem by providing a generic storage node which comes as part of the ``nodes`` package. It is implemented as a plugin node which allows to store data and connections flexibly, its access by a convenient python interface::
+	>>> import tempfile
+	>>> did = 'dataid'
+	>>> sn = StorageNode()
+	>>> snn = sn.getName()
+	>>> pd = sn.getPythonData( did, autoCreate = True )
+		
+	>>> pd[0] = "hello"
+	>>> pd['l'] = [1,2,3]
+		
+	>>> tmpscene = tempfile.gettempdir() + "/persistence.ma"
+	>>> mrv.Scene.save(tmpscene)
+	>>> mrv.Scene.open(tmpscene)
+		
+	>>> sn = Node(snn)
+	>>> pd = sn.getPythonData( did )
+	>>> assert len(pd) == 2
+	>>> assert pd[0]  == "hello"
+	>>> assert pd['l'] == [1,2,3]
+		
+Additionally you may organize objects in sets, and these sets in partitions::
+	>>> objset = sn.getObjectSet(did, 0, autoCreate=True)
+	>>> objset.add(Transform())
+		
+	>>> mrv.Scene.save(tmpscene)
+	>>> mrv.Scene.open(tmpscene)
+		
+	>>> assert len(Node(snn).getObjectSet(did, 0)) 
+	
+The ``mayarv.maya.nodes.storage`` module is built to make it easy to create own node types that are compatible to the storage interface, which also enables you to write your own and more convenient interface to access data.

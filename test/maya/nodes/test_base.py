@@ -11,6 +11,7 @@ from mayarv.maya.ns import *
 from mayarv.maya.ref import FileReference
 import mayarv.maya as mrv
 import mayarv.maya.undo as undo
+import tempfile
 import __builtin__
 set = __builtin__.set		# fix set, it was overwritten by the set module when importing nodes *
 
@@ -535,4 +536,35 @@ class TestTransform( unittest.TestCase ):
 		assert not p.tx >= p.ty
 		assert not p.tx >= p.tz
 		assert p.t >= t.t
+		
+		
+		# PERSISTENCE
+		#############
+		did = 'dataid'
+		sn = StorageNode()
+		snn = sn.getName()
+		pd = sn.getPythonData( did, autoCreate = True )
+		
+		pd[0] = "hello"
+		pd['l'] = [1,2,3]
+		
+		tmpscene = tempfile.gettempdir() + "/persistence.ma"
+		mrv.Scene.save(tmpscene)
+		mrv.Scene.open(tmpscene)
+		
+		sn = Node(snn)
+		pd = sn.getPythonData( did )
+		assert len(pd) == 2
+		assert pd[0]  == "hello"
+		assert pd['l'] == [1,2,3]
+		
+		objset = sn.getObjectSet(did, 0, autoCreate=True)
+		objset.add(Transform())
+		
+		mrv.Scene.save(tmpscene)
+		mrv.Scene.open(tmpscene)
+		
+		assert len(Node(snn).getObjectSet(did, 0)) == 1
+		
+		os.remove(tmpscene)
 		

@@ -3,15 +3,12 @@
 from mayarv.test.maya import *
 import mayarv.maya.nodes as nodes
 import mayarv.maya as bmaya
+from mayarv.path import Path
 import maya.cmds as cmds
 import tempfile
-from mayarv.path import Path
-import mayarv.test.maya.nodes as ownpackage
+
 
 class TestStorage( unittest.TestCase ):
-	""" Test general maya framework """
-
-
 	def test_storagePickleData( self ):
 		"""mayarv.maya.nodes.storage: test pickle data"""
 		tmpdir = Path( tempfile.gettempdir() )
@@ -37,10 +34,9 @@ class TestStorage( unittest.TestCase ):
 
 			# BASIC DATA CREATION AND EDITING
 			####################################
-			storagenode = nodes.createNode( "storage", "StorageNode" )
+			storagenode = nodes.createNode( "storage", "storageNode" )
 			refcomparator = nodes.createNode( "trans", "transform" )
 
-			# fail as it does not yet exist
 			pyval = storagenode.getPythonData( "test", autoCreate = True )
 
 
@@ -124,7 +120,7 @@ class TestStorage( unittest.TestCase ):
 	def test_storageAttributeHanlding( self ):
 		"""mayarv.maya.nodes.storage: test of the attribute accesss on storages is working"""
 		bmaya.Scene.new( force = True )
-		snode = nodes.createNode( "storage",  "StorageNode" )
+		snode = nodes.createNode( "storage",  "storageNode" )
 
 		# autocreate off
 		self.failUnlessRaises( AttributeError, snode.getPythonData, "test" )
@@ -172,7 +168,7 @@ class TestStorage( unittest.TestCase ):
 	def test_storageSetHandling( self ):
 		"""mayarv.maya.nodes.storage: test built-in sethandling"""
 		bmaya.Scene.new( force = True )
-		snode = nodes.createNode( "storage",  "StorageNode" )
+		snode = nodes.createNode( "storage",  "storageNode" )
 
 		# SIMPLE SET
 		did = "objset"
