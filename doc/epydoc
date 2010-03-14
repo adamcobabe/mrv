@@ -4,4 +4,4 @@
 # Unfortunately, it will fail to import quite a lot of modules
 # TODO: get the path right
 export PYTHONPATH=${PYTHONPATH:+$PYTHONPATH:}../..:../ext/pyparsing:../ext/pydot:../ext/networkx
-epydoc $@ --config=epydoc.cfg --inheritance grouped
+/usr/bin/epydoc $@ --config=epydoc.cfg --inheritance grouped

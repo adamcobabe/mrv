@@ -61,3 +61,49 @@ Building Docs
 
 Windows
 =======
+
+
+====================
+Development Workflow
+====================
+suggest TDD, BTD
+
+====================
+Debugging Utilitites
+====================
+pdb
+utiltiies
+imrv
+
+===============
+Common Mistakes
+===============
+Lifetime of MObjects/reference count
+mat == p.wm.getByLogicalIndex(0).asData().matrix()	# matrix is ref, parent goes out of scope
+
+
+
+.. _performance-docs-label:
+
+=====================================
+Performance and Memory Considerations
+=====================================
+
+Iterators
+=========
+Pre-Filter by MFn.type, possibly return unwrapped API nodes wherever feasible.
+
+Undo
+=====
+
+_api_ calling convention
+=========================
+
+findPlug vs. node.plug
+======================
+
+Single vs. Multi
+================
+
+Node-Wrapping
+==============
