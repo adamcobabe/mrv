@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 # assure site is properly setup
 import sys
 import os

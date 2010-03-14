@@ -23,27 +23,29 @@ Configuration
 To globally disable the undo queue using cmds.undo will disable tracking of opeartions, but will
 still call the mel command.
 
-Disable the 'undoable' decorator effectively remove the surroinding mel script calls using
-sys._maya_undo_enabled = False ( default True ). Additionally it will turn off 
-the maya undo queue as a convenience.
+Disable the 'undoable' decorator effectively remove the surrounding mel script calls
+by setting the 'MAYARV_UNDO_ENABLED' environment variable to 0 ( default 1 ). 
+Additionally it will turn off the maya undo queue as a convenience.
 
-If sys._maya_undo_enabled is False, MPlugs will not store undo information anymore
-and not incur any overhead.
-
-@todo: more documentation about how to use the system and how it actually works
+If the mayarv undo queue is disabled, MPlugs will not store undo information anymore
+and do not incur any overhead.
 """
+import sys
+import os
 import maya.cmds as cmds
 import maya.mel as mel
 
+_undo_enabled_envvar = "MAYARV_UNDO_ENABLED"
 
 #{ Initialization
 
 def __initialize():
-	""" Assure our plugin is loaded - called during module intialization"""
-	import os
-
+	""" Assure our plugin is loaded - called during module intialization
+	@note: will only load the plugin if the undo system is not disabled"""
+	global _undo_enabled_envvar
+	
 	pluginpath = os.path.splitext( __file__ )[0] + ".py"
-	if not cmds.pluginInfo( pluginpath, q=1, loaded=1 ):
+	if int(os.environ.get(_undo_enabled_envvar, True)) and not cmds.pluginInfo( pluginpath, q=1, loaded=1 ):
 		cmds.loadPlugin( pluginpath )
 
 	# assure our decorator is available !
@@ -69,15 +71,13 @@ undoInfo = cmds.undoInfo
 # Use sys as general placeholder that will only exist once !
 # Global vars do not really maintain their values as modules get reinitialized
 # quite often it seems
-import sys
 if not hasattr( sys, "_maya_stack_depth" ):
 	sys._maya_stack_depth = 0
 	sys._maya_stack = []
 
-if not hasattr( sys, "_maya_undo_enabled" ):
-	sys._maya_undo_enabled = True
+_maya_undo_enabled = int(os.environ.get(_undo_enabled_envvar, True))
 
-if not sys._maya_undo_enabled:
+if not _maya_undo_enabled:
 	undoInfo(swf=0)
 
 # command
@@ -191,7 +191,8 @@ def undoable( func ):
 	@note: if you use undoable functions, you should mark yourself undoable too - otherwise the
 	functions you call will create individual undo steps
 	@note: if the undo queue is disabled, the decorator does nothing"""
-	if not sys._maya_undo_enabled:
+	global _maya_undo_enabled
+	if not _maya_undo_enabled:
 		return func
 
 	name = "unnamed"
@@ -214,8 +215,7 @@ def undoable( func ):
 
 def forceundoable( func ):
 	"""As undoable, but will enable the undo queue if it is currently disabled. It will 
-	not respect the sys._maya_undo_enabled value as clients rely on the functionality 
-	of the undoqueue.
+	forcibly enable maya's undo queue. 
 	@note: can only be employed reasonably if used in conjunction with L{undoAndClear}
 	as it will restore the old state of the undoqueue afterwards, which might be off, thus
 	rendering attempts to undo impossible"""
@@ -241,8 +241,9 @@ def notundoable( func ):
 	called from this method will not enter the UndoRecorder and thus pollute it.
 	@note: use it if your method cannot support undo, butcalls undoable operations itself
 	@note: all functions using a notundoable should be notundoable themselves
-	@note: does nothing if sys._maya_undo_enabled is False"""
-	if not sys._maya_undo_enabled:
+	@note: does nothing if the undo queue is globally disabled"""
+	global _maya_undo_enabled
+	if not _maya_undo_enabled:
 		return func
 	
 	def notundoableDecoratorWrapFunc( *args, **kwargs ):
@@ -475,9 +476,10 @@ class Operation( object ):
 		"""Operations will always be placed on the undo queue if undo is available
 		This happens automatically upon creation
 		@note: assure subclasses call the superclass init !"""
+		global _maya_undo_enabled
 		global isUndoing
 		global undoInfo
-		if sys._maya_undo_enabled and not isUndoing() and undoInfo( q=1, st=1 ):
+		if _maya_undo_enabled and not isUndoing() and undoInfo( q=1, st=1 ):
 			# sanity check !
 			if sys._maya_stack_depth < 1:
 				raise AssertionError( "Undo-Stack was %i, but must be at least 1 before operations can be put - check your code !" % sys._maya_stack_depth )

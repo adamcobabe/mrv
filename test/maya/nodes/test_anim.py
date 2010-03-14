@@ -9,7 +9,6 @@ import mayarv.maya as mrvmaya
 import mayarv.maya.nodes as nodes
 
 
-
 class TestAnim( unittest.TestCase ):
 	def test_anim_overrides(self):
 		# create test anim curve

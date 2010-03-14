@@ -1,13 +1,11 @@
 from mayarv.test.lib import *
-import mayarv.maya as mrvmaya
-from mayarv.maya.scene import Scene
 import tempfile
 
 def save_temp_file( filename ):
 	"""save the current scene as given filename in a temp directory, print path"""
-	import mayarv.maya as bmaya
+	import mayarv.maya as mrvmaya		# late import
 	filepath = tempfile.gettempdir( ) + "/" + filename
-	savedfile = bmaya.Scene.save( filepath )
+	savedfile = mrvmaya.Scene.save( filepath )
 	print "SAVED TMP FILE TO: %s" % savedfile
 	return savedfile
 
@@ -15,8 +13,9 @@ def save_temp_file( filename ):
 def save_for_debugging(scene_name):
 	"""Save the currently actve scene as MayaAscii for debugging purposes
 	@return: absolute path string at which the file was saved"""
+	import mayarv.maya as mrvmaya		# late import
 	scene_path = os.path.join(tempfile.gettempdir(), scene_name + ".ma")
-	Scene.save(scene_path, force=True)
+	mrvmaya.Scene.save(scene_path, force=True)
 	
 	print "Saved scene for debugging at: %r" % scene_path
 	return scene_path
@@ -29,6 +28,7 @@ def get_maya_file( filename ):
 def with_scene( basename ):
 	"""Loads the specified scene . the basename is supposed to be in our fixtures
 	directory"""
+	import mayarv.maya as mrvmaya		# late import
 	if not isinstance(basename, basestring):
 		raise ValueError("Need basename of a scene as string, not %r" % basename)
 	# END arg check
