@@ -1,6 +1,5 @@
 # -*- coding: utf-8 -*-
 """ Test the reference methods """
-import unittest
 from mayarv.test.maya import *
 import maya.cmds as cmds
 from mayarv.maya.ref import *

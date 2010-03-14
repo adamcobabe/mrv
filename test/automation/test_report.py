@@ -1,13 +1,5 @@
 # -*- coding: utf-8 -*-
-"""
-Test default report classes
-
-
-
-"""
-
-
-
+""" Test default report classes """
 import unittest
 import workflows
 from mayarv.automation.report import *

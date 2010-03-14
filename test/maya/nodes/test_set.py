@@ -1,12 +1,9 @@
 # -*- coding: utf-8 -*-
 """ Test sets and partitions """
-import unittest
 from mayarv.test.maya import *
 import mayarv.maya.nodes as nodes
 import maya.cmds as cmds
 import maya.OpenMaya as api
-import mayarv.test.maya as common
-import mayarv.maya as bmaya
 import mayarv.maya.nodes.set as set
 
 class TestSets( unittest.TestCase ):
@@ -385,7 +382,6 @@ class TestSets( unittest.TestCase ):
 	@with_scene("perComponentAssignments.ma")
 	def test_z_memberHandlingComps( self ):
 		"""mayarv.maya.nodes.set: member handling with components - needs to run last"""
-		# bmaya.Scene.open( common.get_maya_file( "perComponentAssignments.ma" ), force = 1 )
 		p1 = nodes.Node( "|p1trans|p1" )
 		s1 = nodes.Node( "s1" )					# sphere with face shader assignments
 		s2 = nodes.Node( "s2" )					# sphere with one object assignment

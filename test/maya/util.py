@@ -3,6 +3,15 @@ import mayarv.maya as mrvmaya
 from mayarv.maya.scene import Scene
 import tempfile
 
+def save_temp_file( filename ):
+	"""save the current scene as given filename in a temp directory, print path"""
+	import mayarv.maya as bmaya
+	filepath = tempfile.gettempdir( ) + "/" + filename
+	savedfile = bmaya.Scene.save( filepath )
+	print "SAVED TMP FILE TO: %s" % savedfile
+	return savedfile
+
+
 def save_for_debugging(scene_name):
 	"""Save the currently actve scene as MayaAscii for debugging purposes
 	@return: absolute path string at which the file was saved"""

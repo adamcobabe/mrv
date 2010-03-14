@@ -1,12 +1,9 @@
 # -*- coding: utf-8 -*-
 """ Test node iterators """
-import unittest
+from mayarv.test.maya import *
 import maya.OpenMaya as api
 from mayarv.maya.nodes.it import *
-import mayarv.test.maya as common
-import mayarv.maya as bmaya
 import mayarv.maya.nodes as nodes
-import mayarv.test.maya.nodes as ownpackage
 import maya.cmds as cmds
 
 class TestGeneral( unittest.TestCase ):
@@ -14,14 +11,11 @@ class TestGeneral( unittest.TestCase ):
 
 	def __init__( self, *args, **kwargs ):
 		super( TestGeneral, self ).__init__( *args, **kwargs )
-		#benchfile = common.get_maya_file( "large_scene_%i.mb" % 2500 )
-		#bmaya.Scene.open( benchfile, force = 1 )
 
 
+	@with_scene('empty.ma')
 	def test_dagIter( self ):
 		"""mayarv.maya.nodes.it: simple DAG iteration"""
-		if not ownpackage.mayRun( "iterators" ): return
-		bmaya.Scene.new( force=1 )
 		trans = nodes.createNode( "trans", "transform" )
 		trans2 = nodes.createNode( "trans2", "transform" )
 		transinst = trans.addInstancedChild( trans2 )
@@ -77,11 +71,9 @@ class TestGeneral( unittest.TestCase ):
 		assert len( list( dagiter ) ) == 2 
 
 
+	@with_scene('perComponentAssignments.ma')
 	def test_iterSelectionList( self ):
 		"""mayarv.maya.nodes.it: Iterate selection lists"""
-		if not ownpackage.mayRun( "iterators" ): return
-		bmaya.Scene.open( common.get_maya_file( "perComponentAssignments.ma" ), force = 1 )
-
 		p1 = nodes.Node( "|p1trans|p1" )
 		p1i = nodes.Node( "|p1transinst|p1" )
 		objs = [ p1, p1i ]
@@ -179,10 +171,9 @@ class TestGeneral( unittest.TestCase ):
 		# relate to the graph editor keyframe selection or it doesnt work.
 
 
+	@with_scene('empty.ma')
 	def test_dggraph( self ):
 		"""mayarv.maya.nodes.it: simple dg graph iteration"""
-		if not ownpackage.mayRun( "iterators" ): return
-		bmaya.Scene.new( force=1 )
 		persp = nodes.Node( "persp" )
 		front = nodes.Node( "front" )
 		cam = nodes.Node( "persp|perspShape" )
@@ -257,10 +248,9 @@ class TestGeneral( unittest.TestCase ):
 		# END for each root 
 
 
+	@with_scene('empty.ma')
 	def test_dgiter( self ):
 		"""mayarv.maya.nodes.it: simple DG iteration"""
-		if not ownpackage.mayRun( "iterators" ): return
-		bmaya.Scene.new( force=1 )
 		trans = nodes.createNode( "trans", "transform" )
 		mesh = nodes.createNode( "trans|mesh", "mesh" )
 

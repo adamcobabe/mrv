@@ -1,26 +1,21 @@
 # -*- coding: utf-8 -*-
 """ Some more math related tests """
-import unittest
-import mayarv.maya as bmaya
-import mayarv.maya.nodes as nodes
-import mayarv.test.maya as common
 import sys
-import maya.cmds as cmds
-import mayarv.maya.undo as undo
-import maya.OpenMaya as api
 import string
 import random
 import time
+
+from mayarv.test.maya import *
+import mayarv.maya.nodes as nodes
+import maya.cmds as cmds
+import mayarv.maya.undo as undo
+import maya.OpenMaya as api
 import mayarv.maya.nodes.it as it
 
 class TestCalculations( unittest.TestCase ):
 
-	def test_0randomizeScene( self ):
-		"""mayarv.maya.nodes.benchmark: assign unique transformations to dag nodes in a scene"""
-		numnodes = 2500
-		benchfile = common.get_maya_file( "large_scene_%i.mb" % 2500 )
-		bmaya.Scene.open( benchfile, force = 1 )
-
+	@with_scene('large_scene_2500.mb')
+	def test_randomizeScene( self ):
 		starttime = time.time()
 		nodecount = 0
 		vec = api.MVector()
@@ -34,12 +29,8 @@ class TestCalculations( unittest.TestCase ):
 		elapsed = time.time() - starttime
 		print >> sys.stderr, "Randomized %i node translations in %f s ( %f / s )" % ( nodecount, elapsed, nodecount / elapsed )
 
-		# save tmp
-		common._saveTempFile( "randomscene.mb" )
-
-
-	def test_1computeCenter( self ):
-		"""mayarv.maya.nodes.benchmark: compute the center point of all  dagnodes in scene"""
+	@with_scene('large_scene_2500.mb')
+	def test_computeCenter( self ):
 		starttime = time.time()
 
 		# GET AVERAGE POSITION
@@ -67,9 +58,6 @@ class TestCalculations( unittest.TestCase ):
 
 		elapsed = time.time() - starttime
 		print >> sys.stderr, "Set %i nodes to average position in %f s ( %f / s )" % ( nodecount, elapsed, nodecount / elapsed )
-		
-
-		common._saveTempFile( "averaged.mb" )
 		
 		# set back to zero - this time we have the method cached, but not the mfnfunc
 		starttime = time.time()

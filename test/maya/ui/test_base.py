@@ -1,4 +1,5 @@
-import unittest
+# -*- coding: utf-8 -*-
+from mayarv.test.maya import *
 from mayarv.maya.ui import *
 import maya.cmds as cmds
 

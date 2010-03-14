@@ -1,6 +1,5 @@
 # -*- coding: utf-8 -*-
 """ Test general nodes features """
-import unittest
 from mayarv.test.maya import *
 import mayarv.maya.nodes as nodes
 import maya.cmds as cmds
@@ -13,7 +12,6 @@ class TestDataBase( unittest.TestCase ):
 
 	def test_primitives( self ):
 		"""mayarv.maya.nodes: test primitive types"""
-		if not ownpackage.mayRun( "apipatch" ): return
 		for apicls in [ api.MTime, api.MDistance, api.MAngle ]:
 			inst = apicls( )
 			str( inst )
@@ -30,7 +28,6 @@ class TestDataBase( unittest.TestCase ):
 
 	def test_MPlug( self ):
 		"""mayarv.maya.nodes: Test plug abilities( node.attribute ) """
-		if not ownpackage.mayRun( "apipatch" ): return
 		persp = nodes.Node( "persp" )
 		front	 = nodes.Node( "front" )
 		side	 = nodes.Node( "side" )
@@ -262,7 +259,6 @@ class TestDataBase( unittest.TestCase ):
 
 	def test_matrixData( self ):
 		"""mayarv.maya.nodes: test matrix data"""
-		if not ownpackage.mayRun( "apipatch" ): return
 		node = nodes.Node( "persp" )
 		matplug = node.getPlug( "worldMatrix" )
 		assert not matplug.isNull() 
@@ -283,7 +279,6 @@ class TestDataBase( unittest.TestCase ):
 
 	def test_matrix( self ):
 		"""mayarv.maya.nodes: Test the matrices"""
-		if not ownpackage.mayRun( "apipatch" ): return
 		tmat = api.MTransformationMatrix()
 
 		tmat.setScale( ( 2.0, 4.0, 6.0 ) )
@@ -302,7 +297,6 @@ class TestDataBase( unittest.TestCase ):
 	def test_MPlugArray( self ):
 		"""mayarv.maya.nodes: test the plugarray wrapper
 		NOTE: plugarray can be wrapped, but the types stored will always be"""
-		if not ownpackage.mayRun( "apipatch" ): return
 		node = nodes.Node( "defaultRenderGlobals" )
 		pa = node.getConnections( )
 

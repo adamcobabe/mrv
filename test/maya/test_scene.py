@@ -2,6 +2,7 @@
 """ Test the scene methods """
 from mayarv.test.maya import *
 from mayarv.maya.scene import *
+import maya.cmds as cmds
 import maya.OpenMaya as api
 import mayarv.maya.env as env
 from mayarv.path import Path

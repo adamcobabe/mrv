@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 """ Test storage system and storage node """
-import unittest
+from mayarv.test.maya import *
 import mayarv.maya.nodes as nodes
 import mayarv.maya as bmaya
 import maya.cmds as cmds
@@ -14,7 +14,6 @@ class TestStorage( unittest.TestCase ):
 
 	def test_storagePickleData( self ):
 		"""mayarv.maya.nodes.storage: test pickle data"""
-		if not ownpackage.mayRun( "storage" ): return
 		tmpdir = Path( tempfile.gettempdir() )
 
 		def setTestValue( mydict ):
@@ -124,7 +123,6 @@ class TestStorage( unittest.TestCase ):
 
 	def test_storageAttributeHanlding( self ):
 		"""mayarv.maya.nodes.storage: test of the attribute accesss on storages is working"""
-		if not ownpackage.mayRun( "storage" ): return
 		bmaya.Scene.new( force = True )
 		snode = nodes.createNode( "storage",  "StorageNode" )
 
@@ -173,7 +171,6 @@ class TestStorage( unittest.TestCase ):
 
 	def test_storageSetHandling( self ):
 		"""mayarv.maya.nodes.storage: test built-in sethandling"""
-		if not ownpackage.mayRun( "storage" ): return
 		bmaya.Scene.new( force = True )
 		snode = nodes.createNode( "storage",  "StorageNode" )
 

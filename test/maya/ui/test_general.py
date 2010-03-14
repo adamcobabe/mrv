@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 """ Test some default ui capababilities """
-import unittest
+from mayarv.test.maya import *
 import mayarv.maya.ui as ui
 import mayarv.maya.ui.qa as qaui
 from mayarv.util import capitalize

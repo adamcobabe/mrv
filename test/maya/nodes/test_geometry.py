@@ -1,11 +1,10 @@
 # -*- coding: utf-8 -*-
 """ Tests the geometric nodes, focussing on the set handling """
-import unittest
+from mayarv.test.maya import *
 import mayarv.maya.nodes as nodes
 import mayarv.maya.nodes.geometry as modmesh
 import maya.OpenMaya as api
 import mayarv.maya as bmaya
-import mayarv.test.maya as common
 import mayarv.test.maya.nodes as ownpackage
 
 class TestGeometry( unittest.TestCase ):
@@ -14,8 +13,7 @@ class TestGeometry( unittest.TestCase ):
 
 	def test_setHandling( self ):
 		"""mayarv.maya.nodes.geometry: set handling tests for different types"""
-		if not ownpackage.mayRun( "geometry" ): return
-		bmaya.Scene.open( common.get_maya_file( "shadertest.ma" ), force = 1 )
+		bmaya.Scene.open( get_maya_file( "shadertest.ma" ), force = 1 )
 
 		# these are all shapes
 		p1 = nodes.Node( "|p1trans|p1" )		# one shader
@@ -172,18 +170,11 @@ class TestGeometry( unittest.TestCase ):
 		# is not verified at all
 		# although tweaks have been removed, from the shape , their effect needs to stay
 		for comptype in nodes.Mesh.eComponentType.vertex,nodes.Mesh.eComponentType.uv :
-			bmaya.Scene.open( common.get_maya_file( "meshtweaks.ma" ), force = 1 )
+			bmaya.Scene.open( get_maya_file( "meshtweaks.ma" ), force = 1 )
 
 			for mname in ( "mesh_without_history", "mesh_with_history" ):
 				mesh = nodes.Node( mname )
-				try:
-					mesh.resetTweaks( tweak_type = comptype, keep_tweak_result = 1 )
-				except:
-					common._saveTempFile( "tweaktest_%s_%s.ma" % ( mname, comptype ) )
-					raise
-				else:
-					# common._saveTempFile( "tweaktest_%s_%s.ma" % ( mname, comptype ) )
-					pass
+				mesh.resetTweaks( tweak_type = comptype, keep_tweak_result = 1 )
 
 				tweaktype = api.MFn.kPolyTweak
 				if comptype == nodes.Mesh.eComponentType.uv:
@@ -352,13 +343,11 @@ class TestGeometry( unittest.TestCase ):
 		# END for each component shortcut
 		
 	
+	@with_scene("mesh_lightlinks.ma")
 	def test_lightLinkCopy( self ):
 		"""mayarv.maya.nodes.geometry: test how lightlinks are copied from oen shape to another
 		@note: currently we only call variants of the respective method to run it - verification
 		was made in actual scenes, but is not reproducable"""
-		if not ownpackage.mayRun( "geometry" ): return
-		bmaya.Scene.open( common.get_maya_file( "mesh_lightlinks.ma" ), force = 1 )
-
 		for sourcename in ( "sphere", "torus" ):
 			source = nodes.Node( sourcename )
 			target = nodes.Node( "%s_target" % sourcename )

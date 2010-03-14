@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 """ Test the quality assurance framework and it's mel bindings """
-import unittest
+from mayarv.test.maya import *
 import mayarv.automation.qa as bqa
 import mayarv.maya.automation.qa as qa
 import mayarv.automation.processes as processes

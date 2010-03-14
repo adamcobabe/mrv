@@ -3,13 +3,7 @@
 Test provided base processes
 @note: this file is here containing all default prcess tests one gets nasty
 dependency probles with the python import system as we always need workflows for testing
-
-
-
 """
-
-
-
 import unittest
 import workflows
 from mayarv.automation.report import Plan

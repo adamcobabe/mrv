@@ -1,10 +1,5 @@
 # -*- coding: utf-8 -*-
-"""
-Test the workflow class
-
-
-
-"""
+""" Test the workflow class """
 import unittest
 import workflows
 import mayarv.automation.workflow as workflow

@@ -1,7 +1,6 @@
 # -*- coding: utf-8 -*-
 """ Test the namespace methods """
-import unittest
-import mayarv.test.maya as common
+from mayarv.test.maya import *
 from mayarv.maya.ns import *
 import mayarv.maya as bmaya
 import maya.cmds as cmds
@@ -9,10 +8,9 @@ import maya.cmds as cmds
 class TestReferenceRunner( unittest.TestCase ):
 	""" Test the database """
 
+	@with_scene('namespace.ma')
 	def test_checkNamespaces( self ):
 		"""mayarv.maya.ns: test all namespace functionality """
-		bmaya.Scene.open( common.get_maya_file( "namespace.ma" ), force=True )
-
 		rootns = Namespace( Namespace.root )
 		childns = rootns.getChildren( )
 		assert rootns.isRoot() 

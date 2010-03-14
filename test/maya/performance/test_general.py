@@ -6,7 +6,6 @@ import mayarv.maya.nodes as nodes
 import mayarv.maya.ns as ns
 from mayarv.maya.ref import *
 from mayarv.maya.nodes import Node, NodeFromObj
-import mayarv.test.maya as common
 import mayarv.maya.nodes.it as it
 
 import maya.cmds as cmds
@@ -37,13 +36,11 @@ class TestGeneralPerformance( unittest.TestCase ):
 		return nodes.createNode( name, nodetype, renameOnClash=True )
 
 
-	def test_buildTestScene( self ):
+	def _test_buildTestScene_DISABLED( self ):
 		"""mayarv.maya.benchmark.general: build test scene with given amount of nodes  """
-		return 	# disabled
-		 
 		numNodes = 100000
 		cmds.undoInfo( st=0 )
-		targetFile = common.get_maya_file( "large_scene_%i.mb" % numNodes )
+		targetFile = get_maya_file( "large_scene_%i.mb" % numNodes )
 		bmaya.Scene.new( force = True )
 
 		print 'Creating benchmark scene at "%s"' % targetFile
@@ -71,7 +68,7 @@ class TestGeneralPerformance( unittest.TestCase ):
 		# numnodes = [ 2500, 25000, 100000 ]
 		numnodes = [ 2500 ]
 		for nodecount in numnodes:
-			benchfile = common.get_maya_file( "large_scene_%i.mb" % nodecount )
+			benchfile = get_maya_file( "large_scene_%i.mb" % nodecount )
 			bmaya.Scene.open( benchfile, force = 1 )
 
 			# DIRECT ITERATOR USE
@@ -164,9 +161,9 @@ class TestGeneralPerformance( unittest.TestCase ):
 			# END for each dag value
 		# END for each asNode value
 
+	@with_scene('empty.ma')
 	def test_createNodes( self ):
 		"""mayarv.maya.benchmark.general: test random node creation performance"""
-		bmaya.Scene.new( force = True )
 		runs = [ 100,2500 ]
 		all_elapsed = []
 
@@ -278,12 +275,9 @@ class TestGeneralPerformance( unittest.TestCase ):
 			# END for each traversal type
 		# END for each root
 		
-
+	@with_scene('empty.ma')
 	def test_wrappedFunctionCall( self ):
 		"""mayarv.maya.benchmark.general: test wrapped funtion calls and compare them"""
-
-		bmaya.Scene.new( force = True )
-
 		p = Node('perspShape')
 
 		# method access
@@ -354,10 +348,8 @@ class TestGeneralPerformance( unittest.TestCase ):
 		b = time.time()
 		print >>sys.stderr, "%f s (%f/s): plug.asFloat()" % ( b - a, na/(b-a) )
 		
-	
+	@with_scene('empty.ma')
 	def test_create_nodes(self):
-		bmaya.Scene.new(force=1)
-		
 		nn = 1000
 		for node_type in ("network", "transform"):
 			# CREATE NODES
@@ -379,10 +371,9 @@ class TestGeneralPerformance( unittest.TestCase ):
 			print >>sys.stderr, "Renamed %i %s nodes in  %f s ( %f nodes / s )" % (nn, node_type, elapsed, nn/elapsed)
 		# END for each node type
 		
-		
+	@with_scene('empty.ma')
 	def test_ref_iteration(self):
-		bmaya.Scene.new(force=1)
-		scene_file = common.get_maya_file( "large_scene_2500.mb" )
+		scene_file = get_maya_file( "large_scene_2500.mb" )
 		ref = createReference(scene_file)
 		ref2 = createReference(scene_file)
 		

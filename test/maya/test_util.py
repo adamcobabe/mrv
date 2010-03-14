@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 """ Test utility classes """
-import unittest
+from mayarv.test.maya import *
 from mayarv.maya.util import *
 
 class TestUtil( unittest.TestCase ):
