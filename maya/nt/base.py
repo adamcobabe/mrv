@@ -1977,7 +1977,7 @@ class DagNode( Entity, iDagItem ):	# parent just for epydoc
 				yield NodeFromObj( MDagPath( dagpath ) )
 		# END for each instance
 
-	#}
+	#} END iterators
 
 
 	#{ Name Remapping
@@ -1989,41 +1989,48 @@ class DagNode( Entity, iDagItem ):	# parent just for epydoc
 
 #{ Attributes
 
+def _new_mixin( cls, *args, **kwargs ):
+	"""Constructor for MObject derived types which only differ in a few parameters.
+	Requires _base_cls_ and _mfn_suffix_ to be set on the respective class
+	
+	return an attribute class of the respective type for given MObject
+	@param args: arg[0] is attribute's MObject to be wrapped.
+	@note: Custom constructors are not possible as __init__ is automatically called
+	afterwards - MObject does not support anything but no args or another MObject."""
+	# may fail as we didn't check of len(args), but its okay, lets safe the if statement 
+	# here ! Python will bark nicely anyway
+	mobject = args[0]
+	if cls != cls._base_cls_:
+		# the user knows which type he wants, created it directly
+		newinst = object.__new__(cls, mobject)
+		# NOTE: Although this class is implemented not to need the _apiobj anymore
+		# as we ARE an MObject, we are learning from the issue in Component
+		# and just keep another reference to it, to be on the safe side
+		# DEL_ME_AND_CRASH ############################
+		newinst._apiobj = newinst		########
+		#################################
+		return newinst
+	# END optimization
+	newinst = _createInstByPredicate( mobject, cls, cls, lambda x: x.endswith( cls._mfn_suffix_ ) )
+	
+	if newinst is None:
+		raise ValueError( "%s with apitype %r could not be wrapped into any function set" % ( cls._mfn_suffix_, mobject.apyTypeStr() ) )
+	
+	return newinst
+
+# assure proper name, just in case
+_new_mixin.__name__ = '__new__'
+
 class Attribute( MObject ):
 	"""Represents an attribute in general - this is the base class
 	Use this general class to create attribute wraps - it will return
 	a class of the respective type """
 
 	__metaclass__ = MetaClassCreatorNodes
+	_base_cls_ = None
+	_mfn_suffix_ = 'Attribute'
 
-	def __new__ ( cls, *args, **kwargs ):
-		"""return an attribute class of the respective type for given MObject
-		@param args: arg[0] is attribute's MObject to be wrapped
-		@note: this area must be optimized for speed"""
-
-		if not args:
-			raise ValueError( "First argument must specify the Attribute as MObject to be wrapped" )
-
-		attributeobj = args[0]
-		if cls != Attribute:
-			# the user knows which type he wants, created it directly
-			newinst = object.__new__(cls, attributeobj)
-			# NOTE: Although this class is implemented not to need the _apiobj anymore
-			# as we ARE an MObject, we are learning from the issue in Component
-			# and just keep another reference to it, to be on the safe side
-			newinst._apiobj = newinst
-			return newinst
-		# END optimization
-		
-		newinst = _createInstByPredicate( attributeobj, cls, cls, lambda x: x.endswith( "Attribute" ) )
-
-		if newinst is None:
-			mfnattr = api.MFnAttribute( attributeobj )
-			raise ValueError( "Attribute %s typed %s was could not be wrapped into any function set" % ( mfnattr.name(), attributeobj.apiTypeStr() ) )
-
-		return newinst
-		# END for each known attr type
-		
+	__new__ = _new_mixin
 		
 	@classmethod
 	def create(cls, full_name, brief_name, *args, **kwargs):
@@ -2036,9 +2043,14 @@ class Attribute( MObject ):
 			raise TypeError("Cannot create plain Attributes, choose a subclass of Attribute instead")
 		# END handle invalid type
 		
-		attr = cls._mfncls().create(full_name, brief_name, *args, **kwargs)
-		return cls(attr)
+		# keep the class around to be sure we don't die on the way due to decremented
+		# ref counts
+		mfninst = cls._mfncls()
+		attr = mfninst.create(full_name, brief_name, *args, **kwargs)
+		return cls(attr)		# this copies the MObject and we are safe
 		
+		
+Attribute._base_cls_ = Attribute
 		
 class UnitAttribute( Attribute ):
 	#{ Constants
@@ -2134,7 +2146,8 @@ class NumericAttribute( Attribute ):
 	
 	@classmethod
 	def _create_using(cls, method_name, *args):
-		attr = getattr(cls._mfncls(), method_name)(*args)
+		mfninst = cls._mfncls()
+		attr = getattr(mfninst, method_name)(*args)
 		return cls(attr)
 	
 	@classmethod
@@ -2186,34 +2199,10 @@ class Data( MObject ):
 	Use this general class to create data wrap objects - it will return a class of the respective type """
 
 	__metaclass__ = MetaClassCreatorNodes
-
-	def __new__ ( cls, *args, **kwargs ):
-		"""return an data class of the respective type for given MObject
-		@param args: arg[0] is data's MObject to be wrapped
-		@note: this area must be optimized for speed"""
-
-		if not args:
-			raise ValueError( "First argument must specify the MObject data to be wrapped" )
-
-		dataobj = args[0]
-		if cls != Data:
-			# the user knows which type he wants, created it directly
-			newinst = object.__new__(cls, dataobj)
-			# NOTE: Although this class is implemented not to need the _apiobj anymore
-			# as we ARE an MObject, we are learning from the issue in Component
-			# and just keep another reference to it, to be on the safe side
-			newinst._apiobj = newinst
-			return newinst
-		# END optimization
-
-		newinst = _createInstByPredicate( dataobj, cls, cls, lambda x: x.endswith( "Data" ) )
-
-		if newinst is None:
-			raise ValueError( "Data api object typed '%s' could not be wrapped into any function set" % dataobj.apiTypeStr() )
-
-		return newinst
-		# END for each known attr type
-		
+	_base_cls_ = None
+	_mfn_suffix_ = 'Data'
+	
+	__new__ = _new_mixin
 		
 	@classmethod
 	def create(cls, *args, **kwargs):
@@ -2229,6 +2218,8 @@ class Data( MObject ):
 		data = mfninst.create(*args, **kwargs)
 		return cls(data)
 		
+Data._base_cls_ = Data
+
 
 class VectorArrayData( Data ):
 	pass
@@ -2376,32 +2367,10 @@ class Component( MObject ):
 	to be used in object sets and shading engines """
 	__metaclass__ = MetaClassCreatorNodes
 	_mfnType = None	# to be set in the subclass component
-
-	def __new__ ( cls, *args, **kwargs ):
-		"""return an data class of the respective type for given MObject
-		@param args: arg[0] is data's MObject to be wrapped.
-		@note: this area must be optimized for speed"""
-		if not args:
-			raise ValueError("Please provide the component data to be wrapped or the MFn:: component type to be created")
-		# END handle empty args
-		
-		componentobj = args[0]
-		if cls != Component:
-			# the user knows which type he wants, created it directlys
-			newinst = object.__new__(cls, componentobj)
-			# NOTE: Although this class is implemented not to need the _apiobj anymore
-			# as we ARE an MObject, it appears that the reference counting stays an 
-			# issue, and if we keep this ref, things won't crash.
-			newinst._apiobj = newinst
-			return newinst
-		# END optimization
-		newinst = _createInstByPredicate( componentobj, cls, cls, lambda x: x.endswith( "Component" ) )
-
-		if not newinst:
-			raise ValueError( "Component api object typed '%s' could not be wrapped into any component function set" % componentobj.apiTypeStr() )
-
-		return newinst
-		# END for each known attr type
+	_base_cls_ = None
+	_mfn_suffix_ = "Component"
+	
+	__new__ = _new_mixin
 		
 	@classmethod
 	def create(cls, component_type):
@@ -2437,6 +2406,7 @@ class Component( MObject ):
 		self._mfncls(self).addElement(*args)
 		return self
 
+Component._base_cls_ = Component
 
 class SingleIndexedComponent( Component ):
 	"""precreated class for ease-of-use"""

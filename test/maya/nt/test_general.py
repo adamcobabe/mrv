@@ -961,7 +961,7 @@ class TestNodeBase( unittest.TestCase ):
 
 	def test_single_indexed_components( self ):
 		# check exceptions
-		self.failUnlessRaises(ValueError, nt.SingleIndexedComponent)	# no arg
+		self.failUnlessRaises(IndexError, nt.SingleIndexedComponent)	# no arg
 		self.failUnlessRaises(TypeError, nt.Component.create, api.MFn.kMeshEdgeComponent) # invalid type
 
 	def test_data(self):
