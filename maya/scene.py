@@ -191,8 +191,8 @@ class Scene( util.Singleton, util.EventSender ):
 			prev_selection = api.MSelectionList()
 			api.MGlobal.getActiveSelectionList(prev_selection)
 			
-			import nodes
-			nodes.select(nodes.toSelectionList(nodeListOrIterable))
+			import nt
+			nt.select(nt.toSelectionList(nodeListOrIterable))
 		# END handle nodes
 		
 		typ = kwargs.pop('type', kwargs.pop('typ', cls.kFileTypeMap.get(outputFile.p_ext, None)))

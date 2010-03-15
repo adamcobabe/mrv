@@ -42,7 +42,6 @@ class TestScene( unittest.TestCase ):
 		assert event_inst._getCallbackID(sc) is None
 
 	def test_cbgroup_zero( self ):
-		"""mayarv.maya.scene: use group 0 check callbacks """
 		if env.getAppVersion( )[0] == 8.5:
 			return
 
@@ -51,7 +50,6 @@ class TestScene( unittest.TestCase ):
 								Scene.new )
 
 	def test_cbgroup_one( self ):
-		"""mayarv.maya.scene: check file callback """
 		if env.getAppVersion( )[0] == 8.5:
 			return
 
@@ -62,7 +60,6 @@ class TestScene( unittest.TestCase ):
 								triggerFunc )
 
 	def test_cbgroup_twp( self ):
-		"""mayarv.maya.scene: Test ordinary scene callbacks """
 		self._runMessageTest( "beforeNew",
 							 	lambda *args: self.cbgroup_two( *args ),
 								lambda: Scene.new( force = True ) )

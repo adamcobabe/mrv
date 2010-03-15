@@ -6,11 +6,11 @@ import random
 import time
 
 from mayarv.test.maya import *
-import mayarv.maya.nodes as nodes
+import mayarv.maya.nt as nt
 import maya.cmds as cmds
 import mayarv.maya.undo as undo
 import maya.OpenMaya as api
-import mayarv.maya.nodes.it as it
+import mayarv.maya.nt.it as it
 
 class TestCalculations( unittest.TestCase ):
 

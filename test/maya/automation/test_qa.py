@@ -55,7 +55,6 @@ class TestQualityAssurance( unittest.TestCase ):
 	"""Test qa framework"""
 
 	def test_melqa_workflow( self ):
-		"""mayarv.maya.automation.qa: test mel processes"""
 
 		wfl = workflows.qualitychecking
 		tprocess = wfl.TestMELProcess

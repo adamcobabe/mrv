@@ -1,36 +1,34 @@
 # -*- coding: utf-8 -*-
 """ Tests the geometric nodes, focussing on the set handling """
 from mayarv.test.maya import *
-import mayarv.maya.nodes as nodes
-import mayarv.maya.nodes.geometry as modmesh
+import mayarv.maya.nt as nt
+import mayarv.maya.nt.geometry as modgeo
 import maya.OpenMaya as api
 import mayarv.maya as bmaya
-import mayarv.test.maya.nodes as ownpackage
 
 class TestGeometry( unittest.TestCase ):
 	""" Test general maya framework """
 
 
 	def test_setHandling( self ):
-		"""mayarv.maya.nodes.geometry: set handling tests for different types"""
 		bmaya.Scene.open( get_maya_file( "shadertest.ma" ), force = 1 )
 
 		# these are all shapes
-		p1 = nodes.Node( "|p1trans|p1" )		# one shader
-		p1i = nodes.Node( "|p1transinst|p1" )		# one shader, instanced
-		p2 = nodes.Node( "|p2trans|p2" ) 	# 3 shaders, third has two faces
-		p2i = nodes.Node( "|p2transinst|p2" ) 	# 3 shaders, third has two faces, instanced
-		s1 = nodes.Node( "s1" )		# subdivision surface
-		n1 = nodes.Node( "n1" )		# nurbs with one shader
+		p1 = nt.Node( "|p1trans|p1" )		# one shader
+		p1i = nt.Node( "|p1transinst|p1" )		# one shader, instanced
+		p2 = nt.Node( "|p2trans|p2" ) 	# 3 shaders, third has two faces
+		p2i = nt.Node( "|p2transinst|p2" ) 	# 3 shaders, third has two faces, instanced
+		s1 = nt.Node( "s1" )		# subdivision surface
+		n1 = nt.Node( "n1" )		# nurbs with one shader
 
 		noncomplist = ( p1, p1i, s1, n1 )
 		complist = ( p1, p1i, p2, p2i, )
 
 		# deformed surface
-		pd = nodes.Node( "|pdtrans|pd" )
-		pdi = nodes.Node( "|pdtransinst|pd" )		# instance of pd
-		nd = nodes.Node( "nd" ) 					# deformed nurbs
-		sd = nodes.Node( "sd" )						# deformed subdee
+		pd = nt.Node( "|pdtrans|pd" )
+		pdi = nt.Node( "|pdtransinst|pd" )		# instance of pd
+		nd = nt.Node( "nd" ) 					# deformed nurbs
+		sd = nt.Node( "sd" )						# deformed subdee
 
 		# dont use an instance as no deformer sets are returned
 		# don't use subdees as we cannot support components there, api limitation
@@ -38,13 +36,13 @@ class TestGeometry( unittest.TestCase ):
 
 
 		# the shading groups
-		sg1 = nodes.Node( "sg1" )
-		sg2 = nodes.Node( "sg2" )
-		sg3 = nodes.Node( "sg3" )
+		sg1 = nt.Node( "sg1" )
+		sg2 = nt.Node( "sg2" )
+		sg3 = nt.Node( "sg3" )
 
 		# simple sets
-		set1 = nodes.Node( "set1" )
-		set2 = nodes.Node( "set2" )
+		set1 = nt.Node( "set1" )
+		set2 = nt.Node( "set2" )
 
 
 		# TEST OBJECT ASSIGNMENTS
@@ -52,12 +50,12 @@ class TestGeometry( unittest.TestCase ):
 		# simple assignments
 		for obj in noncomplist:
 			# shaders - object assignment method
-			setfilter = nodes.Shape.fSetsRenderable
+			setfilter = nt.Shape.fSetsRenderable
 			sets = obj.getConnectedSets( setFilter = setfilter )
 			assert len( sets ) == 1 and sets[0] == sg1 
 
 			# TEST OBJECT SET ASSIGNMENTS
-			setfilter = nodes.Shape.fSetsObject
+			setfilter = nt.Shape.fSetsObject
 			sets = obj.getConnectedSets( setFilter = setfilter )
 			assert len( sets ) == 2 and sets[0] == set1 and sets[1] == set2 
 		# END assignmnet query
@@ -67,7 +65,7 @@ class TestGeometry( unittest.TestCase ):
 		######################################
 		# if queried with connectedSets
 		for obj in noncomplist:
-			sets = obj.getConnectedSets( nodes.Shape.fSets )
+			sets = obj.getConnectedSets( nt.Shape.fSets )
 			for s in sets:
 				assert s in ( sg1, set1, set2 ) 
 		# END non-component lists check
@@ -81,7 +79,7 @@ class TestGeometry( unittest.TestCase ):
 
 			# OBJECT SET MEMBERSHIP
 			# even this method can retrieve membership to default object sets
-			setfilter = nodes.Shape.fSetsObject
+			setfilter = nt.Shape.fSetsObject
 			sets = obj.getComponentAssignments( setFilter = setfilter )
 			assert len( sets ) == 2 
 
@@ -95,7 +93,7 @@ class TestGeometry( unittest.TestCase ):
 
 			# COMPONENT ASSIGNMENTS
 			##########################
-			setfilter = nodes.Shape.fSetsRenderable
+			setfilter = nt.Shape.fSetsRenderable
 			setcomps = obj.getComponentAssignments( setFilter = setfilter )
 
 			assert len( setcomps ) == 3 
@@ -118,7 +116,7 @@ class TestGeometry( unittest.TestCase ):
 		# TEST DEFORMER CONNECTIONS
 		#############################
 		for dm in deformedlist:
-			setcomps = dm.getComponentAssignments( setFilter = nodes.Shape.fSetsDeformer )
+			setcomps = dm.getComponentAssignments( setFilter = nt.Shape.fSetsDeformer )
 
 			for setobj,component in setcomps:
 				if component:
@@ -169,15 +167,15 @@ class TestGeometry( unittest.TestCase ):
 		# TODO: compete this test, many issues are not tested, uv reset with history
 		# is not verified at all
 		# although tweaks have been removed, from the shape , their effect needs to stay
-		for comptype in nodes.Mesh.eComponentType.vertex,nodes.Mesh.eComponentType.uv :
+		for comptype in nt.Mesh.eComponentType.vertex, nt.Mesh.eComponentType.uv :
 			bmaya.Scene.open( get_maya_file( "meshtweaks.ma" ), force = 1 )
 
 			for mname in ( "mesh_without_history", "mesh_with_history" ):
-				mesh = nodes.Node( mname )
+				mesh = nt.Node( mname )
 				mesh.resetTweaks( tweak_type = comptype, keep_tweak_result = 1 )
 
 				tweaktype = api.MFn.kPolyTweak
-				if comptype == nodes.Mesh.eComponentType.uv:
+				if comptype == nt.Mesh.eComponentType.uv:
 					tweaktype = api.MFn.kPolyTweakUV
 
 				history_mode = "_with_" in mname
@@ -194,7 +192,7 @@ class TestGeometry( unittest.TestCase ):
 
 				# TODO: Check that the values are truly the same ( as keep_tweak_result is 1 )
 				# NOTE: currently this has only been tested with UI directly
-				if comptype == nodes.Mesh.eComponentType.vertex:
+				if comptype == nt.Mesh.eComponentType.vertex:
 					pass
 				# END if vertex check
 				else:
@@ -206,8 +204,8 @@ class TestGeometry( unittest.TestCase ):
 		# END for each component type
 		
 	def test_mesh_components_and_iteration(self):
-		m = nodes.Mesh()
-		pc = nodes.PolyCube()
+		m = nt.Mesh()
+		pc = nt.PolyCube()
 		pc.output > m.inMesh
 		
 		assert len(m.getComponentAssignments()) == 0 and m.numVertices() == 8
@@ -241,7 +239,7 @@ class TestGeometry( unittest.TestCase ):
 		# CONSTRAIN MIT USING COMPONENT
 		self.failUnlessRaises(ValueError, m.getComponent, 1)	# invalid arg type
 		vc = m.getComponent(ec.vertex).addElements(api.MIntArray.fromMultiple(1,2))
-		assert isinstance(vc, nodes.SingleIndexedComponent)
+		assert isinstance(vc, nt.SingleIndexedComponent)
 		
 		miv = m.iterComponents(ec.vertex, vc)
 		assert miv.count() == 2
@@ -252,7 +250,7 @@ class TestGeometry( unittest.TestCase ):
 		# SHORTCUT ITERATION
 		for shortname in ('vtx', 'e', 'f', 'map'):
 			it_helper = getattr(m, shortname)
-			assert isinstance(it_helper, modmesh._SingleIndexedComponentIterator)
+			assert isinstance(it_helper, modgeo._SingleIndexedComponentIterator)
 			
 			# plain iterator 
 			assert hasattr(it_helper.iter, 'next')
@@ -310,7 +308,7 @@ class TestGeometry( unittest.TestCase ):
 		
 		for shortname in ('cvtx', 'ce', 'cf', 'cmap'):
 			c_helper = getattr(m, shortname)
-			assert isinstance(c_helper, modmesh._SingleIndexedComponentGenerator)
+			assert isinstance(c_helper, modgeo._SingleIndexedComponentGenerator)
 			
 			# empty
 			c = c_helper.empty()
@@ -345,12 +343,11 @@ class TestGeometry( unittest.TestCase ):
 	
 	@with_scene("mesh_lightlinks.ma")
 	def test_lightLinkCopy( self ):
-		"""mayarv.maya.nodes.geometry: test how lightlinks are copied from oen shape to another
-		@note: currently we only call variants of the respective method to run it - verification
-		was made in actual scenes, but is not reproducable"""
+		# currently we only call variants of the respective method to run it - verification
+		# was made in actual scenes, but they were not incorporated into the test."""
 		for sourcename in ( "sphere", "torus" ):
-			source = nodes.Node( sourcename )
-			target = nodes.Node( "%s_target" % sourcename )
+			source = nt.Node( sourcename )
+			target = nt.Node( "%s_target" % sourcename )
 			source.copyLightLinks( target, substitute = 1 )	# substitute to target
 			target.copyLightLinks( source, substitute = 1 )	# back to source
 			source.copyLightLinks( target, substitute = 0 )	# copy it to target

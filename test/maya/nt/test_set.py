@@ -1,21 +1,20 @@
 # -*- coding: utf-8 -*-
 """ Test sets and partitions """
 from mayarv.test.maya import *
-import mayarv.maya.nodes as nodes
+import mayarv.maya.nt as nt
 import maya.cmds as cmds
 import maya.OpenMaya as api
-import mayarv.maya.nodes.set as set
+import mayarv.maya.nt.set as set
 
 class TestSets( unittest.TestCase ):
 	""" Test set and partition handling """
 
 	def test_createAddRemove( self ):
-		"""mayarv.maya.nodes.set: create,add and remove"""
-		set1 = nodes.createNode( "set1", "objectSet" )
-		set2 = nodes.createNode( "set2", "objectSet" )
-		set3 = nodes.createNode( "set3", "objectSet" )
-		prt1 = nodes.createNode( "partition1", "partition" )
-		prt2 = nodes.createNode( "partition2", "partition" )
+		set1 = nt.createNode( "set1", "objectSet" )
+		set2 = nt.createNode( "set2", "objectSet" )
+		set3 = nt.createNode( "set3", "objectSet" )
+		prt1 = nt.createNode( "partition1", "partition" )
+		prt2 = nt.createNode( "partition2", "partition" )
 
 		# SET PARTITION HANDLING
 		#########################
@@ -69,22 +68,21 @@ class TestSets( unittest.TestCase ):
 		
 		
 		assert len(prt2)
-		assert isinstance(prt2.clear(), nodes.Partition)
+		assert isinstance(prt2.clear(), nt.Partition)
 		assert len(prt2) == 0
 		
 		
 	def _getMemberList( self ):
 		"""@return: object list with all types"""
-		persp = nodes.Node( "persp" )
-		front = nodes.Node( "front" )
-		rg = nodes.Node( "defaultRenderGlobals" )
-		ik = nodes.Node( "ikSystem" )
-		s2 = nodes.Node( "defaultObjectSet" )
+		persp = nt.Node( "persp" )
+		front = nt.Node( "front" )
+		rg = nt.Node( "defaultRenderGlobals" )
+		ik = nt.Node( "ikSystem" )
+		s2 = nt.Node( "defaultObjectSet" )
 		return [ ik, persp, persp.translate, rg.getMObject(), front.getMDagPath(), s2 ]
 
 	def test_memberHandling( self ):
-		"""mayarv.maya.nodes.set: add/remove members from all kinds of inputs"""
-		s = nodes.createNode( "memberSet", "objectSet" )
+		s = nt.createNode( "memberSet", "objectSet" )
 
 		# ADD/REMOVE SINGLE MEMBER
 		####################
@@ -146,7 +144,7 @@ class TestSets( unittest.TestCase ):
 		assert s.getMembers().length() == 0 
 
 		# Add selection listx
-		sellist = nodes.toSelectionList( memberlist )
+		sellist = nt.toSelectionList( memberlist )
 		s.addMembers( sellist )
 		assert s.getMembers().length() == sellist.length() 
 
@@ -215,13 +213,13 @@ class TestSets( unittest.TestCase ):
 	def test_setOperations( self ):
 		"""byroniom.maya.nodes.sets: unions, intersections, difference, overloaded ops"""
 		memberlist = self._getMemberList( )
-		s3 = nodes.createNode( "anotherObjectSet", "objectSet" )
-		s = nodes.Node( "memberSet" )
+		s3 = nt.createNode( "anotherObjectSet", "objectSet" )
+		s = nt.Node( "memberSet" )
 		s.clear()
 		s.addMembers( memberlist )
 
-		side = nodes.Node( "side" )
-		s2 = nodes.createNode( "memberSet2", "objectSet" )
+		side = nt.Node( "side" )
+		s2 = nt.createNode( "memberSet2", "objectSet" )
 		s2.addMember( side )
 
 		# UNION
@@ -233,7 +231,7 @@ class TestSets( unittest.TestCase ):
 		# with sellist - will create temp set
 		sellist = s.getUnion( s2.getMembers() )
 		assert sellist.length() == len( memberlist ) + 1 
-		assert not nodes.objExists( "set4" ) 		# tmp set may not exist
+		assert not nt.objExists( "set4" ) 		# tmp set may not exist
 
 		# with multiple object sets
 		s.getUnion( [ s2, s3 ] )
@@ -279,7 +277,7 @@ class TestSets( unittest.TestCase ):
 
 		# with multiple sets
 		s3.clear()
-		s3.addMember( nodes.Node( "front" ) )
+		s3.addMember( nt.Node( "front" ) )
 		sellist = s.getDifference( [ s2, s3 ] )
 
 		assert len( list( s.iterDifference( [ s2, s3 ] ) ) ) == s.getDifference( [ s2, s3 ] ).length() 
@@ -287,17 +285,16 @@ class TestSets( unittest.TestCase ):
 		
 
 	def test_partitions( self ):
-		"""mayarv.maya.nodes.set: test partition constraints"""
 
 		# one transform, two sets, one partition
-		s1 = nodes.createNode( "ms1", "objectSet" )
-		s2 = nodes.createNode( "ms2", "objectSet" )
-		p = nodes.createNode( "p1", "partition" )
+		s1 = nt.createNode( "ms1", "objectSet" )
+		s2 = nt.createNode( "ms2", "objectSet" )
+		p = nt.createNode( "p1", "partition" )
 
-		s3 = nodes.createNode( "ms3", "objectSet" )
-		s4 = nodes.createNode( "ms4", "objectSet" )
-		t = nodes.createNode( "my_trans", "transform" )
-		t2 = nodes.createNode( "my_trans2", "transform" )
+		s3 = nt.createNode( "ms3", "objectSet" )
+		s4 = nt.createNode( "ms4", "objectSet" )
+		t = nt.createNode( "my_trans", "transform" )
+		t2 = nt.createNode( "my_trans2", "transform" )
 
 		p.addSets( [ s1, s2 ] )
 
@@ -331,7 +328,7 @@ class TestSets( unittest.TestCase ):
 
 
 			# and once more
-			assert isinstance(s1.clear(), nodes.ObjectSet)
+			assert isinstance(s1.clear(), nt.ObjectSet)
 			s2.clear()
 
 			for s in s1,s2:
@@ -353,8 +350,8 @@ class TestSets( unittest.TestCase ):
 
 		# SHADER ASSIGNMENTS
 		######################
-		sphere = nodes.Node( cmds.polySphere( )[0] )[0]
-		cube = nodes.Node( cmds.polyCube()[0] )[0]
+		sphere = nt.Node( cmds.polySphere( )[0] )[0]
+		cube = nt.Node( cmds.polyCube()[0] )[0]
 		multi = ( sphere, cube )
 		all_sets = sphere.getConnectedSets( setFilter = sphere.fSets )
 		isg = all_sets[0]			# initial shading group
@@ -362,7 +359,7 @@ class TestSets( unittest.TestCase ):
 
 		assert str( isg ).startswith( "initial" )
 
-		snode = nodes.createNode( "mysg", "shadingEngine" )
+		snode = nt.createNode( "mysg", "shadingEngine" )
 		snode.setPartition( rp, 1 )
 
 		self.failUnlessRaises( set.ConstraintError, snode.addMember, sphere )
@@ -374,27 +371,25 @@ class TestSets( unittest.TestCase ):
 		assert snode.getIntersection( multi ).length() == 2
 
 	def test_renderPartition( self ):
-		"""mayarv.maya.nodes.set: assure renderpartition works for us"""
-		rp = nodes.Node( "renderPartition" )
+		rp = nt.Node( "renderPartition" )
 		assert len( rp.getSets( ) )		# at least the initial shading group
 
 
 	@with_scene("perComponentAssignments.ma")
 	def test_z_memberHandlingComps( self ):
-		"""mayarv.maya.nodes.set: member handling with components - needs to run last"""
-		p1 = nodes.Node( "|p1trans|p1" )
-		s1 = nodes.Node( "s1" )					# sphere with face shader assignments
-		s2 = nodes.Node( "s2" )					# sphere with one object assignment
+		p1 = nt.Node( "|p1trans|p1" )
+		s1 = nt.Node( "s1" )					# sphere with face shader assignments
+		s2 = nt.Node( "s2" )					# sphere with one object assignment
 
 		# shading engines
-		sg1 = nodes.Node( "sg1" )
-		sg2 = nodes.Node( "sg2" )
+		sg1 = nt.Node( "sg1" )
+		sg2 = nt.Node( "sg2" )
 
 
 		# REMOVE AND SET FACE ASSIGNMENTS
 		####################################
 		# get all sets assignments
-		setcomps = p1.getComponentAssignments( setFilter = nodes.Shape.fSetsRenderable )
+		setcomps = p1.getComponentAssignments( setFilter = nt.Shape.fSetsRenderable )
 
 		for setnode, comp in setcomps:
 			# NOTE: must be member in the beginning, but the isMember method does not
@@ -415,15 +410,15 @@ class TestSets( unittest.TestCase ):
 		# END for each set component assignment
 
 		# create a component with 3 faces
-		f3 = nodes.SingleIndexedComponent.create(api.MFn.kMeshPolygonComponent)
+		f3 = nt.SingleIndexedComponent.create(api.MFn.kMeshPolygonComponent)
 		for i in range( 3 ): f3.addElement( i )
-		f6 = nodes.SingleIndexedComponent.create(api.MFn.kMeshPolygonComponent)
+		f6 = nt.SingleIndexedComponent.create(api.MFn.kMeshPolygonComponent)
 		for i in range( 3,6 ): f6.addElement( i )
 
 		# FORCE OVERWRITING EXISITNG FACE ASSIGNMNETS
 		###############################################
 		for sg,comp in zip( ( sg1, sg2 ), ( f3,f6 ) ):
-			self.failUnlessRaises( nodes.ConstraintError, sg.addMember, s1, component = f3 )
+			self.failUnlessRaises( nt.ConstraintError, sg.addMember, s1, component = f3 )
 
 			# force it
 			s1.addTo( sg, component = comp, force = 1 )
@@ -437,9 +432,9 @@ class TestSets( unittest.TestCase ):
 	def test_shader_comonent_assignments(self):
 		# MESH COMPONENTS
 		#################
-		isb = nodes.Node("initialShadingGroup")
-		m = nodes.Mesh()
-		pc = nodes.PolyCube()
+		isb = nt.Node("initialShadingGroup")
+		m = nt.Mesh()
+		pc = nt.PolyCube()
 		pc.output > m.inMesh
 		assert len(m.getComponentAssignments()) == 0 and m.numVertices() == 8
 		
@@ -452,7 +447,7 @@ class TestSets( unittest.TestCase ):
 		
 		# verify return types of getComponentAssignments
 		asm = m.getComponentAssignments(asComponent=False)
-		assert not isinstance(asm[0][1], nodes.Component)
+		assert not isinstance(asm[0][1], nt.Component)
 		
 		# assign everything on component level
 		isb.addMember(m, m.cf[:])

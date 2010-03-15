@@ -9,7 +9,6 @@ class TestQualityAssurance( unittest.TestCase ):
 	"""Test qa framework"""
 
 	def test_simpleQAWorkflow( self ):
-		"""mayarv.automation.qa: test how a simple qa workflow handles itself"""
 		qawfl = workflows.qualitychecking
 		checks = qawfl.listChecks( )
 		

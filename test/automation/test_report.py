@@ -8,7 +8,6 @@ class TestReport( unittest.TestCase ):
 	"""Test workflow class"""
 
 	def test_plan( self ):
-		"""mayarv.automation.report: test plan report"""
 		miwfl = workflows.multiinput
 
 		# try as real target - stil very simple

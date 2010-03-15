@@ -4,7 +4,7 @@ from mayarv.test.maya import *
 import mayarv.maya as bmaya
 import maya.cmds as cmds
 import mayarv.maya.undo as undo
-from mayarv.maya.nodes import *
+from mayarv.maya.nt import *
 import maya.OpenMaya as api
 import sys
 
@@ -33,7 +33,6 @@ class TestUndoQueue( unittest.TestCase ):
 		# assert( sys._maya_stack_depth == 0 ) # would throw
 	
 	def test_undoBasics( self ):
-		"""mayarv.maya.undo: basic assertions"""
 		undo.startUndo()
 
 		# put some undoable operation
@@ -85,7 +84,7 @@ class TestUndoQueue( unittest.TestCase ):
 		# a non-existing scene
 		# NOTE: Currently this is a known limitation that could be circumvented
 		# with some pre-scene-callbacks
-		trans = nodes.createNode( "mytrans", "transform" )
+		trans = nt.createNode( "mytrans", "transform" )
 
 		undo.startUndo()
 		trans.tx.setFloat( 10.0 )
@@ -204,8 +203,6 @@ class TestUndoQueue( unittest.TestCase ):
 		
 		
 	def test_dgmod( self ):
-		"""mayarv.maya.undo: test dg modifier capabilities
-		@note: DGmod is intensively used by MPlug """
 		persp = Node( "persp" )
 		front = Node( "front" )
 		side = Node( "side" )
@@ -261,7 +258,6 @@ class TestUndoQueue( unittest.TestCase ):
 
 
 	def test_dagmod( self ):
-		"""mayarv.maya.undo: test DAG modifier capabilities"""
 		undo.startUndo()
 		dagmod = undo.DagModifier()
 		obj = dagmod.createNode( "transform" )

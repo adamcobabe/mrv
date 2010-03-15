@@ -10,7 +10,6 @@ class TestReferenceRunner( unittest.TestCase ):
 
 	@with_scene('namespace.ma')
 	def test_checkNamespaces( self ):
-		"""mayarv.maya.ns: test all namespace functionality """
 		rootns = Namespace( Namespace.root )
 		childns = rootns.getChildren( )
 		assert rootns.isRoot() 

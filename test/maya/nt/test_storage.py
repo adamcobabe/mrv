@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 """ Test storage system and storage node """
 from mayarv.test.maya import *
-import mayarv.maya.nodes as nodes
+import mayarv.maya.nt as nt
 import mayarv.maya as bmaya
 from mayarv.path import Path
 import maya.cmds as cmds
@@ -10,7 +10,6 @@ import tempfile
 
 class TestStorage( unittest.TestCase ):
 	def test_storagePickleData( self ):
-		"""mayarv.maya.nodes.storage: test pickle data"""
 		tmpdir = Path( tempfile.gettempdir() )
 
 		def setTestValue( mydict ):
@@ -34,8 +33,8 @@ class TestStorage( unittest.TestCase ):
 
 			# BASIC DATA CREATION AND EDITING
 			####################################
-			storagenode = nodes.createNode( "storage", "storageNode" )
-			refcomparator = nodes.createNode( "trans", "transform" )
+			storagenode = nt.createNode( "storage", "storageNode" )
+			refcomparator = nt.createNode( "trans", "transform" )
 
 			pyval = storagenode.getPythonData( "test", autoCreate = True )
 
@@ -53,7 +52,7 @@ class TestStorage( unittest.TestCase ):
 			bmaya.Scene.open( filepath, force=True )
 
 			# get and test data
-			storagenode = nodes.Node( "storage" )
+			storagenode = nt.Node( "storage" )
 			pyvalloaded = storagenode.getPythonData( "test", autoCreate = False )
 
 			checkTestValue( self, pyvalloaded )
@@ -75,8 +74,8 @@ class TestStorage( unittest.TestCase ):
 			bmaya.Scene.new( force = True )
 			bmaya.ref.createReference( filepath, namespace="referenced" )
 
-			refstoragenode = nodes.Node( "referenced:storage" )
-			refcomparator = nodes.Node( "referenced:trans" )
+			refstoragenode = nt.Node( "referenced:storage" )
+			refcomparator = nt.Node( "referenced:trans" )
 			pyval = refstoragenode.getPythonData( "test" )
 
 			# adjust values
@@ -89,7 +88,7 @@ class TestStorage( unittest.TestCase ):
 			bmaya.Scene.open( filewithrefpath, force = True )
 
 			# check test value and the newly written one
-			refstoragenode = nodes.Node( "referenced:storage" )
+			refstoragenode = nt.Node( "referenced:storage" )
 			pyval = refstoragenode.getPythonData( "test" )
 
 			checkTestValue( self, pyval )
@@ -118,9 +117,8 @@ class TestStorage( unittest.TestCase ):
 
 
 	def test_storageAttributeHanlding( self ):
-		"""mayarv.maya.nodes.storage: test of the attribute accesss on storages is working"""
 		bmaya.Scene.new( force = True )
-		snode = nodes.createNode( "storage",  "storageNode" )
+		snode = nt.createNode( "storage",  "storageNode" )
 
 		# autocreate off
 		self.failUnlessRaises( AttributeError, snode.getPythonData, "test" )
@@ -155,7 +153,7 @@ class TestStorage( unittest.TestCase ):
 
 		# CONNECTION PLUGS
 		###################
-		persp = nodes.Node( "persp" )
+		persp = nt.Node( "persp" )
 
 		conarray = mainplug['dmsg']
 		for c in range( 10 ):
@@ -166,9 +164,8 @@ class TestStorage( unittest.TestCase ):
 		assert len( persp.message.p_outputs ) == 10 
 
 	def test_storageSetHandling( self ):
-		"""mayarv.maya.nodes.storage: test built-in sethandling"""
 		bmaya.Scene.new( force = True )
-		snode = nodes.createNode( "storage",  "storageNode" )
+		snode = nt.createNode( "storage",  "storageNode" )
 
 		# SIMPLE SET
 		did = "objset"
@@ -176,7 +173,7 @@ class TestStorage( unittest.TestCase ):
 		# error checking 
 		
 		objset = snode.getObjectSet( did, 0, autoCreate = True )
-		assert isinstance( objset, nodes.ObjectSet ) 
+		assert isinstance( objset, nt.ObjectSet ) 
 		assert len(snode.getSetsByID(did)) == 1
 
 		# does not exist anymore
@@ -227,7 +224,7 @@ class TestStorage( unittest.TestCase ):
 
 		# new set, check partition
 		oset = snode.getObjectSet( did, 1, autoCreate = 1 )
-		assert isinstance( oset, nodes.ObjectSet ) 
+		assert isinstance( oset, nt.ObjectSet ) 
 		assert len( oset.getPartitions() ) == 1 
 		assert oset.getPartitions()[0] == snode.getPartition( did ) 
 
@@ -236,7 +233,7 @@ class TestStorage( unittest.TestCase ):
 		cmds.redo()
 
 		# set is in multiple partitions, some from us, some from the user
-		myprt = nodes.createNode( "mypartition", "partition" )
+		myprt = nt.createNode( "mypartition", "partition" )
 		myprt.addSets( oset )
 		assert myprt != snode.getPartition( did ) 
 		snode.setPartition( did, False )

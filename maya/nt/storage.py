@@ -19,7 +19,7 @@ __all__ = ("StorageBase", "StorageNode", "PyPickleData")
 # it gets initialized, this happens without callling its init functions 
 # which are required. This __import__ prevents this from happening, and 
 # everything runs smoothly
-nodes = __import__( "mayarv.maya.nodes", globals(), locals(), ['nodes'])
+nt = __import__( "mayarv.maya.nt", globals(), locals(), ['nt'])
 
 #{ Initialization
 
@@ -245,7 +245,7 @@ def initializePlugin(mobject):
 	mplugin.registerNode( 	StoragePluginNode.kPluginNodeTypeName, StoragePluginNode.kPluginNodeId, StoragePluginNode.creator, initStoragePluginNodeAttrs, mpx.MPxNode.kDependNode )
 	
 	# register plugin data in the respective class
-	nodes.registerPluginDataTrackingDict( PyPickleData.kPluginDataId, sys._maya_pyPickleData_trackingDict )
+	nt.registerPluginDataTrackingDict( PyPickleData.kPluginDataId, sys._maya_pyPickleData_trackingDict )
 
 def uninitializePlugin( mobject ):
 	mplugin = mpx.MFnPlugin( mobject )
@@ -350,8 +350,8 @@ class StorageBase( iDuplicatable ):
 		self._attrprefix = attrprefix
 		self._node = mayaNode
 		if not mayaNode:
-			if not isinstance( self, nodes.Node ):
-				raise TypeError( "StorageNode's derived class must be an instance of type %r if mayaNode is not given" % nodes.Node )
+			if not isinstance( self, nt.Node ):
+				raise TypeError( "StorageNode's derived class must be an instance of type %r if mayaNode is not given" % nt.Node )
 			self._node = self
 		# END no maya node given handling
 
@@ -548,7 +548,7 @@ class StorageBase( iDuplicatable ):
 
 			# data gets copied here - re-retrieve data
 			valplug._api_setMObject( plugindataobj ) # use original version only - no undo support
-			plugindata = nodes.Data( plugindataobj )
+			plugindata = nt.Data( plugindataobj )
 
 		# exstract the data
 		#return plugindata.getData()
@@ -575,7 +575,7 @@ class StorageBase( iDuplicatable ):
 			if not autoCreate:
 				raise AttributeError( "Set at %s[%i] did not exist on %r" % ( self._attrprefix + dataID, setIndex, self ) )
 			su = undo.StartUndo()			# make the following operations atomic
-			objset = nodes.createNode( dataID + "Set", "objectSet", forceNewLeaf = True )
+			objset = nt.createNode( dataID + "Set", "objectSet", forceNewLeaf = True )
 			inputplug = objset.message
 			inputplug >> setplug
 
@@ -604,14 +604,14 @@ class StorageBase( iDuplicatable ):
 			if len( self.getSetsByID( dataID ) ) == 1:
 				self.setPartition( dataID, False )
 
-			nodes.delete( objset )
+			nt.delete( objset )
 		# END obj set handling
 
 	def getSetsByID( self, dataID ):
 		"""@return: all object sets stored under the given dataID"""
 		mp = self.getStoragePlug( dataID, self.kMessage, autoCreate = False )
 		allnodes = [ p.getNode() for p in mp.getInputs() ]
-		return [ n for n in allnodes if isinstance( n, nodes.ObjectSet ) ]
+		return [ n for n in allnodes if isinstance( n, nt.ObjectSet ) ]
 
 
 	@undoable
@@ -632,7 +632,7 @@ class StorageBase( iDuplicatable ):
 					raise ValueError("Cannot create partition as data %r did not have any connected sets" % dataID)
 				# END check sets exist
 				# create partition
-				partition = nodes.createNode( "storagePartition", "partition", forceNewLeaf=True )
+				partition = nt.createNode( "storagePartition", "partition", forceNewLeaf=True )
 
 				tattr = api.MFnTypedAttribute( )
 				attr = tattr.create( self._partitionIdAttr, "pid", api.MFnData.kString )
@@ -647,7 +647,7 @@ class StorageBase( iDuplicatable ):
 				# delete partition
 				# have to clear partition as, for some reason, or own node will be killed as well !
 				partition.clear()
-				nodes.delete( partition )
+				nt.delete( partition )
 		# END state check
 
 
@@ -691,7 +691,7 @@ class StorageBase( iDuplicatable ):
 	# END query general
 
 
-class StorageNode( nodes.DependNode, StorageBase ):
+class StorageNode( nt.DependNode, StorageBase ):
 	"""This node can be used as pythonic and easy-to-access value container - it could
 	be connected to your node, and queried for values actually being queried on your node.
 	As value container, it can easily be replaced by another one, or keep different sets of information
@@ -704,7 +704,7 @@ class StorageNode( nodes.DependNode, StorageBase ):
 	#{ Overrriden Methods
 	def __init__( self, *args ):
 		"""initialize bases properly"""
-		nodes.DependNode.__init__( self )
+		nt.DependNode.__init__( self )
 		StorageBase.__init__( self )
 
 
