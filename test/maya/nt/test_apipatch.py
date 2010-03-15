@@ -10,7 +10,6 @@ class TestDataBase( unittest.TestCase ):
 	""" Test data classes  """
 
 	def test_primitives( self ):
-		"""mayarv.maya.nodes: test primitive types"""
 		for apicls in [ api.MTime, api.MDistance, api.MAngle ]:
 			inst = apicls( )
 			str( inst )
@@ -28,7 +27,6 @@ class TestDataBase( unittest.TestCase ):
 			str(inst) != repr(inst)
 
 	def test_MPlug( self ):
-		"""mayarv.maya.nodes: Test plug abilities( node.attribute ) """
 		persp = nt.Node( "persp" )
 		front	 = nt.Node( "front" )
 		side	 = nt.Node( "side" )
@@ -259,7 +257,6 @@ class TestDataBase( unittest.TestCase ):
 		assert pzh[0] == p.tz and pzh[1] == p.ty and pzh[2] == p.tx 
 
 	def test_matrixData( self ):
-		"""mayarv.maya.nodes: test matrix data"""
 		node = nt.Node( "persp" )
 		matplug = node.getPlug( "worldMatrix" )
 		assert not matplug.isNull() 
@@ -279,7 +276,6 @@ class TestDataBase( unittest.TestCase ):
 		assert isinstance( mmatrix, api.MMatrix ) 
 
 	def test_matrix( self ):
-		"""mayarv.maya.nodes: Test the matrices"""
 		tmat = api.MTransformationMatrix()
 
 		tmat.setScale( ( 2.0, 4.0, 6.0 ) )
@@ -296,8 +292,6 @@ class TestDataBase( unittest.TestCase ):
 		tmat.setRotate( ( 20, 40, 90, 1.0 ) )
 
 	def test_MPlugArray( self ):
-		"""mayarv.maya.nodes: test the plugarray wrapper
-		NOTE: plugarray can be wrapped, but the types stored will always be"""
 		node = nt.Node( "defaultRenderGlobals" )
 		pa = node.getConnections( )
 

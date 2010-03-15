@@ -37,7 +37,6 @@ class TestGeneralPerformance( unittest.TestCase ):
 
 
 	def _DISABLED_test_buildTestScene( self ):
-		"""mayarv.maya.benchmark.general: build test scene with given amount of nodes  """
 		numNodes = 100000
 		cmds.undoInfo( st=0 )
 		targetFile = get_maya_file( "large_scene_%i.mb" % numNodes )
@@ -63,7 +62,6 @@ class TestGeneralPerformance( unittest.TestCase ):
 
 
 	def test_dagwalking( self ):
-		"""mayarv.maya.benchmark.general.dagWalking: see how many nodes per second we walk"""
 
 		# numnodes = [ 2500, 25000, 100000 ]
 		numnodes = [ 2500 ]
@@ -163,7 +161,6 @@ class TestGeneralPerformance( unittest.TestCase ):
 
 	@with_scene('empty.ma')
 	def test_createNodes( self ):
-		"""mayarv.maya.benchmark.general: test random node creation performance"""
 		runs = [ 100,2500 ]
 		all_elapsed = []
 
@@ -277,7 +274,6 @@ class TestGeneralPerformance( unittest.TestCase ):
 		
 	@with_scene('empty.ma')
 	def test_wrappedFunctionCall( self ):
-		"""mayarv.maya.benchmark.general: test wrapped funtion calls and compare them"""
 		p = Node('perspShape')
 
 		# method access

@@ -33,7 +33,6 @@ class TestUndoQueue( unittest.TestCase ):
 		# assert( sys._maya_stack_depth == 0 ) # would throw
 	
 	def test_undoBasics( self ):
-		"""mayarv.maya.undo: basic assertions"""
 		undo.startUndo()
 
 		# put some undoable operation
@@ -204,8 +203,6 @@ class TestUndoQueue( unittest.TestCase ):
 		
 		
 	def test_dgmod( self ):
-		"""mayarv.maya.undo: test dg modifier capabilities
-		@note: DGmod is intensively used by MPlug """
 		persp = Node( "persp" )
 		front = Node( "front" )
 		side = Node( "side" )
@@ -261,7 +258,6 @@ class TestUndoQueue( unittest.TestCase ):
 
 
 	def test_dagmod( self ):
-		"""mayarv.maya.undo: test DAG modifier capabilities"""
 		undo.startUndo()
 		dagmod = undo.DagModifier()
 		obj = dagmod.createNode( "transform" )

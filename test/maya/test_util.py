@@ -5,7 +5,6 @@ from mayarv.maya.util import *
 
 class TestUtil( unittest.TestCase ):
 	def test_optionvardict( self ):
-		"""mayarv.maya.util: test optionvars dict"""
 
 		# test whether value get and set is without conversion errors
 		for key in optionvars.keys( ):

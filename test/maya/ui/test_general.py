@@ -16,8 +16,6 @@ if not cmds.about(batch=1):
 			pass
 	
 		def disabled_test_createClasses( self ):
-			"""mayarv.maya.ui: Instantiate our pseudoclasses
-			@note: this test is not required anymore"""
 			win = ui.Window( title="Collector" )
 			col = ui.ColumnLayout( adj=1 )
 	
@@ -49,7 +47,6 @@ if not cmds.about(batch=1):
 	
 	
 		def test_createWindows( self ):
-			"""mayarv.maya.ui: create some windows"""
 			win = ui.Window( title="Test Window" )
 			win.p_title = "Another Title"
 			assert win.p_title == "Another Title" 
@@ -117,7 +114,6 @@ if not cmds.about(batch=1):
 	
 	
 		def test_layouts( self ):
-			"""mayarv.maya.ui: test basic layout functions"""
 			win = ui.Window( title="Test Layout Window" )
 			col = win.add( ui.ColumnLayout( adj=1 ) )
 	
@@ -163,7 +159,6 @@ if not cmds.about(batch=1):
 			# win.delete()	# does not really work as windows stays as zombie
 	
 		def test_callbacks( self ):
-			"""mayarv.maya.ui: test callbacks and handling - needs user interaction"""
 			win = ui.Window( title="Test Callback Window" )
 	
 			col = win.add( ui.ColumnLayout( adj=1 ) )
@@ -182,7 +177,6 @@ if not cmds.about(batch=1):
 			win.show()
 	
 		def test_menus( self ):
-			"""mayarv.maya.ui: use menu bars and menuItems"""
 			win = ui.Window( title="Menu Window", menuBar=1 )
 			menu = ui.Menu( l = "first" )
 			if menu:
@@ -205,7 +199,6 @@ if not cmds.about(batch=1):
 			win.show()
 	
 		def test_progressWindow( self ):
-			"""mayarv.maya.ui: test progress window functionality"""
 			maxrange = 10
 			import time
 			progress = ui.ProgressWindow( min = 0, max = maxrange, is_relative = 1 )
@@ -246,7 +239,6 @@ if not cmds.about(batch=1):
 			assert progress.get() == maxrange 
 	
 		def test_qa( self ):
-			"""mayarv.maya.ui.qa: test qa interface by setting some checks"""
 			import mayarv.test.automation.workflows as workflows
 	
 			qawfl = workflows.qualitychecking
@@ -290,6 +282,5 @@ if not cmds.about(batch=1):
 			w.show()
 			
 		def test_prompt( self ):
-			"""mayarv.maya.ui.dialog: Test prompt window"""
 			ui.Prompt( title="test title", m="enter test string", d="this", cd="cthis", t="confirm", ct="cancel" ).prompt()
 # END if not batch mode

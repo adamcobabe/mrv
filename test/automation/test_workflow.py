@@ -11,7 +11,6 @@ class TestWorkflow( unittest.TestCase ):
 	"""Test workflow class"""
 
 	def test_simpleworkflowcreation( self ):
-		"""mayarv.automation.workflow: create a simple workflow from a dot file"""
 		scwfl = workflows.simpleconnection
 		self.failUnless( isinstance( scwfl, Workflow ) )
 
@@ -61,14 +60,12 @@ class TestWorkflow( unittest.TestCase ):
 
 
 	def test_simpleDirtyCheck( self ):
-		"""mayarv.automation.workflow: test a simple dirtycheck"""
 		scwfl = workflows.simpleconnection
 		scwfl.getDirtyReport( 5, mode="deep" )
 		d = workflow.DirtyException()
 
 
 	def test_callgraph( self ):
-		"""mayarv.automation.workflow: assure callgraph can be generated properly"""
 		scwfl = workflows.simpleconnection
 
 		# ONE NODE ONLY
@@ -98,7 +95,6 @@ class TestWorkflow( unittest.TestCase ):
 		self.failUnless( len( cg.edges() ) == 4 )
 
 	def test_multiTarget( self ):
-		"""mayarv.automation.workflow: test multiple targets at once"""
 		scwfl = workflows.simpleconnection
 		listtypes = ( None, list, StringIO )
 
@@ -119,6 +115,5 @@ class TestWorkflow( unittest.TestCase ):
 
 
 	def test_workflowfacades( self ):
-		"""mayarv.automation.workflow:  test facades of workflows"""
 		wfl = workflows.multiWorkflow
 

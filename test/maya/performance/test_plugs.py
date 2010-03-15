@@ -56,7 +56,6 @@ class TestPlugPerformance( unittest.TestCase ):
 		print >> sys.stderr, "Multi-Connected %i different multi-plugs with bestcase FORCE in %f s ( %f / s )" % (len(r), elapsed, len(r) / elapsed)
 	
 	def test_general( self ):
-		"""mayarv.maya.apipatch: test plug performance"""
 		bmaya.Scene.new( force = True )
 
 		s1 = nt.createNode( "storage1", "storageNode" )

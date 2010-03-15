@@ -15,7 +15,6 @@ class TestReferenceRunner( unittest.TestCase ):
 
 	@with_scene('refbase.ma')
 	def test_listAndQuery( self ):
-		"""mayarv.maya.ref: list some references and query their information """
 		allRefs = FileReference.ls( )
 
 		assert len( allRefs ) != 0 
@@ -74,7 +73,6 @@ class TestReferenceRunner( unittest.TestCase ):
 
 	@with_scene('refbase.ma')
 	def test_referenceCreation( self ):
-		"""mayarv.maya.ref: create , delete and replace references"""
 		# create some new references
 		filenames = [ "sphere.ma", "cube.ma", "empty.ma", "cylinder.ma", "subrefbase.ma" ]
 		newrefs = []

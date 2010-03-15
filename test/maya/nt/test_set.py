@@ -10,7 +10,6 @@ class TestSets( unittest.TestCase ):
 	""" Test set and partition handling """
 
 	def test_createAddRemove( self ):
-		"""mayarv.maya.nodes.set: create,add and remove"""
 		set1 = nt.createNode( "set1", "objectSet" )
 		set2 = nt.createNode( "set2", "objectSet" )
 		set3 = nt.createNode( "set3", "objectSet" )
@@ -83,7 +82,6 @@ class TestSets( unittest.TestCase ):
 		return [ ik, persp, persp.translate, rg.getMObject(), front.getMDagPath(), s2 ]
 
 	def test_memberHandling( self ):
-		"""mayarv.maya.nodes.set: add/remove members from all kinds of inputs"""
 		s = nt.createNode( "memberSet", "objectSet" )
 
 		# ADD/REMOVE SINGLE MEMBER
@@ -287,7 +285,6 @@ class TestSets( unittest.TestCase ):
 		
 
 	def test_partitions( self ):
-		"""mayarv.maya.nodes.set: test partition constraints"""
 
 		# one transform, two sets, one partition
 		s1 = nt.createNode( "ms1", "objectSet" )
@@ -374,14 +371,12 @@ class TestSets( unittest.TestCase ):
 		assert snode.getIntersection( multi ).length() == 2
 
 	def test_renderPartition( self ):
-		"""mayarv.maya.nodes.set: assure renderpartition works for us"""
 		rp = nt.Node( "renderPartition" )
 		assert len( rp.getSets( ) )		# at least the initial shading group
 
 
 	@with_scene("perComponentAssignments.ma")
 	def test_z_memberHandlingComps( self ):
-		"""mayarv.maya.nodes.set: member handling with components - needs to run last"""
 		p1 = nt.Node( "|p1trans|p1" )
 		s1 = nt.Node( "s1" )					# sphere with face shader assignments
 		s2 = nt.Node( "s2" )					# sphere with one object assignment

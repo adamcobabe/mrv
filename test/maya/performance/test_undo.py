@@ -46,7 +46,6 @@ class TestUndoPerformance( unittest.TestCase ):
 		return numops
 
 	def test_undoPerformance( self ):
-		"mayarv.maya.undo: recursive undo including decorator"
 		import time
 		iterations = 35
 		maxdepth = 3

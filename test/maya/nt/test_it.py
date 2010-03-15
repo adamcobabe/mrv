@@ -15,7 +15,6 @@ class TestGeneral( unittest.TestCase ):
 
 	@with_scene('empty.ma')
 	def test_dagIter( self ):
-		"""mayarv.maya.nodes.it: simple DAG iteration"""
 		trans = nt.createNode( "trans", "transform" )
 		trans2 = nt.createNode( "trans2", "transform" )
 		transinst = trans.addInstancedChild( trans2 )
@@ -73,7 +72,6 @@ class TestGeneral( unittest.TestCase ):
 
 	@with_scene('perComponentAssignments.ma')
 	def test_iterSelectionList( self ):
-		"""mayarv.maya.nodes.it: Iterate selection lists"""
 		p1 = nt.Node( "|p1trans|p1" )
 		p1i = nt.Node( "|p1transinst|p1" )
 		objs = [ p1, p1i ]
@@ -173,7 +171,6 @@ class TestGeneral( unittest.TestCase ):
 
 	@with_scene('empty.ma')
 	def test_dggraph( self ):
-		"""mayarv.maya.nodes.it: simple dg graph iteration"""
 		persp = nt.Node( "persp" )
 		front = nt.Node( "front" )
 		cam = nt.Node( "persp|perspShape" )
@@ -250,7 +247,6 @@ class TestGeneral( unittest.TestCase ):
 
 	@with_scene('empty.ma')
 	def test_dgiter( self ):
-		"""mayarv.maya.nodes.it: simple DG iteration"""
 		trans = nt.createNode( "trans", "transform" )
 		mesh = nt.createNode( "trans|mesh", "mesh" )
 

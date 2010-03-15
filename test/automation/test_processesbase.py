@@ -15,7 +15,6 @@ class TestProcesses( unittest.TestCase ):
 	"""Test workflow class"""
 
 	def test_workflowProcess( self ):
-		"""mayarv.automation.process: check workflow nested into process"""
 		wfl = workflows.workflowwrap
 		workflows.multiinput.writeDot(tempfile.gettempdir() + "/mygraph.dot" )
 

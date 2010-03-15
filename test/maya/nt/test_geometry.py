@@ -11,7 +11,6 @@ class TestGeometry( unittest.TestCase ):
 
 
 	def test_setHandling( self ):
-		"""mayarv.maya.nodes.geometry: set handling tests for different types"""
 		bmaya.Scene.open( get_maya_file( "shadertest.ma" ), force = 1 )
 
 		# these are all shapes
@@ -344,9 +343,8 @@ class TestGeometry( unittest.TestCase ):
 	
 	@with_scene("mesh_lightlinks.ma")
 	def test_lightLinkCopy( self ):
-		"""mayarv.maya.nodes.geometry: test how lightlinks are copied from oen shape to another
-		@note: currently we only call variants of the respective method to run it - verification
-		was made in actual scenes, but is not reproducable"""
+		# currently we only call variants of the respective method to run it - verification
+		# was made in actual scenes, but they were not incorporated into the test."""
 		for sourcename in ( "sphere", "torus" ):
 			source = nt.Node( sourcename )
 			target = nt.Node( "%s_target" % sourcename )

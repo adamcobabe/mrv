@@ -10,7 +10,6 @@ import tempfile
 
 class TestStorage( unittest.TestCase ):
 	def test_storagePickleData( self ):
-		"""mayarv.maya.nodes.storage: test pickle data"""
 		tmpdir = Path( tempfile.gettempdir() )
 
 		def setTestValue( mydict ):
@@ -118,7 +117,6 @@ class TestStorage( unittest.TestCase ):
 
 
 	def test_storageAttributeHanlding( self ):
-		"""mayarv.maya.nodes.storage: test of the attribute accesss on storages is working"""
 		bmaya.Scene.new( force = True )
 		snode = nt.createNode( "storage",  "storageNode" )
 
@@ -166,7 +164,6 @@ class TestStorage( unittest.TestCase ):
 		assert len( persp.message.p_outputs ) == 10 
 
 	def test_storageSetHandling( self ):
-		"""mayarv.maya.nodes.storage: test built-in sethandling"""
 		bmaya.Scene.new( force = True )
 		snode = nt.createNode( "storage",  "storageNode" )
 

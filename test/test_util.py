@@ -9,7 +9,6 @@ import weakref
 class TestDAGTree( unittest.TestCase ):
 
 	def test_dagMethods( self ):
-		"""mayarv.util.DAGTree: Test general methods"""
 		self.tree = DAGTree( )
 		self.tree.add_edge( 0,1 )
 		self.tree.add_edge( 0,2 )
@@ -22,7 +21,6 @@ class TestDAGTree( unittest.TestCase ):
 		self.failUnless( len( list( self.tree.parent_iter( 5 ) ) ) == 3 )
 
 	def test_filters( self ):
-		"""mayarv.util: test generalized filters"""
 		# AND
 		sequence = [ 1,1,1,1,0,1,1 ]
 		self.failUnless( len( filter( And( bool, bool, bool ), sequence ) ) == len( sequence ) - 1 )
@@ -37,13 +35,11 @@ class TestDAGTree( unittest.TestCase ):
 
 
 	def test_intGenerator( self ):
-		"""mayarv.util: test IntKeygenerator"""
 		for i in IntKeyGenerator( [ 1,2,3 ] ):
 			self.failUnless( isinstance( i, int ) )
 
 
 	def test_interfaceBase( self ):
-		"""mayarv.util: interface base testing of main functionality"""
 		class IMasterTest( InterfaceMaster ):
 			im_provide_on_instance = True
 
@@ -119,7 +115,6 @@ class TestDAGTree( unittest.TestCase ):
 		self.failUnless( len( imaster.listInterfaces( ) ) == 0 )
 
 	def test_choiceDialog( self ):
-		"""mayarv.interface.iChoiceDialog: quick choicebox test"""
 		c1 = "single choice"
 		choice_dialog = iChoiceDialog( t = "my title", m = "my message", c = c1 )
 		self.failUnless( choice_dialog.getChoice() == c1 )
@@ -129,11 +124,9 @@ class TestDAGTree( unittest.TestCase ):
 		self.failUnless( choice_dialog.getChoice() == c1 )
 
 	def test_prompt( self ):
-		"""mayarv.interface.iPrompt"""
 		assert iPrompt( m="Enter your name:", d="test", ct="Enter" ).prompt() == "test"
 
 	def test_progressIndicator( self ):
-		"""mayarv.utils.iProgressIndicator: do some simple progress testing"""
 		maxrange = 10
 		progress = iProgressIndicator( min = 0, max = maxrange, is_relative = 1 )
 
