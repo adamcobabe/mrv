@@ -20,7 +20,7 @@ Default maya commands will require them to be used as string variables instead.
 """
 import mayarv.maya as bmaya
 import typ
-_thismodule = __import__( "mayarv.maya.nodes", globals(), locals(), ['nodes'] )
+_thismodule = __import__( "mayarv.maya.nt", globals(), locals(), ['nt'] )
 from mayarv.path import Path
 import mayarv.maya.env as env
 import mayarv.maya.util as bmayautil
@@ -33,7 +33,7 @@ if not hasattr( sys,"_dataTypeIdToTrackingDictMap" ):
 
 #{ Common
 def registerPluginDataTrackingDict( dataTypeID, trackingDict ):
-	"""Using the given dataTypeID and tracking dict, nodes.MFnPluginData can return
+	"""Using the given dataTypeID and tracking dict, nt.MFnPluginData can return
 	self pointers belonging to an MPxPluginData instance as returned by MFnPluginData.
 	Call this method to register your PluginData information to the byronimo system.
 	Afterwards you can extract the self pointer using plug.asMObject.getData()"""
@@ -130,7 +130,7 @@ def init_package( ):
 	apipatch.init_applyPatches( )
 	
 	# initialize modules
-	init_modules( __file__, "mayarv.maya.nodes", self_module = _thismodule )
+	init_modules( __file__, "mayarv.maya.nt", self_module = _thismodule )
 
 
 def _force_type_creation():

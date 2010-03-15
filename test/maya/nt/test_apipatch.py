@@ -1,10 +1,9 @@
 # -*- coding: utf-8 -*-
 """ Test general nodes features """
 from mayarv.test.maya import *
-import mayarv.maya.nodes as nodes
+import mayarv.maya.nt as nt
 import maya.cmds as cmds
 import maya.OpenMaya as api
-import mayarv.test.maya.nodes as ownpackage
 from itertools import izip
 
 class TestDataBase( unittest.TestCase ):
@@ -30,9 +29,9 @@ class TestDataBase( unittest.TestCase ):
 
 	def test_MPlug( self ):
 		"""mayarv.maya.nodes: Test plug abilities( node.attribute ) """
-		persp = nodes.Node( "persp" )
-		front	 = nodes.Node( "front" )
-		side	 = nodes.Node( "side" )
+		persp = nt.Node( "persp" )
+		front	 = nt.Node( "front" )
+		side	 = nt.Node( "side" )
 		matworld = persp.worldMatrix
 
 		str( matworld )
@@ -105,9 +104,9 @@ class TestDataBase( unittest.TestCase ):
 		
 		
 		# test multi connections
-		sn = nodes.createNode("network1", "network")
-		sn2 = nodes.createNode("network2", "network") 
-		tn = nodes.createNode("network3", "network")
+		sn = nt.createNode("network1", "network")
+		sn2 = nt.createNode("network2", "network") 
+		tn = nt.createNode("network3", "network")
 		
 		def pir(array_plug, range_iter):
 			for index in range_iter:
@@ -194,9 +193,9 @@ class TestDataBase( unittest.TestCase ):
 
 		# ARRAY CONNECTIONS
 		###################
-		objset = nodes.createNode( "set1", "objectSet" )
-		partition = nodes.createNode( "partition1", "partition" )
-		pma = nodes.createNode( "plusMinusAverage1", "plusMinusAverage" )
+		objset = nt.createNode( "set1", "objectSet" )
+		partition = nt.createNode( "partition1", "partition" )
+		pma = nt.createNode( "plusMinusAverage1", "plusMinusAverage" )
 		destplug = persp.translate.connectToArray( pma.input3D, exclusive_connection = True )
 		assert persp.translate >= destplug 
 
@@ -214,20 +213,20 @@ class TestDataBase( unittest.TestCase ):
 		for plug in plugs: plug.getAttribute()
 
 		# CHECK ATTRIBUTES and NODES
-		for plug,attrtype in zip( plugs, [ nodes.TypedAttribute, nodes.NumericAttribute ] ):
+		for plug,attrtype in zip( plugs, [ nt.TypedAttribute, nt.NumericAttribute ] ):
 			attr = plug.getAttribute( )
 
-			assert isinstance( attr, nodes.Attribute ) 
+			assert isinstance( attr, nt.Attribute ) 
 			assert isinstance( attr, attrtype ) 
 
 			node = plug.getNode()
-			assert isinstance( node, nodes.Node ) 
+			assert isinstance( node, nt.Node ) 
 			assert node == persp 
 
 		# UNDO / REDO
 		##############
 		cmds.undoInfo( swf = 1 )
-		cam = nodes.createNode( "myTrans", "transform" )
+		cam = nt.createNode( "myTrans", "transform" )
 		testdb = [  ( cam.visibility, "Bool", True, False ),
 					( cam.translate['tx'], "Double", 0.0, 2.0 ) ]
 		# TODO: Add all missing types !
@@ -246,7 +245,7 @@ class TestDataBase( unittest.TestCase ):
 		
 	@with_scene('empty.ma')
 	def test_plug_itertools(self):
-		p = nodes.Node('persp')
+		p = nt.Node('persp')
 		( p.tx > p.ty ) > p.tz
 		
 		# check future
@@ -261,7 +260,7 @@ class TestDataBase( unittest.TestCase ):
 
 	def test_matrixData( self ):
 		"""mayarv.maya.nodes: test matrix data"""
-		node = nodes.Node( "persp" )
+		node = nt.Node( "persp" )
 		matplug = node.getPlug( "worldMatrix" )
 		assert not matplug.isNull() 
 		assert matplug.isArray() 
@@ -275,7 +274,7 @@ class TestDataBase( unittest.TestCase ):
 		assert not matelm.isNull() 
 
 		matdata = matelm.asData( )
-		assert isinstance( matdata, nodes.MatrixData ) 
+		assert isinstance( matdata, nt.MatrixData ) 
 		mmatrix = matdata.matrix( )
 		assert isinstance( mmatrix, api.MMatrix ) 
 
@@ -299,7 +298,7 @@ class TestDataBase( unittest.TestCase ):
 	def test_MPlugArray( self ):
 		"""mayarv.maya.nodes: test the plugarray wrapper
 		NOTE: plugarray can be wrapped, but the types stored will always be"""
-		node = nodes.Node( "defaultRenderGlobals" )
+		node = nt.Node( "defaultRenderGlobals" )
 		pa = node.getConnections( )
 
 		myplug = pa[0]
@@ -324,7 +323,7 @@ class TestDataBase( unittest.TestCase ):
 		self.failIf( len( pa ) != 5 )
 
 	def test_MSelectionList( self ):
-		sl = nodes.toSelectionList(nodes.it.iterDgNodes())
+		sl = nt.toSelectionList(nt.it.iterDgNodes())
 		nodeset = set()
 		
 		# can be handled like a list
@@ -332,7 +331,7 @@ class TestDataBase( unittest.TestCase ):
 		
 		# provides unique wrapped nodes
 		for node in sl:
-			assert isinstance(node, nodes.Node)
+			assert isinstance(node, nt.Node)
 			nodeset.add(node)
 		# END for each node
 		assert len(nodeset) == len(sl)
@@ -342,7 +341,7 @@ class TestDataBase( unittest.TestCase ):
 		nls = node_list[4:15]
 		for slsnodesgen, selfun in ((lambda : [str(n) for n in nls], api.MSelectionList.fromStrings),
 									(lambda : nls, api.MSelectionList.fromList),
-									(lambda : [(n, api.MObject()) for n in node_list[-5:] if isinstance(n, nodes.DagNode)], api.MSelectionList.fromComponentList) ):
+									(lambda : [(n, api.MObject()) for n in node_list[-5:] if isinstance(n, nt.DagNode)], api.MSelectionList.fromComponentList) ):
 			slsnodes = slsnodesgen()
 			sls = selfun(iter(slsnodes))
 			assert isinstance(sls, api.MSelectionList) and len(sls) == len(slsnodes) 
@@ -360,8 +359,8 @@ class TestDataBase( unittest.TestCase ):
 		assert hasattr(sl.toIter(), 'next')
 		
 		# test contains
-		dagnode = nodes.Node("persp")
-		dgnode = nodes.Node("time1")
+		dagnode = nt.Node("persp")
+		dgnode = nt.Node("time1")
 		plug = dgnode.o
 		
 		sls = api.MSelectionList.fromList((dagnode, dgnode, plug))
@@ -382,8 +381,8 @@ class TestDataBase( unittest.TestCase ):
 		assert slitems and slitems[-1] == sl[-1]
 		
 		# COMPONENT ITERATION
-		m = nodes.Mesh()
-		nodes.PolyCube().output > m.inMesh
+		m = nt.Mesh()
+		nt.PolyCube().output > m.inMesh
 		sl = api.MSelectionList()
 		sl.add(m.getMDagPath())
 		sl.add(m.getMDagPath(), m.cf[:])
@@ -391,7 +390,7 @@ class TestDataBase( unittest.TestCase ):
 		
 		
 		# PLUG ITERATION
-		p = nodes.Node("persp")
+		p = nt.Node("persp")
 		sl = api.MSelectionList()
 		sl.add(p.getMDagPath())
 		sl.add(p.t)

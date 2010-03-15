@@ -8,7 +8,7 @@ class TestStartupPerformance( unittest.TestCase ):
 	
 	def test_startup(self):
 		st = time.time()
-		import mayarv.maya.nodes
+		import mayarv.maya.nt
 		elapsed = time.time() - st
 		
 		# skip if it wasn't started standalone

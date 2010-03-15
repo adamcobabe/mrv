@@ -2,7 +2,7 @@
 """Performance Testing"""
 from mayarv.test.maya import *
 
-import mayarv.maya.nodes as nodes
+import mayarv.maya.nt as nt
 import time
 import sys
 
@@ -10,8 +10,8 @@ class TestSetsPerformance( unittest.TestCase ):
 	
 	@with_scene('mesh40k.mb')
 	def test_set_assignments(self):
-		m = nodes.Node('mesh40k')
-		isb = nodes.ShadingEngine()
+		m = nt.Node('mesh40k')
+		isb = nt.ShadingEngine()
 		
 		for ignore_failure in range(2):
 			if ignore_failure > 0:

@@ -2,7 +2,7 @@
 """Performance Testing"""
 from mayarv.test.maya import *
 
-import mayarv.maya.nodes as nodes
+import mayarv.maya.nt as nt
 import time
 import sys
 
@@ -10,7 +10,7 @@ class TestGeometryPerformance( unittest.TestCase ):
 	
 	@with_scene('mesh40k.mb')
 	def test_mesh_iteration(self):
-		m = nodes.Node('mesh40k')
+		m = nt.Node('mesh40k')
 		nv = m.numVertices()
 		ne = m.numEdges()
 		nf = m.numPolygons()
@@ -71,7 +71,7 @@ class TestGeometryPerformance( unittest.TestCase ):
 		
 		# Polygon All vtx
 		st = time.time()
-		ia = nodes.api.MIntArray()
+		ia = nt.api.MIntArray()
 		nc = 0
 		for it in m.f:
 			it.getVertices(ia)
@@ -98,23 +98,23 @@ class TestGeometryPerformance( unittest.TestCase ):
 		st = time.time()
 		
 		cset = 'edgeLength'
-		m = nodes.Node('mesh40k')
+		m = nt.Node('mesh40k')
 		
 		m.createColorSetWithName(cset)
 		m.setCurrentColorSetName(cset)
 		
-		lp = nodes.api.MPointArray()
+		lp = nt.api.MPointArray()
 		m.getPoints(lp)
 		
-		colors = nodes.api.MColorArray()
+		colors = nt.api.MColorArray()
 		colors.setLength(m.numVertices())
 		
-		vids = nodes.api.MIntArray()
+		vids = nt.api.MIntArray()
 		vids.setLength(len(colors))
 		
-		el = nodes.api.MFloatArray()
+		el = nt.api.MFloatArray()
 		el.setLength(len(colors))
-		cvids = nodes.api.MIntArray()
+		cvids = nt.api.MIntArray()
 		
 		# compute average edge-lengths
 		max_len = 0.0
@@ -138,7 +138,7 @@ class TestGeometryPerformance( unittest.TestCase ):
 			colors[cid] = c
 		# END for each color id
 	
-		m.setVertexColors(colors, vids, nodes.api.MDGModifier())
+		m.setVertexColors(colors, vids, nt.api.MDGModifier())
 		
 		elapsed = time.time() - st
 		nc = len(colors)

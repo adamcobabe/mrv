@@ -2,11 +2,11 @@
 """ Test general performance """
 from mayarv.test.maya import *
 import mayarv.maya as bmaya
-import mayarv.maya.nodes as nodes
+import mayarv.maya.nt as nt
 import mayarv.maya.ns as ns
 from mayarv.maya.ref import *
-from mayarv.maya.nodes import Node, NodeFromObj
-import mayarv.maya.nodes.it as it
+from mayarv.maya.nt import Node, NodeFromObj
+import mayarv.maya.nt.it as it
 
 import maya.cmds as cmds
 import maya.OpenMaya as api
@@ -33,7 +33,7 @@ class TestGeneralPerformance( unittest.TestCase ):
 		else:
 			nodetype = random.choice( self.deptypes )
 
-		return nodes.createNode( name, nodetype, renameOnClash=True )
+		return nt.createNode( name, nodetype, renameOnClash=True )
 
 
 	def _DISABLED_test_buildTestScene( self ):
@@ -101,7 +101,7 @@ class TestGeneralPerformance( unittest.TestCase ):
 			
 			# FROM LS
 			st = time.time( )
-			sellist = nodes.toSelectionListFromNames( cmds.ls( type="dagNode" ) )
+			sellist = nt.toSelectionListFromNames( cmds.ls( type="dagNode" ) )
 			nsl = len(sellist)
 			for node in it.iterSelectionList( sellist, handlePlugs = False, asNode = False ):
 				pass
@@ -204,11 +204,11 @@ class TestGeneralPerformance( unittest.TestCase ):
 		# redo last operation to get lots of nodes
 		cmds.redo( )
 		nodenames = cmds.ls( l=1 )
-		Nodes = []
+		nodes = list()
 
 		st = time.time( )
 		for name in nodenames:
-			Nodes.append( Node( name ) )
+			nodes.append( Node( name ) )
 
 		elapsed = time.time() - st
 		print >>sys.stderr, "Created %i WRAPPED Nodes ( from STRING ) in %f s ( %f / s )" % ( len( nodenames ), elapsed, len( nodenames ) / elapsed )
@@ -217,8 +217,8 @@ class TestGeneralPerformance( unittest.TestCase ):
 		# CREATE MAYA NODES FROM DAGPATHS AND OBJECTS
 		st = time.time( )
 		tmplist = list()	# previously we measured the time it took to append the node as well
-		for node in Nodes:
-			if isinstance( node, nodes.DagNode ):
+		for node in nodes:
+			if isinstance( node, nt.DagNode ):
 				tmplist.append( Node( node.getMDagPath() ) )
 			else:
 				tmplist.append( Node( node.getMObject() ) )
@@ -231,8 +231,8 @@ class TestGeneralPerformance( unittest.TestCase ):
 		# CREATE MAYA NODES USING THE FAST CONSTRUCTOR
 		st = time.time( )
 		tmplist = list()	# previously we measured the time it took to append the node as well
-		for node in Nodes:
-			if isinstance( node, nodes.DagNode ):
+		for node in nodes:
+			if isinstance( node, nt.DagNode ):
 				tmplist.append( NodeFromObj( node.getMDagPath() ) )
 			else:
 				tmplist.append( NodeFromObj( node.getMObject() ) )
@@ -258,7 +258,7 @@ class TestGeneralPerformance( unittest.TestCase ):
 	
 	@with_scene("samurai_jet_graph.mb")
 	def test_graph_iteration(self):
-		root = nodes.Node('Jetctrllers')
+		root = nt.Node('Jetctrllers')
 		for rootitem in (root, root.drawInfo):
 			for breadth in range(2):
 				for plug in range(2):
@@ -356,7 +356,7 @@ class TestGeneralPerformance( unittest.TestCase ):
 			st = time.time()
 			node_list = list()
 			for number in xrange(nn):
-				n = nodes.createNode(node_type, node_type)
+				n = nt.createNode(node_type, node_type)
 				node_list.append(n)
 			# END for each node to created
 			elapsed = time.time() - st

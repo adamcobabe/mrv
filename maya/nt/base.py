@@ -1855,7 +1855,7 @@ class DagNode( Entity, iDagItem ):	# parent just for epydoc
 
 	def getChildrenByType( self, nodeType, predicate = lambda x: True ):
 		"""@return: all childnodes below this one matching the given nodeType and the predicate
-		@param nodetype: class of the nodeTyoe, like nodes.Transform"""
+		@param nodetype: class of the nodeTyoe, like nt.Transform"""
 		return [ p for p in self.getChildren() if isinstance( p, nodeType ) and predicate( p ) ]
 
 	def getShapes( self, predicate = lambda x: True ):

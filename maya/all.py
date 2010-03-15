@@ -8,7 +8,7 @@ from scene import *
 from undo import *
 
 # nodes
-from nodes import *
+from nt import *
 
 if not cmds.about(batch=1):
 	from ui import *

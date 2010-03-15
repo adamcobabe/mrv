@@ -6,18 +6,18 @@ import maya.OpenMaya as api
 import maya.OpenMayaAnim as apianim
 
 import mayarv.maya as mrvmaya
-import mayarv.maya.nodes as nodes
+import mayarv.maya.nt as nt
 
 
 class TestAnim( unittest.TestCase ):
 	def test_anim_overrides(self):
 		# create test anim curve
-		p = nodes.Node('persp')
-		anim_curve = nodes.anim.apianim.MFnAnimCurve().create(p.rx)
-		assert isinstance(anim_curve, nodes.api.MObject)		
+		p = nt.Node('persp')
+		anim_curve = nt.anim.apianim.MFnAnimCurve().create(p.rx)
+		assert isinstance(anim_curve, nt.api.MObject)		
 		
 		# test mfn wrapping
-		anim_curve = nodes.Node(anim_curve)
+		anim_curve = nt.Node(anim_curve)
 		assert anim_curve.getNumKeyframes() == 0
 		
 		# assure we are connected to the plug, for curiousity
@@ -26,8 +26,8 @@ class TestAnim( unittest.TestCase ):
 		
 		# set key
 		anim_curve.setIsWeighted(True)
-		anim_curve.addKeyframe(nodes.api.MTime(-1.0), 5.0)
-		anim_curve.addKeyframe(nodes.api.MTime(1.0), 10.0)
+		anim_curve.addKeyframe(nt.api.MTime(-1.0), 5.0)
+		anim_curve.addKeyframe(nt.api.MTime(1.0), 10.0)
 		assert anim_curve.getNumKeyframes() == 2
 		
 		# test method overrides 
@@ -50,7 +50,7 @@ class TestAnim( unittest.TestCase ):
 		
 	def test_get_animation( self ):
 		mrvmaya.Scene.new(force=True)
-		p = nodes.Node("persp")
+		p = nt.Node("persp")
 		
 		# translate is animated
 		for tc in p.translate.getChildren():
@@ -58,14 +58,14 @@ class TestAnim( unittest.TestCase ):
 		# END set animation
 		
 		# test animation iteration
-		for converter in (lambda x: x, lambda x: nodes.toSelectionList(x)):
+		for converter in (lambda x: x, lambda x: nt.toSelectionList(x)):
 			for as_node in range(2):
 				nc = 0
-				target_type = nodes.api.MObject
+				target_type = nt.api.MObject
 				if as_node:
-					target_type = nodes.Node
+					target_type = nt.Node
 				# END define target type
-				for anode in nodes.AnimCurve.getAnimation(converter([p]), as_node):
+				for anode in nt.AnimCurve.getAnimation(converter([p]), as_node):
 					assert isinstance(anode, target_type)
 					nc += 1
 				# END for each anim node

@@ -5,7 +5,7 @@ import maya.cmds as cmds
 from mayarv.maya.ref import *
 from mayarv.maya.ns import *
 import mayarv.maya as bmaya
-import mayarv.maya.nodes as nodes
+import mayarv.maya.nt as nt
 import re
 import os
 
@@ -185,9 +185,9 @@ class TestReferenceRunner( unittest.TestCase ):
 							
 							if asNode:
 								for node in node_list:
-									assert isinstance(node, nodes.Node)
+									assert isinstance(node, nt.Node)
 									if dag: 
-										assert isinstance(node, nodes.DagNode)
+										assert isinstance(node, nt.DagNode)
 									# END check dag node
 								# END for each node
 							# END as Node
@@ -201,7 +201,7 @@ class TestReferenceRunner( unittest.TestCase ):
 	
 	
 	def _assert_ref_node(self, rfn):
-		assert isinstance(rfn, nodes.Reference)
+		assert isinstance(rfn, nt.Reference)
 		
 		assert rfn.getFileReference().getReferenceNode() == rfn
 	
@@ -277,13 +277,13 @@ class TestReferenceRunner( unittest.TestCase ):
 		assert len(tlns.getChildren()) == 2 and len(tlns.getChildrenDeep()) == 2
 		
 		# tl ref has four meshes
-		assert len(list(tlns.iterNodes(nodes.api.MFn.kMesh))) == 4
+		assert len(list(tlns.iterNodes(nt.api.MFn.kMesh))) == 4
 		
 		# both subrefs have 10+8 additional meshes
-		assert len(list(tlns.iterNodes(nodes.api.MFn.kMesh, depth=1))) == 22
+		assert len(list(tlns.iterNodes(nt.api.MFn.kMesh, depth=1))) == 22
 		
 		# unlimited depth desnt change a thing
-		assert len(list(tlns.iterNodes(nodes.api.MFn.kMesh, depth=-1))) == 22
+		assert len(list(tlns.iterNodes(nt.api.MFn.kMesh, depth=-1))) == 22
 		
 		
 		# predicate check

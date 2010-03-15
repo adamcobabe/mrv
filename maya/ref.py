@@ -295,7 +295,7 @@ class FileReference( iDagItem ):
 		@param **kwargs: additional kwargs will be passed to either L{iterDagNodes}
 		or L{iterDgNodes} ( dag = False ).
 		@raise ValueError: if incompatible arguments have been given"""
-		import nodes
+		import nt
 		
 		rns = self.getNamespace()
 		rnsrela = rns.toRelative()+':'
@@ -354,7 +354,7 @@ class FileReference( iDagItem ):
 			# END filter
 			
 			pred = check_dag_ns
-			iter_type = nodes.it.iterDagNodes
+			iter_type = nt.it.iterDagNodes
 		else:
 			mfndep = api.MFnDependencyNode()
 			mfndepSetObject = mfndep.setObject
@@ -369,13 +369,13 @@ class FileReference( iDagItem ):
 			# END filter
 			
 			pred = check_ns
-			iter_type = nodes.it.iterDgNodes
+			iter_type = nt.it.iterDgNodes
 		# END handle dag/dg mode predicate
 		
 		kwargs['predicate'] = pred
 		
 		# have to iterate it manually in order to get the toNode conversion right
-		NodeFromObj = nodes.NodeFromObj
+		NodeFromObj = nt.NodeFromObj
 		for n in iter_type(*args, **kwargs):
 			if asNode:
 				n = NodeFromObj(n)
@@ -521,8 +521,8 @@ class FileReference( iDagItem ):
 
 	def getReferenceNode( self ):
 		"""@return: wrapped reference node managing this reference"""
-		import mayarv.maya.nodes as nodes
-		return nodes.NodeFromStr( self._refnode )
+		import mayarv.maya.nt as nt
+		return nt.NodeFromStr( self._refnode )
 
 	#}END query methods
 

@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 """ Contains improved clases for set and partition editing  """
-import base as nodes
+import base as nt
 import typ
 import maya.OpenMaya as api
 import maya.cmds as cmds
@@ -73,9 +73,9 @@ class ObjectSet:
 		"""Convert member to a valid member object ( MObject, DagPath or Plug )"""
 		memberobj = member
 		
-		if isinstance( member, nodes.DagNode ):
+		if isinstance( member, nt.DagNode ):
 			memberobj = member.getMDagPath()
-		elif isinstance( member, nodes.DependNode ):
+		elif isinstance( member, nt.DependNode ):
 			memberobj = member.getMObject()
 			
 		return memberobj
@@ -171,7 +171,7 @@ class ObjectSet:
 	def _addRemoveMembers( self, members, mode, ignore_failure ):
 		"""Add or remove the members to the set
 		@param mode: kRemove or kAdd or kAddForce"""
-		sellist = nodes.toSelectionList( members )	# handles 'member is SelectionList' case !
+		sellist = nt.toSelectionList( members )	# handles 'member is SelectionList' case !
 			
 		lsellist = sellist.length()
 		if not lsellist:
@@ -382,7 +382,7 @@ class ObjectSet:
 				return objarray
 			else:
 				# create selection list from nodes and use a tmpSet 
-				sellist = nodes.toSelectionList( objects )
+				sellist = nt.toSelectionList( objects )
 				return cls._TmpSet( sellist )
 		# END list handling
 		

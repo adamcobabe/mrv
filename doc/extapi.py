@@ -17,7 +17,7 @@
 #
 
 import os.path
-from docutils import nodes
+from docutils import nt
 
 def api_role(role, rawtext, text, lineno, inliner, options={}, content=[]):
     """
@@ -66,10 +66,10 @@ def api_role(role, rawtext, text, lineno, inliner, options={}, content=[]):
                 uri = '%s/%s-class.html#%s' % (basedir, fprefix, method)
 
     if exists(file):
-        node = nodes.reference(rawtext, "( Click here for epydoc version of module documentation )", refuri=uri, **options)
+        node = nt.reference(rawtext, "( Click here for epydoc version of module documentation )", refuri=uri, **options)
     else:
         # cannot find reference, then just inline the text
-        node = nodes.literal(rawtext, text)
+        node = nt.literal(rawtext, text)
 
     return [node], []
 

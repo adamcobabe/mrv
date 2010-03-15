@@ -4,11 +4,10 @@ from mayarv.test.maya import *
 import mayarv.maya as bmaya
 import mayarv.maya.env as env
 import mayarv.maya.ns as nsm
-import mayarv.maya.nodes as nodes
+import mayarv.maya.nt as nt
 from mayarv.test.maya import get_maya_file
 from mayarv.util import capitalize, uncapitalize
 import maya.cmds as cmds
-import mayarv.test.maya.nodes as ownpackage
 import maya.OpenMaya as api
 from mayarv.path import Path
 import sys
@@ -33,7 +32,7 @@ class TestGeneral( unittest.TestCase ):
 		seen_types = set()		# keeps class names that we have seen already 
 		for nodename in cmds.ls( ):
 			try:
-				node = nodes.Node( nodename )
+				node = nt.Node( nodename )
 				node.getMFnClasses()
 			except (TypeError,AttributeError):
 				missingTypesList.append( ( nodename, cmds.nodeType( nodename ) ) )
@@ -95,7 +94,7 @@ class TestGeneral( unittest.TestCase ):
 
 		# try to just use a suberclass directly
 		for transname in cmds.ls( type="transform" ):
-			node = nodes.DagNode( transname )
+			node = nt.DagNode( transname )
 			assert hasattr( node, "__dict__" ) 
 
 
@@ -108,8 +107,8 @@ class TestGeneral( unittest.TestCase ):
 		# SIMPLE CREATION: Paths + nested namespaces
 		for i in range( len( names ) ):
 			ntype = types[i]
-			newnode = nodes.createNode( names[i], ntype )
-			assert isinstance( newnode, getattr( nodes, capitalize( ntype ) ) ) 
+			newnode = nt.createNode( names[i], ntype )
+			assert isinstance( newnode, getattr( nt, capitalize( ntype ) ) ) 
 			assert newnode.isValid() and newnode.isAlive() 
 
 			# test undo
@@ -118,8 +117,8 @@ class TestGeneral( unittest.TestCase ):
 			cmds.redo()
 			assert newnode.isValid() and newnode.isAlive() 
 
-			newnsnode = nodes.createNode( nsnames[i], ntype )
-			assert isinstance( newnsnode, getattr( nodes, capitalize( ntype ) ) ) 
+			newnsnode = nt.createNode( nsnames[i], ntype )
+			assert isinstance( newnsnode, getattr( nt, capitalize( ntype ) ) ) 
 			assert newnsnode.isValid() and newnsnode.isAlive() 
 
 			# test undo
@@ -130,58 +129,58 @@ class TestGeneral( unittest.TestCase ):
 		# END for each created object
 
 		# EMPTY NAME and ROOT
-		self.failUnlessRaises( RuntimeError, nodes.createNode, '|', "facade" )
-		self.failUnlessRaises( RuntimeError, nodes.createNode, '', "facade" )
+		self.failUnlessRaises( RuntimeError, nt.createNode, '|', "facade" )
+		self.failUnlessRaises( RuntimeError, nt.createNode, '', "facade" )
 
 
 		# CHECK DIFFERENT ROOT TYPES
-		depnode = nodes.createNode( "blablub", "facade" )
-		self.failUnlessRaises( NameError, nodes.createNode, "|blablub|:this", "transform", renameOnClash = False )
+		depnode = nt.createNode( "blablub", "facade" )
+		self.failUnlessRaises( NameError, nt.createNode, "|blablub|:this", "transform", renameOnClash = False )
 
 		# DIFFERENT TYPES AT END OF PATH
-		nodes.createNode( "this|mesh", "mesh" )
-		self.failUnlessRaises( NameError, nodes.createNode, "this|mesh", "nurbsSurface", forceNewLeaf = False )
+		nt.createNode( "this|mesh", "mesh" )
+		self.failUnlessRaises( NameError, nt.createNode, "this|mesh", "nurbsSurface", forceNewLeaf = False )
 
 		# renameOnClash  - it fails if the dep node exists first
-		nodes.createNode( "node", "facade" )
-		self.failUnlessRaises( NameError, nodes.createNode, "this|that|node", "mesh", renameOnClash = False )
+		nt.createNode( "node", "facade" )
+		self.failUnlessRaises( NameError, nt.createNode, "this|that|node", "mesh", renameOnClash = False )
 
 		# obj exists should match dg nodes with dag node like path ( as they occupy the same
 		# namespace after all
-		assert nodes.objExists( "|node" ) 
+		assert nt.objExists( "|node" ) 
 
 		# it also clashes if the dg node is created after a  dag node with the same name
-		nodes.createNode( "that|nodename", "mesh" )
-		self.failUnlessRaises( NameError, nodes.createNode, "nodename", "facade", renameOnClash = False )
+		nt.createNode( "that|nodename", "mesh" )
+		self.failUnlessRaises( NameError, nt.createNode, "nodename", "facade", renameOnClash = False )
 
 
 		# it should be fine to have the same name in several dag levels though !
-		newmesh = nodes.createNode( "parent|nodename", "transform" )
-		newmesh1 = nodes.createNode( "parent|nodename|nodename", "mesh" )
-		newmesh2 = nodes.createNode( "otherparent|nodename|nodename", "mesh" )
+		newmesh = nt.createNode( "parent|nodename", "transform" )
+		newmesh1 = nt.createNode( "parent|nodename|nodename", "mesh" )
+		newmesh2 = nt.createNode( "otherparent|nodename|nodename", "mesh" )
 		assert newmesh != newmesh1 
 		assert newmesh1 != newmesh2 
 
 		# FORCE NEW
 		##############
-		oset = nodes.createNode( "objset", "objectSet", forceNewLeaf = False )
-		newoset = nodes.createNode( "objset", "objectSet", forceNewLeaf = True )
+		oset = nt.createNode( "objset", "objectSet", forceNewLeaf = False )
+		newoset = nt.createNode( "objset", "objectSet", forceNewLeaf = True )
 		assert oset != newoset 
 
 		# would expect same set to be returned
-		sameoset = nodes.createNode( "objset", "objectSet", forceNewLeaf = False )
+		sameoset = nt.createNode( "objset", "objectSet", forceNewLeaf = False )
 		assert sameoset == oset 
 
 		# force new and dag paths
-		newmesh3 = nodes.createNode( "otherparent|nodename|nodename", "mesh", forceNewLeaf = True )
+		newmesh3 = nt.createNode( "otherparent|nodename|nodename", "mesh", forceNewLeaf = True )
 		assert newmesh3 != newmesh2 
 
 
 
 	def test_objectExistance( self ):
 		"""mayarv.maya.nodes: check whether we can properly handle node exist checks"""
-		depnode = nodes.createNode( "node", "facade" )
-		assert nodes.objExists( str( depnode ) ) 
+		depnode = nt.createNode( "node", "facade" )
+		assert nt.objExists( str( depnode ) ) 
 
 		# TEST DUPLICATION
 		duplnode = depnode.duplicate( )
@@ -191,21 +190,21 @@ class TestGeneral( unittest.TestCase ):
 		assert str( copy2 ) == "name2" 
 		# NOTE: currently undo is not opetional
 
-		dagnode = nodes.createNode( "parent|node", "mesh" )
-		assert nodes.objExists( str( dagnode ) ) 
+		dagnode = nt.createNode( "parent|node", "mesh" )
+		assert nt.objExists( str( dagnode ) ) 
 
 		# must clash with dg node ( in maya, dg nodes will block names of dag node leafs ! )
-		self.failUnlessRaises( NameError, nodes.createNode, "parent|node|node", "mesh", renameOnClash=False )
+		self.failUnlessRaises( NameError, nt.createNode, "parent|node|node", "mesh", renameOnClash=False )
 
 		# same clash occours if dag node exists first
-		dagnode = nodes.createNode( "parent|othernode", "transform" )
-		self.failUnlessRaises( NameError, nodes.createNode, "othernode", "facade", renameOnClash=False )
+		dagnode = nt.createNode( "parent|othernode", "transform" )
+		self.failUnlessRaises( NameError, nt.createNode, "othernode", "facade", renameOnClash=False )
 
 
 	def test_dagPathVSMobjects( self ):
 		"""mayarv.maya.nodes: if mobjects where used internally, this test would fail"""
-		node = nodes.createNode( "parent|middle|child", "transform" )
-		nodem = nodes.Node( "parent|middle" )
+		node = nt.createNode( "parent|middle|child", "transform" )
+		nodem = nt.Node( "parent|middle" )
 
 		duplnodemiddle = nodem.duplicate( "middle1" )
 		instnode = duplnodemiddle.addInstancedChild( node )
@@ -215,7 +214,7 @@ class TestGeneral( unittest.TestCase ):
 		assert instnode != node 		# compare dag paths
 
 		path = instnode.getDagPath( )
-		childm1 = nodes.Node( "parent|middle1|child" )
+		childm1 = nt.Node( "parent|middle1|child" )
 
 		# if it didnt work, he would have returned a "|parent|middle|child"
 		assert "|parent|middle1|child" == str(childm1) 
@@ -238,43 +237,43 @@ class TestGeneral( unittest.TestCase ):
 		"""mayarv.maya.nodes: test convenience and conversion functions"""
 		# SELECTION
 		############
-		nodes.select( "persp" )
-		persp = nodes.getSelection()[0]
-		assert persp == nodes.Node( "persp" ) 
+		nt.select( "persp" )
+		persp = nt.getSelection()[0]
+		assert persp == nt.Node( "persp" ) 
 
 		# clear selection
-		nodes.select( )
-		assert not nodes.getSelection() 
+		nt.select( )
+		assert not nt.getSelection() 
 		
 		# undo/redo
 		cmds.undo()
-		assert len(nodes.getSelection()) == 1
+		assert len(nt.getSelection()) == 1
 		cmds.redo()
-		assert len(nodes.getSelection()) == 0
+		assert len(nt.getSelection()) == 0
 
 		# select object and selection list
-		nodes.select( persp )
-		assert len( nodes.getSelection( ) ) == 1 
-		nodes.select( nodes.toSelectionList( nodes.getSelection( ) ) )
-		assert len( nodes.getSelection( ) ) == 1 
+		nt.select( persp )
+		assert len( nt.getSelection( ) ) == 1 
+		nt.select( nt.toSelectionList( nt.getSelection( ) ) )
+		assert len( nt.getSelection( ) ) == 1 
 
 		# select mixed
-		nodes.select( persp, "front" )
-		assert len( nodes.getSelection( ) ) == 2 
+		nt.select( persp, "front" )
+		assert len( nt.getSelection( ) ) == 2 
 
 
 		# GET BY NAME
 		###############
-		persp = nodes.getByName( "pers*" )[0]
-		assert persp == nodes.Node( "persp" ) 
+		persp = nt.getByName( "pers*" )[0]
+		assert persp == nt.Node( "persp" ) 
 		
 		# filter selection
 		##################
-		nodes.select("persp", "perspShape")
-		assert len(nodes.getSelection(api.MFn.kCamera)) == 1
-		assert len(list(nodes.iterSelection(api.MFn.kCamera))) == 1
+		nt.select("persp", "perspShape")
+		assert len(nt.getSelection(api.MFn.kCamera)) == 1
+		assert len(list(nt.iterSelection(api.MFn.kCamera))) == 1
 		
-		sl = nodes.getSelectionList()
+		sl = nt.getSelectionList()
 		assert len(sl) and isinstance(sl, api.MSelectionList)
 
 
@@ -287,9 +286,9 @@ class TestNodeBase( unittest.TestCase ):
 
 	def test_customTypes( self ):
 		"""mayarv.maya.nodes: add a custom type to the system"""
-		nodes.addCustomType( "MyNewCls",parentClsName = "dependNode" )
+		nt.addCustomType( "MyNewCls",parentClsName = "dependNode" )
 		# standin class should be there
-		cls = nodes.MyNewCls
+		cls = nt.MyNewCls
 		self.failUnlessRaises( TypeError, cls, "persp" )	# class has incorrect type for persp
 		# NOTE: needed actual plugin type for proper test
 
@@ -298,13 +297,13 @@ class TestNodeBase( unittest.TestCase ):
 		# they must compare their objects for equality, not their own instance
 		ddg = dict()
 		for i in range( 10 ):		# dg nodes
-			ddg[ nodes.Node( "initialShadingGroup" ) ] = i
+			ddg[ nt.Node( "initialShadingGroup" ) ] = i
 
 		assert len( ddg ) == 1 
 
 		ddag = dict()
 		for i in range( 10 ):		# dg nodes
-			ddag[ nodes.Node( "persp" ) ] = i
+			ddag[ nt.Node( "persp" ) ] = i
 
 		assert len( ddag ) == 1 
 
@@ -317,12 +316,12 @@ class TestNodeBase( unittest.TestCase ):
 
 	def test_wrapDepNode( self ):
 		"""mayarv.maya.nodes: create and access dependency nodes ( not being dag nodes )"""
-		node = nodes.Node( "defaultRenderGlobals" )
+		node = nt.Node( "defaultRenderGlobals" )
 
 		# SKIP CHECKS TEST
-		self.failUnlessRaises( ValueError, nodes.Node, "this" )	# does not exist
+		self.failUnlessRaises( ValueError, nt.Node, "this" )	# does not exist
 		# results inconsitent between maya 8.5 and 2008, thus we skip it as it is not of much value
-		# self.failUnlessRaises( TypeError, nodes.Node, "this", 1 )  # skip check , maya throws
+		# self.failUnlessRaises( TypeError, nt.Node, "this", 1 )  # skip check , maya throws
 
 		# string should be name
 		assert str( node ) == node.getName( ) 
@@ -351,7 +350,7 @@ class TestNodeBase( unittest.TestCase ):
 
 
 		# DEPENDENCY INFO
-		persp = nodes.Node( "persp" )
+		persp = nt.Node( "persp" )
 		affected_attrs = persp.affects( "t" )
 		assert len( affected_attrs ) > 1 
 		affected_attrs = persp.affected( "t" )
@@ -377,12 +376,12 @@ class TestNodeBase( unittest.TestCase ):
 
 		# CHECK namespaces - should be root namespace
 		ns = node.getNamespace( )
-		assert ns == nodes.Namespace.root 
+		assert ns == nt.Namespace.root 
 		
 
 		# RENAME DEP NODES
 		######################
-		node = nodes.createNode( "mynode", "facade" )
+		node = nt.createNode( "mynode", "facade" )
 		renamed = node.rename( "myrenamednode" )
 
 		assert renamed.name() == "myrenamednode" 
@@ -413,7 +412,7 @@ class TestNodeBase( unittest.TestCase ):
 		assert renamed == node 
 
 		# othernode with different type exists
-		othernode = nodes.createNode( "othernode", "groupId" )
+		othernode = nt.createNode( "othernode", "groupId" )
 		self.failUnlessRaises( RuntimeError, node.rename, "othernode", renameOnClash = False )
 
 		# locking
@@ -430,14 +429,14 @@ class TestNodeBase( unittest.TestCase ):
 		node.rename( "othernode" )
 		
 	def test_namespace_adjustment(self):
-		dag = nodes.Transform()
-		dg = nodes.Network()
+		dag = nt.Transform()
+		dg = nt.Network()
 		
 		childns = nsm.Namespace.create(":foo:bar")
 		parentns = childns.getParent()
 		for node in (dag, dg):
 			assert node.getNamespace() == nsm.RootNamespace
-			assert isinstance(node.setNamespace(childns), nodes.Node)
+			assert isinstance(node.setNamespace(childns), nt.Node)
 			
 			assert node.getNamespace() == childns
 			assert node.setNamespace(parentns).getNamespace() == parentns
@@ -447,10 +446,10 @@ class TestNodeBase( unittest.TestCase ):
 
 	def test_reparentAndInstances( self ):
 		"""mayarv.maya.nodes: see of reparenting is responding when instances are involved"""
-		mesh = nodes.createNode( "trans|mesh", "mesh" )
-		base = nodes.createNode( "base|subbase", "transform" )
-		obase = nodes.createNode( "obase|subbase2", "transform" )
-		rbase = nodes.createNode( "reparentBase", "transform" )
+		mesh = nt.createNode( "trans|mesh", "mesh" )
+		base = nt.createNode( "base|subbase", "transform" )
+		obase = nt.createNode( "obase|subbase2", "transform" )
+		rbase = nt.createNode( "reparentBase", "transform" )
 
 		# test basic functions
 		assert rbase.getApiType() == api.MFn.kTransform 
@@ -460,12 +459,12 @@ class TestNodeBase( unittest.TestCase ):
 		obaseinst = obase.addInstancedChild( mesh )
 
 		# try to re-wrap the instanced items
-		assert nodes.Node( str( baseinst ) ) == baseinst
-		assert nodes.Node( str( obaseinst ) ) == obaseinst
+		assert nt.Node( str( baseinst ) ) == baseinst
+		assert nt.Node( str( obaseinst ) ) == obaseinst
 
 		# use partial name
-		assert nodes.Node( "subbase|mesh" ) == baseinst
-		assert nodes.Node( "subbase2|mesh" ) == obaseinst
+		assert nt.Node( "subbase|mesh" ) == baseinst
+		assert nt.Node( "subbase2|mesh" ) == obaseinst
 
 		assert mesh.isValid() and baseinst.isValid() and obaseinst.isValid() 
 
@@ -485,9 +484,9 @@ class TestNodeBase( unittest.TestCase ):
 
 	def test_duplicateInstances( self ):
 		"""mayarv.maya.nodes: handle duplication of instances"""
-		base = nodes.createNode( "base", "transform" )
-		obase = nodes.createNode( "obase", "transform" )
-		basemesh = nodes.createNode( "base|mesh", "mesh" )
+		base = nt.createNode( "base", "transform" )
+		obase = nt.createNode( "obase", "transform" )
+		basemesh = nt.createNode( "base|mesh", "mesh" )
 
 		obasemeshinst = obase.addInstancedChild( basemesh )
 
@@ -495,25 +494,25 @@ class TestNodeBase( unittest.TestCase ):
 		assert duplmesh != obasemeshinst 
 
 		dupltrans = base.duplicate( "duplbase" )
-		baseduplmesh = dupltrans.getChildrenByType( nodes.Mesh )[0]
+		baseduplmesh = dupltrans.getChildrenByType( nt.Mesh )[0]
 		assert baseduplmesh != basemesh 		# its a separate copy
 
 	def test_wrapping(self):
 		# from string
-		p = nodes.Node("persp")
+		p = nt.Node("persp")
 		
 		# it tries to access it like an APIObj - no type checks done here
-		self.failUnlessRaises(AttributeError, nodes.NodeFromObj, "persp")
+		self.failUnlessRaises(AttributeError, nt.NodeFromObj, "persp")
 		
 		# we don't accept other Nodes - it makes no sense and should be fixed
-		self.failUnlessRaises(TypeError, nodes.Node, p)
+		self.failUnlessRaises(TypeError, nt.Node, p)
 		
 		# tries to access a non-existing attribute
-		self.failUnlessRaises(AttributeError, nodes.NodeFromObj, p)
+		self.failUnlessRaises(AttributeError, nt.NodeFromObj, p)
 
 	def test_wrapDagNode( self ):
 		"""mayarv.maya.nodes: create and access dag nodes"""
-		mesh = nodes.createNode( "parent|mesh", "mesh" )
+		mesh = nt.createNode( "parent|mesh", "mesh" )
 		parent = mesh.getParent( )
 
 		# simple rename
@@ -521,7 +520,7 @@ class TestNodeBase( unittest.TestCase ):
 
 
 		# simple dupl test
-		duplbase = nodes.createNode( "parent|this|other|duplbase", "mesh" )
+		duplbase = nt.createNode( "parent|this|other|duplbase", "mesh" )
 		transcopy = duplbase.getTransform( ).duplicate()
 		copy = duplbase.duplicate( "parent|this|other|duplcopy" )
 		assert copy != duplbase 
@@ -549,7 +548,7 @@ class TestNodeBase( unittest.TestCase ):
 
 
 		# simple reparent
-		otherparent = nodes.createNode( "oparent", "transform" )
+		otherparent = nt.createNode( "oparent", "transform" )
 		mesh.reparent( otherparent )
 
 		# REPARENT UNDO TEST
@@ -561,11 +560,11 @@ class TestNodeBase( unittest.TestCase ):
 
 
 		# REPARENT RENAME CLASH
-		origmesh = nodes.createNode( "parent|fancymesh", "mesh" )			#  "|parent|fancymesh"
+		origmesh = nt.createNode( "parent|fancymesh", "mesh" )			#  "|parent|fancymesh"
 		self.failUnlessRaises( RuntimeError, mesh.reparent, parent , renameOnClash = False )
 
 		# RENAME CLASH DAG NODE
-		othermesh = nodes.createNode( "parent|mesh", "mesh" )
+		othermesh = nt.createNode( "parent|mesh", "mesh" )
 		self.failUnlessRaises( RuntimeError, origmesh.rename, "mesh", renameOnClash = False )
 
 		# now it works
@@ -585,9 +584,9 @@ class TestNodeBase( unittest.TestCase ):
 		self.failUnlessRaises( RuntimeError, mesh.reparent, mesh )
 
 		# reparent transform to world
-		wtrans = nodes.createNode( "parent2|worldtrans", "transform" )
-		parent = nodes.Node( "parent2" )
-		oparent = nodes.createNode( "oparent2", "transform" )
+		wtrans = nt.createNode( "parent2|worldtrans", "transform" )
+		parent = nt.Node( "parent2" )
+		oparent = nt.createNode( "oparent2", "transform" )
 		wtrans = wtrans.reparent( None )
 
 		wtransnewparent = wtrans.setParent( parent )
@@ -614,7 +613,7 @@ class TestNodeBase( unittest.TestCase ):
 		self.failUnlessRaises( RuntimeError, mesh.duplicate, "|duplparent2|doesntexistns:duplmesh",
 							  	autocreateNamespace = False )
 		assert newmesh != mesh 
-		instbase = nodes.createNode( "|duplparent2|newnamespace:instmesh", "transform" )
+		instbase = nt.createNode( "|duplparent2|newnamespace:instmesh", "transform" )
 		meshinst = instbase.addInstancedChild( mesh )
 		meshinstname = str( meshinst )
 
@@ -623,7 +622,7 @@ class TestNodeBase( unittest.TestCase ):
 		cmds.undo()
 
 		# this object will end up pointing to the same object , as it came from, use string test
-		assert not nodes.objExists( meshinstname ) 
+		assert not nt.objExists( meshinstname ) 
 		cmds.redo()
 		cmds.undo()
 		cmds.redo()
@@ -632,20 +631,20 @@ class TestNodeBase( unittest.TestCase ):
 
 		# Duplicate TRANSFORM ( just a name given )
 		# dag paths should be different although object is the same
-		mesh = nodes.createNode( "|parent|mybeautifuluniquemeshname", "mesh" )
-		meshassert = nodes.createNode( "|parent|mesh", "mesh" )
-		meshself = nodes.Node( "|parent|mybeautifuluniquemeshname" )
+		mesh = nt.createNode( "|parent|mybeautifuluniquemeshname", "mesh" )
+		meshassert = nt.createNode( "|parent|mesh", "mesh" )
+		meshself = nt.Node( "|parent|mybeautifuluniquemeshname" )
 		assert mesh == meshself 
 
 		# connect it, to track the instance by connection
-		persp = nodes.Node( "persp" )
+		persp = nt.Node( "persp" )
 		perspplug = persp.t['tx']
 		triplug = meshself.maxTriangles
 		perspplug >> triplug
 
 		# target does exist
 		# this is blocking the target instance name with an incorrect type
-		nodes.createNode( "parent|this|mybeautifuluniquemeshname", "transform" )
+		nt.createNode( "parent|this|mybeautifuluniquemeshname", "transform" )
 		self.failUnlessRaises( RuntimeError, mesh.duplicate, "|parent|this" )
 
 		# if the path is too short ...
@@ -654,13 +653,13 @@ class TestNodeBase( unittest.TestCase ):
 
 
 		meshinstname = mesh.getTransform().getFullChildName( "newns:meshinst" )
-		assert isinstance( meshinst, nodes.Mesh ) 
+		assert isinstance( meshinst, nt.Mesh ) 
 
 	def test_removeChild( self ):
 		"""mayarv.maya.nodes: test how remove child responds"""
-		base = nodes.createNode( "base" , "transform" )
-		trans = nodes.createNode( "base|trans", "transform" )
-		mesh = nodes.createNode( "base|mesh", "mesh" )
+		base = nt.createNode( "base" , "transform" )
+		trans = nt.createNode( "base|trans", "transform" )
+		mesh = nt.createNode( "base|mesh", "mesh" )
 
 		for item in [ trans, mesh ]:
 			removeditem = base.removeChild( item, allowZeroParents=True )
@@ -675,7 +674,7 @@ class TestNodeBase( unittest.TestCase ):
 
 	def test_dependnode_getitem( self ):
 		"""mayarv.nodes.maya: DependeNode.__getitem__"""
-		mesh = nodes.createNode( "p1|p2|mesh", "mesh" )
+		mesh = nt.createNode( "p1|p2|mesh", "mesh" )
 		assert len( list( mesh.iterParents() ) ) == 2 
 		p2 = mesh.getParent()
 		p1 = p2.getParent()
@@ -685,13 +684,13 @@ class TestNodeBase( unittest.TestCase ):
 
 	def test_childEditing( self ):
 		"""mayarv.maya.nodes: tests the add and remove children"""
-		base = nodes.createNode( "basenode", "transform" )
-		obase = nodes.createNode( "otherbasenode", "transform" )
+		base = nt.createNode( "basenode", "transform" )
+		obase = nt.createNode( "otherbasenode", "transform" )
 
-		trans = nodes.createNode( "trans", "transform" )
-		otrans = nodes.createNode( "parent|trans", "transform" )
-		mesh = nodes.createNode( "meshparent|meshshape", "mesh" )
-		curve = nodes.createNode( "nurbsparent|ncurve", "nurbsCurve" )
+		trans = nt.createNode( "trans", "transform" )
+		otrans = nt.createNode( "parent|trans", "transform" )
+		mesh = nt.createNode( "meshparent|meshshape", "mesh" )
+		curve = nt.createNode( "nurbsparent|ncurve", "nurbsCurve" )
 		itemlist = [ trans, mesh, curve ]
 
 		instlist = []
@@ -748,15 +747,15 @@ class TestNodeBase( unittest.TestCase ):
 		assert renamedname != otransname 
 
 		cmds.undo( )
-		assert nodes.objExists( otransname ) and not nodes.objExists( renamedname ) 
+		assert nt.objExists( otransname ) and not nt.objExists( renamedname ) 
 
 		cmds.redo()
 
 	def test_instancesAndParenting( self ):
 		"""mayarv.maya.nodes.base: test instances and parenting, also instanced attributes"""
 		bmaya.Scene.open( get_maya_file( "instancetest.ma" ), force=True )
-		m = nodes.Node( "m" )			# mesh, two direct and two indirect instances
-		c1 = nodes.createNode( "|c1", "transform" )
+		m = nt.Node( "m" )			# mesh, two direct and two indirect instances
+		c1 = nt.createNode( "|c1", "transform" )
 
 		assert m.getInstanceCount( 0 ) == 2 
 		assert m.getInstanceCount( 1 ) == 4 
@@ -773,14 +772,14 @@ class TestNodeBase( unittest.TestCase ):
 		assert m.getInstanceCount( 1 ) == 4 	# direct + indirect
 
 		# check reparent
-		d1 = nodes.createNode( "|d1", "transform" )
+		d1 = nt.createNode( "|d1", "transform" )
 		c1 = c1.reparent( d1 )
 
 		assert m.getInstanceCount( 0 ) == 2 
 		assert m.getInstanceCount( 1 ) == 4 
 
 		# reparent an instanced transform under d1
-		a2 = nodes.Node( "a2" )
+		a2 = nt.Node( "a2" )
 
 		a2 = a2.reparent( d1, raiseOnInstance=0 )			# destroys instances
 		assert m.getInstanceCount( 0 ) == 2 
@@ -789,13 +788,13 @@ class TestNodeBase( unittest.TestCase ):
 
 	def test_instanceTraversal( self ):
 		"""mayarv.maya.nodes.base: traverse instances"""
-		base = nodes.createNode( "base", "transform" )
-		obase = nodes.createNode( "obase", "transform" )
-		abase = nodes.createNode( "abase", "transform" )
+		base = nt.createNode( "base", "transform" )
+		obase = nt.createNode( "obase", "transform" )
+		abase = nt.createNode( "abase", "transform" )
 		bases = ( base, obase, abase )
 
-		trans = nodes.createNode( "trans", "transform" )
-		shape = nodes.createNode( "meshtrans|mesh", "mesh" )
+		trans = nt.createNode( "trans", "transform" )
+		shape = nt.createNode( "meshtrans|mesh", "mesh" )
 		instances = ( trans, shape )
 
 		# create instances
@@ -837,7 +836,7 @@ class TestNodeBase( unittest.TestCase ):
 	def test_displaySettings( self ):
 		"""mayarv.maya.nodes.base: test how display type and display overrides work hierarchically"""
 		bmaya.Scene.new( force = 1 )
-		mesh = nodes.createNode( "a1|b1|c1|d1|mesh", "mesh" )
+		mesh = nt.createNode( "a1|b1|c1|d1|mesh", "mesh" )
 		mesh.tmp.setInt( 1 )
 
 		# TEMPLATE
@@ -867,8 +866,8 @@ class TestNodeBase( unittest.TestCase ):
 
 	def test_addremoveAttr( self ):
 		"""mayarv.maya.nodes.base: add and remove attributes with undo"""
-		trans = nodes.createNode( "trans", "transform" )
-		trans2 = nodes.createNode( "trans2", "transform" )
+		trans = nt.createNode( "trans", "transform" )
+		trans2 = nt.createNode( "trans2", "transform" )
 
 		nattr = api.MFnNumericAttribute( )
 		attr = nattr.create( "longnumattr", "sna", api.MFnNumericData.kLong, 5 )
@@ -907,8 +906,8 @@ class TestNodeBase( unittest.TestCase ):
 
 	def test_keepWorldSpace( self ):
 		"""mayarv.maya.nodes.base: keep ws transformation when reparenting"""
-		g = nodes.createNode( "g", "transform" )
-		t = nodes.createNode( "t", "transform" )
+		g = nt.createNode( "g", "transform" )
+		t = nt.createNode( "t", "transform" )
 		t.setParent( g )
 
 		mainattrs = ( "t","s" )
@@ -948,57 +947,57 @@ class TestNodeBase( unittest.TestCase ):
 
 	def test_simplified_node_creation( self ):
 		# dg node
-		os = nodes.ObjectSet()
-		assert isinstance(os, nodes.ObjectSet)
+		os = nt.ObjectSet()
+		assert isinstance(os, nt.ObjectSet)
 		
 		# assure we can still wrap dg nodes
-		assert nodes.ObjectSet(os.getMObject()) == os
+		assert nt.ObjectSet(os.getMObject()) == os
 		
 		
 		# dag nodes
 		# come along with a transform
-		mesh = nodes.Mesh()
-		assert isinstance(mesh, nodes.Mesh)
+		mesh = nt.Mesh()
+		assert isinstance(mesh, nt.Mesh)
 		assert len(mesh.getParentDeep()) == 1
 		
 		# multiple calls create multiple shapes, but under the same transform
-		mesh2 = nodes.Mesh()
+		mesh2 = nt.Mesh()
 		assert mesh2 != mesh
 		assert mesh2[-1] == mesh[-1]
 		
 		# transforms are created plain and under the root
-		trans = nodes.Transform()
-		assert isinstance(trans, nodes.Transform)
+		trans = nt.Transform()
+		assert isinstance(trans, nt.Transform)
 		assert trans.getParent() is None
 		
-		trans2 = nodes.Transform()
+		trans2 = nt.Transform()
 		assert trans2 != trans
 		
 		# kwargs go to createNode
-		assert trans == nodes.Transform(forceNewLeaf=False)
+		assert trans == nt.Transform(forceNewLeaf=False)
 		
 		# cannot create anything below dependnode
-		self.failUnlessRaises(TypeError, nodes.Node)
+		self.failUnlessRaises(TypeError, nt.Node)
 
 	def test_single_indexed_components( self ):
 		# check exceptions
-		self.failUnlessRaises(ValueError, nodes.SingleIndexedComponent)	# no arg
-		self.failUnlessRaises(TypeError, nodes.Component.create, api.MFn.kMeshEdgeComponent) # invalid type
+		self.failUnlessRaises(ValueError, nt.SingleIndexedComponent)	# no arg
+		self.failUnlessRaises(TypeError, nt.Component.create, api.MFn.kMeshEdgeComponent) # invalid type
 
 	def test_data(self):
 		# DATA CREATION
 		###############
 		# create all implemented data types
-		self.failUnlessRaises(TypeError, nodes.Data.create)
+		self.failUnlessRaises(TypeError, nt.Data.create)
 		
-		basic_types = (	nodes.VectorArrayData, nodes.UInt64ArrayData, nodes.StringData, 
-						nodes.StringArrayData, nodes.SphereData, nodes.PointArrayData,
-						nodes.NObjectData, nodes.MatrixData, nodes.IntArrayData, 
-						nodes.SubdData, nodes.NurbsSurfaceData, nodes.NurbsCurveData, 
-						nodes.MeshData, nodes.LatticeData, nodes.DoubleArrayData, 
-						nodes.ComponentListData, nodes.ArrayAttrsData )
+		basic_types = (	nt.VectorArrayData, nt.UInt64ArrayData, nt.StringData, 
+						nt.StringArrayData, nt.SphereData, nt.PointArrayData,
+						nt.NObjectData, nt.MatrixData, nt.IntArrayData, 
+						nt.SubdData, nt.NurbsSurfaceData, nt.NurbsCurveData, 
+						nt.MeshData, nt.LatticeData, nt.DoubleArrayData, 
+						nt.ComponentListData, nt.ArrayAttrsData )
 		
-		knullobj = nodes.api.MObject()
+		knullobj = nt.api.MObject()
 		for bt in basic_types:
 			try:
 				data = bt.create()
@@ -1012,7 +1011,7 @@ class TestNodeBase( unittest.TestCase ):
 		
 		# PLUGIN DATA
 		# use storage node data type
-		pd = nodes.PluginData.create(nodes.PyPickleData.kPluginDataId)
+		pd = nt.PluginData.create(nt.PyPickleData.kPluginDataId)
 		
 		
 		# NUMERIC DATA
@@ -1024,16 +1023,16 @@ class TestNodeBase( unittest.TestCase ):
 		types = [ (k, v) for k,v in api.MFnNumericData.__dict__.iteritems() if k.startswith('k') and k not in forbidden ]
 		assert types
 		for type_name, type_id in types:
-			data = nodes.NumericData.create(type_id)
-			assert not data.isNull() and isinstance(data, nodes.NumericData)
+			data = nt.NumericData.create(type_id)
+			assert not data.isNull() and isinstance(data, nt.NumericData)
 		# END for each numeric data type
 		
 		
 		# COMPONENT LIST DATA
 		#####################
 		# special testing
-		mvc = nodes.SingleIndexedComponent.create(api.MFn.kMeshVertComponent)
-		cd = nodes.ComponentListData.create()
+		mvc = nt.SingleIndexedComponent.create(api.MFn.kMeshVertComponent)
+		cd = nt.ComponentListData.create()
 		assert cd.length() == 0
 		assert mvc not in cd
 		cd.add(mvc)
@@ -1056,58 +1055,58 @@ class TestNodeBase( unittest.TestCase ):
 		# UNIT ATTRIBUTE # 
 		l = "long"
 		s = "sh"
-		for ut in nodes.UnitAttribute.types:
-			attr = nodes.UnitAttribute.create( l, s, ut)
-			assert isinstance(attr, nodes.UnitAttribute)
+		for ut in nt.UnitAttribute.types:
+			attr = nt.UnitAttribute.create( l, s, ut)
+			assert isinstance(attr, nt.UnitAttribute)
 			assert attr.unitType() == ut
 		# END for each unit attribute
 		
 		
 		# TYPED ATTRIBUTE #
 		# we create null obj defaults for the sake of simplicity
-		for at in nodes.TypedAttribute.types:
-			attr = nodes.TypedAttribute.create(l, s, at)
-			assert isinstance(attr, nodes.TypedAttribute)
+		for at in nt.TypedAttribute.types:
+			attr = nt.TypedAttribute.create(l, s, at)
+			assert isinstance(attr, nt.TypedAttribute)
 			assert attr.attrType() == at
 		# END for each type
 		
 		# test plugin data type
-		attr = nodes.TypedAttribute.create(l, s, nodes.PyPickleData.kPluginDataId)
-		assert isinstance(attr, nodes.TypedAttribute)
-		assert attr.attrType() == nodes.api.MFnData.kInvalid	 # its okay, it works, see storage node
+		attr = nt.TypedAttribute.create(l, s, nt.PyPickleData.kPluginDataId)
+		assert isinstance(attr, nt.TypedAttribute)
+		assert attr.attrType() == nt.api.MFnData.kInvalid	 # its okay, it works, see storage node
 		
 		
 		# NUMERIC DATA #
-		for nt in nodes.NumericAttribute.types:
-			attr = nodes.NumericAttribute.create(l, s, nt)
+		for numt in nt.NumericAttribute.types:
+			attr = nt.NumericAttribute.create(l, s, numt)
 			assert not attr.isNull()
-			assert isinstance(attr, nodes.NumericAttribute)
-			assert attr.unitType() == nt
+			assert isinstance(attr, nt.NumericAttribute)
+			assert attr.unitType() == numt
 		# END for each type
 		
 		# test special constructors
 		for method_name in ('createColor', 'createPoint'):
-			attr = getattr(nodes.NumericAttribute, method_name)(l, s)
-			assert attr.unitType() == nodes.NumericAttribute.k3Float
+			attr = getattr(nt.NumericAttribute, method_name)(l, s)
+			assert attr.unitType() == nt.NumericAttribute.k3Float
 		# END for each special constructor
 		
 		
 		# MATRIX ATTRIBUTE # 
-		for mt in nodes.MatrixAttribute.types:
-			attr = nodes.MatrixAttribute.create(l, s, mt)
+		for mt in nt.MatrixAttribute.types:
+			attr = nt.MatrixAttribute.create(l, s, mt)
 		# END for each type
 		
 		# LIGHT DATA ATTRIBUTE # 
 		# skipping the work for now 
 		
 		# GENERIC ATTRIBUTE #
-		attr = nodes.GenericAttribute.create(l, s)
+		attr = nt.GenericAttribute.create(l, s)
 		
 		# ENUM ATTRIBUTE
-		attr = nodes.EnumAttribute.create(l, s)
+		attr = nt.EnumAttribute.create(l, s)
 		
 		# COMPOUND ATTRIBUTE #
-		attr = nodes.CompoundAttribute.create(l, s)
+		attr = nt.CompoundAttribute.create(l, s)
 		
 		
 		
@@ -1118,6 +1117,6 @@ class TestNodeBase( unittest.TestCase ):
 		should be redone for maya 8.5 perhaps ... or in fact its enough to have one for all maya versions
 		and just merge them
 		@todo: do it """
-		# nodes.typ.writeMfnDBCacheFiles( )
+		# nt.typ.writeMfnDBCacheFiles( )
 
 

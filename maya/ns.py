@@ -357,7 +357,7 @@ class Namespace( unicode, iDagItem ):
 		option to provide a predicate function
 		@note: this method is quite similar to L{FileReference.iterNodes}, but 
 		has a different feature set and needs this code here for maximum performance"""
-		import nodes
+		import nt
 		dag = kwargs.pop('dag', False)
 		asNode = kwargs.get('asNode', True)
 		predicate = kwargs.pop('predicate', lambda n: True)
@@ -393,10 +393,10 @@ class Namespace( unicode, iDagItem ):
 				return True
 			# END filter
 			
-			iter_type = nodes.it.iterDagNodes
+			iter_type = nt.it.iterDagNodes
 			pred = check_filter
 		else:
-			iter_type = nodes.it.iterDgNodes
+			iter_type = nt.it.iterDgNodes
 			mfndep = api.MFnDependencyNode()
 			mfndepSetObject = mfndep.setObject
 			mfndepParentNamespace = mfndep.parentNamespace
@@ -420,13 +420,13 @@ class Namespace( unicode, iDagItem ):
 				# END handle depth
 				return True
 			# END filter
-			iter_type = nodes.it.iterDgNodes
+			iter_type = nt.it.iterDgNodes
 			pred = check_filter
 		# END dag handling
 		
 
 		kwargs['predicate'] = pred
-		NodeFromObj = nodes.NodeFromObj
+		NodeFromObj = nt.NodeFromObj
 		for n in iter_type(*args, **kwargs):
 			if asNode:
 				n = NodeFromObj(n)

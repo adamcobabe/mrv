@@ -5,7 +5,7 @@ Test general MPlug performance
 from mayarv.test.lib import *
 import mayarv.maya as bmaya
 import mayarv.maya.undo as undo
-import mayarv.maya.nodes as nodes
+import mayarv.maya.nt as nt
 import maya.cmds as cmds
 import maya.OpenMaya as api
 from itertools import izip
@@ -14,12 +14,12 @@ import time
 
 class TestPlugPerformance( unittest.TestCase ):
 	def test_single_vs_multi_connetions(self):
-		sn = nodes.createNode("network1", "network")
-		tn = nodes.createNode("network2", "network")
-		sn2 = nodes.createNode("network3", "network")
-		tn2 = nodes.createNode("network4", "network")
-		sn3 = nodes.createNode("network5", "network")
-		tn3 = nodes.createNode("network6", "network")
+		sn = nt.createNode("network1", "network")
+		tn = nt.createNode("network2", "network")
+		sn2 = nt.createNode("network3", "network")
+		tn2 = nt.createNode("network4", "network")
+		sn3 = nt.createNode("network5", "network")
+		tn3 = nt.createNode("network6", "network")
 		
 		
 		def pir(array, range_iter):
@@ -59,8 +59,8 @@ class TestPlugPerformance( unittest.TestCase ):
 		"""mayarv.maya.apipatch: test plug performance"""
 		bmaya.Scene.new( force = True )
 
-		s1 = nodes.createNode( "storage1", "storageNode" )
-		s2 = nodes.createNode( "storage2", "storageNode" )
+		s1 = nt.createNode( "storage1", "storageNode" )
+		s2 = nt.createNode( "storage2", "storageNode" )
 		
 		s1msg = s1.getStoragePlug( "s1", plugType = 1, autoCreate = True )
 		s2msg = s1.getStoragePlug( "s1", plugType = 1, autoCreate = True )
@@ -101,8 +101,8 @@ class TestPlugPerformance( unittest.TestCase ):
 		measurePlugConnection( "MULTI PLUG Connected", multifunc, conlist )
 
 		# CONNECT SINGLE PLUGS
-		persp = nodes.Node( "persp" )
-		front = nodes.Node( "front" )
+		persp = nt.Node( "persp" )
+		front = nt.Node( "front" )
 		def singleFunc( i ):
 			persp.message >> front.isHistoricallyInteresting
 			persp.message | front.isHistoricallyInteresting
@@ -111,7 +111,7 @@ class TestPlugPerformance( unittest.TestCase ):
 
 		# SET AND GET
 		##############
-		persp = nodes.Node( "persp" )
+		persp = nt.Node( "persp" )
 		perspshape = persp[0]
 		plugs = [ persp.t['x'], perspshape.fl ]
 

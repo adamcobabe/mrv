@@ -4,7 +4,7 @@ from mayarv.test.maya import *
 import mayarv.maya as bmaya
 import maya.cmds as cmds
 import mayarv.maya.undo as undo
-from mayarv.maya.nodes import *
+from mayarv.maya.nt import *
 import maya.OpenMaya as api
 import sys
 
@@ -85,7 +85,7 @@ class TestUndoQueue( unittest.TestCase ):
 		# a non-existing scene
 		# NOTE: Currently this is a known limitation that could be circumvented
 		# with some pre-scene-callbacks
-		trans = nodes.createNode( "mytrans", "transform" )
+		trans = nt.createNode( "mytrans", "transform" )
 
 		undo.startUndo()
 		trans.tx.setFloat( 10.0 )

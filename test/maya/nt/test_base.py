@@ -2,11 +2,11 @@
 """Test basic node features """
 from mayarv.test.maya import *
 import mayarv.maya as bmaya
-import mayarv.maya.nodes as nodes
+import mayarv.maya.nt as nt
 import maya.OpenMaya as api
 import maya.cmds as cmds
 
-from mayarv.maya.nodes import *
+from mayarv.maya.nt import *
 from mayarv.maya.ns import *
 from mayarv.maya.ref import FileReference
 import mayarv.maya as mrv
@@ -18,7 +18,7 @@ set = __builtin__.set		# fix set, it was overwritten by the set module when impo
 class TestTransform( unittest.TestCase ):
 	
 	def test_tranformation_overrides(self):
-		p = nodes.Node('persp')
+		p = nt.Node('persp')
 		getters = ('getScale', 'getShear')
 		setters = ('setScale', 'setShear')
 		def cmp_val(lhs, rhs, loose):

@@ -2,8 +2,8 @@
 """ Test node iterators """
 from mayarv.test.maya import *
 import maya.OpenMaya as api
-from mayarv.maya.nodes.it import *
-import mayarv.maya.nodes as nodes
+from mayarv.maya.nt.it import *
+import mayarv.maya.nt as nt
 import maya.cmds as cmds
 
 class TestGeneral( unittest.TestCase ):
@@ -16,11 +16,11 @@ class TestGeneral( unittest.TestCase ):
 	@with_scene('empty.ma')
 	def test_dagIter( self ):
 		"""mayarv.maya.nodes.it: simple DAG iteration"""
-		trans = nodes.createNode( "trans", "transform" )
-		trans2 = nodes.createNode( "trans2", "transform" )
+		trans = nt.createNode( "trans", "transform" )
+		trans2 = nt.createNode( "trans2", "transform" )
 		transinst = trans.addInstancedChild( trans2 )
-		mesh = nodes.createNode( "parent|mesh", "mesh" )
-		nurbs = nodes.createNode( "parent|nurbs", "nurbsSurface" )
+		mesh = nt.createNode( "parent|mesh", "mesh" )
+		nurbs = nt.createNode( "parent|nurbs", "nurbsSurface" )
 
 
 		assert len( list( iterDagNodes( dagpath=1 ) ) ) == 16 
@@ -74,8 +74,8 @@ class TestGeneral( unittest.TestCase ):
 	@with_scene('perComponentAssignments.ma')
 	def test_iterSelectionList( self ):
 		"""mayarv.maya.nodes.it: Iterate selection lists"""
-		p1 = nodes.Node( "|p1trans|p1" )
-		p1i = nodes.Node( "|p1transinst|p1" )
+		p1 = nt.Node( "|p1trans|p1" )
+		p1i = nt.Node( "|p1transinst|p1" )
 		objs = [ p1, p1i ]
 
 
@@ -86,7 +86,7 @@ class TestGeneral( unittest.TestCase ):
 		for handlePlugs in range(2):
 			sellist = api.MSelectionList()
 			for obj  in objs:
-				setsandcomps = obj.getComponentAssignments( setFilter = nodes.Shape.fSetsRenderable )
+				setsandcomps = obj.getComponentAssignments( setFilter = nt.Shape.fSetsRenderable )
 				for setnode,comp in setsandcomps:
 					if comp:
 						sellist.add( obj.getApiObject(), comp, True )
@@ -100,7 +100,7 @@ class TestGeneral( unittest.TestCase ):
 			numassignments = 10
 			assert  len( slist ) == numassignments 
 			for node,component in slist:
-				assert isinstance( component, ( nodes.Component, api.MObject ) ) 
+				assert isinstance( component, ( nt.Component, api.MObject ) ) 
 	
 	
 			# NO COMPONENT SUPPORT
@@ -133,7 +133,7 @@ class TestGeneral( unittest.TestCase ):
 		# END handle each possible plug mode )
 		
 		# test all code branches
-		for filterType in (nodes.api.MFn.kInvalid, nodes.api.MFn.kUnknown):
+		for filterType in (nt.api.MFn.kInvalid, nt.api.MFn.kUnknown):
 			for predicate_rval in reversed(range(2)):
 				for asNode in range(2):
 					for handlePlugs in range(2):
@@ -145,16 +145,16 @@ class TestGeneral( unittest.TestCase ):
 							
 							# in some cases, we do not expect any return value as 
 							# it doesnt pass the filter
-							if filterType == nodes.api.MFn.kUnknown or predicate_rval == 0:
+							if filterType == nt.api.MFn.kUnknown or predicate_rval == 0:
 								assert len(items) == 0
 							else:
 								assert len(items) != 0
 								if handleComponents:
 									for item in items:
 										assert isinstance(item, tuple)
-										assert isinstance(item[1], nodes.api.MObject)
+										assert isinstance(item[1], nt.api.MObject)
 										if not item[1].isNull() and asNode:
-											assert isinstance(item[1], nodes.Component)
+											assert isinstance(item[1], nt.Component)
 									# END check each item
 								# END handle components assertion
 							# END assertion
@@ -174,9 +174,9 @@ class TestGeneral( unittest.TestCase ):
 	@with_scene('empty.ma')
 	def test_dggraph( self ):
 		"""mayarv.maya.nodes.it: simple dg graph iteration"""
-		persp = nodes.Node( "persp" )
-		front = nodes.Node( "front" )
-		cam = nodes.Node( "persp|perspShape" )
+		persp = nt.Node( "persp" )
+		front = nt.Node( "front" )
+		cam = nt.Node( "persp|perspShape" )
 
 		persp.t > front.t
 		front.t['tx'] > cam.fl
@@ -230,7 +230,7 @@ class TestGeneral( unittest.TestCase ):
 										assert len(items) == 0
 									if asNode and not plug:
 										for item in items:
-											assert isinstance(item, nodes.Node)
+											assert isinstance(item, nt.Node)
 										# END for each item
 									# END if node asNode iteartion
 									
@@ -251,13 +251,13 @@ class TestGeneral( unittest.TestCase ):
 	@with_scene('empty.ma')
 	def test_dgiter( self ):
 		"""mayarv.maya.nodes.it: simple DG iteration"""
-		trans = nodes.createNode( "trans", "transform" )
-		mesh = nodes.createNode( "trans|mesh", "mesh" )
+		trans = nt.createNode( "trans", "transform" )
+		mesh = nt.createNode( "trans|mesh", "mesh" )
 
-		gid = nodes.createNode( "gid", "groupId" )
-		fac = nodes.createNode( "fac", "facade" )
-		fac1 = nodes.createNode( "fac1", "facade" )
-		oset = nodes.createNode( "set", "objectSet" )
+		gid = nt.createNode( "gid", "groupId" )
+		fac = nt.createNode( "fac", "facade" )
+		fac1 = nt.createNode( "fac1", "facade" )
+		oset = nt.createNode( "set", "objectSet" )
 
 		# one type id
 		assert len( list( iterDgNodes( api.MFn.kFacade ) ) ) == 2 
