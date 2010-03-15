@@ -87,7 +87,7 @@ def isAbsolutePath( nodename ):
 
 def toDagPath( apiobj ):
 	"""Find ONE valid dag path to the given dag api object"""
-	dagpath = DagPath( )
+	dagpath = MDagPath( )
 	MFnDagNode( apiobj ).getPath( dagpath )
 	return dagpath
 
@@ -797,7 +797,6 @@ class NodeFromObj( object ):
 		apiobj = mobject_or_mdagpath
 		dagpath = None
 		if isinstance( mobject_or_mdagpath, MDagPath ):
-			assert type(mobject_or_mdagpath) == MDagPath
 			dagpath = mobject_or_mdagpath
 		# END if we have a dag path
 	
@@ -1492,7 +1491,7 @@ class DagNode( Entity, iDagItem ):	# parent just for epydoc
 		dagIndex = pos
 		if pos == self.kNextPos:
 			dagIndex = self.getChildCount() - 1	# last entry as child got added
-		newChildNode = NodeFromObj( self.getDagPath()._getChildMDagPath( dagIndex ) )
+		newChildNode = NodeFromObj(MDagPathUtil.getChildPathAtIndex(self.getMDagPath(), dagIndex))
 
 		# update undo cmd to use the newly created child with the respective dag path
 		undocmd.args = [ newChildNode ]
@@ -1863,25 +1862,13 @@ class DagNode( Entity, iDagItem ):	# parent just for epydoc
 		"""@return: all our Shape nodes
 		@note: you could use getChildren with a predicate, but this method is more
 		efficient as it uses dagpath functions to filter shapes"""
-		out = list()
-		for child_path in self.getChildren(predicate=lambda cp: cp.hasFn(api.MFn.kShape), asNode=False):
-			child = NodeFromObj(child_path)
-			if predicate(child):
-				out.append(child)
-		# END for each child path
-		return out
+		shapeNodes = map(NodeFromObj, MDagPathUtil.getShapes(self.getMDagPath()))	# could use getChildrenByType, but this is faster
+		return [ s for s in shapeNodes if predicate( s ) ]
 
 	def getChildTransforms( self, predicate = lambda x: True ):
 		"""@return: list of all transform nodes below this one """
-		out = list()
-		for child_path in self.getChildren(predicate=lambda cp: cp.hasFn(api.MFn.kTransform), asNode=False):
-			child = NodeFromObj(child_path)
-			if predicate(child):
-				out.append(child)
-		# END for each child path
-		return out
-		#transformNodes = map(NodeFromObj, self.getDagPath().getTransforms()) # could use getChildrenByType, but this is faster
-		#return [ t for t in transformNodes if predicate( t ) ]
+		transformNodes = map(NodeFromObj, MDagPathUtil.getTransforms(self.getMDagPath())) # could use getChildrenByType, but this is faster
+		return [ t for t in transformNodes if predicate( t ) ]
 
 	def getInstanceNumber( self ):
 		"""@return: our instance number
@@ -2492,82 +2479,48 @@ class TripleIndexedComponent( Component ):
 
 #{ Basic Types
 
-class DagPath( MDagPath, iDagItem ):
-	"""Wraps a dag path adding some additional convenience functions
+class MDagPathUtil( object ):
+	"""Performs operations on MDagPaths which are hard or inconvenient to do otherwise
 	@note: We do NOT patch the actual api type as this would make it unusable to be passed in
-	as reference/pointer type unless its being created by maya itself. Thus we manually convert
-	all dagpaths the system returns to our type having some more convenience in it"""
-
-	_sep = '|'		#	used by iDagItem
-
-	#{ Overridden Methods
-	def __len__( self ):
-		"""@return: number of dag nodes in this path"""
-		return self.length( )
-
-	def __str__( self ):
-		"""@return: full path name"""
-		return self.getFullPathName()
-
-	#}
+	as reference/pointer type unless its being created by maya itself."""
 
 	#{ Query
 
-	def getMObject( self ):
-		"""@return: the unwrapped api object this path is referring to"""
-		return  MDagPath.node( self )
-
-	def getNode( self ):
-		"""@return: Node of the node we are attached to"""
-		return NodeFromObj( self.getMObject( ) )
-
-	def getTransform( self ):
-		"""@return: path of the lowest transform in the path
-		@note: if this is a shape, you would get its parent transform"""
-		return MDagPath.transform( self )
-
-	def getParent( self ):
-		"""@return: DagPath to the parent path of the node this path points to"""
-		copy = DagPath( self )
+	@classmethod
+	def getParentPath( cls, path ):
+		"""@return: MDagPath to the parent of path or None if path is in the scene 
+		root."""
+		copy = MDagPath( path )
 		copy.pop( 1 )
 		if copy.length() == 0:		# ignore world !
 			return None
 		return copy
 
-	def getNumShapes( self ):
-		"""@return: return the number of shapes below this dag path"""
+	@classmethod
+	def getNumShapes( cls, path ):
+		"""@return: return the number of shapes below path"""
 		sutil = api.MScriptUtil()
 		uintptr = sutil.asUintPtr()
 		sutil.setUint( uintptr , 0 )
 
-		MDagPath.numberOfShapesDirectlyBelow( self, uintptr )
+		path.numberOfShapesDirectlyBelow( uintptr )
 
 		return sutil.getUint( uintptr )
 
-	def _getChildMDagPath( self, index ):
-		"""as L{getChildPath}, but returns an unwrapped path"""
-		copy = MDagPath( self )
-		copy.push( MDagPath.child(self, index ) )
+	@classmethod
+	def getChildPathAtIndex( cls, path, index ):
+		"""@return: MDagPath pointing to this path's child at the given index"""
+		copy = MDagPath(path)
+		copy.push(path.child(index))
 		return copy
 
-	def getChildPath( self, index ):
-		"""@return: a dag path pointing to this path's shape with num"""
-		return DagPath(self._getChildMDagPath(index))
-
-	def _getChildrenMDagPath( self ):
-		"""as L{getChildren}, but operates on plain MDagPaths and does not provide 
-		Node predicate support"""
+	@classmethod
+	def getChildPaths( cls, path, predicate = lambda x: True ):
+		"""@return: list of child MDagPaths which have path as parent
+		@param predicate: returns True for each path which should be included in the result."""
 		outPaths = list()
-		for i in xrange( self.getChildCount() ):
-			outPaths.append(self._getChildMDagPath(i))
-		return outPaths
-
-	def getChildren( self , predicate = lambda x: True ):
-		"""@return: list of child DagPaths of this path
-		@note: this method is part of the iDagItem interface"""
-		outPaths = list()
-		for i in xrange( self.getChildCount() ):
-			childpath = self.getChildPath( i )
+		for i in xrange( path.childCount() ):
+			childpath = cls.getChildPathAtIndex( path, i )
 			if predicate( childpath ):
 				outPaths.append( childpath )
 		return outPaths
@@ -2575,66 +2528,44 @@ class DagPath( MDagPath, iDagItem ):
 	#} END query
 
 	#{ Edit Inplace
-	def pop( self, num ):
+	@classmethod
+	def pop( cls, path, num ):
 		"""Pop the given number of items off the end of the path
-		@return: self
-		@note: will change the current path in place"""
-		MDagPath.pop( self, num )
+		@return: path itself"""
+		path.pop( num )
+		return path
+
+	@classmethod
+	def extendToChild( cls, path, num ):
+		"""Extend path to the given child number - can be shape or transform
+		@return: path itself"""
+		path.extendToShapeDirectlyBelow( num )
 		return self
 
-	def extendToChild( self, num ):
-		"""Extend this path to the given child number - can be shape or transform
-		@return: self """
-		MDagPath.extendToShapeDirectlyBelow( self, num )
-		return self
-
-	def getChildrenByFn( self, fn, predicate = lambda x: True ):
-		"""Get all children below this path supporting the given MFn.type
-		@return: paths to all matched paths below this path
-		@param fn: member of MFn"""
+	@classmethod
+	def getChildPathsByFn( cls, path, fn, predicate = lambda x: True ):
+		"""Get all children below path supporting the given MFn.type
+		@return: MDagPaths to all matched paths below this path
+		@param fn: member of MFn
+		@param predicate: returns True for each path which should be included in the result."""
 		isMatch = lambda p: p.hasFn( fn )
-		return [ p for p in self.getChildren( predicate = isMatch ) if predicate( p ) ]
+		return [ p for p in cls.getChildPaths( path, predicate = isMatch ) if predicate( p ) ]
 
-	def getShapes( self, predicate = lambda x: True ):
-		"""Get all shapes below this path
-		@return: paths to all shapes below this path
-		@param predicate: returns True to include path in result
+	@classmethod
+	def getShapes( cls, path, predicate = lambda x: True ):
+		"""@return: MDagPaths to all shapes below path
+		@param predicate: returns True for each path which should be included in the result.
 		@note: have to explicitly assure we do not get transforms that are compatible to the shape function
 		set for some reason - this is just odd and shouldn't be, but it happens if a transform has an instanced
 		shape for example, perhaps even if it is not instanced"""
-		return [ shape for shape in self.getChildrenByFn( api.MFn.kShape, predicate=predicate ) if shape.apiType() != api.MFn.kTransform ]
+		return [ shape for shape in cls.getChildPathsByFn( path, api.MFn.kShape, predicate=predicate ) if shape.apiType() != api.MFn.kTransform ]
 
-	def getTransforms( self, predicate = lambda x: True ):
-		"""Get all transforms below this path
-		@return: paths to all transforms below this path
+	@classmethod
+	def getTransforms( cls, path, predicate = lambda x: True ):
+		"""@return: MDagPaths to all transforms below path
 		@param predicate: returns True to include path in result"""
-		return self.getChildrenByFn( api.MFn.kTransform, predicate=predicate )
+		return cls.getChildPathsByFn( path, api.MFn.kTransform, predicate=predicate )
 	#} END edit in place
-
-
-
-	#{ Name Remapping
-
-	getApiType = MDagPath.apiType
-	node = getNode
-	child = getChildPath
-	getChildCount = MDagPath.childCount
-	transform = getTransform
-	getApiType = MDagPath.apiType
-	getLength = MDagPath.length
-	numberOfShapesDirectlyBelow = getNumShapes
-	getInstanceNumber = MDagPath.instanceNumber
-	getPathCount = MDagPath.pathCount
-	getFullPathName = MDagPath.fullPathName
-	getPartialName = MDagPath.partialPathName
-	isNull = lambda self: not MDagPath.isValid( self )
-
-
-	getInclusiveMatrix = MDagPath.inclusiveMatrix
-	getInclusiveMatrixInverse = MDagPath.inclusiveMatrixInverse
-	getExclusiveMatrixInverse = MDagPath.exclusiveMatrixInverse
-
-	#} END name remapping
 
 
 #} END basic types
