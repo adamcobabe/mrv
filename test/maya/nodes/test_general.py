@@ -38,7 +38,7 @@ class TestGeneral( unittest.TestCase ):
 			except:
 				raise
 
-			assert not node._apiobj.isNull() 
+			assert not node.getMObject().isNull() 
 			
 			# skip duplicate types - it truly happens that there is the same typename
 			# with a different parent class - we cannot handle this 
@@ -208,7 +208,7 @@ class TestGeneral( unittest.TestCase ):
 		instnode = duplnodemiddle.addInstancedChild( node )
 
 
-		assert instnode._apiobj == node._apiobj  # compare mobject
+		assert instnode.getMObject() == node.getMObject()  # compare mobject
 		assert instnode != node 		# compare dag paths
 
 		path = instnode.getDagPath( )
@@ -219,6 +219,16 @@ class TestGeneral( unittest.TestCase ):
 
 		npath = node.getDagPath( )
 		ipath = instnode.getDagPath( )
+		
+		assert npath != ipath
+		assert node.getMObject() == instnode.getMObject()	# same object after all
+		
+		# if an MObject is passed in, it should still work
+		assert node == instnode.getMObject()
+		
+		# using an attribute would create a DagNode which corresponds to the first path
+		assert not node != instnode.wm.node()
+		assert node == instnode.wm.getNodeMObject()
 
 
 	def test_convenienceFunctions( self ):
@@ -372,14 +382,14 @@ class TestNodeBase( unittest.TestCase ):
 		node = nodes.createNode( "mynode", "facade" )
 		renamed = node.rename( "myrenamednode" )
 
-		assert renamed == "myrenamednode" 
+		assert renamed.name() == "myrenamednode" 
 		assert node == renamed 
 
 		# undo - redo
 		cmds.undo()
-		assert node == "mynode" 
+		assert node.name() == "mynode" 
 		cmds.redo()
-		assert node == "myrenamednode" 
+		assert node.name() == "myrenamednode" 
 
 
 		# trigger namespace error

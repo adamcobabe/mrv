@@ -25,6 +25,8 @@ class TestDataBase( unittest.TestCase ):
 			inst = apicls()
 			for item in inst:
 				pass
+			
+			str(inst) != repr(inst)
 
 	def test_MPlug( self ):
 		"""mayarv.maya.nodes: Test plug abilities( node.attribute ) """

@@ -80,7 +80,7 @@ class TestSets( unittest.TestCase ):
 		rg = nodes.Node( "defaultRenderGlobals" )
 		ik = nodes.Node( "ikSystem" )
 		s2 = nodes.Node( "defaultObjectSet" )
-		return [ ik, persp, persp.translate, rg._apiobj, front._apidagpath, s2 ]
+		return [ ik, persp, persp.translate, rg.getMObject(), front.getMDagPath(), s2 ]
 
 	def test_memberHandling( self ):
 		"""mayarv.maya.nodes.set: add/remove members from all kinds of inputs"""

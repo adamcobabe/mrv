@@ -647,6 +647,8 @@ The following example shows how multiple undoable operations are bundled into a 
 	>>> cmds.undo()
 	>>> assert not p.tx.isConnectedTo(p.tz)
 	>>> assert t.isValid() and t.isAlive()
+	
+Whenever non-overridden functions are called which are located on MFn function sets, these will not support undo which one has to be aware of.
 
 Advanced Uses
 =============

@@ -133,6 +133,12 @@ class PatchIterablePrimitives( Abstract ):
 		# END __str__
 
 		type.__setattr__( cls.__bases__[0], '__str__', __str__)
+		
+		def __repr__( self ):
+			return "%s([ %s ])" % (type(self).__name__, " ".join( str( f ) for f in self ))
+		# END __str__
+
+		type.__setattr__( cls.__bases__[0], '__repr__', __repr__)
 
 		# allow the class members to be used ( required as we are using them )
 		return True
@@ -726,7 +732,11 @@ class MPlug( api.MPlug, iDagItem ):
 		return base.Attribute( api.MPlug._api_attribute( self ) )
 
 	def getNode( self ):
-		"""@return: Node instance of our underlying node"""
+		"""@return: Node instance of our underlying node
+		@note: If the parent node of the MPlug is an instanced DagNode, 
+		the Node returned by this method will use the first DagPath only, which 
+		will not necessarily correspond to the DagPath from which this plug was
+		retrieved."""
 		return base.NodeFromObj( api.MPlug._api_node( self ) )
 
 	def getNodeMObject( self ):

@@ -101,3 +101,7 @@ Single vs. Multi
 
 Node-Wrapping
 ==============
+
+Convenience Methods
+===================
+__getitem__ shouldn't be used as is slower than a direct call.

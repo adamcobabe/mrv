@@ -10,9 +10,6 @@ Implementing an undoable method
    - decorate with @undoable
    - minimize probability that your operation will fail before creating an operation ( for efficiency )
    - only use operation's doIt() method to apply your changes
-   - if the operation's target is already met ( a node you should create already exists ), you have to
-   create an empty operation anyway ( otherwise cmds.undo would not undo your command as expected, but
-   the previous one )
    - if you raise, you should not have created an undo operation
 """
 from typ import nodeTypeToMfnClsMap, nodeTypeTree, MetaClassCreatorNodes
@@ -715,12 +712,14 @@ class Node( object ):
 
 	#{ Overridden Methods
 	def __eq__( self, other ):
-		"""compare the nodes according to their api object"""
+		"""compare the nodes according to their api object.
+		Valid inputs are other Node, MObject or MDagPath instances"""
 		otherapiobj = None
-		if isinstance( other, basestring ):
-			otherapiobj = toApiobj( other )
+		if not isinstance( other, Node ):
+			otherapiobj = NodeFromObj(other)._apiobj
 		else: # assume Node
 			otherapiobj = other._apiobj
+		# END handle types
 
 		return self._apiobj == otherapiobj		# does not appear to work as expected ...
 
@@ -1197,9 +1196,10 @@ class DagNode( Entity, iDagItem ):	# parent just for epydoc
 
 	#{ Overridden from Object
 	def __eq__( self, other ):
-		"""Compare MObjects directly"""
+		"""Compare MDagPaths directly
+		Valid inputs are Node, DagNode, MObject and MDagPath instances."""
 		if not isinstance( other, Node ):
-			other = Node( other )
+			other = NodeFromObj( other )
 		if isinstance( other, DagNode ):
 			return self._apidagpath == other._apidagpath
 		return self._apiobj == other._apiobj
@@ -2183,7 +2183,10 @@ class Data( MObject ):
 			raise TypeError("Cannot create 'plain' data, choose a subclass of Data instead")
 		# END handle invalid type
 		
-		data = cls._mfncls().create(*args, **kwargs)
+		# keep the instance alive until we have wrapped the MObject which essentiall
+		# creates a copy and increments its maya ref count.
+		mfninst = cls._mfncls() 
+		data = mfninst.create(*args, **kwargs)
 		return cls(data)
 		
 

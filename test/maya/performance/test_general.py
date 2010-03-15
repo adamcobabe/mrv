@@ -219,9 +219,9 @@ class TestGeneralPerformance( unittest.TestCase ):
 		tmplist = list()	# previously we measured the time it took to append the node as well
 		for node in Nodes:
 			if isinstance( node, nodes.DagNode ):
-				tmplist.append( Node( node._apidagpath ) )
+				tmplist.append( Node( node.getMDagPath() ) )
 			else:
-				tmplist.append( Node( node._apiobj ) )
+				tmplist.append( Node( node.getMObject() ) )
 		# END for each wrapped node
 
 		api_elapsed = time.time() - st
@@ -233,9 +233,9 @@ class TestGeneralPerformance( unittest.TestCase ):
 		tmplist = list()	# previously we measured the time it took to append the node as well
 		for node in Nodes:
 			if isinstance( node, nodes.DagNode ):
-				tmplist.append( NodeFromObj( node._apidagpath ) )
+				tmplist.append( NodeFromObj( node.getMDagPath() ) )
 			else:
-				tmplist.append( NodeFromObj( node._apiobj ) )
+				tmplist.append( NodeFromObj( node.getMObject() ) )
 		# END for each wrapped node
 
 		api_elapsed = time.time() - st

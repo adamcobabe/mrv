@@ -17,6 +17,7 @@ Limitations
 	  that might crash maya once they are undon.
 	  - WORKAROUND: Mark these methods with @notundoable and assure they are not
 	  called by an undoable method
+	- calling MFn methods on a node usually means that undo is not supported for it.
 
 Configuration
 -------------
