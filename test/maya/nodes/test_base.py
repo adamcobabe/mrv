@@ -80,12 +80,8 @@ class TestTransform( unittest.TestCase ):
 		assert isinstance(t, Time) and t.getApiType() == api.MFn.kTime
 		assert p.hasFn(p.getApiType())
 		
-		# get the MObject repreentation
+		# get the MObject representation
 		assert isinstance(p.getMObject(), api.MObject) and isinstance(t.getMObject(), api.MObject)
-		
-		# DagNodes have a DagPath as well
-		assert p.getDagPath() == p.getMDagPath()
-		assert isinstance(p.getDagPath(), DagPath) and not isinstance(p.getMDagPath(), DagPath)
 		
 		
 		# METHODS

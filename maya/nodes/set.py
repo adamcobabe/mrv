@@ -74,9 +74,9 @@ class ObjectSet:
 		memberobj = member
 		
 		if isinstance( member, nodes.DagNode ):
-			memberobj = member._apidagpath
+			memberobj = member.getMDagPath()
 		elif isinstance( member, nodes.DependNode ):
-			memberobj = member._apiobj
+			memberobj = member.getMObject()
 			
 		return memberobj
 		
@@ -392,7 +392,7 @@ class ObjectSet:
 			return cls._TmpSet( singleobj )
 			
 		if not sets_are_members and isinstance( singleobj, ObjectSet ):				# Single Object Set ?
-			return singleobj._apiobj
+			return singleobj.getMObject()
 			
 		if isinstance( singleobj, cls._TmpSet ):										# single set object 
 			return singleobj.setobj

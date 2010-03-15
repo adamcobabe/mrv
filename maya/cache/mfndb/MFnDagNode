@@ -41,7 +41,7 @@ x   | addChild                                | None                |
     | child                                   | Node                | getChild                                
     | childCount                              | None                | getChildCount                           
 x   | create                                  | None                |                                         
-    | dagPath                                 | DagPath             | getDagPath                              
+    | dagPath                                 | None	              | getDagPath                              
     | dagRoot                                 | Node                | getDagRoot                              
     | delete_MFnDagNode                       | None                |                                         
     | duplicate                               | Node                |                                         

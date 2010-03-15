@@ -36,7 +36,7 @@ class TestGeneralPerformance( unittest.TestCase ):
 		return nodes.createNode( name, nodetype, renameOnClash=True )
 
 
-	def _test_buildTestScene_DISABLED( self ):
+	def _DISABLED_test_buildTestScene( self ):
 		"""mayarv.maya.benchmark.general: build test scene with given amount of nodes  """
 		numNodes = 100000
 		cmds.undoInfo( st=0 )

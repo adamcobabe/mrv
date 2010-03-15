@@ -265,12 +265,12 @@ ShadingEngines work the same, except that they are attached to the renderParitio
 Components and Component-Level Shader Assignments
 =================================================
 The following examples operate on a simple mesh, representing a polygonal cube with 6 faces, 8 vertices and 12 edges::
-	isb = Node("initialShadingGroup")
-	pc = PolyCube()
-	pc.output > m.inMesh
-	assert m.numVertices() == 8
-	assert m not in isb                            # it has no shaders on object level
-	assert len(m.getComponentAssignments()) == 0   # nor on component leveld 
+	>>> isb = Node("initialShadingGroup")
+	>>> pc = PolyCube()
+	>>> pc.output > m.inMesh
+	>>> assert m.numVertices() == 8
+	>>> assert m not in isb                            # it has no shaders on object level
+	>>> assert len(m.getComponentAssignments()) == 0   # nor on component leveld 
 	
 Shader assignments on object level can simply be created and broken by adding or removing items from the respective shading group::
 	>>> m.addTo(isb)

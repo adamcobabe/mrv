@@ -21,6 +21,7 @@ import maya.cmds as cmds
 import maya.OpenMayaMPx as mpx
 import mayarv.maya.ns as nsm
 import mayarv.maya.undo as undo
+from new import instancemethod
 from util import in_double3_out_vector, undoable_in_double3_as_vector
 
 # direct import to safe api. lookup
@@ -39,12 +40,17 @@ _nodesdict = None				# will be set during maya.nodes initialization
 # to prevent always creating instances of the same class per call
 _nameToApiSelList = api.MSelectionList()
 _mfndep = api.MFnDependencyNode()
+_mfndag = api.MFnDagNode()
+
 # cache functions
 _mfndep_setobject = _mfndep.setObject
+_mfndag_setObject = _mfndag.setObject
 _mfndep_typename = _mfndep.typeName
+_mfndag_typename = _mfndag.typeName
 _mfndep_name = _mfndep.name
 
 api_mdagpath_node = MDagPath.node
+_apitype_to_name = dict()			# [int] - > type name string
 
 
 
@@ -81,7 +87,7 @@ def isAbsolutePath( nodename ):
 
 def toDagPath( apiobj ):
 	"""Find ONE valid dag path to the given dag api object"""
-	dagpath = DagPath( )
+	dagpath = MDagPath( )
 	MFnDagNode( apiobj ).getPath( dagpath )
 	return dagpath
 
@@ -174,9 +180,9 @@ def toSelectionList( nodeList, mergeWithExisting = False ):
 	sellist = api.MSelectionList()
 	for node in nodeList:
 		if isinstance( node, DagNode ):
-			sellist.add( node._apidagpath, MObject(), mergeWithExisting )
+			sellist.add( node.getMDagPath(), MObject(), mergeWithExisting )
 		elif isinstance( node, DependNode ):
-			sellist.add( node._apiobj, mergeWithExisting )
+			sellist.add( node.getMObject(), mergeWithExisting )
 		else: # probably plug or something else like an mobject or dagpath
 			# cannot properly apply our flag here without intensive checking
 			# TODO: probably put in the instance checks !
@@ -194,7 +200,7 @@ def toComponentSelectionList( nodeCompList, mergeWithExisting = False ):
 
 	sellist = api.MSelectionList()
 	for node, component in nodeCompList:
-		sellist.add( node._apidagpath, component, mergeWithExisting )
+		sellist.add( node.getMDagPath(), component, mergeWithExisting )
 
 	return sellist
 
@@ -384,7 +390,7 @@ def createNode( nodename, nodetype, autocreateNamespace=True, renameOnClash = Tr
 	@raise NameError: If name of desired node clashes as existing node has different type
 	@note: As this method is checking a lot and tries to be smart, its relatively slow ( creates ~400 nodes / s )
 	@return: the newly create Node"""
-	global _mfndep_setobject,_mfndep_name
+	global _mfndep_setobject, _mfndep_name
 
 	if nodename in ( '|', '' ):
 		raise RuntimeError( "Cannot create '|' or ''" )
@@ -498,39 +504,20 @@ def createNode( nodename, nodetype, autocreateNamespace=True, renameOnClash = Tr
 #} END base
 
 
-def _checkedInstanceCreationDagPathSupport( apiobj_or_dagpath, clsToBeCreated, basecls ):
+def _checkedInstanceCreationDagPathSupport( mobject_or_mdagpath, clsToBeCreated, basecls ):
 	"""Same purpose and attribtues as L{_checkedInstanceCreation}, but supports
 	dagPaths as input as well"""
-	global _mfndep_setobject, _mfndep_typename, api_mdagpath_node
-	
-	# if return is here, you get 5430 ( vs 2000 originally )
-
-	apiobj = apiobj_or_dagpath
+	apiobj = mobject_or_mdagpath
 	dagpath = None
-	if isinstance( apiobj, MDagPath ):
-		apiobj = api_mdagpath_node( apiobj_or_dagpath )	## expensive call !
-		dagpath = apiobj_or_dagpath
+	if isinstance( mobject_or_mdagpath, MDagPath ):
+		dagpath = mobject_or_mdagpath
 	# END if we have a dag path
 
-	# if return is here, you get 3600 ( vs 2000 originally )
-	_mfndep_setobject( apiobj )
-	clsinstance = _checkedInstanceCreation( apiobj, _mfndep_typename( ), clsToBeCreated, basecls )
-
-	# ASSURE WE HAVE A DAG PATH
-	# Dag Objects should always have a dag path even if none was passed in
-	# costs nealy nothing
-	if not dagpath and isinstance( clsinstance, DagNode ):
-		dagpath = MDagPath( )
-		MFnDagNode( apiobj ).getPath( dagpath )
-	# END if no dagpath was available
-
-	# NOTE: this costs plenty of performance ( with: 2000, without, 2900 ), thus we
-	# do it on demand when the dagpath is requested
-	if dagpath:
-		object.__setattr__( clsinstance, '_apidagpath', dagpath )
+	clsinstance = _checkedInstanceCreation( mobject_or_mdagpath, _lookup_type(mobject_or_mdagpath), clsToBeCreated, basecls )
+	if isinstance( clsinstance, DagNode ):
+		_setupDagNodeDelayedMethods( clsinstance, apiobj, dagpath )
 
 	return clsinstance
-
 
 def _checkedInstanceCreation( apiobj, typeName, clsToBeCreated, basecls ):
 	"""Utiliy method creating a new class instance according to additional type information
@@ -565,9 +552,23 @@ def _checkedInstanceCreation( apiobj, typeName, clsToBeCreated, basecls ):
 	# At this point, we only support type as we expect ourselves to be lowlevel
 	clsinstance = object.__new__( nodeTypeCls )
 
-	object.__setattr__( clsinstance, '_apiobj',  apiobj )				# set the api object - if this is a string, the caller has to take care about it
+	object.__setattr__( clsinstance, '_apiobj',  apiobj )
 	return clsinstance
 
+def _setupDagNodeDelayedMethods( dagnode, mobject, mdagpath ):
+	"""Setup the given dagnode with the instance methods it needs to handle the gven 
+	mobject OR mdagpath accordingly, one of them may be None"""
+	instcls = type(dagnode)
+	if mdagpath is None:
+		# next time the MDagPath is accessed, we retrieve it from the MObject
+		object.__setattr__(dagnode, 'getMDagPath', instancemethod(instcls._getMDagPath_delayed, dagnode, instcls))
+		object.__setattr__(dagnode, 'getMObject', instancemethod(instcls._getMObject_cached, dagnode, instcls))
+	else:
+		# MObject has to be retrieved on demand
+		# this is the default
+		object.__setattr__( dagnode, '_apidagpath', mdagpath )
+	# END handle missing MDagPath or MObject
+	
 
 def _createInstByPredicate( apiobj, cls, basecls, predicate ):
 	"""Allows to wrap objects around MObjects where the actual compatabilty
@@ -671,7 +672,7 @@ class Node( object ):
 
 		if not args:
 			if not issubclass(cls, DependNode): # cls can be DependNode as well
-				raise ValueError("Can only create types being subclasses of Node, not %r" % cls)
+				raise TypeError("Can only create types being subclasses of Node, not %r" % cls)
 			# END handle invalid class
 			
 			typename = uncapitalize(cls.__name__)
@@ -684,30 +685,30 @@ class Node( object ):
 		# END handle creation mode
 
 		objorname = args[0]
-		apiobj_or_dagpath = None
+		mobject_or_mdagpath = None
 
 		# GET AN API OBJECT
 		if isinstance( objorname, cls.__api_type_tuple ):
-			apiobj_or_dagpath = objorname
+			mobject_or_mdagpath = objorname
 		elif isinstance( objorname, basestring ):
 			if objorname.find( '.' ) != -1:
 				raise ValueError( "%s cannot be handled - create a node, then access its attribute like Node('name').attr" % objorname )
-			apiobj_or_dagpath = toApiobjOrDagPath( objorname )
+			mobject_or_mdagpath = toApiobjOrDagPath( objorname )
 		elif isinstance( objorname, MObjectHandle ):
-			apiobj_or_dagpath = objorname.object()
+			mobject_or_mdagpath = objorname.object()
 		else:
-			raise ValueError( "objects of type %s cannot be handled" % type( objorname ) )
+			raise TypeError( "Objects of type %s cannot be handled" % type( objorname ) )
 
 
 		skip_checks = ( len( args ) > 1 and args[1] ) or False
-		if ( not skip_checks and ( apiobj_or_dagpath is None
-			or ( isinstance( apiobj_or_dagpath, MDagPath ) and not apiobj_or_dagpath.isValid() )
-			or ( isinstance( apiobj_or_dagpath, MObject ) and apiobj_or_dagpath.isNull() ) ) ):
+		if ( not skip_checks and ( mobject_or_mdagpath is None
+			or ( isinstance( mobject_or_mdagpath, MDagPath ) and not mobject_or_mdagpath.isValid() )
+			or ( isinstance( mobject_or_mdagpath, MObject ) and mobject_or_mdagpath.isNull() ) ) ):
 			raise ValueError( "object does not exist: %s" % objorname )
 		# END evil validity checking
 
 		# CREATE INSTANCE
-		return _checkedInstanceCreationDagPathSupport( apiobj_or_dagpath, cls, Node )
+		return _checkedInstanceCreationDagPathSupport( mobject_or_mdagpath, cls, Node )
 
 
 	#{ Overridden Methods
@@ -716,12 +717,12 @@ class Node( object ):
 		Valid inputs are other Node, MObject or MDagPath instances"""
 		otherapiobj = None
 		if not isinstance( other, Node ):
-			otherapiobj = NodeFromObj(other)._apiobj
+			otherapiobj = NodeFromObj(other).getMObject()
 		else: # assume Node
-			otherapiobj = other._apiobj
+			otherapiobj = other.getMObject()
 		# END handle types
 
-		return self._apiobj == otherapiobj		# does not appear to work as expected ...
+		return self.getMObject() == otherapiobj		# does not appear to work as expected ...
 
 	def __ne__( self, other ):
 		return not Node.__eq__( self, other )
@@ -756,6 +757,27 @@ class Node( object ):
 
 	#} END interface
 
+def _lookup_type( mobject_or_mdagpath ):
+	"""@return: node type name of the given MObject or MDagPath"""
+	global _apitype_to_name
+	try:
+		return _apitype_to_name[mobject_or_mdagpath.apiType()]
+	except KeyError:
+		global _mfndep_setobject, _mfndag_setObject, _mfndep_typename, _mfndag_typename
+		# cache miss - fill in the type
+		if isinstance(mobject_or_mdagpath, MDagPath):
+			_mfndag_setObject(mobject_or_mdagpath)
+			typename =_mfndag_typename()
+		else:
+			_mfndep_setobject(mobject_or_mdagpath)
+			typename = _mfndep_typename()
+		# END handle input type 
+		_apitype_to_name[mobject_or_mdagpath.apiType()] = typename
+		
+		return typename
+	# END handle cache miss
+
+	
 
 class NodeFromObj( object ):
 	"""Virtual Constructor, producing nodes as the L{Node} does, but it will only
@@ -769,35 +791,30 @@ class NodeFromObj( object ):
 	
 	@note: Do not derive from this class, derive from L{Node} instead
 	@note: We will always create the node type as determined by the type hierarchy"""
-	def __new__ ( cls, apiobj_or_dagpath ):
-		global _mfndep_setobject, _mfndep_typename, api_mdagpath_node
+	def __new__ ( cls, mobject_or_mdagpath ):
+		global _apitype_to_name
 		
-		apiobj = apiobj_or_dagpath
+		apiobj = mobject_or_mdagpath
 		dagpath = None
-		if isinstance( apiobj, MDagPath ):
-			apiobj = api_mdagpath_node( apiobj_or_dagpath )	## expensive call !
-			dagpath = apiobj_or_dagpath
+		if isinstance( mobject_or_mdagpath, MDagPath ):
+			dagpath = mobject_or_mdagpath
 		# END if we have a dag path
 	
-		_mfndep_setobject( apiobj )
+		clsinstance = object.__new__(nodeTypeToNodeTypeCls(_lookup_type(mobject_or_mdagpath)))
 		
-		# this assures multiple inheritance works !
-		clsinstance = object.__new__( nodeTypeToNodeTypeCls( _mfndep_typename( ) ) )
+		# apiobj is None, or MObject, or MDagPath, but will be set to the proper type 
+		# later
+		object.__setattr__( clsinstance, '_apiobj',  apiobj )
 	
-		object.__setattr__( clsinstance, '_apiobj',  apiobj )				
+		# DagNode created from a MObject ?
+		if isinstance( clsinstance, DagNode ):
+			_setupDagNodeDelayedMethods( clsinstance, apiobj, dagpath )
+		# END handel DagObjects
 	
-		if not dagpath and isinstance( clsinstance, DagNode ):
-			dagpath = MDagPath( )
-			MFnDagNode( apiobj ).getPath( dagpath )
-		# END if no dagpath was available
-	
-		if dagpath:
-			object.__setattr__( clsinstance, '_apidagpath', dagpath )
-			
 		# for some reason, we have to call init ourselves in that case, probably
 		# since we are not afficliated with the actual instance we returned which 
 		# makes a little bit of sense.
-		clsinstance.__init__(apiobj_or_dagpath)
+		clsinstance.__init__(mobject_or_mdagpath)
 		return clsinstance
 		
 		
@@ -842,8 +859,6 @@ class DependNode( Node, iDuplicatable ):		# parent just for epydoc -
 
 	def __str__( self ):
 		"""@return: name of this object"""
-		#mfn = DependNode._mfncls( self._apiobj )
-		#return mfn.name()
 		return self.getName()
 
 	def __repr__( self ):
@@ -1006,7 +1021,7 @@ class DependNode( Node, iDuplicatable ):		# parent just for epydoc -
 			shapenames = [ s.getBasename( ) for s in shapes  ]
 		else:
 			mod = undo.DGModifier( )
-		mod.renameNode( self._apiobj, newname )
+		mod.renameNode( self.getMObject(), newname )
 
 
 		# RENAME SHAPES BACK !
@@ -1015,9 +1030,10 @@ class DependNode( Node, iDuplicatable ):		# parent just for epydoc -
 		# requested ... its so stupid ...
 		if shapes:
 			for shape,shapeorigname in zip( shapes, shapenames ): 	 # could use izip, but this is not about memory here
-				mod.renameNode( shape._apiobj, shapeorigname )
-
-		# rename children back
+				mod.renameNode( shape.getMObject(), shapeorigname )
+			# END for each shape to rename
+		# END handle renamed shapes
+		
 		mod.doIt()
 
 		return self
@@ -1030,22 +1046,18 @@ class DependNode( Node, iDuplicatable ):		# parent just for epydoc -
 		@note: if you want to delete many nodes, its more efficient to delete them
 		using the global L{delete} method"""
 		mod = undo.DGModifier( )
-		mod.deleteNode( self._apiobj )
+		mod.deleteNode( self.getMObject() )
 		mod.doIt()
 
 	def _addRemoveAttr( self, attr, add ):
 		"""DoIt function adding or removing attributes with undo"""
-		attrobj = attr
-		if isinstance( attr, Attribute ):
-			attrobj = attr._apiobj
-
 		mfninst = self._mfncls( self.getMObject() )
 		doitfunc = mfninst.addAttribute
 
 		if not add:
 			doitfunc = mfninst.removeAttribute
 
-		doitfunc( attrobj )
+		doitfunc( attr )
 
 	def addAttribute( self, attr ):
 		"""Add the given attribute to the node as local dynamic attribute
@@ -1110,7 +1122,7 @@ class DependNode( Node, iDuplicatable ):		# parent just for epydoc -
 	def getConnections( self ):
 		"""@return: MPlugArray of connected plugs"""
 		cons = api.MPlugArray( )
-		mfn = DependNode._mfncls( self._apiobj ).getConnections( cons )
+		mfn = DependNode._mfncls( self.getMObject() ).getConnections( cons )
 		return cons
 
 	def getDependencyInfo( self, attribute, by=True ):
@@ -1144,12 +1156,12 @@ class DependNode( Node, iDuplicatable ):		# parent just for epydoc -
 	def isValid( self ):
 		"""@return: True if the object exists in the scene
 		@note: objects on the undo queue are NOT valid, but alive"""
-		return MObjectHandle( self._apiobj ).isValid()
+		return MObjectHandle( self.getMObject() ).isValid()
 
 	def isAlive( self ):
 		"""@return: True if the object exists in memory
 		@note: objects on the undo queue are alive, but NOT valid"""
-		return MObjectHandle( self._apiobj ).isAlive()
+		return MObjectHandle( self.getMObject() ).isAlive()
 
 	#} END status
 
@@ -1201,8 +1213,8 @@ class DagNode( Entity, iDagItem ):	# parent just for epydoc
 		if not isinstance( other, Node ):
 			other = NodeFromObj( other )
 		if isinstance( other, DagNode ):
-			return self._apidagpath == other._apidagpath
-		return self._apiobj == other._apiobj
+			return self.getMDagPath() == other.getMDagPath()
+		return self.getMObject() == other.getMObject()
 
 	def __ne__( self, other ):
 		return not DagNode.__eq__( self, other )
@@ -1297,18 +1309,16 @@ class DagNode( Entity, iDagItem ):	# parent just for epydoc
 				raise RuntimeError( "Cannot parent object %s under itself" % self )
 
 			mod = undo.DagModifier( )
-			mod.reparentNode( self._apiobj, parentnode._apiobj )
+			mod.reparentNode( self.getMObject(), parentnode.getMObject() )
 		else:
 			# sanity check
 			if isinstance( self, Shape ):
 				raise RuntimeError( "Shape %s cannot be parented under root '|' but needs a transform" % self )
 			mod = undo.DagModifier( )
-			mod.reparentNode( self._apiobj )
+			mod.reparentNode( self.getMObject() )
+		# END handle parent node
 
 		mod.doIt()
-
-
-
 
 		# UPDATE DAG PATH
 		# find it in parentnodes children
@@ -1317,7 +1327,8 @@ class DagNode( Entity, iDagItem ):	# parent just for epydoc
 				if DependNode.__eq__( self, child ):
 					return child
 		else: # return updated version of ourselves
-			return NodeFromObj( self._apiobj )
+			return NodeFromObj( self.getMObject() )
+		# END post-handle parent Node
 
 
 		raise AssertionError( "Could not find self in children after reparenting" )
@@ -1358,16 +1369,16 @@ class DagNode( Entity, iDagItem ):	# parent just for epydoc
 		# END if not allowZeroParents
 
 		op = undo.GenericOperation( )
-		dagfn = api.MFnDagNode( self._apidagpath )
+		dagfn = api.MFnDagNode( self.getMDagPath() )
 
 		# The method will not fail if the child cannot be found in child list
 		# just go ahead
 
-		op.setDoitCmd( dagfn.removeChild, childNode._apiobj )
+		op.setDoitCmd( dagfn.removeChild, childNode.getMObject() )
 		op.setUndoitCmd( self.addChild, childNode, keepExistingParent=True )	# TODO: add child to position it had
 		op.doIt()
 
-		return NodeFromObj( childNode._apiobj )	# will attach A new dag path respectively - it will just pick the first one it gets
+		return NodeFromObj( childNode.getMObject() )	# will attach A new dag path respectively - it will just pick the first one it gets
 
 
 	@undoable
@@ -1437,8 +1448,8 @@ class DagNode( Entity, iDagItem ):	# parent just for epydoc
 		if pos != self.kNextPos:
 			pos = getPythonIndex( pos, self.getChildCount() )
 
-		dagfn = api.MFnDagNode( self._apidagpath )
-		docmd = Call( dagfn.addChild, childNode._apiobj, pos, True )
+		dagfn = api.MFnDagNode( self.getMDagPath() )
+		docmd = Call( dagfn.addChild, childNode.getMObject(), pos, True )
 		undocmd = Call( self.removeChild, childNode )
 
 		op.addCmd( docmd, undocmd )
@@ -1457,7 +1468,7 @@ class DagNode( Entity, iDagItem ):	# parent just for epydoc
 			if not validParent:
 				# get the world, but initialize the function set with an mobject !
 				# works for do only in the world case !
-				worldobj = api.MFnDagNode( childNode._apidagpath ).parent( 0 )
+				worldobj = api.MFnDagNode( childNode.getMDagPath() ).parent( 0 )
 				validParent = DagNode( worldobj )
 			# END if no valid parent
 
@@ -1480,7 +1491,7 @@ class DagNode( Entity, iDagItem ):	# parent just for epydoc
 		dagIndex = pos
 		if pos == self.kNextPos:
 			dagIndex = self.getChildCount() - 1	# last entry as child got added
-		newChildNode = NodeFromObj( self.getDagPath().getChildPath( dagIndex ) )
+		newChildNode = NodeFromObj(MDagPathUtil.getChildPathAtIndex(self.getMDagPath(), dagIndex))
 
 		# update undo cmd to use the newly created child with the respective dag path
 		undocmd.args = [ newChildNode ]
@@ -1530,7 +1541,7 @@ class DagNode( Entity, iDagItem ):	# parent just for epydoc
 		@note: if you want to delete many nodes, its more efficient to delete them
 		using the global L{delete} method"""
 		mod = undo.DagModifier( )
-		mod.deleteNode( self._apiobj )
+		mod.deleteNode( self.getMObject() )
 		mod.doIt()
 
 
@@ -1620,7 +1631,7 @@ class DagNode( Entity, iDagItem ):	# parent just for epydoc
 		# it will always duplicate the transform and return it
 		# in case of instances, its the only way we have to get it below an own parent
 		# bake all names into strings for undo and redo
-		duplicate_node_parent = NodeFromObj( api.MFnDagNode( self._apidagpath ).duplicate( False, False ) )		# get the duplicate
+		duplicate_node_parent = NodeFromObj( api.MFnDagNode( self.getMDagPath() ).duplicate( False, False ) )		# get the duplicate
 
 
 		# RENAME DUPLICATE CHILDREN
@@ -1784,7 +1795,7 @@ class DagNode( Entity, iDagItem ):	# parent just for epydoc
 		the MObject may be valid , but the respective dag path is not.
 		Additionally, if the object is not parented below any object, everything appears
 		to be valid, but the path name is empty """
-		return self._apidagpath.isValid() and self._apidagpath.fullPathName() != '' and DependNode.isValid( self )
+		return self.getMDagPath().isValid() and self.getMDagPath().fullPathName() != '' and DependNode.isValid( self )
 
 	def getName( self ):
 		"""@return: fully qualified ( long ) name of this dag node"""
@@ -1811,30 +1822,34 @@ class DagNode( Entity, iDagItem ):	# parent just for epydoc
 		# back to a Node
 		if isinstance( self, Transform ):
 			return self
-		return NodeFromObj( self._apidagpath.transform( ) )
+		return NodeFromObj( self.getMDagPath().transform( ) )
 
 	def getParent( self ):
 		"""@return: Maya node of the parent of this instance or None if this is the root"""
 		# implement raw not using a wrapped path
-		copy = MDagPath( self._apidagpath )
+		copy = MDagPath( self.getMDagPath() )
 		copy.pop( 1 )
 		if copy.length() == 0:		# ignore world !
 			return None
 		return NodeFromObj( copy )
 
-	def getChildren( self, predicate = lambda x: True ):
-		"""@return: all child nodes below this dag node if predicate returns True for passed Node"""
+	def getChildren( self, predicate = lambda x: True, asNode=True ):
+		"""@return: all child nodes below this dag node if predicate returns True for passed Node
+		@param asNode: if True, you will receive the children as wrapped Nodes, otherwise you 
+		get MDagPaths"""
 		out = list()
-		ownpath = self._apidagpath
+		ownpath = self.getMDagPath()
 		for i in range( ownpath.childCount() ):
 			copy = MDagPath( ownpath )
 			copy.push( MDagPath.child( ownpath, i ) )
-			child = NodeFromObj( copy )
+			
+			if asNode:
+				copy = NodeFromObj( copy )
 
-			if not predicate( child ):
+			if not predicate( copy ):
 				continue
 
-			out.append( child )
+			out.append( copy )
 		# END for each child
 		return out
 
@@ -1847,18 +1862,18 @@ class DagNode( Entity, iDagItem ):	# parent just for epydoc
 		"""@return: all our Shape nodes
 		@note: you could use getChildren with a predicate, but this method is more
 		efficient as it uses dagpath functions to filter shapes"""
-		shapeNodes = map(NodeFromObj, self.getDagPath().getShapes())	# could use getChildrenByType, but this is faster
+		shapeNodes = map(NodeFromObj, MDagPathUtil.getShapes(self.getMDagPath()))	# could use getChildrenByType, but this is faster
 		return [ s for s in shapeNodes if predicate( s ) ]
 
 	def getChildTransforms( self, predicate = lambda x: True ):
 		"""@return: list of all transform nodes below this one """
-		transformNodes = map(NodeFromObj, self.getDagPath().getTransforms()) # could use getChildrenByType, but this is faster
+		transformNodes = map(NodeFromObj, MDagPathUtil.getTransforms(self.getMDagPath())) # could use getChildrenByType, but this is faster
 		return [ t for t in transformNodes if predicate( t ) ]
 
 	def getInstanceNumber( self ):
 		"""@return: our instance number
 		@note: 0 does not indicate that this object is not instanced - use getInstanceCount instead"""
-		return self._apidagpath.instanceNumber()
+		return self.getMDagPath().instanceNumber()
 
 	def getInstance( self, instanceNumber ):
 		"""@return: Node to the instance identified by instanceNumber
@@ -1876,27 +1891,52 @@ class DagNode( Entity, iDagItem ):	# parent just for epydoc
 
 	def hasChild( self, node ):
 		"""@return: True if node is a child of self"""
-		return api.MFnDagNode( self._apidagpath ).hasChild( node._apiobj )
+		return api.MFnDagNode( self.getMDagPath() ).hasChild( node.getMObject() )
 
 	def getChild( self, index ):
 		"""@return: child of self at index
 		@note: this method fixes the MFnDagNode.child method - it returns an MObject,
 		which doesnt work well with instanced nodes - a dag path is required, which is what
 		we use to aquire the object"""
-		copy = MDagPath( self._apidagpath )
-		copy.push( MDagPath.child( self._apidagpath, index ) )
+		copy = MDagPath( self.getMDagPath() )
+		copy.push( MDagPath.child( self.getMDagPath(), index ) )
 		return NodeFromObj( copy )
 
 	child = getChild 		# assure the mfnmethod cannot be called anymore - its dangerous !
 	#} END dag query
 
 	#{ General Query
-	def getDagPath( self ):
-		"""@return: the DagPath attached to this Node
-		@note: it is a wrapped version that can be handled more conveniently, but
-		wrapping it is rather expensive as it copies the original MDagPath"""
-		return DagPath( self._apidagpath )
 
+	def _getMDagPath_delayed( self ):
+		"""Handles the retrieval of a dagpath from an MObject if it is not known
+		at first."""
+		global _mfndag_setObject, _mfndag
+		self._apidagpath = MDagPath( )
+		_mfndag_setObject(self._apiobj)
+		_mfndag.getPath( self._apidagpath )
+		cls = type(self)
+		object.__setattr__(self, 'getMDagPath', instancemethod(cls._getMDagPath_cached, self, cls))
+		return self._apidagpath
+		
+	def _getMDagPath_cached( self ):
+		"""@return: MDagPath attached to this node from a cached location"""
+		return self._apidagpath
+
+	def _getMObject_cached( self ):
+		"""@return: MObject associated with the path of this instance from a cached location"""
+		return self._apiobj
+		
+	def _getMObject_delayed( self ):
+		"""@return: MObject as retrieved from the MDagPath of our Node"""
+		self._apiobj = self._apidagpath.node()		# expensive call
+		cls = type(self)
+		object.__setattr__(self, 'getMObject', instancemethod(cls._getMObject_cached, self, cls))
+		return self._apiobj
+
+	# delayed mobject retrieval is the default for DagNodes as they are created from 
+	# MDagPaths most of the time
+	getMObject = _getMObject_delayed
+	
 	def getMDagPath( self ):
 		"""@return: the original DagPath attached to this Node - it's not wrapped
 		for performance"""
@@ -1904,7 +1944,7 @@ class DagNode( Entity, iDagItem ):	# parent just for epydoc
 
 	def getApiObject( self ):
 		"""@return: our dag path as this is our api object - the object defining this node best"""
-		return self.getDagPath()
+		return self.getMDagPath()
 
 	#}END general query
 
@@ -2439,71 +2479,48 @@ class TripleIndexedComponent( Component ):
 
 #{ Basic Types
 
-class DagPath( MDagPath, iDagItem ):
-	"""Wraps a dag path adding some additional convenience functions
+class MDagPathUtil( object ):
+	"""Performs operations on MDagPaths which are hard or inconvenient to do otherwise
 	@note: We do NOT patch the actual api type as this would make it unusable to be passed in
-	as reference/pointer type unless its being created by maya itself. Thus we manually convert
-	all dagpaths the system returns to our type having some more convenience in it"""
-
-	_sep = '|'		#	used by iDagItem
-
-	#{ Overridden Methods
-	def __len__( self ):
-		"""@return: number of dag nodes in this path"""
-		return self.length( )
-
-	def __str__( self ):
-		"""@return: full path name"""
-		return self.getFullPathName()
-
-	#}
+	as reference/pointer type unless its being created by maya itself."""
 
 	#{ Query
 
-	def getApiObj( self ):
-		"""@return: the unwrapped api object this path is referring to"""
-		return  MDagPath.node( self )
-
-	def getNode( self ):
-		"""@return: Node of the node we are attached to"""
-		return NodeFromObj( self.getApiObj( ) )
-
-	def getTransform( self ):
-		"""@return: path of the lowest transform in the path
-		@note: if this is a shape, you would get its parent transform"""
-		return MDagPath.transform( self )
-
-	def getParent( self ):
-		"""@return: DagPath to the parent path of the node this path points to"""
-		copy = DagPath( self )
+	@classmethod
+	def getParentPath( cls, path ):
+		"""@return: MDagPath to the parent of path or None if path is in the scene 
+		root."""
+		copy = MDagPath( path )
 		copy.pop( 1 )
-		if len( copy ) == 0:		# ignore world !
+		if copy.length() == 0:		# ignore world !
 			return None
 		return copy
 
-	def getNumShapes( self ):
-		"""@return: return the number of shapes below this dag path"""
+	@classmethod
+	def getNumShapes( cls, path ):
+		"""@return: return the number of shapes below path"""
 		sutil = api.MScriptUtil()
 		uintptr = sutil.asUintPtr()
 		sutil.setUint( uintptr , 0 )
 
-		MDagPath.numberOfShapesDirectlyBelow( self, uintptr )
+		path.numberOfShapesDirectlyBelow( uintptr )
 
 		return sutil.getUint( uintptr )
 
-	def getChildPath( self, index ):
-		"""@return: a dag path pointing to this path's shape with num"""
-		copy = DagPath( self )
-		copy.push( MDagPath.child(self, index ) )
+	@classmethod
+	def getChildPathAtIndex( cls, path, index ):
+		"""@return: MDagPath pointing to this path's child at the given index"""
+		copy = MDagPath(path)
+		copy.push(path.child(index))
 		return copy
 
-
-	def getChildren( self , predicate = lambda x: True ):
-		"""@return: list of child DagPaths of this path
-		@note: this method is part of the iDagItem interface"""
-		outPaths = []
-		for i in xrange( self.getChildCount() ):
-			childpath = self.getChildPath( i )
+	@classmethod
+	def getChildPaths( cls, path, predicate = lambda x: True ):
+		"""@return: list of child MDagPaths which have path as parent
+		@param predicate: returns True for each path which should be included in the result."""
+		outPaths = list()
+		for i in xrange( path.childCount() ):
+			childpath = cls.getChildPathAtIndex( path, i )
 			if predicate( childpath ):
 				outPaths.append( childpath )
 		return outPaths
@@ -2511,66 +2528,44 @@ class DagPath( MDagPath, iDagItem ):
 	#} END query
 
 	#{ Edit Inplace
-	def pop( self, num ):
+	@classmethod
+	def pop( cls, path, num ):
 		"""Pop the given number of items off the end of the path
-		@return: self
-		@note: will change the current path in place"""
-		MDagPath.pop( self, num )
+		@return: path itself"""
+		path.pop( num )
+		return path
+
+	@classmethod
+	def extendToChild( cls, path, num ):
+		"""Extend path to the given child number - can be shape or transform
+		@return: path itself"""
+		path.extendToShapeDirectlyBelow( num )
 		return self
 
-	def extendToChild( self, num ):
-		"""Extend this path to the given child number - can be shape or transform
-		@return: self """
-		MDagPath.extendToShapeDirectlyBelow( self, num )
-		return self
-
-	def getChildrenByFn( self, fn, predicate = lambda x: True ):
-		"""Get all children below this path supporting the given MFn.type
-		@return: paths to all matched paths below this path
-		@param fn: member of MFn"""
+	@classmethod
+	def getChildPathsByFn( cls, path, fn, predicate = lambda x: True ):
+		"""Get all children below path supporting the given MFn.type
+		@return: MDagPaths to all matched paths below this path
+		@param fn: member of MFn
+		@param predicate: returns True for each path which should be included in the result."""
 		isMatch = lambda p: p.hasFn( fn )
-		return [ p for p in self.getChildren( predicate = isMatch ) if predicate( p ) ]
+		return [ p for p in cls.getChildPaths( path, predicate = isMatch ) if predicate( p ) ]
 
-	def getShapes( self, predicate = lambda x: True ):
-		"""Get all shapes below this path
-		@return: paths to all shapes below this path
-		@param predicate: returns True to include path in result
+	@classmethod
+	def getShapes( cls, path, predicate = lambda x: True ):
+		"""@return: MDagPaths to all shapes below path
+		@param predicate: returns True for each path which should be included in the result.
 		@note: have to explicitly assure we do not get transforms that are compatible to the shape function
 		set for some reason - this is just odd and shouldn't be, but it happens if a transform has an instanced
 		shape for example, perhaps even if it is not instanced"""
-		return [ shape for shape in self.getChildrenByFn( api.MFn.kShape, predicate=predicate ) if shape.apiType() != api.MFn.kTransform ]
+		return [ shape for shape in cls.getChildPathsByFn( path, api.MFn.kShape, predicate=predicate ) if shape.apiType() != api.MFn.kTransform ]
 
-	def getTransforms( self, predicate = lambda x: True ):
-		"""Get all transforms below this path
-		@return: paths to all transforms below this path
+	@classmethod
+	def getTransforms( cls, path, predicate = lambda x: True ):
+		"""@return: MDagPaths to all transforms below path
 		@param predicate: returns True to include path in result"""
-		return self.getChildrenByFn( api.MFn.kTransform, predicate=predicate )
+		return cls.getChildPathsByFn( path, api.MFn.kTransform, predicate=predicate )
 	#} END edit in place
-
-
-
-	#{ Name Remapping
-
-	getApiType = MDagPath.apiType
-	node = getNode
-	child = getChildPath
-	getChildCount = MDagPath.childCount
-	transform = getTransform
-	getApiType = MDagPath.apiType
-	getLength = MDagPath.length
-	numberOfShapesDirectlyBelow = getNumShapes
-	getInstanceNumber = MDagPath.instanceNumber
-	getPathCount = MDagPath.pathCount
-	getFullPathName = MDagPath.fullPathName
-	getPartialName = MDagPath.partialPathName
-	isNull = lambda self: not MDagPath.isValid( self )
-
-
-	getInclusiveMatrix = MDagPath.inclusiveMatrix
-	getInclusiveMatrixInverse = MDagPath.inclusiveMatrixInverse
-	getExclusiveMatrixInverse = MDagPath.exclusiveMatrixInverse
-
-	#} END name remapping
 
 
 #} END basic types
