@@ -16,7 +16,7 @@ import maya.OpenMayaRender	as apirender
 import maya.OpenMayaFX as apifx
 import re
 import inspect
-import new
+from new import instancemethod
 import UserDict
 import maya.cmds as cmds
 
@@ -134,7 +134,7 @@ class MetaClassCreatorNodes( MetaClassCreator ):
 				# INITIALIZED DAG NODES WITH DAG PATH !
 				if api.MFnDagNode in mfnmro and not needs_MObject:			# yes, we duplicate code here to keep it fast !!
 					def wrapMfnFunc( self, *args, **kwargs ):
-						rvallambda = lambda *args, **kwargs: rvalfunc(getattr(mfncls(self._apidagpath), mfnfuncname)(*args, **kwargs))
+						rvallambda = lambda *args, **kwargs: rvalfunc(getattr(mfncls(self.getMDagPath()), mfnfuncname)(*args, **kwargs))
 						object.__setattr__( self, funcname_orig, rvallambda ) # cache it in our object
 						return rvallambda( *args, **kwargs )
 					newfunc = wrapMfnFunc
@@ -147,7 +147,7 @@ class MetaClassCreatorNodes( MetaClassCreator ):
 						newfunc = wrapMfnFunc
 					else:
 						def wrapMfnFunc( self, *args, **kwargs ):
-							rvallambda = lambda *args, **kwargs: rvalfunc(getattr(mfncls(self._apiobj), mfnfuncname)(*args, **kwargs))
+							rvallambda = lambda *args, **kwargs: rvalfunc(getattr(mfncls(self.getMObject()), mfnfuncname)(*args, **kwargs))
 							object.__setattr__( self, funcname_orig, rvallambda )
 							return rvallambda( *args, **kwargs )
 						newfunc = wrapMfnFunc
@@ -155,7 +155,7 @@ class MetaClassCreatorNodes( MetaClassCreator ):
 			else:
 				if api.MFnDagNode in mfnmro and not needs_MObject:			# yes, we duplicate code here to keep it fast !!
 					def wrapMfnFunc( self, *args, **kwargs ):
-						mfnfunc = getattr(mfncls(self._apidagpath), mfnfuncname)
+						mfnfunc = getattr(mfncls(self.getMDagPath()), mfnfuncname)
 						object.__setattr__( self, funcname_orig, mfnfunc )
 						return mfnfunc( *args, **kwargs )
 					newfunc = wrapMfnFunc
@@ -168,7 +168,7 @@ class MetaClassCreatorNodes( MetaClassCreator ):
 						newfunc = wrapMfnFunc
 					else:
 						def wrapMfnFunc( self, *args, **kwargs ):
-							mfnfunc = getattr(mfncls(self._apiobj), mfnfuncname)
+							mfnfunc = getattr(mfncls(self.getMObject()), mfnfuncname)
 							object.__setattr__( self, funcname_orig, mfnfunc )
 							return mfnfunc( *args, **kwargs )
 						newfunc = wrapMfnFunc
@@ -179,7 +179,7 @@ class MetaClassCreatorNodes( MetaClassCreator ):
 				# INITIALIZED DAG NODES WITH DAG PATH !
 				if api.MFnDagNode in mfnmro and not needs_MObject:			# yes, we duplicate code here to keep it fast !!
 					def wrapMfnFunc( self, *args, **kwargs ):
-						return rvalfunc(getattr(mfncls(self._apidagpath), mfnfuncname)(*args, **kwargs))
+						return rvalfunc(getattr(mfncls(self.getMDagPath()), mfnfuncname)(*args, **kwargs))
 					newfunc = wrapMfnFunc
 				else:
 					if api.MObject in newclsmro:
@@ -188,13 +188,13 @@ class MetaClassCreatorNodes( MetaClassCreator ):
 						newfunc = wrapMfnFunc
 					else:
 						def wrapMfnFunc( self, *args, **kwargs ):
-							return rvalfunc(getattr(mfncls(self._apiobj), mfnfuncname)(*args, **kwargs))
+							return rvalfunc(getattr(mfncls(self.getMObject()), mfnfuncname)(*args, **kwargs))
 						newfunc = wrapMfnFunc
 					# END handle MObject inheritance
 			else:
 				if api.MFnDagNode in mfnmro and not needs_MObject:			# yes, we duplicate code here to keep it fast !!
 					def wrapMfnFunc( self, *args, **kwargs ):
-						return getattr(mfncls(self._apidagpath), mfnfuncname)(*args, **kwargs)
+						return getattr(mfncls(self.getMDagPath()), mfnfuncname)(*args, **kwargs)
 					newfunc = wrapMfnFunc
 				else:
 					if api.MObject in newclsmro:
@@ -203,7 +203,7 @@ class MetaClassCreatorNodes( MetaClassCreator ):
 						newfunc = wrapMfnFunc
 					else:
 						def wrapMfnFunc( self, *args, **kwargs ):
-							return getattr(mfncls(self._apiobj), mfnfuncname)(*args, **kwargs)
+							return getattr(mfncls(self.getMObject()), mfnfuncname)(*args, **kwargs)
 						newfunc = wrapMfnFunc
 					# END handle MObject inheritance
 			# END not rvalfunc
@@ -257,7 +257,7 @@ class MetaClassCreatorNodes( MetaClassCreator ):
 						continue
 				except KeyError:  		# function not available in this mfn - ignore
 					continue
-				newinstfunc = new.instancemethod( newclsfunc, self, basecls )	# create the respective instance method !
+				newinstfunc = instancemethod( newclsfunc, self, basecls )	# create the respective instance method !
 				actualcls = basecls
 				break					# stop here - we found it
 			# END for each basecls ( searching for mfn func )

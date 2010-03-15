@@ -674,7 +674,7 @@ class MPlug( api.MPlug, iDagItem ):
 		attrs = cmds.affects( self.getAttribute().getName() , str( ownnode ), by=by )
 
 		outplugs = []
-		depfn = api.MFnDependencyNode( ownnode._apiobj )
+		depfn = api.MFnDependencyNode( ownnode.getMObject() )
 
 		for attr in attrs:
 			outplugs.append( depfn.findPlug( attr ) )
@@ -1110,9 +1110,9 @@ class MSelectionList( api.MSelectionList, ArrayBase ):
 		"""@return: True if we contain rhs
 		@note: As we check for Nodes as well as MayaAPI objects, we are possibly slow"""
 		if isinstance(rhs, base.DagNode):
-			return self.hasItem(rhs._apidagpath)
+			return self.hasItem(rhs.getMDagPath())
 		elif isinstance(rhs, base.DependNode):
-			return self.hasItem(rhs._apiobj)
+			return self.hasItem(rhs.getMObject())
 		else:
 			return self.hasItem(rhs)
 		# END handle input type

@@ -11,7 +11,7 @@ import maya.cmds as cmds
 import mayarv.test.maya.nodes as ownpackage
 import maya.OpenMaya as api
 from mayarv.path import Path
-
+import sys
 
 class TestGeneral( unittest.TestCase ):
 	""" Test general maya framework """
@@ -20,6 +20,9 @@ class TestGeneral( unittest.TestCase ):
 		"""mayarv.maya.nodes: test wrapper class creation
 		@note: we coulld dynamically create the nodes for testing using ls -nt,
 		but using a filecache is much faster - speed matters"""
+		print >> sys.stderr, "NodeTypeDB and wrapping test disabled - use it to check for new types"
+		return 
+		
 		filename = get_maya_file( "allnodetypes_%s.mb" % env.getAppVersion( )[0] )
 		if not Path( filename ).isfile():
 			raise AssertionError( "File %s not found for loading" % filename )
@@ -432,7 +435,6 @@ class TestNodeBase( unittest.TestCase ):
 		
 		childns = nsm.Namespace.create(":foo:bar")
 		parentns = childns.getParent()
-		
 		for node in (dag, dg):
 			assert node.getNamespace() == nsm.RootNamespace
 			assert isinstance(node.setNamespace(childns), nodes.Node)
@@ -495,6 +497,19 @@ class TestNodeBase( unittest.TestCase ):
 		dupltrans = base.duplicate( "duplbase" )
 		baseduplmesh = dupltrans.getChildrenByType( nodes.Mesh )[0]
 		assert baseduplmesh != basemesh 		# its a separate copy
+
+	def test_wrapping(self):
+		# from string
+		p = nodes.Node("persp")
+		
+		# it tries to access it like an APIObj - no type checks done here
+		self.failUnlessRaises(AttributeError, nodes.NodeFromObj, "persp")
+		
+		# we don't accept other Nodes - it makes no sense and should be fixed
+		self.failUnlessRaises(TypeError, nodes.Node, p)
+		
+		# tries to access a non-existing attribute
+		self.failUnlessRaises(AttributeError, nodes.NodeFromObj, p)
 
 	def test_wrapDagNode( self ):
 		"""mayarv.maya.nodes: create and access dag nodes"""
@@ -963,7 +978,7 @@ class TestNodeBase( unittest.TestCase ):
 		assert trans == nodes.Transform(forceNewLeaf=False)
 		
 		# cannot create anything below dependnode
-		self.failUnlessRaises(ValueError, nodes.Node)
+		self.failUnlessRaises(TypeError, nodes.Node)
 
 	def test_single_indexed_components( self ):
 		# check exceptions
