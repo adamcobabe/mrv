@@ -8,7 +8,7 @@ import site
 # assure all sitelibs are available, important for OSX
 def setup_syspath():
 	"""Assure additional site-packages get initialized"""
-	for syspath in sys.path:
+	for syspath in sys.path[:]:
 		if syspath.endswith('site-packages'):
 			site.addsitedir(syspath, set(sys.path))
 	# END for each syspath

@@ -108,7 +108,7 @@ def _init_syspath( ):
 	# are non-default, they will not be handled which leads to an incomplete 
 	# environment. Hence we process them.
 	# Fortunately, the function handles multiple initializations gracefully
-	for syspath in sys.path:
+	for syspath in sys.path[:]:
 		if syspath.endswith('site-packages'):
 			site.addsitedir(syspath, set(sys.path))
 		# END found site-packages path

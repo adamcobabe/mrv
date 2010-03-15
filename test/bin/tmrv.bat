@@ -5,6 +5,6 @@ REM call mayapy with the nosetests startup script
 set basedir=%~dp0
 
 REM execute mayarv
-cmd.exe /C "%basedir%..\..\bin\mayarv.bat %basedir%\nosestartup.py" %*
+cmd.exe /C "%basedir%..\..\bin\mrv.bat %basedir%\nosestartup.py" %*
 
 :end	
