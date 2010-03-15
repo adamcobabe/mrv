@@ -714,11 +714,10 @@ class DAGTree( nx.DiGraph ):
 
 
 class PipeSeparatedFile( object ):
-	"""Read and write simple pipe separated files containing a version number.
+	"""Read and write simple pipe separated files.
 
 	The number of column must remain the same per line
 	Format:
-	int( version )
 	val11 | val2 | valn
 	...
 	"""
@@ -733,10 +732,7 @@ class PipeSeparatedFile( object ):
 		self._columncount = None
 
 	def beginReading( self ):
-		"""Start reading the file
-		@return: the file version read"""
-		fileversion = int( self._fileobj.readline( ).strip( ) )		# get version
-		return fileversion
+		"""Start reading the file"""
 
 	def readColumnLine( self ):
 		"""Generator reading one line after another, returning the stripped columns
@@ -756,12 +752,10 @@ class PipeSeparatedFile( object ):
 			yield tuple( tokens )
 		# END for each line
 
-	def beginWriting( self, version, columnSizes ):
+	def beginWriting( self, columnSizes ):
 		"""intiialize the writing process
-		@param version: the file version you would like to set
 		@param columnSizes: list of ints defining the size in characters for each column you plan to feed
 		@note: When done writing, you have to close the file object yourself ( there is no endWriting method here )"""
-		self._fileobj.write( "%i\n" % version )		# write version
 		columnTokens = [ "%%-%is" % csize for csize in columnSizes ]
 		self._formatstr = ( ( self.kSeparator + " " ).join( columnTokens ) ) + "\n"
 

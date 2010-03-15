@@ -1,4 +1,3 @@
-1
     | MFnNumericData_create                   | None                |                                         
     | MFnNumericData_getData2Double           | None                |                                         
     | MFnNumericData_getData2Float            | None                |                                         

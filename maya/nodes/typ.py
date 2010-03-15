@@ -498,7 +498,6 @@ class MfnMemberMap( UserDict.UserDict ):
 	"""Simple accessor for MFnDatabase access
 	Direct access like db[funcname] returns an entry object with all values"""
 	kDelete = 'x'
-	version = 1
 
 	class Entry:
 		"""Simple entry struct keeping the actual values """
@@ -541,10 +540,8 @@ class MfnMemberMap( UserDict.UserDict ):
 		fobj = open( filepath, 'r' )
 
 		pf = PipeSeparatedFile( fobj )
-		fileversion = pf.beginReading( )
-		if fileversion != self.version:
-			raise ValueError( "File version %i does not match class version %i" % (fileversion,self.version ) )
-
+		pf.beginReading( )
+		
 		# get the entries
 		for tokens in pf.readColumnLine( ):
 			key = tokens[ 1 ]
@@ -559,7 +556,7 @@ class MfnMemberMap( UserDict.UserDict ):
 
 		fobj = open( filepath, 'w' )
 		pf = PipeSeparatedFile( fobj )
-		pf.beginWriting( self.version, [ 4,40,20,40 ] )
+		pf.beginWriting( [ 4,40,20,40 ] )
 
 		for key in klist:							# write entries
 			e = self[ key ]
