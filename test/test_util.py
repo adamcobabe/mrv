@@ -1,6 +1,7 @@
 # -*- coding: utf-8 -*-
 """Test misc utility classes """
 import unittest
+import mayarv
 from mayarv.util import *
 from mayarv.interface import *
 import re
@@ -293,3 +294,8 @@ class TestDAGTree( unittest.TestCase ):
 		sender.estrong = Sender.needs_sender
 		sender.clearAllEvents()
 		assert not sender.estrong._getFunctionSet(sender)
+		
+	def test_version(self):
+		assert len(mayarv.version_info) == 5
+		major, minor, micro, level, serial = mayarv.version_info
+		assert major == 1 and minor == 0 and micro == 0 and level == 'RC1' and serial == 0
