@@ -186,8 +186,8 @@ class TestTransform( unittest.TestCase ):
 		sl = toSelectionList(nl)
 		assert isinstance(sl, api.MSelectionList) and len(sl) == 3
 		
-		sl2 = api.MSelectionList.fromList(nl)
-		sl3 = api.MSelectionList.fromStrings([str(n) for n in nl])
+		sl2 = api.MSelectionList.mrvfromList(nl)
+		sl3 = api.MSelectionList.mrvfromStrings([str(n) for n in nl])
 		
 		
 		osl = getSelection()
@@ -200,8 +200,8 @@ class TestTransform( unittest.TestCase ):
 		for n in sl:
 			assert isinstance(n, DependNode)
 		
-		assert list(sl) == sl.toList()
-		assert list(sl.toIter()) == list(it.iterSelectionList(sl))
+		assert list(sl) == sl.mrvtoList()
+		assert list(sl.mrvtoIter()) == list(it.iterSelectionList(sl))
 		
 		# OBJECTSETS AND PARTITIONS
 		###########################
@@ -395,7 +395,7 @@ class TestTransform( unittest.TestCase ):
 		assert len(getSelection()) == 4
 		
 		# simple filtering
-		assert getSelectionList().iterPlugs().next() == p.t
+		assert getSelectionList().mrviterPlugs().next() == p.t
 		assert getSelection(api.MFn.kTransform)[-1] == p
 		
 		# adjustments
@@ -410,7 +410,7 @@ class TestTransform( unittest.TestCase ):
 		sl = api.MSelectionList()
 		sl.add(m.getMDagPath(), m.cf[:4])			# first 4 faces
 		select(sl)
-		assert len(getSelectionList().iterComponents().next()[1].getElements()) == 4
+		assert len(getSelectionList().mrviterComponents().next()[1].getElements()) == 4
 		
 		sl.clear()
 		sl.add(p.t)

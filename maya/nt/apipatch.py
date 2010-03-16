@@ -191,7 +191,7 @@ class MMatrix( api.MMatrix, PatchMatrix ):
 class MFloatMatrix( api.MFloatMatrix, PatchMatrix ):
 	_length =4
 	scriptutil = api.MScriptUtil.getFloatArrayItem
-#
+
 class MTransformationMatrix( api.MTransformationMatrix, PatchMatrix ):
 	_length =4
 
@@ -206,36 +206,32 @@ class MTransformationMatrix( api.MTransformationMatrix, PatchMatrix ):
 		type.__setattr__( cls.__bases__[0], '__iter__', __iter__ )
 		return True
 
-	def getScale( self , space = api.MSpace.kTransform ):
+	def mrvgetScale( self , space = api.MSpace.kTransform ):
 		ms = api.MScriptUtil()
 		ms.createFromDouble( 1.0, 1.0, 1.0 )
 		p = ms.asDoublePtr()
-		self._api_getScale( p, space );
+		self.getScale( p, space );
 		return MVector( *( ms.getDoubleArrayItem (p, i) for i in range(3) ) )
 
-	def setScale( self, value, space = api.MSpace.kTransform ):
+	def mrvsetScale( self, value, space = api.MSpace.kTransform ):
 		ms = api.MScriptUtil()
 		ms.createFromDouble( *value )
 		p = ms.asDoublePtr()
-		self._api_setScale ( p, space )
-
-	def getRotate(self):
-		return self.rotation()
-
-	def setRotate(self, v ):
-		self.setRotationQuaternion( v[0], v[1], v[2], v[3] )
+		self.setScale ( p, space )
 
 	def getTranslation( self, space = api.MSpace.kTransform ):
+		"""This patch is fully compatible to the default method"""
 		return self._api_getTranslation( space )
 
 	def setTranslation( self, vector, space = api.MSpace.kTransform ):
+		"""This patch is fully compatible to the default method"""
 		return self._api_setTranslation( vector, space )
 
 #} END primitve types
 
 #{ Basic Types
 
-def _createUndoSetFunc( dataTypeId, getattroverride = None ):
+def _mplug_createUndoSetFunc( dataTypeId, getattroverride = None ):
 	"""Create a function setting a value with undo support
 	@param dataTypeId: string naming the datatype, like "Bool" - capitalization is
 	important
@@ -777,17 +773,17 @@ class MPlug( api.MPlug ):
 	#{ Set Data with Undo
 
 	# wrap the methods
-	mrvsetBool = _createUndoSetFunc( "Bool" )
-	mrvsetChar = _createUndoSetFunc( "Char" )
-	mrvsetShort = _createUndoSetFunc( "Short" )
-	mrvsetInt = _createUndoSetFunc( "Int" )
-	mrvsetFloat = _createUndoSetFunc( "Float" )
-	mrvsetDouble = _createUndoSetFunc( "Double" )
-	mrvsetString = _createUndoSetFunc( "String" )
-	mrvsetMAngle = _createUndoSetFunc( "MAngle" )
-	mrvsetMDistance = _createUndoSetFunc( "MDistance" )
-	mrvsetMTime = _createUndoSetFunc( "MTime" )
-	mrvsetMObject = _createUndoSetFunc( "MObject" )
+	mrvsetBool = _mplug_createUndoSetFunc( "Bool" )
+	mrvsetChar = _mplug_createUndoSetFunc( "Char" )
+	mrvsetShort = _mplug_createUndoSetFunc( "Short" )
+	mrvsetInt = _mplug_createUndoSetFunc( "Int" )
+	mrvsetFloat = _mplug_createUndoSetFunc( "Float" )
+	mrvsetDouble = _mplug_createUndoSetFunc( "Double" )
+	mrvsetString = _mplug_createUndoSetFunc( "String" )
+	mrvsetMAngle = _mplug_createUndoSetFunc( "MAngle" )
+	mrvsetMDistance = _mplug_createUndoSetFunc( "MDistance" )
+	mrvsetMTime = _mplug_createUndoSetFunc( "MTime" )
+	mrvsetMObject = _mplug_createUndoSetFunc( "MObject" )
 
 	#} END set data
 
@@ -818,24 +814,6 @@ class MPlug( api.MPlug ):
 #} END basic types
 
 
-#{ Function Sets
-class MFnDependencyNode( api.MFnDependencyNode ):
-	"""Add MFnBase methods to this function set as the base class cannot be instantiated 
-	directly. Its vital for the mayarv wrapping system as the overridden method in the 
-	MFnDependencyNode like type() are now on the base class"""
-	
-	hasObj = api.MFnBase.hasObj
-	object = api.MFnBase.object
-	setObject = api.MFnBase.setObject
-	type = api.MFnBase.type
-
-#}
-
-
-#############################
-#### ARRAYS			    ####
-##########################
-
 #{ Arrays
 
 class ArrayBase( Abstract ):
@@ -850,7 +828,7 @@ class ArrayBase( Abstract ):
 		return self.set( item, index )
 		
 	@classmethod
-	def fromMultiple(cls, *args):
+	def mrvfromMultiple(cls, *args):
 		"""@return: Array created from the given elements"""
 		ia = cls()
 		ia.setLength(len(args))
@@ -864,7 +842,7 @@ class ArrayBase( Abstract ):
 		return ia
 		
 	@classmethod
-	def fromIter(cls, iter):
+	def mrvfromIter(cls, iter):
 		"""@return: Array created from elements yielded by iter
 		@note: this one is less efficient than L{fromList} as the final length 
 		of the array is not predetermined"""
@@ -875,7 +853,7 @@ class ArrayBase( Abstract ):
 		return ia
 	
 	@classmethod
-	def fromList(cls, list):
+	def mrvfromList(cls, list):
 		"""@return: Array created from the given list of elements"""
 		ia = cls()
 		ia.setLength(len(list))
@@ -1023,7 +1001,7 @@ class MIntArray( api.MIntArray, ArrayBase ):
 	_apicls = api.MIntArray
 	
 	@classmethod
-	def fromRange(cls, i, j):
+	def mrvfromRange(cls, i, j):
 		"""@return: An MIntArray initialized with integers ranging from i to j
 		@param i: first integer of the returned array
 		@param j: last integer of returned array will have the value j-1"""
@@ -1100,46 +1078,46 @@ class MSelectionList( api.MSelectionList, ArrayBase ):
 		return base.NodeFromObj(rval)
 	
 	@staticmethod
-	def fromStrings( iter_strings, **kwargs ):
+	def mrvfromStrings( iter_strings, **kwargs ):
 		"""@return: MSelectionList initialized from the given iterable of strings
 		@param **kwargs: passed to L{base.toSelectionListFromNames}"""
 		return base.toSelectionListFromNames(iter_strings, **kwargs)
 		
 	@staticmethod
-	def fromList( iter_items, **kwargs ):
+	def mrvfromList( iter_items, **kwargs ):
 		"""@return: MSelectionList as initialized from the given iterable of Nodes, 
 		MObjects, MDagPaths or MPlugs
 		@param **kwargs: passed to L{base.toSelectionList}"""
 		return base.toSelectionList(iter_items, **kwargs)
 		
 	# We need to override the respective method on the base class as it wouldnt work
-	fromIter = fromList
+	mrvfromIter = mrvfromList
 	
 	@staticmethod
-	def fromMultiple( *args, **kwargs ):
+	def mrvfromMultiple( *args, **kwargs ):
 		"""Alternative form of L{fromList} as *args can be passed in."""
-		return MSelectionList.fromList(args, **kwargs)
+		return MSelectionList.mrvfromList(args, **kwargs)
 	
 	@staticmethod
-	def fromComponentList( iter_components, **kwargs ):
+	def mrvfromComponentList( iter_components, **kwargs ):
 		"""@return: MSelectionList as initialized from the given list of tuple( DagNode, Component ), 
 		Component can be a filled Component object or null MObject
 		@param **kwargs: passed to L{base.toComponentSelectionList}"""
 		return base.toComponentSelectionList(iter_components, **kwargs)
 		
-	def toList( self, *args, **kwargs ):
+	def mrvtoList( self, *args, **kwargs ):
 		"""@return: list with the contents of this MSelectionList
 		@param *args: passed to L{it.iterSelectionList}
 		@param **kwargs: passed to L{it.iterSelectionList}"""
-		return list(self.toIter(*args, **kwargs))
+		return list(self.mrvtoIter(*args, **kwargs))
 		
-	def toIter( self, *args, **kwargs ):
+	def mrvtoIter( self, *args, **kwargs ):
 		"""@return: iterator yielding of Nodes and MPlugs stored in this given selection list
 		@param *args: passed to L{it.iterSelectionList}
 		@param **kwargs: passed to L{it.iterSelectionList}"""
 		return it.iterSelectionList( self, *args, **kwargs )
 		
-	def iterComponents( self, **kwargs ):
+	def mrviterComponents( self, **kwargs ):
 		"""@return: Iterator yielding node, component pairs, component is guaranteed 
 		to carry a component, implying that this iterator applies a filter
 		@param kwargs: passed on to L{it.iterSelectionList}"""
@@ -1148,7 +1126,7 @@ class MSelectionList( api.MSelectionList, ArrayBase ):
 		kwargs['predicate'] = pred
 		return it.iterSelectionList( self, **kwargs )
 		
-	def iterPlugs( self, **kwargs ):
+	def mrviterPlugs( self, **kwargs ):
 		"""@return: Iterator yielding all plugs on this selection list.
 		@param kwargs: passed on to L{it.iterSelectionList}"""
 		kwargs['handlePlugs'] = True

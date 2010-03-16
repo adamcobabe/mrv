@@ -713,3 +713,4 @@ The ``mayarv.maya.nt.storage`` module is built to make it easy to create own nod
 A Word about Types
 ==================
 Talks about wrapped nodes, MObjects, MDagPaths, MObject derived types and how they can be used.
+Type Awareness

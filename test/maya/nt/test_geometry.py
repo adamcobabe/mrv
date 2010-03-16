@@ -222,7 +222,7 @@ class TestGeometry( unittest.TestCase ):
 			# END handle index
 		# END check index helper
 		
-		converters = (lambda l: l, lambda l: iter(l), lambda l: api.MIntArray.fromList(l))
+		converters = (lambda l: l, lambda l: iter(l), lambda l: api.MIntArray.mrvfromList(l))
 		
 		
 		ec = m.eComponentType
@@ -238,7 +238,7 @@ class TestGeometry( unittest.TestCase ):
 		
 		# CONSTRAIN MIT USING COMPONENT
 		self.failUnlessRaises(ValueError, m.getComponent, 1)	# invalid arg type
-		vc = m.getComponent(ec.vertex).addElements(api.MIntArray.fromMultiple(1,2))
+		vc = m.getComponent(ec.vertex).addElements(api.MIntArray.mrvfromMultiple(1,2))
 		assert isinstance(vc, nt.SingleIndexedComponent)
 		
 		miv = m.iterComponents(ec.vertex, vc)

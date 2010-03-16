@@ -218,7 +218,7 @@ def fromSelectionList( sellist, handlePlugs=1, **kwargs ):
 	@param **kwargs: passed to selectionListIterator"""
 	kwargs['asNode'] = 1
 	kwargs['handlePlugs'] = handlePlugs
-	return list(sellist.toIter(**kwargs))
+	return list(sellist.mrvtoIter(**kwargs))
 
 def toNodesFromNames( nodenames, **kwargs ):
 	"""@return: list of wrapped nodes from the given list of node names
@@ -330,7 +330,7 @@ def iterSelection(filterType=api.MFn.kInvalid, **kwargs):
 	
 	kwargs['asNode'] = 1	# remove our overridden warg
 	kwargs['filterType'] = filterType
-	return sellist.toIter(**kwargs)
+	return sellist.mrvtoIter(**kwargs)
 
 def select( *nodesOrSelectionList , **kwargs ):
 	"""Select the given list of wrapped nodes or selection list in maya

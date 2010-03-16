@@ -441,9 +441,9 @@ class TestDataBase( unittest.TestCase ):
 	def test_matrix( self ):
 		tmat = api.MTransformationMatrix()
 
-		tmat.setScale( ( 2.0, 4.0, 6.0 ) )
+		tmat.mrvsetScale( ( 2.0, 4.0, 6.0 ) )
 
-		s = tmat.getScale()
+		s = tmat.mrvgetScale()
 		assert s.x == 2.0 
 		assert s.y == 4.0 
 		assert s.z == 6.0 
@@ -451,8 +451,6 @@ class TestDataBase( unittest.TestCase ):
 		t = api.MVector( 1.0, 2.0, 3.0 )
 		tmat.setTranslation( t )
 		assert t == tmat.getTranslation( ) 
-
-		tmat.setRotate( ( 20, 40, 90, 1.0 ) )
 
 	def test_MPlugArray( self ):
 		node = nt.Node( "defaultRenderGlobals" )
@@ -496,31 +494,31 @@ class TestDataBase( unittest.TestCase ):
 		# test creation functions
 		node_list = list(sl)
 		nls = node_list[4:15]
-		for slsnodesgen, selfun in ((lambda : [str(n) for n in nls], api.MSelectionList.fromStrings),
-									(lambda : nls, api.MSelectionList.fromList),
-									(lambda : [(n, api.MObject()) for n in node_list[-5:] if isinstance(n, nt.DagNode)], api.MSelectionList.fromComponentList) ):
+		for slsnodesgen, selfun in ((lambda : [str(n) for n in nls], api.MSelectionList.mrvfromStrings),
+									(lambda : nls, api.MSelectionList.mrvfromList),
+									(lambda : [(n, api.MObject()) for n in node_list[-5:] if isinstance(n, nt.DagNode)], api.MSelectionList.mrvfromComponentList) ):
 			slsnodes = slsnodesgen()
 			sls = selfun(iter(slsnodes))
 			assert isinstance(sls, api.MSelectionList) and len(sls) == len(slsnodes) 
 		# END for each variant
 		
 		# from multiple
-		assert len(api.MSelectionList.fromMultiple(*nls)) == len(nls)
+		assert len(api.MSelectionList.mrvfromMultiple(*nls)) == len(nls)
 		
 		# from iter
-		assert len(api.MSelectionList.fromIter(iter(nls))) == len(nls)
+		assert len(api.MSelectionList.mrvfromIter(iter(nls))) == len(nls)
 		
 
 		# test conversion methods
-		assert list(sl) == sl.toList()
-		assert hasattr(sl.toIter(), 'next')
+		assert list(sl) == sl.mrvtoList()
+		assert hasattr(sl.mrvtoIter(), 'next')
 		
 		# test contains
 		dagnode = nt.Node("persp")
 		dgnode = nt.Node("time1")
 		plug = dgnode.o
 		
-		sls = api.MSelectionList.fromList((dagnode, dgnode, plug))
+		sls = api.MSelectionList.mrvfromList((dagnode, dgnode, plug))
 		assert len(sls) == 3
 		
 		nc = 0
@@ -543,7 +541,7 @@ class TestDataBase( unittest.TestCase ):
 		sl = api.MSelectionList()
 		sl.add(m.getMDagPath())
 		sl.add(m.getMDagPath(), m.cf[:])
-		assert len(list(sl.iterComponents())) == 1
+		assert len(list(sl.mrviterComponents())) == 1
 		
 		
 		# PLUG ITERATION
@@ -552,7 +550,7 @@ class TestDataBase( unittest.TestCase ):
 		sl.add(p.getMDagPath())
 		sl.add(p.t)
 		sl.add(p.rx)
-		assert len(list(sl.iterPlugs())) == 2
+		assert len(list(sl.mrviterPlugs())) == 2
 		
 		
 		
@@ -568,15 +566,15 @@ class TestDataBase( unittest.TestCase ):
 		# test all random access types
 		def assert_creation(cls, items):
 			# from multiple
-			ar = cls.fromMultiple(*items)
+			ar = cls.mrvfromMultiple(*items)
 			assert_matches(ar, items)
 			
 			# from iter
-			ar = cls.fromIter(iter(items))
+			ar = cls.mrvfromIter(iter(items))
 			assert_matches(ar, items)
 			
 			# from list
-			ar = cls.fromList(items)
+			ar = cls.mrvfromList(items)
 			assert_matches(ar, items)
 			
 			# test iteration
@@ -619,8 +617,8 @@ class TestDataBase( unittest.TestCase ):
 
 	def test_intarray_creation(self):
 		# from range
-		self.failUnlessRaises(ValueError, api.MIntArray.fromRange, 3, 2)
-		self.failUnlessRaises(ValueError, api.MIntArray.fromRange, 3, -5)
-		ia = api.MIntArray.fromRange(2,4)
+		self.failUnlessRaises(ValueError, api.MIntArray.mrvfromRange, 3, 2)
+		self.failUnlessRaises(ValueError, api.MIntArray.mrvfromRange, 3, -5)
+		ia = api.MIntArray.mrvfromRange(2,4)
 		assert len(ia) == 2 and ia[0] == 2 and ia[1] == 3
 		

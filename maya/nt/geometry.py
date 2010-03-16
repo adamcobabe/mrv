@@ -110,7 +110,7 @@ class _SingleIndexedComponentGenerator(object):
 		if j > self._int32b:
 			comp.setComplete(1)
 		else:
-			comp.addElements(api.MIntArray.fromRange(i, j))
+			comp.addElements(api.MIntArray.mrvfromRange(i, j))
 		# END handle slice range 
 		return comp
 		
@@ -120,16 +120,16 @@ class _SingleIndexedComponentGenerator(object):
 		if len(args) == 1:
 			arg = args[0]
 			if hasattr(arg, 'next'):
-				ia = api.MIntArray.fromIter(arg)
+				ia = api.MIntArray.mrvfromIter(arg)
 			elif isinstance(arg, (list, tuple)):
-				ia = api.MIntArray.fromList(arg)
+				ia = api.MIntArray.mrvfromList(arg)
 			elif isinstance(arg, api.MIntArray):
 				ia = arg
 			else:
-				ia = api.MIntArray.fromMultiple(arg)
+				ia = api.MIntArray.mrvfromMultiple(arg)
 			# END handle type
 		else:
-			ia = api.MIntArray.fromList(args)
+			ia = api.MIntArray.mrvfromList(args)
 		# END handle args
 		
 		return comp.addElements(ia)

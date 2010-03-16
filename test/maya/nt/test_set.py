@@ -169,7 +169,7 @@ class TestSets( unittest.TestCase ):
 		s.discard(single_item)
 		assert single_item not in s
 		
-		s.discard(sellist.toList())
+		s.discard(sellist.mrvtoList())
 		assert len(s) == 0
 
 
