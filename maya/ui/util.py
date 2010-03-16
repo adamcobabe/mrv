@@ -158,11 +158,11 @@ class UIContainerBase( object ):
 		super( UIContainerBase, self ).__init__( *args, **kwargs )
 
 	def __getitem__( self, key ):
-		"""@return: the child with the given name, see L{mrvgetChildByName}
+		"""@return: the child with the given name, see L{getChildByName}
 		@param key: if integer, will return the given list index, if string, the child
 		matching the id"""
 		if isinstance( key, basestring ):
-			return self.mrvgetChildByName( key )
+			return self.getChildByName( key )
 		else:
 			return self._children[ key ]
 
@@ -221,7 +221,7 @@ class UIContainerBase( object ):
 		@note: children will be returned in the order in which they have been added"""
 		return [ c for c in self._children if predicate( c ) ]
 
-	def mrvgetChildByName( self, childname ):
+	def getChildByName( self, childname ):
 		"""@return: stored child instance, specified either as short name ( without pipes )
 		or fully qualified ( i.e. mychild or parent|subparent|mychild" )
 		@raise KeyError: if a child with that name does not exist"""

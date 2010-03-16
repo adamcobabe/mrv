@@ -218,7 +218,7 @@ def fromSelectionList( sellist, handlePlugs=1, **kwargs ):
 	@param **kwargs: passed to selectionListIterator"""
 	kwargs['asNode'] = 1
 	kwargs['handlePlugs'] = handlePlugs
-	return list(sellist.mrvtoIter(**kwargs))
+	return list(sellist.mtoIter(**kwargs))
 
 def toNodesFromNames( nodenames, **kwargs ):
 	"""@return: list of wrapped nodes from the given list of node names
@@ -330,7 +330,7 @@ def iterSelection(filterType=api.MFn.kInvalid, **kwargs):
 	
 	kwargs['asNode'] = 1	# remove our overridden warg
 	kwargs['filterType'] = filterType
-	return sellist.mrvtoIter(**kwargs)
+	return sellist.mtoIter(**kwargs)
 
 def select( *nodesOrSelectionList , **kwargs ):
 	"""Select the given list of wrapped nodes or selection list in maya
@@ -626,7 +626,7 @@ class SetFilter( tuple ):
 		if self[ 2 ]:			# deformer sets
 			setnode = NodeFromObj( apiobj )
 			for elmplug in setnode.usedBy:	# find connected deformer
-				iplug = elmplug.mrvgetInput()
+				iplug = elmplug.mgetInput()
 				if iplug.isNull():
 					continue
 
@@ -933,7 +933,7 @@ class DependNode( Node, iDuplicatable ):		# parent just for epydoc -
 		outlist = list()
 		iogplug = self._getSetPlug()
 
-		for dplug in iogplug.mrvgetOutputs():
+		for dplug in iogplug.mgetOutputs():
 			setapiobj = dplug.node()
 
 			if not setFilter( setapiobj ):
@@ -1246,12 +1246,12 @@ class DagNode( Entity, iDagItem ):	# parent just for epydoc
 		if not isinstance( self, Transform ):
 			return
 
-		nwm = self.wm.getElementByLogicalIndex( self.getInstanceNumber() ).mrvasData().transformation().asMatrix()
+		nwm = self.wm.getElementByLogicalIndex( self.getInstanceNumber() ).masData().transformation().asMatrix()
 
 		# compenstate for new parents transformation ?
 		if parentnode is not None:
 			# use world - inverse matrix
-			parentInverseMatrix = parentnode.wim.getElementByLogicalIndex( parentnode.getInstanceNumber( ) ).mrvasData().transformation().asMatrix()
+			parentInverseMatrix = parentnode.wim.getElementByLogicalIndex( parentnode.getInstanceNumber( ) ).masData().transformation().asMatrix()
 			nwm = nwm * parentInverseMatrix
 		# END if there is a new parent
 
@@ -1752,12 +1752,12 @@ class DagNode( Entity, iDagItem ):	# parent just for epydoc
 	def _getDisplayOverrideValue( self, plugName ):
 		"""@return: the given effective display override value or None if display
 		overrides are disabled"""
-		if self.do.mrvgetChildByName('ove').asInt():
+		if self.do.mgetChildByName('ove').asInt():
 			return getattr( self.do, plugName ).asInt()
 
 		for parent in self.iterParents():
-			if parent.do.mrvgetChildByName('ove').asInt():
-				return parent.do.mrvgetChildByName(plugName).asInt()
+			if parent.do.mgetChildByName('ove').asInt():
+				return parent.do.mgetChildByName(plugName).asInt()
 
 		return None
 
@@ -2247,7 +2247,7 @@ class PluginData( Data ):
 		"""@return: python data wrapped by this plugin data object
 		@note: the python data should be made such that it can be changed using
 		the reference we return - otherwise it will be read-only as it is just a copy !
-		@note: the data retrieved by this method cannot be used in plug.mrvsetMObject( data ) as it
+		@note: the data retrieved by this method cannot be used in plug.msetMObject( data ) as it
 		is ordinary python data, not an mobject
 		@raise RuntimeError: if the data object's id is unknown to this class"""
 		mfn = self._mfncls( self._apiobj )
@@ -2634,17 +2634,17 @@ class Shape( DagNode ):	 # base for epydoc !
 			components = api.MObjectArray()
 
 			# take full assignments as well - make it work as the getConnectedSets api method
-			for dplug in iogplug.mrvgetOutputs():
+			for dplug in iogplug.mgetOutputs():
 				sets.append( dplug.node() )
 				components.append( MObject() )
 			# END full objecft assignments
 
-			for compplug in iogplug.mrvgetChildByName('objectGroups'):
-				for setplug in compplug.mrvgetOutputs():
+			for compplug in iogplug.mgetChildByName('objectGroups'):
+				for setplug in compplug.mgetOutputs():
 					sets.append( setplug.node() )		# connected set
 
 					# get the component from the data
-					compdata = compplug.mrvgetChildByName('objectGrpCompList').mrvasData()
+					compdata = compplug.mgetChildByName('objectGrpCompList').masData()
 					if compdata.getLength() == 1:			# this is what we can handle
 						components.append( compdata[0] ) 	# the component itself
 					else:
@@ -2655,7 +2655,7 @@ class Shape( DagNode ):	 # base for epydoc !
 
 			return ( sets, components )
 		else:
-			for dplug in iogplug.mrvgetOutputs():
+			for dplug in iogplug.mgetOutputs():
 				sets.append(dplug.node())
 			return sets
 		# END for each object grouop connection in iog

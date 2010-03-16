@@ -29,7 +29,7 @@ class GeometryShape( base.Shape ):	# base for epydoc !
 				try_index = p_plug.getLogicalIndex() + 1
 				try_plug = array_plug.getElementByLogicalIndex( try_index )
 
-				if try_plug.getChild( 0 ).mrvgetInput().isNull():
+				if try_plug.getChild( 0 ).mgetInput().isNull():
 					return try_index
 			# END endless loop
 
@@ -37,14 +37,14 @@ class GeometryShape( base.Shape ):	# base for epydoc !
 		# END helper method
 
 		substitute = kwargs.get( "substitute", False )
-		for input_plug in self.message.mrvgetOutputs():
-			node = input_plug.mrvgetWrappedNode()
+		for input_plug in self.message.mgetOutputs():
+			node = input_plug.mgetWrappedNode()
 			if node.getApiType() != api.MFn.kLightLink:
 				continue
 
 			# we are always connected to the object portion of the compound model
 			# from there we can conclude it all
-			parent_compound = input_plug.mrvgetParent()
+			parent_compound = input_plug.mgetParent()
 			target_compound_index = -1
 			if substitute:
 				target_compound_index = parent_compound.getLogicalIndex()
@@ -56,14 +56,14 @@ class GeometryShape( base.Shape ):	# base for epydoc !
 			# retrieve light link, connect other - light is only needed if we do not
 			# substitute
 			if not substitute:
-				light_plug = parent_compound.getChild( 0 ).mrvgetInput()
+				light_plug = parent_compound.getChild( 0 ).mgetInput()
 				if not light_plug.isNull():
-					light_plug.mrvconnectTo(new_parent_compound.getChild( 0 ), force=False)
+					light_plug.mconnectTo(new_parent_compound.getChild( 0 ), force=False)
 				# END if lightplug is connected
 			# END if no substitute required
 
 			# connect object
-			other.message.mrvconnectTo(new_parent_compound.getChild(1))
+			other.message.mconnectTo(new_parent_compound.getChild(1))
 
 
 		# END for each output plug
@@ -110,7 +110,7 @@ class _SingleIndexedComponentGenerator(object):
 		if j > self._int32b:
 			comp.setComplete(1)
 		else:
-			comp.addElements(api.MIntArray.mrvfromRange(i, j))
+			comp.addElements(api.MIntArray.mfromRange(i, j))
 		# END handle slice range 
 		return comp
 		
@@ -120,16 +120,16 @@ class _SingleIndexedComponentGenerator(object):
 		if len(args) == 1:
 			arg = args[0]
 			if hasattr(arg, 'next'):
-				ia = api.MIntArray.mrvfromIter(arg)
+				ia = api.MIntArray.mfromIter(arg)
 			elif isinstance(arg, (list, tuple)):
-				ia = api.MIntArray.mrvfromList(arg)
+				ia = api.MIntArray.mfromList(arg)
 			elif isinstance(arg, api.MIntArray):
 				ia = arg
 			else:
-				ia = api.MIntArray.mrvfromMultiple(arg)
+				ia = api.MIntArray.mfromMultiple(arg)
 			# END handle type
 		else:
-			ia = api.MIntArray.mrvfromList(args)
+			ia = api.MIntArray.mfromList(args)
 		# END handle args
 		
 		return comp.addElements(ia)
@@ -224,7 +224,7 @@ class Mesh( SurfaceShape ):		# base for epydoc !
 		opnts = other.pnts
 		pnts = self.pnts
 		for splug in pnts:
-			opnts.getElementByLogicalIndex( splug.logicalIndex() ).mrvsetMObject( splug.asMObject() )
+			opnts.getElementByLogicalIndex( splug.logicalIndex() ).msetMObject( splug.asMObject() )
 		# END for each source plug in pnts
 
 	def isValidMesh( self ):
@@ -278,7 +278,7 @@ class Mesh( SurfaceShape ):		# base for epydoc !
 			# KEEP MODE
 			#############
 			if keep_tweak_result:
-				input_plug = self.inMesh.mrvgetInput()
+				input_plug = self.inMesh.mgetInput()
 
 				# history check
 				if input_plug.isNull():
@@ -290,22 +290,22 @@ class Mesh( SurfaceShape ):		# base for epydoc !
 					# take the output mesh, and stuff it into the input, then proceed
 					# with the reset. This implies that all tweaks have to be removed
 					out_mesh = self.outMesh.asMObject()
-					self.inMesh.mrvsetMObject( out_mesh )
-					self.cachedInMesh.mrvsetMObject( out_mesh )
+					self.inMesh.msetMObject( out_mesh )
+					self.cachedInMesh.msetMObject( out_mesh )
 
 					# finally reset all tweeaks
 					return self.resetTweaks( check_types, keep_tweak_result = False )
 				else:
 					# create node of valid type
-					tweak_node = input_plug.mrvgetWrappedNode()
+					tweak_node = input_plug.mgetWrappedNode()
 
 					# create node if there is none as direct input
 					if not tweak_node.hasFn( tweak_node_type_API ):
 						tweak_node = base.createNode( "polyTweak", tweak_node_type, forceNewLeaf = 1  )
 
 						# hook the node into the history
-						input_plug.mrvconnectTo(tweak_node.inputPolymesh)
-						tweak_node.output.mrvconnectTo(self.inMesh)
+						input_plug.mconnectTo(tweak_node.inputPolymesh)
+						tweak_node.output.mconnectTo(self.inMesh)
 
 						# setup uvset tweak location to tell uvset where to get tweaks from
 						if tweak_node_type_API == api.MFn.kPolyTweakUV:
@@ -313,8 +313,8 @@ class Mesh( SurfaceShape ):		# base for epydoc !
 							self.getUVSetNames( names )
 							index = names.index( self.getCurrentUVSetName( ) )
 
-							own_tweak_location_plug = self.uvSet.getElementByLogicalIndex( index ).mrvgetChildByName('uvSetTweakLocation')
-							tweak_node.uvTweak.getElementByLogicalIndex( index ).mrvconnectTo(own_tweak_location_plug)
+							own_tweak_location_plug = self.uvSet.getElementByLogicalIndex( index ).mgetChildByName('uvSetTweakLocation')
+							tweak_node.uvTweak.getElementByLogicalIndex( index ).mconnectTo(own_tweak_location_plug)
 						# END uv special setup
 					# END create tweak node
 
@@ -333,7 +333,7 @@ class Mesh( SurfaceShape ):		# base for epydoc !
 						except RuntimeError:
 							continue
 						else:
-							dtweak_plug.getElementByLogicalIndex(i).mrvsetMObject(tplug.asMObject())
+							dtweak_plug.getElementByLogicalIndex(i).msetMObject(tplug.asMObject())
 						# END exception handling
 					# END for each tweak plug
 
@@ -348,7 +348,7 @@ class Mesh( SurfaceShape ):		# base for epydoc !
 			# reset values, do it for all components at once using a data object
 			try:
 				for p in arrayplug:
-					p.mrvsetMObject( dataobj )
+					p.msetMObject( dataobj )
 			except RuntimeError:
 				# especially uvtweak array plugs return incorrect lengths, thus we may
 				# fail once we reach the end of the iteration.

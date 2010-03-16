@@ -5,7 +5,7 @@ from mayarv.test.maya import *
 import maya.OpenMaya as api
 import maya.OpenMayaAnim as apianim
 
-import mayarv.maya as mrvmaya
+import mayarv.maya as mmaya
 import mayarv.maya.nt as nt
 
 
@@ -21,8 +21,8 @@ class TestAnim( unittest.TestCase ):
 		assert anim_curve.getNumKeyframes() == 0
 		
 		# assure we are connected to the plug, for curiousity
-		assert p.rx in anim_curve.output.mrvgetOutputs()
-		assert p.ry not in anim_curve.output.mrvgetOutputs()
+		assert p.rx in anim_curve.output.mgetOutputs()
+		assert p.ry not in anim_curve.output.mgetOutputs()
 		
 		# set key
 		anim_curve.setIsWeighted(True)
@@ -49,11 +49,11 @@ class TestAnim( unittest.TestCase ):
 		# save_for_debugging('anim')
 		
 	def test_get_animation( self ):
-		mrvmaya.Scene.new(force=True)
+		mmaya.Scene.new(force=True)
 		p = nt.Node("persp")
 		
 		# translate is animated
-		for tc in p.translate.mrvgetChildren():
+		for tc in p.translate.mgetChildren():
 			apianim.MFnAnimCurve().create(tc)	
 		# END set animation
 		

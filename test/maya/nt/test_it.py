@@ -175,8 +175,8 @@ class TestGeneral( unittest.TestCase ):
 		front = nt.Node( "front" )
 		cam = nt.Node( "persp|perspShape" )
 
-		persp.t.mrvconnectTo(front.t)
-		front.tx.mrvconnectTo(cam.fl)
+		persp.t.mconnectTo(front.t)
+		front.tx.mconnectTo(cam.fl)
 
 		# NODE LEVEL
 		#############

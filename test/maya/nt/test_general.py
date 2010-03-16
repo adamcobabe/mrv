@@ -223,8 +223,8 @@ class TestGeneral( unittest.TestCase ):
 		assert node == instnode.getMObject()
 		
 		# using an attribute would create a DagNode which corresponds to the first path
-		assert not node != instnode.wm.mrvgetWrappedNode()
-		assert node == instnode.wm.mrvgetWrappedNode()
+		assert not node != instnode.wm.mgetWrappedNode()
+		assert node == instnode.wm.mgetWrappedNode()
 
 
 	def test_convenienceFunctions( self ):
@@ -626,9 +626,9 @@ class TestNodeBase( unittest.TestCase ):
 
 		# connect it, to track the instance by connection
 		persp = nt.Node( "persp" )
-		perspplug = persp.t.mrvgetChildByName('tx')
+		perspplug = persp.t.mgetChildByName('tx')
 		triplug = meshself.maxTriangles
-		perspplug.mrvconnectTo(triplug)
+		perspplug.mconnectTo(triplug)
 
 		# target does exist
 		# this is blocking the target instance name with an incorrect type
@@ -819,7 +819,7 @@ class TestNodeBase( unittest.TestCase ):
 	def test_displaySettings( self ):
 		bmaya.Scene.new( force = 1 )
 		mesh = nt.createNode( "a1|b1|c1|d1|mesh", "mesh" )
-		mesh.tmp.mrvsetInt( 1 )
+		mesh.tmp.msetInt( 1 )
 
 		# TEMPLATE
 		##########
@@ -828,7 +828,7 @@ class TestNodeBase( unittest.TestCase ):
 		assert not mesh.isTemplate() 
 
 		a1 = mesh.getRoot()
-		a1.v.mrvsetInt( 0 )
+		a1.v.msetInt( 0 )
 
 		# VISIBLE
 		#########
@@ -838,8 +838,8 @@ class TestNodeBase( unittest.TestCase ):
 
 		# DRAWING OVERRIDES
 		###################
-		a1.do.mrvgetChildByName('ove').mrvsetInt( 1 )
-		a1.do.mrvgetChildByName('ovdt').mrvsetInt( 2 )
+		a1.do.mgetChildByName('ove').msetInt( 1 )
+		a1.do.mgetChildByName('ovdt').msetInt( 2 )
 		assert mesh.getDisplayOverrideValue( 'ovdt' ) == 2 
 		cmds.undo()
 		cmds.undo()
@@ -855,14 +855,14 @@ class TestNodeBase( unittest.TestCase ):
 
 		trans.addAttribute( attr )
 		attrplug = trans.longnumattr
-		attrplug.mrvsetInt( 10 )
+		attrplug.msetInt( 10 )
 		assert attrplug.asInt() == 10 
 
 		# adding same attribute to several objects - DOES NOT WORK
 		# CREATE A NEW ONE
 		attrnew = nattr.create( "longnumattr", "sna", api.MFnNumericData.kLong, 5 )
 		trans2.addAttribute( attrnew )
-		trans2.sna.mrvsetInt( 20 )
+		trans2.sna.msetInt( 20 )
 		assert trans2.sna.asInt() == 20 and trans.sna.asInt() == 10 
 
 		# remove the attribute - with Attribute class this time
@@ -892,7 +892,7 @@ class TestNodeBase( unittest.TestCase ):
 		count = 0.0
 		for ma in mainattrs:
 			for sa in subattrs:
-				getattr( g, ma ).mrvgetChildByName(ma+sa).mrvsetFloat(count)
+				getattr( g, ma ).mgetChildByName(ma+sa).msetFloat(count)
 				count += 1.0
 			# END for each sa
 		# END for each ma

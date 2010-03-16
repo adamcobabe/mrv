@@ -69,7 +69,7 @@ class TestUndoQueue( unittest.TestCase ):
 		newvalue = curvalue + 1.0
 
 		undo.startUndo()
-		persp.tx.mrvsetFloat( newvalue )
+		persp.tx.msetFloat( newvalue )
 		assert persp.tx.asFloat() == newvalue
 
 		undo.undoAndClear( )		# end undo must come afterwards, otherwise the comand takes the queue
@@ -87,7 +87,7 @@ class TestUndoQueue( unittest.TestCase ):
 		trans = nt.createNode( "mytrans", "transform" )
 
 		undo.startUndo()
-		trans.tx.mrvsetFloat( 10.0 )
+		trans.tx.msetFloat( 10.0 )
 		assert len( sys._maya_stack ) == 1
 		bmaya.Scene.new( force = 1 )
 		# DO NOT FAIL - allow releases to be done which would fail otherwise
@@ -108,14 +108,14 @@ class TestUndoQueue( unittest.TestCase ):
 		
 		# ===================
 		undo.startUndo()
-		p.t.mrvconnectTo(t.t)
+		p.t.mconnectTo(t.t)
 		
 		########################
 		# startRecording needs to come first
 		self.failUnlessRaises(AssertionError, ur.stopRecording)
 		ur.startRecording()
 		ur.startRecording()	# doesnt matter
-		p.r.mrvconnectTo(t.r)
+		p.r.mconnectTo(t.r)
 		
 		# second instance will fail
 		ur2 = undo.UndoRecorder()
@@ -125,31 +125,31 @@ class TestUndoQueue( unittest.TestCase ):
 		ur.stopRecording()
 		ur.stopRecording() # doesnt matter
 		########################
-		assert p.r.mrvisConnectedTo(t.r)
-		assert p.t.mrvisConnectedTo(t.t)
+		assert p.r.misConnectedTo(t.r)
+		assert p.t.misConnectedTo(t.t)
 		ur.undo()
-		assert not p.r.mrvisConnectedTo(t.r)
-		assert p.t.mrvisConnectedTo(t.t)
+		assert not p.r.misConnectedTo(t.r)
+		assert p.t.misConnectedTo(t.t)
 		
 		ur.redo()
-		assert p.r.mrvisConnectedTo(t.r)
+		assert p.r.misConnectedTo(t.r)
 		ur.undo()
-		assert not p.r.mrvisConnectedTo(t.r)
+		assert not p.r.misConnectedTo(t.r)
 		
 		undo.endUndo()
 		# ===================
 		
-		assert p.t.mrvisConnectedTo(t.t)
+		assert p.t.misConnectedTo(t.t)
 		cmds.undo()
-		assert not p.t.mrvisConnectedTo(t.t)
+		assert not p.t.misConnectedTo(t.t)
 		cmds.redo()
-		assert p.t.mrvisConnectedTo(t.t)
+		assert p.t.misConnectedTo(t.t)
 		
 		# we should be able to selectively redo it, even after messing with the queue
 		ur.redo()
-		assert p.r.mrvisConnectedTo(t.r)
+		assert p.r.misConnectedTo(t.r)
 		cmds.undo()
-		assert not p.t.mrvisConnectedTo(t.t)
+		assert not p.t.misConnectedTo(t.t)
 		
 		
 		# TEST UNDO GETS ENABLED
@@ -160,15 +160,15 @@ class TestUndoQueue( unittest.TestCase ):
 			ur.startRecording()
 			assert cmds.undoInfo(q=1, swf=1)
 			
-			p.s.mrvconnectTo(t.s)
+			p.s.mconnectTo(t.s)
 			
 			ur.stopRecording()
 			assert not cmds.undoInfo(q=1, swf=1)
-			assert p.s.mrvisConnectedTo(t.s)
+			assert p.s.misConnectedTo(t.s)
 			ur.undo()
-			assert not p.s.mrvisConnectedTo(t.s)
+			assert not p.s.misConnectedTo(t.s)
 			ur.redo()
-			assert p.s.mrvisConnectedTo(t.s)
+			assert p.s.misConnectedTo(t.s)
 		
 		finally:
 			cmds.undoInfo(swf=1)
@@ -178,27 +178,27 @@ class TestUndoQueue( unittest.TestCase ):
 		# TEST UNDO QUEUE INTEGRATION
 		# if we never called startRecording, it will not do anything
 		ur = undo.UndoRecorder()
-		p.tx.mrvconnectTo(t.tx)
+		p.tx.mconnectTo(t.tx)
 		del(ur)
 		
-		assert p.tx.mrvisConnectedTo(t.tx)
+		assert p.tx.misConnectedTo(t.tx)
 		cmds.undo()
-		assert not p.tx.mrvisConnectedTo(t.tx)
+		assert not p.tx.misConnectedTo(t.tx)
 		cmds.redo()
-		assert p.tx.mrvisConnectedTo(t.tx)
+		assert p.tx.misConnectedTo(t.tx)
 		
 		# If we recorded something, it will be part of the undo queue if 
 		# undo was not called
 		ur = undo.UndoRecorder()
 		ur.startRecording()
-		p.ty.mrvconnectTo(t.ty)
+		p.ty.mconnectTo(t.ty)
 		ur.stopRecording()
 		
-		assert p.ty.mrvisConnectedTo(t.ty)
+		assert p.ty.misConnectedTo(t.ty)
 		cmds.undo()
-		assert not p.ty.mrvisConnectedTo(t.ty)
+		assert not p.ty.misConnectedTo(t.ty)
 		cmds.redo()
-		assert p.ty.mrvisConnectedTo(t.ty)
+		assert p.ty.misConnectedTo(t.ty)
 		
 		
 		
@@ -223,11 +223,11 @@ class TestUndoQueue( unittest.TestCase ):
 		assert len( sys._maya_stack ) == 0 
 		cmds.undo()	# undo connection
 		# check connection - should be undone
-		assert not persp.message.mrvisConnectedTo( front.isHistoricallyInteresting ) 
+		assert not persp.message.misConnectedTo( front.isHistoricallyInteresting ) 
 
 		cmds.redo()
 		# redo it and check connection
-		assert persp.message.mrvisConnectedTo( front.isHistoricallyInteresting ) 
+		assert persp.message.misConnectedTo( front.isHistoricallyInteresting ) 
 
 		# connect and break existing conenction
 		uobj = undo.StartUndo( )
@@ -237,11 +237,11 @@ class TestUndoQueue( unittest.TestCase ):
 		dgmod.doIt( )
 		del( uobj )
 
-		assert side.message.mrvisConnectedTo( front.isHistoricallyInteresting ) 
+		assert side.message.misConnectedTo( front.isHistoricallyInteresting ) 
 		cmds.undo()
 
 		# old connection should be back
-		assert persp.message.mrvisConnectedTo( front.isHistoricallyInteresting ) 
+		assert persp.message.misConnectedTo( front.isHistoricallyInteresting ) 
 
 
 		# undo first change

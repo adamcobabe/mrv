@@ -80,7 +80,7 @@ class TestStorage( unittest.TestCase ):
 
 			# adjust values
 			pyval[ "refchange" ] = "changed in reference"
-			refcomparator.tx.mrvsetFloat( 5.5 )
+			refcomparator.tx.msetFloat( 5.5 )
 
 			# save reference
 			filewithrefpath = tmpdir / ( "refstoragetest" + filetype )
@@ -140,7 +140,7 @@ class TestStorage( unittest.TestCase ):
 		snode._attrprefix = "prefix"				# must create new one
 		pval = snode.getPythonData( "othertest", autoCreate=True )
 		assert len( data ) == 3 
-		assert pval._plug.mrvgetParent().mrvgetChildByName('id').asString() == "prefixothertest" 
+		assert pval._plug.mgetParent().mgetChildByName('id').asString() == "prefixothertest" 
 
 		# now that we have a prefix, we only see prefixed attributes
 		assert len( snode.getDataIDs() ) == 1 
@@ -148,20 +148,20 @@ class TestStorage( unittest.TestCase ):
 		# STORAGE PLUGS ( MAIN PLUG )
 		# contains connection plug too
 		mainplug = snode.findStoragePlug( "othertest" )
-		assert mainplug == pval._plug.mrvgetParent() 
+		assert mainplug == pval._plug.mgetParent() 
 
 
 		# CONNECTION PLUGS
 		###################
 		persp = nt.Node( "persp" )
 
-		conarray = mainplug.mrvgetChildByName('dmsg')
+		conarray = mainplug.mgetChildByName('dmsg')
 		for c in range( 10 ):
 			nextplug = conarray.getElementByLogicalIndex( c )
-			persp.message.mrvconnectTo(nextplug)
-			assert persp.message.mrvisConnectedTo(nextplug) 
+			persp.message.mconnectTo(nextplug)
+			assert persp.message.misConnectedTo(nextplug) 
 		assert len( conarray ) == 10 
-		assert len( persp.message.mrvgetOutputs() ) == 10 
+		assert len( persp.message.mgetOutputs() ) == 10 
 
 	def test_storageSetHandling( self ):
 		bmaya.Scene.new( force = True )

@@ -206,14 +206,14 @@ class MTransformationMatrix( api.MTransformationMatrix, PatchMatrix ):
 		type.__setattr__( cls.__bases__[0], '__iter__', __iter__ )
 		return True
 
-	def mrvgetScale( self , space = api.MSpace.kTransform ):
+	def mgetScale( self , space = api.MSpace.kTransform ):
 		ms = api.MScriptUtil()
 		ms.createFromDouble( 1.0, 1.0, 1.0 )
 		p = ms.asDoublePtr()
 		self.getScale( p, space );
 		return MVector( *( ms.getDoubleArrayItem (p, i) for i in range(3) ) )
 
-	def mrvsetScale( self, value, space = api.MSpace.kTransform ):
+	def msetScale( self, value, space = api.MSpace.kTransform ):
 		ms = api.MScriptUtil()
 		ms.createFromDouble( *value )
 		p = ms.asDoublePtr()
@@ -288,7 +288,7 @@ def _mplug_createUndoSetFunc( dataTypeId, getattroverride = None ):
 
 class MPlug( api.MPlug ):
 	"""Patch applying mrv specific functionality to the MPlug. These methods will be
-	available through methods with the 'mrv' prefix.
+	available through methods with the 'm' prefix.
 	
 	Other methods are overridden to allow more pythonic usage of the MPlug class
 	if and only if it is not specific to mrv.
@@ -338,7 +338,7 @@ class MPlug( api.MPlug ):
 	#} Overridden Methods
 
 	#{ Plug Hierarchy Query
-	def mrvgetParent( self ):
+	def mgetParent( self ):
 		"""@return: parent of this plug or None
 		@note: for array plugs, this is the array, for child plugs the actual parent """
 		p = None
@@ -351,7 +351,7 @@ class MPlug( api.MPlug ):
 			return None
 		return p
 
-	def mrvgetChildren( self , predicate = lambda x: True):
+	def mgetChildren( self , predicate = lambda x: True):
 		"""@return: list of intermediate child plugs, [ plug1 , plug2 ]
 		@param predicate: return True to include x in result"""
 		outchildren = []
@@ -366,7 +366,7 @@ class MPlug( api.MPlug ):
 
 		return outchildren
 
-	def mrvgetChildByName( self, childname ):
+	def mgetChildByName( self, childname ):
 		"""@return: MPlug with the given childname
 		@raise AttributeError: if no child plug of the appropriate name could be found
 		@param TypeError: self is not a compound plug"""
@@ -384,7 +384,7 @@ class MPlug( api.MPlug ):
 		# END FOR EACH CHILD
 		raise AttributeError( "Plug %s has no child plug called %s" % ( self, childname ) )
 
-	def mrvgetSubPlugs( self , predicate = lambda x: True):
+	def mgetSubPlugs( self , predicate = lambda x: True):
 		"""@return: list of intermediate sub-plugs that are either child plugs or element plugs.
 		Returned list will be empty for leaf-level plugs
 		@param predicate: return True to include x in result
@@ -409,7 +409,7 @@ class MPlug( api.MPlug ):
 
 	#{ Attributes ( Edit )
 
-	def _mrvhandleAttrSet( self, state, getfunc, setfunc ):
+	def _mhandleAttrSet( self, state, getfunc, setfunc ):
 		"""Generic attribute handling"""
 		op = undo.GenericOperation()
 		op.setDoitCmd( setfunc, state )
@@ -417,25 +417,25 @@ class MPlug( api.MPlug ):
 		op.doIt()
 
 	@undoable
-	def mrvsetLocked( self, state ):
+	def msetLocked( self, state ):
 		"""If True, the plug's value may not be changed anymore"""
-		self._mrvhandleAttrSet( state, self.isLocked, self.setLocked )
+		self._mhandleAttrSet( state, self.isLocked, self.setLocked )
 
 	@undoable
-	def mrvsetKeyable( self, state ):
+	def msetKeyable( self, state ):
 		"""if True, the plug may be set using animation curves"""
-		self._mrvhandleAttrSet( state, self.isKeyable, self.setKeyable )
+		self._mhandleAttrSet( state, self.isKeyable, self.setKeyable )
 
 	@undoable
-	def mrvsetCaching( self, state ):
+	def msetCaching( self, state ):
 		"""if True, the plug's value will be cached, preventing unnecessary computations"""
-		self._mrvhandleAttrSet( state, self.isCachingFlagSet, self.setCaching )
+		self._mhandleAttrSet( state, self.isCachingFlagSet, self.setCaching )
 
 	@undoable
-	def mrvsetChannelBox( self, state ):
+	def msetChannelBox( self, state ):
 		"""if True, the plug will be visible in the channelbox, even though it might not
 		be keyable or viceversa """
-		self._mrvhandleAttrSet( state, self.isChannelBoxFlagSet, self.setChannelBox )
+		self._mhandleAttrSet( state, self.isChannelBoxFlagSet, self.setChannelBox )
 
 	#} END attributes edit
 
@@ -444,7 +444,7 @@ class MPlug( api.MPlug ):
 
 	@classmethod
 	@undoable
-	def mrvconnectMultiToMulti(self, iter_source_destination, force=False):
+	def mconnectMultiToMulti(self, iter_source_destination, force=False):
 		"""Connect multiple source plugs to the same amount of detsination plugs.
 		@note: This method provides the most efficient way to connect a large known 
 		amount of plugs to each other
@@ -458,7 +458,7 @@ class MPlug( api.MPlug ):
 		mod = undo.DGModifier( )
 		for source, dest in iter_source_destination:
 			if force:
-				destinputplug = dest.mrvgetInput()
+				destinputplug = dest.mgetInput()
 				if not destinputplug.isNull():
 					if source == destinputplug:
 						continue
@@ -473,7 +473,7 @@ class MPlug( api.MPlug ):
 		
 
 	@undoable
-	def mrvconnectTo( self, destplug, force=True ):
+	def mconnectTo( self, destplug, force=True ):
 		"""Connect this plug to the right hand side plug
 		@param destplug: the plug to which to connect this plug to.
 		@param force: if True, the connection will be created even if another connection
@@ -486,7 +486,7 @@ class MPlug( api.MPlug ):
 		# is destination already input-connected ? - disconnect it if required
 		# Optimization: We only care if force is specified. It will fail otherwise
 		if force:
-			destinputplug = destplug.mrvgetInput()
+			destinputplug = destplug.mgetInput()
 			if not destinputplug.isNull():
 				# handle possibly connected plugs
 				if self == destinputplug:		# is it us already ?
@@ -507,7 +507,7 @@ class MPlug( api.MPlug ):
 		return destplug
 
 	@undoable
-	def mrvconnectToArray( self, arrayplug, force = True, exclusive_connection = False ):
+	def mconnectToArray( self, arrayplug, force = True, exclusive_connection = False ):
 		"""Connect self an element of the given arrayplug.
 		@param arrayplug: the array plug to which you want to connect to
 		@param force: if True, the connection will be created even if another connection
@@ -521,32 +521,32 @@ class MPlug( api.MPlug ):
 			if exclusive_connection:
 				arrayplug.evaluateNumElements( )
 				for delm in arrayplug:
-					if self == delm.mrvgetInput():
+					if self == delm.mgetInput():
 						return delm
 					# END if self == elm plug
 				# END for each elemnt in destplug
 			# END if exclusive array connection
 
 			# connect the next free plug
-			return self.mrvconnectTo( arrayplug.mrvgetNextLogicalPlug( ), force = force )
+			return self.mconnectTo( arrayplug.mgetNextLogicalPlug( ), force = force )
 		# END Array handling
 		raise AssertionError( "Given plug %r was not an array plug" % arrayplug )
 
 
 	@undoable
-	def mrvdisconnect( self ):
+	def mdisconnect( self ):
 		"""Completely disconnect all inputs and outputs of this plug. The plug will not 
 		be connected anymore.
 		@return: self, allowing chained commands"""
-		self.mrvdisconnectInput()
-		self.mrvdisconnectOutputs()
+		self.mdisconnectInput()
+		self.mdisconnectOutputs()
 		return self
 
 	@undoable
-	def mrvdisconnectInput( self ):
+	def mdisconnectInput( self ):
 		"""Disconnect the input connection if one exists
 		@return: self, allowing chained commands"""
-		inputplug = self.mrvgetInput()
+		inputplug = self.mgetInput()
 		if inputplug.isNull():
 			return self
 
@@ -556,10 +556,10 @@ class MPlug( api.MPlug ):
 		return self
 
 	@undoable
-	def mrvdisconnectOutputs( self ):
+	def mdisconnectOutputs( self ):
 		"""Disconnect all outgoing connections if they exist
 		@return: self, allowing chained commands"""
-		outputplugs = self.mrvgetOutputs()
+		outputplugs = self.mgetOutputs()
 		if not len( outputplugs ):
 			return self
 
@@ -570,7 +570,7 @@ class MPlug( api.MPlug ):
 		return self
 
 	@undoable
-	def mrvdisconnectFrom( self, other ):
+	def mdisconnectFrom( self, other ):
 		"""Disconnect this plug from other plug if they are connected
 		@param other: MPlug that will be disconnected from this plug
 		@return: other plug allowing to chain disconnections"""
@@ -583,12 +583,12 @@ class MPlug( api.MPlug ):
 		return other
 
 	@undoable
-	def mrvdisconnectNode( self, other ):
+	def mdisconnectNode( self, other ):
 		"""Disconnect this plug from the given node if they are connected
 		@param other: Node that will be completely disconnected from this plug"""
-		for p in self.mrvgetOutputs():
-			if p.mrvgetWrappedNode() == other:
-				self.mrvdisconnectFrom(p)
+		for p in self.mgetOutputs():
+			if p.mgetWrappedNode() == other:
+				self.mdisconnectFrom(p)
 		# END for each plug in output
 
 	#} END connections edit
@@ -596,36 +596,36 @@ class MPlug( api.MPlug ):
 
 	#{ Connections ( Query )
 	@staticmethod
-	def mrvhaveConnection( lhsplug, rhsplug ):
+	def mhaveConnection( lhsplug, rhsplug ):
 		"""@return: True if lhsplug and rhs plug are connected - the direction does not matter
 		@note: equals lhsplug & rhsplug"""
-		return lhsplug.mrvisConnectedTo( rhsplug ) or rhsplug.mrvisConnectedTo( lhsplug )
+		return lhsplug.misConnectedTo( rhsplug ) or rhsplug.misConnectedTo( lhsplug )
 
-	def mrvisConnectedTo( self, destplug ):
+	def misConnectedTo( self, destplug ):
 		"""@return: True if this plug is connected to destination plug ( in that order )
-		@note: return true for self.mrvisConnectedTo(destplug) but false for destplug.mrvisConnectedTo(self)
-		@note: use the mrvhaveConnection method whether both plugs have a connection no matter which direction
+		@note: return true for self.misConnectedTo(destplug) but false for destplug.misConnectedTo(self)
+		@note: use the mhaveConnection method whether both plugs have a connection no matter which direction
 		@note: use L{isConnected} to find out whether this plug is connected at all"""
-		return destplug in self.mrvgetOutputs()
+		return destplug in self.mgetOutputs()
 
-	def mrvgetOutputs( self ):
+	def mgetOutputs( self ):
 		"""@return: MPlugArray with all plugs having this plug as source
 		@todo: should the method be smarter and deal nicer with complex array or compound plugs ?"""
 		outputs = api.MPlugArray()
 		self.connectedTo( outputs, False, True )
 		return outputs
 
-	def mrvgetOutput( self ):
+	def mgetOutput( self ):
 		"""@return: out first plug that has this plug as source of a connection
 		@raise IndexError: if the plug has no outputs
 		@note: convenience method"""
-		outputs = self.mrvgetOutputs()
+		outputs = self.mgetOutputs()
 		if len( outputs ) == 0:
 			raise IndexError( "Plug %s was not connected to output plugs" % self )
 
 		return outputs[0]
 
-	def mrvgetInputs( self ):
+	def mgetInputs( self ):
 		"""Special handler returning the input plugs of array elements
 		@return: list of plugs connected to the elements of this arrayplug
 		@note: if self is not an array, a list with 1 or 0 plugs will be returned"""
@@ -633,19 +633,19 @@ class MPlug( api.MPlug ):
 		if self.isArray():
 			self.evaluateNumElements()
 			for elm in self:
-				elminput = elm.mrvgetInput()
+				elminput = elm.mgetInput()
 				if elminput.isNull():
 					continue
 				out.append( elminput )
 			# END for each elm plug in sets
 		else:
-			inplug = self.mrvgetInput()
+			inplug = self.mgetInput()
 			if not inplug.isNull():
 				out.append( inplug )
 		# END array handling
 		return out
 		
-	def mrviterGraph( self, *args, **kwargs ):
+	def miterGraph( self, *args, **kwargs ):
 		"""@return: graph iterator with self as root, supporting all arguments.
 		Plugs are returned by default, but this can be specified explicitly using 
 		the plug=True kwarg"""
@@ -653,21 +653,21 @@ class MPlug( api.MPlug ):
 		kwargs['plug'] = kwargs.get('plug', True)
 		return it.iterGraph(self, *args, **kwargs)
 		
-	def mrviterInputGraph( self, *args, **kwargs ):
+	def miterInputGraph( self, *args, **kwargs ):
 		"""@return: iterator over the graph starting at this plug in input(upstream) direction.
 		Plugs will be returned by default
-		@param *args, **kwargs: passed to L{mrviterGraph}"""
+		@param *args, **kwargs: passed to L{miterGraph}"""
 		kwargs['input'] = True
-		return self.mrviterGraph(*args, **kwargs)
+		return self.miterGraph(*args, **kwargs)
 		
-	def mrviterOutputGraph( self, *args, **kwargs ):
+	def miterOutputGraph( self, *args, **kwargs ):
 		"""@return: iterator over the graph starting at this plug in output(downstream) direction.
 		Plugs will be returned by default
-		@param *args, **kwargs: passed to L{mrviterGraph}"""
+		@param *args, **kwargs: passed to L{miterGraph}"""
 		kwargs['input'] = False
-		return self.mrviterGraph(*args, **kwargs)
+		return self.miterGraph(*args, **kwargs)
 
-	def mrvgetInput( self ):
+	def mgetInput( self ):
 		"""@return: plug being the source of a connection to this plug or a null plug
 		if no such plug exists"""
 		inputs = api.MPlugArray()
@@ -683,21 +683,21 @@ class MPlug( api.MPlug ):
 		# must have more than one input - can this ever be ?
 		raise ValueError( "Plug %s has more than one input plug - check how that can be" % self )
 
-	def mrvgetConnections( self ):
+	def mgetConnections( self ):
 		"""@return: tuple with input and outputs ( inputPlug, outputPlugs )"""
-		return ( self.mrvgetInput( ), self.mrvgetOutputs( ) )
+		return ( self.mgetInput( ), self.mgetOutputs( ) )
 
 	#} END connections query
 
 	#{ Affects Query
-	def mrvgetDependencyInfo( self, by=False ):
+	def mgetDependencyInfo( self, by=False ):
 		"""@return: list of plugs on this node that this plug affects or is being affected by
 		@param by: if false, affected attributplugs will be returned, otherwise the attributeplugs affecting this one
-		@note: you can also use the L{mrvgetDependencyInfo} method on the node itself if plugs are not
+		@note: you can also use the L{mgetDependencyInfo} method on the node itself if plugs are not
 		required - this will also be faster
 		@note: have to use MEL :("""
-		ownnode = self.mrvgetWrappedNode()
-		attrs = cmds.affects( self.mrvgetWrappedAttribute().getName() , str( ownnode ), by=by ) or list()
+		ownnode = self.mgetWrappedNode()
+		attrs = cmds.affects( self.mgetWrappedAttribute().getName() , str( ownnode ), by=by ) or list()
 
 		outplugs = list()
 		depfn = api.MFnDependencyNode( ownnode.getMObject() )
@@ -706,18 +706,18 @@ class MPlug( api.MPlug ):
 			outplugs.append( depfn.findPlug( attr ) )
 		return outplugs
 
-	def mrvaffects( self ):
+	def maffects( self ):
 		"""@return: list of plugs affected by this one"""
-		return self.mrvgetDependencyInfo( by = False )
+		return self.mgetDependencyInfo( by = False )
 
-	def mrvaffected( self ):
+	def maffected( self ):
 		"""@return: list of plugs affecting this one"""
-		return self.mrvgetDependencyInfo( by = True )
+		return self.mgetDependencyInfo( by = True )
 
 	#} END affects query
 
 	#{ General Query
-	def mrvgetNextLogicalIndex( self ):
+	def mgetNextLogicalIndex( self ):
 		"""@return: index of logical indexed plug that does not yet exist
 		@note: as this method does a thorough search, it is relatively slow
 		compared to a simple numPlugs + 1 algorithm
@@ -743,26 +743,26 @@ class MPlug( api.MPlug ):
 		# END if more than one indices exist
 		return logicalIndex
 
-	def mrvgetNextLogicalPlug( self ):
+	def mgetNextLogicalPlug( self ):
 		"""@return: plug at newly created logical index
 		@note: only valid for array plugs"""
-		return self.getElementByLogicalIndex(self.mrvgetNextLogicalIndex())
+		return self.getElementByLogicalIndex(self.mgetNextLogicalIndex())
 
-	def mrvgetWrappedAttribute( self ):
+	def mgetWrappedAttribute( self ):
 		"""@return: Attribute instance of our underlying attribute"""
 		return base.Attribute(self.attribute())
 
-	def mrvgetWrappedNode( self ):
+	def mgetWrappedNode( self ):
 		"""@return: wrapped Node of the plugs node"""
 		return base.NodeFromObj(self.node())
 
-	def mrvasData( self, *args, **kwargs ):
+	def masData( self, *args, **kwargs ):
 		"""@return: our data Mobject wrapped in L{Data}
 		@note: *args and **kwagrs have to be provided as MDGContext.fsNormal
 		does not exist in maya 8.5, so we have to hide that fact."""
 		return base.Data(self.asMObject(*args, **kwargs))
 		
-	def mrvgetFullyQualifiedName( self ):
+	def mgetFullyQualifiedName( self ):
 		"""@return: string returning the absolute and fully qualified name of the
 		plug. It might take longer to evaluate but is safe to use if you want to 
 		convert the resulting string back to the actual plug"""
@@ -773,28 +773,28 @@ class MPlug( api.MPlug ):
 	#{ Set Data with Undo
 
 	# wrap the methods
-	mrvsetBool = _mplug_createUndoSetFunc( "Bool" )
-	mrvsetChar = _mplug_createUndoSetFunc( "Char" )
-	mrvsetShort = _mplug_createUndoSetFunc( "Short" )
-	mrvsetInt = _mplug_createUndoSetFunc( "Int" )
-	mrvsetFloat = _mplug_createUndoSetFunc( "Float" )
-	mrvsetDouble = _mplug_createUndoSetFunc( "Double" )
-	mrvsetString = _mplug_createUndoSetFunc( "String" )
-	mrvsetMAngle = _mplug_createUndoSetFunc( "MAngle" )
-	mrvsetMDistance = _mplug_createUndoSetFunc( "MDistance" )
-	mrvsetMTime = _mplug_createUndoSetFunc( "MTime" )
-	mrvsetMObject = _mplug_createUndoSetFunc( "MObject" )
+	msetBool = _mplug_createUndoSetFunc( "Bool" )
+	msetChar = _mplug_createUndoSetFunc( "Char" )
+	msetShort = _mplug_createUndoSetFunc( "Short" )
+	msetInt = _mplug_createUndoSetFunc( "Int" )
+	msetFloat = _mplug_createUndoSetFunc( "Float" )
+	msetDouble = _mplug_createUndoSetFunc( "Double" )
+	msetString = _mplug_createUndoSetFunc( "String" )
+	msetMAngle = _mplug_createUndoSetFunc( "MAngle" )
+	msetMDistance = _mplug_createUndoSetFunc( "MDistance" )
+	msetMTime = _mplug_createUndoSetFunc( "MTime" )
+	msetMObject = _mplug_createUndoSetFunc( "MObject" )
 
 	#} END set data
 
 	#{ Name Remapping
-	mrvctf = lambda self,other: self.mrvconnectTo( other, force=True )
-	mrvct = lambda self,other: self.mrvconnectTo( other, force=False )
-	mrvict = mrvisConnectedTo
-	mrvhc = lambda lhs,rhs: MPlug.mrvhaveConnection( lhs, rhs )
-	mrvdc = mrvdisconnectFrom
-	mrvnode = mrvgetWrappedNode
-	mrvattribute = mrvgetWrappedAttribute
+	mctf = lambda self,other: self.mconnectTo( other, force=True )
+	mct = lambda self,other: self.mconnectTo( other, force=False )
+	mict = misConnectedTo
+	mhc = lambda lhs,rhs: MPlug.mhaveConnection( lhs, rhs )
+	mdc = mdisconnectFrom
+	mnode = mgetWrappedNode
+	mattribute = mgetWrappedAttribute
 	getNode = api.MPlug.node
 	getAttribute = api.MPlug.attribute
 	getChild = api.MPlug.child
@@ -828,7 +828,7 @@ class ArrayBase( Abstract ):
 		return self.set( item, index )
 		
 	@classmethod
-	def mrvfromMultiple(cls, *args):
+	def mfromMultiple(cls, *args):
 		"""@return: Array created from the given elements"""
 		ia = cls()
 		ia.setLength(len(args))
@@ -842,9 +842,9 @@ class ArrayBase( Abstract ):
 		return ia
 		
 	@classmethod
-	def mrvfromIter(cls, iter):
+	def mfromIter(cls, iter):
 		"""@return: Array created from elements yielded by iter
-		@note: this one is less efficient than L{mrvfromList} as the final length 
+		@note: this one is less efficient than L{mfromList} as the final length 
 		of the array is not predetermined"""
 		ia = cls()
 		append = ia.append
@@ -853,7 +853,7 @@ class ArrayBase( Abstract ):
 		return ia
 	
 	@classmethod
-	def mrvfromList(cls, list):
+	def mfromList(cls, list):
 		"""@return: Array created from the given list of elements"""
 		ia = cls()
 		ia.setLength(len(list))
@@ -1001,7 +1001,7 @@ class MIntArray( api.MIntArray, ArrayBase ):
 	_apicls = api.MIntArray
 	
 	@classmethod
-	def mrvfromRange(cls, i, j):
+	def mfromRange(cls, i, j):
 		"""@return: An MIntArray initialized with integers ranging from i to j
 		@param i: first integer of the returned array
 		@param j: last integer of returned array will have the value j-1"""
@@ -1049,46 +1049,46 @@ class MSelectionList( api.MSelectionList, ArrayBase ):
 		# END handle input type
 	
 	@staticmethod
-	def mrvfromStrings( iter_strings, **kwargs ):
+	def mfromStrings( iter_strings, **kwargs ):
 		"""@return: MSelectionList initialized from the given iterable of strings
 		@param **kwargs: passed to L{base.toSelectionListFromNames}"""
 		return base.toSelectionListFromNames(iter_strings, **kwargs)
 		
 	@staticmethod
-	def mrvfromList( iter_items, **kwargs ):
+	def mfromList( iter_items, **kwargs ):
 		"""@return: MSelectionList as initialized from the given iterable of Nodes, 
 		MObjects, MDagPaths or MPlugs
 		@param **kwargs: passed to L{base.toSelectionList}"""
 		return base.toSelectionList(iter_items, **kwargs)
 		
 	# We need to override the respective method on the base class as it wouldnt work
-	mrvfromIter = mrvfromList
+	mfromIter = mfromList
 	
 	@staticmethod
-	def mrvfromMultiple( *args, **kwargs ):
-		"""Alternative form of L{mrvfromList} as *args can be passed in."""
-		return MSelectionList.mrvfromList(args, **kwargs)
+	def mfromMultiple( *args, **kwargs ):
+		"""Alternative form of L{mfromList} as *args can be passed in."""
+		return MSelectionList.mfromList(args, **kwargs)
 	
 	@staticmethod
-	def mrvfromComponentList( iter_components, **kwargs ):
+	def mfromComponentList( iter_components, **kwargs ):
 		"""@return: MSelectionList as initialized from the given list of tuple( DagNode, Component ), 
 		Component can be a filled Component object or null MObject
 		@param **kwargs: passed to L{base.toComponentSelectionList}"""
 		return base.toComponentSelectionList(iter_components, **kwargs)
 		
-	def mrvtoList( self, *args, **kwargs ):
+	def mtoList( self, *args, **kwargs ):
 		"""@return: list with the contents of this MSelectionList
 		@param *args: passed to L{it.iterSelectionList}
 		@param **kwargs: passed to L{it.iterSelectionList}"""
-		return list(self.mrvtoIter(*args, **kwargs))
+		return list(self.mtoIter(*args, **kwargs))
 		
-	def mrvtoIter( self, *args, **kwargs ):
+	def mtoIter( self, *args, **kwargs ):
 		"""@return: iterator yielding of Nodes and MPlugs stored in this given selection list
 		@param *args: passed to L{it.iterSelectionList}
 		@param **kwargs: passed to L{it.iterSelectionList}"""
 		return it.iterSelectionList( self, *args, **kwargs )
 		
-	def mrviterComponents( self, **kwargs ):
+	def miterComponents( self, **kwargs ):
 		"""@return: Iterator yielding node, component pairs, component is guaranteed 
 		to carry a component, implying that this iterator applies a filter
 		@param kwargs: passed on to L{it.iterSelectionList}"""
@@ -1097,7 +1097,7 @@ class MSelectionList( api.MSelectionList, ArrayBase ):
 		kwargs['predicate'] = pred
 		return it.iterSelectionList( self, **kwargs )
 		
-	def mrviterPlugs( self, **kwargs ):
+	def miterPlugs( self, **kwargs ):
 		"""@return: Iterator yielding all plugs on this selection list.
 		@param kwargs: passed on to L{it.iterSelectionList}"""
 		kwargs['handlePlugs'] = True

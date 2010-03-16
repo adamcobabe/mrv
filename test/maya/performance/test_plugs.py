@@ -38,20 +38,20 @@ class TestPlugPerformance( unittest.TestCase ):
 		
 		# multiconnect 
 		st = time.time()
-		api.MPlug.mrvconnectMultiToMulti(izip(pir(sn2.a, r), pir(tn2.ab, r)), force=False)
+		api.MPlug.mconnectMultiToMulti(izip(pir(sn2.a, r), pir(tn2.ab, r)), force=False)
 		elapsed = time.time() - st
 		print >> sys.stderr, "Multi-Connected %i different multi-plugs in %f s ( %f / s )" % (len(r), elapsed, len(r) / elapsed)
 		
 		# multiconnect with force worstcase
 		st = time.time()
-		api.MPlug.mrvconnectMultiToMulti(izip(pir(sn.a, r), pir(tn2.ab, r)), force=True)
+		api.MPlug.mconnectMultiToMulti(izip(pir(sn.a, r), pir(tn2.ab, r)), force=True)
 		elapsed = time.time() - st
 		print >> sys.stderr, "Multi-Connected %i different multi-plugs with worstcase FORCE in %f s ( %f / s )" % (len(r), elapsed, len(r) / elapsed)
 		
 		# multiconnect with force bestcase
 		r = range(len(r), len(r)+len(r))
 		st = time.time()
-		api.MPlug.mrvconnectMultiToMulti(izip(pir(sn3.a, r), pir(tn3.ab, r)), force=True)
+		api.MPlug.mconnectMultiToMulti(izip(pir(sn3.a, r), pir(tn3.ab, r)), force=True)
 		elapsed = time.time() - st
 		print >> sys.stderr, "Multi-Connected %i different multi-plugs with bestcase FORCE in %f s ( %f / s )" % (len(r), elapsed, len(r) / elapsed)
 	
@@ -96,15 +96,15 @@ class TestPlugPerformance( unittest.TestCase ):
 
 		# CONNECT MULTI PLUGS
 		######################
-		multifunc = lambda i: s1msg.getElementByLogicalIndex( i ).mrvconnectTo(s2msg.getElementByLogicalIndex( i ))
+		multifunc = lambda i: s1msg.getElementByLogicalIndex( i ).mconnectTo(s2msg.getElementByLogicalIndex( i ))
 		measurePlugConnection( "MULTI PLUG Connected", multifunc, conlist )
 
 		# CONNECT SINGLE PLUGS
 		persp = nt.Node( "persp" )
 		front = nt.Node( "front" )
 		def singleFunc( i ):
-			persp.message.mrvconnectTo(front.isHistoricallyInteresting)
-			persp.message.mrvdisconnectFrom(front.isHistoricallyInteresting)
+			persp.message.mconnectTo(front.isHistoricallyInteresting)
+			persp.message.mdisconnectFrom(front.isHistoricallyInteresting)
 		measurePlugConnection( "SINGLE PLUGS Connected", singleFunc, conlist )
 
 
@@ -122,7 +122,7 @@ class TestPlugPerformance( unittest.TestCase ):
 		for plug in plugs:
 			for i in iterations:
 				value = plug.asFloat()
-				plug.mrvsetFloat( value )
+				plug.msetFloat( value )
 			# END get set plug
 		# END for each plug
 		elapsed = time.time() - starttime
