@@ -282,7 +282,7 @@ class StorageBase( iDuplicatable ):
 		It acts like a namespace
 	mayaNode: the maya node holding the actual attributes
 
-	@note: A byronimo node should derive from this class to allow easy attribute access of its
+	@note: A mayarv node should derive from this class to allow easy attribute access of its
 	own compatible attributes - its designed for flexiblity
 	@note: attribute accepts on the generic attribute should be set by a plugin node when it
 	creates its attributes

@@ -13,7 +13,7 @@ import weakref
 
 def makeEditOrQueryMethod( flag, isEdit=False, methodName=None ):
 	"""Create a function calling inFunc with an edit or query flag set.
-	@note: only works on byronimo wrapped ui elements
+	@note: only works on mayarv wrapped ui elements
 	@note: THIS IS MOSTLY A DUPLICATION OF PROVEN CODE FROM MAYA.UTIL !
 	@param flag: name of the query or edit flag
 	@param isEdit: If not False, the method returned will be an edit function
