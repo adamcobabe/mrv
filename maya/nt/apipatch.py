@@ -591,8 +591,8 @@ class MPlug( api.MPlug ):
 		"""Disconnect this plug from the given node if they are connected
 		@param other: Node that will be completely disconnected from this plug"""
 		for p in self.mrvp_outputs:
-			if p.getNode() == other:
-				self | p
+			if p.mrvgetWrappedNode() == other:
+				self.mrvdisconnectFrom(p)
 		# END for each plug in output
 
 	#} END connections edit
@@ -750,11 +750,11 @@ class MPlug( api.MPlug ):
 	def mrvgetNextLogicalPlug( self ):
 		"""@return: plug at newly created logical index
 		@note: only valid for array plugs"""
-		return self.getElementByLogicalIndex( self.mrvgetNextLogicalIndex() )
+		return self.getElementByLogicalIndex(self.mrvgetNextLogicalIndex())
 
 	def mrvgetWrappedAttribute( self ):
 		"""@return: Attribute instance of our underlying attribute"""
-		return base.Attribute( self.attribute() )
+		return base.Attribute(self.attribute())
 
 	def mrvgetWrappedNode( self ):
 		"""@return: wrapped Node of the plugs node"""

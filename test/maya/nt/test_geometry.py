@@ -143,22 +143,22 @@ class TestGeometry( unittest.TestCase ):
 		# make tweak
 		ofs = ( 1.0, 1.0, 1.0 )						# offset array
 		ptweak = p1.pnts.getElementByLogicalIndex( 0 )
-		ptweak['px'].setFloat( ofs[0] )
-		ptweak['py'].setFloat( ofs[1] )
-		ptweak['pz'].setFloat( ofs[2] )
+		ptweak.mrvgetChildByName('px').mrvsetFloat( ofs[0] )
+		ptweak.mrvgetChildByName('py').mrvsetFloat( ofs[1] )
+		ptweak.mrvgetChildByName('pz').mrvsetFloat( ofs[2] )
 
 		p1.resetTweaks( p1.eComponentType.vertex )
-		assert ptweak['px'].asFloat() == 0.0
-		assert ptweak['py'].asFloat() == 0.0
-		assert ptweak['pz'].asFloat() == 0.0
+		assert ptweak.mrvgetChildByName('px').asFloat() == 0.0
+		assert ptweak.mrvgetChildByName('py').asFloat() == 0.0
+		assert ptweak.mrvgetChildByName('pz').asFloat() == 0.0
 
 		puvtweak = p1.uvpt.getElementByLogicalIndex( 0 )
-		puvtweak['ux'].setFloat( ofs[0] )
-		puvtweak['uy'].setFloat( ofs[1] )
+		puvtweak.mrvgetChildByName('ux').mrvsetFloat( ofs[0] )
+		puvtweak.mrvgetChildByName('uy').mrvsetFloat( ofs[1] )
 
 		p1.resetTweaks( p1.eComponentType.uv )
-		assert puvtweak['ux'].asFloat() == 0.0
-		assert puvtweak['uy'].asFloat() == 0.0
+		assert puvtweak.mrvgetChildByName('ux').asFloat() == 0.0
+		assert puvtweak.mrvgetChildByName('uy').asFloat() == 0.0
 
 
 
@@ -185,9 +185,9 @@ class TestGeometry( unittest.TestCase ):
 				# HISTORY CHECK
 				# assure tweak nodes have been created
 				if history_mode:
-					assert mesh.inMesh.p_input.getNode().getApiType() == tweaktype
+					assert mesh.inMesh.mrvgetInput().mrvgetWrappedNode().getApiType() == tweaktype
 				else:
-					assert mesh.inMesh.p_input.isNull()
+					assert mesh.inMesh.mrvgetInput().isNull()
 				# END history  check
 
 				# TODO: Check that the values are truly the same ( as keep_tweak_result is 1 )
@@ -206,7 +206,7 @@ class TestGeometry( unittest.TestCase ):
 	def test_mesh_components_and_iteration(self):
 		m = nt.Mesh()
 		pc = nt.PolyCube()
-		pc.output > m.inMesh
+		pc.output.mrvconnectTo(m.inMesh)
 		
 		assert len(m.getComponentAssignments()) == 0 and m.numVertices() == 8
 		

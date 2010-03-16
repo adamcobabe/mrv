@@ -26,7 +26,7 @@ class ObjectSet:
 	
 	def getPartitions( self ):
 		"""@return: list of Nodes of partitions the entity is set is part of"""
-		return [ p.getNode() for p in self.partition.p_outputs ]
+		return [ p.mrvgetWrappedNode() for p in self.partition.mrvgetOutputs() ]
 		 
 	
 	@undoable 	
@@ -599,7 +599,7 @@ class Partition:
 		in referenced environments"""
 		out = list()
 		for plug in self.sets.mrvgetInputs():
-			node = plug.getNode()
+			node = plug.mrvgetWrappedNode()
 			if not node.hasFn( api.MFn.kSet ):
 				continue
 			out.append( node )

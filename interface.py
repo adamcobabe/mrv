@@ -203,7 +203,8 @@ class iDuplicatable( Interface ):
 			except KeyError:
 				pass
 			except TypeError,e:
-				raise AssertionError( "The subclass method %s.%s must support *args and or **kwargs if the superclass does, error: %s" % (base, copyFromFunc,e) )
+				print "The subclass method %s.%s must support *args and or **kwargs if the superclass does"
+				raise
 		# END for each base
 
 		# return the result !

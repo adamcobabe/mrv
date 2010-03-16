@@ -142,7 +142,7 @@ class TestDataBase( unittest.TestCase ):
 
 		plugnames =( "t", "tx", "r","rx", "s", "sy" )
 		for p in plugnames:
-			plug = getattr( persp, p )
+			plug = persp.findPlug(p)
 
 			for ( getname, setname ) in funcs:
 				fget = getattr( plug, getname )
@@ -196,7 +196,7 @@ class TestDataBase( unittest.TestCase ):
 		partition = nt.createNode( "partition1", "partition" )
 		pma = nt.createNode( "plusMinusAverage1", "plusMinusAverage" )
 		destplug = persp.translate.mrvconnectToArray( pma.input3D, exclusive_connection = True )
-		assert persp.translate >= destplug 
+		assert persp.translate.mrvisConnectedTo(destplug) 
 
 		# exclusive connection should return exisiting plug
 		assert persp.translate.mrvconnectToArray( pma.input3D, exclusive_connection = True ) == destplug 

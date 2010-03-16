@@ -342,9 +342,9 @@ class TestNodeBase( unittest.TestCase ):
 
 		# DEPENDENCY INFO
 		persp = nt.Node( "persp" )
-		affected_attrs = persp.affects( "t" )
+		affected_attrs = persp.getDependencyInfo( "t", by=0 )
 		assert len( affected_attrs ) > 1 
-		affected_attrs = persp.affected( "t" )
+		affected_attrs = persp.getDependencyInfo( "t", by=1 )
 		assert len( affected_attrs ) > 1 
 
 
@@ -353,7 +353,7 @@ class TestNodeBase( unittest.TestCase ):
 		t = node.type()
 		t = node.getType()
 		for state in [1,0]:
-			node.mrvsetLocked( state )
+			node.setLocked( state )
 			assert node.isLocked() == state 
 
 		# ATTRIBUTES
@@ -407,13 +407,13 @@ class TestNodeBase( unittest.TestCase ):
 		self.failUnlessRaises( RuntimeError, node.rename, "othernode", renameOnClash = False )
 
 		# locking
-		othernode.mrvsetLocked( 1 )
+		othernode.setLocked( 1 )
 		assert othernode.isLocked()
 		cmds.undo( )
 		assert not othernode.isLocked()
 		cmds.redo()
 		assert othernode.isLocked()
-		othernode.mrvsetLocked( 0 )
+		othernode.setLocked( 0 )
 		assert not othernode.isLocked()
 
 		# works if rename enabeld though
@@ -626,9 +626,9 @@ class TestNodeBase( unittest.TestCase ):
 
 		# connect it, to track the instance by connection
 		persp = nt.Node( "persp" )
-		perspplug = persp.t['tx']
+		perspplug = persp.t.mrvgetChildByName('tx')
 		triplug = meshself.maxTriangles
-		perspplug >> triplug
+		perspplug.mrvconnectTo(triplug)
 
 		# target does exist
 		# this is blocking the target instance name with an incorrect type
@@ -819,7 +819,7 @@ class TestNodeBase( unittest.TestCase ):
 	def test_displaySettings( self ):
 		bmaya.Scene.new( force = 1 )
 		mesh = nt.createNode( "a1|b1|c1|d1|mesh", "mesh" )
-		mesh.tmp.setInt( 1 )
+		mesh.tmp.mrvsetInt( 1 )
 
 		# TEMPLATE
 		##########
@@ -828,7 +828,7 @@ class TestNodeBase( unittest.TestCase ):
 		assert not mesh.isTemplate() 
 
 		a1 = mesh.getRoot()
-		a1.v.setInt( 0 )
+		a1.v.mrvsetInt( 0 )
 
 		# VISIBLE
 		#########
@@ -838,8 +838,8 @@ class TestNodeBase( unittest.TestCase ):
 
 		# DRAWING OVERRIDES
 		###################
-		a1.do['ove'].setInt( 1 )
-		a1.do['ovdt'].setInt( 2 )
+		a1.do.mrvgetChildByName('ove').mrvsetInt( 1 )
+		a1.do.mrvgetChildByName('ovdt').mrvsetInt( 2 )
 		assert mesh.getDisplayOverrideValue( 'ovdt' ) == 2 
 		cmds.undo()
 		cmds.undo()
@@ -855,14 +855,14 @@ class TestNodeBase( unittest.TestCase ):
 
 		trans.addAttribute( attr )
 		attrplug = trans.longnumattr
-		attrplug.setInt( 10 )
+		attrplug.mrvsetInt( 10 )
 		assert attrplug.asInt() == 10 
 
 		# adding same attribute to several objects - DOES NOT WORK
 		# CREATE A NEW ONE
 		attrnew = nattr.create( "longnumattr", "sna", api.MFnNumericData.kLong, 5 )
 		trans2.addAttribute( attrnew )
-		trans2.sna.setInt( 20 )
+		trans2.sna.mrvsetInt( 20 )
 		assert trans2.sna.asInt() == 20 and trans.sna.asInt() == 10 
 
 		# remove the attribute - with Attribute class this time
@@ -875,15 +875,11 @@ class TestNodeBase( unittest.TestCase ):
 
 	def _checkIdentity( self, t ):
 		"""Assure that t is identity"""
-		assert t.t['tx'].asFloat() == 0.0 
-		assert t.t['ty'].asFloat() == 0.0 
-		assert t.t['tz'].asFloat() == 0.0 
-		assert t.r['rx'].asFloat() == 0.0 
-		assert t.r['ry'].asFloat() == 0.0 
-		assert t.r['rz'].asFloat() == 0.0 
-		assert t.s['sx'].asFloat() == 1.0 
-		assert t.s['sy'].asFloat() == 1.0 
-		assert t.s['sz'].asFloat() == 1.0 
+		for mainattr, val in zip('trs', (0.0, 0.0, 1.0)):
+			for subattr in 'xyz':
+				assert t.findPlug(mainattr+subattr).asFloat() == val
+			# END for each subattr
+		# END for each main attr
 
 	def test_keepWorldSpace( self ):
 		g = nt.createNode( "g", "transform" )
@@ -896,7 +892,7 @@ class TestNodeBase( unittest.TestCase ):
 		count = 0.0
 		for ma in mainattrs:
 			for sa in subattrs:
-				getattr( g, ma )[ma+sa].setFloat( count )
+				getattr( g, ma ).mrvgetChildByName(ma+sa).mrvsetFloat(count)
 				count += 1.0
 			# END for each sa
 		# END for each ma
@@ -908,11 +904,11 @@ class TestNodeBase( unittest.TestCase ):
 		count = 0.0
 		for ma in mainattrs:
 			for sa in subattrs:
-				value = getattr( t, ma )[ma+sa].asFloat( )
+				value = t.findPlug(ma+sa).asFloat( )
 				assert value == count 
 				count += 1.0
-			# end
-		#end
+			# END
+		# END
 
 		# undo - everything should be back to normal
 		cmds.undo()

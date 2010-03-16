@@ -237,7 +237,7 @@ class TestTransform( unittest.TestCase ):
 		# create a polycube and pipe its output into our mesh shape
 		isb = Node("initialShadingGroup")
 		pc = PolyCube()
-		pc.output > m.inMesh
+		pc.output.mrvconnectTo(m.inMesh)
 		assert m.numVertices() == 8
 		assert m not in isb                            # it has no shaders on object level
 		assert len(m.getComponentAssignments()) == 0   # nor on component leveld 
@@ -273,19 +273,19 @@ class TestTransform( unittest.TestCase ):
 		assert p.t == p.translate
 		
 		# connections
-		( p.tx > p.ty ) > p.tz		# parantheses enforce connection order in this case
-		assert p.tx >= p.ty
+		p.tx.mrvconnectTo(p.ty).mrvconnectTo(p.tz)
+		assert p.tx.mrvisConnectedTo(p.ty)
 		assert p.ty.mrvisConnectedTo(p.tz)
-		assert not p.tz >= p.ty
+		assert not p.tz.mrvisConnectedTo(p.ty)
 		
-		( p.tx | p.ty ) | p.tz		# disconnect all
-		assert len(p.ty.p_inputs) + len(p.tz.mrvgetInputs()) == 0
+		p.tx.mrvdisconnectFrom(p.ty).mrvdisconnectFrom(p.tz)
+		assert len(p.ty.mrvp_inputs) + len(p.tz.mrvgetInputs()) == 0
 		assert p.tz.mrvgetInput().isNull()
 		
-		p.tx > p.tz
-		self.failUnlessRaises(RuntimeError, p.ty.connectTo, p.tz, force=False)     # tz is already connected
-		p.ty >> p.tz                                         # force the connection
-		p.tz.disconnect()                                    # disconnect all
+		p.tx.mrvconnectTo(p.tz, force=False)
+		self.failUnlessRaises(RuntimeError, p.ty.mrvconnectTo, p.tz, force=False)     # tz is already connected
+		p.ty.mrvconnectTo(p.tz)                              # force the connection, force defaults True
+		p.tz.mrvdisconnect()                                    # disconnect all
 		
 		# query
 		assert isinstance(p.tx.asFloat(), float)
@@ -297,13 +297,13 @@ class TestTransform( unittest.TestCase ):
 		matfn = api.MFnMatrixData(pewm.asMObject())
 		matrix = matfn.matrix()                       # wrap data manually
 
-		dat = pewm.asData()							# or get a wrapped version right away
+		dat = pewm.mrvasData()							# or get a wrapped version right away
 		assert matrix == dat.matrix()
 	
 		
 		# set values
 		newx = 10.0
-		p.tx.setDouble(newx)
+		p.tx.mrvsetDouble(newx)
 		assert p.tx.asDouble() == newx
 		
 		meshdata = m.outMesh.asMObject()
@@ -312,16 +312,16 @@ class TestTransform( unittest.TestCase ):
 		assert meshfn.numPolygons() == 5
 		
 		mc = Mesh()                                 # create new empty mesh to 
-		mc.cachedInMesh.setMObject(meshdata)        # hold the new mesh in the scene
+		mc.cachedInMesh.mrvsetMObject(meshdata)        # hold the new mesh in the scene
 		assert mc.numPolygons() == 5
 		assert m.numPolygons() == 6
 		
 		# compounds and arrays
-		ptc = p.t.getChildren()
+		ptc = p.t.mrvgetChildren()
 		assert len(ptc) == 3
 		assert (ptc[0] == p.tx) and (ptc[1] == p.ty)
-		assert ptc[2] == p.t['tz']
-		assert p.tx.getParent() == p.t
+		assert ptc[2] == p.t.mrvgetChildByName('tz')
+		assert p.tx.mrvgetParent() == p.t
 		assert p.t.isCompound()
 		assert p.tx.isChild()
 		
@@ -360,8 +360,8 @@ class TestTransform( unittest.TestCase ):
 		n.addAttribute(cattr)
 		assert n.compound.isArray()
 		assert n.compound.isCompound()
-		assert len(n.compound.getChildren()) == 3
-		assert n.compound['mymessage'].isArray()
+		assert len(n.compound.mrvgetChildren()) == 3
+		assert n.compound.mrvgetChildByName('mymessage').isArray()
 		
 		n.removeAttribute(n.compound.getAttribute())
 		
@@ -503,14 +503,15 @@ class TestTransform( unittest.TestCase ):
 		######
 		@undoable
 		def undoable_func( delobj ):
-			p.tx > p.tz
+			p.tx.mrvconnectTo(p.tz)
 			delobj.delete()
 		
+		p = Node("persp")
 		t = Transform()
 		assert not p.tx.mrvisConnectedTo(p.tz)
 		assert t.isValid() and t.isAlive()
 		undoable_func(t)
-		assert p.tx >= p.tz
+		assert p.tx.mrvisConnectedTo(p.tz)
 		assert not t.isValid() and t.isAlive()
 		
 		cmds.undo()
@@ -520,18 +521,18 @@ class TestTransform( unittest.TestCase ):
 		# Advanced Uses #
 		ur = undo.UndoRecorder()
 		ur.startRecording()
-		p.tx > p.ty
-		p.tx > p.tz
+		p.tx.mrvconnectTo(p.ty)
+		p.tx.mrvconnectTo(p.tz)
 		ur.stopRecording()
-		p.t > t.t
+		p.t.mrvconnectTo(t.t)
 		
-		assert p.tx >= p.ty
-		assert p.tx >= p.tz
-		assert p.t >= t.t
+		assert p.tx.mrvisConnectedTo(p.ty)
+		assert p.tx.mrvisConnectedTo(p.tz)
+		assert p.t.mrvisConnectedTo(t.t)
 		ur.undo()
-		assert not p.tx >= p.ty
-		assert not p.tx >= p.tz
-		assert p.t >= t.t
+		assert not p.tx.mrvisConnectedTo(p.ty)
+		assert not p.tx.mrvisConnectedTo(p.tz)
+		assert p.t.mrvisConnectedTo(t.t)
 		
 		
 		# PERSISTENCE

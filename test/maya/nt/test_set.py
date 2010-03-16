@@ -435,7 +435,7 @@ class TestSets( unittest.TestCase ):
 		isb = nt.Node("initialShadingGroup")
 		m = nt.Mesh()
 		pc = nt.PolyCube()
-		pc.output > m.inMesh
+		pc.output.mrvconnectTo(m.inMesh)
 		assert len(m.getComponentAssignments()) == 0 and m.numVertices() == 8
 		
 		# assign two of the 6 faces

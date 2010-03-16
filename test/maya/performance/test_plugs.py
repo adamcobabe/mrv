@@ -96,15 +96,15 @@ class TestPlugPerformance( unittest.TestCase ):
 
 		# CONNECT MULTI PLUGS
 		######################
-		multifunc = lambda i: s1msg.getElementByLogicalIndex( i ) >> s2msg.getElementByLogicalIndex( i )
+		multifunc = lambda i: s1msg.getElementByLogicalIndex( i ).mrvconnectTo(s2msg.getElementByLogicalIndex( i ))
 		measurePlugConnection( "MULTI PLUG Connected", multifunc, conlist )
 
 		# CONNECT SINGLE PLUGS
 		persp = nt.Node( "persp" )
 		front = nt.Node( "front" )
 		def singleFunc( i ):
-			persp.message >> front.isHistoricallyInteresting
-			persp.message | front.isHistoricallyInteresting
+			persp.message.mrvconnectTo(front.isHistoricallyInteresting)
+			persp.message.mrvdisconnectFrom(front.isHistoricallyInteresting)
 		measurePlugConnection( "SINGLE PLUGS Connected", singleFunc, conlist )
 
 
@@ -122,7 +122,7 @@ class TestPlugPerformance( unittest.TestCase ):
 		for plug in plugs:
 			for i in iterations:
 				value = plug.asFloat()
-				plug.setFloat( value )
+				plug.mrvsetFloat( value )
 			# END get set plug
 		# END for each plug
 		elapsed = time.time() - starttime

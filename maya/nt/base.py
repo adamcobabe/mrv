@@ -933,7 +933,7 @@ class DependNode( Node, iDuplicatable ):		# parent just for epydoc -
 		outlist = list()
 		iogplug = self._getSetPlug()
 
-		for dplug in iogplug.getOutputs():
+		for dplug in iogplug.mrvgetOutputs():
 			setapiobj = dplug.node()
 
 			if not setFilter( setapiobj ):
@@ -1133,9 +1133,9 @@ class DependNode( Node, iDuplicatable ):		# parent just for epydoc -
 		@param by: if false, affected attributes will be returned, otherwise the attributes affecting this one
 		@note: see also L{MPlug.getAffectedByPlugs}
 		@note: USING MEL: as api command and mObject array always crashed on me ... don't know :("""
-		if isinstance( attribute, basestring ):
-			attribute = self.getAttribute( attribute )
-		attrs = cmds.affects( attribute.getName() , str(self), by=by )
+		if not isinstance( attribute, basestring ):
+			attribute = attribute.getName()
+		attrs = cmds.affects( attribute , str(self), by=by )
 
 		outattrs = []
 		for attr in attrs:
@@ -1246,12 +1246,12 @@ class DagNode( Entity, iDagItem ):	# parent just for epydoc
 		if not isinstance( self, Transform ):
 			return
 
-		nwm = self.wm.getElementByLogicalIndex( self.getInstanceNumber() ).asData().transformation().asMatrix()
+		nwm = self.wm.getElementByLogicalIndex( self.getInstanceNumber() ).mrvasData().transformation().asMatrix()
 
 		# compenstate for new parents transformation ?
 		if parentnode is not None:
 			# use world - inverse matrix
-			parentInverseMatrix = parentnode.wim.getElementByLogicalIndex( parentnode.getInstanceNumber( ) ).asData().transformation().asMatrix()
+			parentInverseMatrix = parentnode.wim.getElementByLogicalIndex( parentnode.getInstanceNumber( ) ).mrvasData().transformation().asMatrix()
 			nwm = nwm * parentInverseMatrix
 		# END if there is a new parent
 
@@ -1752,12 +1752,12 @@ class DagNode( Entity, iDagItem ):	# parent just for epydoc
 	def _getDisplayOverrideValue( self, plugName ):
 		"""@return: the given effective display override value or None if display
 		overrides are disabled"""
-		if self.do['ove'].asInt():
+		if self.do.mrvgetChildByName('ove').asInt():
 			return getattr( self.do, plugName ).asInt()
 
 		for parent in self.iterParents():
-			if parent.do['ove'].asInt():
-				return parent.do[ plugName ].asInt()
+			if parent.do.mrvgetChildByName('ove').asInt():
+				return parent.do.mrvgetChildByName(plugName).asInt()
 
 		return None
 
@@ -2247,7 +2247,7 @@ class PluginData( Data ):
 		"""@return: python data wrapped by this plugin data object
 		@note: the python data should be made such that it can be changed using
 		the reference we return - otherwise it will be read-only as it is just a copy !
-		@note: the data retrieved by this method cannot be used in plug.setMObject( data ) as it
+		@note: the data retrieved by this method cannot be used in plug.mrvsetMObject( data ) as it
 		is ordinary python data, not an mobject
 		@raise RuntimeError: if the data object's id is unknown to this class"""
 		mfn = self._mfncls( self._apiobj )
@@ -2634,17 +2634,17 @@ class Shape( DagNode ):	 # base for epydoc !
 			components = api.MObjectArray()
 
 			# take full assignments as well - make it work as the getConnectedSets api method
-			for dplug in iogplug.getOutputs():
+			for dplug in iogplug.mrvgetOutputs():
 				sets.append( dplug.node() )
 				components.append( MObject() )
 			# END full objecft assignments
 
-			for compplug in iogplug['objectGroups']:
-				for setplug in compplug.getOutputs():
+			for compplug in iogplug.mrvgetChildByName('objectGroups'):
+				for setplug in compplug.mrvgetOutputs():
 					sets.append( setplug.node() )		# connected set
 
 					# get the component from the data
-					compdata = compplug['objectGrpCompList'].asData()
+					compdata = compplug.mrvgetChildByName('objectGrpCompList').mrvasData()
 					if compdata.getLength() == 1:			# this is what we can handle
 						components.append( compdata[0] ) 	# the component itself
 					else:
@@ -2656,7 +2656,7 @@ class Shape( DagNode ):	 # base for epydoc !
 			return ( sets, components )
 		else:
 			for dplug in iogplug.mrvgetOutputs():
-				sets.append( dplug.node() )
+				sets.append(dplug.node())
 			return sets
 		# END for each object grouop connection in iog
 

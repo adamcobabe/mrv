@@ -69,7 +69,7 @@ class TestUndoQueue( unittest.TestCase ):
 		newvalue = curvalue + 1.0
 
 		undo.startUndo()
-		persp.tx.setFloat( newvalue )
+		persp.tx.mrvsetFloat( newvalue )
 		assert persp.tx.asFloat() == newvalue
 
 		undo.undoAndClear( )		# end undo must come afterwards, otherwise the comand takes the queue
@@ -87,7 +87,7 @@ class TestUndoQueue( unittest.TestCase ):
 		trans = nt.createNode( "mytrans", "transform" )
 
 		undo.startUndo()
-		trans.tx.setFloat( 10.0 )
+		trans.tx.mrvsetFloat( 10.0 )
 		assert len( sys._maya_stack ) == 1
 		bmaya.Scene.new( force = 1 )
 		# DO NOT FAIL - allow releases to be done which would fail otherwise
@@ -108,14 +108,14 @@ class TestUndoQueue( unittest.TestCase ):
 		
 		# ===================
 		undo.startUndo()
-		p.t > t.t
+		p.t.mrvconnectTo(t.t)
 		
 		########################
 		# startRecording needs to come first
 		self.failUnlessRaises(AssertionError, ur.stopRecording)
 		ur.startRecording()
 		ur.startRecording()	# doesnt matter
-		p.r > t.r
+		p.r.mrvconnectTo(t.r)
 		
 		# second instance will fail
 		ur2 = undo.UndoRecorder()
@@ -125,31 +125,31 @@ class TestUndoQueue( unittest.TestCase ):
 		ur.stopRecording()
 		ur.stopRecording() # doesnt matter
 		########################
-		assert p.r >= t.r
-		assert p.t >= t.t
+		assert p.r.mrvisConnectedTo(t.r)
+		assert p.t.mrvisConnectedTo(t.t)
 		ur.undo()
-		assert not p.r >= t.r
-		assert p.t >= t.t
+		assert not p.r.mrvisConnectedTo(t.r)
+		assert p.t.mrvisConnectedTo(t.t)
 		
 		ur.redo()
-		assert p.r >= t.r
+		assert p.r.mrvisConnectedTo(t.r)
 		ur.undo()
-		assert not p.r >= t.r
+		assert not p.r.mrvisConnectedTo(t.r)
 		
 		undo.endUndo()
 		# ===================
 		
-		assert p.t >= t.t
+		assert p.t.mrvisConnectedTo(t.t)
 		cmds.undo()
-		assert not p.t >= t.t
+		assert not p.t.mrvisConnectedTo(t.t)
 		cmds.redo()
-		assert p.t >= t.t
+		assert p.t.mrvisConnectedTo(t.t)
 		
 		# we should be able to selectively redo it, even after messing with the queue
 		ur.redo()
-		assert p.r >= t.r
+		assert p.r.mrvisConnectedTo(t.r)
 		cmds.undo()
-		assert not p.t >= t.t
+		assert not p.t.mrvisConnectedTo(t.t)
 		
 		
 		# TEST UNDO GETS ENABLED
@@ -160,15 +160,15 @@ class TestUndoQueue( unittest.TestCase ):
 			ur.startRecording()
 			assert cmds.undoInfo(q=1, swf=1)
 			
-			p.s > t.s
+			p.s.mrvconnectTo(t.s)
 			
 			ur.stopRecording()
 			assert not cmds.undoInfo(q=1, swf=1)
-			assert p.s >= t.s
+			assert p.s.mrvisConnectedTo(t.s)
 			ur.undo()
-			assert not p.s >=t.s
+			assert not p.s.mrvisConnectedTo(t.s)
 			ur.redo()
-			assert p.s >= t.s
+			assert p.s.mrvisConnectedTo(t.s)
 		
 		finally:
 			cmds.undoInfo(swf=1)
@@ -178,27 +178,27 @@ class TestUndoQueue( unittest.TestCase ):
 		# TEST UNDO QUEUE INTEGRATION
 		# if we never called startRecording, it will not do anything
 		ur = undo.UndoRecorder()
-		p.tx > t.tx
+		p.tx.mrvconnectTo(t.tx)
 		del(ur)
 		
-		assert p.tx >= t.tx
+		assert p.tx.mrvisConnectedTo(t.tx)
 		cmds.undo()
-		assert not p.tx >= t.tx
+		assert not p.tx.mrvisConnectedTo(t.tx)
 		cmds.redo()
-		assert p.tx >= t.tx
+		assert p.tx.mrvisConnectedTo(t.tx)
 		
 		# If we recorded something, it will be part of the undo queue if 
 		# undo was not called
 		ur = undo.UndoRecorder()
 		ur.startRecording()
-		p.ty > t.ty
+		p.ty.mrvconnectTo(t.ty)
 		ur.stopRecording()
 		
-		assert p.ty >= t.ty
+		assert p.ty.mrvisConnectedTo(t.ty)
 		cmds.undo()
-		assert not p.ty >= t.ty
+		assert not p.ty.mrvisConnectedTo(t.ty)
 		cmds.redo()
-		assert p.ty >= t.ty
+		assert p.ty.mrvisConnectedTo(t.ty)
 		
 		
 		

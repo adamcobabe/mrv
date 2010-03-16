@@ -707,3 +707,9 @@ Additionally you may organize objects in sets, and these sets in partitions::
 	>>> assert len(Node(snn).getObjectSet(did, 0)) 
 	
 The ``mayarv.maya.nt.storage`` module is built to make it easy to create own node types that are compatible to the storage interface, which also enables you to write your own and more convenient interface to access data.
+
+
+==================
+A Word about Types
+==================
+Talks about wrapped nodes, MObjects, MDagPaths, MObject derived types and how they can be used.
