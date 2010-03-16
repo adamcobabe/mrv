@@ -401,9 +401,6 @@ class TestDataBase( unittest.TestCase ):
 		# mrvgetFullyQualifiedName
 		assert a.mrvgetFullyQualifiedName() != a.partialName()
 		
-		
-		
-		
 	@with_scene('empty.ma')
 	def test_plug_itertools(self):
 		p = nt.Node('persp')
@@ -528,13 +525,6 @@ class TestDataBase( unittest.TestCase ):
 		# END for each item
 		assert nc == len(sls)
 		
-		# access nodes by index
-		slitems = list()
-		for index in xrange(len(sl)):
-			slitems.append(sl[index])
-		# END for each index
-		assert slitems and slitems[-1] == sl[-1]
-		
 		# COMPONENT ITERATION
 		m = nt.Mesh()
 		nt.PolyCube().output > m.inMesh
@@ -551,9 +541,6 @@ class TestDataBase( unittest.TestCase ):
 		sl.add(p.t)
 		sl.add(p.rx)
 		assert len(list(sl.mrviterPlugs())) == 2
-		
-		
-		
 
 	def test_array_creation(self):
 		def assert_matches(ar, items):

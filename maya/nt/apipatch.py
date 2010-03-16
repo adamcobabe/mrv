@@ -844,7 +844,7 @@ class ArrayBase( Abstract ):
 	@classmethod
 	def mrvfromIter(cls, iter):
 		"""@return: Array created from elements yielded by iter
-		@note: this one is less efficient than L{fromList} as the final length 
+		@note: this one is less efficient than L{mrvfromList} as the final length 
 		of the array is not predetermined"""
 		ia = cls()
 		append = ia.append
@@ -1047,35 +1047,6 @@ class MSelectionList( api.MSelectionList, ArrayBase ):
 		else:
 			return self.hasItem(rhs)
 		# END handle input type
-		
-	def __getitem__(self, index):
-		"""Add [] operator support
-		@param index: index from 0 to len(self), negative values are supported as well
-		@note: this method returns Nodes or Plugs, it will not deal with components.
-		If you need more control over your iteration, use L{toIter} instead"""
-		if index < 0:
-			index = self.length() + index
-		# END handle negative index
-		
-		rval = None
-		try: # dagpath
-			rval = api.MDagPath()
-			self.getDagPath(index, rval)
-		except RuntimeError:
-			try: # plug
-				rval = MPlug.pa[0]
-				self.getPlug(index, rval)
-				rval.attribute()
-				return rval
-			except RuntimeError:
-				# dg node
-				rval = api.MObject()
-				self.getDependNode(index, rval)
-			# END its not an MObject
-		# END handle dagnodes/plugs/dg nodes
-		
-		# its a node
-		return base.NodeFromObj(rval)
 	
 	@staticmethod
 	def mrvfromStrings( iter_strings, **kwargs ):
@@ -1095,7 +1066,7 @@ class MSelectionList( api.MSelectionList, ArrayBase ):
 	
 	@staticmethod
 	def mrvfromMultiple( *args, **kwargs ):
-		"""Alternative form of L{fromList} as *args can be passed in."""
+		"""Alternative form of L{mrvfromList} as *args can be passed in."""
 		return MSelectionList.mrvfromList(args, **kwargs)
 	
 	@staticmethod
