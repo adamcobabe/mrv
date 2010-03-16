@@ -56,7 +56,7 @@ class TestReferenceRunner( unittest.TestCase ):
 			assert ref.isLocked( ) == False 
 			ref.p_locked = True
 			assert ref.p_locked == True 
-			assert ref.setLocked(False) == ref
+			assert ref.mrvsetLocked(False) == ref
 			assert ref.p_locked == False 
 
 			assert ref.cleanup( ) == ref

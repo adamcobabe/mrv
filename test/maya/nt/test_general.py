@@ -223,8 +223,8 @@ class TestGeneral( unittest.TestCase ):
 		assert node == instnode.getMObject()
 		
 		# using an attribute would create a DagNode which corresponds to the first path
-		assert not node != instnode.wm.node()
-		assert node == instnode.wm.getNodeMObject()
+		assert not node != instnode.wm.mrvgetWrappedNode()
+		assert node == instnode.wm.mrvgetWrappedNode()
 
 
 	def test_convenienceFunctions( self ):
@@ -353,7 +353,7 @@ class TestNodeBase( unittest.TestCase ):
 		t = node.type()
 		t = node.getType()
 		for state in [1,0]:
-			node.setLocked( state )
+			node.mrvsetLocked( state )
 			assert node.isLocked() == state 
 
 		# ATTRIBUTES
@@ -407,13 +407,13 @@ class TestNodeBase( unittest.TestCase ):
 		self.failUnlessRaises( RuntimeError, node.rename, "othernode", renameOnClash = False )
 
 		# locking
-		othernode.setLocked( 1 )
+		othernode.mrvsetLocked( 1 )
 		assert othernode.isLocked()
 		cmds.undo( )
 		assert not othernode.isLocked()
 		cmds.redo()
 		assert othernode.isLocked()
-		othernode.setLocked( 0 )
+		othernode.mrvsetLocked( 0 )
 		assert not othernode.isLocked()
 
 		# works if rename enabeld though

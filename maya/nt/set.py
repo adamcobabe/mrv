@@ -51,14 +51,14 @@ class ObjectSet:
 			
 		if mode == self.kRemove:
 			for part in prts:
-				self.partition.disconnectNode( part )
+				self.partition.mrvdisconnectNode( part )
 			return self
 		# END remove mode 
 				
 		if mode == self.kAdd:
 			# only allow to be connected once 
 			for part in prts:
-				self.partition.connectToArray( part.sets, exclusive_connection = True )
+				self.partition.mrvconnectToArray( part.sets, exclusive_connection = True )
 			# END for each partition to be added
 			return self
 		# END add mode 
@@ -598,7 +598,7 @@ class Partition:
 		@note: have to filter the members as there might be non-set connections 
 		in referenced environments"""
 		out = list()
-		for plug in self.sets.getInputs():
+		for plug in self.sets.mrvgetInputs():
 			node = plug.getNode()
 			if not node.hasFn( api.MFn.kSet ):
 				continue
@@ -618,7 +618,7 @@ class Partition:
 	
 	#{ Protocols 
 	def __len__(self):
-		return len(self.sets.getInputs())
+		return len(self.sets.mrvgetInputs())
 		
 	def __iter__(self):
 		for s in self.getMembers():

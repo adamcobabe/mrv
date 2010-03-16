@@ -387,7 +387,7 @@ def iterSelectionList( sellist, filterType = api.MFn.kInvalid, predicate = lambd
 			# should have rval now
 			if isinstance( rval, plug_types ):
 				# apply filter
-				if filterType != kInvalid and rval.getNodeMObject().apiType() != filterType:
+				if filterType != kInvalid and rval.node().apiType() != filterType:
 					continue
 					# END apply filter type
 			else:

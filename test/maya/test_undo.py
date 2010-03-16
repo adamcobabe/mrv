@@ -223,11 +223,11 @@ class TestUndoQueue( unittest.TestCase ):
 		assert len( sys._maya_stack ) == 0 
 		cmds.undo()	# undo connection
 		# check connection - should be undone
-		assert not persp.message.isConnectedTo( front.isHistoricallyInteresting ) 
+		assert not persp.message.mrvisConnectedTo( front.isHistoricallyInteresting ) 
 
 		cmds.redo()
 		# redo it and check connection
-		assert persp.message.isConnectedTo( front.isHistoricallyInteresting ) 
+		assert persp.message.mrvisConnectedTo( front.isHistoricallyInteresting ) 
 
 		# connect and break existing conenction
 		uobj = undo.StartUndo( )
@@ -237,11 +237,11 @@ class TestUndoQueue( unittest.TestCase ):
 		dgmod.doIt( )
 		del( uobj )
 
-		assert side.message.isConnectedTo( front.isHistoricallyInteresting ) 
+		assert side.message.mrvisConnectedTo( front.isHistoricallyInteresting ) 
 		cmds.undo()
 
 		# old connection should be back
-		assert persp.message.isConnectedTo( front.isHistoricallyInteresting ) 
+		assert persp.message.mrvisConnectedTo( front.isHistoricallyInteresting ) 
 
 
 		# undo first change

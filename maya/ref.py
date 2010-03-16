@@ -406,7 +406,7 @@ class FileReference( iDagItem ):
 		return self
 
 	@undo.notundoable
-	def setLocked( self, state ):
+	def mrvsetLocked( self, state ):
 		"""Set the reference to be locked or unlocked
 		@param state: if True, the reference is locked , if False its unlocked and
 		can be altered
@@ -528,7 +528,7 @@ class FileReference( iDagItem ):
 
 	#{ Properties
 	p_path = property( getPath )
-	p_locked = property( isLocked, setLocked )
+	p_locked = property( isLocked, mrvsetLocked )
 	p_loaded = property( isLoaded, setLoaded )
 	p_copynumber = property( getCopyNumber )
 	p_namespace = property( getNamespace, setNamespace )

@@ -27,7 +27,7 @@ class GeometryShape( base.Shape ):	# base for epydoc !
 			for iphysical in xrange( num_elments - 1, -1, -1 ):
 				p_plug = array_plug[ iphysical ]
 				try_index = p_plug.getLogicalIndex() + 1
-				try_plug = array_plug.getByLogicalIndex( try_index )
+				try_plug = array_plug.getElementByLogicalIndex( try_index )
 
 				if try_plug.getChild( 0 ).p_input.isNull():
 					return try_index
@@ -51,7 +51,7 @@ class GeometryShape( base.Shape ):	# base for epydoc !
 			else:
 				target_compound_index = getFreeLogicalIndex( parent_compound )
 
-			new_parent_compound = parent_compound.getArray().getByLogicalIndex( target_compound_index )
+			new_parent_compound = parent_compound.getArray().getElementByLogicalIndex( target_compound_index )
 
 			# retrieve light link, connect other - light is only needed if we do not
 			# substitute
@@ -224,7 +224,7 @@ class Mesh( SurfaceShape ):		# base for epydoc !
 		opnts = other.pnts
 		pnts = self.pnts
 		for splug in pnts:
-			opnts.getByLogicalIndex( splug.logicalIndex() ).setMObject( splug.asMObject() )
+			opnts.getElementByLogicalIndex( splug.logicalIndex() ).setMObject( splug.asMObject() )
 		# END for each source plug in pnts
 
 	def isValidMesh( self ):
@@ -312,7 +312,7 @@ class Mesh( SurfaceShape ):		# base for epydoc !
 							self.getUVSetNames( names )
 							index = names.index( self.getCurrentUVSetName( ) )
 
-							tweak_node.uvTweak.getByLogicalIndex( index ) >> self.uvSet.getByLogicalIndex( index ).uvSetTweakLocation
+							tweak_node.uvTweak.getElementByLogicalIndex( index ) >> self.uvSet.getElementByLogicalIndex( index ).uvSetTweakLocation
 						# END uv special setup
 					# END create tweak node
 
@@ -328,7 +328,7 @@ class Mesh( SurfaceShape ):		# base for epydoc !
 						except RuntimeError:
 							continue
 						else:
-							dtweak_plug.getByLogicalIndex( tplug.getLogicalIndex() ).setMObject( tplug.asMObject() )
+							dtweak_plug.getElementByLogicalIndex( tplug.getLogicalIndex() ).setMObject( tplug.asMObject() )
 					# END for each tweak plug
 
 

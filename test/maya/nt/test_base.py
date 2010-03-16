@@ -275,12 +275,12 @@ class TestTransform( unittest.TestCase ):
 		# connections
 		( p.tx > p.ty ) > p.tz		# parantheses enforce connection order in this case
 		assert p.tx >= p.ty
-		assert p.ty.isConnectedTo(p.tz)
+		assert p.ty.mrvisConnectedTo(p.tz)
 		assert not p.tz >= p.ty
 		
 		( p.tx | p.ty ) | p.tz		# disconnect all
-		assert len(p.ty.p_inputs) + len(p.tz.getInputs()) == 0
-		assert p.tz.getInput().isNull()
+		assert len(p.ty.p_inputs) + len(p.tz.mrvgetInputs()) == 0
+		assert p.tz.mrvgetInput().isNull()
 		
 		p.tx > p.tz
 		self.failUnlessRaises(RuntimeError, p.ty.connectTo, p.tz, force=False)     # tz is already connected
@@ -332,12 +332,12 @@ class TestTransform( unittest.TestCase ):
 			assert element_plug.isElement()
 			
 		# graph traversal
-		mihistory = list(m.inMesh.iterInputGraph())
+		mihistory = list(m.inMesh.mrviterInputGraph())
 		assert len(mihistory) > 2
 		assert mihistory[0] == m.inMesh
 		assert mihistory[2] == pc.output		# ignore groupparts
 		
-		pcfuture = list(pc.output.iterOutputGraph())
+		pcfuture = list(pc.output.mrviterOutputGraph())
 		assert len(pcfuture) > 2
 		assert pcfuture[0] == pc.output
 		assert pcfuture[2] == m.inMesh			# ignore groupparts
@@ -507,14 +507,14 @@ class TestTransform( unittest.TestCase ):
 			delobj.delete()
 		
 		t = Transform()
-		assert not p.tx.isConnectedTo(p.tz)
+		assert not p.tx.mrvisConnectedTo(p.tz)
 		assert t.isValid() and t.isAlive()
 		undoable_func(t)
 		assert p.tx >= p.tz
 		assert not t.isValid() and t.isAlive()
 		
 		cmds.undo()
-		assert not p.tx.isConnectedTo(p.tz)
+		assert not p.tx.mrvisConnectedTo(p.tz)
 		assert t.isValid() and t.isAlive()
 		
 		# Advanced Uses #

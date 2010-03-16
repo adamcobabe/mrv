@@ -409,7 +409,7 @@ class StorageBase( iDuplicatable ):
 	def __makePlug( self, dataID ):
 		"""Find an empty logical plug index and return the newly created
 		logical plug with given dataID"""
-		elementPlug = self._node.dta.getNextLogicalPlug( )
+		elementPlug = self._node.dta.mrvgetNextLogicalPlug( )
 		elementPlug['id'].setString( dataID )
 		return elementPlug
 
@@ -569,7 +569,7 @@ class StorageBase( iDuplicatable ):
 		@note: newly created sets will automatically use partitions if one of the sets does"""
 		mp = self.getStoragePlug( dataID, self.kMessage, autoCreate = autoCreate )
 		# array plug having our sets
-		setplug = mp.getByLogicalIndex( setIndex )
+		setplug = mp.getElementByLogicalIndex( setIndex )
 		inputplug = setplug.p_input
 		if inputplug.isNull():
 			if not autoCreate:
@@ -610,7 +610,7 @@ class StorageBase( iDuplicatable ):
 	def getSetsByID( self, dataID ):
 		"""@return: all object sets stored under the given dataID"""
 		mp = self.getStoragePlug( dataID, self.kMessage, autoCreate = False )
-		allnodes = [ p.getNode() for p in mp.getInputs() ]
+		allnodes = [ p.getNode() for p in mp.mrvgetInputs() ]
 		return [ n for n in allnodes if isinstance( n, nt.ObjectSet ) ]
 
 

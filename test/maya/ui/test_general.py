@@ -162,7 +162,7 @@ if not cmds.about(batch=1):
 			win = ui.Window( title="Test Callback Window" )
 	
 			col = win.add( ui.ColumnLayout( adj=1 ) )
-			assert win.getChildByName( str( col ) ) == col 
+			assert win.mrvgetChildByName( str( col ) ) == col 
 			def func( b, *args ):
 				b.p_label = "pressed"
 				b.p_actionIsSubstitute = 1

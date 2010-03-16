@@ -142,7 +142,7 @@ class TestGeometry( unittest.TestCase ):
 		# TEST TWEAK HANDLING
 		# make tweak
 		ofs = ( 1.0, 1.0, 1.0 )						# offset array
-		ptweak = p1.pnts.getByLogicalIndex( 0 )
+		ptweak = p1.pnts.getElementByLogicalIndex( 0 )
 		ptweak['px'].setFloat( ofs[0] )
 		ptweak['py'].setFloat( ofs[1] )
 		ptweak['pz'].setFloat( ofs[2] )
@@ -152,7 +152,7 @@ class TestGeometry( unittest.TestCase ):
 		assert ptweak['py'].asFloat() == 0.0
 		assert ptweak['pz'].asFloat() == 0.0
 
-		puvtweak = p1.uvpt.getByLogicalIndex( 0 )
+		puvtweak = p1.uvpt.getElementByLogicalIndex( 0 )
 		puvtweak['ux'].setFloat( ofs[0] )
 		puvtweak['uy'].setFloat( ofs[1] )
 

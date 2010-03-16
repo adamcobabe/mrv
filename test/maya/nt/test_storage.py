@@ -157,7 +157,7 @@ class TestStorage( unittest.TestCase ):
 
 		conarray = mainplug['dmsg']
 		for c in range( 10 ):
-			nextplug = conarray.getByLogicalIndex( c )
+			nextplug = conarray.getElementByLogicalIndex( c )
 			persp.message >> nextplug
 			assert persp.message >= nextplug 
 		assert len( conarray ) == 10 

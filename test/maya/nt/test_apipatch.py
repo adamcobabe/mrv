@@ -31,6 +31,7 @@ class TestDataBase( unittest.TestCase ):
 		front	 = nt.Node( "front" )
 		side	 = nt.Node( "side" )
 		matworld = persp.worldMatrix
+		assert isinstance(matworld.mrvgetFullyQualifiedName(), basestring)
 
 		str( matworld )
 		repr( matworld )
@@ -38,66 +39,66 @@ class TestDataBase( unittest.TestCase ):
 		# CONNECTIONS
 		#######################
 		# CHECK COMPOUND ACCESS
-		tx = persp.translate['tx']
+		tx = persp.translate.mrvgetChildByName('tx')
 		
 		# can access attributes twice
 		persp.translate
 
 		# DO CONNECTIONS ( test undo/redo )
-		persp.translate >> front.translate
+		persp.translate.mrvconnectTo(front.translate, force=True)
 
-		assert persp.translate & front.translate 	# isConnectedTo
-		assert persp.translate.p_input.isNull( ) 
+		assert persp.translate.mrvisConnectedTo(front.translate) 	# mrvisConnectedTo
+		assert persp.translate.mrvp_input.isNull( ) 
 		cmds.undo( )
-		assert not persp.translate.isConnectedTo( front.translate ) 
+		assert not persp.translate.mrvisConnectedTo( front.translate ) 
 		cmds.redo( )
-		assert front.translate in persp.translate.p_outputs 
+		assert front.translate in persp.translate.mrvp_outputs 
 
 		# check p_output
-		assert persp.translate.p_output == front.translate 
-		self.failUnlessRaises( IndexError, persp.rotate.getOutput )
+		assert persp.translate.mrvp_output == front.translate 
+		self.failUnlessRaises( IndexError, persp.rotate.mrvgetOutput )
 
 		# CHECK CONNECTION FORCING
-		persp.translate >  front.translate 			# already connected
-		self.failUnlessRaises( RuntimeError, persp.scale.__gt__, front.translate )# lhs > rhs
+		persp.translate.mrvconnectTo(front.translate, force=False) 			# already connected
+		self.failUnlessRaises( RuntimeError, persp.scale.mrvconnectTo, front.translate, force=False )# lhs > rhs
 
 		# overwrite connection
-		side.translate >> front.translate
-		assert side.translate >= front.translate 
+		side.translate.mrvconnectTo(front.translate)	# force default True
+		assert side.translate.mrvisConnectedTo(front.translate) 
 
 		# undo - old connection should be back
 		cmds.undo()
-		assert persp.translate >= front.translate 
+		assert persp.translate.mrvisConnectedTo(front.translate) 
 
 		# disconnect input
-		front.translate.disconnectInput()
-		assert not persp.translate >= front.translate 
+		front.translate.mrvdisconnectInput()
+		assert not persp.translate.mrvisConnectedTo(front.translate) 
 
 		cmds.undo()
 
 		# disconnect output
-		persp.t.disconnectOutputs( )
-		assert len( persp.translate.p_outputs ) == 0 
+		persp.t.mrvdisconnectOutputs( )
+		assert len( persp.translate.mrvp_outputs ) == 0 
 
 		cmds.undo()
-		assert persp.t.isConnectedTo( front.translate ) 
+		assert persp.t.mrvisConnectedTo( front.translate ) 
 
 		# disconnect from
-		persp.t | front.translate
-		assert not persp.t & front.t 
+		persp.t.mrvdisconnectFrom(front.translate)
+		assert not persp.t.mrvisConnectedTo(front.t) 
 
 		cmds.undo()
-		assert persp.t >= front.t 
+		assert persp.t.mrvisConnectedTo(front.t) 
 
 		# COMPARISONS
 		assert persp.t != front.t 
-		assert persp.t['tx'] != persp.t['ty'] 
+		assert persp.t.mrvgetChildByName('tx') != persp.t.mrvgetChildByName('ty') 
 
 		# affected plugs
-		affectedPlugs = persp.t.affects( )
+		affectedPlugs = persp.t.mrvaffects( )
 		assert len( affectedPlugs ) > 1  
 
-		affectedPlugs = persp.t.affected( )
+		affectedPlugs = persp.t.mrvaffected( )
 		assert len( affectedPlugs ) > 1  
 		
 		
@@ -108,36 +109,36 @@ class TestDataBase( unittest.TestCase ):
 		
 		def pir(array_plug, range_iter):
 			for index in range_iter:
-				yield array_plug.getByLogicalIndex(index)
+				yield array_plug.getElementByLogicalIndex(index)
 			# END for each item in range
 		# END plugs-in-range
 		
 		# connect 10 to 10 
 		r = range(10)
-		api.MPlug.connectMultiToMulti(	izip(pir(sn.a, r), pir(tn.affectedBy, r)), force=False) 
+		api.MPlug.mrvconnectMultiToMulti(	izip(pir(sn.a, r), pir(tn.affectedBy, r)), force=False) 
 		for i in r:
-			assert sn.a.getByLogicalIndex(i).isConnectedTo(tn.affectedBy.getByLogicalIndex(i))
+			assert sn.a.getElementByLogicalIndex(i).mrvisConnectedTo(tn.affectedBy.getElementByLogicalIndex(i))
 		# END make connection assertion
 		
 		# connection of overlapping range fails without force
 		r = range(5, 15)
-		self.failUnlessRaises(RuntimeError, api.MPlug.connectMultiToMulti, izip(pir(sn2.a, r), pir(tn.affectedBy, r)), force=False)
+		self.failUnlessRaises(RuntimeError, api.MPlug.mrvconnectMultiToMulti, izip(pir(sn2.a, r), pir(tn.affectedBy, r)), force=False)
 		
 		# there no connection should have worked ( its atomic )
 		# hence slot 10 is free
-		persp.tx > tn.affectedBy.getByLogicalIndex(10)
+		persp.tx > tn.affectedBy.getElementByLogicalIndex(10)
 		
 		# force connection works
-		api.MPlug.connectMultiToMulti(izip(pir(sn2.a, r), pir(tn.affectedBy, r)), force=True)
+		api.MPlug.mrvconnectMultiToMulti(izip(pir(sn2.a, r), pir(tn.affectedBy, r)), force=True)
 		
 		for i in r:
-			assert sn2.a.getByLogicalIndex(i).isConnectedTo(tn.affectedBy.getByLogicalIndex(i))
+			assert sn2.a.getElementByLogicalIndex(i).mrvisConnectedTo(tn.affectedBy.getElementByLogicalIndex(i))
 		# END make connection assertion
 
 		# ATTRIBUTES AND UNDO
 		#######################
-		funcs = ( 	( "isLocked", "setLocked" ), ( "isKeyable", "setKeyable" ),
-					( "isCachingFlagSet", "setCaching" ), ( "isChannelBoxFlagSet", "setChannelBox" ) )
+		funcs = ( 	( "isLocked", "mrvsetLocked" ), ( "isKeyable", "mrvsetKeyable" ),
+					( "isCachingFlagSet", "mrvsetCaching" ), ( "isChannelBoxFlagSet", "mrvsetChannelBox" ) )
 
 		plugnames =( "t", "tx", "r","rx", "s", "sy" )
 		for p in plugnames:
@@ -152,7 +153,7 @@ class TestDataBase( unittest.TestCase ):
 				fset( oval )
 
 				# SPECIAL HANDLING as things cannot be uncached
-				if setname == "setCaching":
+				if setname == "mrvsetCaching":
 					continue
 
 				assert fget() == oval 
@@ -172,21 +173,21 @@ class TestDataBase( unittest.TestCase ):
 		# ELEMENT ITERATION
 		matworld.evaluateNumElements( )
 		for elm in matworld:
-			assert elm.getParent( ) == matworld 
+			assert elm.mrvgetParent( ) == matworld 
 
 		translate = persp.translate
 
-		assert len( translate.getChildren() ) == translate.getNumChildren() 
+		assert len( translate.mrvgetChildren() ) == translate.getNumChildren() 
 
 		# CHILD ITERATION
-		for child in translate.getChildren( ):
-			assert child.getParent( ) == translate 
-		assert len( translate.getChildren() ) == 3 
+		for child in translate.mrvgetChildren( ):
+			assert child.mrvgetParent( ) == translate 
+		assert len( translate.mrvgetChildren() ) == 3 
 
 		# SUB PLUGS GENERAL METHOD
-		assert len( matworld ) == len( matworld.getSubPlugs() ) 
-		assert translate.numChildren() == len( translate.getSubPlugs() ) 
-		assert len( translate.getSubPlugs() ) == 3 
+		assert len( matworld ) == len( matworld.mrvgetSubPlugs() ) 
+		assert translate.numChildren() == len( translate.mrvgetSubPlugs() ) 
+		assert len( translate.mrvgetSubPlugs() ) == 3 
 
 
 		# ARRAY CONNECTIONS
@@ -194,30 +195,30 @@ class TestDataBase( unittest.TestCase ):
 		objset = nt.createNode( "set1", "objectSet" )
 		partition = nt.createNode( "partition1", "partition" )
 		pma = nt.createNode( "plusMinusAverage1", "plusMinusAverage" )
-		destplug = persp.translate.connectToArray( pma.input3D, exclusive_connection = True )
+		destplug = persp.translate.mrvconnectToArray( pma.input3D, exclusive_connection = True )
 		assert persp.translate >= destplug 
 
 		# exclusive connection should return exisiting plug
-		assert persp.translate.connectToArray( pma.input3D, exclusive_connection = True ) == destplug 
+		assert persp.translate.mrvconnectToArray( pma.input3D, exclusive_connection = True ) == destplug 
 
 		# but newones can also be created
-		assert persp.translate.connectToArray( pma.input3D, exclusive_connection = False ) != destplug 
-		#assert objset.partition.connectToArray( partition.sets, exclusive_connection = False ) != destplug 
+		assert persp.translate.mrvconnectToArray( pma.input3D, exclusive_connection = False ) != destplug 
+		#assert objset.partition.mrvconnectToArray( partition.sets, exclusive_connection = False ) != destplug 
 
 
 		# assure the standin classes are there - otherwise my list there would
 		# bind to the standins as the classes have not been created yet
 		plugs = [ matworld, translate ]
-		for plug in plugs: plug.getAttribute()
+		for plug in plugs: plug.mrvgetWrappedAttribute()
 
 		# CHECK ATTRIBUTES and NODES
 		for plug,attrtype in zip( plugs, [ nt.TypedAttribute, nt.NumericAttribute ] ):
-			attr = plug.getAttribute( )
+			attr = plug.mrvgetWrappedAttribute( )
 
 			assert isinstance( attr, nt.Attribute ) 
 			assert isinstance( attr, attrtype ) 
 
-			node = plug.getNode()
+			node = plug.mrvgetWrappedNode()
 			assert isinstance( node, nt.Node ) 
 			assert node == persp 
 
@@ -225,12 +226,12 @@ class TestDataBase( unittest.TestCase ):
 		##############
 		cmds.undoInfo( swf = 1 )
 		cam = nt.createNode( "myTrans", "transform" )
-		testdb = [  ( cam.visibility, "Bool", True, False ),
-					( cam.translate['tx'], "Double", 0.0, 2.0 ) ]
+		testdb = [ ( cam.visibility, "Bool", True, False ),
+					( cam.tx, "Double", 0.0, 2.0 ) ]
 		# TODO: Add all missing types !
 		for plug, typename, initialval, targetval in testdb:
 			getattrfunc = getattr( plug, "as"+typename )
-			setattrfunc = getattr( plug, "set"+typename )
+			setattrfunc = getattr( plug, "mrvset"+typename )
 
 			assert getattrfunc() == initialval 
 			setattrfunc( targetval )
@@ -241,18 +242,180 @@ class TestDataBase( unittest.TestCase ):
 			assert getattrfunc() == targetval 
 		# END for each tuple in testdb
 		
+		
+		# TEST EVERYTHING
+		#################
+		# This part has been written to be very sure every customized method gets 
+		# called at least once. I don't trust my 'old'  tests, although they do 
+		# something and are valuable to the testing framework. 
+		nwnode = nt.Network()
+		persp.msg.mrvct(nwnode.affectedBy.getElementByLogicalIndex(0))
+		front.msg.mrvct(nwnode.affectedBy.getElementByLogicalIndex(1))
+		
+		t = persp.translate
+		tx = persp.tx
+		wm = persp.wm
+		a = nwnode.affectedBy
+		
+		a.evaluateNumElements()
+		assert len(wm) == 1 and len(a) == 2
+		assert isinstance(iter(wm).next(), api.MPlug)
+		assert len(list(a)) == 2
+		
+		# test str/repr
+		assert str(wm) != str(a)
+		assert repr(wm) != str(wm)
+		assert wm != a
+		
+		# is it really necessary to apply custom handling here ? Check __eq__ method
+		# test comparison
+		assert a[0] == a[0]
+		assert a[0] != a[1]
+		
+		# mrvgetParent 
+		assert tx.mrvgetParent() == t
+		assert a[0].mrvgetParent() == a
+		
+		# mrvgetChildren
+		assert len(a[0].mrvgetChildren()) == 0
+		assert len(t.mrvgetChildren()) == 3
+		
+		# mrvchildByName
+		assert t.mrvgetChildByName('tx') == tx
+		self.failUnlessRaises(TypeError, tx.mrvgetChildByName, 'something')
+		self.failUnlessRaises(AttributeError, t.mrvgetChildByName, 'doesntexist')
+		
+		# mrvgetSubPlugs
+		assert len(t.mrvgetSubPlugs()) == 3
+		assert len(a.mrvgetSubPlugs()) == 2
+		assert len(tx.mrvgetSubPlugs()) == 0
+		
+		# mrvsetLocked
+		tx.mrvsetLocked(1)
+		assert tx.isLocked()
+		tx.mrvsetLocked(0)
+		assert not tx.isLocked()
+		
+		# mrvsetKeyable
+		tx.mrvsetKeyable(0)
+		assert not tx.isKeyable()
+		tx.mrvsetKeyable(1)
+		assert tx.isKeyable()
+		
+		# mrvsetCaching
+		tx.mrvsetCaching(0)
+		#assert not tx.isCachingFlagSet()	# for some reason, the caching cannot be changed here
+		tx.mrvsetCaching(1)
+		assert tx.isCachingFlagSet() == 1
+		
+		# mrvsetChannelBox
+		tx.mrvsetChannelBox(0)
+		assert not tx.isChannelBoxFlagSet()
+		tx.mrvsetChannelBox(1)
+		assert tx.isChannelBoxFlagSet() == 1
+		
+		# mrvconnectMultiToMulti
+		# is tested elsewhere
+		
+		# connectTo
+		self.failUnlessRaises(RuntimeError, persp.msg.mrvconnectTo, a[1], force=False)	# already connected
+		front.msg.mrvconnectTo(a[1], force=False)		# already connected
+		front.msg.mrvconnectTo(a[0], force=True)		# force breaks connections
+		persp.msg.mrvconnectTo(a[0])					# default is force
+		
+		# mrvconnectToArray
+		# sufficiently tested ( -> st )
+		
+		# mrvdisconnect
+		# st
+		
+		# mrvdisconnectInput
+		# st
+		
+		# mrvdisconnectOutputs
+		# st
+		
+		# mrvdisconnectFrom
+		# st
+		
+		# mrvdisconnectNode
+		# st
+		
+		# mrvhaveConnection
+		assert api.MPlug.mrvhaveConnection(front.msg, a[1]) and api.MPlug.mrvhaveConnection(a[1], front.msg)
+		assert not api.MPlug.mrvhaveConnection(persp.msg, a[1]) and not api.MPlug.mrvhaveConnection(a[1], persp.msg)
+		
+		# mrvisConnectedTo
+		# st
+		
+		# mrvgetOutputs
+		assert len(front.msg.mrvgetOutputs()) == 1 and front.msg.mrvgetOutputs()[0] == a[1]
+		assert len(a[0].mrvgetOutputs()) == 0
+		
+		# mrvgetOutput
+		# st
+		
+		# mrvgetInputs
+		assert len(a.mrvgetInputs()) == 2
+		assert len(a[1].mrvgetInputs()) == 1
+		
+		
+		# mrviterGraph 
+		# st
+		
+		# mrviterInputGraph
+		# st
+		
+		# mrviterOutputGraph
+		# st
+		
+		# mrvgetInput
+		# st
+		
+		# mrvgetConnections
+		assert len(front.msg.mrvgetConnections()) == 2
+		assert len(a[1].mrvgetConnections()) == 2
+		
+		
+		# mrvgetDependencyInfo
+		m = nt.Mesh()
+		assert len(m.outMesh.mrvaffected())
+		assert m.outMesh.mrvaffected() == m.outMesh.mrvgetDependencyInfo(by=True)
+		assert isinstance(m.inMesh.mrvaffects(), list)	# no affected items for some reason
+		assert m.inMesh.mrvaffects() == m.inMesh.mrvgetDependencyInfo(by=False)
+		
+		# mrvgetNextLogicalIndex|plug
+		assert a.mrvgetNextLogicalIndex() == 2
+		assert a.mrvgetNextLogicalPlug().logicalIndex()
+		
+		# mrvgetWrappedAttribute
+		assert isinstance(a.mrvgetWrappedAttribute(), nt.Attribute)
+		
+		# mrvgetWrappedNode
+		assert isinstance(a.mrvgetWrappedNode(), nt.Node)
+		
+		# mrvasData
+		nt.PolyCube().output.mrvconnectTo(m.inMesh)	# need data here
+		assert isinstance(m.outMesh.mrvasData(), nt.Data)
+		
+		# mrvgetFullyQualifiedName
+		assert a.mrvgetFullyQualifiedName() != a.partialName()
+		
+		
+		
+		
 	@with_scene('empty.ma')
 	def test_plug_itertools(self):
 		p = nt.Node('persp')
-		( p.tx > p.ty ) > p.tz
+		p.tx.mrvconnectTo(p.ty).mrvconnectTo(p.tz)
 		
 		# check future
-		pxf = list(p.tx.iterOutputGraph())
+		pxf = list(p.tx.mrviterOutputGraph())
 		assert len(pxf) == 3
 		assert pxf[0] == p.tx and pxf[1] == p.ty and pxf[2] == p.tz
 		
 		# check history
-		pzh = list(p.tz.iterInputGraph())
+		pzh = list(p.tz.mrviterInputGraph())
 		assert len(pzh) == 3
 		assert pzh[0] == p.tz and pzh[1] == p.ty and pzh[2] == p.tx 
 
@@ -261,16 +424,16 @@ class TestDataBase( unittest.TestCase ):
 		matplug = node.getPlug( "worldMatrix" )
 		assert not matplug.isNull() 
 		assert matplug.isArray() 
-		matplug.evaluateNumElements()			# to assure we have something !
+		matplug.evaluateNumElements()							# to assure we have something !
 
 		assert matplug.getName() == "persp.worldMatrix" 
 		assert len( matplug ) 
 
 		matelm = matplug[0]
-		assert matelm == matplug[0.0]		# get by logical index
+		assert matelm == matplug.elementByLogicalIndex(0)		# get by logical index
 		assert not matelm.isNull() 
 
-		matdata = matelm.asData( )
+		matdata = matelm.mrvasData( )
 		assert isinstance( matdata, nt.MatrixData ) 
 		mmatrix = matdata.matrix( )
 		assert isinstance( mmatrix, api.MMatrix ) 

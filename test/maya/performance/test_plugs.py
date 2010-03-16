@@ -24,7 +24,7 @@ class TestPlugPerformance( unittest.TestCase ):
 		
 		def pir(array, range_iter):
 			for i in range_iter:
-				yield array.getByLogicalIndex(i)
+				yield array.getElementByLogicalIndex(i)
 		# END plugs in range utility
 		
 		# single connection
@@ -38,20 +38,20 @@ class TestPlugPerformance( unittest.TestCase ):
 		
 		# multiconnect 
 		st = time.time()
-		api.MPlug.connectMultiToMulti(izip(pir(sn2.a, r), pir(tn2.ab, r)), force=False)
+		api.MPlug.mrvconnectMultiToMulti(izip(pir(sn2.a, r), pir(tn2.ab, r)), force=False)
 		elapsed = time.time() - st
 		print >> sys.stderr, "Multi-Connected %i different multi-plugs in %f s ( %f / s )" % (len(r), elapsed, len(r) / elapsed)
 		
 		# multiconnect with force worstcase
 		st = time.time()
-		api.MPlug.connectMultiToMulti(izip(pir(sn.a, r), pir(tn2.ab, r)), force=True)
+		api.MPlug.mrvconnectMultiToMulti(izip(pir(sn.a, r), pir(tn2.ab, r)), force=True)
 		elapsed = time.time() - st
 		print >> sys.stderr, "Multi-Connected %i different multi-plugs with worstcase FORCE in %f s ( %f / s )" % (len(r), elapsed, len(r) / elapsed)
 		
 		# multiconnect with force bestcase
 		r = range(len(r), len(r)+len(r))
 		st = time.time()
-		api.MPlug.connectMultiToMulti(izip(pir(sn3.a, r), pir(tn3.ab, r)), force=True)
+		api.MPlug.mrvconnectMultiToMulti(izip(pir(sn3.a, r), pir(tn3.ab, r)), force=True)
 		elapsed = time.time() - st
 		print >> sys.stderr, "Multi-Connected %i different multi-plugs with bestcase FORCE in %f s ( %f / s )" % (len(r), elapsed, len(r) / elapsed)
 	
@@ -96,7 +96,7 @@ class TestPlugPerformance( unittest.TestCase ):
 
 		# CONNECT MULTI PLUGS
 		######################
-		multifunc = lambda i: s1msg.getByLogicalIndex( i ) >> s2msg.getByLogicalIndex( i )
+		multifunc = lambda i: s1msg.getElementByLogicalIndex( i ) >> s2msg.getElementByLogicalIndex( i )
 		measurePlugConnection( "MULTI PLUG Connected", multifunc, conlist )
 
 		# CONNECT SINGLE PLUGS
