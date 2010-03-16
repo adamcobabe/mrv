@@ -224,8 +224,13 @@ def init_system( ):
 
 	# FINALLY INIALIZE MAYA TO TO MAKE USE OF MAYA STANDALONE
 	###########################################################
-	pyversionstr = str( pymayaversion[0] ) + "." + str( pymayaversion[1] )
-	mayapylibpath = os.path.join( mayalocation, "lib/python" + pyversionstr + "/site-packages" )
+	if os.name == "nt":
+		osspecific = os.path.join("Python", "lib")
+	else:
+		pyversionstr = str( pymayaversion[0] ) + "." + str( pymayaversion[1] )
+		osspecific = os.path.join("lib", "python" + pyversionstr, "site-packages")
+		
+	mayapylibpath = os.path.join( mayalocation, osspecific, "site-packages" )
 	sys.path.append( mayapylibpath )
 
 	# NOTE: Perhaps one should add an LD library path check on linux  - without it the modules will not load
