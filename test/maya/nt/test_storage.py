@@ -161,7 +161,7 @@ class TestStorage( unittest.TestCase ):
 			persp.message.mrvconnectTo(nextplug)
 			assert persp.message.mrvisConnectedTo(nextplug) 
 		assert len( conarray ) == 10 
-		assert len( persp.message.mrvp_outputs ) == 10 
+		assert len( persp.message.mrvgetOutputs() ) == 10 
 
 	def test_storageSetHandling( self ):
 		bmaya.Scene.new( force = True )

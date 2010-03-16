@@ -279,7 +279,7 @@ class TestTransform( unittest.TestCase ):
 		assert not p.tz.mrvisConnectedTo(p.ty)
 		
 		p.tx.mrvdisconnectFrom(p.ty).mrvdisconnectFrom(p.tz)
-		assert len(p.ty.mrvp_inputs) + len(p.tz.mrvgetInputs()) == 0
+		assert len(p.ty.mrvgetInputs()) + len(p.tz.mrvgetInputs()) == 0
 		assert p.tz.mrvgetInput().isNull()
 		
 		p.tx.mrvconnectTo(p.tz, force=False)

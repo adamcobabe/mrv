@@ -462,7 +462,7 @@ class MPlug( api.MPlug ):
 		mod = undo.DGModifier( )
 		for source, dest in iter_source_destination:
 			if force:
-				destinputplug = dest.mrvp_input
+				destinputplug = dest.mrvgetInput()
 				if not destinputplug.isNull():
 					if source == destinputplug:
 						continue
@@ -490,7 +490,7 @@ class MPlug( api.MPlug ):
 		# is destination already input-connected ? - disconnect it if required
 		# Optimization: We only care if force is specified. It will fail otherwise
 		if force:
-			destinputplug = destplug.mrvp_input
+			destinputplug = destplug.mrvgetInput()
 			if not destinputplug.isNull():
 				# handle possibly connected plugs
 				if self == destinputplug:		# is it us already ?
@@ -525,7 +525,7 @@ class MPlug( api.MPlug ):
 			if exclusive_connection:
 				arrayplug.evaluateNumElements( )
 				for delm in arrayplug:
-					if self == delm.mrvp_input:
+					if self == delm.mrvgetInput():
 						return delm
 					# END if self == elm plug
 				# END for each elemnt in destplug
@@ -550,7 +550,7 @@ class MPlug( api.MPlug ):
 	def mrvdisconnectInput( self ):
 		"""Disconnect the input connection if one exists
 		@return: self, allowing chained commands"""
-		inputplug = self.mrvp_input
+		inputplug = self.mrvgetInput()
 		if inputplug.isNull():
 			return self
 
@@ -590,7 +590,7 @@ class MPlug( api.MPlug ):
 	def mrvdisconnectNode( self, other ):
 		"""Disconnect this plug from the given node if they are connected
 		@param other: Node that will be completely disconnected from this plug"""
-		for p in self.mrvp_outputs:
+		for p in self.mrvgetOutputs():
 			if p.mrvgetWrappedNode() == other:
 				self.mrvdisconnectFrom(p)
 		# END for each plug in output
@@ -637,13 +637,13 @@ class MPlug( api.MPlug ):
 		if self.isArray():
 			self.evaluateNumElements()
 			for elm in self:
-				elminput = elm.mrvp_input
+				elminput = elm.mrvgetInput()
 				if elminput.isNull():
 					continue
 				out.append( elminput )
 			# END for each elm plug in sets
 		else:
-			inplug = self.mrvp_input
+			inplug = self.mrvgetInput()
 			if not inplug.isNull():
 				out.append( inplug )
 		# END array handling
@@ -790,15 +790,6 @@ class MPlug( api.MPlug ):
 	mrvsetMObject = _createUndoSetFunc( "MObject" )
 
 	#} END set data
-
-
-	#{ Properties
-	mrvp_outputs = property( mrvgetOutputs )
-	mrvp_output = property( mrvgetOutput )
-	mrvp_input = property( mrvgetInput )
-	mrvp_inputs = property( mrvgetInputs )
-	mrvp_connections = property( mrvgetConnections )
-	#} END properties
 
 	#{ Name Remapping
 	mrvctf = lambda self,other: self.mrvconnectTo( other, force=True )

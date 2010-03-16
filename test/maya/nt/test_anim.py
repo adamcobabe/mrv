@@ -21,7 +21,7 @@ class TestAnim( unittest.TestCase ):
 		assert anim_curve.getNumKeyframes() == 0
 		
 		# assure we are connected to the plug, for curiousity
-		assert p.rx in anim_curve.output.mrvp_outputs
+		assert p.rx in anim_curve.output.mrvgetOutputs()
 		assert p.ry not in anim_curve.output.mrvgetOutputs()
 		
 		# set key

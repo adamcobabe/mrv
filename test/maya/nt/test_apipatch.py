@@ -48,14 +48,14 @@ class TestDataBase( unittest.TestCase ):
 		persp.translate.mrvconnectTo(front.translate, force=True)
 
 		assert persp.translate.mrvisConnectedTo(front.translate) 	# mrvisConnectedTo
-		assert persp.translate.mrvp_input.isNull( ) 
+		assert persp.translate.mrvgetInput().isNull( ) 
 		cmds.undo( )
 		assert not persp.translate.mrvisConnectedTo( front.translate ) 
 		cmds.redo( )
-		assert front.translate in persp.translate.mrvp_outputs 
+		assert front.translate in persp.translate.mrvgetOutputs() 
 
 		# check p_output
-		assert persp.translate.mrvp_output == front.translate 
+		assert persp.translate.mrvgetOutput() == front.translate 
 		self.failUnlessRaises( IndexError, persp.rotate.mrvgetOutput )
 
 		# CHECK CONNECTION FORCING
@@ -78,7 +78,7 @@ class TestDataBase( unittest.TestCase ):
 
 		# disconnect output
 		persp.t.mrvdisconnectOutputs( )
-		assert len( persp.translate.mrvp_outputs ) == 0 
+		assert len( persp.translate.mrvgetOutputs() ) == 0 
 
 		cmds.undo()
 		assert persp.t.mrvisConnectedTo( front.translate ) 
