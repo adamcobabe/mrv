@@ -26,7 +26,7 @@ class ObjectSet:
 	
 	def getPartitions( self ):
 		"""@return: list of Nodes of partitions the entity is set is part of"""
-		return [ p.getNode() for p in self.partition.p_outputs ]
+		return [ p.mgetWrappedNode() for p in self.partition.mgetOutputs() ]
 		 
 	
 	@undoable 	
@@ -51,14 +51,14 @@ class ObjectSet:
 			
 		if mode == self.kRemove:
 			for part in prts:
-				self.partition.disconnectNode( part )
+				self.partition.mdisconnectNode( part )
 			return self
 		# END remove mode 
 				
 		if mode == self.kAdd:
 			# only allow to be connected once 
 			for part in prts:
-				self.partition.connectToArray( part.sets, exclusive_connection = True )
+				self.partition.mconnectToArray( part.sets, exclusive_connection = True )
 			# END for each partition to be added
 			return self
 		# END add mode 
@@ -598,8 +598,8 @@ class Partition:
 		@note: have to filter the members as there might be non-set connections 
 		in referenced environments"""
 		out = list()
-		for plug in self.sets.getInputs():
-			node = plug.getNode()
+		for plug in self.sets.mgetInputs():
+			node = plug.mgetWrappedNode()
 			if not node.hasFn( api.MFn.kSet ):
 				continue
 			out.append( node )
@@ -618,7 +618,7 @@ class Partition:
 	
 	#{ Protocols 
 	def __len__(self):
-		return len(self.sets.getInputs())
+		return len(self.sets.mgetInputs())
 		
 	def __iter__(self):
 		for s in self.getMembers():

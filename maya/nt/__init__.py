@@ -35,7 +35,7 @@ if not hasattr( sys,"_dataTypeIdToTrackingDictMap" ):
 def registerPluginDataTrackingDict( dataTypeID, trackingDict ):
 	"""Using the given dataTypeID and tracking dict, nt.MFnPluginData can return
 	self pointers belonging to an MPxPluginData instance as returned by MFnPluginData.
-	Call this method to register your PluginData information to the byronimo system.
+	Call this method to register your PluginData information to the mayarv system.
 	Afterwards you can extract the self pointer using plug.asMObject.getData()"""
 	sys._dataTypeIdToTrackingDictMap[ dataTypeID.id() ] = trackingDict
 

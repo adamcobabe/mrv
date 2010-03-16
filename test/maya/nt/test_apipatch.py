@@ -31,6 +31,7 @@ class TestDataBase( unittest.TestCase ):
 		front	 = nt.Node( "front" )
 		side	 = nt.Node( "side" )
 		matworld = persp.worldMatrix
+		assert isinstance(matworld.mgetFullyQualifiedName(), basestring)
 
 		str( matworld )
 		repr( matworld )
@@ -38,66 +39,66 @@ class TestDataBase( unittest.TestCase ):
 		# CONNECTIONS
 		#######################
 		# CHECK COMPOUND ACCESS
-		tx = persp.translate['tx']
+		tx = persp.translate.mgetChildByName('tx')
 		
 		# can access attributes twice
 		persp.translate
 
 		# DO CONNECTIONS ( test undo/redo )
-		persp.translate >> front.translate
+		persp.translate.mconnectTo(front.translate, force=True)
 
-		assert persp.translate & front.translate 	# isConnectedTo
-		assert persp.translate.p_input.isNull( ) 
+		assert persp.translate.misConnectedTo(front.translate) 	# misConnectedTo
+		assert persp.translate.mgetInput().isNull( ) 
 		cmds.undo( )
-		assert not persp.translate.isConnectedTo( front.translate ) 
+		assert not persp.translate.misConnectedTo( front.translate ) 
 		cmds.redo( )
-		assert front.translate in persp.translate.p_outputs 
+		assert front.translate in persp.translate.mgetOutputs() 
 
 		# check p_output
-		assert persp.translate.p_output == front.translate 
-		self.failUnlessRaises( IndexError, persp.rotate.getOutput )
+		assert persp.translate.mgetOutput() == front.translate 
+		self.failUnlessRaises( IndexError, persp.rotate.mgetOutput )
 
 		# CHECK CONNECTION FORCING
-		persp.translate >  front.translate 			# already connected
-		self.failUnlessRaises( RuntimeError, persp.scale.__gt__, front.translate )# lhs > rhs
+		persp.translate.mconnectTo(front.translate, force=False) 			# already connected
+		self.failUnlessRaises( RuntimeError, persp.scale.mconnectTo, front.translate, force=False )# lhs > rhs
 
 		# overwrite connection
-		side.translate >> front.translate
-		assert side.translate >= front.translate 
+		side.translate.mconnectTo(front.translate)	# force default True
+		assert side.translate.misConnectedTo(front.translate) 
 
 		# undo - old connection should be back
 		cmds.undo()
-		assert persp.translate >= front.translate 
+		assert persp.translate.misConnectedTo(front.translate) 
 
 		# disconnect input
-		front.translate.disconnectInput()
-		assert not persp.translate >= front.translate 
+		front.translate.mdisconnectInput()
+		assert not persp.translate.misConnectedTo(front.translate) 
 
 		cmds.undo()
 
 		# disconnect output
-		persp.t.disconnectOutputs( )
-		assert len( persp.translate.p_outputs ) == 0 
+		persp.t.mdisconnectOutputs( )
+		assert len( persp.translate.mgetOutputs() ) == 0 
 
 		cmds.undo()
-		assert persp.t.isConnectedTo( front.translate ) 
+		assert persp.t.misConnectedTo( front.translate ) 
 
 		# disconnect from
-		persp.t | front.translate
-		assert not persp.t & front.t 
+		persp.t.mdisconnectFrom(front.translate)
+		assert not persp.t.misConnectedTo(front.t) 
 
 		cmds.undo()
-		assert persp.t >= front.t 
+		assert persp.t.misConnectedTo(front.t) 
 
 		# COMPARISONS
 		assert persp.t != front.t 
-		assert persp.t['tx'] != persp.t['ty'] 
+		assert persp.t.mgetChildByName('tx') != persp.t.mgetChildByName('ty') 
 
 		# affected plugs
-		affectedPlugs = persp.t.affects( )
+		affectedPlugs = persp.t.maffects( )
 		assert len( affectedPlugs ) > 1  
 
-		affectedPlugs = persp.t.affected( )
+		affectedPlugs = persp.t.maffected( )
 		assert len( affectedPlugs ) > 1  
 		
 		
@@ -108,40 +109,40 @@ class TestDataBase( unittest.TestCase ):
 		
 		def pir(array_plug, range_iter):
 			for index in range_iter:
-				yield array_plug.getByLogicalIndex(index)
+				yield array_plug.getElementByLogicalIndex(index)
 			# END for each item in range
 		# END plugs-in-range
 		
 		# connect 10 to 10 
 		r = range(10)
-		api.MPlug.connectMultiToMulti(	izip(pir(sn.a, r), pir(tn.affectedBy, r)), force=False) 
+		api.MPlug.mconnectMultiToMulti(	izip(pir(sn.a, r), pir(tn.affectedBy, r)), force=False) 
 		for i in r:
-			assert sn.a.getByLogicalIndex(i).isConnectedTo(tn.affectedBy.getByLogicalIndex(i))
+			assert sn.a.getElementByLogicalIndex(i).misConnectedTo(tn.affectedBy.getElementByLogicalIndex(i))
 		# END make connection assertion
 		
 		# connection of overlapping range fails without force
 		r = range(5, 15)
-		self.failUnlessRaises(RuntimeError, api.MPlug.connectMultiToMulti, izip(pir(sn2.a, r), pir(tn.affectedBy, r)), force=False)
+		self.failUnlessRaises(RuntimeError, api.MPlug.mconnectMultiToMulti, izip(pir(sn2.a, r), pir(tn.affectedBy, r)), force=False)
 		
 		# there no connection should have worked ( its atomic )
 		# hence slot 10 is free
-		persp.tx > tn.affectedBy.getByLogicalIndex(10)
+		persp.tx > tn.affectedBy.getElementByLogicalIndex(10)
 		
 		# force connection works
-		api.MPlug.connectMultiToMulti(izip(pir(sn2.a, r), pir(tn.affectedBy, r)), force=True)
+		api.MPlug.mconnectMultiToMulti(izip(pir(sn2.a, r), pir(tn.affectedBy, r)), force=True)
 		
 		for i in r:
-			assert sn2.a.getByLogicalIndex(i).isConnectedTo(tn.affectedBy.getByLogicalIndex(i))
+			assert sn2.a.getElementByLogicalIndex(i).misConnectedTo(tn.affectedBy.getElementByLogicalIndex(i))
 		# END make connection assertion
 
 		# ATTRIBUTES AND UNDO
 		#######################
-		funcs = ( 	( "isLocked", "setLocked" ), ( "isKeyable", "setKeyable" ),
-					( "isCachingFlagSet", "setCaching" ), ( "isChannelBoxFlagSet", "setChannelBox" ) )
+		funcs = ( 	( "isLocked", "msetLocked" ), ( "isKeyable", "msetKeyable" ),
+					( "isCachingFlagSet", "msetCaching" ), ( "isChannelBoxFlagSet", "msetChannelBox" ) )
 
 		plugnames =( "t", "tx", "r","rx", "s", "sy" )
 		for p in plugnames:
-			plug = getattr( persp, p )
+			plug = persp.findPlug(p)
 
 			for ( getname, setname ) in funcs:
 				fget = getattr( plug, getname )
@@ -152,7 +153,7 @@ class TestDataBase( unittest.TestCase ):
 				fset( oval )
 
 				# SPECIAL HANDLING as things cannot be uncached
-				if setname == "setCaching":
+				if setname == "msetCaching":
 					continue
 
 				assert fget() == oval 
@@ -172,21 +173,21 @@ class TestDataBase( unittest.TestCase ):
 		# ELEMENT ITERATION
 		matworld.evaluateNumElements( )
 		for elm in matworld:
-			assert elm.getParent( ) == matworld 
+			assert elm.mgetParent( ) == matworld 
 
 		translate = persp.translate
 
-		assert len( translate.getChildren() ) == translate.getNumChildren() 
+		assert len( translate.mgetChildren() ) == translate.getNumChildren() 
 
 		# CHILD ITERATION
-		for child in translate.getChildren( ):
-			assert child.getParent( ) == translate 
-		assert len( translate.getChildren() ) == 3 
+		for child in translate.mgetChildren( ):
+			assert child.mgetParent( ) == translate 
+		assert len( translate.mgetChildren() ) == 3 
 
 		# SUB PLUGS GENERAL METHOD
-		assert len( matworld ) == len( matworld.getSubPlugs() ) 
-		assert translate.numChildren() == len( translate.getSubPlugs() ) 
-		assert len( translate.getSubPlugs() ) == 3 
+		assert len( matworld ) == len( matworld.mgetSubPlugs() ) 
+		assert translate.numChildren() == len( translate.mgetSubPlugs() ) 
+		assert len( translate.mgetSubPlugs() ) == 3 
 
 
 		# ARRAY CONNECTIONS
@@ -194,30 +195,30 @@ class TestDataBase( unittest.TestCase ):
 		objset = nt.createNode( "set1", "objectSet" )
 		partition = nt.createNode( "partition1", "partition" )
 		pma = nt.createNode( "plusMinusAverage1", "plusMinusAverage" )
-		destplug = persp.translate.connectToArray( pma.input3D, exclusive_connection = True )
-		assert persp.translate >= destplug 
+		destplug = persp.translate.mconnectToArray( pma.input3D, exclusive_connection = True )
+		assert persp.translate.misConnectedTo(destplug) 
 
 		# exclusive connection should return exisiting plug
-		assert persp.translate.connectToArray( pma.input3D, exclusive_connection = True ) == destplug 
+		assert persp.translate.mconnectToArray( pma.input3D, exclusive_connection = True ) == destplug 
 
 		# but newones can also be created
-		assert persp.translate.connectToArray( pma.input3D, exclusive_connection = False ) != destplug 
-		#assert objset.partition.connectToArray( partition.sets, exclusive_connection = False ) != destplug 
+		assert persp.translate.mconnectToArray( pma.input3D, exclusive_connection = False ) != destplug 
+		#assert objset.partition.mconnectToArray( partition.sets, exclusive_connection = False ) != destplug 
 
 
 		# assure the standin classes are there - otherwise my list there would
 		# bind to the standins as the classes have not been created yet
 		plugs = [ matworld, translate ]
-		for plug in plugs: plug.getAttribute()
+		for plug in plugs: plug.mgetWrappedAttribute()
 
 		# CHECK ATTRIBUTES and NODES
 		for plug,attrtype in zip( plugs, [ nt.TypedAttribute, nt.NumericAttribute ] ):
-			attr = plug.getAttribute( )
+			attr = plug.mgetWrappedAttribute( )
 
 			assert isinstance( attr, nt.Attribute ) 
 			assert isinstance( attr, attrtype ) 
 
-			node = plug.getNode()
+			node = plug.mgetWrappedNode()
 			assert isinstance( node, nt.Node ) 
 			assert node == persp 
 
@@ -225,12 +226,12 @@ class TestDataBase( unittest.TestCase ):
 		##############
 		cmds.undoInfo( swf = 1 )
 		cam = nt.createNode( "myTrans", "transform" )
-		testdb = [  ( cam.visibility, "Bool", True, False ),
-					( cam.translate['tx'], "Double", 0.0, 2.0 ) ]
+		testdb = [ ( cam.visibility, "Bool", True, False ),
+					( cam.tx, "Double", 0.0, 2.0 ) ]
 		# TODO: Add all missing types !
 		for plug, typename, initialval, targetval in testdb:
 			getattrfunc = getattr( plug, "as"+typename )
-			setattrfunc = getattr( plug, "set"+typename )
+			setattrfunc = getattr( plug, "mset"+typename )
 
 			assert getattrfunc() == initialval 
 			setattrfunc( targetval )
@@ -241,18 +242,177 @@ class TestDataBase( unittest.TestCase ):
 			assert getattrfunc() == targetval 
 		# END for each tuple in testdb
 		
+		
+		# TEST EVERYTHING
+		#################
+		# This part has been written to be very sure every customized method gets 
+		# called at least once. I don't trust my 'old'  tests, although they do 
+		# something and are valuable to the testing framework. 
+		nwnode = nt.Network()
+		persp.msg.mct(nwnode.affectedBy.getElementByLogicalIndex(0))
+		front.msg.mct(nwnode.affectedBy.getElementByLogicalIndex(1))
+		
+		t = persp.translate
+		tx = persp.tx
+		wm = persp.wm
+		a = nwnode.affectedBy
+		
+		a.evaluateNumElements()
+		assert len(wm) == 1 and len(a) == 2
+		assert isinstance(iter(wm).next(), api.MPlug)
+		assert len(list(a)) == 2
+		
+		# test str/repr
+		assert str(wm) != str(a)
+		assert repr(wm) != str(wm)
+		assert wm != a
+		
+		# is it really necessary to apply custom handling here ? Check __eq__ method
+		# test comparison
+		assert a[0] == a[0]
+		assert a[0] != a[1]
+		
+		# mgetParent 
+		assert tx.mgetParent() == t
+		assert a[0].mgetParent() == a
+		
+		# mgetChildren
+		assert len(a[0].mgetChildren()) == 0
+		assert len(t.mgetChildren()) == 3
+		
+		# mchildByName
+		assert t.mgetChildByName('tx') == tx
+		self.failUnlessRaises(TypeError, tx.mgetChildByName, 'something')
+		self.failUnlessRaises(AttributeError, t.mgetChildByName, 'doesntexist')
+		
+		# mgetSubPlugs
+		assert len(t.mgetSubPlugs()) == 3
+		assert len(a.mgetSubPlugs()) == 2
+		assert len(tx.mgetSubPlugs()) == 0
+		
+		# msetLocked
+		tx.msetLocked(1)
+		assert tx.isLocked()
+		tx.msetLocked(0)
+		assert not tx.isLocked()
+		
+		# msetKeyable
+		tx.msetKeyable(0)
+		assert not tx.isKeyable()
+		tx.msetKeyable(1)
+		assert tx.isKeyable()
+		
+		# msetCaching
+		tx.msetCaching(0)
+		#assert not tx.isCachingFlagSet()	# for some reason, the caching cannot be changed here
+		tx.msetCaching(1)
+		assert tx.isCachingFlagSet() == 1
+		
+		# msetChannelBox
+		tx.msetChannelBox(0)
+		assert not tx.isChannelBoxFlagSet()
+		tx.msetChannelBox(1)
+		assert tx.isChannelBoxFlagSet() == 1
+		
+		# mconnectMultiToMulti
+		# is tested elsewhere
+		
+		# connectTo
+		self.failUnlessRaises(RuntimeError, persp.msg.mconnectTo, a[1], force=False)	# already connected
+		front.msg.mconnectTo(a[1], force=False)		# already connected
+		front.msg.mconnectTo(a[0], force=True)		# force breaks connections
+		persp.msg.mconnectTo(a[0])					# default is force
+		
+		# mconnectToArray
+		# sufficiently tested ( -> st )
+		
+		# mdisconnect
+		# st
+		
+		# mdisconnectInput
+		# st
+		
+		# mdisconnectOutputs
+		# st
+		
+		# mdisconnectFrom
+		# st
+		
+		# mdisconnectNode
+		# st
+		
+		# mhaveConnection
+		assert api.MPlug.mhaveConnection(front.msg, a[1]) and api.MPlug.mhaveConnection(a[1], front.msg)
+		assert not api.MPlug.mhaveConnection(persp.msg, a[1]) and not api.MPlug.mhaveConnection(a[1], persp.msg)
+		
+		# misConnectedTo
+		# st
+		
+		# mgetOutputs
+		assert len(front.msg.mgetOutputs()) == 1 and front.msg.mgetOutputs()[0] == a[1]
+		assert len(a[0].mgetOutputs()) == 0
+		
+		# mgetOutput
+		# st
+		
+		# mgetInputs
+		assert len(a.mgetInputs()) == 2
+		assert len(a[1].mgetInputs()) == 1
+		
+		
+		# miterGraph 
+		# st
+		
+		# miterInputGraph
+		# st
+		
+		# miterOutputGraph
+		# st
+		
+		# mgetInput
+		# st
+		
+		# mgetConnections
+		assert len(front.msg.mgetConnections()) == 2
+		assert len(a[1].mgetConnections()) == 2
+		
+		
+		# mgetDependencyInfo
+		m = nt.Mesh()
+		assert len(m.outMesh.maffected())
+		assert m.outMesh.maffected() == m.outMesh.mgetDependencyInfo(by=True)
+		assert isinstance(m.inMesh.maffects(), list)	# no affected items for some reason
+		assert m.inMesh.maffects() == m.inMesh.mgetDependencyInfo(by=False)
+		
+		# mgetNextLogicalIndex|plug
+		assert a.mgetNextLogicalIndex() == 2
+		assert a.mgetNextLogicalPlug().logicalIndex()
+		
+		# mgetWrappedAttribute
+		assert isinstance(a.mgetWrappedAttribute(), nt.Attribute)
+		
+		# mgetWrappedNode
+		assert isinstance(a.mgetWrappedNode(), nt.Node)
+		
+		# masData
+		nt.PolyCube().output.mconnectTo(m.inMesh)	# need data here
+		assert isinstance(m.outMesh.masData(), nt.Data)
+		
+		# mgetFullyQualifiedName
+		assert a.mgetFullyQualifiedName() != a.partialName()
+		
 	@with_scene('empty.ma')
 	def test_plug_itertools(self):
 		p = nt.Node('persp')
-		( p.tx > p.ty ) > p.tz
+		p.tx.mconnectTo(p.ty).mconnectTo(p.tz)
 		
 		# check future
-		pxf = list(p.tx.iterOutputGraph())
+		pxf = list(p.tx.miterOutputGraph())
 		assert len(pxf) == 3
 		assert pxf[0] == p.tx and pxf[1] == p.ty and pxf[2] == p.tz
 		
 		# check history
-		pzh = list(p.tz.iterInputGraph())
+		pzh = list(p.tz.miterInputGraph())
 		assert len(pzh) == 3
 		assert pzh[0] == p.tz and pzh[1] == p.ty and pzh[2] == p.tx 
 
@@ -261,16 +421,16 @@ class TestDataBase( unittest.TestCase ):
 		matplug = node.getPlug( "worldMatrix" )
 		assert not matplug.isNull() 
 		assert matplug.isArray() 
-		matplug.evaluateNumElements()			# to assure we have something !
+		matplug.evaluateNumElements()							# to assure we have something !
 
 		assert matplug.getName() == "persp.worldMatrix" 
 		assert len( matplug ) 
 
 		matelm = matplug[0]
-		assert matelm == matplug[0.0]		# get by logical index
+		assert matelm == matplug.elementByLogicalIndex(0)		# get by logical index
 		assert not matelm.isNull() 
 
-		matdata = matelm.asData( )
+		matdata = matelm.masData( )
 		assert isinstance( matdata, nt.MatrixData ) 
 		mmatrix = matdata.matrix( )
 		assert isinstance( mmatrix, api.MMatrix ) 
@@ -278,9 +438,9 @@ class TestDataBase( unittest.TestCase ):
 	def test_matrix( self ):
 		tmat = api.MTransformationMatrix()
 
-		tmat.setScale( ( 2.0, 4.0, 6.0 ) )
+		tmat.msetScale( ( 2.0, 4.0, 6.0 ) )
 
-		s = tmat.getScale()
+		s = tmat.mgetScale()
 		assert s.x == 2.0 
 		assert s.y == 4.0 
 		assert s.z == 6.0 
@@ -288,8 +448,6 @@ class TestDataBase( unittest.TestCase ):
 		t = api.MVector( 1.0, 2.0, 3.0 )
 		tmat.setTranslation( t )
 		assert t == tmat.getTranslation( ) 
-
-		tmat.setRotate( ( 20, 40, 90, 1.0 ) )
 
 	def test_MPlugArray( self ):
 		node = nt.Node( "defaultRenderGlobals" )
@@ -333,31 +491,31 @@ class TestDataBase( unittest.TestCase ):
 		# test creation functions
 		node_list = list(sl)
 		nls = node_list[4:15]
-		for slsnodesgen, selfun in ((lambda : [str(n) for n in nls], api.MSelectionList.fromStrings),
-									(lambda : nls, api.MSelectionList.fromList),
-									(lambda : [(n, api.MObject()) for n in node_list[-5:] if isinstance(n, nt.DagNode)], api.MSelectionList.fromComponentList) ):
+		for slsnodesgen, selfun in ((lambda : [str(n) for n in nls], api.MSelectionList.mfromStrings),
+									(lambda : nls, api.MSelectionList.mfromList),
+									(lambda : [(n, api.MObject()) for n in node_list[-5:] if isinstance(n, nt.DagNode)], api.MSelectionList.mfromComponentList) ):
 			slsnodes = slsnodesgen()
 			sls = selfun(iter(slsnodes))
 			assert isinstance(sls, api.MSelectionList) and len(sls) == len(slsnodes) 
 		# END for each variant
 		
 		# from multiple
-		assert len(api.MSelectionList.fromMultiple(*nls)) == len(nls)
+		assert len(api.MSelectionList.mfromMultiple(*nls)) == len(nls)
 		
 		# from iter
-		assert len(api.MSelectionList.fromIter(iter(nls))) == len(nls)
+		assert len(api.MSelectionList.mfromIter(iter(nls))) == len(nls)
 		
 
 		# test conversion methods
-		assert list(sl) == sl.toList()
-		assert hasattr(sl.toIter(), 'next')
+		assert list(sl) == sl.mtoList()
+		assert hasattr(sl.mtoIter(), 'next')
 		
 		# test contains
 		dagnode = nt.Node("persp")
 		dgnode = nt.Node("time1")
 		plug = dgnode.o
 		
-		sls = api.MSelectionList.fromList((dagnode, dgnode, plug))
+		sls = api.MSelectionList.mfromList((dagnode, dgnode, plug))
 		assert len(sls) == 3
 		
 		nc = 0
@@ -367,20 +525,13 @@ class TestDataBase( unittest.TestCase ):
 		# END for each item
 		assert nc == len(sls)
 		
-		# access nodes by index
-		slitems = list()
-		for index in xrange(len(sl)):
-			slitems.append(sl[index])
-		# END for each index
-		assert slitems and slitems[-1] == sl[-1]
-		
 		# COMPONENT ITERATION
 		m = nt.Mesh()
 		nt.PolyCube().output > m.inMesh
 		sl = api.MSelectionList()
 		sl.add(m.getMDagPath())
 		sl.add(m.getMDagPath(), m.cf[:])
-		assert len(list(sl.iterComponents())) == 1
+		assert len(list(sl.miterComponents())) == 1
 		
 		
 		# PLUG ITERATION
@@ -389,10 +540,7 @@ class TestDataBase( unittest.TestCase ):
 		sl.add(p.getMDagPath())
 		sl.add(p.t)
 		sl.add(p.rx)
-		assert len(list(sl.iterPlugs())) == 2
-		
-		
-		
+		assert len(list(sl.miterPlugs())) == 2
 
 	def test_array_creation(self):
 		def assert_matches(ar, items):
@@ -405,15 +553,15 @@ class TestDataBase( unittest.TestCase ):
 		# test all random access types
 		def assert_creation(cls, items):
 			# from multiple
-			ar = cls.fromMultiple(*items)
+			ar = cls.mfromMultiple(*items)
 			assert_matches(ar, items)
 			
 			# from iter
-			ar = cls.fromIter(iter(items))
+			ar = cls.mfromIter(iter(items))
 			assert_matches(ar, items)
 			
 			# from list
-			ar = cls.fromList(items)
+			ar = cls.mfromList(items)
 			assert_matches(ar, items)
 			
 			# test iteration
@@ -456,8 +604,8 @@ class TestDataBase( unittest.TestCase ):
 
 	def test_intarray_creation(self):
 		# from range
-		self.failUnlessRaises(ValueError, api.MIntArray.fromRange, 3, 2)
-		self.failUnlessRaises(ValueError, api.MIntArray.fromRange, 3, -5)
-		ia = api.MIntArray.fromRange(2,4)
+		self.failUnlessRaises(ValueError, api.MIntArray.mfromRange, 3, 2)
+		self.failUnlessRaises(ValueError, api.MIntArray.mfromRange, 3, -5)
+		ia = api.MIntArray.mfromRange(2,4)
 		assert len(ia) == 2 and ia[0] == 2 and ia[1] == 3
 		

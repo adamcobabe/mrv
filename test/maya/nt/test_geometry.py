@@ -142,23 +142,23 @@ class TestGeometry( unittest.TestCase ):
 		# TEST TWEAK HANDLING
 		# make tweak
 		ofs = ( 1.0, 1.0, 1.0 )						# offset array
-		ptweak = p1.pnts.getByLogicalIndex( 0 )
-		ptweak['px'].setFloat( ofs[0] )
-		ptweak['py'].setFloat( ofs[1] )
-		ptweak['pz'].setFloat( ofs[2] )
+		ptweak = p1.pnts.getElementByLogicalIndex( 0 )
+		ptweak.mgetChildByName('px').msetFloat( ofs[0] )
+		ptweak.mgetChildByName('py').msetFloat( ofs[1] )
+		ptweak.mgetChildByName('pz').msetFloat( ofs[2] )
 
 		p1.resetTweaks( p1.eComponentType.vertex )
-		assert ptweak['px'].asFloat() == 0.0
-		assert ptweak['py'].asFloat() == 0.0
-		assert ptweak['pz'].asFloat() == 0.0
+		assert ptweak.mgetChildByName('px').asFloat() == 0.0
+		assert ptweak.mgetChildByName('py').asFloat() == 0.0
+		assert ptweak.mgetChildByName('pz').asFloat() == 0.0
 
-		puvtweak = p1.uvpt.getByLogicalIndex( 0 )
-		puvtweak['ux'].setFloat( ofs[0] )
-		puvtweak['uy'].setFloat( ofs[1] )
+		puvtweak = p1.uvpt.getElementByLogicalIndex( 0 )
+		puvtweak.mgetChildByName('ux').msetFloat( ofs[0] )
+		puvtweak.mgetChildByName('uy').msetFloat( ofs[1] )
 
 		p1.resetTweaks( p1.eComponentType.uv )
-		assert puvtweak['ux'].asFloat() == 0.0
-		assert puvtweak['uy'].asFloat() == 0.0
+		assert puvtweak.mgetChildByName('ux').asFloat() == 0.0
+		assert puvtweak.mgetChildByName('uy').asFloat() == 0.0
 
 
 
@@ -185,9 +185,9 @@ class TestGeometry( unittest.TestCase ):
 				# HISTORY CHECK
 				# assure tweak nodes have been created
 				if history_mode:
-					assert mesh.inMesh.p_input.getNode().getApiType() == tweaktype
+					assert mesh.inMesh.mgetInput().mgetWrappedNode().getApiType() == tweaktype
 				else:
-					assert mesh.inMesh.p_input.isNull()
+					assert mesh.inMesh.mgetInput().isNull()
 				# END history  check
 
 				# TODO: Check that the values are truly the same ( as keep_tweak_result is 1 )
@@ -206,7 +206,7 @@ class TestGeometry( unittest.TestCase ):
 	def test_mesh_components_and_iteration(self):
 		m = nt.Mesh()
 		pc = nt.PolyCube()
-		pc.output > m.inMesh
+		pc.output.mconnectTo(m.inMesh)
 		
 		assert len(m.getComponentAssignments()) == 0 and m.numVertices() == 8
 		
@@ -222,7 +222,7 @@ class TestGeometry( unittest.TestCase ):
 			# END handle index
 		# END check index helper
 		
-		converters = (lambda l: l, lambda l: iter(l), lambda l: api.MIntArray.fromList(l))
+		converters = (lambda l: l, lambda l: iter(l), lambda l: api.MIntArray.mfromList(l))
 		
 		
 		ec = m.eComponentType
@@ -238,7 +238,7 @@ class TestGeometry( unittest.TestCase ):
 		
 		# CONSTRAIN MIT USING COMPONENT
 		self.failUnlessRaises(ValueError, m.getComponent, 1)	# invalid arg type
-		vc = m.getComponent(ec.vertex).addElements(api.MIntArray.fromMultiple(1,2))
+		vc = m.getComponent(ec.vertex).addElements(api.MIntArray.mfromMultiple(1,2))
 		assert isinstance(vc, nt.SingleIndexedComponent)
 		
 		miv = m.iterComponents(ec.vertex, vc)

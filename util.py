@@ -62,7 +62,7 @@ def getPythonIndex( index, length ):
 	if index > -1: return index
 	return length + index			# yes, length be better 1 or more ;)
 
-def copyClsMembers( sourcecls, destcls, overwritePrefix = None, forbiddenMembers = [] ):
+def copyClsMembers( sourcecls, destcls, overwritePrefix = None, forbiddenMembers = list()):
 	"""Copy the members or sourcecls to destcls while ignoring member names in forbiddenMembers
 	It will only copy mebers of this class, not its base classes
 	@param sourcecls: class whose members should be copied

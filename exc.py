@@ -2,7 +2,7 @@
 """ Contains all exceptions used by the mayarv package in general """
 
 class MayaRVError( Exception ):
-	""" Base Class for all exceptions that the byronimo framework throws"""
+	""" Base Class for all exceptions that the mayarv framework throws"""
 	def __init__(self, *args, **kwargs):
 		self._message = ""
 		if args and isinstance(args[0], basestring):

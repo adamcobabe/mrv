@@ -23,8 +23,6 @@ import itertools
 import it
 
 
-
-
 def init_applyPatches( ):
 	"""Called by package __init__ method to finally apply the patch according to
 	the template classes
@@ -76,9 +74,6 @@ class Abstract:
 	as superclass """
 	pass
 
-############################
-#### Primitive Types   ####
-##########################
 
 #{ Primitive Types
 class TimeDistanceAngleBase( Abstract ):
@@ -196,7 +191,7 @@ class MMatrix( api.MMatrix, PatchMatrix ):
 class MFloatMatrix( api.MFloatMatrix, PatchMatrix ):
 	_length =4
 	scriptutil = api.MScriptUtil.getFloatArrayItem
-#
+
 class MTransformationMatrix( api.MTransformationMatrix, PatchMatrix ):
 	_length =4
 
@@ -211,79 +206,120 @@ class MTransformationMatrix( api.MTransformationMatrix, PatchMatrix ):
 		type.__setattr__( cls.__bases__[0], '__iter__', __iter__ )
 		return True
 
-	def getScale( self , space = api.MSpace.kTransform ):
+	def mgetScale( self , space = api.MSpace.kTransform ):
 		ms = api.MScriptUtil()
 		ms.createFromDouble( 1.0, 1.0, 1.0 )
 		p = ms.asDoublePtr()
-		self._api_getScale( p, space );
+		self.getScale( p, space );
 		return MVector( *( ms.getDoubleArrayItem (p, i) for i in range(3) ) )
 
-	def setScale( self, value, space = api.MSpace.kTransform ):
+	def msetScale( self, value, space = api.MSpace.kTransform ):
 		ms = api.MScriptUtil()
 		ms.createFromDouble( *value )
 		p = ms.asDoublePtr()
-		self._api_setScale ( p, space )
-
-	def getRotate(self):
-		return self.rotation()
-
-	def setRotate(self, v ):
-		self.setRotationQuaternion( v[0], v[1], v[2], v[3] )
+		self.setScale ( p, space )
 
 	def getTranslation( self, space = api.MSpace.kTransform ):
+		"""This patch is fully compatible to the default method"""
 		return self._api_getTranslation( space )
 
 	def setTranslation( self, vector, space = api.MSpace.kTransform ):
+		"""This patch is fully compatible to the default method"""
 		return self._api_setTranslation( vector, space )
 
-#}
-
-#############################
-#### BASIC 		Types   ####
-##########################
+#} END primitve types
 
 #{ Basic Types
-class MPlug( api.MPlug, iDagItem ):
-	""" Wrap a maya plug to assure we always get Nodes ( instead of MObjects )
-	By overridding many object methods, the access to plugs becomes very pythonic"""
-	# __slots__ = []  	 apparently it will always have a dict
+
+def _mplug_createUndoSetFunc( dataTypeId, getattroverride = None ):
+	"""Create a function setting a value with undo support
+	@param dataTypeId: string naming the datatype, like "Bool" - capitalization is
+	important
+	@note: if undo is globally disabled, we will resolve to implementing a faster
+	function instead as we do not store the previous value.
+	@note: to use the orinal method without undo, use api.MPlug.setX(your_plug, value)"""
+	# this binds the original setattr and getattr, not the patched one
+	getattrfunc = getattroverride
+	if not getattrfunc:
+		getattrfunc = getattr( api.MPlug, "as"+dataTypeId )
+	setattrfunc = getattr( api.MPlug, "set"+dataTypeId )
+
+	# YES, WE DUPLICATE CODE FOR SPEED
+	####################################
+	# Create actual functions
+	finalWrappedSetAttr = None
+	if dataTypeId == "MObject":
+		def wrappedSetAttr( self, data ):
+			# asMObject can fail instead of returning a null object !
+			try:
+				curdata = getattrfunc( self )
+			except RuntimeError:
+				curdata = api.MObject()
+			op = undo.GenericOperation( )
+
+			op.setDoitCmd( setattrfunc, self, data )
+			op.setUndoitCmd( setattrfunc, self, curdata )
+
+			op.doIt()
+		# END wrapped method
+		finalWrappedSetAttr = wrappedSetAttr
+	else:
+		def wrappedSetAttr( self, data ):
+			# asMObject can fail instead of returning a null object !
+			curdata = getattrfunc( self )
+			op = undo.GenericOperation( )
+
+			op.setDoitCmd( setattrfunc, self, data )
+			op.setUndoitCmd( setattrfunc, self, curdata )
+
+			op.doIt()
+		# END wrappedSetAttr method
+		finalWrappedSetAttr = wrappedSetAttr
+	# END MObject special case
+
+	# did undoable do anything ? If not, its disabled and we return the original
+	wrappedUndoableSetAttr = undoable( finalWrappedSetAttr )
+	if wrappedUndoableSetAttr is finalWrappedSetAttr:
+		return setattrfunc
+	# END return original 
+
+	return wrappedUndoableSetAttr
+
+
+class MPlug( api.MPlug ):
+	"""Patch applying mrv specific functionality to the MPlug. These methods will be
+	available through methods with the 'm' prefix.
+	
+	Other methods are overridden to allow more pythonic usage of the MPlug class
+	if and only if it is not specific to mrv.
+	
+	Additionally it provides aliases for all MPlug methods that are getters, but 
+	don't start with a 'get'.
+	
+	@note: Theoretically the MPlug would satisfy the 'iDagItem' interface, but due 
+	to the method prefixes, it could not work here as it calls un-prefixed methods only."""
 
 	pa = api.MPlugArray( )		# the only way to get a null plug for use
 	pa.setLength( 1 )
 
 	#{ Overridden Methods
-	def __getitem__( self, index ):
-		"""@return:	 	Plug at physical integer index or
-						Plug at logical float index or
-						child plug with given name"""
-		# strings are more probably I think, so lets have it first
-		if isinstance( index, basestring ):
-			return self.getChildByName( index )
-		elif isinstance( index, float ):
-			return self.getByLogicalIndex( int( index ) )
-		else:
-			return self.getByIndex( index )
-
 
 	def __len__( self ):
-		"""@return: number of physical elements in the array """
+		"""@return: number of physical elements in the array, but only if they are 
+		not connected. If in doubt, run evaluateNumElements beforehand"""
 		if not self.isArray( ): return 0
 		return self.getNumElements( )
 
 	def __iter__( self ):
 		"""@return: iterator object"""
 		for i in xrange(len(self)):
-			yield self.getByIndex(i)
-
-	def __str__( self ):
-		"""@return: name of plug"""
-		#print repr( self )
-		#if self.isNull(): return ""
-		return api.MPlug.name( self )
+			yield self.elementByPhysicalIndex(i)
+	
+	__str__ = api.MPlug.name
 
 	def __repr__( self ):
 		"""@return: our class representation"""
-		return "%s(%s_asAPIObj)" % ( self.__class__.__name__, self.getName() )
+		return "MPlug(%s)" % self.name()
 
 	def __eq__( self, other ):
 		"""Compare plugs,handle elements correctly"""
@@ -302,26 +338,25 @@ class MPlug( api.MPlug, iDagItem ):
 	#} Overridden Methods
 
 	#{ Plug Hierarchy Query
-	def getParent( self ):
+	def mgetParent( self ):
 		"""@return: parent of this plug or None
 		@note: for array plugs, this is the array, for child plugs the actual parent """
 		p = None
-		if self.isChild( ):
-			p = api.MPlug.parent( self )
-		elif self.isElement( ):
-			p = self.getArray( )
+		if self.isChild():
+			p = self.parent()
+		elif self.isElement():
+			p = self.array()
 
 		if p.isNull( ):	# sanity check - not all
 			return None
-
 		return p
 
-	def getChildren( self , predicate = lambda x: True):
+	def mgetChildren( self , predicate = lambda x: True):
 		"""@return: list of intermediate child plugs, [ plug1 , plug2 ]
 		@param predicate: return True to include x in result"""
 		outchildren = []
-		if self.isCompound( ):
-			nc = self.getNumChildren( )
+		if self.isCompound():
+			nc = self.getNumChildren()
 			for c in xrange( nc ):
 				child = self.getChild( c )
 				if predicate( child ):
@@ -331,30 +366,27 @@ class MPlug( api.MPlug, iDagItem ):
 
 		return outchildren
 
-	def getChildByName( self, childname ):
-		"""@return: childPlug with the given childname
+	def mgetChildByName( self, childname ):
+		"""@return: MPlug with the given childname
 		@raise AttributeError: if no child plug of the appropriate name could be found
-		@note: reimplemented here to optimize speed"""
-		outchild = None
-		if self.isCompound( ):
-			nc = self.getNumChildren( )
-			for c in xrange( nc ):
-				child = self.getChild( c )
-				if (	child.partialName( ).split('.')[-1] == childname or
-						child.partialName( 0, 0, 0, 0, 0, 1 ).split('.')[-1] == childname ):
-					outchild = child
-					break
-				# END if it is the child we look for
-			# END FOR EACH CHILD
+		@param TypeError: self is not a compound plug"""
+		if not self.isCompound( ):
+			raise TypeError( "Plug %s is not a compound plug" % self )
 		# END if is compound
+		
+		nc = self.getNumChildren( )
+		for c in xrange( nc ):
+			child = self.getChild( c )
+			if (	child.partialName( ).split('.')[-1] == childname or
+					child.partialName( 0, 0, 0, 0, 0, 1 ).split('.')[-1] == childname ):
+				return child
+			# END if it is the child we look for
+		# END FOR EACH CHILD
+		raise AttributeError( "Plug %s has no child plug called %s" % ( self, childname ) )
 
-		if child is None:
-			raise AttributeError( "Plug %s has no child plug called %s" % ( self, childname ) )
-		return child
-
-
-	def getSubPlugs( self , predicate = lambda x: True):
-		"""@return: list of intermediate sub-plugs that are either child plugs or element plugs
+	def mgetSubPlugs( self , predicate = lambda x: True):
+		"""@return: list of intermediate sub-plugs that are either child plugs or element plugs.
+		Returned list will be empty for leaf-level plugs
 		@param predicate: return True to include x in result
 		@note: use this function recursively for easy deep traversal of all
 		combinations of array and compound plugs"""
@@ -377,7 +409,7 @@ class MPlug( api.MPlug, iDagItem ):
 
 	#{ Attributes ( Edit )
 
-	def _handleAttrSet( self, state, getfunc, setfunc ):
+	def _mhandleAttrSet( self, state, getfunc, setfunc ):
 		"""Generic attribute handling"""
 		op = undo.GenericOperation()
 		op.setDoitCmd( setfunc, state )
@@ -385,25 +417,25 @@ class MPlug( api.MPlug, iDagItem ):
 		op.doIt()
 
 	@undoable
-	def setLocked( self, state ):
+	def msetLocked( self, state ):
 		"""If True, the plug's value may not be changed anymore"""
-		self._handleAttrSet( state, self.isLocked, self._api_setLocked )
+		self._mhandleAttrSet( state, self.isLocked, self.setLocked )
 
 	@undoable
-	def setKeyable( self, state ):
+	def msetKeyable( self, state ):
 		"""if True, the plug may be set using animation curves"""
-		self._handleAttrSet( state, self.isKeyable, self._api_setKeyable )
+		self._mhandleAttrSet( state, self.isKeyable, self.setKeyable )
 
 	@undoable
-	def setCaching( self, state ):
+	def msetCaching( self, state ):
 		"""if True, the plug's value will be cached, preventing unnecessary computations"""
-		self._handleAttrSet( state, self.isCachingFlagSet, self._api_setCaching )
+		self._mhandleAttrSet( state, self.isCachingFlagSet, self.setCaching )
 
 	@undoable
-	def setChannelBox( self, state ):
+	def msetChannelBox( self, state ):
 		"""if True, the plug will be visible in the channelbox, even though it might not
 		be keyable or viceversa """
-		self._handleAttrSet( state, self.isChannelBoxFlagSet, self._api_setChannelBox )
+		self._mhandleAttrSet( state, self.isChannelBoxFlagSet, self.setChannelBox )
 
 	#} END attributes edit
 
@@ -412,7 +444,7 @@ class MPlug( api.MPlug, iDagItem ):
 
 	@classmethod
 	@undoable
-	def connectMultiToMulti(self, iter_source_destination, force=False):
+	def mconnectMultiToMulti(self, iter_source_destination, force=False):
 		"""Connect multiple source plugs to the same amount of detsination plugs.
 		@note: This method provides the most efficient way to connect a large known 
 		amount of plugs to each other
@@ -426,9 +458,9 @@ class MPlug( api.MPlug, iDagItem ):
 		mod = undo.DGModifier( )
 		for source, dest in iter_source_destination:
 			if force:
-				destinputplug = dest.p_input
+				destinputplug = dest.mgetInput()
 				if not destinputplug.isNull():
-					if source == destinputplug:		
+					if source == destinputplug:
 						continue
 					# END skip this plug if it is already connected
 					mod.disconnect(destinputplug, dest)
@@ -441,23 +473,20 @@ class MPlug( api.MPlug, iDagItem ):
 		
 
 	@undoable
-	def connectTo( self, destplug, force=True ):
+	def mconnectTo( self, destplug, force=True ):
 		"""Connect this plug to the right hand side plug
-		@param destplug: the plug to which to connect this plug to. If it is an array plug,
-		the next available element will be connected
+		@param destplug: the plug to which to connect this plug to.
 		@param force: if True, the connection will be created even if another connection
 		has to be broken to achieve that.
 		If False, the connection will fail if destplug is already connected to another plug
-		@return: destplug allowing chained connections a >> b >> c
-		@note: equals lhsplug >> rhsplug ( force = True ) or lhsplug > rhsplug ( force = False )
-		@raise RuntimeError: If destination is already connected and force = False
-		@todo: currently we cannot handle nested array structures properly"""
+		@return: destplug allowing chained connections a.connectTo(b).connectTo(c)
+		@raise RuntimeError: If destination is already connected and force = False"""
 		mod = undo.DGModifier( )
 
 		# is destination already input-connected ? - disconnect it if required
 		# Optimization: We only care if force is specified. It will fail otherwise
 		if force:
-			destinputplug = destplug.p_input
+			destinputplug = destplug.mgetInput()
 			if not destinputplug.isNull():
 				# handle possibly connected plugs
 				if self == destinputplug:		# is it us already ?
@@ -477,7 +506,8 @@ class MPlug( api.MPlug, iDagItem ):
 		# END connection failed handling
 		return destplug
 
-	def connectToArray( self, arrayplug, force = True, exclusive_connection = False ):
+	@undoable
+	def mconnectToArray( self, arrayplug, force = True, exclusive_connection = False ):
 		"""Connect self an element of the given arrayplug.
 		@param arrayplug: the array plug to which you want to connect to
 		@param force: if True, the connection will be created even if another connection
@@ -491,30 +521,32 @@ class MPlug( api.MPlug, iDagItem ):
 			if exclusive_connection:
 				arrayplug.evaluateNumElements( )
 				for delm in arrayplug:
-					if self == delm.p_input:
+					if self == delm.mgetInput():
 						return delm
 					# END if self == elm plug
 				# END for each elemnt in destplug
 			# END if exclusive array connection
 
 			# connect the next free plug
-			return self.connectTo( arrayplug.getNextLogicalPlug( ), force = force )
+			return self.mconnectTo( arrayplug.mgetNextLogicalPlug( ), force = force )
 		# END Array handling
 		raise AssertionError( "Given plug %r was not an array plug" % arrayplug )
 
 
-	def disconnect( self ):
-		"""Completely disconnect all inputs and outputs of this plug
+	@undoable
+	def mdisconnect( self ):
+		"""Completely disconnect all inputs and outputs of this plug. The plug will not 
+		be connected anymore.
 		@return: self, allowing chained commands"""
-		self.disconnectInput()
-		self.disconnectOutputs()
+		self.mdisconnectInput()
+		self.mdisconnectOutputs()
 		return self
 
 	@undoable
-	def disconnectInput( self ):
+	def mdisconnectInput( self ):
 		"""Disconnect the input connection if one exists
 		@return: self, allowing chained commands"""
-		inputplug = self.p_input
+		inputplug = self.mgetInput()
 		if inputplug.isNull():
 			return self
 
@@ -524,10 +556,10 @@ class MPlug( api.MPlug, iDagItem ):
 		return self
 
 	@undoable
-	def disconnectOutputs( self ):
+	def mdisconnectOutputs( self ):
 		"""Disconnect all outgoing connections if they exist
 		@return: self, allowing chained commands"""
-		outputplugs = self.getOutputs()
+		outputplugs = self.mgetOutputs()
 		if not len( outputplugs ):
 			return self
 
@@ -538,14 +570,10 @@ class MPlug( api.MPlug, iDagItem ):
 		return self
 
 	@undoable
-	def disconnectFrom( self, other ):
+	def mdisconnectFrom( self, other ):
 		"""Disconnect this plug from other plug if they are connected
 		@param other: MPlug that will be disconnected from this plug
-		@note: equals a | b
 		@return: other plug allowing to chain disconnections"""
-		#if not self.isConnectedTo( other ):
-		#	return
-
 		try:
 			mod = undo.DGModifier( )
 			mod.disconnect( self, other )
@@ -555,12 +583,12 @@ class MPlug( api.MPlug, iDagItem ):
 		return other
 
 	@undoable
-	def disconnectNode( self, other ):
+	def mdisconnectNode( self, other ):
 		"""Disconnect this plug from the given node if they are connected
 		@param other: Node that will be completely disconnected from this plug"""
-		for p in self.p_outputs:
-			if p.getNode() == other:
-				self | p
+		for p in self.mgetOutputs():
+			if p.mgetWrappedNode() == other:
+				self.mdisconnectFrom(p)
 		# END for each plug in output
 
 	#} END connections edit
@@ -568,37 +596,36 @@ class MPlug( api.MPlug, iDagItem ):
 
 	#{ Connections ( Query )
 	@staticmethod
-	def haveConnection( lhsplug, rhsplug ):
+	def mhaveConnection( lhsplug, rhsplug ):
 		"""@return: True if lhsplug and rhs plug are connected - the direction does not matter
 		@note: equals lhsplug & rhsplug"""
-		return lhsplug.isConnectedTo( rhsplug ) or rhsplug.isConnectedTo( lhsplug )
+		return lhsplug.misConnectedTo( rhsplug ) or rhsplug.misConnectedTo( lhsplug )
 
-	def isConnectedTo( self, destplug ):
+	def misConnectedTo( self, destplug ):
 		"""@return: True if this plug is connected to destination plug ( in that order )
-		@note: return true for self > destplug but false for destplug > self
-		@note: use the haveConnection method whether both plugs have a connection no matter which direction
-		@note: equals self >= destplug
+		@note: return true for self.misConnectedTo(destplug) but false for destplug.misConnectedTo(self)
+		@note: use the mhaveConnection method whether both plugs have a connection no matter which direction
 		@note: use L{isConnected} to find out whether this plug is connected at all"""
-		return destplug in self.getOutputs()
+		return destplug in self.mgetOutputs()
 
-	def getOutputs( self ):
+	def mgetOutputs( self ):
 		"""@return: MPlugArray with all plugs having this plug as source
 		@todo: should the method be smarter and deal nicer with complex array or compound plugs ?"""
 		outputs = api.MPlugArray()
 		self.connectedTo( outputs, False, True )
 		return outputs
 
-	def getOutput( self ):
+	def mgetOutput( self ):
 		"""@return: out first plug that has this plug as source of a connection
 		@raise IndexError: if the plug has no outputs
 		@note: convenience method"""
-		outputs = self.getOutputs()
+		outputs = self.mgetOutputs()
 		if len( outputs ) == 0:
 			raise IndexError( "Plug %s was not connected to output plugs" % self )
 
 		return outputs[0]
 
-	def getInputs( self ):
+	def mgetInputs( self ):
 		"""Special handler returning the input plugs of array elements
 		@return: list of plugs connected to the elements of this arrayplug
 		@note: if self is not an array, a list with 1 or 0 plugs will be returned"""
@@ -606,19 +633,19 @@ class MPlug( api.MPlug, iDagItem ):
 		if self.isArray():
 			self.evaluateNumElements()
 			for elm in self:
-				elminput = elm.p_input
+				elminput = elm.mgetInput()
 				if elminput.isNull():
 					continue
 				out.append( elminput )
 			# END for each elm plug in sets
 		else:
-			inplug = self.p_input
+			inplug = self.mgetInput()
 			if not inplug.isNull():
 				out.append( inplug )
 		# END array handling
 		return out
 		
-	def iterGraph( self, *args, **kwargs ):
+	def miterGraph( self, *args, **kwargs ):
 		"""@return: graph iterator with self as root, supporting all arguments.
 		Plugs are returned by default, but this can be specified explicitly using 
 		the plug=True kwarg"""
@@ -626,21 +653,21 @@ class MPlug( api.MPlug, iDagItem ):
 		kwargs['plug'] = kwargs.get('plug', True)
 		return it.iterGraph(self, *args, **kwargs)
 		
-	def iterInputGraph( self, *args, **kwargs ):
+	def miterInputGraph( self, *args, **kwargs ):
 		"""@return: iterator over the graph starting at this plug in input(upstream) direction.
 		Plugs will be returned by default
-		@param *args, **kwargs: passed to L{iterGraph}"""
+		@param *args, **kwargs: passed to L{miterGraph}"""
 		kwargs['input'] = True
-		return self.iterGraph(*args, **kwargs)
+		return self.miterGraph(*args, **kwargs)
 		
-	def iterOutputGraph( self, *args, **kwargs ):
+	def miterOutputGraph( self, *args, **kwargs ):
 		"""@return: iterator over the graph starting at this plug in output(downstream) direction.
 		Plugs will be returned by default
-		@param *args, **kwargs: passed to L{iterGraph}"""
+		@param *args, **kwargs: passed to L{miterGraph}"""
 		kwargs['input'] = False
-		return self.iterGraph(*args, **kwargs)
+		return self.miterGraph(*args, **kwargs)
 
-	def getInput( self ):
+	def mgetInput( self ):
 		"""@return: plug being the source of a connection to this plug or a null plug
 		if no such plug exists"""
 		inputs = api.MPlugArray()
@@ -656,42 +683,41 @@ class MPlug( api.MPlug, iDagItem ):
 		# must have more than one input - can this ever be ?
 		raise ValueError( "Plug %s has more than one input plug - check how that can be" % self )
 
-	def getConnections( self ):
+	def mgetConnections( self ):
 		"""@return: tuple with input and outputs ( inputPlug, outputPlugs )"""
-		return ( self.getInput( ), self.getOutputs( ) )
-
+		return ( self.mgetInput( ), self.mgetOutputs( ) )
 
 	#} END connections query
 
 	#{ Affects Query
-	def getDependencyInfo( self, by=False ):
+	def mgetDependencyInfo( self, by=False ):
 		"""@return: list of plugs on this node that this plug affects or is being affected by
 		@param by: if false, affected attributplugs will be returned, otherwise the attributeplugs affecting this one
-		@note: you can also use the L{getDependencyInfo} method on the node itself if plugs are not
+		@note: you can also use the L{mgetDependencyInfo} method on the node itself if plugs are not
 		required - this will also be faster
 		@note: have to use MEL :("""
-		ownnode = self.getNode()
-		attrs = cmds.affects( self.getAttribute().getName() , str( ownnode ), by=by )
+		ownnode = self.mgetWrappedNode()
+		attrs = cmds.affects( self.mgetWrappedAttribute().getName() , str( ownnode ), by=by ) or list()
 
-		outplugs = []
+		outplugs = list()
 		depfn = api.MFnDependencyNode( ownnode.getMObject() )
 
 		for attr in attrs:
 			outplugs.append( depfn.findPlug( attr ) )
 		return outplugs
 
-	def affects( self ):
+	def maffects( self ):
 		"""@return: list of plugs affected by this one"""
-		return self.getDependencyInfo( by = False )
+		return self.mgetDependencyInfo( by = False )
 
-	def affected( self ):
+	def maffected( self ):
 		"""@return: list of plugs affecting this one"""
-		return self.getDependencyInfo( by = True )
+		return self.mgetDependencyInfo( by = True )
 
-	#}
+	#} END affects query
 
 	#{ General Query
-	def getNextLogicalIndex( self ):
+	def mgetNextLogicalIndex( self ):
 		"""@return: index of logical indexed plug that does not yet exist
 		@note: as this method does a thorough search, it is relatively slow
 		compared to a simple numPlugs + 1 algorithm
@@ -702,7 +728,7 @@ class MPlug( api.MPlug, iDagItem ):
 		logicalIndex = 0
 		numIndices = indices.length()
 
-		# do a proper serach
+		# do a proper search
 		if numIndices == 1:
 			logicalIndex =  indices[0] + 1	# just increment the first one
 		else:
@@ -717,42 +743,26 @@ class MPlug( api.MPlug, iDagItem ):
 		# END if more than one indices exist
 		return logicalIndex
 
-	def getNextLogicalPlug( self ):
+	def mgetNextLogicalPlug( self ):
 		"""@return: plug at newly created logical index
 		@note: only valid for array plugs"""
-		return self.getByLogicalIndex( self.getNextLogicalIndex() )
+		return self.getElementByLogicalIndex(self.mgetNextLogicalIndex())
 
-	def getAttributeMObject( self ):
-		"""@return: the original unwrapped api object - use this if you
-		prefer speed over convenience"""
-		return api.MPlug._api_attribute( self )
-
-	def getAttribute( self ):
+	def mgetWrappedAttribute( self ):
 		"""@return: Attribute instance of our underlying attribute"""
-		return base.Attribute( api.MPlug._api_attribute( self ) )
+		return base.Attribute(self.attribute())
 
-	def getNode( self ):
-		"""@return: Node instance of our underlying node
-		@note: If the parent node of the MPlug is an instanced DagNode, 
-		the Node returned by this method will use the first DagPath only, which 
-		will not necessarily correspond to the DagPath from which this plug was
-		retrieved."""
-		return base.NodeFromObj( api.MPlug._api_node( self ) )
+	def mgetWrappedNode( self ):
+		"""@return: wrapped Node of the plugs node"""
+		return base.NodeFromObj(self.node())
 
-	def getNodeMObject( self ):
-		"""@return: unwrapped api object of the plugs node
-		@note: use this if you prefer speed over convenience"""
-		return api.MPlug._api_node( self )
-
-	def asMObject( *args, **kwargs ):
-		"""@return: the data api object"""
-		return api.MPlug._api_asMObject( *args, **kwargs )
-
-	def asData( *args, **kwargs ):
-		"""@return: our data Mobject wrapped in L{Data}"""
-		return base.Data( api.MPlug._api_asMObject( *args, **kwargs ) )
+	def masData( self, *args, **kwargs ):
+		"""@return: our data Mobject wrapped in L{Data}
+		@note: *args and **kwagrs have to be provided as MDGContext.fsNormal
+		does not exist in maya 8.5, so we have to hide that fact."""
+		return base.Data(self.asMObject(*args, **kwargs))
 		
-	def getFullyQualifiedName( self ):
+	def mgetFullyQualifiedName( self ):
 		"""@return: string returning the absolute and fully qualified name of the
 		plug. It might take longer to evaluate but is safe to use if you want to 
 		convert the resulting string back to the actual plug"""
@@ -761,97 +771,36 @@ class MPlug( api.MPlug, iDagItem ):
 
 
 	#{ Set Data with Undo
-	def _createUndoSetFunc( dataTypeId, getattroverride = None ):
-		"""Create a function setting a value with undo support
-		@param dataTypeId: string naming the datatype, like "Bool" - capitalization is
-		important
-		@note: if undo is globally disabled, we will resolve to implementing a faster
-		function instead as we do not store the previous value.
-		@note: to use the orinal method without undo, use api.MPlug.setX(your_plug, value)"""
-		# this binds the original setattr and getattr, not the patched one
-		getattrfunc = getattroverride
-		if not getattrfunc:
-			getattrfunc = getattr( api.MPlug, "as"+dataTypeId )
-		setattrfunc = getattr( api.MPlug, "set"+dataTypeId )
-
-		# YES, WE DUPLICATE CODE FOR SPEED
-		####################################
-		# Create actual functions
-		finalWrappedSetAttr = None
-		if dataTypeId == "MObject":
-			def wrappedSetAttr( self, data ):
-				# asMObject can fail instead of returning a null object !
-				try:
-					curdata = getattrfunc( self )
-				except RuntimeError:
-					curdata = api.MObject()
-				op = undo.GenericOperation( )
-
-				op.setDoitCmd( setattrfunc, self, data )
-				op.setUndoitCmd( setattrfunc, self, curdata )
-
-				op.doIt()
-			# END wrapped method
-			finalWrappedSetAttr = wrappedSetAttr
-		else:
-			def wrappedSetAttr( self, data ):
-				# asMObject can fail instead of returning a null object !
-				curdata = getattrfunc( self )
-				op = undo.GenericOperation( )
-
-				op.setDoitCmd( setattrfunc, self, data )
-				op.setUndoitCmd( setattrfunc, self, curdata )
-
-				op.doIt()
-			# END wrappedSetAttr method
-			finalWrappedSetAttr = wrappedSetAttr
-		# END MObject special case
-
-		# did undoable do anything ? If not, its disabled and we return the original
-		wrappedUndoableSetAttr = undoable( finalWrappedSetAttr )
-		if wrappedUndoableSetAttr is finalWrappedSetAttr:
-			return setattrfunc
-		# END return original 
-
-		return wrappedUndoableSetAttr
 
 	# wrap the methods
-	setBool = _createUndoSetFunc( "Bool" )
-	setChar = _createUndoSetFunc( "Char" )
-	setShort = _createUndoSetFunc( "Short" )
-	setInt = _createUndoSetFunc( "Int" )
-	setFloat = _createUndoSetFunc( "Float" )
-	setDouble = _createUndoSetFunc( "Double" )
-	setString = _createUndoSetFunc( "String" )
-	setMAngle = _createUndoSetFunc( "MAngle" )
-	setMDistance = _createUndoSetFunc( "MDistance" )
-	setMTime = _createUndoSetFunc( "MTime" )
-	setMObject = _createUndoSetFunc( "MObject" )
+	msetBool = _mplug_createUndoSetFunc( "Bool" )
+	msetChar = _mplug_createUndoSetFunc( "Char" )
+	msetShort = _mplug_createUndoSetFunc( "Short" )
+	msetInt = _mplug_createUndoSetFunc( "Int" )
+	msetFloat = _mplug_createUndoSetFunc( "Float" )
+	msetDouble = _mplug_createUndoSetFunc( "Double" )
+	msetString = _mplug_createUndoSetFunc( "String" )
+	msetMAngle = _mplug_createUndoSetFunc( "MAngle" )
+	msetMDistance = _mplug_createUndoSetFunc( "MDistance" )
+	msetMTime = _mplug_createUndoSetFunc( "MTime" )
+	msetMObject = _mplug_createUndoSetFunc( "MObject" )
 
 	#} END set data
 
-
-	#{ Properties
-	p_outputs = property( getOutputs )
-	p_output = property( getOutput )
-	p_input = property( getInput )
-	p_inputs = property( getInputs )
-	p_connections = property( getConnections )
-
-	#}
-
 	#{ Name Remapping
-	__rshift__ = lambda self,other: self.connectTo( other, force=True )
-	__gt__ = lambda self,other: self.connectTo( other, force=False )
-	__ge__ = isConnectedTo
-	__and__ = lambda lhs,rhs: MPlug.haveConnection( lhs, rhs )
-	__or__ = disconnectFrom
-	node = getNode
-	attribute = getAttribute
+	mctf = lambda self,other: self.mconnectTo( other, force=True )
+	mct = lambda self,other: self.mconnectTo( other, force=False )
+	mict = misConnectedTo
+	mhc = lambda lhs,rhs: MPlug.mhaveConnection( lhs, rhs )
+	mdc = mdisconnectFrom
+	mnode = mgetWrappedNode
+	mattribute = mgetWrappedAttribute
+	getNode = api.MPlug.node
+	getAttribute = api.MPlug.attribute
 	getChild = api.MPlug.child
 	getArray = api.MPlug.array
-	getByIndex = api.MPlug.elementByPhysicalIndex
-	getByLogicalIndex = api.MPlug.elementByLogicalIndex
+	getElementByPhysicalIndex = api.MPlug.elementByPhysicalIndex
+	getElementByLogicalIndex = api.MPlug.elementByLogicalIndex
 	getConnectionByPhysicalIndex = api.MPlug.connectionByPhysicalIndex
 	getNumElements = api.MPlug.numElements
 	getName = api.MPlug.name
@@ -864,24 +813,6 @@ class MPlug( api.MPlug, iDagItem ):
 
 #} END basic types
 
-
-#{ Function Sets
-class MFnDependencyNode( api.MFnDependencyNode ):
-	"""Add MFnBase methods to this function set as the base class cannot be instantiated 
-	directly. Its vital for the mayarv wrapping system as the overridden method in the 
-	MFnDependencyNode like type() are now on the base class"""
-	
-	hasObj = api.MFnBase.hasObj
-	object = api.MFnBase.object
-	setObject = api.MFnBase.setObject
-	type = api.MFnBase.type
-
-#}
-
-
-#############################
-#### ARRAYS			    ####
-##########################
 
 #{ Arrays
 
@@ -897,7 +828,7 @@ class ArrayBase( Abstract ):
 		return self.set( item, index )
 		
 	@classmethod
-	def fromMultiple(cls, *args):
+	def mfromMultiple(cls, *args):
 		"""@return: Array created from the given elements"""
 		ia = cls()
 		ia.setLength(len(args))
@@ -911,9 +842,9 @@ class ArrayBase( Abstract ):
 		return ia
 		
 	@classmethod
-	def fromIter(cls, iter):
+	def mfromIter(cls, iter):
 		"""@return: Array created from elements yielded by iter
-		@note: this one is less efficient than L{fromList} as the final length 
+		@note: this one is less efficient than L{mfromList} as the final length 
 		of the array is not predetermined"""
 		ia = cls()
 		append = ia.append
@@ -922,7 +853,7 @@ class ArrayBase( Abstract ):
 		return ia
 	
 	@classmethod
-	def fromList(cls, list):
+	def mfromList(cls, list):
 		"""@return: Array created from the given list of elements"""
 		ia = cls()
 		ia.setLength(len(list))
@@ -1070,7 +1001,7 @@ class MIntArray( api.MIntArray, ArrayBase ):
 	_apicls = api.MIntArray
 	
 	@classmethod
-	def fromRange(cls, i, j):
+	def mfromRange(cls, i, j):
 		"""@return: An MIntArray initialized with integers ranging from i to j
 		@param i: first integer of the returned array
 		@param j: last integer of returned array will have the value j-1"""
@@ -1116,77 +1047,48 @@ class MSelectionList( api.MSelectionList, ArrayBase ):
 		else:
 			return self.hasItem(rhs)
 		# END handle input type
-		
-	def __getitem__(self, index):
-		"""Add [] operator support
-		@param index: index from 0 to len(self), negative values are supported as well
-		@note: this method returns Nodes or Plugs, it will not deal with components.
-		If you need more control over your iteration, use L{toIter} instead"""
-		if index < 0:
-			index = self.length() + index
-		# END handle negative index
-		
-		rval = None
-		try: # dagpath
-			rval = api.MDagPath()
-			self.getDagPath(index, rval)
-		except RuntimeError:
-			try: # plug
-				rval = MPlug.pa[0]
-				self.getPlug(index, rval)
-				rval.attribute()
-				return rval
-			except RuntimeError:
-				# dg node
-				rval = api.MObject()
-				self.getDependNode(index, rval)
-			# END its not an MObject
-		# END handle dagnodes/plugs/dg nodes
-		
-		# its a node
-		return base.NodeFromObj(rval)
 	
 	@staticmethod
-	def fromStrings( iter_strings, **kwargs ):
+	def mfromStrings( iter_strings, **kwargs ):
 		"""@return: MSelectionList initialized from the given iterable of strings
 		@param **kwargs: passed to L{base.toSelectionListFromNames}"""
 		return base.toSelectionListFromNames(iter_strings, **kwargs)
 		
 	@staticmethod
-	def fromList( iter_items, **kwargs ):
+	def mfromList( iter_items, **kwargs ):
 		"""@return: MSelectionList as initialized from the given iterable of Nodes, 
 		MObjects, MDagPaths or MPlugs
 		@param **kwargs: passed to L{base.toSelectionList}"""
 		return base.toSelectionList(iter_items, **kwargs)
 		
 	# We need to override the respective method on the base class as it wouldnt work
-	fromIter = fromList
+	mfromIter = mfromList
 	
 	@staticmethod
-	def fromMultiple( *args, **kwargs ):
-		"""Alternative form of L{fromList} as *args can be passed in."""
-		return MSelectionList.fromList(args, **kwargs)
+	def mfromMultiple( *args, **kwargs ):
+		"""Alternative form of L{mfromList} as *args can be passed in."""
+		return MSelectionList.mfromList(args, **kwargs)
 	
 	@staticmethod
-	def fromComponentList( iter_components, **kwargs ):
+	def mfromComponentList( iter_components, **kwargs ):
 		"""@return: MSelectionList as initialized from the given list of tuple( DagNode, Component ), 
 		Component can be a filled Component object or null MObject
 		@param **kwargs: passed to L{base.toComponentSelectionList}"""
 		return base.toComponentSelectionList(iter_components, **kwargs)
 		
-	def toList( self, *args, **kwargs ):
+	def mtoList( self, *args, **kwargs ):
 		"""@return: list with the contents of this MSelectionList
 		@param *args: passed to L{it.iterSelectionList}
 		@param **kwargs: passed to L{it.iterSelectionList}"""
-		return list(self.toIter(*args, **kwargs))
+		return list(self.mtoIter(*args, **kwargs))
 		
-	def toIter( self, *args, **kwargs ):
+	def mtoIter( self, *args, **kwargs ):
 		"""@return: iterator yielding of Nodes and MPlugs stored in this given selection list
 		@param *args: passed to L{it.iterSelectionList}
 		@param **kwargs: passed to L{it.iterSelectionList}"""
 		return it.iterSelectionList( self, *args, **kwargs )
 		
-	def iterComponents( self, **kwargs ):
+	def miterComponents( self, **kwargs ):
 		"""@return: Iterator yielding node, component pairs, component is guaranteed 
 		to carry a component, implying that this iterator applies a filter
 		@param kwargs: passed on to L{it.iterSelectionList}"""
@@ -1195,7 +1097,7 @@ class MSelectionList( api.MSelectionList, ArrayBase ):
 		kwargs['predicate'] = pred
 		return it.iterSelectionList( self, **kwargs )
 		
-	def iterPlugs( self, **kwargs ):
+	def miterPlugs( self, **kwargs ):
 		"""@return: Iterator yielding all plugs on this selection list.
 		@param kwargs: passed on to L{it.iterSelectionList}"""
 		kwargs['handlePlugs'] = True

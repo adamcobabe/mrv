@@ -218,7 +218,7 @@ def fromSelectionList( sellist, handlePlugs=1, **kwargs ):
 	@param **kwargs: passed to selectionListIterator"""
 	kwargs['asNode'] = 1
 	kwargs['handlePlugs'] = handlePlugs
-	return list(sellist.toIter(**kwargs))
+	return list(sellist.mtoIter(**kwargs))
 
 def toNodesFromNames( nodenames, **kwargs ):
 	"""@return: list of wrapped nodes from the given list of node names
@@ -330,7 +330,7 @@ def iterSelection(filterType=api.MFn.kInvalid, **kwargs):
 	
 	kwargs['asNode'] = 1	# remove our overridden warg
 	kwargs['filterType'] = filterType
-	return sellist.toIter(**kwargs)
+	return sellist.mtoIter(**kwargs)
 
 def select( *nodesOrSelectionList , **kwargs ):
 	"""Select the given list of wrapped nodes or selection list in maya
@@ -626,11 +626,11 @@ class SetFilter( tuple ):
 		if self[ 2 ]:			# deformer sets
 			setnode = NodeFromObj( apiobj )
 			for elmplug in setnode.usedBy:	# find connected deformer
-				iplug = elmplug.getInput()
+				iplug = elmplug.mgetInput()
 				if iplug.isNull():
 					continue
 
-				if iplug.getNodeMObject().hasFn( api.MFn.kGeometryFilt ):
+				if iplug.node().hasFn( api.MFn.kGeometryFilt ):
 					return True
 			# END for each connected plug in usedBy array
 
@@ -933,8 +933,8 @@ class DependNode( Node, iDuplicatable ):		# parent just for epydoc -
 		outlist = list()
 		iogplug = self._getSetPlug()
 
-		for dplug in iogplug.getOutputs():
-			setapiobj = dplug.getNodeMObject()
+		for dplug in iogplug.mgetOutputs():
+			setapiobj = dplug.node()
 
 			if not setFilter( setapiobj ):
 				continue
@@ -1133,22 +1133,14 @@ class DependNode( Node, iDuplicatable ):		# parent just for epydoc -
 		@param by: if false, affected attributes will be returned, otherwise the attributes affecting this one
 		@note: see also L{MPlug.getAffectedByPlugs}
 		@note: USING MEL: as api command and mObject array always crashed on me ... don't know :("""
-		if isinstance( attribute, basestring ):
-			attribute = self.getAttribute( attribute )
-		attrs = cmds.affects( attribute.getName() , str(self), by=by )
+		if not isinstance( attribute, basestring ):
+			attribute = attribute.getName()
+		attrs = cmds.affects( attribute , str(self), by=by )
 
 		outattrs = []
 		for attr in attrs:
 			outattrs.append( self.getAttribute( attr ) )
 		return outattrs
-
-	def affects( self, attribute ):
-		"""@return: list of attributes affected by this one"""
-		return self.getDependencyInfo( attribute, by = False )
-
-	def affected( self , attribute):
-		"""@return: list of attributes affecting this one"""
-		return self.getDependencyInfo( attribute, by = True )
 
 	#} END connections and attribtues
 
@@ -1240,7 +1232,7 @@ class DagNode( Entity, iDagItem ):	# parent just for epydoc
 	def _getSetPlug( self ):
 		"""@return: the iogplug properly initialized for self
 		Dag Nodes have the iog plug as they support instancing """
-		return self.iog.getByLogicalIndex( self.getInstanceNumber() )
+		return self.iog.getElementByLogicalIndex( self.getInstanceNumber() )
 	#} END set handling
 
 	#{ DAG Modification
@@ -1254,12 +1246,12 @@ class DagNode( Entity, iDagItem ):	# parent just for epydoc
 		if not isinstance( self, Transform ):
 			return
 
-		nwm = self.wm.getByLogicalIndex( self.getInstanceNumber() ).asData().transformation().asMatrix()
+		nwm = self.wm.getElementByLogicalIndex( self.getInstanceNumber() ).masData().transformation().asMatrix()
 
 		# compenstate for new parents transformation ?
 		if parentnode is not None:
 			# use world - inverse matrix
-			parentInverseMatrix = parentnode.wim.getByLogicalIndex( parentnode.getInstanceNumber( ) ).asData().transformation().asMatrix()
+			parentInverseMatrix = parentnode.wim.getElementByLogicalIndex( parentnode.getInstanceNumber( ) ).masData().transformation().asMatrix()
 			nwm = nwm * parentInverseMatrix
 		# END if there is a new parent
 
@@ -1760,12 +1752,12 @@ class DagNode( Entity, iDagItem ):	# parent just for epydoc
 	def _getDisplayOverrideValue( self, plugName ):
 		"""@return: the given effective display override value or None if display
 		overrides are disabled"""
-		if self.do['ove'].asInt():
+		if self.do.mgetChildByName('ove').asInt():
 			return getattr( self.do, plugName ).asInt()
 
 		for parent in self.iterParents():
-			if parent.do['ove'].asInt():
-				return parent.do[ plugName ].asInt()
+			if parent.do.mgetChildByName('ove').asInt():
+				return parent.do.mgetChildByName(plugName).asInt()
 
 		return None
 
@@ -2014,7 +2006,7 @@ def _new_mixin( cls, *args, **kwargs ):
 	newinst = _createInstByPredicate( mobject, cls, cls, lambda x: x.endswith( cls._mfn_suffix_ ) )
 	
 	if newinst is None:
-		raise ValueError( "%s with apitype %r could not be wrapped into any function set" % ( cls._mfn_suffix_, mobject.apyTypeStr() ) )
+		raise ValueError( "%s with apitype %r could not be wrapped into any function set" % ( cls._mfn_suffix_, mobject.apiTypeStr() ) )
 	
 	return newinst
 
@@ -2255,7 +2247,7 @@ class PluginData( Data ):
 		"""@return: python data wrapped by this plugin data object
 		@note: the python data should be made such that it can be changed using
 		the reference we return - otherwise it will be read-only as it is just a copy !
-		@note: the data retrieved by this method cannot be used in plug.setMObject( data ) as it
+		@note: the data retrieved by this method cannot be used in plug.msetMObject( data ) as it
 		is ordinary python data, not an mobject
 		@raise RuntimeError: if the data object's id is unknown to this class"""
 		mfn = self._mfncls( self._apiobj )
@@ -2642,29 +2634,29 @@ class Shape( DagNode ):	 # base for epydoc !
 			components = api.MObjectArray()
 
 			# take full assignments as well - make it work as the getConnectedSets api method
-			for dplug in iogplug.getOutputs():
-				sets.append( dplug.getNodeMObject() )
+			for dplug in iogplug.mgetOutputs():
+				sets.append( dplug.node() )
 				components.append( MObject() )
 			# END full objecft assignments
 
-			for compplug in iogplug['objectGroups']:
-				for setplug in compplug.getOutputs():
-					sets.append( setplug.getNodeMObject() )		# connected set
+			for compplug in iogplug.mgetChildByName('objectGroups'):
+				for setplug in compplug.mgetOutputs():
+					sets.append( setplug.node() )		# connected set
 
 					# get the component from the data
-					compdata = compplug['objectGrpCompList'].asData()
+					compdata = compplug.mgetChildByName('objectGrpCompList').masData()
 					if compdata.getLength() == 1:			# this is what we can handle
 						components.append( compdata[0] ) 	# the component itself
 					else:
 						raise AssertionError( "more than one compoents in list" )
-
+					# END assure we have components in data
 				# END for each set connected to component
 			# END for each component group
 
 			return ( sets, components )
 		else:
-			for dplug in iogplug.getOutputs():
-				sets.append( dplug.getNodeMObject() )
+			for dplug in iogplug.mgetOutputs():
+				sets.append(dplug.node())
 			return sets
 		# END for each object grouop connection in iog
 

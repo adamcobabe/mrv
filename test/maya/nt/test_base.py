@@ -186,8 +186,8 @@ class TestTransform( unittest.TestCase ):
 		sl = toSelectionList(nl)
 		assert isinstance(sl, api.MSelectionList) and len(sl) == 3
 		
-		sl2 = api.MSelectionList.fromList(nl)
-		sl3 = api.MSelectionList.fromStrings([str(n) for n in nl])
+		sl2 = api.MSelectionList.mfromList(nl)
+		sl3 = api.MSelectionList.mfromStrings([str(n) for n in nl])
 		
 		
 		osl = getSelection()
@@ -200,8 +200,8 @@ class TestTransform( unittest.TestCase ):
 		for n in sl:
 			assert isinstance(n, DependNode)
 		
-		assert list(sl) == sl.toList()
-		assert list(sl.toIter()) == list(it.iterSelectionList(sl))
+		assert list(sl) == sl.mtoList()
+		assert list(sl.mtoIter()) == list(it.iterSelectionList(sl))
 		
 		# OBJECTSETS AND PARTITIONS
 		###########################
@@ -237,7 +237,7 @@ class TestTransform( unittest.TestCase ):
 		# create a polycube and pipe its output into our mesh shape
 		isb = Node("initialShadingGroup")
 		pc = PolyCube()
-		pc.output > m.inMesh
+		pc.output.mconnectTo(m.inMesh)
 		assert m.numVertices() == 8
 		assert m not in isb                            # it has no shaders on object level
 		assert len(m.getComponentAssignments()) == 0   # nor on component leveld 
@@ -273,19 +273,19 @@ class TestTransform( unittest.TestCase ):
 		assert p.t == p.translate
 		
 		# connections
-		( p.tx > p.ty ) > p.tz		# parantheses enforce connection order in this case
-		assert p.tx >= p.ty
-		assert p.ty.isConnectedTo(p.tz)
-		assert not p.tz >= p.ty
+		p.tx.mconnectTo(p.ty).mconnectTo(p.tz)
+		assert p.tx.misConnectedTo(p.ty)
+		assert p.ty.misConnectedTo(p.tz)
+		assert not p.tz.misConnectedTo(p.ty)
 		
-		( p.tx | p.ty ) | p.tz		# disconnect all
-		assert len(p.ty.p_inputs) + len(p.tz.getInputs()) == 0
-		assert p.tz.getInput().isNull()
+		p.tx.mdisconnectFrom(p.ty).mdisconnectFrom(p.tz)
+		assert len(p.ty.mgetInputs()) + len(p.tz.mgetInputs()) == 0
+		assert p.tz.mgetInput().isNull()
 		
-		p.tx > p.tz
-		self.failUnlessRaises(RuntimeError, p.ty.connectTo, p.tz, force=False)     # tz is already connected
-		p.ty >> p.tz                                         # force the connection
-		p.tz.disconnect()                                    # disconnect all
+		p.tx.mconnectTo(p.tz, force=False)
+		self.failUnlessRaises(RuntimeError, p.ty.mconnectTo, p.tz, force=False)     # tz is already connected
+		p.ty.mconnectTo(p.tz)                              # force the connection, force defaults True
+		p.tz.mdisconnect()                                    # disconnect all
 		
 		# query
 		assert isinstance(p.tx.asFloat(), float)
@@ -297,13 +297,13 @@ class TestTransform( unittest.TestCase ):
 		matfn = api.MFnMatrixData(pewm.asMObject())
 		matrix = matfn.matrix()                       # wrap data manually
 
-		dat = pewm.asData()							# or get a wrapped version right away
+		dat = pewm.masData()							# or get a wrapped version right away
 		assert matrix == dat.matrix()
 	
 		
 		# set values
 		newx = 10.0
-		p.tx.setDouble(newx)
+		p.tx.msetDouble(newx)
 		assert p.tx.asDouble() == newx
 		
 		meshdata = m.outMesh.asMObject()
@@ -312,16 +312,16 @@ class TestTransform( unittest.TestCase ):
 		assert meshfn.numPolygons() == 5
 		
 		mc = Mesh()                                 # create new empty mesh to 
-		mc.cachedInMesh.setMObject(meshdata)        # hold the new mesh in the scene
+		mc.cachedInMesh.msetMObject(meshdata)        # hold the new mesh in the scene
 		assert mc.numPolygons() == 5
 		assert m.numPolygons() == 6
 		
 		# compounds and arrays
-		ptc = p.t.getChildren()
+		ptc = p.t.mgetChildren()
 		assert len(ptc) == 3
 		assert (ptc[0] == p.tx) and (ptc[1] == p.ty)
-		assert ptc[2] == p.t['tz']
-		assert p.tx.getParent() == p.t
+		assert ptc[2] == p.t.mgetChildByName('tz')
+		assert p.tx.mgetParent() == p.t
 		assert p.t.isCompound()
 		assert p.tx.isChild()
 		
@@ -332,12 +332,12 @@ class TestTransform( unittest.TestCase ):
 			assert element_plug.isElement()
 			
 		# graph traversal
-		mihistory = list(m.inMesh.iterInputGraph())
+		mihistory = list(m.inMesh.miterInputGraph())
 		assert len(mihistory) > 2
 		assert mihistory[0] == m.inMesh
 		assert mihistory[2] == pc.output		# ignore groupparts
 		
-		pcfuture = list(pc.output.iterOutputGraph())
+		pcfuture = list(pc.output.miterOutputGraph())
 		assert len(pcfuture) > 2
 		assert pcfuture[0] == pc.output
 		assert pcfuture[2] == m.inMesh			# ignore groupparts
@@ -360,8 +360,8 @@ class TestTransform( unittest.TestCase ):
 		n.addAttribute(cattr)
 		assert n.compound.isArray()
 		assert n.compound.isCompound()
-		assert len(n.compound.getChildren()) == 3
-		assert n.compound['mymessage'].isArray()
+		assert len(n.compound.mgetChildren()) == 3
+		assert n.compound.mgetChildByName('mymessage').isArray()
 		
 		n.removeAttribute(n.compound.getAttribute())
 		
@@ -395,7 +395,7 @@ class TestTransform( unittest.TestCase ):
 		assert len(getSelection()) == 4
 		
 		# simple filtering
-		assert getSelectionList().iterPlugs().next() == p.t
+		assert getSelectionList().miterPlugs().next() == p.t
 		assert getSelection(api.MFn.kTransform)[-1] == p
 		
 		# adjustments
@@ -410,7 +410,7 @@ class TestTransform( unittest.TestCase ):
 		sl = api.MSelectionList()
 		sl.add(m.getMDagPath(), m.cf[:4])			# first 4 faces
 		select(sl)
-		assert len(getSelectionList().iterComponents().next()[1].getElements()) == 4
+		assert len(getSelectionList().miterComponents().next()[1].getElements()) == 4
 		
 		sl.clear()
 		sl.add(p.t)
@@ -503,35 +503,36 @@ class TestTransform( unittest.TestCase ):
 		######
 		@undoable
 		def undoable_func( delobj ):
-			p.tx > p.tz
+			p.tx.mconnectTo(p.tz)
 			delobj.delete()
 		
+		p = Node("persp")
 		t = Transform()
-		assert not p.tx.isConnectedTo(p.tz)
+		assert not p.tx.misConnectedTo(p.tz)
 		assert t.isValid() and t.isAlive()
 		undoable_func(t)
-		assert p.tx >= p.tz
+		assert p.tx.misConnectedTo(p.tz)
 		assert not t.isValid() and t.isAlive()
 		
 		cmds.undo()
-		assert not p.tx.isConnectedTo(p.tz)
+		assert not p.tx.misConnectedTo(p.tz)
 		assert t.isValid() and t.isAlive()
 		
 		# Advanced Uses #
 		ur = undo.UndoRecorder()
 		ur.startRecording()
-		p.tx > p.ty
-		p.tx > p.tz
+		p.tx.mconnectTo(p.ty)
+		p.tx.mconnectTo(p.tz)
 		ur.stopRecording()
-		p.t > t.t
+		p.t.mconnectTo(t.t)
 		
-		assert p.tx >= p.ty
-		assert p.tx >= p.tz
-		assert p.t >= t.t
+		assert p.tx.misConnectedTo(p.ty)
+		assert p.tx.misConnectedTo(p.tz)
+		assert p.t.misConnectedTo(t.t)
 		ur.undo()
-		assert not p.tx >= p.ty
-		assert not p.tx >= p.tz
-		assert p.t >= t.t
+		assert not p.tx.misConnectedTo(p.ty)
+		assert not p.tx.misConnectedTo(p.tz)
+		assert p.t.misConnectedTo(t.t)
 		
 		
 		# PERSISTENCE
