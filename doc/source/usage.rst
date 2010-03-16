@@ -5,7 +5,7 @@ Using MayaRV.Maya
 ==================
 This document gives an overview of the facilities within the Maya portion of MayaReVised which contains classes that require maya to run.
 
-The examples given here can be viewed as one consecutive script which should work of all the code is pasted into a mayarv testcase for instance. The latter one can be found in ``mayarv.test.maya.nodes.test_base`` (test_usage_examples). If you want to be more explorative, adjust the test's code yourself and run it to see the results. For more information on how to run tests, see :ref:`runtestsdoc-label`.
+The examples given here can be viewed as one consecutive script which should work of all the code is pasted into a mayarv testcase for instance. The latter one can be found in ``mayarv.test.maya.nt.test_base`` (test_usage_examples). If you want to be more explorative, adjust the test's code yourself and run it to see the results. For more information on how to run tests, see :ref:`runtestsdoc-label`.
 
 It is advised to start a mayarv enabled ipython shell allowing you to try the examples interactively, see :ref:`imayarv-label`.
 
@@ -14,11 +14,11 @@ To understand some of the terms used here, its a plus if you are familiar with t
 =====
 Nodes
 =====
-The term *Node* means any Dependency Node or DagNode which has been wrapped for convenient use. It is derived from ``mayarv.maya.nodes.base.Node``.
+The term *Node* means any Dependency Node or DagNode which has been wrapped for convenient use. It is derived from ``mayarv.maya.nt.base.Node``.
 
 A Node wraps an underlying *MObject* or an *MDagPath*, and it can be retrieved either by iteration, by using one of the various methods of the MayaRV library or by manually wrapping a maya node whose name is known::
-	>>> from mayarv.maya.nodes import *
-	>>> import __builtin__		# nodes.set as overwritten the builtin set type
+	>>> from mayarv.maya.nt import *
+	>>> import __builtin__		# nt.set as overwritten the builtin set type
 	>>> # wrap a node by name
 	>>> p = Node("persp")
 	Transform("|persp")
@@ -108,7 +108,7 @@ Generally, all items that are organized in a hierarachy support the  ``mayarv.in
 
 Node Creation
 =============
-Creating nodes in MayaRV is simple and possibly slow as you can only create about 1200 Nodes per second. There is only one method to accomplish this with plenty of keyword arguemnts, ``mayarv.maya.nodes.base.createNode``, this shall only be brief example::
+Creating nodes in MayaRV is simple and possibly slow as you can only create about 1200 Nodes per second. There is only one method to accomplish this with plenty of keyword arguemnts, ``mayarv.maya.nt.base.createNode``, this shall only be brief example::
 	>>> cs = createNode("namespace:subspace:group|other:camera|other:cameraShape", "camera")
 	>>> assert len(cs.getParentsDeep()) == 2
 	
@@ -203,7 +203,7 @@ Handling Selections with SelectionLists
 =======================================
 Many methods within the MayaAPI and within MayaRV will take MSelectionLists as input or return them. An MSelectionList is an ordered heterogeneous list which keeps MObjects, MDagPaths, MPlugs as well as ComponentLists, and although the name suggests otherwise, it has nothing to do with the selection within the maya scene.
 
-SelectionLists can easily be created using the ``mayarv.maya.nodes.base.toSelectionList`` function, or the monkey-patched creator functions. It comes in several variants which are more specialized, but will be faster as well. Its safe and mostly performant enough to use the general version though.
+SelectionLists can easily be created using the ``mayarv.maya.nt.base.toSelectionList`` function, or the monkey-patched creator functions. It comes in several variants which are more specialized, but will be faster as well. Its safe and mostly performant enough to use the general version though.
 	>>> nl = (p, t, rlm)
 	>>> sl = toSelectionList(nl)
 	>>> assert isinstance(sl, api.MSelectionList) and len(sl) == 3
@@ -211,7 +211,7 @@ SelectionLists can easily be created using the ``mayarv.maya.nodes.base.toSelect
 	>>> sl2 = api.MSelectionList.fromList(nl)
 	>>> sl3 = api.MSelectionList.fromStrings([str(n) for n in nl])
 	
-Adjust maya's selection or retrieve it using the ``mayarv.maya.nodes.base.select`` and ``mayarv.maya.nodes.base.getSelection`` functions::
+Adjust maya's selection or retrieve it using the ``mayarv.maya.nt.base.select`` and ``mayarv.maya.nt.base.getSelection`` functions::
 	>>> osl = getSelection()
 	>>> select(sl)
 	>>> select(p, t)
@@ -288,7 +288,7 @@ Component Assignments are mutually exclusive to the object level assignments, bu
 	>>> isb.add(m, m.cf[3])					# add single face 3
 	>>> isb.add(m, m.cf[4,5])				# add remaining faces
 	
-To query component assignments, use the ``mayarv.maya.nodes.base.Shape.getComponentAssignments`` function::
+To query component assignments, use the ``mayarv.maya.nt.base.Shape.getComponentAssignments`` function::
 	>>> se, comp = m.getComponentAssignments()[0]
 	>>> assert se == isb
 	>>> e = comp.getElements()
@@ -456,7 +456,7 @@ Finally, remove the attribute - either using the attribute we kept, ``cattr`` or
 Mesh Component Iteration
 ========================
 Meshes can be handled nicely through their wrapped ``MFnMesh`` methods, but in addition it is possible to quickly iterate its components using very pythonic syntax::
-	>>> from mayarv.maya.nodes import *
+	>>> from mayarv.maya.nt import *
 	
 	>>> m = Mesh()
 	>>> PolyCube().output > m.inMesh
@@ -677,7 +677,7 @@ Persistence
 ===========
 Being able to use python data natively within your program is a great plus - unfortunately there is no default way to store that data in a native format within the maya scene. Everyone who desires to store python data would need to implement marshalling functions to convert python data to maya compatible data to be stored in nodes, and vice versa, which is timeconsuming and a possible source of bugs.
 
-MayaRV tackles the problem by providing a generic storage node which comes as part of the ``nodes`` package. It is implemented as a plugin node which allows to store data and connections flexibly, its access by a convenient python interface::
+MayaRV tackles the problem by providing a generic storage node which comes as part of the ``nt`` package. It is implemented as a plugin node which allows to store data and connections flexibly, its access by a convenient python interface::
 	>>> import tempfile
 	>>> did = 'dataid'
 	>>> sn = StorageNode()
@@ -706,4 +706,4 @@ Additionally you may organize objects in sets, and these sets in partitions::
 		
 	>>> assert len(Node(snn).getObjectSet(did, 0)) 
 	
-The ``mayarv.maya.nodes.storage`` module is built to make it easy to create own node types that are compatible to the storage interface, which also enables you to write your own and more convenient interface to access data.
+The ``mayarv.maya.nt.storage`` module is built to make it easy to create own node types that are compatible to the storage interface, which also enables you to write your own and more convenient interface to access data.
