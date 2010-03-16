@@ -21,8 +21,8 @@ class TestAnim( unittest.TestCase ):
 		assert anim_curve.getNumKeyframes() == 0
 		
 		# assure we are connected to the plug, for curiousity
-		assert p.rx in anim_curve.output.mgetOutputs()
-		assert p.ry not in anim_curve.output.mgetOutputs()
+		assert p.rx in anim_curve.output.moutputs()
+		assert p.ry not in anim_curve.output.moutputs()
 		
 		# set key
 		anim_curve.setIsWeighted(True)
@@ -53,7 +53,7 @@ class TestAnim( unittest.TestCase ):
 		p = nt.Node("persp")
 		
 		# translate is animated
-		for tc in p.translate.mgetChildren():
+		for tc in p.translate.mchildren():
 			apianim.MFnAnimCurve().create(tc)	
 		# END set animation
 		

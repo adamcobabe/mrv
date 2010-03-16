@@ -140,7 +140,7 @@ class TestStorage( unittest.TestCase ):
 		snode._attrprefix = "prefix"				# must create new one
 		pval = snode.getPythonData( "othertest", autoCreate=True )
 		assert len( data ) == 3 
-		assert pval._plug.mgetParent().mgetChildByName('id').asString() == "prefixothertest" 
+		assert pval._plug.mparent().mchildByName('id').asString() == "prefixothertest" 
 
 		# now that we have a prefix, we only see prefixed attributes
 		assert len( snode.getDataIDs() ) == 1 
@@ -148,20 +148,20 @@ class TestStorage( unittest.TestCase ):
 		# STORAGE PLUGS ( MAIN PLUG )
 		# contains connection plug too
 		mainplug = snode.findStoragePlug( "othertest" )
-		assert mainplug == pval._plug.mgetParent() 
+		assert mainplug == pval._plug.mparent() 
 
 
 		# CONNECTION PLUGS
 		###################
 		persp = nt.Node( "persp" )
 
-		conarray = mainplug.mgetChildByName('dmsg')
+		conarray = mainplug.mchildByName('dmsg')
 		for c in range( 10 ):
 			nextplug = conarray.getElementByLogicalIndex( c )
 			persp.message.mconnectTo(nextplug)
 			assert persp.message.misConnectedTo(nextplug) 
 		assert len( conarray ) == 10 
-		assert len( persp.message.mgetOutputs() ) == 10 
+		assert len( persp.message.moutputs() ) == 10 
 
 	def test_storageSetHandling( self ):
 		bmaya.Scene.new( force = True )

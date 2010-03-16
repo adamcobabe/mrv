@@ -143,22 +143,22 @@ class TestGeometry( unittest.TestCase ):
 		# make tweak
 		ofs = ( 1.0, 1.0, 1.0 )						# offset array
 		ptweak = p1.pnts.getElementByLogicalIndex( 0 )
-		ptweak.mgetChildByName('px').msetFloat( ofs[0] )
-		ptweak.mgetChildByName('py').msetFloat( ofs[1] )
-		ptweak.mgetChildByName('pz').msetFloat( ofs[2] )
+		ptweak.mchildByName('px').msetFloat( ofs[0] )
+		ptweak.mchildByName('py').msetFloat( ofs[1] )
+		ptweak.mchildByName('pz').msetFloat( ofs[2] )
 
 		p1.resetTweaks( p1.eComponentType.vertex )
-		assert ptweak.mgetChildByName('px').asFloat() == 0.0
-		assert ptweak.mgetChildByName('py').asFloat() == 0.0
-		assert ptweak.mgetChildByName('pz').asFloat() == 0.0
+		assert ptweak.mchildByName('px').asFloat() == 0.0
+		assert ptweak.mchildByName('py').asFloat() == 0.0
+		assert ptweak.mchildByName('pz').asFloat() == 0.0
 
 		puvtweak = p1.uvpt.getElementByLogicalIndex( 0 )
-		puvtweak.mgetChildByName('ux').msetFloat( ofs[0] )
-		puvtweak.mgetChildByName('uy').msetFloat( ofs[1] )
+		puvtweak.mchildByName('ux').msetFloat( ofs[0] )
+		puvtweak.mchildByName('uy').msetFloat( ofs[1] )
 
 		p1.resetTweaks( p1.eComponentType.uv )
-		assert puvtweak.mgetChildByName('ux').asFloat() == 0.0
-		assert puvtweak.mgetChildByName('uy').asFloat() == 0.0
+		assert puvtweak.mchildByName('ux').asFloat() == 0.0
+		assert puvtweak.mchildByName('uy').asFloat() == 0.0
 
 
 
@@ -185,9 +185,9 @@ class TestGeometry( unittest.TestCase ):
 				# HISTORY CHECK
 				# assure tweak nodes have been created
 				if history_mode:
-					assert mesh.inMesh.mgetInput().mgetWrappedNode().getApiType() == tweaktype
+					assert mesh.inMesh.minput().mwrappedNode().getApiType() == tweaktype
 				else:
-					assert mesh.inMesh.mgetInput().isNull()
+					assert mesh.inMesh.minput().isNull()
 				# END history  check
 
 				# TODO: Check that the values are truly the same ( as keep_tweak_result is 1 )

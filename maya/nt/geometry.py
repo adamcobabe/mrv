@@ -29,7 +29,7 @@ class GeometryShape( base.Shape ):	# base for epydoc !
 				try_index = p_plug.getLogicalIndex() + 1
 				try_plug = array_plug.getElementByLogicalIndex( try_index )
 
-				if try_plug.getChild( 0 ).mgetInput().isNull():
+				if try_plug.getChild( 0 ).minput().isNull():
 					return try_index
 			# END endless loop
 
@@ -37,14 +37,14 @@ class GeometryShape( base.Shape ):	# base for epydoc !
 		# END helper method
 
 		substitute = kwargs.get( "substitute", False )
-		for input_plug in self.message.mgetOutputs():
-			node = input_plug.mgetWrappedNode()
+		for input_plug in self.message.moutputs():
+			node = input_plug.mwrappedNode()
 			if node.getApiType() != api.MFn.kLightLink:
 				continue
 
 			# we are always connected to the object portion of the compound model
 			# from there we can conclude it all
-			parent_compound = input_plug.mgetParent()
+			parent_compound = input_plug.mparent()
 			target_compound_index = -1
 			if substitute:
 				target_compound_index = parent_compound.getLogicalIndex()
@@ -56,7 +56,7 @@ class GeometryShape( base.Shape ):	# base for epydoc !
 			# retrieve light link, connect other - light is only needed if we do not
 			# substitute
 			if not substitute:
-				light_plug = parent_compound.getChild( 0 ).mgetInput()
+				light_plug = parent_compound.getChild( 0 ).minput()
 				if not light_plug.isNull():
 					light_plug.mconnectTo(new_parent_compound.getChild( 0 ), force=False)
 				# END if lightplug is connected
@@ -278,7 +278,7 @@ class Mesh( SurfaceShape ):		# base for epydoc !
 			# KEEP MODE
 			#############
 			if keep_tweak_result:
-				input_plug = self.inMesh.mgetInput()
+				input_plug = self.inMesh.minput()
 
 				# history check
 				if input_plug.isNull():
@@ -297,7 +297,7 @@ class Mesh( SurfaceShape ):		# base for epydoc !
 					return self.resetTweaks( check_types, keep_tweak_result = False )
 				else:
 					# create node of valid type
-					tweak_node = input_plug.mgetWrappedNode()
+					tweak_node = input_plug.mwrappedNode()
 
 					# create node if there is none as direct input
 					if not tweak_node.hasFn( tweak_node_type_API ):
@@ -313,7 +313,7 @@ class Mesh( SurfaceShape ):		# base for epydoc !
 							self.getUVSetNames( names )
 							index = names.index( self.getCurrentUVSetName( ) )
 
-							own_tweak_location_plug = self.uvSet.getElementByLogicalIndex( index ).mgetChildByName('uvSetTweakLocation')
+							own_tweak_location_plug = self.uvSet.getElementByLogicalIndex( index ).mchildByName('uvSetTweakLocation')
 							tweak_node.uvTweak.getElementByLogicalIndex( index ).mconnectTo(own_tweak_location_plug)
 						# END uv special setup
 					# END create tweak node

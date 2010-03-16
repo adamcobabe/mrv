@@ -626,7 +626,7 @@ class SetFilter( tuple ):
 		if self[ 2 ]:			# deformer sets
 			setnode = NodeFromObj( apiobj )
 			for elmplug in setnode.usedBy:	# find connected deformer
-				iplug = elmplug.mgetInput()
+				iplug = elmplug.minput()
 				if iplug.isNull():
 					continue
 
@@ -933,7 +933,7 @@ class DependNode( Node, iDuplicatable ):		# parent just for epydoc -
 		outlist = list()
 		iogplug = self._getSetPlug()
 
-		for dplug in iogplug.mgetOutputs():
+		for dplug in iogplug.moutputs():
 			setapiobj = dplug.node()
 
 			if not setFilter( setapiobj ):
@@ -1752,12 +1752,12 @@ class DagNode( Entity, iDagItem ):	# parent just for epydoc
 	def _getDisplayOverrideValue( self, plugName ):
 		"""@return: the given effective display override value or None if display
 		overrides are disabled"""
-		if self.do.mgetChildByName('ove').asInt():
+		if self.do.mchildByName('ove').asInt():
 			return getattr( self.do, plugName ).asInt()
 
 		for parent in self.iterParents():
-			if parent.do.mgetChildByName('ove').asInt():
-				return parent.do.mgetChildByName(plugName).asInt()
+			if parent.do.mchildByName('ove').asInt():
+				return parent.do.mchildByName(plugName).asInt()
 
 		return None
 
@@ -2634,17 +2634,17 @@ class Shape( DagNode ):	 # base for epydoc !
 			components = api.MObjectArray()
 
 			# take full assignments as well - make it work as the getConnectedSets api method
-			for dplug in iogplug.mgetOutputs():
+			for dplug in iogplug.moutputs():
 				sets.append( dplug.node() )
 				components.append( MObject() )
 			# END full objecft assignments
 
-			for compplug in iogplug.mgetChildByName('objectGroups'):
-				for setplug in compplug.mgetOutputs():
+			for compplug in iogplug.mchildByName('objectGroups'):
+				for setplug in compplug.moutputs():
 					sets.append( setplug.node() )		# connected set
 
 					# get the component from the data
-					compdata = compplug.mgetChildByName('objectGrpCompList').masData()
+					compdata = compplug.mchildByName('objectGrpCompList').masData()
 					if compdata.getLength() == 1:			# this is what we can handle
 						components.append( compdata[0] ) 	# the component itself
 					else:
@@ -2655,7 +2655,7 @@ class Shape( DagNode ):	 # base for epydoc !
 
 			return ( sets, components )
 		else:
-			for dplug in iogplug.mgetOutputs():
+			for dplug in iogplug.moutputs():
 				sets.append(dplug.node())
 			return sets
 		# END for each object grouop connection in iog

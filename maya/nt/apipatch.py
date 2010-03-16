@@ -206,7 +206,7 @@ class MTransformationMatrix( api.MTransformationMatrix, PatchMatrix ):
 		type.__setattr__( cls.__bases__[0], '__iter__', __iter__ )
 		return True
 
-	def mgetScale( self , space = api.MSpace.kTransform ):
+	def mscale( self , space = api.MSpace.kTransform ):
 		ms = api.MScriptUtil()
 		ms.createFromDouble( 1.0, 1.0, 1.0 )
 		p = ms.asDoublePtr()
@@ -338,7 +338,7 @@ class MPlug( api.MPlug ):
 	#} Overridden Methods
 
 	#{ Plug Hierarchy Query
-	def mgetParent( self ):
+	def mparent( self ):
 		"""@return: parent of this plug or None
 		@note: for array plugs, this is the array, for child plugs the actual parent """
 		p = None
@@ -351,7 +351,7 @@ class MPlug( api.MPlug ):
 			return None
 		return p
 
-	def mgetChildren( self , predicate = lambda x: True):
+	def mchildren( self , predicate = lambda x: True):
 		"""@return: list of intermediate child plugs, [ plug1 , plug2 ]
 		@param predicate: return True to include x in result"""
 		outchildren = []
@@ -366,7 +366,7 @@ class MPlug( api.MPlug ):
 
 		return outchildren
 
-	def mgetChildByName( self, childname ):
+	def mchildByName( self, childname ):
 		"""@return: MPlug with the given childname
 		@raise AttributeError: if no child plug of the appropriate name could be found
 		@param TypeError: self is not a compound plug"""
@@ -384,7 +384,7 @@ class MPlug( api.MPlug ):
 		# END FOR EACH CHILD
 		raise AttributeError( "Plug %s has no child plug called %s" % ( self, childname ) )
 
-	def mgetSubPlugs( self , predicate = lambda x: True):
+	def msubPlugs( self , predicate = lambda x: True):
 		"""@return: list of intermediate sub-plugs that are either child plugs or element plugs.
 		Returned list will be empty for leaf-level plugs
 		@param predicate: return True to include x in result
@@ -458,7 +458,7 @@ class MPlug( api.MPlug ):
 		mod = undo.DGModifier( )
 		for source, dest in iter_source_destination:
 			if force:
-				destinputplug = dest.mgetInput()
+				destinputplug = dest.minput()
 				if not destinputplug.isNull():
 					if source == destinputplug:
 						continue
@@ -486,7 +486,7 @@ class MPlug( api.MPlug ):
 		# is destination already input-connected ? - disconnect it if required
 		# Optimization: We only care if force is specified. It will fail otherwise
 		if force:
-			destinputplug = destplug.mgetInput()
+			destinputplug = destplug.minput()
 			if not destinputplug.isNull():
 				# handle possibly connected plugs
 				if self == destinputplug:		# is it us already ?
@@ -521,14 +521,14 @@ class MPlug( api.MPlug ):
 			if exclusive_connection:
 				arrayplug.evaluateNumElements( )
 				for delm in arrayplug:
-					if self == delm.mgetInput():
+					if self == delm.minput():
 						return delm
 					# END if self == elm plug
 				# END for each elemnt in destplug
 			# END if exclusive array connection
 
 			# connect the next free plug
-			return self.mconnectTo( arrayplug.mgetNextLogicalPlug( ), force = force )
+			return self.mconnectTo( arrayplug.mnextLogicalPlug( ), force = force )
 		# END Array handling
 		raise AssertionError( "Given plug %r was not an array plug" % arrayplug )
 
@@ -546,7 +546,7 @@ class MPlug( api.MPlug ):
 	def mdisconnectInput( self ):
 		"""Disconnect the input connection if one exists
 		@return: self, allowing chained commands"""
-		inputplug = self.mgetInput()
+		inputplug = self.minput()
 		if inputplug.isNull():
 			return self
 
@@ -559,7 +559,7 @@ class MPlug( api.MPlug ):
 	def mdisconnectOutputs( self ):
 		"""Disconnect all outgoing connections if they exist
 		@return: self, allowing chained commands"""
-		outputplugs = self.mgetOutputs()
+		outputplugs = self.moutputs()
 		if not len( outputplugs ):
 			return self
 
@@ -586,8 +586,8 @@ class MPlug( api.MPlug ):
 	def mdisconnectNode( self, other ):
 		"""Disconnect this plug from the given node if they are connected
 		@param other: Node that will be completely disconnected from this plug"""
-		for p in self.mgetOutputs():
-			if p.mgetWrappedNode() == other:
+		for p in self.moutputs():
+			if p.mwrappedNode() == other:
 				self.mdisconnectFrom(p)
 		# END for each plug in output
 
@@ -606,26 +606,26 @@ class MPlug( api.MPlug ):
 		@note: return true for self.misConnectedTo(destplug) but false for destplug.misConnectedTo(self)
 		@note: use the mhaveConnection method whether both plugs have a connection no matter which direction
 		@note: use L{isConnected} to find out whether this plug is connected at all"""
-		return destplug in self.mgetOutputs()
+		return destplug in self.moutputs()
 
-	def mgetOutputs( self ):
+	def moutputs( self ):
 		"""@return: MPlugArray with all plugs having this plug as source
 		@todo: should the method be smarter and deal nicer with complex array or compound plugs ?"""
 		outputs = api.MPlugArray()
 		self.connectedTo( outputs, False, True )
 		return outputs
 
-	def mgetOutput( self ):
+	def moutput( self ):
 		"""@return: out first plug that has this plug as source of a connection
 		@raise IndexError: if the plug has no outputs
 		@note: convenience method"""
-		outputs = self.mgetOutputs()
+		outputs = self.moutputs()
 		if len( outputs ) == 0:
 			raise IndexError( "Plug %s was not connected to output plugs" % self )
 
 		return outputs[0]
 
-	def mgetInputs( self ):
+	def minputs( self ):
 		"""Special handler returning the input plugs of array elements
 		@return: list of plugs connected to the elements of this arrayplug
 		@note: if self is not an array, a list with 1 or 0 plugs will be returned"""
@@ -633,13 +633,13 @@ class MPlug( api.MPlug ):
 		if self.isArray():
 			self.evaluateNumElements()
 			for elm in self:
-				elminput = elm.mgetInput()
+				elminput = elm.minput()
 				if elminput.isNull():
 					continue
 				out.append( elminput )
 			# END for each elm plug in sets
 		else:
-			inplug = self.mgetInput()
+			inplug = self.minput()
 			if not inplug.isNull():
 				out.append( inplug )
 		# END array handling
@@ -667,7 +667,7 @@ class MPlug( api.MPlug ):
 		kwargs['input'] = False
 		return self.miterGraph(*args, **kwargs)
 
-	def mgetInput( self ):
+	def minput( self ):
 		"""@return: plug being the source of a connection to this plug or a null plug
 		if no such plug exists"""
 		inputs = api.MPlugArray()
@@ -683,21 +683,21 @@ class MPlug( api.MPlug ):
 		# must have more than one input - can this ever be ?
 		raise ValueError( "Plug %s has more than one input plug - check how that can be" % self )
 
-	def mgetConnections( self ):
+	def mconnections( self ):
 		"""@return: tuple with input and outputs ( inputPlug, outputPlugs )"""
-		return ( self.mgetInput( ), self.mgetOutputs( ) )
+		return ( self.minput( ), self.moutputs( ) )
 
 	#} END connections query
 
 	#{ Affects Query
-	def mgetDependencyInfo( self, by=False ):
+	def mdependencyInfo( self, by=False ):
 		"""@return: list of plugs on this node that this plug affects or is being affected by
 		@param by: if false, affected attributplugs will be returned, otherwise the attributeplugs affecting this one
 		@note: you can also use the L{mgetDependencyInfo} method on the node itself if plugs are not
 		required - this will also be faster
 		@note: have to use MEL :("""
-		ownnode = self.mgetWrappedNode()
-		attrs = cmds.affects( self.mgetWrappedAttribute().getName() , str( ownnode ), by=by ) or list()
+		ownnode = self.mwrappedNode()
+		attrs = cmds.affects( self.mwrappedAttribute().getName() , str( ownnode ), by=by ) or list()
 
 		outplugs = list()
 		depfn = api.MFnDependencyNode( ownnode.getMObject() )
@@ -708,16 +708,16 @@ class MPlug( api.MPlug ):
 
 	def maffects( self ):
 		"""@return: list of plugs affected by this one"""
-		return self.mgetDependencyInfo( by = False )
+		return self.mdependencyInfo( by = False )
 
 	def maffected( self ):
 		"""@return: list of plugs affecting this one"""
-		return self.mgetDependencyInfo( by = True )
+		return self.mdependencyInfo( by = True )
 
 	#} END affects query
 
 	#{ General Query
-	def mgetNextLogicalIndex( self ):
+	def mnextLogicalIndex( self ):
 		"""@return: index of logical indexed plug that does not yet exist
 		@note: as this method does a thorough search, it is relatively slow
 		compared to a simple numPlugs + 1 algorithm
@@ -743,16 +743,16 @@ class MPlug( api.MPlug ):
 		# END if more than one indices exist
 		return logicalIndex
 
-	def mgetNextLogicalPlug( self ):
+	def mnextLogicalPlug( self ):
 		"""@return: plug at newly created logical index
 		@note: only valid for array plugs"""
-		return self.getElementByLogicalIndex(self.mgetNextLogicalIndex())
+		return self.getElementByLogicalIndex(self.mnextLogicalIndex())
 
-	def mgetWrappedAttribute( self ):
+	def mwrappedAttribute( self ):
 		"""@return: Attribute instance of our underlying attribute"""
 		return base.Attribute(self.attribute())
 
-	def mgetWrappedNode( self ):
+	def mwrappedNode( self ):
 		"""@return: wrapped Node of the plugs node"""
 		return base.NodeFromObj(self.node())
 
@@ -762,7 +762,7 @@ class MPlug( api.MPlug ):
 		does not exist in maya 8.5, so we have to hide that fact."""
 		return base.Data(self.asMObject(*args, **kwargs))
 		
-	def mgetFullyQualifiedName( self ):
+	def mfullyQualifiedName( self ):
 		"""@return: string returning the absolute and fully qualified name of the
 		plug. It might take longer to evaluate but is safe to use if you want to 
 		convert the resulting string back to the actual plug"""
@@ -793,8 +793,8 @@ class MPlug( api.MPlug ):
 	mict = misConnectedTo
 	mhc = lambda lhs,rhs: MPlug.mhaveConnection( lhs, rhs )
 	mdc = mdisconnectFrom
-	mnode = mgetWrappedNode
-	mattribute = mgetWrappedAttribute
+	mnode = mwrappedNode
+	mattribute = mwrappedAttribute
 	getNode = api.MPlug.node
 	getAttribute = api.MPlug.attribute
 	getChild = api.MPlug.child

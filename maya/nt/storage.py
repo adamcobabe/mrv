@@ -299,7 +299,7 @@ class StorageBase( iDuplicatable ):
 			"""value plug contains the plugin data in pythondata"""
 			object.__setattr__( self, '_plug', valueplug )
 			object.__setattr__( self, '_pydata', pythondata )
-			object.__setattr__( self, '_isReferenced', valueplug.mgetWrappedNode( ).isReferenced( ) )
+			object.__setattr__( self, '_isReferenced', valueplug.mwrappedNode( ).isReferenced( ) )
 			object.__setattr__( self, '_updateCalled', False )
 
 		def __len__( self ):
@@ -409,8 +409,8 @@ class StorageBase( iDuplicatable ):
 	def __makePlug( self, dataID ):
 		"""Find an empty logical plug index and return the newly created
 		logical plug with given dataID"""
-		elementPlug = self._node.dta.mgetNextLogicalPlug( )
-		elementPlug.mgetChildByName('id').msetString( dataID )
+		elementPlug = self._node.dta.mnextLogicalPlug( )
+		elementPlug.mchildByName('id').msetString( dataID )
 		return elementPlug
 
 	def makePlug( self, dataID ):
@@ -443,7 +443,7 @@ class StorageBase( iDuplicatable ):
 		is empty after it has been duplicated ( would usually be done in the
 		postContructor"""
 		for compoundplug in self._node.dta:
-			self._clearData( compoundplug.mgetChildByName('dval') )
+			self._clearData( compoundplug.mchildByName('dval') )
 		# END for each element in data compound
 
 	@undoable
@@ -465,7 +465,7 @@ class StorageBase( iDuplicatable ):
 		"""@return: compond plug with given dataID or None"""
 		actualID = self._attrprefix + dataID
 		for compoundplug in self._node.dta:
-			if compoundplug.mgetChildByName('id').asString( ) == actualID:
+			if compoundplug.mchildByName('id').asString( ) == actualID:
 				return compoundplug
 		# END for each elemnt ( in search for mathching dataID )
 		return None
@@ -476,7 +476,7 @@ class StorageBase( iDuplicatable ):
 		The prefix itself is transparent and will not bre returned"""
 		outids = list()
 		for compoundplug in self._node.dta:
-			did = compoundplug.mgetChildByName('id').asString( )
+			did = compoundplug.mchildByName('id').asString( )
 			if did and did.startswith( self._attrprefix ):
 				outids.append( did[ len( self._attrprefix ) : ] )
 			# END if is valid id
@@ -507,13 +507,13 @@ class StorageBase( iDuplicatable ):
 
 		# return the result
 		if plugType is None:
-			return ( matchedplug.mgetChildByName('dval'), matchedplug.mgetChildByName('dmsg') )
+			return ( matchedplug.mchildByName('dval'), matchedplug.mchildByName('dmsg') )
 		elif plugType == StorageBase.kStorage:
 			return matchedplug
 		elif plugType == StorageBase.kValue:
-			return matchedplug.mgetChildByName('dval')
+			return matchedplug.mchildByName('dval')
 		elif plugType == StorageBase.kMessage:
-			return matchedplug.mgetChildByName('dmsg')
+			return matchedplug.mchildByName('dmsg')
 		else:
 			raise TypeError( "Invalid plugType value: %s" % plugType )
 
@@ -528,7 +528,7 @@ class StorageBase( iDuplicatable ):
 		Plugs will always be created, the given index specifies a logical plug index
 		@param **kwargs: all arguments supported by L{getStoragePlug}"""
 		storagePlug = self.getStoragePlug( dataID, plugType = StorageBase.kStorage, **kwargs )
-		valplug = storagePlug.mgetChildByName('dval')
+		valplug = storagePlug.mchildByName('dval')
 		return self.getPythonDataFromPlug( valplug )
 
 
@@ -570,7 +570,7 @@ class StorageBase( iDuplicatable ):
 		mp = self.getStoragePlug( dataID, self.kMessage, autoCreate = autoCreate )
 		# array plug having our sets
 		setplug = mp.getElementByLogicalIndex( setIndex )
-		inputplug = setplug.mgetInput()
+		inputplug = setplug.minput()
 		if inputplug.isNull():
 			if not autoCreate:
 				raise AttributeError( "Set at %s[%i] did not exist on %r" % ( self._attrprefix + dataID, setIndex, self ) )
@@ -586,7 +586,7 @@ class StorageBase( iDuplicatable ):
 
 
 		# return actual object set
-		return inputplug.mgetWrappedNode()
+		return inputplug.mwrappedNode()
 
 	@undoable
 	def deleteObjectSet( self, dataID, setIndex ):
@@ -610,7 +610,7 @@ class StorageBase( iDuplicatable ):
 	def getSetsByID( self, dataID ):
 		"""@return: all object sets stored under the given dataID"""
 		mp = self.getStoragePlug( dataID, self.kMessage, autoCreate = False )
-		allnodes = [ p.mgetWrappedNode() for p in mp.mgetInputs() ]
+		allnodes = [ p.mwrappedNode() for p in mp.minputs() ]
 		return [ n for n in allnodes if isinstance( n, nt.ObjectSet ) ]
 
 

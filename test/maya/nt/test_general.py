@@ -223,8 +223,8 @@ class TestGeneral( unittest.TestCase ):
 		assert node == instnode.getMObject()
 		
 		# using an attribute would create a DagNode which corresponds to the first path
-		assert not node != instnode.wm.mgetWrappedNode()
-		assert node == instnode.wm.mgetWrappedNode()
+		assert not node != instnode.wm.mwrappedNode()
+		assert node == instnode.wm.mwrappedNode()
 
 
 	def test_convenienceFunctions( self ):
@@ -626,7 +626,7 @@ class TestNodeBase( unittest.TestCase ):
 
 		# connect it, to track the instance by connection
 		persp = nt.Node( "persp" )
-		perspplug = persp.t.mgetChildByName('tx')
+		perspplug = persp.t.mchildByName('tx')
 		triplug = meshself.maxTriangles
 		perspplug.mconnectTo(triplug)
 
@@ -838,8 +838,8 @@ class TestNodeBase( unittest.TestCase ):
 
 		# DRAWING OVERRIDES
 		###################
-		a1.do.mgetChildByName('ove').msetInt( 1 )
-		a1.do.mgetChildByName('ovdt').msetInt( 2 )
+		a1.do.mchildByName('ove').msetInt( 1 )
+		a1.do.mchildByName('ovdt').msetInt( 2 )
 		assert mesh.getDisplayOverrideValue( 'ovdt' ) == 2 
 		cmds.undo()
 		cmds.undo()
@@ -892,7 +892,7 @@ class TestNodeBase( unittest.TestCase ):
 		count = 0.0
 		for ma in mainattrs:
 			for sa in subattrs:
-				getattr( g, ma ).mgetChildByName(ma+sa).msetFloat(count)
+				getattr( g, ma ).mchildByName(ma+sa).msetFloat(count)
 				count += 1.0
 			# END for each sa
 		# END for each ma

@@ -279,8 +279,8 @@ class TestTransform( unittest.TestCase ):
 		assert not p.tz.misConnectedTo(p.ty)
 		
 		p.tx.mdisconnectFrom(p.ty).mdisconnectFrom(p.tz)
-		assert len(p.ty.mgetInputs()) + len(p.tz.mgetInputs()) == 0
-		assert p.tz.mgetInput().isNull()
+		assert len(p.ty.minputs()) + len(p.tz.minputs()) == 0
+		assert p.tz.minput().isNull()
 		
 		p.tx.mconnectTo(p.tz, force=False)
 		self.failUnlessRaises(RuntimeError, p.ty.mconnectTo, p.tz, force=False)     # tz is already connected
@@ -317,11 +317,11 @@ class TestTransform( unittest.TestCase ):
 		assert m.numPolygons() == 6
 		
 		# compounds and arrays
-		ptc = p.t.mgetChildren()
+		ptc = p.t.mchildren()
 		assert len(ptc) == 3
 		assert (ptc[0] == p.tx) and (ptc[1] == p.ty)
-		assert ptc[2] == p.t.mgetChildByName('tz')
-		assert p.tx.mgetParent() == p.t
+		assert ptc[2] == p.t.mchildByName('tz')
+		assert p.tx.mparent() == p.t
 		assert p.t.isCompound()
 		assert p.tx.isChild()
 		
@@ -360,8 +360,8 @@ class TestTransform( unittest.TestCase ):
 		n.addAttribute(cattr)
 		assert n.compound.isArray()
 		assert n.compound.isCompound()
-		assert len(n.compound.mgetChildren()) == 3
-		assert n.compound.mgetChildByName('mymessage').isArray()
+		assert len(n.compound.mchildren()) == 3
+		assert n.compound.mchildByName('mymessage').isArray()
 		
 		n.removeAttribute(n.compound.getAttribute())
 		
