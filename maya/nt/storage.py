@@ -152,7 +152,7 @@ class PyPickleData( mpx.MPxData ):
 		try:
 			cPickle.dump( self.__data, sout, protocol=2 )
 		except cPickle.PicklingError, e:
-			sys.__stdout__.write( str( e ) )
+			sys.stdout.write( str( e ) )
 			return
 		# END pickle error handling
 

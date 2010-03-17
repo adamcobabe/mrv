@@ -358,7 +358,7 @@ class iPlug( object ):
 		"""@return: True if this is an input plug that will never cause computations"""
 		raise NotImplementedError( "Implement this in subclass" )
 
-	#}
+	#} END interface
 
 
 class plug( iPlug ):
@@ -402,7 +402,6 @@ class plug( iPlug ):
 
 		# class attributes just return the descriptor itself for direct access
 		return self
-
 
 	#def __set__( self, obj, value ):
 		"""We do not use a set method, allowing to override our descriptor through
@@ -486,7 +485,7 @@ class _PlugShell( tuple ):
 		return super( _PlugShell, self ).__getattribute__( attr )
 
 	def __repr__ ( self ):
-		return "%s.%s" % ( self[0], self[1] )
+		return "%s.%s" % ( self.node, self.plug )
 
 	def __str__( self ):
 		return repr( self )
@@ -542,8 +541,6 @@ class _PlugShell( tuple ):
 
 		raise AssertionError( "Plug %s did not provide any output or input!" % repr( self ) )
 
-
-
 	def set( self, value, ignore_connection = False ):
 		"""Set the given value to be used in our plug
 		@param ignore_connection: if True, the plug can be destination of a connection and
@@ -567,7 +564,6 @@ class _PlugShell( tuple ):
 			raise NotWritableError( "Plug %r is connected to %r and thus not explicitly writable" % ( self, self.input() ) )
 
 		self.setCache( value )
-
 
 	def compatabilityRate( self, value ):
 		"""@return: value between 0 and 255, 0 means no compatability, 255 a perfect match

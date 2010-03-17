@@ -29,7 +29,7 @@ class QAMetaMel( _NodeBaseCheckMeta ):
 		try:
 			index = Mel.call( index_proc )
 		except RuntimeError, e:
-			sys.__stdout__.write( str( e ) )
+			sys.stdout.write( str( e ) )
 		else:
 			# assure its working , never fail here
 			if len( index ) % 3 == 0:
@@ -37,7 +37,7 @@ class QAMetaMel( _NodeBaseCheckMeta ):
 				for checkname, description, can_fix in zip( iindex, iindex, iindex ):
 					# check name - it may not contain spaces for now
 					if " " in checkname:
-						sys.__stdout__.write( "Invalid name: %s - it may not contain spaces, use CamelCase or underscores" % checkname )
+						sys.stdout.write( "Invalid name: %s - it may not contain spaces, use CamelCase or underscores" % checkname )
 						continue
 					# END name check
 
@@ -47,7 +47,7 @@ class QAMetaMel( _NodeBaseCheckMeta ):
 				# END for each information tuple
 			# END if index is valid
 			else:
-				sys.__stdout__.write( "Invalid proc index returned by %s" % index_proc )
+				sys.stdout.write( "Invalid proc index returned by %s" % index_proc )
 			# END index has valid format
 		# END index could be retrieved
 
