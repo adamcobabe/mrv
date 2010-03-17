@@ -62,7 +62,7 @@ class QAProcessBase( ProcessBase ):
 	def listChecks( self, **kwargs ):
 		"""@return: list( QACheck, ... ) list of our checks
 		@param **kwargs: see L{QAWorkflow.filterChecks}"""
-		return self.workflow().filterChecks( [ self ], **kwargs )
+		return self.getWorkflow().filterChecks( [ self ], **kwargs )
 
 	#} END interface
 
@@ -173,7 +173,7 @@ class QAWorkflow( Workflow, EventSender ):
 		@param predicate: func( p ) for plug p returns True for it to be included in the result"""
 		outchecks = list()
 		for node in processes:
-			outchecks.extend( node.toShells( node.plugs( lambda c: self.fIsQAPlug( c ) and predicate( c ) ) ) )
+			outchecks.extend( node.toShells( node.getPlugs( lambda c: self.fIsQAPlug( c ) and predicate( c ) ) ) )
 		return outchecks
 
 	def listChecks( self, predicate = lambda c: True  ):
@@ -202,7 +202,7 @@ class QAWorkflow( Workflow, EventSender ):
 		for checkshell in checks:
 			if self.info_to_stdout:
 				checkplug = checkshell.plug
-				sys.stdout.write( "Running %s: %s ... " % ( checkplug.name(), checkplug.annotation ) )
+				sys.__stdout__.write( "Running %s: %s ... " % ( checkplug.getName(), checkplug.annotation ) )
 			# END extra info
 
 			self.e_preCheck.send( self.e_preCheck, checkshell )
@@ -229,7 +229,7 @@ class QAWorkflow( Workflow, EventSender ):
 				msg = "FAILED"
 				if result.isSuccessful():
 					msg = "OK"
-				sys.stdout.write( msg + "\n" )
+				sys.__stdout__.write( msg + "\n" )
 			# END extra info
 
 			# record result
@@ -254,13 +254,13 @@ class QACheckResult( object ):
 		self.fixed_items = ( isinstance( fixed_items, list ) and fixed_items ) or list()
 		self.failed_items = ( isinstance( failed_items, list ) and failed_items ) or list()
 
-	def fixedItems( self ):
+	def getFixedItems( self ):
 		"""@return: list( Item , ... ) list of items ( the exact type may differ
 		depending on the actual test ) which have been fixed so they represent the
 		desired state"""
 		return self.fixed_items
 
-	def failedItems( self ):
+	def getFailedItems( self ):
 		"""@return( list( Item, ... ) list of failed items being items that could not be
 		fixed and are not yet in the desired state"""
 		return self.failed_items

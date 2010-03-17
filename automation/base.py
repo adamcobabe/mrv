@@ -101,10 +101,10 @@ def loadWorkflowFromDotFile( dotfile, workflowcls = None ):
 	for edge in dotgraph.get_edge_list():
 		snode = edge_lut[ edge.get_source().strip('"') ]
 		dnode = edge_lut[ edge.get_destination().strip('"') ]
-		destplugs = dnode.inputPlugs( )
+		destplugs = dnode.getInputPlugs( )
 
 		numConnections = 0
-		for sourceplug in snode.outputPlugs():
+		for sourceplug in snode.getOutputPlugs():
 			try:
 				# first is best
 				targetcandidates = snode.filterCompatiblePlugs( destplugs, sourceplug.attr, raise_on_ambiguity = 0, attr_affinity = False, attr_as_source = True )
@@ -139,7 +139,7 @@ def loadWorkflowFromDotFile( dotfile, workflowcls = None ):
 				# count connections by sourceshell
 				sourcemap = dict()			# source->list( edge( s->d  ) ... )
 				for shell in blockedDestinationShells:
-					inshell = dshell.input()
+					inshell = dshell.getInput()
 					sourcemap.setdefault( inshell, list() ).append( ( inshell,dshell ) )
 
 				# find multiple edges

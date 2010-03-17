@@ -70,8 +70,8 @@ class TestDGFacadeEngine( unittest.TestCase ):
 		gn1 = GraphNodeBase( g, id="GN_1" )		# node wrapping the graph
 		og.addNode( gn1 )
 
-		self.failUnless( len( gn1.inputPlugs() ) == 2 )		# does not consider connections
-		self.failUnless( len( gn1.outputPlugs() ) == 2 )		# does not consider connections
+		self.failUnless( len( gn1.getInputPlugs() ) == 2 )		# does not consider connections
+		self.failUnless( len( gn1.getOutputPlugs() ) == 2 )		# does not consider connections
 
 
 		# GET ATTR
@@ -80,10 +80,10 @@ class TestDGFacadeEngine( unittest.TestCase ):
 
 		# ATTR AFFECTS
 		###############
-		affected = gn1._FP_s1_inFloat.plug.affected()
+		affected = gn1._FP_s1_inFloat.plug.getAffected()
 		self.failUnless( len( affected ) == 2 )
 
-		affectedby = affected[-1].affectedBy()
+		affectedby = affected[-1].getAffectedBy()
 		self.failUnless( len( affectedby ) == 2 )
 
 
@@ -98,7 +98,7 @@ class TestDGFacadeEngine( unittest.TestCase ):
 		# adjust input value inside - it should affect outside world as well
 		s1ifloat = s1.inFloat
 		s1ifloat.set( 10.0 )
-		self.failUnless( s1ifloat.hasCache() and s1ifloat.cache() == 10.0 )
+		self.failUnless( s1ifloat.hasCache() and s1ifloat.getCache() == 10.0 )
 
 		# as its a copy, we have to set the value there as well
 		# fail due to connection
@@ -107,7 +107,7 @@ class TestDGFacadeEngine( unittest.TestCase ):
 		gn1s2outAdd = gn1._FP_s2_outAdd
 
 		gn1s1ifloat.set( 10.0 )
-		self.failUnless( gn1s1ifloat.hasCache() and gn1s1ifloat.cache() == 10.0 )
+		self.failUnless( gn1s1ifloat.hasCache() and gn1s1ifloat.getCache() == 10.0 )
 		self.failUnless( s2.outAdd.get() == gn1s2outAdd.get() )
 
 
@@ -154,7 +154,7 @@ class TestDGFacadeEngine( unittest.TestCase ):
 
 		# change offset - it must propagate so g2s2 reevalutates
 		gn1s1ifloat.set( 10.0 )
-		self.failUnless( gn1s1ifloat.cache() == 10.0 )
+		self.failUnless( gn1s1ifloat.getCache() == 10.0 )
 		self.failUnless( gn2s2oadd.get() == 14 )
 
 		# SUPER GRAPHNODE CONTAINING OTHER GRAPH NODES !!!
@@ -184,8 +184,8 @@ class TestDGFacadeEngine( unittest.TestCase ):
 
 		# AFFECTS
 		################
-		self.failUnless( len( sg1inFloat.plug.affected( ) ) == 7 )
-		self.failUnless( len( sg2outAdd.plug.affectedBy( ) ) == 4 )
+		self.failUnless( len( sg1inFloat.plug.getAffected( ) ) == 7 )
+		self.failUnless( len( sg2outAdd.plug.getAffectedBy( ) ) == 4 )
 
 		# SIMPLE COMPUTATION
 		######################
@@ -236,34 +236,34 @@ class TestDGFacadeEngine( unittest.TestCase ):
 		# TEST INCLUDE
 		###################
 		# should not find include plug
-		self.failUnlessRaises( AssertionError, gn.plugs )
+		self.failUnlessRaises( AssertionError, gn.getPlugs )
 
 		gn.ignore_failed_includes = True
 
 		# now it should work
-		gn.plugs()
+		gn.getPlugs()
 
 		# explicit include, no auto includes
 		gn.include = [ "s1.outAdd" ]
 		gn.allow_auto_plugs = False
 
 		# just include should be left
-		self.failUnless( len( gn.plugs() ) == 1 )
+		self.failUnless( len( gn.getPlugs() ) == 1 )
 
 		# TEST PLUG EXCLUDE
 		####################
 		gn.exclude = gn.include
-		self.failUnless( len( gn.plugs( ) ) == 0 )
+		self.failUnless( len( gn.getPlugs( ) ) == 0 )
 		gn.exclude = tuple()
 
 		# test whole node include
 		gn.include = [ "s1" ]
-		self.failUnless( len( gn.plugs() ) == 4 )
+		self.failUnless( len( gn.getPlugs() ) == 4 )
 
 
 		# TEST NODE EXCLUDE
 		###############
 		gn.exclude = gn.include
-		self.failUnless( len( gn.plugs( ) ) == 0 )
+		self.failUnless( len( gn.getPlugs( ) ) == 0 )
 
 
