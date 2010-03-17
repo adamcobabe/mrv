@@ -262,24 +262,24 @@ ObjectSets in MayaRV can be controlled much like ordinary python sets, but they 
 
 	>>> assert len(aobjset.clear()) == 0
 	
-ShadingEngines work the same, except that they are attached to the renderParition by default, and that you usually assign components to them.
+ShadingEngines work the same, except that they are attached to the renderParition by default, and in that commonly assign components to them.
 	
 Components and Component-Level Shader Assignments
 =================================================
 The following examples operate on a simple mesh, representing a polygonal cube with 6 faces, 8 vertices and 12 edges::
 	>>> isb = Node("initialShadingGroup")
 	>>> pc = PolyCube()
-	>>> pc.output > m.inMesh
+	>>> pc.output.mconnectTo(m.inMesh)
 	>>> assert m.numVertices() == 8
 	>>> assert m not in isb                            # it has no shaders on object level
-	>>> assert len(m.getComponentAssignments()) == 0   # nor on component leveld 
+	>>> assert len(m.componentAssignments()) == 0   # nor on component leveld 
 	
 Shader assignments on object level can simply be created and broken by adding or removing items from the respective shading group::
 	>>> m.addTo(isb)
 	>>> assert m in isb
 	
 Component Assignments are mutually exclusive to the object level assignments, but maya will just allow the object level assignments to take priority. If you want component level assignments to become effective, make sure you have no object level assignments left::
-	>>> assert m.getSets(m.fSetsRenderable)[0] == isb
+	>>> assert m.sets(m.fSetsRenderable)[0] == isb
 	>>> m.removeFrom(isb)
 	>>> assert not m.isMemberOf(isb)
 	
@@ -290,10 +290,10 @@ Component Assignments are mutually exclusive to the object level assignments, bu
 	>>> isb.add(m, m.cf[3])					# add single face 3
 	>>> isb.add(m, m.cf[4,5])				# add remaining faces
 	
-To query component assignments, use the ``mayarv.maya.nt.base.Shape.getComponentAssignments`` function::
-	>>> se, comp = m.getComponentAssignments()[0]
+To query component assignments, use the ``mayarv.maya.nt.base.Shape.componentAssignments`` function::
+	>>> se, comp = m.componentAssignments()[0]
 	>>> assert se == isb
-	>>> e = comp.getElements()
+	>>> e = comp.elements()
 	>>> assert len(e) == 6					# we have added all 6 faces
 	
 ====================
@@ -301,35 +301,35 @@ Plugs and Attributes
 ====================
 People coming from MEL might be confused at first as MEL always uses the term ``attr`` when dealing with plugs and attributes. The MayaAPI, as well as MayaRV differentiate these.
 
- * Attributes define the type of data to be stored, its name and a suitable default value. They do not hold any data themselves.
+ * Attributes define the type of data to be stored, its name and a suitable default value. They do not hold any other data themselves.
  
- * Plugs allow accessing Data as identified by an Attribute on a given Node. Plugs are valid only if they refer to a valid Node and one of the Node's Attributes. Plugs can be connected to each other, input connections are exclusive, hence a Plug may have multiple output connection, but only one input connection.
+ * Plugs allow accessing Data as identified by an attribute on a given Node. plugs are valid only if they refer to a valid Node and one of the Node's attributes. Plugs can be connected to each other, input connections are exclusive, hence a plug may have multiple output connection, but only one input connection.
 
 Plugs
 ======
-To access data on a node, you need to retrieve a Plug to it, represented by the monkey-patched API type ``MPlug``. Whenever you deal with data and connections within MayaRV, you deal with Plugs::
+To access data on a node, you need to retrieve a plug to it, which is represented by the patched API type ``MPlug``. Whenever you deal with data and connections within MayaRV, you deal with plugs::
 	>>> assert isinstance(p.translate, api.MPlug)
-	>>> assert p.translate == p.findPlug('translate')
+	>>> assert p.translate == p.findPlug('t')
 	>>> assert p.t == p.translate 
 	
-The ``MPlug`` type has been extended with various convenience methods which are well worth an extended study, here we focus on the most important functionality.
+The ``MPlug`` type has been extended with various convenience methods which are well worth an separate study, here we focus on the most important functionality though.
 	
 Connections
 -----------
 Connect and disconnect plugs using simple, chainable functions. The most common connection related methods can be called using overloaded operators::
-	>>> ( p.tx > p.ty ) > p.tz		# parantheses enforce connection order in this case
-	>>> assert p.tx >= p.ty
-	>>> assert p.ty.isConnectedTo(p.tz)
-	>>> assert not p.tz >= p.ty
+	>>> p.tx.mconnectTo(p.ty).mconnectTo(p.tz)
+	>>> assert p.tx.misConnectedTo(p.ty)
+	>>> assert p.ty.misConnectedTo(p.tz)
+	>>> assert not p.tz.misConnectedTo(p.ty)
 		
-	>>> ( p.tx | p.ty ) | p.tz		# disconnect all
-	>>> assert len(p.ty.p_inputs) + len(p.tz.getInputs()) == 0
-	>>> assert p.tz.getInput().isNull()
+	>>> p.tx.mdisconnectFrom(p.ty).mdisconnectFrom(p.tz)
+	>>> assert len(p.ty.minputs()) + len(p.tz.minputs()) == 0
+	>>> assert p.tz.minput().isNull()
 	
-	>>> p.tx > p.tz
-	>>> p.ty > p.tz              # raises as tz is already connected
-	>>> p.ty >> p.tz             # force the connection
-	>>> p.tz.disconnect()        # disconnect all
+	>>> p.tx.mconnectTo(p.tz, force=False)
+	>>> p.ty.mconnectTo(p.tz, force=False)     # raises tz is already connected
+	>>> p.ty.mconnectTo(p.tz)                              # force the connection, force defaults True
+	>>> p.tz.mdisconnect()                                    # disconnect all
 
 Querying Values
 ---------------
@@ -344,13 +344,16 @@ All other data is returned as an MObject serving as a container for the possibly
 	>>> matfn = api.MFnMatrixData(pewm.asMObject())
 	>>> matrix = matfn.matrix()                       # wrap data manually
 		
-	>>> assert matrix == pewm.asData().matrix()       # or get a wrapped version right away
+	>>> dat = pewm.masData()							# or get a wrapped version right away
+	>>> assert matrix == dat.matrix()
 	
+.. note:: Wrapping data automatically using ``masData`` is inefficient as all known data function sets will be tried for a compatible one. Afterwards the data is copied into a ``Data`` compatible object which gives convenient access to the data ( this can be very inefficient depending on how the data type is actually implemented ). If you favor performance over convenience, initialize the respective MFnFunctionSet yourself. 
+
 Setting Values
 --------------
-Primitive value types can be handled easily using their corresponding ``MPlug.setType`` functions::
+Primitive value types can be handled easily using their corresponding ``MPlug.setType`` functions. Please note that the methods prefixed with 'm' are MRV specific and feature undo support::
 	>>> newx = 10.0
-	>>> p.tx.setDouble(newx)
+	>>> p.tx.msetDouble(newx)
 	>>> assert p.tx.asDouble() == newx
 	
 All other types need to be created and adjusted using their respective data function sets. The following example extracts mesh data defining a cube, deletes a face, creates a new mesh shape to be filled with the adjusted data so that it shows in the scene::
@@ -360,27 +363,26 @@ All other types need to be created and adjusted using their respective data func
 	>>> assert meshfn.numPolygons() == 5
 		
 	>>> mc = Mesh()                                 # create new empty mesh to 
-	>>> mc.cachedInMesh.setMObject(meshdata)        # hold the new mesh in the scene
+	>>> mc.cachedInMesh.msetMObject(meshdata)        # hold the new mesh in the scene
 	>>> assert mc.numPolygons() == 5
 	>>> assert m.numPolygons() == 6
 	
-	
 Compound Plugs and Plug-Arrays
--------------------------------------
-Compound Attributes are attributes which by themselves only serve as a parent for one or more child aattributes. Array attributes are Attributes which can have any amount of homogeneous elements. Compound- and Array Attributes can be combined to create complex special purpose Attribute types.
+------------------------------
+Compound Attributes are attributes which by themselves only serve as a parent for one or more child attributes. Array attributes are attributes which can have any amount of homogeneous elements. Compound- and Array Attributes can be combined to create complex special purpose Attribute types.
 
-The ``MPlug`` type has functions to traverse the Plugs to the corresponding attributes
+The ``MPlug`` type has functions to traverse the plugs of the corresponding attributes
 
 A simple example for a compound plug is the translate attribute of a transform, which has 3 child plugs, translateX, translateY and translatZ.
 
-Array plugs are used to access the transform's worldMatrix data, which contains one world matrix per direct instance of the transform.
+Array plugs are used to access the transform's worldMatrix data, which contains one world matrix per instance of the transform.
 
 The following example shows the traversal of these attribute types::
-	>>> ptc = p.t.children()
+	>>> ptc = p.t.mchildren()
 	>>> assert len(ptc) == 3
 	>>> assert (ptc[0] == p.tx) and (ptc[1] == p.ty)
-	>>> assert ptc[2] == p.t['tz']
-	>>> assert p.tx.parent() == p.t
+	>>> assert ptc[2] == p.t.mchildByName('tz')
+	>>> assert p.tx.mparent() == p.t
 	>>> assert p.t.isCompound()
 	>>> assert p.tx.isChild()
 		
@@ -391,19 +393,19 @@ The following example shows the traversal of these attribute types::
 	>>> 	assert element_plug.isElement()
 
 Graph Travseral
------------------
-Using the ``iter(Input|Output)Graph`` methods, complex and fast traversals of the dependency graph are made easy::
-	>>> mihistory = list(m.inMesh.iterInputGraph())
+----------------
+Using the ``miter(Input|Output)Graph`` methods, complex and fast traversals of the dependency graph are made easy::
+	>>> mihistory = list(m.inMesh.miterInputGraph())
 	>>> assert len(mihistory) > 2
 	>>> assert mihistory[0] == m.inMesh
 	>>> assert mihistory[2] == pc.output		# ignore groupparts
 		
-	>>> pcfuture = list(pc.output.iterOutputGraph())
+	>>> pcfuture = list(pc.output.miterOutputGraph())
 	>>> assert len(pcfuture) > 2
 	>>> assert pcfuture[0] == pc.output
 	>>> assert pcfuture[2] == m.inMesh			# ignore groupparts 
 	
-Please note that the traversal can be configured in many ways to meet your specific requirements.
+Please note that the traversal can be configured in many ways to meet your specific requirements, as it is implemented by ``iterGraph``.
 	
 Attributes
 ==========
@@ -439,29 +441,22 @@ The code looks like this::
 	>>> # END compound attribute
 
 Now the only thing left to do is to add the newly created attribute to a node::
-	>>> 
-	
-
-To delete an attribute, remove the attribute which works as long as it was dynamically added before::
 	>>> n = Network()
 	>>> n.addAttribute(cattr)
 	>>> assert n.compound.isArray()
 	>>> assert n.compound.isCompound()
 	>>> assert len(n.compound.children()) == 3
-	>>> assert n.compound['mymessage'].isArray()
+	>>> assert n.compound['mymessage'].isArray() 
 	
 Finally, remove the attribute - either using the attribute we kept, ``cattr`` or by finding the attribute::
-	>>> n.removeAttribute(n.compound.getAttribute())
-
+	>>> n.removeAttribute(n.compound.attribute())
 
 ========================
 Mesh Component Iteration
 ========================
 Meshes can be handled nicely through their wrapped ``MFnMesh`` methods, but in addition it is possible to quickly iterate its components using very pythonic syntax::
-	>>> from mayarv.maya.nt import *
-	
 	>>> m = Mesh()
-	>>> PolyCube().output > m.inMesh
+	>>> PolyCube().output.mconnectTo(m.inMesh)
 	>>> average_x = 0.0
 	>>> for vit in m.vtx:                  # iterate the whole mesh
 	>>> 	average_x += vit.position().x
@@ -482,8 +477,8 @@ Meshes can be handled nicely through their wrapped ``MFnMesh`` methods, but in a
 	>>> for mit in m.map:                  # iterate face-vertices
 	>>> 	mit.faceId(); mit.vertId() 
 	
-As it has only been hinted at in the example, all shortcuts supported by Components, i.e. ``m.cf[1,3,5]`` will work with iterators as well.
-	
+As it has only been hinted at in the example, it should be clarified that all shortcuts supported by Components, i.e. ``m.cf[1,3,5]`` will work with iterators as well.
+
 ==========
 Selections
 ==========
@@ -494,7 +489,7 @@ The following examples show some of the most common functions::
 	>>> assert len(selection()) == 4
 		
 	>>> # simple filtering
-	>>> assert activeSelectionList().iterPlugs().next() == p.t
+	>>> assert activeSelectionList().miterPlugs().next() == p.t
 	>>> assert selection(api.MFn.kTransform)[-1] == p
 		
 	>>> # adjustments
@@ -505,10 +500,10 @@ The following examples show some of the most common functions::
 	
 Please note that many of the selection utilities operate on wrapped Nodes by default, which may not be desired in performance critical areas.  
 
-Advanced filtering can be implemented using the ``predicate`` of iterators, allowing to return only these items which produce a True value in the predicate function. Something like ``ls -ro`` would look like this::
+Advanced filtering can be implemented using the ``predicate`` of iterators, allowing to return only those items for which the predicate function returns a True value. Something like ``ls -ro`` would look like this::
 	>>> assert len(selection(predicate=lambda n: n.isReferenced())) == 0
 
-Expanders, such as in ``ls -sl -dag`` could be implemented with adapter iterators, which expande dag nodes to the list of their children recursively.
+Expanders, such as in ``ls -sl -dag`` could be implemented with adapter iterators, which expand dag nodes to the list of their children recursively.
 
 Its worth noting though that very complex filters could possibly be faster if they are handled by ``ls`` directly instead of reprogramming them using the python MayaAPI.
 
@@ -518,7 +513,7 @@ Selecting components is comparable to component assignments of sets and shading 
 	>>> sl = api.MSelectionList()
 	>>> sl.add(m.dagPath(), m.cf[:4])			# first 4 faces
 	>>> select(sl)
-	>>> assert len(activeSelectionList().iterComponents().next()[1].getElements()) == 4
+	>>> assert len(activeSelectionList().miterComponents().next()[1].elements()) == 4
 
 Plugs are can be selected exactly the same way as nodes::
 	>>> sl.clear()
@@ -550,7 +545,7 @@ Although you can set the namespace of individual nodes, it is also possible to m
 	>>> barns.moveNodes(foons)
 	>>> assert foons.iterNodes().next() == m 
 	
-Renaming of namespaces as well as their deletion is supported as well::
+Renaming of namespaces as well as their deletion is supported as well.::
 	>>> foons.delete()
 	>>> assert not barns.exists() and not foons.exists()
 	>>> assert m.namespace() == RootNamespace
@@ -560,6 +555,8 @@ Renaming of namespaces as well as their deletion is supported as well::
 	>>> assert subnsrenamed != subns
 	>>> assert subnsrenamed.exists() and not subns.exists()
 
+.. note:: Its worth noting that namespace objects are immutable, and renaming a namespace will not alter the original instance.
+
 ==========
 References
 ==========
@@ -567,47 +564,46 @@ References within maya can be referred to by Path or by Reference Node. The latt
 
 Dealing with references correctly can be complex in times, but the ``FileReference`` type in MayaRV greatly facilitates this.
 
-Maya organizes its references hierarchically, which can be queried using the ``iDagItem`` interface of the FileReference type. Additional functionality includes reference creation, import, removal as well as to query information and iterate its contained nodes.
+Maya organizes its references hierarchically, which can be queried using the ``iDagItem`` interface of the FileReference type. Additional functionality includes reference creation, import, removal as well as to query information and to iterate its contained nodes.
 
 The example uses files from the test system and respective utilities::
-	>>> from mayarv.maya.ref import FileReference
 	>>> refa = FileReference.create(get_maya_file('ref8m.ma'))     # file with 8 meshes
 	>>> refb = FileReference.create(get_maya_file('ref2re.ma'))    # two subreferences with subreferences
 		
-	>>> assert refa.p_loaded and refb.isLoaded()
+	>>> assert refb.isLoaded()
 	>>> assert len(FileReference.ls()) == 2
 		
 	>>> assert len(refa.children()) == 0 and len(refb.children()) == 2
 	>>> subrefa, subrefb = refb.children()
 		
-	>>> assert subrefa.p_namespace != subrefb.namespace()
-	>>> assert subrefa.p_path == subrefb.getPath()
+	>>> assert subrefa.namespace() != subrefb.namespace()
+	>>> assert subrefa.path() == subrefb.path()
 	>>> assert subrefa.parent() == refb
 		
-	>>> refa.p_loaded = False
-	>>> assert not refa.p_loaded
+	>>> refa.setLoaded(False)
+	>>> assert not refa.isLoaded()
 	>>> assert refa.setLoaded(True).isLoaded()
 		
 	>>> assert len(list(refa.iterNodes(api.MFn.kMesh))) == 8
 		
 	>>> refa.remove(); refb.remove()
 	>>> assert not refa.exists() and not refb.exists()
-	>>> assert len(FileReference.ls()) == 0 
+	>>> assert len(FileReference.ls()) == 0
 
 
 ==============
 Scene Handling
 ==============
-The 'Scene' is a singleton class which may be used to interact with the scene and to manage scene messages. It is a mix of functionality from the ``file`` MEL command and the ``MSceneMessage`` API class. The following example uses utilities and scenes from the test system::
+The 'Scene' is a singleton class which may be used to interact with maya's currently opened scene and to manage scene messages. It is a mix of functionality from the ``file`` MEL command and the ``MSceneMessage`` API class. The following example uses utilities and scenes from the test system::
 	>>> import mayarv.maya as mrv
 	>>> empty_scene = get_maya_file('empty.ma')
 	>>> mrv.Scene.open(empty_scene, force=1)
-	>>> assert mrv.Scene.getName() == empty_scene
+	>>> assert mrv.Scene.name() == empty_scene
 		
 	>>> files = list()
 	>>> def beforeAndAfterNewCB( data ):
 	>>> 	assert data is None
-	>>> 	files.append(mrv.Scene.getName())
+	>>> 	files.append(mrv.Scene.name())
 			
 	>>> mrv.Scene.beforeNew = beforeAndAfterNewCB
 	>>> mrv.Scene.afterNew = beforeAndAfterNewCB
@@ -617,40 +613,41 @@ The 'Scene' is a singleton class which may be used to interact with the scene an
 	>>> assert len(files) == 2
 	>>> assert files[0] == empty_scene
 	
-It is important to remove callbacks once you are done with them to allow the maya callbacks to be cleaned up properly::
+It is important to remove callbacks once you are done with them to allow the corresponding maya callbacks to be cleaned up properly::
 	>>> mrv.Scene.beforeNew.remove(beforeAndAfterNewCB)
 	>>> mrv.Scene.afterNew.remove(beforeAndAfterNewCB)
 	
 ====
 Undo
 ====
-The MayaAPI, the very basis of MayaReVised, has limited support for undo as it clearly focuses on performance. Changes to the dependency graph can only be made through a utility which supports undo, but changes to values through plugs for instance  are not covered by that. To allow MayaRV to be used within user scripts, full undo was implemented whereever needed. This is indicated by the ``undoable`` decorator. Whenever a method which changes the state cannot be undone for whichever reason, it is decorated with ``notundoable``.
+The MayaAPI, the very basis of MayaReVised, has limited support for undo as it clearly focuses on performance. Changes to the dependency graph can only be made through a utility which supports undo, but changes to values through plugs for instance  are not covered by that. To allow MayaRV to be used within user scripts, full undo was implemented wherever needed. This is indicated by the ``undoable`` decorator. Whenever a method which changes the state cannot be undone for whichever reason, it is decorated with ``notundoable``.
 
-As you are unlikely to need undo support when running in batch mode or standalone, you can disable the undo system by setting MAYARV_UNDO_ENABLED to 0, which causes the undo implementation to completely disappear in many cases, which reduces the overhead considerably and reduces the memory usage.
+As you are unlikely going to need undo support when running in batch mode or standalone, you can disable the undo system by setting MAYARV_UNDO_ENABLED to 0, which causes the undo implementation to completely disappear in many cases, which reduces the overhead considerably as well as the memory usage.
 
 In case your method or function uses an undoable method, it must be decorated with ``undoable`` as well. If you fail doing so, undo will pick up your individual undoable calls, and a single invocation of maya's undo will just undo one of them ( instead of your complete method ).
 
-To implement a simple undoable function yourself, you create a functor of type ``GenericOpertion`` which knows what to do to apply your operation, and to undo it.
+To implement a simple undoable function yourself, you create a functor of type ``GenericOperation`` which will be told what to do to apply your operation, and to undo it.
 
 The following example shows how multiple undoable operations are bundled into a single undoable operation::
 	>>> import maya.cmds as cmds
 	>>> @undoable
 	>>> def undoable_func( delobj ):
-	>>> 	p.tx > p.tz
+	>>> 	p.tx.mconnectTo(p.tz)
 	>>> 	delobj.delete()
 		
+	>>> p = Node("persp")
 	>>> t = Transform()
-	>>> assert not p.tx.isConnectedTo(p.tz)
+	>>> assert not p.tx.misConnectedTo(p.tz)
 	>>> assert t.isValid() and t.isAlive()
 	>>> undoable_func(t)
-	>>> assert p.tx >= p.tz
+	>>> assert p.tx.misConnectedTo(p.tz)
 	>>> assert not t.isValid() and t.isAlive()
 		
 	>>> cmds.undo()
-	>>> assert not p.tx.isConnectedTo(p.tz)
+	>>> assert not p.tx.misConnectedTo(p.tz)
 	>>> assert t.isValid() and t.isAlive()
 	
-Whenever non-overridden functions are called which are located on MFn function sets, these will not support undo which one has to be aware of.
+Whenever non-overridden MFnFunctions are called, these will not support undo by default unless it gets implemented specifically within MayaRV.
 
 Advanced Uses
 =============
@@ -660,31 +657,29 @@ This allows for interesting uses considering that you can, at any time undo, you
 	>>> import mayarv.maya.undo as undo
 	>>> ur = undo.UndoRecorder()
 	>>> ur.startRecording()
-	>>> p.tx > p.ty
-	>>> p.tx > p.tz
+	>>> p.tx.mconnectTo(p.ty)
+	>>> p.tx.mconnectTo(p.tz)
 	>>> ur.stopRecording()
-	>>> p.t > t.t
+	>>> p.t.mconnectTo(t.t)
 		
-	>>> assert p.tx >= p.ty
-	>>> assert p.tx >= p.tz
-	>>> assert p.t >= t.t
+	>>> assert p.tx.misConnectedTo(p.ty)
+	>>> assert p.tx.misConnectedTo(p.tz)
+	>>> assert p.t.misConnectedTo(t.t)
 	>>> ur.undo()
-	>>> assert not p.tx >= p.ty
-	>>> assert not p.tx >= p.tz
-	>>> assert p.t >= t.t
+	>>> assert not p.tx.misConnectedTo(p.ty)
+	>>> assert not p.tx.misConnectedTo(p.tz)
+	>>> assert p.t.misConnectedTo(t.t)
 
-	
 ===========
 Persistence
 ===========
-Being able to use python data natively within your program is a great plus - unfortunately there is no default way to store that data in a native format within the maya scene. Everyone who desires to store python data would need to implement marshalling functions to convert python data to maya compatible data to be stored in nodes, and vice versa, which is timeconsuming and a possible source of bugs.
+Being able to use python data natively within your program is a great plus - unfortunately there is no default way to store that data in a native format within the maya scene. Everyone who desires to store python data would need to implement marshaling functions to convert python data to maya compatible data to be stored in nodes, and vice versa, which is time consuming and a possible source of bugs.
 
-MayaRV tackles the problem by providing a generic storage node which comes as part of the ``nt`` package. It is implemented as a plugin node which allows to store data and connections flexibly, its access by a convenient python interface::
-	>>> import tempfile
+MayaRV tackles the problem by providing a generic storage node which comes as part of the ``nt`` package. It is implemented as a plugin node which allows to store data and connections flexibly, allowing access by a convenient python interface::
 	>>> did = 'dataid'
 	>>> sn = StorageNode()
-	>>> snn = sn.getName()
-	>>> pd = sn.getPythonData( did, autoCreate = True )
+	>>> snn = sn.name()
+	>>> pd = sn.pythonData( did, autoCreate = True )
 		
 	>>> pd[0] = "hello"
 	>>> pd['l'] = [1,2,3]
@@ -694,19 +689,19 @@ MayaRV tackles the problem by providing a generic storage node which comes as pa
 	>>> mrv.Scene.open(tmpscene)
 		
 	>>> sn = Node(snn)
-	>>> pd = sn.getPythonData( did )
+	>>> pd = sn.pythonData( did )
 	>>> assert len(pd) == 2
 	>>> assert pd[0]  == "hello"
 	>>> assert pd['l'] == [1,2,3]
 		
 Additionally you may organize objects in sets, and these sets in partitions::
-	>>> objset = sn.getObjectSet(did, 0, autoCreate=True)
+	>>> objset = sn.objectSet(did, 0, autoCreate=True)
 	>>> objset.add(Transform())
-		
+	
 	>>> mrv.Scene.save(tmpscene)
 	>>> mrv.Scene.open(tmpscene)
 		
-	>>> assert len(Node(snn).getObjectSet(did, 0)) 
+	>>> assert len(Node(snn).objectSet(did, 0)) == 1
 	
 The ``mayarv.maya.nt.storage`` module is built to make it easy to create own node types that are compatible to the storage interface, which also enables you to write your own and more convenient interface to access data.
 

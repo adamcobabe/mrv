@@ -274,7 +274,7 @@ class TestTransform( unittest.TestCase ):
 		######################
 		# PLUGS #
 		assert isinstance(p.translate, api.MPlug)
-		assert p.translate == p.findPlug('translate')
+		assert p.translate == p.findPlug('t')
 		assert p.t == p.translate
 		
 		# connections
@@ -391,7 +391,6 @@ class TestTransform( unittest.TestCase ):
 			
 		for mit in m.map:                  # iterate face-vertices
 			mit.faceId(); mit.vertId() 
-		
 		
 		
 		# SELECTIONS
