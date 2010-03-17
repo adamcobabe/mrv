@@ -32,7 +32,7 @@ class SimpleNode( NodeBase ):
 	def createInstance( self, *args, **kwargs ):
 		"""Create a copy of self and return it
 		@note: override by subclass  - the __init__ methods shuld do the rest"""
-		return self.__class__( self.getID() )
+		return self.__class__( self.id() )
 	#} END iDuplicatable
 
 	def __init__( self , name ):
@@ -231,7 +231,7 @@ class TestDGEngine( unittest.TestCase ):
 
 		# get by name  id
 		for n in ( s1, s2, s3 ):
-			self.failUnless( getattr( graph, n.getID() ) == n )
+			self.failUnless( getattr( graph, n.id() ) == n )
 
 		graph.writeDot( tempfile.gettempdir() + "/PreRemove.dot" )
 		# remove nodes and check connections

@@ -102,7 +102,7 @@ class WorkflowWrapTestProcess( process.WorkflowProcessBase ):
 	#{ iDuplicatable Interface
 	def createInstance( self, *args, **kwargs ):
 		"""Create a copy of self and return it"""
-		return self.__class__( self.id, self.workflowName, wflInstance = self.wgraph )
+		return self.__class__( self.id(), self.workflowName, wflInstance = self.wgraph )
 
 	#} END iDuplicatable
 

@@ -908,7 +908,7 @@ class Graph( nx.DiGraph, iDuplicatable ):
 		"""@return: instance of a node according to the given node id
 		@raise NameError: if no such node exists in graph"""
 		for node in self.iterNodes():
-			if node.getID() == nodeID:
+			if node.id() == nodeID:
 				return node
 
 		raise NameError( "Node with ID %s not found in graph" % nodeID )
@@ -1050,7 +1050,7 @@ class NodeBase( iDuplicatable ):
 		@param id: id of the instance, or None if it is not required
 		@note: we are super() compatible, and assure our base is initialized correctly"""
 		self.graph = None
-		self.id = None
+		self._id = None
 
 		# set id
 		newid = kwargs.get( 'id', None )
@@ -1069,8 +1069,8 @@ class NodeBase( iDuplicatable ):
 
 	def __str__( self ):
 		"""Use our id as string or the default implementation"""
-		if self.id is not None:
-			return str( self.id )
+		if self.id() is not None:
+			return str( self.id() )
 
 		return super( NodeBase, self ).__str__( )
 	#} Overridden from Object
@@ -1079,7 +1079,7 @@ class NodeBase( iDuplicatable ):
 	def createInstance( self, *args, **kwargs ):
 		"""Create a copy of self and return it
 		@note: override by subclass  - the __init__ methods shuld do the rest"""
-		return self.__class__( id = self.id )
+		return self.__class__( id = self.id() )
 
 	def copyFrom( self, other, add_to_graph = True ):
 		"""Just take the graph from other, but do not ( never ) duplicate it
@@ -1088,7 +1088,7 @@ class NodeBase( iDuplicatable ):
 		@note: default implementation does not copy plug caches ( which are stored in
 		the node dict - this is because a reevaluate is usually required on the
 		duplicated node"""
-		self.setID( other.getID() )				# id copying would create equally named clones for now
+		self.setID( other.id() )				# id copying would create equally named clones for now
 		if add_to_graph and other.graph:		# add ourselves to the graph of the other node
 			other.graph.addNode( self )
 
@@ -1111,13 +1111,13 @@ class NodeBase( iDuplicatable ):
 	def setID( self, newID ):
 		"""Set id of this node to newiD
 		@return: previously assigned id"""
-		curid = self.id
-		self.id = newID
+		curid = self.id()
+		self._id = newID
 		return curid
 
-	def getID( self ):
+	def id( self ):
 		"""@return: ID of this instance"""
-		return self.id
+		return self._id
 
 	#} END id handling
 

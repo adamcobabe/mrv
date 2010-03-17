@@ -48,10 +48,10 @@ class Plan( ReportBase ):
 			i += 1 		# plans start at 1
 			# its an edge
 			if ep:
-				line = "%i. %s provides %r through %s to %s" % ( i, sp.process.id, sp.result(), sp.plug, ep.process.noun )
+				line = "%i. %s provides %r through %s to %s" % ( i, sp.process.id(), sp.result(), sp.plug, ep.process.noun )
 			else:
 				# its root
-				line = "%i. %s %s %r when asked for %s" % ( i, sp.process.id, sp.process.verb, sp.result(), sp.plug )
+				line = "%i. %s %s %r when asked for %s" % ( i, sp.process.id(), sp.process.verb, sp.result(), sp.plug )
 			out.append( line )
 		# END for each process data edge
 		return out

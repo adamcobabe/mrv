@@ -77,7 +77,7 @@ class ProcessBase( NodeBase ):
 	#{ iDuplicatable Interface
 	def createInstance( self, *args, **kwargs ):
 		"""Create a copy of self and return it"""
-		return self.__class__( self.id, *self._args, **self._kwargs )
+		return self.__class__( self.id(), *self._args, **self._kwargs )
 
 	def copyFrom( self, other, *args, **kwargs ):
 		"""Note: we have already given our args to the class during instance creation,
@@ -259,7 +259,7 @@ class WorkflowProcessBase( GraphNodeBase, ProcessBase ):
 		# names - although this could possibly be solved, renaming the nodes is in
 		# fact not required
 		#for node in self.wgraph.iterNodes():
-		#	node.setID( "%s.%s" % ( id, node.getID() ) )
+		#	node.setID( "%s.%s" % ( id, node.id() ) )
 
 		# override name - per instance in our case
 		self.noun = wrappedwfl.name
@@ -270,7 +270,7 @@ class WorkflowProcessBase( GraphNodeBase, ProcessBase ):
 
 	def createInstance( self, *args, **kwargs ):
 		"""Create a copy of self and return it - required due to our very special constructor"""
-		return self.__class__( self.id, wflInstance = self.wgraph )
+		return self.__class__( self.id(), wflInstance = self.wgraph )
 
 	# } END iDuplicatable
 
