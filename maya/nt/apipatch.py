@@ -1032,11 +1032,7 @@ class MIntArray( api.MIntArray, ArrayBase ):
 class MSelectionList( api.MSelectionList, ArrayBase ):
 	_apicls = api.MSelectionList
 	
-	def __iter__( self ):
-		"""@return: iterator object"""
-		return it.iterSelectionList(self)
-	
-	def __contains__( self, rhs ):
+	def mhasItem( self, rhs ):
 		"""@return: True if we contain rhs
 		@note: As we check for Nodes as well as MayaAPI objects, we are possibly slow"""
 		if isinstance(rhs, base.DagNode):

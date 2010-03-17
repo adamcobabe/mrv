@@ -350,7 +350,6 @@ class TestNodeBase( unittest.TestCase ):
 
 		# CHECK LAZY WRAPPING
 		# get mfn lazy wrapped attributes
-		t = node.getAttributeCount()
 		t = node.attributeCount()
 		for state in [1,0]:
 			node.setLocked( state )

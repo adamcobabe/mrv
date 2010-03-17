@@ -532,7 +532,7 @@ class ObjectSet:
 		return len(self.getMembers())
 	
 	def __iter__(self):
-		return iter(self.getMembers())
+		return self.getMembers().mtoIter()
 	
 	def __contains__( self, obj ):
 		"""@return: True if the given obj is member of this set"""

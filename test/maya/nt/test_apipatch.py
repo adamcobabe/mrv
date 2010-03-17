@@ -482,14 +482,14 @@ class TestDataBase( unittest.TestCase ):
 		assert len(sl) > 3
 		
 		# provides unique wrapped nodes
-		for node in sl:
+		for node in sl.mtoIter():
 			assert isinstance(node, nt.Node)
 			nodeset.add(node)
 		# END for each node
 		assert len(nodeset) == len(sl)
 		
 		# test creation functions
-		node_list = list(sl)
+		node_list = list(sl.mtoIter())
 		nls = node_list[4:15]
 		for slsnodesgen, selfun in ((lambda : [str(n) for n in nls], api.MSelectionList.mfromStrings),
 									(lambda : nls, api.MSelectionList.mfromList),
@@ -507,7 +507,7 @@ class TestDataBase( unittest.TestCase ):
 		
 
 		# test conversion methods
-		assert list(sl) == sl.mtoList()
+		assert list(sl.mtoIter()) == sl.mtoList()
 		assert hasattr(sl.mtoIter(), 'next')
 		
 		# test contains
@@ -519,8 +519,8 @@ class TestDataBase( unittest.TestCase ):
 		assert len(sls) == 3
 		
 		nc = 0
-		for item in sls:
-			assert item in sls
+		for item in sls.mtoIter():
+			assert sls.mhasItem(item)
 			nc += 1
 		# END for each item
 		assert nc == len(sls)

@@ -107,6 +107,7 @@ class TestTransform( unittest.TestCase ):
 		# filtering
 		assert len(p.childrenByType(Transform)) == 0
 		assert p.childrenByType(Camera) == p.childrenByType(Shape)
+		assert p.children(lambda n: n.apiType()==api.MFn.kCamera)[0] == ps
 		
 		# deep and iteration
 		assert ps.iterParents().next() == p == ps.root()
@@ -132,7 +133,7 @@ class TestTransform( unittest.TestCase ):
 		# NAMESPACES
 		#############
 		ons = cs.namespace()
-		assert ons == cs[-1].namespace()
+		assert ons == cs[-1].namespace()	# namespace of parent node
 		
 		sns = cs[-2].namespace()
 		assert sns != ons
@@ -170,6 +171,7 @@ class TestTransform( unittest.TestCase ):
 		csp.unparent()
 		assert csp.parent() is None and len(csp.children()) == 0
 		assert len(cspp.children()) == 1
+		assert csi.instanceCount(0) == 1
 		
 		
 		# NODE- AND GRAPH-ITERATION
@@ -200,10 +202,10 @@ class TestTransform( unittest.TestCase ):
 		select()
 		assert len(selection()) == 0
 		
-		for n in sl:
+		for n in sl.mtoIter():
 			assert isinstance(n, DependNode)
 		
-		assert list(sl) == sl.mtoList()
+		assert list(sl.mtoIter()) == sl.mtoList()
 		assert list(sl.mtoIter()) == list(it.iterSelectionList(sl))
 		
 		# OBJECTSETS AND PARTITIONS

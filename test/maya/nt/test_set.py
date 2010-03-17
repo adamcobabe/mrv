@@ -162,7 +162,7 @@ class TestSets( unittest.TestCase ):
 		# test smart add
 		s.add(sellist)
 		assert len(s) == len(sellist)
-		single_item = iter(sellist).next()
+		single_item = sellist.mtoIter().next()
 		s.add(single_item)
 		assert len(s) == len(sellist)
 
@@ -207,7 +207,7 @@ class TestSets( unittest.TestCase ):
 		# TEST SET PROTOCOLS
 		####################
 		assert len(s) == 3
-		assert [ m for m in s ] == list(s.members())
+		assert [ m for m in s ] == s.members().mtoList()
 		assert iter(s).next() in s
 
 	def test_setOperations( self ):

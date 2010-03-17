@@ -87,30 +87,30 @@ If you want to learn more about the MFnFunctionSet method aliases, see :ref:`mfn
 DAG-Navigation
 ==============
 DAG objects are organized in a hierarchy which can be walked and traversed at will. The following example also uses a very handy shortcut, allowing you to access the children and parent nodes by index::
-	>>> ps = p.getChildren()[0]
+	>>> ps = p.children()[0]
 	>>> assert ps == p[0]
 	>>> assert ps[-1] == p
-	>>> assert ps == p.getChildren()[0]
+	>>> assert ps == p.children()[0]
 	
-Sometimes its required to use filters, only listing shape nodes or transforms are the most common cases::
-	>>> assert ps == p.getShapes()[0]
-	>>> assert ps.getParent() == p == ps.getTransform()
+Sometimes its required to use filters, only listing shape nodes or transforms are the most common cases and supported specifically::
+	>>> assert ps == p.shapes()[0]
+	>>> assert ps.parent() == p == ps.transform()
 	
 More specialized filters can be applied as well::
-	>>> assert len(p.getChildrenByType(Transform)) == 0
-	>>> assert p.getChildrenByType(Camera) == p.getChildrenByType(Shape)
-	>>> assert p.getChildren(lambda n: n.apiType()==248)[0] == ps
+	>>> assert len(p.childrenByType(Transform)) == 0
+	>>> assert p.childrenByType(Camera) == p.childrenByType(Shape)
+	>>> assert p.children(lambda n: n.apiType()==api.MFn.kCamera)[0] == ps
 	
-Generally, all items that are organized in a hierarachy support the  ``mayarv.interface.iDagItem`` interface::
+Generally, all items that are organized in a hierarchy support the  ``mayarv.interface.iDagItem`` interface which provides methods for traversal and query::
 	>>> assert ps.iterParents().next() == p == ps.getRoot()
-	>>> assert ps.getParentDeep()[0] == p
-	>>> assert p.getChildrenDeep()[0] == ps
+	>>> assert ps.parentDeep()[0] == p
+	>>> assert p.childrenDeep()[0] == ps
 
 Node Creation
 =============
-Creating nodes in MayaRV is simple and possibly slow as you can only create about 1200 Nodes per second. There is only one method to accomplish this with plenty of keyword arguemnts, ``mayarv.maya.nt.base.createNode``, this shall only be brief example::
+Creating nodes in MayaRV is simple and maybe a bit slow as you can only create about 1200 Nodes per second. There is only one method to accomplish this with plenty of functionality built-in, ``mayarv.maya.nt.base.createNode``. This shall only be brief example::
 	>>> cs = createNode("namespace:subspace:group|other:camera|other:cameraShape", "camera")
-	>>> assert len(cs.getParentsDeep()) == 2
+	>>> assert len(cs.parentsDeep()) == 2
 	
 The short and more convenient way to create nodes is to use the NodeType() call signature, whose ``**kwargs`` will be passed to the ``createNode`` function::
 	>>> m = Mesh()
@@ -120,28 +120,28 @@ The short and more convenient way to create nodes is to use the NodeType() call 
 	
 Node Duplication
 ================
-Node duplication is an interesting problem as it might involve many secondary tasks, such as maintaining light-links or shading assignments. 
+Node duplication is an interesting problem as it might involve many secondary tasks, such as maintaining light-links or shading assignments.
 
-When using the blank duplicate function as provided by the MayaAPI, one will only get a bare copy of the input node, without any connections. Its safe to state that the MayaAPI duplicate is far behind the MEL implementation, as it can take care of much more. Lets just call it a design mistake that they implement functionality in a MEL command instead of in a library so that it can be made accessible in the MayaAPI and in MEL.
+When using the blank duplicate function as provided by the MayaAPI, one will only get a bare copy of the input node, without any connections. Its safe to state that the MayaAPI duplicate is far behind the MEL implementation, as it can take care of much more. Lets just call it a design mistake that they implement functionality in a MEL command instead of in a library so that it can be made accessible in the MayaAPI *and* in MEL.
 
-MayaRV tackles the problem by providing an interface called ``mayarv.interface.iDuplicatable``. It works much like a c++ copy constructor, and anyone who implements it correctly is able to be duplicated. Nodes happen to do so, providing the additional ability to implement special cases for specific node types::
+MayaRV tackles the problem by providing an interface called ``mayarv.interface.iDuplicatable``. It works much like a c++ copy constructor, and anyone who implements it correctly is able to be duplicated properly. Node-derived types may implement special duplication routines to assure their are duplicated correctly::
 	>>> # this duplicated tweaks, set and shader assignments as well
 	>>> md = m.duplicate()
 	>>> assert md != m
 	
-If you ever miss anything to be duplicated on a certain node-type, you only need to implement it in the ``copyFrom`` method in the respective class.
+If you ever miss anything to be duplicated on a certain node-type, you only need to implement it in the ``copyFrom`` method in the respective type.
 	
 Namespaces
 ==========
-Namespaces in MayaRV are objects which may create a hierarchy, hence they support the ``mayarv.interface.iDagItem`` interface.
-	>>> ons = cs.getNamespace()
-	>>> assert ons == cs[-1].getNamespace()
+Namespaces in MayaRV are objects which may create a hierarchy, hence they support the ``mayarv.interface.iDagItem`` interface::
+	>>> ons = cs.namespace()
+	>>> assert ons == cs[-1].namespace()	# namespace of parent node
 	
-	>>> sns = cs[-2].getNamespace()
+	>>> sns = cs[-2].namespace()
 	>>> assert sns != ons
 	
-	>>> pns = sns.getParent()
-	>>> assert pns.getChildren()[0] == sns
+	>>> pns = sns.parent()
+	>>> assert pns.children()[0] == sns
 	
 	>>> assert len(list(sns.iterNodes())) == 1
 	>>> assert len(list(pns.iterNodes())) == 0
@@ -149,24 +149,24 @@ Namespaces in MayaRV are objects which may create a hierarchy, hence they suppor
 	
 DAG-Manipulation and Instancing
 ===============================
-Change the structure of the DAG easily by adjusting parent-child relation ships and by handling instances. DAG manipulation is an interesting topic as it is implemented using the MayaAPI, but it provides a new programming interface unique to MayaRV in order to be more intuitive and as a workaround to many issues that can occour when using the MayaAPI otherwise.
+Change the structure of the DAG, adjust parent-child relation ships and handle instances. DAG manipulation is an interesting topic as it is implemented using the MayaAPI, but it provides a new programming interface unique to MayaRV in order to be more intuitive and as a workaround to many issues that can occur when using the MayaAPI otherwise.
 
-Transforms can be parented under the world root, which is the root of the dag, and under other transforms. Shape nodes may be parented under transforms only, whereas some special nodes are parented under Shape nodes, which effectively puts them into the Shape's ``underworld``.
+Transforms can be parented under the world's root, which is the root of the Directed Acyclic Graph, and under other transforms. Shape nodes may be parented under transforms only. Some special nodes may appear parented under Shape nodes, which effectively puts them into the Shape's ``underworld``.
 
 As long as Transforms and Shapes have only one parent, there is only one DAGPath leading up to the object in question. If you add more parents to them, there are more DAGPaths leading to the same object, which is called ``instancing`` in Maya.
 
 The MayaRV DAG manipulation API provides multiple methods to adjust the number of children and parents of the individual items, including undo support::
-	>>> csp = cs.getTransform()
+	>>> csp = cs.transform()
 	>>> cs.setParent(p)
-	>>> assert cs.getInstanceCount(0) == 1
+	>>> assert cs.instanceCount(0) == 1
 	>>> csi = cs.addParent(csp)
 	
-	>>> assert csi.isInstanced() and cs.getInstanceCount(0) == 2
+	>>> assert csi.isInstanced() and cs.instanceCount(0) == 2
 	>>> assert csi != cs
 	>>> assert csi.object() == cs.object()
 	
-	>>> assert cs.getParentAtIndex(0) == p
-	>>> assert cs.getParentAtIndex(1) == csp
+	>>> assert cs.parentAtIndex(0) == p
+	>>> assert cs.parentAtIndex(1) == csp
 	
 	>>> p.removeChild(csi)
 	>>> assert not cs.isValid() and csi.isValid()
@@ -179,15 +179,17 @@ It is worth noting that the only 'real' methods are ``addChild`` and ``removeChi
 	>>> csi.reparent(cspp)
 	
 	>>> csp.unparent()
-	>>> assert csp.getParent() is None
+	>>> assert csp.parent() is None and len(csp.children()) == 0
+	>>> assert len(cspp.children()) == 1
+	>>> assert csi.instanceCount(0) == 1
 
-The MayaAPI provides methods to handle instances and to do mere reparenting, MayaRV makes this more usable by providing own methods. Nonetheless, the general feeling of inconsistency remains these sets of functions are slightly opposing each other.
+The MayaAPI provides methods to handle instances and to accomplish fundamental re-parenting, MayaRV makes this more usable by providing own methods. Nonetheless, the general feeling of inconsistency remains as these sets of functions are slightly opposing each other, some are instance aware, some are not.
 
-As a general advice, you should be aware of instances and the methods to use to safely operate on them. ``reparent`` and ``unparent`` can be used safely as well as they will raise by default if instances would be destroyed otherwise.
+As a general advice, you should be aware of instances and the methods to use to safely operate on them. ``reparent`` and ``unparent`` in MayaRV can be used safely as well as they will raise by default if instances would be destroyed otherwise.
 
 Node- and Graph-Iteration
 =========================
-The fastest way to retrieve Nodes is by iterating them. There are three major areas to iterate: DAG Nodes only, DG Nodes only, or the dependency graph which is defined by Plug connections between DG Nodes.
+The fastest way to retrieve Nodes is by iterating them. There are three major areas to iterate: DAG Nodes only, DG Nodes only, or the dependency graph which is defined by plug connections between DG Nodes.
 
 MayaRV iterators are built around their MayaAPI counterparts, but provide a more intuitive and pythonic interface::
 	>>> for dagnode in it.iterDagNodes():
@@ -201,33 +203,33 @@ MayaRV iterators are built around their MayaAPI counterparts, but provide a more
 	
 Handling Selections with SelectionLists
 =======================================
-Many methods within the MayaAPI and within MayaRV will take MSelectionLists as input or return them. An MSelectionList is an ordered heterogeneous list which keeps MObjects, MDagPaths, MPlugs as well as ComponentLists, and although the name suggests otherwise, it has nothing to do with the selection within the maya scene.
+Many methods within the MayaAPI and within MayaRV will take MSelectionLists as input or return them. An MSelectionList is an ordered heterogeneous list which keeps MObjects, MDagPaths, MPlugs as well as ComponentLists, and although the name may suggest otherwise, it has nothing to do with the selection within the maya scene.
 
-SelectionLists can easily be created using the ``mayarv.maya.nt.base.toSelectionList`` function, or the monkey-patched creator functions. It comes in several variants which are more specialized, but will be faster as well. Its safe and mostly performant enough to use the general version though.
+SelectionLists can easily be created using the ``mayarv.maya.nt.base.toSelectionList`` function, or the monkey-patched creator functions. Conversion functions come in several variants which may be more specialized, but will be faster as well. Its safe and mostly fast enough to use the general version though::
 	>>> nl = (p, t, rlm)
 	>>> sl = toSelectionList(nl)
 	>>> assert isinstance(sl, api.MSelectionList) and len(sl) == 3
 		
-	>>> sl2 = api.MSelectionList.fromList(nl)
-	>>> sl3 = api.MSelectionList.fromStrings([str(n) for n in nl])
+	>>> sl2 = api.MSelectionList.mfromList(nl)
+	>>> sl3 = api.MSelectionList.mfromStrings([str(n) for n in nl])
 	
-Adjust maya's selection or retrieve it using the ``mayarv.maya.nt.base.select`` and ``mayarv.maya.nt.base.getSelection`` functions::
-	>>> osl = getSelection()
+Adjust maya's selection or retrieve it using the ``mayarv.maya.nt.base.select`` and ``mayarv.maya.nt.base.selection`` functions::
+	>>> osl = selection()
 	>>> select(sl)
 	>>> select(p, t)
 	
 	>>> # clear the selection
 	>>> select()
-	>>> assert len(getSelection()) == 0
+	>>> assert len(selection()) == 0
 	
-Please be aware of the fact that ``getSelection`` as well as ``select`` are high-level functions that emphasize convenience over performance. If this matters, use the respective functions in MGlobal instead.
+Please be aware of the fact that ``selection`` as well as ``select`` are high-level functions that emphasize convenience over performance. If this matters, use the respective functions in MGlobal instead.
 
 SelectionLists can be iterated natively, or explicitly be converted into lists::
-	>>> for n in sl:
+	>>> for n in sl.mtoIter():
 	>>> 	assert isinstance(n, DependNode)
 		
-	>>> assert list(sl) == sl.toList()
-	>>> assert list(sl.toIter()) == list(it.iterSelectionList(sl))
+	>>> assert list(sl.mtoIter()) == sl.toList()
+	>>> assert list(sl.mtoIter()) == list(it.iterSelectionList(sl))
 
 ObjectSets and Partitions
 =========================
@@ -374,11 +376,11 @@ A simple example for a compound plug is the translate attribute of a transform, 
 Array plugs are used to access the transform's worldMatrix data, which contains one world matrix per direct instance of the transform.
 
 The following example shows the traversal of these attribute types::
-	>>> ptc = p.t.getChildren()
+	>>> ptc = p.t.children()
 	>>> assert len(ptc) == 3
 	>>> assert (ptc[0] == p.tx) and (ptc[1] == p.ty)
 	>>> assert ptc[2] == p.t['tz']
-	>>> assert p.tx.getParent() == p.t
+	>>> assert p.tx.parent() == p.t
 	>>> assert p.t.isCompound()
 	>>> assert p.tx.isChild()
 		
@@ -445,7 +447,7 @@ To delete an attribute, remove the attribute which works as long as it was dynam
 	>>> n.addAttribute(cattr)
 	>>> assert n.compound.isArray()
 	>>> assert n.compound.isCompound()
-	>>> assert len(n.compound.getChildren()) == 3
+	>>> assert len(n.compound.children()) == 3
 	>>> assert n.compound['mymessage'].isArray()
 	
 Finally, remove the attribute - either using the attribute we kept, ``cattr`` or by finding the attribute::
@@ -485,26 +487,26 @@ As it has only been hinted at in the example, all shortcuts supported by Compone
 ==========
 Selections
 ==========
-There are several utility methods to aid in handling selections. They are mostly used during interactive sessions, although general utilities like ``select`` and ``getSelectionList`` may also proove practical in scripts. 
+There are several utility methods to aid in handling selections. They are mostly used during interactive sessions, although general utilities like ``select`` and ``activeSelectionList`` may also prove practical in scripts. 
 
 The following examples show some of the most common functions::
 	>>> select(p.t, "time1", p, ps)
-	>>> assert len(getSelection()) == 4
+	>>> assert len(selection()) == 4
 		
 	>>> # simple filtering
-	>>> assert getSelectionList().iterPlugs().next() == p.t
-	>>> assert getSelection(api.MFn.kTransform)[-1] == p
+	>>> assert activeSelectionList().iterPlugs().next() == p.t
+	>>> assert selection(api.MFn.kTransform)[-1] == p
 		
 	>>> # adjustments
-	>>> sl = getSelectionList()
+	>>> sl = activeSelectionList()
 	>>> sl.remove(0)                                 # remove plug
 	>>> select(sl)
-	>>> assert len(getSelectionList()) == len(getSelection()) == 3
+	>>> assert len(activeSelectionList()) == len(selection()) == 3
 	
 Please note that many of the selection utilities operate on wrapped Nodes by default, which may not be desired in performance critical areas.  
 
 Advanced filtering can be implemented using the ``predicate`` of iterators, allowing to return only these items which produce a True value in the predicate function. Something like ``ls -ro`` would look like this::
-	>>> assert len(getSelection(predicate=lambda n: n.isReferenced())) == 0
+	>>> assert len(selection(predicate=lambda n: n.isReferenced())) == 0
 
 Expanders, such as in ``ls -sl -dag`` could be implemented with adapter iterators, which expande dag nodes to the list of their children recursively.
 
@@ -516,14 +518,14 @@ Selecting components is comparable to component assignments of sets and shading 
 	>>> sl = api.MSelectionList()
 	>>> sl.add(m.dagPath(), m.cf[:4])			# first 4 faces
 	>>> select(sl)
-	>>> assert len(getSelectionList().iterComponents().next()[1].getElements()) == 4
+	>>> assert len(activeSelectionList().iterComponents().next()[1].getElements()) == 4
 
 Plugs are can be selected exactly the same way as nodes::
 	>>> sl.clear()
 	>>> sl.add(p.t)
 	>>> sl.add(m.outMesh)
 	>>> select(sl)
-	>>> assert len(getSelection()) == 2
+	>>> assert len(selection()) == 2
 
 ==========
 Namespaces
@@ -532,18 +534,18 @@ Namespaces provide a separate room for Nodes to exist in, hence they help to red
 
 Handling namespaces is straightforward, you may retrieve the namespace of a node, create and rename namespaces as well as query their objects.
 	>>> from mayarv.maya.ns import *
-	>>> assert p.getNamespace() == RootNamespace
-	>>> assert len(RootNamespace.getChildren()) == 2     # we created 2 namespaces implicitly with objects
+	>>> assert p.namespace() == RootNamespace
+	>>> assert len(RootNamespace.children()) == 2     # we created 2 namespaces implicitly with objects
 		
 	>>> barns = Namespace.create("foo:bar")
-	>>> foons = barns.getParent()
-	>>> assert len(RootNamespace.getChildren()) == 3
+	>>> foons = barns.parent()
+	>>> assert len(RootNamespace.children()) == 3
 		
 	>>> assert len(list(barns.iterNodes())) == 0 and len(list(RootNamespace.iterNodes())) != 0
 	
 Although you can set the namespace of individual nodes, it is also possible to move all objects in one namespace to another::
 	>>> m.setNamespace(barns)
-	>>> assert m.getNamespace() == barns
+	>>> assert m.namespace() == barns
 		
 	>>> barns.moveNodes(foons)
 	>>> assert foons.iterNodes().next() == m 
@@ -551,7 +553,7 @@ Although you can set the namespace of individual nodes, it is also possible to m
 Renaming of namespaces as well as their deletion is supported as well::
 	>>> foons.delete()
 	>>> assert not barns.exists() and not foons.exists()
-	>>> assert m.getNamespace() == RootNamespace
+	>>> assert m.namespace() == RootNamespace
 		
 	>>> subns = Namespace.create("sub")
 	>>> subnsrenamed = subns.rename("bar")
@@ -575,12 +577,12 @@ The example uses files from the test system and respective utilities::
 	>>> assert refa.p_loaded and refb.isLoaded()
 	>>> assert len(FileReference.ls()) == 2
 		
-	>>> assert len(refa.getChildren()) == 0 and len(refb.getChildren()) == 2
-	>>> subrefa, subrefb = refb.getChildren()
+	>>> assert len(refa.children()) == 0 and len(refb.children()) == 2
+	>>> subrefa, subrefb = refb.children()
 		
-	>>> assert subrefa.p_namespace != subrefb.getNamespace()
+	>>> assert subrefa.p_namespace != subrefb.namespace()
 	>>> assert subrefa.p_path == subrefb.getPath()
-	>>> assert subrefa.getParent() == refb
+	>>> assert subrefa.parent() == refb
 		
 	>>> refa.p_loaded = False
 	>>> assert not refa.p_loaded
