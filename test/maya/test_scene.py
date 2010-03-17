@@ -81,7 +81,7 @@ class TestScene( unittest.TestCase ):
 	def test_rename(self):
 		new_ext = ".mb"
 		new_path = Scene.rename(Scene.name()	.splitext()[0] + "newname%s" % new_ext)
-		assert new_path.p_ext == new_ext
+		assert new_path.ext() == new_ext
 
 	@with_scene('empty.ma')
 	def test_saveAs_export( self ):
@@ -100,7 +100,7 @@ class TestScene( unittest.TestCase ):
 		# END for each file to save
 		
 		# test remove unknown nodes
-		assert Scene.name().p_ext == ".ma"
+		assert Scene.name().ext() == ".ma"
 		target_path = tmpdir / 'withoutunknown.mb'
 		unode = cmds.createNode("unknown")
 		

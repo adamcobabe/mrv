@@ -30,7 +30,7 @@ def init_modules( filepath, moduleprefix, recurse=False, self_module = None):
 	module is not yet possible as it is in the course of being intialized itself.
 	The module will be given only to intermediate submodules in case recurse is True.
 	@note: in this moment, all submodules will be 'pulled' in"""
-	moduledir = Path( filepath  ).p_parent
+	moduledir = Path( filepath  ).parent()
 	moduleitems = moduledir.listdir( )
 	moduleitems.sort()					# assure we have the same order on every system
 	extensions = ( ".py", ".pyc", ".pyo" )
@@ -64,10 +64,10 @@ def init_modules( filepath, moduleprefix, recurse=False, self_module = None):
 			continue
 		# END path handling
 
-		if path.p_ext not in extensions:
+		if path.ext() not in extensions:
 			continue
 
-		modulename = path.p_namebase
+		modulename = path.namebase()
 		if modulename.startswith( "_" ) or modulename.startswith( "." ) or modulename == 'all':
 			continue
 

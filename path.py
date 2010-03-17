@@ -186,7 +186,7 @@ class Path( _base, iDagItem ):
 
 	def parent( self ):
 		"""@return: the parent directory of this Path or None if this is the root"""
-		parent = self.p_parent
+		parent = self.dirname()
 		if parent == self:
 			return None
 		return parent
@@ -244,7 +244,7 @@ class Path( _base, iDagItem ):
 		
 
 	def _get_namebase(self):
-		base, ext = os.path.splitext(self.p_name)
+		base, ext = os.path.splitext(self.basename())
 		return base
 
 	def _get_ext(self):
@@ -255,37 +255,22 @@ class Path( _base, iDagItem ):
 		drive, r = os.path.splitdrive(self)
 		return self.__class__(drive)
 
-	p_parent = property(
-		dirname, None, None,
-		""" This path's parent directory, as a new path object.
-
-		For example, path('/usr/local/lib/libpython.so').parent == path('/usr/local/lib')
-		""")
-
-	p_name = property(
-		basename, None, None,
-		""" The name of this file or directory without the full path.
-
-		For example, path('/usr/local/lib/libpython.so').name == 'libpython.so'
-		""")
-
-	p_namebase = property(
-		_get_namebase, None, None,
-		""" The same as path.name, but with one file extension stripped off.
+	def namebase(self):
+		"""The same as path.name, but with one file extension stripped off.
 
 		For example, path('/home/guido/python.tar.gz').name		== 'python.tar.gz',
-		but			 path('/home/guido/python.tar.gz').namebase == 'python.tar'
-		""")
+		but			 path('/home/guido/python.tar.gz').namebase == 'python.tar'"""
+		return self._get_namebase()
 
-	p_ext = property(
-		_get_ext, None, None,
-		""" The file extension, for example '.py'. """)
+	def ext(self):
+		""" The file extension, for example '.py'. """
+		return self._get_ext()
 
-	p_drive = property(
-		_get_drive, None, None,
+	def drive(self):
 		""" The drive specifier, for example 'C:'.
 		This is always empty on systems that don't use drive specifiers.
-		""")
+		"""
+		return self._get_drive()
 
 	def splitpath(self):
 		""" p.splitpath() -> Return (p.parent, p.name). """
@@ -328,14 +313,9 @@ class Path( _base, iDagItem ):
 			unc, rest = os.path.splitunc(self)
 			return self.__class__(unc), rest
 
-		def _get_uncshare(self):
+		def isunshared(self):
 			unc, r = os.path.splitunc(self)
 			return self.__class__(unc)
-
-		p_uncshare = property(
-			_get_uncshare, None, None,
-			""" The UNC mount point for this path.
-			This is empty for paths on local drives. """)
 
 	def joinpath(self, *args):
 		""" Join two or more path components, adding a separator
@@ -596,7 +576,7 @@ class Path( _base, iDagItem ):
 					yield f
 
 	def fnmatch(self, pattern):
-		""" Return True if self.p_name matches the given pattern.
+		""" Return True if self.basename() matches the given pattern.
 
 		pattern - A filename pattern with wildcards,
 			for example '*.py'.
@@ -1085,7 +1065,7 @@ class Path( _base, iDagItem ):
 			if p.isabs():
 				return p
 			else:
-				return (self.p_parent / p).abspath()
+				return (self.parent() / p).abspath()
 
 
 

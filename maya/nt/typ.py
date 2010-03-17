@@ -378,13 +378,13 @@ class MetaClassCreatorNodes( MetaClassCreator ):
 def mfnDBPath( mfnclsname ):
 	"""Generate a path to a database file containing mfn wrapping information"""
 	appversion = str( env.appVersion( )[0] )
-	return Path( __file__ ).p_parent.p_parent / ( "cache/mfndb/"+ mfnclsname )
+	return Path( __file__ ).parent().parent() / ( "cache/mfndb/"+ mfnclsname )
 
 
 def cacheFilePath( filename, ext, use_version = False ):
 	"""@Return path to cache file from which you would initialize data structures
 	@param use_version: if true, the maya version will be appended to the filename  """
-	mfile = Path( __file__ ).p_parent.p_parent
+	mfile = Path( __file__ ).parent().parent()
 	version = ""
 	if use_version:
 		version = cmds.about( version=1 ).split( " " )[0]
