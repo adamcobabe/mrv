@@ -37,7 +37,7 @@ class TestGeneral( unittest.TestCase ):
 			except:
 				raise
 
-			assert not node.getMObject().isNull() 
+			assert not node.object().isNull() 
 			
 			# skip duplicate types - it truly happens that there is the same typename
 			# with a different parent class - we cannot handle this 
@@ -204,7 +204,7 @@ class TestGeneral( unittest.TestCase ):
 		instnode = duplnodemiddle.addInstancedChild( node )
 
 
-		assert instnode.getMObject() == node.getMObject()  # compare mobject
+		assert instnode.object() == node.object()  # compare mobject
 		assert instnode != node 		# compare dag paths
 
 		path = instnode.dagPath( )
@@ -217,10 +217,10 @@ class TestGeneral( unittest.TestCase ):
 		ipath = instnode.dagPath( )
 		
 		assert npath != ipath
-		assert node.getMObject() == instnode.getMObject()	# same object after all
+		assert node.object() == instnode.object()	# same object after all
 		
 		# if an MObject is passed in, it should still work
-		assert node == instnode.getMObject()
+		assert node == instnode.object()
 		
 		# using an attribute would create a DagNode which corresponds to the first path
 		assert not node != instnode.wm.mwrappedNode()
@@ -931,7 +931,7 @@ class TestNodeBase( unittest.TestCase ):
 		assert isinstance(os, nt.ObjectSet)
 		
 		# assure we can still wrap dg nodes
-		assert nt.ObjectSet(os.getMObject()) == os
+		assert nt.ObjectSet(os.object()) == os
 		
 		
 		# dag nodes

@@ -3,7 +3,7 @@
 ==================
 Using MayaRV.Maya
 ==================
-This document gives an overview of the facilities within the Maya portion of MayaReVised which contains classes that require maya to run.
+This document gives an overview of the facilities within the Maya portion of MayaReVised, which contains classes that require maya to be initialized.
 
 The examples given here can be viewed as one consecutive script which should work of all the code is pasted into a mayarv testcase for instance. The latter one can be found in ``mayarv.test.maya.nt.test_base`` (test_usage_examples). If you want to be more explorative, adjust the test's code yourself and run it to see the results. For more information on how to run tests, see :ref:`runtestsdoc-label`.
 
@@ -18,7 +18,6 @@ The term *Node* means any Dependency Node or DagNode which has been wrapped for 
 
 A Node wraps an underlying *MObject* or an *MDagPath*, and it can be retrieved either by iteration, by using one of the various methods of the MayaRV library or by manually wrapping a maya node whose name is known::
 	>>> from mayarv.maya.nt import *
-	>>> import __builtin__		# nt.set as overwritten the builtin set type
 	>>> # wrap a node by name
 	>>> p = Node("persp")
 	Transform("|persp")
@@ -29,51 +28,52 @@ The Node p now represents the transform named 'persp' within the maya scene. You
 	>>> assert p != t
 	>>> assert p in [p]
 	
-	>>> s = __builtin__.set()
+	>>> s = set()
 	>>> s.add(p)
 	>>> s.add(t)
 	>>> assert p in s and t in s and len(s | s) == 2
 	
-This will of course work for DAGNodes as well as for DGNodes. As initially stated, a Node wraps the respective API object, which is either of type MDagPath or MObject. These objects can be retrieved from the Node afterwards::
-	>>> # getApiObject returns the api object which represents the underlying maya node best
-	>>> assert isinstance(p.getApiObject(), api.MDagPath)
-	>>> assert isinstance(t.getApiObject(), api.MObject)
-
-You can query the MObject or the DagPath specifically. DagPaths exist in two variants. The DagPath type is derived from MDagPath and contains additional convenience functions to work with it. The MDagPaths is the original unaltered MayaAPI type. The reason for having two types is that MDagPath didn't properly support monkey-patching in all cases.
-	>>> assert p.getDagPath() == p.getMDagPath()
-	>>> assert isinstance(p.getDagPath(), DagPath) and not isinstance(p.getMDagPath(), DagPath)
+As initially stated, a Node wraps the respective API object, which is either of type *MDagPath* or *MObject*. These objects can be retrieved from the Node afterwards::
+	>>> # apiObject returns the api object which represents the underlying maya node best
+	>>> assert isinstance(p.apiObject(), api.MDagPath)
+	>>> assert isinstance(t.apiObject(), api.MObject)
+	
+You can query the MObject or the MDagPath specifically::
+	>>> assert isinstance(p.dagPath(), api.MDagPath)
+	>>> assert isinstance(p.object(), api.MObject)
 	
 Although each wrapped node as a python type, which is its capitalized maya type, you may easily query the MayaAPI type representation, being a member of the ``MFn.k...`` enumeration::
-	>>> assert isinstance(p, Transform) and p.getApiType() == api.MFn.kTransform
-	>>> assert isinstance(t, Time) and t.getApiType() == api.MFn.kTime
-	>>> assert p.hasFn(p.getApiType())
-	>>> assert isinstance(p.getMObject(), api.MObject) and isinstance(t.getMObject(), api.MObject)
+	>>> assert isinstance(p, Transform) and p.apiType() == api.MFn.kTransform
+	>>> assert isinstance(t, Time) and t.apiType() == api.MFn.kTime
+	>>> assert p.hasFn(p.apiType())
+	>>> assert isinstance(p.object(), api.MObject) and isinstance(t.object(), api.MObject)
 	
 .. warning:: Do not keep Nodes cached, but prefer to re-retrieve them on demand as they may become invalid in the meanwhile depending on the operations performed in Maya.
 
 Method Lookup
 =============
-Calling methods is involves nothing special, you just make the call on your node directly. Its important to know which methods are available and the lookup order. Lets study the method resolution first by checking the first case, a non-existing method::
+Nodes represent their respective maya api object, and make all matching MFnFunctionSet methods available directly.
+Calling these methods involves nothing special, you just make the call on your node. Its important to know which methods are available and the order in which they are looked up. Lets study the method resolution by checking the first case, a non-existing method::
 	>>> # this will raise an AttributeError
 	>>> p.doesnt_exist()
 	
 MayaRV looks up the name in the following order:
- 1. Find a method on the instance itself. This would succeed if the method has been implemented on the respective class type, in order to make it easier to use for instance.
+ 1. Find a method on the instance itself. This would succeed if the method has been implemented on the respective python type, in order to make it easier to use for instance, or to work around limitations.
  
- 2. Find the method name on the top most MFnFunction set, and resort to more general function sets if the name could not be found. If a Node wraps a mesh for example, it would try to find the Method in MFnMesh, then in MFnDagNode, finally in MFnDependencyNode.
+ 2. Find the method name on the topmost MFnFunction set, and resort to more general function sets if the name could not be found. If a Node wraps a mesh for example, it would try to find the Method in MFnMesh, then in MFnDagNode.
  
- 3. Try to find an MPlug with the given name, internally using (MFnDependencyNode.)findPlug(name) to achieve this.
+ 3. Try to find a MPlug with the given name, internally using (MFnDependencyNode.)findPlug(name) to achieve this.
 
-This implies that functions will be found *before* an attribute of the same name. If you run into this issue, use the short attribute name instead.
+This implies that functions will be found *before* an attribute of the same name. If you need the plug instead, use its short attribute name instead.
 
-It would be quite expensive to query methods or attributes, but the shown lookup will only be done once per node type, afterwards the type will know that you are looking for a method, or an MPlug respectively, incurring minimal overhead only.
+It would be quite expensive to make any call if the shown lookup would be performed anytime, but in fact it will only be done once per node type, afterwards the type will know that you are looking for a method, or an MPlug respectively, and return the requested object right away.
 
-Even in tight loops, this convenient calling convention may be used without critical performance loss, but if you are interested in optimizing this, have a look at the :ref:`performance-docs-label` paragraph. 
+Even in tight loops, this convenient calling convention may be used without overwhelming performance loss, but if you are interested in optimizing this, have a look at the :ref:`performance-docs-label` paragraph.
 
 MFnFunction Aliases
 ===================
-Methods that map to function set functions are aliased such that all getters can be accessed either by their original name or by an alias. For example, (MFnDependencyNode).name can also be retrieved using .getName::
-	>>> assert p.getName == p.name
+Methods that map to MFnFunctionSet functions may be aliased such that they better fit or are faster to type. Hence they can be accessed either by their original name or by their alias. For example, (MFnDependencyNode).isFromReferencedFile can also be retrieved using .isReferenced::
+	>>> assert p.isFromReferencedFile() == p.isReferenced()
 
 If you are interested in knowing which MFnFunction sets your node supports, call the ``getMFnClasses`` method::
 	>>> p.getMFnClasses()
@@ -82,7 +82,7 @@ If you are interested in knowing which MFnFunction sets your node supports, call
 	 <class 'maya.OpenMaya.MFnDependencyNode'>,
 	 <class 'maya.OpenMaya.MFnDependencyNode'>]
 	 
-If you want to learn more about the MFnMethod aliases, see :ref:`mfnmethodmutator-label`
+If you want to learn more about the MFnFunctionSet method aliases, see :ref:`mfnmethodmutator-label`
 	 
 DAG-Navigation
 ==============
@@ -99,7 +99,7 @@ Sometimes its required to use filters, only listing shape nodes or transforms ar
 More specialized filters can be applied as well::
 	>>> assert len(p.getChildrenByType(Transform)) == 0
 	>>> assert p.getChildrenByType(Camera) == p.getChildrenByType(Shape)
-	>>> assert p.getChildren(lambda n: n.getApiType()==248)[0] == ps
+	>>> assert p.getChildren(lambda n: n.apiType()==248)[0] == ps
 	
 Generally, all items that are organized in a hierarachy support the  ``mayarv.interface.iDagItem`` interface::
 	>>> assert ps.iterParents().next() == p == ps.getRoot()
@@ -163,7 +163,7 @@ The MayaRV DAG manipulation API provides multiple methods to adjust the number o
 	
 	>>> assert csi.isInstanced() and cs.getInstanceCount(0) == 2
 	>>> assert csi != cs
-	>>> assert csi.getMObject() == cs.getMObject()
+	>>> assert csi.object() == cs.object()
 	
 	>>> assert cs.getParentAtIndex(0) == p
 	>>> assert cs.getParentAtIndex(1) == csp
@@ -514,7 +514,7 @@ Selecting Components and Plugs
 ==============================
 Selecting components is comparable to component assignments of sets and shading engines. In case of selections, one first creates a selection list to be selected, and adds the mesh as well as the components::
 	>>> sl = api.MSelectionList()
-	>>> sl.add(m.getMDagPath(), m.cf[:4])			# first 4 faces
+	>>> sl.add(m.dagPath(), m.cf[:4])			# first 4 faces
 	>>> select(sl)
 	>>> assert len(getSelectionList().iterComponents().next()[1].getElements()) == 4
 

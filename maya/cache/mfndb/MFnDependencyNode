@@ -41,14 +41,14 @@ x   | MFnDependencyNode_setName               | None                |
     | MFnDependencyNode_typeName              | None                |                                         
     | MFnDependencyNode_userNode              | None                |                                         
     | addAttribute                            | None                |                                         
-    | attribute                               | Attribute           | getAttribute                            
-    | attributeClass                          | None                | getAttributeClass                       
-    | attributeCount                          | None                | getAttributeCount                       
+    | attribute                               | Attribute           |                             
+    | attributeClass                          | None                |                        
+    | attributeCount                          | None                |                        
     | canBeWritten                            | None                |                                         
 x   | create                                  | None                |                                         
     | delete_MFnDependencyNode                | None                |                                         
     | findAlias                               | None                |                                         
-    | findPlug                                | None                | plug                                 
+    | findPlug                                | None                |                                  
     | getAffectedAttributes                   | None                |                                         
     | getAffectedByAttributes                 | None                |                                         
     | getAliasAttr                            | None                |                                         
@@ -62,17 +62,17 @@ x   | create                                  | None                |
     | isLocked                                | None                |                                         
     | isNewAttribute                          | None                |                                         
     | isShared                                | None                |                                         
-    | name                                    | None                | getName                                 
+    | name                                    | None                |                                  
     | parentNamespace                         | Namespace           | namespace                            
-    | plugsAlias                              | None                | getPlugAlias                            
-    | removeAttribute                         | Attribute           | getReorderedAttribute                   
-    | reorderedAttribute                      | None                |                                         
+    | plugsAlias                              | None                |                             
+    | removeAttribute                         | None                |                    
+    | reorderedAttribute                      | Attribute           |                                         
     | setAlias                                | None                |                                         
     | setDoNotWrite                           | None                |                                         
     | setFlag                                 | None                |                                         
     | setLocked                               | None                |                                         
 x   | setName                                 | None                |                                         
-    | type                                    | None                | getType                                 
-    | typeId                                  | None                | getTypeId                               
-    | typeName                                | None                | getTypeName                             
-    | userNode                                | None                | getUserNode                             
+    | type                                    | None                |                                  
+    | typeId                                  | None                |                                
+    | typeName                                | None                |                              
+    | userNode                                | None                |                              

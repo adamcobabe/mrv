@@ -75,20 +75,23 @@ class TestTransform( unittest.TestCase ):
 		assert isinstance(p.apiObject(), api.MDagPath)
 		assert isinstance(t.apiObject(), api.MObject)
 		
+		assert isinstance(p.dagPath(), api.MDagPath)
+		assert isinstance(p.object(), api.MObject)
+		
 		# api types
 		assert isinstance(p, Transform) and p.apiType() == api.MFn.kTransform
 		assert isinstance(t, Time) and t.apiType() == api.MFn.kTime
 		assert p.hasFn(p.apiType())
 		
 		# get the MObject representation
-		assert isinstance(p.getMObject(), api.MObject) and isinstance(t.getMObject(), api.MObject)
+		assert isinstance(p.object(), api.MObject) and isinstance(t.object(), api.MObject)
 		
 		
 		# METHODS
 		#########
 		self.failUnlessRaises(AttributeError, getattr, p, 'doesnt_exist')
 		
-		assert p.name == p.name
+		assert p.isFromReferencedFile() == p.isReferenced()
 		
 		assert isinstance(p.getMFnClasses(), list)
 		
@@ -150,7 +153,7 @@ class TestTransform( unittest.TestCase ):
 		
 		assert csi.isInstanced() and cs.instanceCount(0) == 2
 		assert csi != cs
-		assert csi.getMObject() == cs.getMObject()
+		assert csi.object() == cs.object()
 		
 		assert cs.parentAtIndex(0) == p
 		assert cs.parentAtIndex(1) == csp
@@ -408,7 +411,7 @@ class TestTransform( unittest.TestCase ):
 		
 		# COMPONENTS AND PLUGS#
 		sl = api.MSelectionList()
-		sl.add(m.getMDagPath(), m.cf[:4])			# first 4 faces
+		sl.add(m.dagPath(), m.cf[:4])			# first 4 faces
 		select(sl)
 		assert len(activeSelectionList().miterComponents().next()[1].elements()) == 4
 		

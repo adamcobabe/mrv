@@ -134,7 +134,7 @@ class MetaClassCreatorNodes( MetaClassCreator ):
 				# INITIALIZED DAG NODES WITH DAG PATH !
 				if api.MFnDagNode in mfnmro and not needs_MObject:			# yes, we duplicate code here to keep it fast !!
 					def wrapMfnFunc( self, *args, **kwargs ):
-						rvallambda = lambda *args, **kwargs: rvalfunc(getattr(mfncls(self.getMDagPath()), mfnfuncname)(*args, **kwargs))
+						rvallambda = lambda *args, **kwargs: rvalfunc(getattr(mfncls(self.dagPath()), mfnfuncname)(*args, **kwargs))
 						object.__setattr__( self, funcname_orig, rvallambda ) # cache it in our object
 						return rvallambda( *args, **kwargs )
 					newfunc = wrapMfnFunc
@@ -147,7 +147,7 @@ class MetaClassCreatorNodes( MetaClassCreator ):
 						newfunc = wrapMfnFunc
 					else:
 						def wrapMfnFunc( self, *args, **kwargs ):
-							rvallambda = lambda *args, **kwargs: rvalfunc(getattr(mfncls(self.getMObject()), mfnfuncname)(*args, **kwargs))
+							rvallambda = lambda *args, **kwargs: rvalfunc(getattr(mfncls(self.object()), mfnfuncname)(*args, **kwargs))
 							object.__setattr__( self, funcname_orig, rvallambda )
 							return rvallambda( *args, **kwargs )
 						newfunc = wrapMfnFunc
@@ -155,7 +155,7 @@ class MetaClassCreatorNodes( MetaClassCreator ):
 			else:
 				if api.MFnDagNode in mfnmro and not needs_MObject:			# yes, we duplicate code here to keep it fast !!
 					def wrapMfnFunc( self, *args, **kwargs ):
-						mfnfunc = getattr(mfncls(self.getMDagPath()), mfnfuncname)
+						mfnfunc = getattr(mfncls(self.dagPath()), mfnfuncname)
 						object.__setattr__( self, funcname_orig, mfnfunc )
 						return mfnfunc( *args, **kwargs )
 					newfunc = wrapMfnFunc
@@ -168,7 +168,7 @@ class MetaClassCreatorNodes( MetaClassCreator ):
 						newfunc = wrapMfnFunc
 					else:
 						def wrapMfnFunc( self, *args, **kwargs ):
-							mfnfunc = getattr(mfncls(self.getMObject()), mfnfuncname)
+							mfnfunc = getattr(mfncls(self.object()), mfnfuncname)
 							object.__setattr__( self, funcname_orig, mfnfunc )
 							return mfnfunc( *args, **kwargs )
 						newfunc = wrapMfnFunc
@@ -179,7 +179,7 @@ class MetaClassCreatorNodes( MetaClassCreator ):
 				# INITIALIZED DAG NODES WITH DAG PATH !
 				if api.MFnDagNode in mfnmro and not needs_MObject:			# yes, we duplicate code here to keep it fast !!
 					def wrapMfnFunc( self, *args, **kwargs ):
-						return rvalfunc(getattr(mfncls(self.getMDagPath()), mfnfuncname)(*args, **kwargs))
+						return rvalfunc(getattr(mfncls(self.dagPath()), mfnfuncname)(*args, **kwargs))
 					newfunc = wrapMfnFunc
 				else:
 					if api.MObject in newclsmro:
@@ -188,13 +188,13 @@ class MetaClassCreatorNodes( MetaClassCreator ):
 						newfunc = wrapMfnFunc
 					else:
 						def wrapMfnFunc( self, *args, **kwargs ):
-							return rvalfunc(getattr(mfncls(self.getMObject()), mfnfuncname)(*args, **kwargs))
+							return rvalfunc(getattr(mfncls(self.object()), mfnfuncname)(*args, **kwargs))
 						newfunc = wrapMfnFunc
 					# END handle MObject inheritance
 			else:
 				if api.MFnDagNode in mfnmro and not needs_MObject:			# yes, we duplicate code here to keep it fast !!
 					def wrapMfnFunc( self, *args, **kwargs ):
-						return getattr(mfncls(self.getMDagPath()), mfnfuncname)(*args, **kwargs)
+						return getattr(mfncls(self.dagPath()), mfnfuncname)(*args, **kwargs)
 					newfunc = wrapMfnFunc
 				else:
 					if api.MObject in newclsmro:
@@ -203,7 +203,7 @@ class MetaClassCreatorNodes( MetaClassCreator ):
 						newfunc = wrapMfnFunc
 					else:
 						def wrapMfnFunc( self, *args, **kwargs ):
-							return getattr(mfncls(self.getMObject()), mfnfuncname)(*args, **kwargs)
+							return getattr(mfncls(self.object()), mfnfuncname)(*args, **kwargs)
 						newfunc = wrapMfnFunc
 					# END handle MObject inheritance
 			# END not rvalfunc

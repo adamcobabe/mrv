@@ -79,7 +79,7 @@ class TestSets( unittest.TestCase ):
 		rg = nt.Node( "defaultRenderGlobals" )
 		ik = nt.Node( "ikSystem" )
 		s2 = nt.Node( "defaultObjectSet" )
-		return [ ik, persp, persp.translate, rg.getMObject(), front.getMDagPath(), s2 ]
+		return [ ik, persp, persp.translate, rg.object(), front.dagPath(), s2 ]
 
 	def test_memberHandling( self ):
 		s = nt.createNode( "memberSet", "objectSet" )

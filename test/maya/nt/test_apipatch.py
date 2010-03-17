@@ -529,15 +529,15 @@ class TestDataBase( unittest.TestCase ):
 		m = nt.Mesh()
 		nt.PolyCube().output > m.inMesh
 		sl = api.MSelectionList()
-		sl.add(m.getMDagPath())
-		sl.add(m.getMDagPath(), m.cf[:])
+		sl.add(m.dagPath())
+		sl.add(m.dagPath(), m.cf[:])
 		assert len(list(sl.miterComponents())) == 1
 		
 		
 		# PLUG ITERATION
 		p = nt.Node("persp")
 		sl = api.MSelectionList()
-		sl.add(p.getMDagPath())
+		sl.add(p.dagPath())
 		sl.add(p.t)
 		sl.add(p.rx)
 		assert len(list(sl.miterPlugs())) == 2

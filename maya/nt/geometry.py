@@ -389,7 +389,7 @@ class Mesh( SurfaceShape ):		# base for epydoc !
 						ec.face   : api.MItMeshPolygon, 
 						ec.uv     : api.MItMeshFaceVertex}[component_type] 
 		
-		return it_type(self.getMDagPath(), component)
+		return it_type(self.dagPath(), component)
 		
 	#} END iterators 
 
