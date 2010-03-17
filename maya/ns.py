@@ -31,7 +31,7 @@ class Namespace( unicode, iDagItem ):
 	   - Path separator is ':'"""
 	re_find_duplicate_sep = re.compile( ":{2,}" )
 	_sep = ':'
-	root = ':'
+	rootpath = ':'
 	_defaultns = [ 'UI','shared' ]			# default namespaces that we want to ignore in our listings
 	defaultIncrFunc = lambda b,i: "%s%02i" % ( b,i )
 	
@@ -40,7 +40,7 @@ class Namespace( unicode, iDagItem ):
 
 	#{ Overridden Methods
 
-	def __new__( cls, namespacepath=root, absolute = True ):
+	def __new__( cls, namespacepath=rootpath, absolute = True ):
 		""" Initialize the namespace with the given namespace path
 		@param namespacepath: the namespace to wrap - it should be absolut to assure
 		relative namespaces will not be interpreted in an unforseen manner ( as they
@@ -50,7 +50,7 @@ class Namespace( unicode, iDagItem ):
 		@note: the namespace does not need to exist, but many methods will not work if so.
 		NamespaceObjects returned by methods of this class are garantueed to exist"""
 
-		if namespacepath != cls.root:
+		if namespacepath != cls.rootpath:
 			if absolute:
 				if not namespacepath.startswith( ":" ):		# do not force absolute namespace !
 					namespacepath = ":" + namespacepath
@@ -91,8 +91,8 @@ class Namespace( unicode, iDagItem ):
 
 		cleanup = CallOnDeletion( None )
 		if newns.isAbsolute():	# assure root is current if we are having an absolute name
-			previousns = Namespace.getCurrent()
-			cls( Namespace.root ).setCurrent( )
+			previousns = Namespace.current()
+			cls( Namespace.rootpath ).setCurrent( )
 			cleanup.callableobj = lambda : previousns.setCurrent()
 
 		# create each token accordingly ( its not root here )
@@ -106,7 +106,7 @@ class Namespace( unicode, iDagItem ):
 			# put operation on the queue - as we create empty namespaces, we can delete
 			# them at any time
 			op = undo.GenericOperation( )
-			op.setDoitCmd( cmds.namespace, p=base.getParent() , add=base.getBasename() )
+			op.setDoitCmd( cmds.namespace, p=base.parent() , add=base.basename() )
 			op.setUndoitCmd(cmds.namespace, rm=base )
 			op.doIt( )
 		# END for each token
@@ -125,8 +125,8 @@ class Namespace( unicode, iDagItem ):
 
 		# recursively move children
 		def moveChildren( curparent, newname ):
-			for child in curparent.getChildren( ):
-				moveChildren( child, newname + child.getBasename( ) )
+			for child in curparent.children( ):
+				moveChildren( child, newname + child.basename( ) )
 			# all children should be gone now, move the
 			curparent.delete( move_to_namespace = newname, autocreate=True )
 		# END internal method
@@ -145,7 +145,7 @@ class Namespace( unicode, iDagItem ):
 
 		cmds.namespace( mv=( self, targetNamespace ), force = force )
 
-	def delete( self, move_to_namespace = root, autocreate=True ):
+	def delete( self, move_to_namespace = rootpath, autocreate=True ):
 		"""Delete this namespace and move it's obejcts to the given move_to_namespace
 		@param move_to_namespace: if None, the namespace to be deleted must be empty
 		If Namespace, objects in this namespace will be moved there prior to namespace deletion
@@ -154,7 +154,7 @@ class Namespace( unicode, iDagItem ):
 		@note: can handle sub-namespaces properly
 		@raise RuntimeError:
 		@todo: Implement undo !"""
-		if self == self.root:
+		if self == self.rootpath:
 			raise ValueError( "Cannot delete root namespace" )
 
 		if not self.exists():					# its already gone - all fine
@@ -165,14 +165,14 @@ class Namespace( unicode, iDagItem ):
 			move_to_namespace = self.__class__( move_to_namespace )
 
 		# assure we do not loose the current namespace - the maya methods could easily fail
-		previousns = Namespace.getCurrent( )
+		previousns = Namespace.current( )
 		cleanup = CallOnDeletion( None )
 		if previousns != self:		# cannot reset future deleted namespace
 			cleanup.callableobj = lambda : previousns.setCurrent()
 
 
 		# recurse into children for deletion
-		for childns in self.getChildren( ):
+		for childns in self.children( ):
 			childns.delete( move_to_namespace = move_to_namespace )
 
 		# make ourselves current
@@ -193,7 +193,7 @@ class Namespace( unicode, iDagItem ):
 		# THIS IS FASTER !
 		melop = undo.GenericOperation( )
 		melop.setDoitCmd( cmds.namespace, set = self )
-		melop.setUndoitCmd( cmds.namespace, set = Namespace.getCurrent() )
+		melop.setUndoitCmd( cmds.namespace, set = Namespace.current() )
 		melop.doIt()
 		
 		return self
@@ -203,7 +203,7 @@ class Namespace( unicode, iDagItem ):
 	#{Query Methods
 
 	@classmethod
-	def getCurrent( cls ):
+	def current( cls ):
 		"""@return: the currently set absolute namespace """
 		# will return namespace relative to the root - thus is absolute in some sense
 		nsname = cmds.namespaceInfo( cur = 1 )
@@ -239,20 +239,20 @@ class Namespace( unicode, iDagItem ):
 		from the root namespace like ":foo:bar"""
 		return self.startswith( self._sep )
 
-	def getParent( self ):
+	def parent( self ):
 		"""@return: parent namespace of this instance"""
-		if self == self.root:
+		if self == self.rootpath:
 			return None
 
-		parent = iDagItem.getParent( self )	# considers children like ":bar" being a root
+		parent = iDagItem.parent( self )	# considers children like ":bar" being a root
 		if parent == None:	# we are just child of the root namespcae
-			parent = self.root
+			parent = self.rootpath
 		return self.__class__( parent )
 
-	def getChildren( self, predicate = lambda x: True ):
+	def children( self, predicate = lambda x: True ):
 		"""@return: list of child namespaces
 		@param predicate: return True to include x in result"""
-		lastcurrent = self.getCurrent()
+		lastcurrent = self.current()
 		self.setCurrent( )
 		out = []
 		for ns in noneToList( cmds.namespaceInfo( lon=1 ) ):		# returns root-relative names !
@@ -269,15 +269,12 @@ class Namespace( unicode, iDagItem ):
 		@note: the root namespace cannot be relative - if this is of interest for you,
 		you have to check for it. This method gracefully ignores that fact to make
 		it more convenient to use as one does not have to be afraid of exceptions"""
-		#if self == self.root:
-		#	raise ValueError( "The root namespace cannot be relative" )
-
 		if not self.startswith( ":" ):
 			return self.__class__( self )	# create a copy
 
 		return self.__class__( self[1:], absolute=False )
 
-	def getRelativeTo( self, basenamespace ):
+	def relativeTo( self, basenamespace ):
 		"""@return: this namespace relative to the given basenamespace
 		@param basenamespace: the namespace to which the returned one should be
 		relative too
@@ -305,7 +302,7 @@ class Namespace( unicode, iDagItem ):
 
 		rpos = objectname.rfind( Namespace._sep )
 		if rpos == -1:
-			return ( Namespace.root, objectname )
+			return ( Namespace.rootpath, objectname )
 
 		return ( cls( objectname[:rpos] ), objectname[rpos+1:] )
 
@@ -325,7 +322,7 @@ class Namespace( unicode, iDagItem ):
 		@note: handles replacement of subnamespaces correctly as well
 		@note: as it operates on strings, the actual namespaces do not need to exist"""
 		# special case : we are root
-		if self == Namespace.root:
+		if self == Namespace.rootpath:
 			return self._removeDuplicateSep( self.__class__( replacement, absolute=False ) + find_in )
 
 		# do the replacement
@@ -367,7 +364,7 @@ class Namespace( unicode, iDagItem ):
 		kwargs['asNode'] = False
 		pred = None
 		iter_type = None
-		nsGetRelativeTo = type(self).getRelativeTo
+		nsGetRelativeTo = type(self).relativeTo
 		selfrela = self.toRelative()+':'
 		if dag:
 			mfndag = api.MFnDagNode()
@@ -446,9 +443,9 @@ def createNamespace( *args ):
 	"""see L{Namespace.create}"""
 	return Namespace.create( *args )
 
-def getCurrentNamespace( ):
-	"""see L{Namespace.getCurrent}"""
-	return Namespace.getCurrent()
+def currentNamespace( ):
+	"""see L{Namespace.current}"""
+	return Namespace.current()
 
 def findUniqueNamespace( *args, **kwargs ):
 	"""see L{Namespace.findUnique}"""
@@ -459,7 +456,7 @@ def existsNamespace( namespace ):
 	return Namespace( namespace ).exists()
 
 
-RootNamespace = Namespace(Namespace.root)
+RootNamespace = Namespace(Namespace.rootpath)
 
 #} END Static Access
 

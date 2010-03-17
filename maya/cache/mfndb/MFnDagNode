@@ -36,22 +36,22 @@
     | MFnDagNode_transformationMatrix         | None                |                                         
     | MFnDagNode_usingObjectColor             | None                |                                         
 x   | addChild                                | None                |                                         
-    | boundingBox                             | None                | getBoundingBox                          
-    | child                                   | Node                | getChild                                
-    | childCount                              | None                | getChildCount                           
+    | boundingBox                             | None                |                           
+    | child                                   | Node                |                                 
+    | childCount                              | None                |                            
 x   | create                                  | None                |                                         
-    | dagPath                                 | None	              | getDagPath                              
-    | dagRoot                                 | Node                | getDagRoot                              
+    | dagPath                                 | None	              |                               
+    | dagRoot                                 | Node                |                               
     | delete_MFnDagNode                       | None                |                                         
     | duplicate                               | Node                |                                         
-    | fullPathName                            | None                | getFullPathName                         
-    | getAllPaths                             | None                |                                         
+    | fullPathName                            | None                |                          
+    | getAllPaths                             | None                | allPaths                                         
 x   | getPath                                 | None                |                                         
     | hasChild                                | None                |                                         
     | hasParent                               | None                |                                         
     | inModel                                 | None                |                                         
     | inUnderWorld                            | None                |                                         
-    | instanceCount                           | None                | getInstanceCount                        
+    | instanceCount                           | None                |                         
     | isChildOf                               | None                |                                         
     | isInstanceable                          | None                |                                         
     | isInstanced                             | None                |                                         
@@ -59,11 +59,11 @@ x   | getPath                                 | None                |
     | isIntermediateObject                    | None                |                                         
     | isParentOf                              | None                |                                         
 x   | model                                   | None                |                                         
-    | objectColor                             | None                | getObjectColor                          
-    | objectGroupComponent                    | None                | getObjectGroupComponent                 
-    | parent                                  | Node                | getParent                               
-    | parentCount                             | None                | getParentCount                          
-    | partialPathName                         | None                | getPartialName                          
+    | objectColor                             | None                |                           
+    | objectGroupComponent                    | None                |                  
+    | parent                                  | Node                |                                
+    | parentCount                             | None                |                           
+    | partialPathName                         | None                |                           
 x   | removeChild                             | None                |                                         
 x   | removeChildAt                           | None                |                                         
     | setInstanceable                         | None                |                                         
@@ -71,6 +71,6 @@ x   | removeChildAt                           | None                |
 x   | setObject                               | None                |                                         
     | setObjectColor                          | None                |                                         
     | setUseObjectColor                       | None                |                                         
-    | transformationMatrix                    | None                | getTransformationMatrix                 
-    | type                                    | None                | getType                                 
+    | transformationMatrix                    | None                |                  
+    | type                                    | None                |                                  
     | usingObjectColor                        | None                | isUsingObjectColor                      

@@ -97,8 +97,8 @@ class QACheckLayout( layout.RowLayout ):
 	def _create( self ):
 		"""Create our layout elements according to the details given in check"""
 		# assume we are active
-		checkplug = self.getCheck().plug
-		nice_name = self._toNiceName( checkplug.getName() )
+		checkplug = self.check().plug
+		nice_name = self._toNiceName( checkplug.name() )
 		self.add( control.Text( label = nice_name, ann = checkplug.annotation ) )
 
 		ibutton = self.add( control.IconTextButton( 	style="iconOnly",
@@ -123,14 +123,14 @@ class QACheckLayout( layout.RowLayout ):
 		bicon = self.listChildren()[1]
 		bicon.p_image = self.icons[0]
 
-		check = self.getCheck()
+		check = self.check()
 		if check.hasCache():
-			result = check.getCache()
+			result = check.cache()
 			self.setResult( result )
 		# END if previous result exists
 
 
-	def getCheck( self ):
+	def check( self ):
 		"""@return: check we are operating upon"""
 		return self._check
 
@@ -144,8 +144,8 @@ class QACheckLayout( layout.RowLayout ):
 		otherwise a cached result may be used
 		@param **kwargs: will be passed to the workflow's runChecks method
 		@return: result of our check"""
-		check = self.getCheck()
-		wfl = check.node.getWorkflow()
+		check = self.check()
+		wfl = check.node.workflow()
 		force_check = kwargs.pop( "force_check", True )
 
 		mode = check.node.eMode.query
@@ -160,16 +160,16 @@ class QACheckLayout( layout.RowLayout ):
 		Triggers a workflow run if not yet done"""
 		# use the cache directly to prevent the whole runprocess to be kicked on
 		# although the result is already known
-		check = self.getCheck()
+		check = self.check()
 		result = None
 		if check.hasCache():
-			result = check.getCache()
+			result = check.cache()
 		else:
 			result = self._runCheck( force_check = False )
 
 		# select items , ignore erorrs if it is not selectable
 		sellist = api.MSelectionList()
-		for item in chain( result.getFixedItems(), result.getFailedItems() ):
+		for item in chain( result.fixedItems(), result.failedItems() ):
 			try:
 				sellist.add( str( item ) )
 			except RuntimeError:
@@ -186,7 +186,7 @@ class QACheckLayout( layout.RowLayout ):
 	def postCheck( self, result ):
 		"""Runs after the check has finished including the given result"""
 		text = self.listChildren()[0]
-		text.p_label = str( self._toNiceName( self.getCheck().plug.getName() ) )
+		text.p_label = str( self._toNiceName( self.check().plug.name() ) )
 
 		self.setResult( result )
 
@@ -195,7 +195,7 @@ class QACheckLayout( layout.RowLayout ):
 		@param exception: exception object that was thrown by our check
 		@param workflow: workflow that ran the check"""
 		text = self.listChildren()[0]
-		text.p_label = str( self._toNiceName( self.getCheck().plug.getName() ) + " ( ERROR )" )
+		text.p_label = str( self._toNiceName( self.check().plug.name() ) + " ( ERROR )" )
 		print str( exception )
 
 	def setResult( self, result ):
@@ -285,7 +285,7 @@ class QALayout( layout.FormLayout, uiutil.iItemSet ):
 		# we might change the layout, so be active
 		# IMPORTANT: if this is not the case, we might easily confuse layouts ...
 		# figure out why exactly that happens
-		curparent = self.getParent()
+		curparent = self.parent()
 		self.setActive()
 
 		# map check names to actual checks
@@ -303,7 +303,7 @@ class QALayout( layout.FormLayout, uiutil.iItemSet ):
 		# END checks text existed
 
 		if not checks and self.no_checks_text is None and self.show_text_if_empty:
-			prevparent = self.getParent()
+			prevparent = self.parent()
 			self.col_layout.setActive()
 			self.no_checks_text = control.Text( label = "No checks available" )
 			prevparent.setActive()
@@ -316,7 +316,7 @@ class QALayout( layout.FormLayout, uiutil.iItemSet ):
 		# automatically through the weak reference system
 		wfls_done = list()
 		for check in checks:
-			cwfl = check.node.getWorkflow()
+			cwfl = check.node.workflow()
 			if cwfl in wfls_done:
 				continue
 			wfls_done.append( cwfl )
@@ -334,7 +334,7 @@ class QALayout( layout.FormLayout, uiutil.iItemSet ):
 		# remove possibly existing button ( ignore the flag, its about the button here )
 		# its stored in a column layout
 		button_layout_name = "additionals_column_layout"
-		layout_child = self.listChildren( predicate = lambda c: c.getBasename() == button_layout_name )
+		layout_child = self.listChildren( predicate = lambda c: c.basename() == button_layout_name )
 		if layout_child:
 			assert len( layout_child ) == 1
 			self.deleteChild( layout_child[0] )
@@ -375,26 +375,26 @@ class QALayout( layout.FormLayout, uiutil.iItemSet ):
 		curparent.setActive()
 
 
-	def getCheckLayouts( self ):
+	def checkLayouts( self ):
 		"""@return: list of checkLayouts representing our checks"""
 		ntcm = dict()
-		self.getCurrentItemIds( name_to_child_map = ntcm )
+		self.currentItemIds( name_to_child_map = ntcm )
 		return ntcm.values()
 
-	def getChecks( self ):
+	def checks( self ):
 		"""@return: list of checks we are currently holding in our layout"""
-		return [ l.getCheck() for l in self.getCheckLayouts() ]
+		return [ l.check() for l in self.checkLayouts() ]
 
 	#} END interface
 
 	#{ iItemSet Implementation
 
-	def getCurrentItemIds( self, name_to_child_map = None, **kwargs ):
+	def currentItemIds( self, name_to_child_map = None, **kwargs ):
 		"""@return: current check ids as defined by exsiting children.
 		@note: additionally fills in the name_to_child_map"""
 		outids = list()
 		for child in self.col_layout.listChildren( predicate = lambda c: isinstance( c, QACheckLayout ) ):
-			check = child.getCheck()
+			check = child.check()
 			cid = str( check )
 			outids.append( cid )
 
@@ -436,7 +436,7 @@ class QALayout( layout.FormLayout, uiutil.iItemSet ):
 
 	def _checkLayoutHasCheck( self, checkLayout, check ):
 		"""@return: True if the given L{QACheckLayout} manages the given check"""
-		return checkLayout.getCheck() == check
+		return checkLayout.check() == check
 
 	def checkHandler( self, event, check, *args ):
 		"""Called for the given event - it will find the UI element handling the
@@ -452,7 +452,7 @@ class QALayout( layout.FormLayout, uiutil.iItemSet ):
 		# find a child handling the given check
 		# skip ones we do not find
 		checkchild = None
-		for child in self.getCheckLayouts():
+		for child in self.checkLayouts():
 			if self._checkLayoutHasCheck( child, check ):
 				checkchild = child
 				break
@@ -481,13 +481,13 @@ class QALayout( layout.FormLayout, uiutil.iItemSet ):
 		do not sort them by workflow
 		@note: currently we only run in query mode as sort of safety measure - check and fix
 		on all might be too much and lead to unexpected results"""
-		checks = self.getChecks()
+		checks = self.checks()
 		if not checks:
 			print "No checks found to run"
 			return
 		# END check assertion
 
-		wfl = checks[0].node.getWorkflow()
+		wfl = checks[0].node.workflow()
 		wfl.runChecks( checks, clear_result = 1, **kwargs )
 
 

@@ -152,7 +152,7 @@ class PyPickleData( mpx.MPxData ):
 		try:
 			cPickle.dump( self.__data, sout, protocol=2 )
 		except cPickle.PicklingError, e:
-			sys.__stdout__.write( str( e ) )
+			sys.stdout.write( str( e ) )
 			return
 		# END pickle error handling
 
@@ -299,7 +299,7 @@ class StorageBase( iDuplicatable ):
 			"""value plug contains the plugin data in pythondata"""
 			object.__setattr__( self, '_plug', valueplug )
 			object.__setattr__( self, '_pydata', pythondata )
-			object.__setattr__( self, '_isReferenced', valueplug.mgetWrappedNode( ).isReferenced( ) )
+			object.__setattr__( self, '_isReferenced', valueplug.mwrappedNode( ).isReferenced( ) )
 			object.__setattr__( self, '_updateCalled', False )
 
 		def __len__( self ):
@@ -371,21 +371,21 @@ class StorageBase( iDuplicatable ):
 		@note: as pickle data always copies by reference to be efficient, we have to explicitly
 		create new data to assure we really copy it
 		@todo: copy connections to our messages as well, make it an option at least"""
-		if self.getAttributePrefix() != other.getAttributePrefix():
+		if self.attributePrefix() != other.attributePrefix():
 			raise AssertionError( "Attribute prefixes between self and other did not match" )
 
 		shallow = kwargs.pop( "shallow", False )
-		for dataid in other.getDataIDs():
-			othervalplug = other.getStoragePlug( dataid, plugType = self.kValue, autoCreate = False )
-			ownvalplug = self.getStoragePlug( dataid, plugType = self.kValue, autoCreate = True )
+		for dataid in other.dataIDs():
+			othervalplug = other.storagePlug( dataid, plugType = self.kValue, autoCreate = False )
+			ownvalplug = self.storagePlug( dataid, plugType = self.kValue, autoCreate = True )
 
 			self._clearData( ownvalplug )
 
 			if shallow:
 				ownvalplug.msetMObject( othervalplug.asMObject() )
 			else:
-				owndict = self.getPythonDataFromPlug( ownvalplug )
-				otherdict = other.getPythonDataFromPlug( othervalplug )
+				owndict = self.pythonDataFromPlug( ownvalplug )
+				otherdict = other.pythonDataFromPlug( othervalplug )
 
 				# copy each value
 				for key in otherdict:
@@ -409,8 +409,8 @@ class StorageBase( iDuplicatable ):
 	def __makePlug( self, dataID ):
 		"""Find an empty logical plug index and return the newly created
 		logical plug with given dataID"""
-		elementPlug = self._node.dta.mgetNextLogicalPlug( )
-		elementPlug.mgetChildByName('id').msetString( dataID )
+		elementPlug = self._node.dta.mnextLogicalPlug( )
+		elementPlug.mchildByName('id').msetString( dataID )
 		return elementPlug
 
 	def makePlug( self, dataID ):
@@ -443,14 +443,14 @@ class StorageBase( iDuplicatable ):
 		is empty after it has been duplicated ( would usually be done in the
 		postContructor"""
 		for compoundplug in self._node.dta:
-			self._clearData( compoundplug.mgetChildByName('dval') )
+			self._clearData( compoundplug.mchildByName('dval') )
 		# END for each element in data compound
 
 	@undoable
 	def clearData( self, dataID ):
 		"""Clear all data stored in the given dataID"""
 		try:
-			valueplug = self.getStoragePlug( dataID, plugType=self.kValue, autoCreate = False )
+			valueplug = self.storagePlug( dataID, plugType=self.kValue, autoCreate = False )
 		except AttributeError:
 			return
 		else:
@@ -465,25 +465,25 @@ class StorageBase( iDuplicatable ):
 		"""@return: compond plug with given dataID or None"""
 		actualID = self._attrprefix + dataID
 		for compoundplug in self._node.dta:
-			if compoundplug.mgetChildByName('id').asString( ) == actualID:
+			if compoundplug.mchildByName('id').asString( ) == actualID:
 				return compoundplug
 		# END for each elemnt ( in search for mathching dataID )
 		return None
 
-	def getDataIDs( self ):
+	def dataIDs( self ):
 		"""@return: list of all dataids available in the storage node
 		@note: respects attribute prefix, and will only see ids with matching prefix.
 		The prefix itself is transparent and will not bre returned"""
 		outids = list()
 		for compoundplug in self._node.dta:
-			did = compoundplug.mgetChildByName('id').asString( )
+			did = compoundplug.mchildByName('id').asString( )
 			if did and did.startswith( self._attrprefix ):
 				outids.append( did[ len( self._attrprefix ) : ] )
 			# END if is valid id
 		# END for each compound plug element
 		return outids
 
-	def getStoragePlug( self, dataID, plugType = None, autoCreate=False ):
+	def storagePlug( self, dataID, plugType = None, autoCreate=False ):
 		"""@return: plug of the given type, either as tuple of two plugs or the plug
 		specified by plugType
 		@param dataID: the name of the plug to be returned
@@ -507,13 +507,13 @@ class StorageBase( iDuplicatable ):
 
 		# return the result
 		if plugType is None:
-			return ( matchedplug.mgetChildByName('dval'), matchedplug.mgetChildByName('dmsg') )
+			return ( matchedplug.mchildByName('dval'), matchedplug.mchildByName('dmsg') )
 		elif plugType == StorageBase.kStorage:
 			return matchedplug
 		elif plugType == StorageBase.kValue:
-			return matchedplug.mgetChildByName('dval')
+			return matchedplug.mchildByName('dval')
 		elif plugType == StorageBase.kMessage:
-			return matchedplug.mgetChildByName('dmsg')
+			return matchedplug.mchildByName('dmsg')
 		else:
 			raise TypeError( "Invalid plugType value: %s" % plugType )
 
@@ -521,19 +521,19 @@ class StorageBase( iDuplicatable ):
 
 
 	#{ Query Data
-	def getPythonData( self, dataID, **kwargs ):
+	def pythonData( self, dataID, **kwargs ):
 		"""@return: PyPickleVal object at the given index ( it can be modified natively )
 		@param dataID: id of of the data to retrieve
 		@param index: element number of the plug to retrieve, or -1 to get a new plug.
 		Plugs will always be created, the given index specifies a logical plug index
 		@param **kwargs: all arguments supported by L{getStoragePlug}"""
-		storagePlug = self.getStoragePlug( dataID, plugType = StorageBase.kStorage, **kwargs )
-		valplug = storagePlug.mgetChildByName('dval')
-		return self.getPythonDataFromPlug( valplug )
+		storagePlug = self.storagePlug( dataID, plugType = StorageBase.kStorage, **kwargs )
+		valplug = storagePlug.mchildByName('dval')
+		return self.pythonDataFromPlug( valplug )
 
 
 	@classmethod
-	def getPythonDataFromPlug( cls, valplug ):
+	def pythonDataFromPlug( cls, valplug ):
 		"""Exract the python data using the given plug directly
 		@param valplug: data value plug containing the plugin data
 		@return: PyPickleData object allowing data access"""
@@ -551,13 +551,13 @@ class StorageBase( iDuplicatable ):
 			plugindata = nt.Data( plugindataobj )
 
 		# exstract the data
-		#return plugindata.getData()
-		return StorageBase.PyPickleValue( valplug, plugindata.getData( ) )
+		#return plugindata.data()
+		return StorageBase.PyPickleValue( valplug, plugindata.data( ) )
 
 	#} END query Data
 
 	#{ Set Handling
-	def getObjectSet( self, dataID, setIndex, autoCreate = True ):
+	def objectSet( self, dataID, setIndex, autoCreate = True ):
 		"""Get an object set identified with setIndex at the given dataId
 		@param dataID: id identifying the storage plug on this node
 		@param setIndex: logical index at which the set will be connected to our message plug array
@@ -567,10 +567,10 @@ class StorageBase( iDuplicatable ):
 		@note: method is implicitly undoable if autoCreate is True, this also means that you cannot
 		explicitly undo this operation as you do not know if undo has been queued or not
 		@note: newly created sets will automatically use partitions if one of the sets does"""
-		mp = self.getStoragePlug( dataID, self.kMessage, autoCreate = autoCreate )
+		mp = self.storagePlug( dataID, self.kMessage, autoCreate = autoCreate )
 		# array plug having our sets
-		setplug = mp.getElementByLogicalIndex( setIndex )
-		inputplug = setplug.mgetInput()
+		setplug = mp.elementByLogicalIndex( setIndex )
+		inputplug = setplug.minput()
 		if inputplug.isNull():
 			if not autoCreate:
 				raise AttributeError( "Set at %s[%i] did not exist on %r" % ( self._attrprefix + dataID, setIndex, self ) )
@@ -580,13 +580,13 @@ class StorageBase( iDuplicatable ):
 			inputplug.mconnectTo(setplug)
 
 			# hook it up to the partition
-			if self.getPartition( dataID ):
+			if self.partition( dataID ):
 				self.setPartition( dataID, True )
 		# END create set as needed
 
 
 		# return actual object set
-		return inputplug.mgetWrappedNode()
+		return inputplug.mwrappedNode()
 
 	@undoable
 	def deleteObjectSet( self, dataID, setIndex ):
@@ -595,22 +595,22 @@ class StorageBase( iDuplicatable ):
 		@note: use this method to delete your sets instead of manual deletion as it will automatically
 		remove the managed partition in case the last set is being deleted"""
 		try:
-			objset = self.getObjectSet( dataID, setIndex, autoCreate = False )
+			objset = self.objectSet( dataID, setIndex, autoCreate = False )
 		except ( ValueError, AttributeError ):
 			# did not exist, its fine
 			return
 		else:
 			# if this is the last set, remove the partition as well
-			if len( self.getSetsByID( dataID ) ) == 1:
+			if len( self.setsByID( dataID ) ) == 1:
 				self.setPartition( dataID, False )
 
 			nt.delete( objset )
 		# END obj set handling
 
-	def getSetsByID( self, dataID ):
+	def setsByID( self, dataID ):
 		"""@return: all object sets stored under the given dataID"""
-		mp = self.getStoragePlug( dataID, self.kMessage, autoCreate = False )
-		allnodes = [ p.mgetWrappedNode() for p in mp.mgetInputs() ]
+		mp = self.storagePlug( dataID, self.kMessage, autoCreate = False )
+		allnodes = [ p.mwrappedNode() for p in mp.minputs() ]
 		return [ n for n in allnodes if isinstance( n, nt.ObjectSet ) ]
 
 
@@ -623,8 +623,8 @@ class StorageBase( iDuplicatable ):
 		@raise ValueError: If we did not have a single set to which to add to the partition
 		@raise AttributeError: If the dataID has never had sets
 		@return: if state is True, the name of the possibly created ( or existing ) partition"""
-		sets = self.getSetsByID( dataID )
-		partition = self.getPartition( dataID )
+		sets = self.setsByID( dataID )
+		partition = self.partition( dataID )
 
 		if state:
 			if partition is None:
@@ -651,15 +651,15 @@ class StorageBase( iDuplicatable ):
 		# END state check
 
 
-	def getPartition( self, dataID ):
+	def partition( self, dataID ):
 		"""@return: partition Node attached to the sets at dataID or None if state
 		is disabled"""
-		sets = self.getSetsByID( dataID )
+		sets = self.setsByID( dataID )
 
 		# get the dominant partition
 		partitions = []
 		for s in sets:
-			partitions.extend( s.getPartitions() )
+			partitions.extend( s.partitions() )
 
 		for p in partitions:
 			if hasattr( p, self._partitionIdAttr ):
@@ -673,7 +673,7 @@ class StorageBase( iDuplicatable ):
 
 	# Query General
 
-	def getStorageNode( self ):
+	def storageNode( self ):
 		"""@return: Node actually being used as storage"""
 		return self._node
 
@@ -683,7 +683,7 @@ class StorageBase( iDuplicatable ):
 		trying to access functions will fail as the path of our node might be invalid"""
 		self._node = node
 
-	def getAttributePrefix( self ):
+	def attributePrefix( self ):
 		"""@return: our attribute prefix
 		@note: it is read-only to assure we will never 'forget' about our data"""
 		return self._attrprefix

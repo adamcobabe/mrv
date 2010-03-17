@@ -76,6 +76,13 @@ Lifetime of MObjects/reference count
 mat == p.wm.getByLogicalIndex(0).asData().matrix()	# matrix is ref, parent goes out of scope
 
 
+======
+Naming
+======
+X and setX
+If overridden MFnMethod uses getX, an alias X is provided, the method itself is overridden as getX.
+isSomething, but issometh	# abbreviations lower case
+
 
 .. _performance-docs-label:
 

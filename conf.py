@@ -165,7 +165,7 @@ class ConfigAccessor( object ):
 		property, we warn and simply ignore it - for the system it will stay just a key and will
 		thus be written back to the file as required
 		@raise ConfigParsingPropertyError: """
-		sectioniter = self._configChain.getSectionIterator()
+		sectioniter = self._configChain.sectionIterator()
 		exc = ConfigParsingPropertyError( )
 		for section in sectioniter:
 			if not self._isProperty( section.name ):
@@ -176,7 +176,7 @@ class ConfigAccessor( object ):
 			targetkeytokens = self._getNameTuple( propname ) # fully qualified property name
 
 			# find all keys matching the keyname !
-			keymatchtuples = self.getKeysByName( targetkeytokens[1] )
+			keymatchtuples = self.keysByName( targetkeytokens[1] )
 
 			# SEARCH FOR KEYS primarily !
 			propertytarget = None		# will later be key or section
@@ -211,7 +211,7 @@ class ConfigAccessor( object ):
 			# could be a section property
 			if propertytarget is None:
 				try:
-					propertytarget = self.getSection( targetkeytokens[1] )
+					propertytarget = self.section( targetkeytokens[1] )
 				except NoSectionError:
 					# nothing found - skip it
 					excmessage += "Property '" + propname + "' references unknown section or key\n"
@@ -310,7 +310,7 @@ class ConfigAccessor( object ):
 		count = 0
 		for mycn in self._configChain:
 			for mysection in mycn._sections:
-				section = cn.getSectionDefault( mysection.name )
+				section = cn.sectionDefault( mysection.name )
 				section.order = count
 				count += 1
 				section.mergeWith( mysection )
@@ -319,13 +319,13 @@ class ConfigAccessor( object ):
 	#} END GROUP
 
 	#{ Iterators
-	def getSectionIterator( self ):
+	def sectionIterator( self ):
 		"""@return: iterator returning all sections"""
-		return self._configChain.getSectionIterator()
+		return self._configChain.sectionIterator()
 
-	def getKeyIterator( self ):
+	def keyIterator( self ):
 		"""@return: iterator returning tuples of (L{Key},L{Section}) pairs"""
-		return self._configChain.getKeyIterator()
+		return self._configChain.keyIterator()
 
 	#} END GROUP
 
@@ -347,13 +347,13 @@ class ConfigAccessor( object ):
 	def hasSection( self, name ):
 		"""@return: True if the given section exists"""
 		try:
-			self.getSection( name )
+			self.section( name )
 		except NoSectionError:
 			return False
 
 		return True
 
-	def getSection( self, section ):
+	def section( self, section ):
 		""" @return: first section with name
 		@note: as there might be several nodes defining the section for inheritance,
 		you might not get the desired results unless this config accessor acts on a
@@ -361,26 +361,26 @@ class ConfigAccessor( object ):
 		@raise NoSectionError: if the requested section name does not exist """
 		for node in self._configChain:
 			if section in node._sections:
-				return node.getSection( section )
+				return node.section( section )
 
 		raise NoSectionError( section )
 
-	def getKeyDefault( self, sectionname, keyname, value ):
+	def keyDefault( self, sectionname, keyname, value ):
 		"""Convenience Function: get key with keyname in first section with sectionname with the key's value being initialized to value if it did not exist.
 		@param sectionname: the name of the sectionname the key is supposed to be in - it will be created if needed
 		@param keyname: the name of the key you wish to find
 		@param value: the value you wish to receive as as default if the key has to be created.
 		It can be a list of values as well, basically anything that L{Key} allows as value
 		@return: L{Key}"""
-		return self.getSectionDefault( sectionname ).getKeyDefault(keyname, value )[0]
+		return self.sectionDefault( sectionname ).keyDefault(keyname, value )[0]
 
-	def getKeysByName( self, name ):
+	def keysByName( self, name ):
 		"""@param name: the name of the key you wish to find
 		@return: List of  (L{Key},L{Section}) tuples of key(s) matching name found in section, or empty list"""
 		return list( self.iterateKeysByName( name ) )
 
 	def iterateKeysByName( self, name ):
-		"""As L{getKeysByName}, but returns an iterator instead"""
+		"""As L{keysByName}, but returns an iterator instead"""
 		return self._configChain.iterateKeysByName( name )
 		
 	def get( self, key_id, default = None ):
@@ -403,24 +403,24 @@ class ConfigAccessor( object ):
 		# END split key id into section and key
 		
 		if sid is None:
-			keys = self.getKeysByName(kid)
+			keys = self.keysByName(kid)
 			try:
 				return keys[0][0]
 			except IndexError:
 				if default is None:
 					raise NoOptionError(kid, sid)
 				else:
-					for section in self.getSectionIterator():
-						return section.getKeyDefault(kid, default)[0]
+					for section in self.sectionIterator():
+						return section.keyDefault(kid, default)[0]
 					# create default section 
-					return self.getSectionDefault('default').getKeyDefault(kid, default)[0]
+					return self.sectionDefault('default').keyDefault(kid, default)[0]
 				# END default handling
 			# END option exception handling
 		else:
 			if default is None:
-				return self.getSection(sid).getKey(kid)
+				return self.section(sid).key(kid)
 			else:
-				return self.getKeyDefault(sid, kid, default)
+				return self.keyDefault(sid, kid, default)
 			# END default handling 
 		# END has section handling
 		
@@ -441,20 +441,20 @@ class ConfigAccessor( object ):
 
 
 	#{ Structure Adjustments Respecting Writable State
-	def getSectionDefault( self, section ):
+	def sectionDefault( self, section ):
 		"""@return: section with given name.
 		@raise IOError: If section does not exist and it cannot be created as the configuration is readonly
 		@note: the section will be created if it does not yet exist
 		"""
 		try:
-			return self.getSection( section )
+			return self.section( section )
 		except:
 			pass
 
 		# find the first writable node and create the section there
 		for node in self._configChain:
 			if node.writable:
-				return node.getSectionDefault( section )
+				return node.sectionDefault( section )
 
 		# we did not find any writable node - fail
 		raise IOError( "Could not find a single writable configuration file" )
@@ -484,8 +484,8 @@ class ConfigAccessor( object ):
 		@return: name of the file source that has received the section"""
 		for node in self._configChain:
 			if node._isWritable():
-				node.getSectionDefault( str( section ) ).mergeWith( section )
-				return node._fp.getName( )
+				node.sectionDefault( str( section ) ).mergeWith( section )
+				return node._fp.name( )
 
 		raise IOError( "No writable section found for merge operation" )
 
@@ -592,7 +592,7 @@ class ConfigManager( object ):
 
 	#{ Utilities
 	@classmethod
-	def getTaggedFileDescriptors( cls, directories, taglist, pattern=None ):
+	def taggedFileDescriptors( cls, directories, taglist, pattern=None ):
 		"""Finds tagged configuration files in given directories and return them.
 		
 		The files retrieved can be files like "file.ext" or can contain tags. Tags are '.'
@@ -682,7 +682,7 @@ class ExtendedFileInterface( object ):
 		""" @return: True if the file has been closed, and needs to be reopened for writing """
 		raise NotImplementedError
 
-	def getName( self ):
+	def name( self ):
 		""" @return: a name for the file object """
 		raise NotImplementedError
 
@@ -692,17 +692,20 @@ class ExtendedFileInterface( object ):
 		raise NotImplementedError
 
 
-class ConfigFile( file, ExtendedFileInterface ):
-	""" file object implementation of the ExtendedFileInterface """
-	__slots__ = [ '_writable' ]
+class ConfigFile( ExtendedFileInterface ):
+	""" file object implementation of the ExtendedFileInterface"""
+	__slots__ = [ '_writable', '_fp' ]
 
 	def __init__( self, *args, **kwargs ):
 		""" Initialize our caching values - additional values will be passed to 'file' constructor"""
-		file.__init__( self, *args, **kwargs )
-		self._writable = self._isWritable( )
+		self._fp = file(*args, **kwargs)
+		self._writable = self._isWritable()
+
+	def __getattr__(self, attr):
+		return getattr(self._fp, attr)
 
 	def _modeSaysWritable( self ):
-		return ( self.mode.find( 'w' ) != -1 ) or ( self.mode.find( 'a' ) != -1 )
+		return ( self._fp.mode.find( 'w' ) != -1 ) or ( self._fp.mode.find( 'a' ) != -1 )
 
 	def _isWritable( self ):
 		""" Check whether the file is effectively writable by opening it for writing
@@ -710,28 +713,29 @@ class ConfigFile( file, ExtendedFileInterface ):
 		if self._modeSaysWritable( ):
 			return True
 
-		wasClosed = self.closed
-		lastMode = self.mode
+		wasClosed = self._fp.closed
+		lastMode = self._fp.mode
 		pos = self.tell()
 
-		if not self.closed:
+		if not self._fp.closed:
 			self.close()
 
 		# open in write append mode
 		rval = True
 		try:
-			file.__init__( self, self.name, "a" )
+			self._fp = file(self._fp.name, "a")
 		except IOError:
 			rval = False
 
 		# reset original state
 		if wasClosed:
 			self.close()
-			self.mode = lastMode
+			self._fp.mode = lastMode
 		else:
 			# reopen with changed mode
-			file.__init__( self, self.name, lastMode )
+			self._fp = file(self._fp.name, lastMode)
 			self.seek( pos )
+		# END check was closed
 
 		return rval
 
@@ -741,14 +745,14 @@ class ConfigFile( file, ExtendedFileInterface ):
 		return self._writable
 
 	def isClosed( self ):
-		return self.closed
+		return self._fp.closed
 
-	def getName( self ):
-		return self.name
+	def name( self ):
+		return self._fp.name
 
 	def openForWriting( self ):
-		if self.closed or not self._modeSaysWritable():
-			file.__init__( self, self.name, 'w' )
+		if self._fp.closed or not self._modeSaysWritable():
+			self._fp = file(self._fp.name, 'w')
 
 		# update writable value cache
 		self._writable = self._isWritable(  )
@@ -760,7 +764,7 @@ class DictConfigINIFile( DictToINIFile, ExtendedFileInterface ):
 	def isClosed( self ):
 		return self.closed
 
-	def getName( self ):
+	def name( self ):
 		""" We do not have a real name """
 		return 'DictConfigINIFile'
 
@@ -779,7 +783,7 @@ class ConfigStringIO( StringIO.StringIO, ExtendedFileInterface ):
 	def isClosed( self ):
 		return self.closed
 
-	def getName( self ):
+	def name( self ):
 		""" We do not have a real name """
 		return 'ConfigStringIO'
 
@@ -843,19 +847,19 @@ class ConfigChain( list ):
 	#}
 
 	#{ Iterators
-	def getSectionIterator( self ):
+	def sectionIterator( self ):
 		"""@return: section iterator for whole configuration chain """
 		return ( section for node in self for section in node._sections )
 
-	def getKeyIterator( self ):
+	def keyIterator( self ):
 		"""@return: iterator returning tuples of (key,section) pairs"""
-		return ( (key,section) for section in self.getSectionIterator() for key in section )
+		return ( (key,section) for section in self.sectionIterator() for key in section )
 
 	def iterateKeysByName( self, name ):
 		"""@param name: the name of the key you wish to find
 		@return: Iterator yielding (L{Key},L{Section}) of key matching name found in section"""
 		# note: we do not use iterators as we want to use sets for faster search !
-		return ( (section.keys[name],section) for section in self.getSectionIterator() if name in section.keys )
+		return ( (section.keys[name],section) for section in self.sectionIterator() if name in section.keys )
 	#} END ITERATORS
 
 
@@ -1057,7 +1061,7 @@ class Key( PropertyHolder ):
 		@todo: this implementation could be faster ( costing more code )"""
 		self._addRemoveValue( value, False )
 
-	def getValueString( self ):
+	def valueString( self ):
 		""" Convert our value to a string suitable for the INI format """
 		strtmp = [ str( v ) for v in self._values ]
 		return ','.join( strtmp )
@@ -1119,11 +1123,11 @@ class Section( PropertyHolder ):
 	#def __getattr__( self, keyname ):
 		"""@return: the key with the given name if it exists
 		@raise NoOptionError: """
-	#	return self.getKey( keyname )
+	#	return self.key( keyname )
 
 	#def __setattr__( self, keyname, value ):
 		"""Assign the given value to the given key  - it will be created if required"""
-	#	self.getKeyDefault( keyname, value ).values = value
+	#	self.keyDefault( keyname, value ).values = value
 
 	def _excPrependNameAndRaise( self ):
 		_excmsgprefix( "Section = " + self._name + ": " )
@@ -1154,7 +1158,7 @@ class Section( PropertyHolder ):
 			self.properties.mergeWith( othersection.properties )
 
 		for fkey in othersection.keys:
-			key,created = self.getKeyDefault( fkey.name, 1 )
+			key,created = self.keyDefault( fkey.name, 1 )
 			if created:
 				key._values = []	# reset the value if key has been newly created
 
@@ -1167,7 +1171,7 @@ class Section( PropertyHolder ):
 
 
 	#{Key Access
-	def getKey( self, name ):
+	def key( self, name ):
 		"""@return: L{Key} with name
 		@raise NoOptionError: """
 		try:
@@ -1175,11 +1179,11 @@ class Section( PropertyHolder ):
 		except KeyError:
 			raise NoOptionError( name, self.name )
 
-	def getKeyDefault( self, name, value ):
+	def keyDefault( self, name, value ):
 		"""@param value: anything supported by L{setKey}
 		@return: tuple: 0 = L{Key} with name, create it if required with given value, 1 = true if newly created, false otherwise"""
 		try:
-			return ( self.getKey( name ), False )
+			return ( self.key( name ), False )
 		except NoOptionError:
 			key = Key( name, value, -1 )
 			# set properties None if we are a propertysection ourselves
@@ -1193,7 +1197,7 @@ class Section( PropertyHolder ):
 		@param value: int, long, float, string or list of any of such
 		@raise ValueError: if key has incorrect value
 		"""
-		k = self.getKeyDefault( name, value )[0]
+		k = self.keyDefault( name, value )[0]
 		k.values = value
 	#}
 
@@ -1235,7 +1239,7 @@ class ConfigNode( object ):
 		for i in xrange( 0, len( snames ) ):
 			sname = snames[i]
 			items = configparser.items( sname )
-			section = self.getSectionDefault( sname )
+			section = self.sectionDefault( sname )
 			section.order = i*2		# allows us to have ordering room to move items in - like properties
 			for k,v in items:
 				section.setKey( k, v.split(',') )
@@ -1255,7 +1259,7 @@ class ConfigNode( object ):
 			rcp.readfp( self._fp )
 			self._update( rcp )
 		except (ValueError,TypeError,ParsingError):
-			name = self._fp.getName()
+			name = self._fp.name()
 			exc = sys.exc_info()[1]
 			# if error is ours, prepend filename
 			if not isinstance( exc, ParsingError ):
@@ -1279,7 +1283,7 @@ class ConfigNode( object ):
 		@return: the name of the written file
 		@raise IOError: if we are read-only"""
 		if not self._fp.isWritable( ):
-			raise IOError( self._fp.getName() + " is not writable" )
+			raise IOError( self._fp.name() + " is not writable" )
 
 		sectionsforwriting = []		# keep sections - will be ordered later for actual writing operation
 		for section in iter( self._sections ):
@@ -1311,7 +1315,7 @@ class ConfigNode( object ):
 			for key in section.keys:
 				if len( key.values ) == 0:
 					continue
-				rcp.set( section.name, key.name, key.getValueString( ) )
+				rcp.set( section.name, key.name, key.valueString( ) )
 
 
 		self._fp.openForWriting( )
@@ -1319,7 +1323,7 @@ class ConfigNode( object ):
 		if close_fp:
 			self._fp.close()
 
-		return self._fp.getName()
+		return self._fp.name()
 
 	#{Section Access
 
@@ -1331,7 +1335,7 @@ class ConfigNode( object ):
 		return out
 
 
-	def getSection( self, name ):
+	def section( self, name ):
 		"""@return: L{Section} with name
 		@raise NoSectionError: """
 		try:
@@ -1343,11 +1347,11 @@ class ConfigNode( object ):
 		"""@return: True if the given section exists"""
 		return name in self._sections
 
-	def getSectionDefault( self, name ):
+	def sectionDefault( self, name ):
 		"""@return: L{Section} with name, create it if required"""
 		name = name.strip()
 		try:
-			return self.getSection( name )
+			return self.section( name )
 		except NoSectionError:
 			sectionclass = Section
 			if ConfigAccessor._isProperty( name ):
@@ -1511,8 +1515,8 @@ class DiffSection( DiffData ):
 		# find and set changed keys
 		common = A.keys & B.keys
 		for key in common:
-			akey = A.getKey( str( key ) )
-			bkey = B.getKey( str( key ) )
+			akey = A.key( str( key ) )
+			bkey = B.key( str( key ) )
 			dkey = DiffKey( akey, bkey )
 
 			if dkey.hasDifferences( ): self.changed.append( dkey )
@@ -1521,7 +1525,7 @@ class DiffSection( DiffData ):
 	@classmethod
 	def _getNewKey( cls, section, keyname ):
 		"""@return: key from section - either existing or properly initialized without default value"""
-		key,created = section.getKeyDefault( keyname, "dummy" )
+		key,created = section.keyDefault( keyname, "dummy" )
 		if created: key._values = []			# reset value if created to assure we have no dummy values in there
 		return key
 
@@ -1591,7 +1595,7 @@ class ConfigDiffer( DiffData ):
 		leading to invalid results - thus we have to merge equally named sections
 		@return: BasicSet with merged sections
 		@todo: make this algo work on sets instead of individual sections for performance"""
-		sectionlist = list( configaccessor.getSectionIterator() )
+		sectionlist = list( configaccessor.sectionIterator() )
 		if len( sectionlist ) < 2:
 			return BasicSet( sectionlist )
 
@@ -1692,7 +1696,7 @@ class ConfigDiffer( DiffData ):
 			# here we have an unmerged config chain, and to get consistent results,
 			# the changes may only be applied to one section - we use the first we get
 			try:
-				targetSection = ca.getSectionDefault( sectiondiff.name )
+				targetSection = ca.sectionDefault( sectiondiff.name )
 				sectiondiff.applyTo( targetSection )
 			except IOError:
 				rval[2].append( sectiondiff )

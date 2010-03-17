@@ -139,7 +139,7 @@ class TestGeneralPerformance( unittest.TestCase ):
 			# END for each node
 			
 			# iterate namespaces
-			for namespace in chain((ns.RootNamespace, ), ns.RootNamespace.getChildrenDeep()):
+			for namespace in chain((ns.RootNamespace, ), ns.RootNamespace.childrenDeep()):
 				self._iterate_namespace(namespace)
 			# END for each namespace
 		# END for each run
@@ -216,9 +216,9 @@ class TestGeneralPerformance( unittest.TestCase ):
 		tmplist = list()	# previously we measured the time it took to append the node as well
 		for node in nodes:
 			if isinstance( node, nt.DagNode ):
-				tmplist.append( Node( node.getMDagPath() ) )
+				tmplist.append( Node( node.dagPath() ) )
 			else:
-				tmplist.append( Node( node.getMObject() ) )
+				tmplist.append( Node( node.object() ) )
 		# END for each wrapped node
 
 		api_elapsed = time.time() - st
@@ -230,9 +230,9 @@ class TestGeneralPerformance( unittest.TestCase ):
 		tmplist = list()	# previously we measured the time it took to append the node as well
 		for node in nodes:
 			if isinstance( node, nt.DagNode ):
-				tmplist.append( NodeFromObj( node.getMDagPath() ) )
+				tmplist.append( NodeFromObj( node.dagPath() ) )
 			else:
-				tmplist.append( NodeFromObj( node.getMObject() ) )
+				tmplist.append( NodeFromObj( node.object() ) )
 		# END for each wrapped node
 
 		api_elapsed = time.time() - st
@@ -242,7 +242,7 @@ class TestGeneralPerformance( unittest.TestCase ):
 		# RENAME PERFORMANCE
 		st = time.time()
 		for node in tmplist:
-			node.rename(node.getBasename()[:-1])
+			node.rename(node.basename()[:-1])
 		# END for each node 
 		elapsed = time.time() - st
 		ltl = len(tmplist)
@@ -309,13 +309,13 @@ class TestGeneralPerformance( unittest.TestCase ):
 		# mfn recreate
 		a = time.time()
 		for i in xrange( na ):
-			camfn = api.MFnCamera( p.getMObject() )
+			camfn = api.MFnCamera( p.object() )
 			camfn.focalLength()  # this wraps the API
 		b = time.time()
 		print >>sys.stderr, "%f s (%f/s): recreated + call" % ( b - a, na/(b-a) )
 
 		# mfn directly
-		camfn = api.MFnCamera( p.getMObject() )
+		camfn = api.MFnCamera( p.object() )
 		a = time.time()
 		for i in xrange( na ):
 			camfn.focalLength()  # this wraps the API
@@ -361,7 +361,7 @@ class TestGeneralPerformance( unittest.TestCase ):
 			# RENAME
 			st = time.time()
 			for node in node_list:
-				node.rename(node.getBasename()[:-1])
+				node.rename(node.basename()[:-1])
 			# END for each node to rename
 			elapsed = time.time() - st
 			print >>sys.stderr, "Renamed %i %s nodes in  %f s ( %f nodes / s )" % (nn, node_type, elapsed, nn/elapsed)
@@ -393,7 +393,7 @@ class TestGeneralPerformance( unittest.TestCase ):
 		# END for each asNode option
 		
 		# try namespace iteration
-		self._iterate_namespace(ref.getNamespace(), unlimited_depth=True)
+		self._iterate_namespace(ref.namespace(), unlimited_depth=True)
 		
 		
 

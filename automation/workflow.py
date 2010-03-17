@@ -19,7 +19,7 @@ class DirtyException( Exception ):
 	that it is dirty.
 
 	The exception can also contain a report that will be returned using the
-	getReport function.
+	makeReport function.
 	@note: Thus exeption class must NOT be derived from ComputeError as it will be caught
 	by the DG engine and mis-interpreted - unknown exceptions will just be passed on by it
 	"""
@@ -33,7 +33,7 @@ class DirtyException( Exception ):
 		return str( self.report )
 	#{ Interface
 
-	def getReport( self ):
+	def makeReport( self ):
 		"""@return: printable report, usually a string or some object that
 		responds to str() appropriately"""
 		return self.report
@@ -70,7 +70,7 @@ class Workflow( Graph ):
 				out += "&ERROR"
 			return out
 
-		def getElapsed( ):
+		def elapsed( ):
 			"""@return: time to process the call"""
 			return self.endtime - self.starttime
 
@@ -86,7 +86,7 @@ class Workflow( Graph ):
 					self._result = result
 			# END if result not None
 
-		def getResult( self ):
+		def result( self ):
 			"""@return: result stored in this instance, or None if it is not present or not alive"""
 			if self._result:
 				if isinstance( self._result, weakref.ref ):
@@ -126,11 +126,11 @@ class Workflow( Graph ):
 			lastprocessdata.endtime = time.clock( )
 			lastprocessdata.setResult( result )
 
-		def getCallRoot( self ):
+		def callRoot( self ):
 			"""@return: root at which the call started"""
 			return self._root
 
-		def getSizeCallStack( self ):
+		def callstackSize( self ):
 			"""@return: length of the callstack"""
 			return len( self._call_stack )
 
@@ -141,10 +141,10 @@ class Workflow( Graph ):
 			should be pruned from the result
 			@param reverse: if true, the calllist will be properly reversed ( taking childre into account """
 
-			def getPredecessors( node, nextNode, reverse, pruneIfTrue ):
+			def predecessors( node, nextNode, reverse, pruneIfTrue ):
 				out = []
 
-				# invert the callorder - each predecessor list defines the getInput calls
+				# invert the callorder - each predecessor list defines the input calls
 				# a process has made - to properly reporoduce that, the call order needs to be
 				# inverted as well
 				predlist = self.predecessors( node )
@@ -162,13 +162,13 @@ class Workflow( Graph ):
 
 				# enumerate the other way round, as the call list needs to be inverted
 				for i,pred in predlist:
-					out.extend( getPredecessors( pred, prednextnode, reverse, pruneIfTrue ) )
+					out.extend( predecessors( pred, prednextnode, reverse, pruneIfTrue ) )
 
 				if not pruneThisNode:
 					out.append( ( node, nextNode ) )
 				return out
-			# END getPredecessors
-			calllist = getPredecessors( self.getCallRoot(), None, reverse, pruneIfTrue )
+			# END predecessors
+			calllist = predecessors( self.callRoot(), None, reverse, pruneIfTrue )
 			if not reverse:
 				calllist.reverse() 	# actually brings it in the right order, starting at root
 			return calllist
@@ -260,7 +260,7 @@ class Workflow( Graph ):
 
 	def _evaluateDirtyState( self, outputplug, processmode ):
 		"""Evaluate the given plug in process mode and return a dirty report tuple
-		as used by L{getDirtyReport}"""
+		as used by L{makeDirtyReport}"""
 		report = list( ( outputplug, None ) )
 		try:
 			outputplug.clearCache( clear_affected = False ) 		# assure it eavaluates
@@ -275,7 +275,7 @@ class Workflow( Graph ):
 		return tuple( report )
 
 
-	def getDirtyReport( self, target, mode = "single" ):
+	def makeDirtyReport( self, target, mode = "single" ):
 		"""@return: list of tuple( shell, DirtyReport|None )
 		If a process ( shell.node ) is dirty, a dirty report will be given explaining
 		why the process is dirty and needs an update
@@ -340,7 +340,7 @@ class Workflow( Graph ):
 		their input calls
 		"""
 		# find suitable process
-		inputshell = self.getTargetRating( target )[1]
+		inputshell = self.targetRating( target )[1]
 		if inputshell is None:
 			raise TargetError( "Cannot handle target %r" % target )
 
@@ -360,7 +360,7 @@ class Workflow( Graph ):
 		# of the graph downstream and get the first compatible plug that would
 		# return the same type that we put in
 		# NOTE: requires an unconnected output plug by convention !
-		these = lambda shell: not shell.plug.providesOutput() or shell.getOutputs( )
+		these = lambda shell: not shell.plug.providesOutput() or shell.outputs( )
 		allAffectedNodes = ( shell.node for shell in inputshell.iterShells( direction = "down", visit_once = 1, prune = these ) )
 		outputshell = None
 		# AFFECTED NODES
@@ -368,7 +368,7 @@ class Workflow( Graph ):
 		# use last compatible node in the chain -
 		for node in allAffectedNodes:
 			try:
-				shell = node.getTargetRating( target, check_input_plugs = False, raise_on_ambiguity = 0 )[1] # 1 == plug
+				shell = node.targetRating( target, check_input_plugs = False, raise_on_ambiguity = 0 )[1] # 1 == plug
 			except TypeError,e:		# ambiguous outputs
 				print str( e )
 				continue
@@ -384,12 +384,12 @@ class Workflow( Graph ):
 		# AFFECTED PLUGS HANDLING
 		if not outputshell:
 			# try to use just the affected ones - that would be the best we have
-			outplugs = inputshell.plug.getAffected()
+			outplugs = inputshell.plug.affected()
 
 			if not outplugs:
 				raise TargetError( "Plug %r takes target %r as input, but does not affect an output plug that would take the same target type" % ( str( inputshell ), target ) )
 
-			is_valid_shell = lambda shell: not these( shell ) and shell.plug.attr.getCompatabilityRate( target )
+			is_valid_shell = lambda shell: not these( shell ) and shell.plug.attr.compatabilityRate( target )
 			for plug in outplugs:
 				shell = inputshell.node.toShell( plug )
 
@@ -429,13 +429,13 @@ class Workflow( Graph ):
 		return ( outputshell, result )
 
 
-	def getReportInstance( self, reportType ):
+	def createReportInstance( self, reportType ):
 		"""Create a report instance that describes how the previous target was made
 		@param reportType: Report to populate with information - it must be a Plan based
 		class that can be instantiated and populated with call information.
 		A report analyses the call dependency graph generated during dg evaluation
 		and presents it.
-		@return: report instance whose getReport method can be called to retrieve it"""
+		@return: report instance whose makeReport method can be called to retrieve it"""
 		# make the target as dry run
 		return reportType( self._callgraph )
 
@@ -444,20 +444,20 @@ class Workflow( Graph ):
 
 	#{ Query
 
-	def getTargetSupportList( self ):
+	def targetSupportList( self ):
 		"""@return: list of all supported target type
 		@note: this method is for informational purposes only"""
 		uniqueout = set()
 		for node in self.iterNodes():
 			try:
-				uniqueout.update( set( node.getSupportedTargetTypes() ) )
+				uniqueout.update( set( node.supportedTargetTypes() ) )
 			except Exception, e:
-				raise AssertionError( "Process %r failed when calling getSupportedTargetTypes" % p, e )
+				raise AssertionError( "Process %r failed when calling supportedTargetTypes" % p, e )
 		# END for each p in nodes iter
 		return list( uniqueout )
 
 
-	def getTargetRating( self, target ):
+	def targetRating( self, target ):
 		"""@return: int range(0,255) indicating how well a target can be made
 		0 means not at all, 255 means perfect.
 		Return value is tuple ( rate, PlugShell ), containing the process and plug with the
@@ -470,7 +470,7 @@ class Workflow( Graph ):
 
 		for node in self.iterNodes( ):
 			try:
-				rate, shell = node.getTargetRating( target )
+				rate, shell = node.targetRating( target )
 			except TypeError,e:
 				# could be that there is a node having ambigous plugs, but we are not
 				# going to take it anyway
@@ -481,7 +481,7 @@ class Workflow( Graph ):
 				continue
 
 			# is leaf node ? ( no output connections )
-			if not node.getConnections( 0, 1 ):
+			if not node.connections( 0, 1 ):
 				rate = rate * 2									# prefer leafs in the rating
 
 			rescache.append( ( rate, shell ) )
@@ -501,9 +501,9 @@ class Workflow( Graph ):
 
 		shell = bestpick[1]
 		# recompute rate as we might have changed it
-		return shell.node.getTargetRating( target )
+		return shell.node.targetRating( target )
 
-	def getCallGraph( self ):
+	def callgraph( self ):
 		"""@return: current callgraph instance
 		@note: its strictly read-only and may not be changed"""
 		return self._callgraph

@@ -13,9 +13,9 @@ class RegexStringAttr( Attribute ):
 		self.regex = re.compile( regexstring )
 		Attribute.__init__( self, *args, **kwargs )
 
-	def getCompatabilityRate( self, value ):
+	def compatabilityRate( self, value ):
 		"""@return: rate of base class provided that the regex matches, 0 otherwise"""
-		rate = Attribute.getCompatabilityRate( self, value )		# get default rate
+		rate = Attribute.compatabilityRate( self, value )		# get default rate
 		if not rate:
 			return rate
 

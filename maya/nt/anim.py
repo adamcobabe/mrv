@@ -10,7 +10,7 @@ class AnimCurve( base.DependNode ):
 	methods and provides new convenience methods as well"""
 
 	@classmethod
-	def getAnimation( cls, iter_nodes, asNode=True ):
+	def animation( cls, iter_nodes, asNode=True ):
 		"""@return: list-compatible object containing animation curves attached to
 		the nodes in the given object.
 		@param nodes: MSelection list or list of MObjects or Nodes containing
@@ -33,7 +33,7 @@ class AnimCurve( base.DependNode ):
 			return objs
 		# END handle return type
 
-	def getTangent( self, index, isInTangent ):
+	def tangent( self, index, isInTangent ):
 		"""@return: tuple(x,y) tuple containing the x and y positions of the 
 		tangent at index.
 		x is the x value of the slope of the tangent in seconds
@@ -42,7 +42,7 @@ class AnimCurve( base.DependNode ):
 		@param isInTangent: If true, the in-tangent is returned, else, the out-tangent is returned"""
 		return util.in_two_floats_out_tuple(lambda x, y: self._api_getTangent(index, x, y, isInTangent))
 		
-	def getTangentAsAngle(self, index, isInTangent):
+	def tangentAsAngle(self, index, isInTangent):
 		"""@return: tuple(MAngle, weight) tuple containing the angle and weight of
 		the tangent. 
 		@param *args, **kwargs: See L{getTangent}"""

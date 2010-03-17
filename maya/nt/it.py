@@ -30,7 +30,7 @@ def _argsToFilter( args ):
 
 #{ Iterator Creators
 
-def getDgIterator( *args, **kwargs ):
+def dgIterator( *args, **kwargs ):
 	"""@return: MItDependencyNodes configured according to args - see docs at
 	L{iterDgNodes}.
 	@note: use this method if you want to use more advanced features of the iterator"""
@@ -38,7 +38,7 @@ def getDgIterator( *args, **kwargs ):
 	iterObj = api.MItDependencyNodes( typeFilter )
 	return iterObj
 
-def getDagIterator( *args, **kwargs ):
+def dagIterator( *args, **kwargs ):
 	"""@return: MItDagIterator configured according to args - see docs at
 	L{iterDagNodes}.
 	@note: use this method if you want to use more advanced features of the iterator"""
@@ -68,9 +68,9 @@ def getDagIterator( *args, **kwargs ):
 		if isinstance( root, MDagPath):
 			startPath = root
 		elif isinstance( root, DagNode ):
-			startPath = root.getMDagPath()
+			startPath = root.dagPath()
 		elif isinstance( root, Node ):
-			startObj = root.getMObject()
+			startObj = root.object()
 		else:
 			startObj = root
 		# END handle obj type
@@ -86,7 +86,7 @@ def getDagIterator( *args, **kwargs ):
 	return iterObj
 	
 
-def getGraphIterator( nodeOrPlug, *args, **kwargs ):
+def graphIterator( nodeOrPlug, *args, **kwargs ):
 	"""@return: MItDependencyGraph configured according to args - see docs at
 	L{iterGraph}.
 	@note: use this method if you want to use more advanced features of the iterator
@@ -101,7 +101,7 @@ def getGraphIterator( nodeOrPlug, *args, **kwargs ):
 		startPlug = nodeOrPlug
 		startObj = MObject()
 	elif isinstance( nodeOrPlug, Node ):
-		startObj = nodeOrPlug.getMObject()
+		startObj = nodeOrPlug.object()
 		startPlug = nullplugarray[0]
 	else:
 		startObj = nodeOrPlug
@@ -141,7 +141,7 @@ def getGraphIterator( nodeOrPlug, *args, **kwargs ):
 	return iterObj
 	
 
-def getSelectionListIterator( sellist, **kwargs ):
+def selectionListIterator( sellist, **kwargs ):
 	"""@return: iterator suitable to iterate given selection list - for more info see
 	L{iterSelectionList}"""
 	filtertype = kwargs.get( "filterType", api.MFn.kInvalid )
@@ -159,7 +159,7 @@ def iterDgNodes( *args, **kwargs ):
 	@param asNode: if True, default True, the returned value will be wrapped as node
 	@param predicate: returns True for every iteration element that may be returned by the iteration,
 	default : lambda x: True"""
-	iterator = getDgIterator( *args, **kwargs )
+	iterator = dgIterator( *args, **kwargs )
 	predicate = kwargs.get( "predicate", lambda x: True )
 	asNode = kwargs.get( "asNode", True )
 	
@@ -201,7 +201,7 @@ def iterDagNodes( *args, **kwargs ):
 	# them as several references to the same object (thus with the same value each time)
 	# instances must not be returned multiple times
 	# could use a dict but it requires "obj1 is obj2" and not only "obj1 == obj2" to return true to
-	iterator = getDagIterator( *args, **kwargs )
+	iterator = dagIterator( *args, **kwargs )
 	isDone = iterator.isDone
 	next = iterator.next
 	
@@ -276,7 +276,7 @@ def iterGraph( nodeOrPlug, *args, **kwargs ):
 	@yield: MObject, Node or Plug depending on the configuration flags, first yielded item is 
 	always the root node or plug."""
 	try:
-		iterator = getGraphIterator( nodeOrPlug, *args, **kwargs )
+		iterator = graphIterator( nodeOrPlug, *args, **kwargs )
 	except RuntimeError:
 		# may raise if iteration would yield no results
 		raise StopIteration()
@@ -410,7 +410,7 @@ def iterSelectionList( sellist, filterType = api.MFn.kInvalid, predicate = lambd
 	else:
 		# ITERATOR MODE
 		# the code above can handle it all, this one might be faster though 
-		iterator = getSelectionListIterator( sellist, filterType = filterType )
+		iterator = selectionListIterator( sellist, filterType = filterType )
 		kDagSelectionItem = api.MItSelectionList.kDagSelectionItem
 		kDNselectionItem = api.MItSelectionList.kDNselectionItem
 		rval = None

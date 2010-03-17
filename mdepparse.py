@@ -161,7 +161,7 @@ class MayaFileGraph( DiGraph ):
 		#} END edit
 
 	#{ Query
-	def getDepends( self, filePath, direction = kAffects,
+	def depends( self, filePath, direction = kAffects,
 				   to_os_path = lambda f: os.path.expandvars( f ),
 					os_path_to_db_key = lambda f: f, return_unresolved = False,
 				   invalid_only = False, **kwargs ):
@@ -183,7 +183,7 @@ class MayaFileGraph( DiGraph ):
 		kwargs[ 'branch_first' ] = 1		# default
 
 		keypath = os_path_to_db_key( to_os_path( filePath ) )	# convert key
-		invalid = set( self.getInvalid() )
+		invalid = set( self.invalid() )
 
 		if return_unresolved:
 			to_os_path = lambda f: f
@@ -205,7 +205,7 @@ class MayaFileGraph( DiGraph ):
 
 		return outlist
 
-	def getInvalid( self ):
+	def invalid( self ):
 		"""@return: list of filePaths that could not be parsed, most probably
 		because they could not be found by the system"""
 		lenp = len( self.invalidPrefix  )
@@ -430,7 +430,7 @@ if __name__ == "__main__":
 			listcopy.append( filepath )
 			queried_files = True			# used as flag to determine whether filers have been applied or not
 			filepath = filepath.strip()		# could be from stdin
-			depends = graph.getDepends( filepath, direction = direction, prune = prune,
+			depends = graph.depends( filepath, direction = direction, prune = prune,
 									   	visit_once=1, branch_first=1, depth=depth,
 										return_unresolved=0, **kwargs_query )
 
@@ -476,7 +476,7 @@ if __name__ == "__main__":
 	# ALL INVALID FILES OUTPUT
 	###########################
 	if not queried_files and return_invalid:
-		invalidFiles = graph.getInvalid()
+		invalidFiles = graph.invalid()
 		sys.stdout.writelines( ( iv + "\n" for iv in invalidFiles ) )
 
 

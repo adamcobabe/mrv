@@ -10,21 +10,21 @@ class TestReferenceRunner( unittest.TestCase ):
 
 	@with_scene('namespace.ma')
 	def test_checkNamespaces( self ):
-		rootns = Namespace( Namespace.root )
-		childns = rootns.getChildren( )
+		rootns = Namespace( Namespace.rootpath )
+		childns = rootns.children( )
 		assert rootns.isRoot() 
 		assert len( childns ) == 3 
 
 		for ns in childns:
-			assert ns.getParent( ) == rootns 
+			assert ns.parent( ) == rootns 
 			assert ns.isAbsolute()
 			assert ns.p_isabsolute == ns.isAbsolute()
 			assert ns.exists() == ns.p_exists
-			allChildren = ns.getChildrenDeep( )
+			allChildren = ns.childrenDeep( )
 			assert len( allChildren ) == 2 
 
 			for child in allChildren:
-				assert len( child.getParentDeep() ) 
+				assert len( child.parentDeep() ) 
 
 		# end for each childns
 
@@ -37,10 +37,10 @@ class TestReferenceRunner( unittest.TestCase ):
 
 		# create a few namespaces
 		for ns in [ "newns", "newns:child", "longer:namespace",":hello:world:here" ]:
-			curns = Namespace.getCurrent()
+			curns = Namespace.current()
 			newns = Namespace.create( ns )
 			assert newns.exists() 
-			assert Namespace.getCurrent() == curns 
+			assert Namespace.current() == curns 
 
 			# test undo: creation
 			cmds.undo()
@@ -50,9 +50,9 @@ class TestReferenceRunner( unittest.TestCase ):
 
 			# test undo: change current
 			assert newns.setCurrent() == newns
-			assert Namespace.getCurrent() == newns 
+			assert Namespace.current() == newns 
 			cmds.undo()
-			assert Namespace.getCurrent() == curns 
+			assert Namespace.current() == curns 
 
 
 
@@ -65,14 +65,14 @@ class TestReferenceRunner( unittest.TestCase ):
 			assert renamedns.exists() 
 
 		# delete all child namepaces
-		childns = rootns.getChildren()
+		childns = rootns.children()
 
 		# check relative namespace
 		for ns in childns:
-			assert not ns.getRelativeTo( rootns ).isAbsolute() 
+			assert not ns.relativeTo( rootns ).isAbsolute() 
 
 		for ns in childns:
-			allchildren = ns.getChildrenDeep()
+			allchildren = ns.childrenDeep()
 			ns.delete( move_to_namespace = rootns )
 			assert not ns.exists() 
 			for child in allChildren:
@@ -80,12 +80,12 @@ class TestReferenceRunner( unittest.TestCase ):
 
 
 		# ITER ROOT NAMESPACE - REAL OBJECTS
-		curns = Namespace.getCurrent()
+		curns = Namespace.current()
 		numobjs = 0
 		for obj in RootNamespace.iterNodes( depth = 0 ):
 			numobjs += 1
 		assert numobjs != 0 
-		assert Namespace.getCurrent() == curns 
+		assert Namespace.current() == curns 
 
 		# ITER STRINGS
 		newnumobjs = 0
@@ -93,12 +93,12 @@ class TestReferenceRunner( unittest.TestCase ):
 			newnumobjs += 1
 
 		assert newnumobjs == numobjs
-		assert Namespace.getCurrent() == curns 
+		assert Namespace.current() == curns 
 		 
 
 		# empty namespace must come out as root
 		ns = Namespace( "" )
-		assert ns == Namespace.root 
+		assert ns == Namespace.rootpath 
 
 		# TEST SPLIT
 		###########

@@ -53,7 +53,7 @@ class MetaClassCreatorNodes( MetaClassCreator ):
 		function set described by mfnclsname
 		If no explicit information exists, the db will be empty"""
 		try:
-			return MfnMemberMap( getMfnDBPath( mfnclsname ) )
+			return MfnMemberMap( mfnDBPath( mfnclsname ) )
 		except IOError:
 			pass
 		return MfnMemberMap()
@@ -102,7 +102,7 @@ class MetaClassCreatorNodes( MetaClassCreator ):
 		# adjust function according to DB
 		if funcMutatorDB:
 			try:
-				mfnfuncname, entry = funcMutatorDB.getEntry( funcname )
+				mfnfuncname, entry = funcMutatorDB.entry( funcname )
 				# delete function ?
 				if entry.flag == MfnMemberMap.kDelete:
 					return None
@@ -134,7 +134,7 @@ class MetaClassCreatorNodes( MetaClassCreator ):
 				# INITIALIZED DAG NODES WITH DAG PATH !
 				if api.MFnDagNode in mfnmro and not needs_MObject:			# yes, we duplicate code here to keep it fast !!
 					def wrapMfnFunc( self, *args, **kwargs ):
-						rvallambda = lambda *args, **kwargs: rvalfunc(getattr(mfncls(self.getMDagPath()), mfnfuncname)(*args, **kwargs))
+						rvallambda = lambda *args, **kwargs: rvalfunc(getattr(mfncls(self.dagPath()), mfnfuncname)(*args, **kwargs))
 						object.__setattr__( self, funcname_orig, rvallambda ) # cache it in our object
 						return rvallambda( *args, **kwargs )
 					newfunc = wrapMfnFunc
@@ -147,7 +147,7 @@ class MetaClassCreatorNodes( MetaClassCreator ):
 						newfunc = wrapMfnFunc
 					else:
 						def wrapMfnFunc( self, *args, **kwargs ):
-							rvallambda = lambda *args, **kwargs: rvalfunc(getattr(mfncls(self.getMObject()), mfnfuncname)(*args, **kwargs))
+							rvallambda = lambda *args, **kwargs: rvalfunc(getattr(mfncls(self.object()), mfnfuncname)(*args, **kwargs))
 							object.__setattr__( self, funcname_orig, rvallambda )
 							return rvallambda( *args, **kwargs )
 						newfunc = wrapMfnFunc
@@ -155,7 +155,7 @@ class MetaClassCreatorNodes( MetaClassCreator ):
 			else:
 				if api.MFnDagNode in mfnmro and not needs_MObject:			# yes, we duplicate code here to keep it fast !!
 					def wrapMfnFunc( self, *args, **kwargs ):
-						mfnfunc = getattr(mfncls(self.getMDagPath()), mfnfuncname)
+						mfnfunc = getattr(mfncls(self.dagPath()), mfnfuncname)
 						object.__setattr__( self, funcname_orig, mfnfunc )
 						return mfnfunc( *args, **kwargs )
 					newfunc = wrapMfnFunc
@@ -168,7 +168,7 @@ class MetaClassCreatorNodes( MetaClassCreator ):
 						newfunc = wrapMfnFunc
 					else:
 						def wrapMfnFunc( self, *args, **kwargs ):
-							mfnfunc = getattr(mfncls(self.getMObject()), mfnfuncname)
+							mfnfunc = getattr(mfncls(self.object()), mfnfuncname)
 							object.__setattr__( self, funcname_orig, mfnfunc )
 							return mfnfunc( *args, **kwargs )
 						newfunc = wrapMfnFunc
@@ -179,7 +179,7 @@ class MetaClassCreatorNodes( MetaClassCreator ):
 				# INITIALIZED DAG NODES WITH DAG PATH !
 				if api.MFnDagNode in mfnmro and not needs_MObject:			# yes, we duplicate code here to keep it fast !!
 					def wrapMfnFunc( self, *args, **kwargs ):
-						return rvalfunc(getattr(mfncls(self.getMDagPath()), mfnfuncname)(*args, **kwargs))
+						return rvalfunc(getattr(mfncls(self.dagPath()), mfnfuncname)(*args, **kwargs))
 					newfunc = wrapMfnFunc
 				else:
 					if api.MObject in newclsmro:
@@ -188,13 +188,13 @@ class MetaClassCreatorNodes( MetaClassCreator ):
 						newfunc = wrapMfnFunc
 					else:
 						def wrapMfnFunc( self, *args, **kwargs ):
-							return rvalfunc(getattr(mfncls(self.getMObject()), mfnfuncname)(*args, **kwargs))
+							return rvalfunc(getattr(mfncls(self.object()), mfnfuncname)(*args, **kwargs))
 						newfunc = wrapMfnFunc
 					# END handle MObject inheritance
 			else:
 				if api.MFnDagNode in mfnmro and not needs_MObject:			# yes, we duplicate code here to keep it fast !!
 					def wrapMfnFunc( self, *args, **kwargs ):
-						return getattr(mfncls(self.getMDagPath()), mfnfuncname)(*args, **kwargs)
+						return getattr(mfncls(self.dagPath()), mfnfuncname)(*args, **kwargs)
 					newfunc = wrapMfnFunc
 				else:
 					if api.MObject in newclsmro:
@@ -203,7 +203,7 @@ class MetaClassCreatorNodes( MetaClassCreator ):
 						newfunc = wrapMfnFunc
 					else:
 						def wrapMfnFunc( self, *args, **kwargs ):
-							return getattr(mfncls(self.getMObject()), mfnfuncname)(*args, **kwargs)
+							return getattr(mfncls(self.object()), mfnfuncname)(*args, **kwargs)
 						newfunc = wrapMfnFunc
 					# END handle MObject inheritance
 			# END not rvalfunc
@@ -375,16 +375,16 @@ class MetaClassCreatorNodes( MetaClassCreator ):
 #### Initialization Methods   ####
 #################################
 
-def getMfnDBPath( mfnclsname ):
+def mfnDBPath( mfnclsname ):
 	"""Generate a path to a database file containing mfn wrapping information"""
-	appversion = str( env.getAppVersion( )[0] )
-	return Path( __file__ ).p_parent.p_parent / ( "cache/mfndb/"+ mfnclsname )
+	appversion = str( env.appVersion( )[0] )
+	return Path( __file__ ).parent().parent() / ( "cache/mfndb/"+ mfnclsname )
 
 
-def getCacheFilePath( filename, ext, use_version = False ):
+def cacheFilePath( filename, ext, use_version = False ):
 	"""@Return path to cache file from which you would initialize data structures
 	@param use_version: if true, the maya version will be appended to the filename  """
-	mfile = Path( __file__ ).p_parent.p_parent
+	mfile = Path( __file__ ).parent().parent()
 	version = ""
 	if use_version:
 		version = cmds.about( version=1 ).split( " " )[0]
@@ -395,7 +395,7 @@ def getCacheFilePath( filename, ext, use_version = False ):
 def init_nodehierarchy( ):
 	""" Parse the nodes hiearchy from the maya doc and create an Indexed tree from it
 	@todo: cache the pickled tree and try to load it instead"""
-	mfile = getCacheFilePath( "nodeHierarchy", "html", use_version = 1 )
+	mfile = cacheFilePath( "nodeHierarchy", "html", use_version = 1 )
 	lines = mfile.lines( retain=False )			# just read them in one burst
 
 	hierarchylist = []
@@ -425,7 +425,7 @@ def init_wrappers( targetmodule ):
 def init_nodeTypeToMfnClsMap( ):
 	"""Fill the cache map supplying additional information about the MFNClass to use
 	when creating the classes"""
-	cfile = getCacheFilePath( "nodeTypeToMfnCls", "map" )
+	cfile = cacheFilePath( "nodeTypeToMfnCls", "map" )
 	fobj = open( cfile, 'r' )
 	pf = PipeSeparatedFile( fobj )
 	global nodeTypeToMfnClsMap
@@ -565,7 +565,7 @@ class MfnMemberMap( UserDict.UserDict ):
 
 		fobj.close()
 
-	def getEntry( self, funcname ):
+	def entry( self, funcname ):
 		"""@return: Tuple( mfnfuncname, entry )
 		original mfnclass function name paired with the
 		db entry containing more information
@@ -585,9 +585,9 @@ class MfnMemberMap( UserDict.UserDict ):
 		@return: Entry object for funcname"""
 		return self.setdefault( funcname, self.Entry() )
 
-	def getMfnFunc( self, funcname ):
+	def mfnFunc( self, funcname ):
 		"""@return: mfn functionname corresponding to the ( possibly renamed ) funcname """
-		return self.getEntry( funcname )[0]
+		return self.entry( funcname )[0]
 
 def writeMfnDBCacheFiles( ):
 	"""Create a simple Memberlist of available mfn classes and their members
@@ -596,7 +596,7 @@ def writeMfnDBCacheFiles( ):
 	for apimod in ( api, apianim, apirender, apiui ):
 		mfnclsnames = [ clsname for clsname in dir( apimod ) if clsname.startswith( "MFn" ) ]
 		for mfnname in mfnclsnames:
-			mfnfile = getMfnDBPath( mfnname )
+			mfnfile = mfnDBPath( mfnname )
 			mfncls = getattr( apimod, mfnname )
 
 			try:

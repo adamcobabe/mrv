@@ -60,7 +60,7 @@ def loadWorkflowFromDotFile( dotfile, workflowcls = None ):
 
 	# use the filename as name
 	edge_lut = {}									# string -> processinst
-	wfl = wflclass( name=dotfile.p_namebase )
+	wfl = wflclass( name=dotfile.namebase() )
 
 
 	#print "LOADING %s FROM FILE %s" % (wfl,dotfile)
@@ -101,10 +101,10 @@ def loadWorkflowFromDotFile( dotfile, workflowcls = None ):
 	for edge in dotgraph.get_edge_list():
 		snode = edge_lut[ edge.get_source().strip('"') ]
 		dnode = edge_lut[ edge.get_destination().strip('"') ]
-		destplugs = dnode.getInputPlugs( )
+		destplugs = dnode.inputPlugs( )
 
 		numConnections = 0
-		for sourceplug in snode.getOutputPlugs():
+		for sourceplug in snode.outputPlugs():
 			try:
 				# first is best
 				targetcandidates = snode.filterCompatiblePlugs( destplugs, sourceplug.attr, raise_on_ambiguity = 0, attr_affinity = False, attr_as_source = True )
@@ -139,7 +139,7 @@ def loadWorkflowFromDotFile( dotfile, workflowcls = None ):
 				# count connections by sourceshell
 				sourcemap = dict()			# source->list( edge( s->d  ) ... )
 				for shell in blockedDestinationShells:
-					inshell = dshell.getInput()
+					inshell = dshell.input()
 					sourcemap.setdefault( inshell, list() ).append( ( inshell,dshell ) )
 
 				# find multiple edges
@@ -171,7 +171,7 @@ def addWorkflowsFromDotFiles( module, dotfiles, workflowcls = None ):
 	@return: list of workflow instances created from the given files"""
 	outwfls = list()
 	for dotfile in dotfiles:
-		wflname = dotfile.p_namebase
+		wflname = dotfile.namebase()
 		# it can be that a previous nested workflow already created the workflow
 		# in which case we do not want to recreate it
 		if hasattr( module, wflname ):

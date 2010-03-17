@@ -24,9 +24,9 @@ class ObjectSet:
 	
 	#{ Partition Handling 
 	
-	def getPartitions( self ):
+	def partitions( self ):
 		"""@return: list of Nodes of partitions the entity is set is part of"""
-		return [ p.mgetWrappedNode() for p in self.partition.mgetOutputs() ]
+		return [ p.mwrappedNode() for p in self.partition.moutputs() ]
 		 
 	
 	@undoable 	
@@ -44,7 +44,7 @@ class ObjectSet:
 			prts = [ partition ]
 			
 		if mode == self.kReplace:
-			self.setPartition( self.getPartitions( ), self.kRemove )
+			self.setPartition( self.partitions( ), self.kRemove )
 			mode = self.kAdd		# now the partitions have to be added
 			# go ahead with the add
 		# END replace mode 
@@ -58,7 +58,7 @@ class ObjectSet:
 		if mode == self.kAdd:
 			# only allow to be connected once 
 			for part in prts:
-				self.partition.mconnectToArray( part.sets, exclusive_connection = True )
+				self.partition.mconnectToArray( part.st, exclusive_connection = True )
 			# END for each partition to be added
 			return self
 		# END add mode 
@@ -74,9 +74,9 @@ class ObjectSet:
 		memberobj = member
 		
 		if isinstance( member, nt.DagNode ):
-			memberobj = member.getMDagPath()
+			memberobj = member.dagPath()
 		elif isinstance( member, nt.DependNode ):
-			memberobj = member.getMObject()
+			memberobj = member.object()
 			
 		return memberobj
 		
@@ -87,12 +87,12 @@ class ObjectSet:
 		Finally dd the members in question to us again
 		@param member: can be selection list or MObject, MDagPath, MPlug
 		@return: self if everything is fine"""
-		for partition in self.getPartitions():
-			for otherset in partition.getSets():
+		for partition in self.partitions():
+			for otherset in partition.sets():
 				if is_single_member:
 					otherset.removeMember( member, component = component )
 				else:
-					otherset.removeMembers( otherset.getIntersection( member, sets_are_members = True ) )
+					otherset.removeMembers( otherset.intersection( member, sets_are_members = True ) )
 				# END single member handling 
 			# END for each set in partition           
 		# END for each partition
@@ -125,7 +125,7 @@ class ObjectSet:
 			if is_single_member:
 				not_all_members_added = not self.isMember( member, component = component )
 			else:
-				not_all_members_added = self.getIntersection( member, sets_are_members = True ).length() != numMatches
+				not_all_members_added = self.intersection( member, sets_are_members = True ).length() != numMatches
 				
 			if not_all_members_added:
 				if mode == self.kAddForce:
@@ -197,7 +197,7 @@ class ObjectSet:
 			# will *silently* ( WTF ??) fail. Hence we have to make sure that
 			# we only even remotely think about trying to remove items which are
 			# actually in the set !
-			sellist = self.getIntersection(sellist)
+			sellist = self.intersection(sellist)
 		# END function swapping
 		
 		op = undo.GenericOperation()	
@@ -335,7 +335,10 @@ class ObjectSet:
 			return self._mfncls( self._apiobj ).isMember( self._toMemberObj( obj ), component )
 		return self._mfncls( self._apiobj ).isMember( self._toMemberObj( obj ) )
 		
-	#} END member query 
+	#} END member query
+	
+	# Aliases
+	members = getMembers
 	
 	
 	#{ Set Operations
@@ -368,7 +371,7 @@ class ObjectSet:
 		"""Method creating valid input for the union/intersection or difference methods
 		@note: it may return a temporary set that will delete itself once the wrapper object
 		is being destroyed
-		@param sets_are_members: see L{getUnion}
+		@param sets_are_members: see L{union}
 		@note: set """
 		if isinstance( objects, (tuple, list) ):
 			# MOBJECTARRAY OF SETS
@@ -392,7 +395,7 @@ class ObjectSet:
 			return cls._TmpSet( singleobj )
 			
 		if not sets_are_members and isinstance( singleobj, ObjectSet ):				# Single Object Set ?
-			return singleobj.getMObject()
+			return singleobj.object()
 			
 		if isinstance( singleobj, cls._TmpSet ):										# single set object 
 			return singleobj.setobj
@@ -430,11 +433,11 @@ class ObjectSet:
 		return outlist
 
 	@classmethod
-	def getTmpSet( cls, objects, sets_are_members = False ):
+	def tmpSet( cls, objects, sets_are_members = False ):
 		"""@return: temporary set that will delete itself once it's reference count
 		reaches 0. Use rval.setobj to access the actual set, as the returned object is 
 		just a hanlde to it. The handle is a valid input to the set functions as well
-		@param objects, sets_are_members: see L{getUnion} 
+		@param objects, sets_are_members: see L{union} 
 		@note: useful if you want to use the set member union, intersection or substraction 
 		methods efficiently on many sets in a row - these internally operate on a set, thus 
 		it is faster to use them with another set from the beginning to prevent creation of intermediate 
@@ -454,20 +457,20 @@ class ObjectSet:
 		return self._applySetOp( objects, "union", sets_are_members = sets_are_members )
 		
 	def getIntersection( self, objects, sets_are_members = False  ):
-		"""As L{getUnion}, but returns the intersection ( items in common ) of this 
+		"""As L{union}, but returns the intersection ( items in common ) of this 
 		set with objects
-		@param objects: see L{getUnion}
-		@param sets_are_members: see L{getUnion}
+		@param objects: see L{union}
+		@param sets_are_members: see L{union}
 		@return: MSelectionList of objects being in self and in objects"""
 		return self._applySetOp( objects, "intersection", sets_are_members = sets_are_members )
 		
 	def getDifference( self, objects, sets_are_members = False  ):
 		"""@return: the result of self - objects, thus objects will be substracted from our obejcts 
-		@param objects: see L{getUnion}
-		@param sets_are_members: see L{getUnion}
+		@param objects: see L{union}
+		@param sets_are_members: see L{union}
 		@return: MSelectionList containing objects of self not being in objects list"""
 		# have to do the intersections individually and keep them 
-		intersections = []
+		intersections = list()
 		obj = fobj = self._toValidSetOpInput( objects, sets_are_members = sets_are_members )
 		outlist = api.MSelectionList()
 		if isinstance( obj, self._TmpSet ):
@@ -479,7 +482,7 @@ class ObjectSet:
 			fobj = [ fobj ]
 		
 		for item in fobj:
-			intersections.append( self.getIntersection( item ) )
+			intersections.append( self.intersection( item ) )
 		
 		# remove intersecting members temporarily 
 		for its in intersections:
@@ -494,27 +497,32 @@ class ObjectSet:
 		return difference
 		
 	def iterUnion( self, setOrSetsOrObjects, **kwargs ):
-		"""As getUnion, but returns an iterator
+		"""As union, but returns an iterator
 		@param **kwargs: passed to it.iterSelectionList"""
-		return it.iterSelectionList( self.getUnion( setOrSetsOrObjects ), **kwargs )
+		return it.iterSelectionList( self.union( setOrSetsOrObjects ), **kwargs )
 		
 	def iterIntersection( self, setOrSetsOrObjects, **kwargs ):
-		"""As getIntersection, but returns an iterator
+		"""As intersection, but returns an iterator
 		@param **kwargs: passed to it.iterSelectionList"""
-		return it.iterSelectionList( self.getIntersection( setOrSetsOrObjects ), **kwargs )
+		return it.iterSelectionList( self.intersection( setOrSetsOrObjects ), **kwargs )
 		
 	def iterDifference( self, setOrSetsOrObjects, **kwargs ):
-		"""As getDifference, but returns an iterator
+		"""As difference, but returns an iterator
 		@param **kwargs: passed to it.iterSelectionList"""
-		return it.iterSelectionList( self.getDifference( setOrSetsOrObjects ), **kwargs )
+		return it.iterSelectionList( self.difference( setOrSetsOrObjects ), **kwargs )
 		
 	#} END set operations
 	
+	# aliases
+	union = getUnion
+	intersection = getIntersection
+	difference = getDifference
+	
 	#{ Operators
-	__or__ = getUnion
-	__add__ = getUnion
-	__sub__ = getDifference
-	__and__ = getIntersection
+	__or__ = union
+	__add__ = union
+	__sub__ = difference
+	__and__ = intersection
 	#} END operators
 	
 	#{ Protocols 
@@ -524,7 +532,7 @@ class ObjectSet:
 		return len(self.getMembers())
 	
 	def __iter__(self):
-		return iter(self.getMembers())
+		return self.getMembers().mtoIter()
 	
 	def __contains__( self, obj ):
 		"""@return: True if the given obj is member of this set"""
@@ -588,7 +596,7 @@ class Partition:
 	def clear( self ):
 		"""remove all members from this partition
 		@return: self"""
-		for m in self.getMembers():
+		for m in self.getMembers():                           
 			self.removeMember( m )
 			
 		return self
@@ -598,8 +606,8 @@ class Partition:
 		@note: have to filter the members as there might be non-set connections 
 		in referenced environments"""
 		out = list()
-		for plug in self.sets.mgetInputs():
-			node = plug.mgetWrappedNode()
+		for plug in self.st.minputs():
+			node = plug.mwrappedNode()
 			if not node.hasFn( api.MFn.kSet ):
 				continue
 			out.append( node )
@@ -613,12 +621,13 @@ class Partition:
 	addSets = addMember
 	removeSets = removeMember
 	replaceSets = replaceMember
-	getSets = getMembers
+	sets = getMembers
+	members = getMembers
 	#} END name remapping 
 	
 	#{ Protocols 
 	def __len__(self):
-		return len(self.sets.mgetInputs())
+		return len(self.st.minputs())
 		
 	def __iter__(self):
 		for s in self.getMembers():

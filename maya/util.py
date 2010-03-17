@@ -367,7 +367,7 @@ class CallbackEventBase( util.Event ):
 		def setCallbackID(self, callbackID):
 			self._callbackID = callbackID
 		
-		def getCallbackID(self):
+		def callbackID(self):
 			return self._callbackID
 		
 		def removeCallback(self):
@@ -424,7 +424,7 @@ class CallbackEventBase( util.Event ):
 		storage = self._getCallbackIDStorage(inst)
 		if storage is None:
 			return None
-		return storage.getCallbackID()
+		return storage.callbackID()
 		
 	#} END handle callback ID
 

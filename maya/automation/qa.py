@@ -29,7 +29,7 @@ class QAMetaMel( _NodeBaseCheckMeta ):
 		try:
 			index = Mel.call( index_proc )
 		except RuntimeError, e:
-			sys.__stdout__.write( str( e ) )
+			sys.stdout.write( str( e ) )
 		else:
 			# assure its working , never fail here
 			if len( index ) % 3 == 0:
@@ -37,7 +37,7 @@ class QAMetaMel( _NodeBaseCheckMeta ):
 				for checkname, description, can_fix in zip( iindex, iindex, iindex ):
 					# check name - it may not contain spaces for now
 					if " " in checkname:
-						sys.__stdout__.write( "Invalid name: %s - it may not contain spaces, use CamelCase or underscores" % checkname )
+						sys.stdout.write( "Invalid name: %s - it may not contain spaces, use CamelCase or underscores" % checkname )
 						continue
 					# END name check
 
@@ -47,7 +47,7 @@ class QAMetaMel( _NodeBaseCheckMeta ):
 				# END for each information tuple
 			# END if index is valid
 			else:
-				sys.__stdout__.write( "Invalid proc index returned by %s" % index_proc )
+				sys.stdout.write( "Invalid proc index returned by %s" % index_proc )
 			# END index has valid format
 		# END index could be retrieved
 
@@ -63,7 +63,7 @@ class QAMetaMel( _NodeBaseCheckMeta ):
 		if static_plugs and index_proc and check_cls is not None:
 			check_list = metacls._getMelChecks( index_proc, check_cls )
 			for check in check_list:
-				clsdict[ check.getName() ] = check
+				clsdict[ check.name() ] = check
 		# END create plugs
 
 		# finally create the class
@@ -103,7 +103,7 @@ class QAMELMixin( object ):
 	valid items
 
 	static_mel_plugs
-	Please note that your class must implemnent getPlugs and extend the super class
+	Please note that your class must implemnent plugs and extend the super class
 	result by the result of L{getMelChecks} to dynamically retrieve the available
 	checks
 	"""
@@ -166,7 +166,7 @@ class QAMELMixin( object ):
 
 
 	@classmethod
-	def getMelChecks( cls, predicate = lambda p: True ):
+	def melChecks( cls, predicate = lambda p: True ):
 		"""@return: list of MEL checks ( plugs ) representing checks defined by MEL
 		@param predicate: only return plug if predicate( item ) yield True"""
 		return [ c for c in QAMetaMel._getMelChecks( cls.mel_index_proc, cls.check_plug_cls ) if predicate( c ) ]
@@ -178,7 +178,7 @@ class QAMELMixin( object ):
 		assert self.mel_check_proc
 		assert isinstance( check.attr, QAMELCheckAttribute )
 
-		rval = Mel.call( self.mel_check_proc, check.getName(), int( mode == self.eMode.fix ) )
+		rval = Mel.call( self.mel_check_proc, check.name(), int( mode == self.eMode.fix ) )
 
 		return self._rval_to_checkResult( rval )
 

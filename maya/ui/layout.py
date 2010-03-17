@@ -30,7 +30,7 @@ class Layout( uibase.SizedControl, uiutil.UIContainerBase ):
 
 	#{ Layout Hierarchy
 
-	def getChildren( self ):
+	def children( self ):
 		""" @return: children of this layout """
 		childnames = mutil.noneToList( cmds.layout( self, q=1, ca=1 ) )
 		# assure we have long names to ensure uniqueness
@@ -40,15 +40,14 @@ class Layout( uibase.SizedControl, uiutil.UIContainerBase ):
 		"""Set the parent ( layout ) of this layout active - newly created items
 		will be children of the parent layout
 		@note: can safely be called several times """
-		cmds.setParent( self.getParent( ) )
+		cmds.setParent( self.parent( ) )
 
 	#} END Layout Hierarchy
 
 
 	#{ Properties
-	p_children = property( getChildren )			# overwrite super class property
-	p_ca = p_children
-	p_childArray = p_children
+	p_ca = property(children)
+	p_childArray = p_ca
 	#} End Properties
 
 

@@ -19,7 +19,7 @@ class TestProcesses( unittest.TestCase ):
 		workflows.multiinput.writeDot(tempfile.gettempdir() + "/mygraph.dot" )
 
 		self.failUnless( len( list( wfl.iterNodes() ) ) ==  1 )
-		rate, process = wfl.getTargetRating( unicode( "this" ) )
+		rate, process = wfl.targetRating( unicode( "this" ) )
 		self.failUnless( rate != 0 )
 
 		# shuold be able to provide exactly the same output the workflow itself
@@ -39,8 +39,8 @@ class TestProcesses( unittest.TestCase ):
 		# NESTED WFLS AND PLANS
 		########################
 		#print wfl._callgraph.nodes()
-		plan = wfl.getReportInstance( Plan )
-		lines = plan.getReport( headline = "WRAPPED WORKFLOW" )
+		plan = wfl.createReportInstance( Plan )
+		lines = plan.makeReport( headline = "WRAPPED WORKFLOW" )
 
 
 		# MULTI-NESTED WORKFLOW
@@ -51,7 +51,7 @@ class TestProcesses( unittest.TestCase ):
 		# iterate it - nodes should be facaded and you should not get inside
 		# we cannot get different nodes than workflow wrappers, even if we
 		# traverse the connections
-		wnode2 = mwfl.getNodes()[-1]
+		wnode2 = mwfl.nodes()[-1]
 		lastshell = None
 		for shell in wnode2.outChain.iterShells( direction = "up" ):
 			self.failUnless( isinstance( shell.node, processes.WorkflowWrapTestProcess ) )
@@ -68,13 +68,13 @@ class TestProcesses( unittest.TestCase ):
 		# cannot determine which input is the suitable one
 		#self.failUnless( miwfl.makeTarget( object )[0] < res )
 		self.failUnlessRaises( AssertionError, miwfl.makeTarget, object )
-		mires = miwfl.getNodes()[-1].outChain.get( )
+		mires = miwfl.nodes()[-1].outChain.get( )
 
 		self.failUnless( mires[0] < res )		# must be 3 nodes only, thus its smaller at least
 
 		# report
-		plan = mwfl.getReportInstance( Plan )
-		lines = plan.getReport( headline = "MULTI WRAPPED WORKFLOW" )
+		plan = mwfl.createReportInstance( Plan )
+		lines = plan.makeReport( headline = "MULTI WRAPPED WORKFLOW" )
 		self.failUnless( len( lines ) == 7 )
 		for l in lines:
 			print l

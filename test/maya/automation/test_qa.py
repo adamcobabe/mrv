@@ -41,9 +41,9 @@ class TestMELQAProcessDynamic( TestMELQAProcess ):
 	static_mel_plugs = False
 
 	# implement the method returning the checks
-	def getPlugs( self, predicate = lambda p: True ):
-		checks = self.getMelChecks( predicate )
-		checks.extend( super( TestMELQAProcessDynamic, self ).getPlugs( predicate ) )
+	def plugs( self, predicate = lambda p: True ):
+		checks = self.melChecks( predicate )
+		checks.extend( super( TestMELQAProcessDynamic, self ).plugs( predicate ) )
 		return checks
 
 # add instance to the workflow
@@ -74,10 +74,10 @@ class TestQualityAssurance( unittest.TestCase ):
 			for shell, result in results:
 				if mode == tprocess.eMode.fix:
 					assert result.isSuccessful()
-					assert not result.getFailedItems()
+					assert not result.failedItems()
 				else:
 					assert not result.isSuccessful()
-					assert result.getFailedItems()
+					assert result.failedItems()
 			# END for each shell's result
 		# END for each mode
 

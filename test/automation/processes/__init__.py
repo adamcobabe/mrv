@@ -91,7 +91,7 @@ class OtherTestProcess( process.ProcessBase ):
 
 
 class WorkflowWrapTestProcess( process.WorkflowProcessBase ):
-	workflow_directory = Path( __file__ ).p_parent.p_parent / "workflows"
+	workflow_directory = Path( __file__ ).parent().parent() / "workflows"
 
 	def __init__( self, id, wflname, **kwargs ):
 		"""Wrap the workflow with the given name"""
@@ -102,7 +102,7 @@ class WorkflowWrapTestProcess( process.WorkflowProcessBase ):
 	#{ iDuplicatable Interface
 	def createInstance( self, *args, **kwargs ):
 		"""Create a copy of self and return it"""
-		return self.__class__( self.id, self.workflowName, wflInstance = self.wgraph )
+		return self.__class__( self.id(), self.workflowName, wflInstance = self.wgraph )
 
 	#} END iDuplicatable
 

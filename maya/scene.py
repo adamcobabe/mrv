@@ -88,7 +88,7 @@ class Scene( util.Singleton, util.EventSender ):
 		@param **kwargs: passed to *cmds.file*
 		@return: a Path to the loaded scene"""
 		if not scenepath:
-			scenepath = cls.getName()
+			scenepath = cls.name()
 
 		# NOTE: it will return the last loaded reference instead of the loaded file - lets fix this !
 		sourcePath = Path( scenepath )
@@ -119,7 +119,7 @@ class Scene( util.Singleton, util.EventSender ):
 		scenepath = Path(scenepath)
 		try:
 			cmds.file( rename = scenepath.expandvars() )
-			cmds.file( type = cls.kFileTypeMap[ scenepath.p_ext ] )
+			cmds.file( type = cls.kFileTypeMap[ scenepath.ext() ] )
 		except KeyError:
 			raise RuntimeError( "Unsupported filetype of: " + scenepath  )
 		# END exception handling
@@ -136,13 +136,13 @@ class Scene( util.Singleton, util.EventSender ):
 		@param **kwargs: passed to cmds.file
 		@return: Path at which the scene has been saved."""
 		if scenepath is None or scenepath == "":
-			scenepath = cls.getName( )
+			scenepath = cls.name( )
 
 		scenepath = Path( scenepath )
-		curscene = cls.getName()
+		curscene = cls.name()
 		try :
-			filetype = cls.kFileTypeMap[ scenepath.p_ext ]
-			curscenetype = cls.kFileTypeMap[ curscene.p_ext ]
+			filetype = cls.kFileTypeMap[ scenepath.ext() ]
+			curscenetype = cls.kFileTypeMap[ curscene.ext() ]
 		except KeyError:
 			raise RuntimeError( "Unsupported filetype of: " + scenepath  )
 
@@ -195,7 +195,7 @@ class Scene( util.Singleton, util.EventSender ):
 			nt.select(nt.toSelectionList(nodeListOrIterable))
 		# END handle nodes
 		
-		typ = kwargs.pop('type', kwargs.pop('typ', cls.kFileTypeMap.get(outputFile.p_ext, None)))
+		typ = kwargs.pop('type', kwargs.pop('typ', cls.kFileTypeMap.get(outputFile.ext(), None)))
 		if typ is None:
 			raise RuntimeError("Invalid type in %s" % outputFile)
 		# END handle type 
@@ -226,7 +226,7 @@ class Scene( util.Singleton, util.EventSender ):
 
 	#{ Query Methods
 	@classmethod
-	def getName( cls ):
+	def name( cls ):
 		return Path( cmds.file( q=1, exn=1 ) )
 
 	@classmethod

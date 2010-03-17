@@ -32,7 +32,7 @@ class SimpleNode( NodeBase ):
 	def createInstance( self, *args, **kwargs ):
 		"""Create a copy of self and return it
 		@note: override by subclass  - the __init__ methods shuld do the rest"""
-		return self.__class__( self.getID() )
+		return self.__class__( self.id() )
 	#} END iDuplicatable
 
 	def __init__( self , name ):
@@ -124,21 +124,21 @@ class TestDGEngine( unittest.TestCase ):
 
 		# disconnect
 		s1.outRand.disconnect( s2.inFloat )
-		self.failUnless( len( s1.outRand.getOutputs() ) == 0 and not s2.inFloat.getInput() )
+		self.failUnless( len( s1.outRand.outputs() ) == 0 and not s2.inFloat.input() )
 
 		s1.outRand.connect( s2.inFloat )
 
 		# check its really connected
-		self.failUnless( s2.inFloat.getInput( ) == s1.outRand )
-		self.failUnless( s1.outRand.getOutputs()[0] == s2.inFloat )
+		self.failUnless( s2.inFloat.input( ) == s1.outRand )
+		self.failUnless( s1.outRand.outputs()[0] == s2.inFloat )
 
 
 		# connecting again should throw without force
 		self.failUnlessRaises( PlugAlreadyConnected, s3.outRand.connect, s2.inFloat )
 		# force works though, disconnects otheone
 		s3.outRand.connect( s2.inFloat, force = 1 )
-		self.failUnless( s2.inFloat.getInput( ) == s3.outRand )
-		self.failUnless( len( s1.outRand.getOutputs() ) == 0 )
+		self.failUnless( s2.inFloat.input( ) == s3.outRand )
+		self.failUnless( len( s1.outRand.outputs() ) == 0 )
 
 
 
@@ -211,17 +211,17 @@ class TestDGEngine( unittest.TestCase ):
 
 		# NODE BASED CONNECTION QUERY
 		##############################
-		self.failUnless( len( s3.getConnections( 1, 0 ) ) == 2 )
-		self.failUnless( len( s3.getConnections( 0, 1 ) ) == 1 )
-		self.failUnless( len( s3.getConnections( 1, 1 ) ) == 3 )
+		self.failUnless( len( s3.connections( 1, 0 ) ) == 2 )
+		self.failUnless( len( s3.connections( 0, 1 ) ) == 1 )
+		self.failUnless( len( s3.connections( 1, 1 ) ) == 3 )
 
 		# SHELL BASED CONNECTION QUERY
 		###################################
-		iedges = s3.inInt.getConnections( 1, 0 )
+		iedges = s3.inInt.connections( 1, 0 )
 		self.failUnless( len( iedges ) == 1 )
 		self.failUnless( iedges[0][0] == s2.inInt and iedges[0][1] == s3.inInt )
 
-		oedges = s2.inInt.getConnections( 0, 1 )
+		oedges = s2.inInt.connections( 0, 1 )
 		self.failUnless( len( oedges ) == 1 )
 		self.failUnless( oedges[0][0] == s2.inInt and oedges[0][1] == s3.inInt )
 
@@ -231,7 +231,7 @@ class TestDGEngine( unittest.TestCase ):
 
 		# get by name  id
 		for n in ( s1, s2, s3 ):
-			self.failUnless( getattr( graph, n.getID() ) == n )
+			self.failUnless( getattr( graph, n.id() ) == n )
 
 		graph.writeDot( tempfile.gettempdir() + "/PreRemove.dot" )
 		# remove nodes and check connections
@@ -247,7 +247,7 @@ class TestDGEngine( unittest.TestCase ):
 		#################
 		intattr = A( int, 0 )
 		floatattr = A( float, 0 )
-		inplugs = SimpleNode.getInputPlugsStatic()
+		inplugs = SimpleNode.inputPlugsStatic()
 
 		self.failUnless( len( SimpleNode.filterCompatiblePlugs( inplugs, intattr ) ) == 1 )
 		self.failUnless( len( SimpleNode.filterCompatiblePlugs( inplugs, intattr, raise_on_ambiguity=1 ) ) == 1 )

@@ -47,14 +47,14 @@ class TestGeneral( unittest.TestCase ):
 		# ROOT
 		#########
 		# MDagpath, DagNode
-		for rootnode in ( trans2, trans2.getMDagPath() ):
+		for rootnode in ( trans2, trans2.dagPath() ):
 			dagiter = iterDagNodes( root=rootnode,depth=1,asNode=1 )
 			nextobj = dagiter.next()
 			assert nextobj == trans2 
 		# END for each root type
 		
 		# MObject only works for instances it appears
-		dagiter = iterDagNodes( root=trans.getMObject(),depth=1,asNode=1 )
+		dagiter = iterDagNodes( root=trans.object(),depth=1,asNode=1 )
 		assert dagiter.next() == trans
 		assert dagiter.next() == transinst
 		self.failUnlessRaises(StopIteration, dagiter.next)
@@ -84,11 +84,11 @@ class TestGeneral( unittest.TestCase ):
 		for handlePlugs in range(2):
 			sellist = api.MSelectionList()
 			for obj  in objs:
-				setsandcomps = obj.getComponentAssignments( setFilter = nt.Shape.fSetsRenderable )
+				setsandcomps = obj.componentAssignments( setFilter = nt.Shape.fSetsRenderable )
 				for setnode,comp in setsandcomps:
 					if comp:
-						sellist.add( obj.getApiObject(), comp, True )
-					sellist.add( obj.getApiObject(), api.MObject(), True )
+						sellist.add( obj.apiObject(), comp, True )
+					sellist.add( obj.apiObject(), api.MObject(), True )
 				# for component assignment
 			# for obj in objs
 	

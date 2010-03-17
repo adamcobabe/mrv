@@ -28,7 +28,7 @@ if not init_done:
 	import mayarv.automation.base as common
 
 	# load all workflows at once
-	common.addWorkflowsFromDotFiles( _this_module, Path( __file__ ).p_parent.glob( "*.dot" ) )
+	common.addWorkflowsFromDotFiles( _this_module, Path( __file__ ).parent().glob( "*.dot" ) )
 
 #} END initialization
 

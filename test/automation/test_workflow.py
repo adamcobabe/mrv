@@ -28,16 +28,16 @@ class TestWorkflow( unittest.TestCase ):
 		# QUERY TARGETS
 		##################
 		# assure list is pruned, otherwise it would be 4
-		self.failUnless( len( scwfl.getTargetSupportList( ) ) == 5 )
+		self.failUnless( len( scwfl.targetSupportList( ) ) == 5 )
 
 		# both are the same and produce the same rating
-		self.failUnless( scwfl.getTargetRating( 5 )[0] == 255 )
-		self.failUnless( scwfl.getTargetRating( "this" )[0] == 255 )
-		# self.failUnless( scwfl.getTargetRating( basestring )[0] == 127 ) # cannot work as we need instance
-		self.failUnless( scwfl.getTargetRating( unicode("this") )[0] == 0 ) # cannot be handled, as its too high for us
-		self.failUnless( scwfl.getTargetRating( {} )[0] == 0 )	 			# cannot be handled
+		self.failUnless( scwfl.targetRating( 5 )[0] == 255 )
+		self.failUnless( scwfl.targetRating( "this" )[0] == 255 )
+		# self.failUnless( scwfl.targetRating( basestring )[0] == 127 ) # cannot work as we need instance
+		self.failUnless( scwfl.targetRating( unicode("this") )[0] == 0 ) # cannot be handled, as its too high for us
+		self.failUnless( scwfl.targetRating( {} )[0] == 0 )	 			# cannot be handled
 
-		self.failUnless( scwfl.getTargetRating( float(2.3) )[0] == 255 )
+		self.failUnless( scwfl.targetRating( float(2.3) )[0] == 255 )
 
 
 		# Target Creation
@@ -61,7 +61,7 @@ class TestWorkflow( unittest.TestCase ):
 
 	def test_simpleDirtyCheck( self ):
 		scwfl = workflows.simpleconnection
-		scwfl.getDirtyReport( 5, mode="deep" )
+		scwfl.makeDirtyReport( 5, mode="deep" )
 		d = workflow.DirtyException()
 
 

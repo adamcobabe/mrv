@@ -12,8 +12,8 @@ class TestReport( unittest.TestCase ):
 
 		# try as real target - stil very simple
 		res = miwfl.makeTarget( unicode( "this" ) )
-		plan = miwfl.getReportInstance( Plan )
-		r = plan.getReport( headline = "unicode workflow test" )
+		plan = miwfl.createReportInstance( Plan )
+		r = plan.makeReport( headline = "unicode workflow test" )
 		self.failUnless( len( r ) == 6 )
 		for l in r:
 			print l
