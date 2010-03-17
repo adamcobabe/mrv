@@ -94,7 +94,6 @@ class TestReferenceRunner( unittest.TestCase ):
 				assert ref.exists() 
 
 				# try to create a reference with the same namespace
-				#self.failUnlessRaises( ValueError, ref.create, ref, load = load, namespace = ref.p_namespace )
 				newrefs.append( ref )
 				
 				# check getPath and copy number

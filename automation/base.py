@@ -60,7 +60,7 @@ def loadWorkflowFromDotFile( dotfile, workflowcls = None ):
 
 	# use the filename as name
 	edge_lut = {}									# string -> processinst
-	wfl = wflclass( name=dotfile.p_namebase )
+	wfl = wflclass( name=dotfile.namebase() )
 
 
 	#print "LOADING %s FROM FILE %s" % (wfl,dotfile)
@@ -171,7 +171,7 @@ def addWorkflowsFromDotFiles( module, dotfiles, workflowcls = None ):
 	@return: list of workflow instances created from the given files"""
 	outwfls = list()
 	for dotfile in dotfiles:
-		wflname = dotfile.p_namebase
+		wflname = dotfile.namebase()
 		# it can be that a previous nested workflow already created the workflow
 		# in which case we do not want to recreate it
 		if hasattr( module, wflname ):
