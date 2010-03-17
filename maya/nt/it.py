@@ -68,9 +68,9 @@ def dagIterator( *args, **kwargs ):
 		if isinstance( root, MDagPath):
 			startPath = root
 		elif isinstance( root, DagNode ):
-			startPath = root.getMDagPath()
+			startPath = root.dagPath()
 		elif isinstance( root, Node ):
-			startObj = root.getMObject()
+			startObj = root.object()
 		else:
 			startObj = root
 		# END handle obj type
@@ -101,7 +101,7 @@ def graphIterator( nodeOrPlug, *args, **kwargs ):
 		startPlug = nodeOrPlug
 		startObj = MObject()
 	elif isinstance( nodeOrPlug, Node ):
-		startObj = nodeOrPlug.getMObject()
+		startObj = nodeOrPlug.object()
 		startPlug = nullplugarray[0]
 	else:
 		startObj = nodeOrPlug

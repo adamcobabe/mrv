@@ -75,20 +75,23 @@ class TestTransform( unittest.TestCase ):
 		assert isinstance(p.apiObject(), api.MDagPath)
 		assert isinstance(t.apiObject(), api.MObject)
 		
+		assert isinstance(p.dagPath(), api.MDagPath)
+		assert isinstance(p.object(), api.MObject)
+		
 		# api types
 		assert isinstance(p, Transform) and p.apiType() == api.MFn.kTransform
 		assert isinstance(t, Time) and t.apiType() == api.MFn.kTime
 		assert p.hasFn(p.apiType())
 		
 		# get the MObject representation
-		assert isinstance(p.getMObject(), api.MObject) and isinstance(t.getMObject(), api.MObject)
+		assert isinstance(p.object(), api.MObject) and isinstance(t.object(), api.MObject)
 		
 		
 		# METHODS
 		#########
 		self.failUnlessRaises(AttributeError, getattr, p, 'doesnt_exist')
 		
-		assert p.name == p.name
+		assert p.isFromReferencedFile() == p.isReferenced()
 		
 		assert isinstance(p.getMFnClasses(), list)
 		
@@ -104,6 +107,7 @@ class TestTransform( unittest.TestCase ):
 		# filtering
 		assert len(p.childrenByType(Transform)) == 0
 		assert p.childrenByType(Camera) == p.childrenByType(Shape)
+		assert p.children(lambda n: n.apiType()==api.MFn.kCamera)[0] == ps
 		
 		# deep and iteration
 		assert ps.iterParents().next() == p == ps.root()
@@ -129,7 +133,7 @@ class TestTransform( unittest.TestCase ):
 		# NAMESPACES
 		#############
 		ons = cs.namespace()
-		assert ons == cs[-1].namespace()
+		assert ons == cs[-1].namespace()	# namespace of parent node
 		
 		sns = cs[-2].namespace()
 		assert sns != ons
@@ -150,7 +154,7 @@ class TestTransform( unittest.TestCase ):
 		
 		assert csi.isInstanced() and cs.instanceCount(0) == 2
 		assert csi != cs
-		assert csi.getMObject() == cs.getMObject()
+		assert csi.object() == cs.object()
 		
 		assert cs.parentAtIndex(0) == p
 		assert cs.parentAtIndex(1) == csp
@@ -167,6 +171,7 @@ class TestTransform( unittest.TestCase ):
 		csp.unparent()
 		assert csp.parent() is None and len(csp.children()) == 0
 		assert len(cspp.children()) == 1
+		assert csi.instanceCount(0) == 1
 		
 		
 		# NODE- AND GRAPH-ITERATION
@@ -197,10 +202,10 @@ class TestTransform( unittest.TestCase ):
 		select()
 		assert len(selection()) == 0
 		
-		for n in sl:
+		for n in sl.mtoIter():
 			assert isinstance(n, DependNode)
 		
-		assert list(sl) == sl.mtoList()
+		assert list(sl.mtoIter()) == sl.mtoList()
 		assert list(sl.mtoIter()) == list(it.iterSelectionList(sl))
 		
 		# OBJECTSETS AND PARTITIONS
@@ -269,7 +274,7 @@ class TestTransform( unittest.TestCase ):
 		######################
 		# PLUGS #
 		assert isinstance(p.translate, api.MPlug)
-		assert p.translate == p.findPlug('translate')
+		assert p.translate == p.findPlug('t')
 		assert p.t == p.translate
 		
 		# connections
@@ -388,7 +393,6 @@ class TestTransform( unittest.TestCase ):
 			mit.faceId(); mit.vertId() 
 		
 		
-		
 		# SELECTIONS
 		#############
 		select(p.t, "time1", p, ps)
@@ -408,7 +412,7 @@ class TestTransform( unittest.TestCase ):
 		
 		# COMPONENTS AND PLUGS#
 		sl = api.MSelectionList()
-		sl.add(m.getMDagPath(), m.cf[:4])			# first 4 faces
+		sl.add(m.dagPath(), m.cf[:4])			# first 4 faces
 		select(sl)
 		assert len(activeSelectionList().miterComponents().next()[1].elements()) == 4
 		

@@ -74,9 +74,9 @@ class ObjectSet:
 		memberobj = member
 		
 		if isinstance( member, nt.DagNode ):
-			memberobj = member.getMDagPath()
+			memberobj = member.dagPath()
 		elif isinstance( member, nt.DependNode ):
-			memberobj = member.getMObject()
+			memberobj = member.object()
 			
 		return memberobj
 		
@@ -395,7 +395,7 @@ class ObjectSet:
 			return cls._TmpSet( singleobj )
 			
 		if not sets_are_members and isinstance( singleobj, ObjectSet ):				# Single Object Set ?
-			return singleobj.getMObject()
+			return singleobj.object()
 			
 		if isinstance( singleobj, cls._TmpSet ):										# single set object 
 			return singleobj.setobj
@@ -532,7 +532,7 @@ class ObjectSet:
 		return len(self.getMembers())
 	
 	def __iter__(self):
-		return iter(self.getMembers())
+		return self.getMembers().mtoIter()
 	
 	def __contains__( self, obj ):
 		"""@return: True if the given obj is member of this set"""

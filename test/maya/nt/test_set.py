@@ -79,7 +79,7 @@ class TestSets( unittest.TestCase ):
 		rg = nt.Node( "defaultRenderGlobals" )
 		ik = nt.Node( "ikSystem" )
 		s2 = nt.Node( "defaultObjectSet" )
-		return [ ik, persp, persp.translate, rg.getMObject(), front.getMDagPath(), s2 ]
+		return [ ik, persp, persp.translate, rg.object(), front.dagPath(), s2 ]
 
 	def test_memberHandling( self ):
 		s = nt.createNode( "memberSet", "objectSet" )
@@ -162,7 +162,7 @@ class TestSets( unittest.TestCase ):
 		# test smart add
 		s.add(sellist)
 		assert len(s) == len(sellist)
-		single_item = iter(sellist).next()
+		single_item = sellist.mtoIter().next()
 		s.add(single_item)
 		assert len(s) == len(sellist)
 
@@ -207,7 +207,7 @@ class TestSets( unittest.TestCase ):
 		# TEST SET PROTOCOLS
 		####################
 		assert len(s) == 3
-		assert [ m for m in s ] == list(s.members())
+		assert [ m for m in s ] == s.members().mtoList()
 		assert iter(s).next() in s
 
 	def test_setOperations( self ):

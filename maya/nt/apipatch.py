@@ -699,7 +699,7 @@ class MPlug( api.MPlug ):
 		attrs = cmds.affects( self.mwrappedAttribute().name() , str( ownnode ), by=by ) or list()
 
 		outplugs = list()
-		depfn = api.MFnDependencyNode( ownnode.getMObject() )
+		depfn = api.MFnDependencyNode( ownnode.object() )
 
 		for attr in attrs:
 			outplugs.append( depfn.findPlug( attr ) )
@@ -1032,17 +1032,13 @@ class MIntArray( api.MIntArray, ArrayBase ):
 class MSelectionList( api.MSelectionList, ArrayBase ):
 	_apicls = api.MSelectionList
 	
-	def __iter__( self ):
-		"""@return: iterator object"""
-		return it.iterSelectionList(self)
-	
-	def __contains__( self, rhs ):
+	def mhasItem( self, rhs ):
 		"""@return: True if we contain rhs
 		@note: As we check for Nodes as well as MayaAPI objects, we are possibly slow"""
 		if isinstance(rhs, base.DagNode):
-			return self.hasItem(rhs.getMDagPath())
+			return self.hasItem(rhs.dagPath())
 		elif isinstance(rhs, base.DependNode):
-			return self.hasItem(rhs.getMObject())
+			return self.hasItem(rhs.object())
 		else:
 			return self.hasItem(rhs)
 		# END handle input type

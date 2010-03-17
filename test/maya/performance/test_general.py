@@ -216,9 +216,9 @@ class TestGeneralPerformance( unittest.TestCase ):
 		tmplist = list()	# previously we measured the time it took to append the node as well
 		for node in nodes:
 			if isinstance( node, nt.DagNode ):
-				tmplist.append( Node( node.getMDagPath() ) )
+				tmplist.append( Node( node.dagPath() ) )
 			else:
-				tmplist.append( Node( node.getMObject() ) )
+				tmplist.append( Node( node.object() ) )
 		# END for each wrapped node
 
 		api_elapsed = time.time() - st
@@ -230,9 +230,9 @@ class TestGeneralPerformance( unittest.TestCase ):
 		tmplist = list()	# previously we measured the time it took to append the node as well
 		for node in nodes:
 			if isinstance( node, nt.DagNode ):
-				tmplist.append( NodeFromObj( node.getMDagPath() ) )
+				tmplist.append( NodeFromObj( node.dagPath() ) )
 			else:
-				tmplist.append( NodeFromObj( node.getMObject() ) )
+				tmplist.append( NodeFromObj( node.object() ) )
 		# END for each wrapped node
 
 		api_elapsed = time.time() - st
@@ -309,13 +309,13 @@ class TestGeneralPerformance( unittest.TestCase ):
 		# mfn recreate
 		a = time.time()
 		for i in xrange( na ):
-			camfn = api.MFnCamera( p.getMObject() )
+			camfn = api.MFnCamera( p.object() )
 			camfn.focalLength()  # this wraps the API
 		b = time.time()
 		print >>sys.stderr, "%f s (%f/s): recreated + call" % ( b - a, na/(b-a) )
 
 		# mfn directly
-		camfn = api.MFnCamera( p.getMObject() )
+		camfn = api.MFnCamera( p.object() )
 		a = time.time()
 		for i in xrange( na ):
 			camfn.focalLength()  # this wraps the API
