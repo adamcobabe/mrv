@@ -103,7 +103,7 @@ class QAMELMixin( object ):
 	valid items
 
 	static_mel_plugs
-	Please note that your class must implemnent getPlugs and extend the super class
+	Please note that your class must implemnent plugs and extend the super class
 	result by the result of L{getMelChecks} to dynamically retrieve the available
 	checks
 	"""

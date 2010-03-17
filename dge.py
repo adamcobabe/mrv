@@ -112,11 +112,11 @@ def iterShells( rootPlugShell, stopAt = lambda x: False, prune = lambda x: False
 
 		if direction == 'up':
 			# I-N-O
-			addToStack( shell.node, stack, shell.plug.getAffectedBy(), branch_first )
+			addToStack( shell.node, stack, shell.plug.affectedBy(), branch_first )
 			# END if provides output
 
 			# O<-I
-			ishell = shell.getInput( )
+			ishell = shell.input( )
 			if ishell:
 				if branch_first:
 					stack.append( ishell )
@@ -129,11 +129,11 @@ def iterShells( rootPlugShell, stopAt = lambda x: False, prune = lambda x: False
 			# could also be connected - follow them
 			if branch_first:
 				# fist the outputs, then the internals ( this ends up with the same effect )
-				addToStack( shell.node, stack, shell.plug.getAffected(), branch_first )
-				addOutputToStack( stack, shell.getOutputs(), branch_first )
+				addToStack( shell.node, stack, shell.plug.affected(), branch_first )
+				addOutputToStack( stack, shell.outputs(), branch_first )
 			else:
-				addOutputToStack( stack, shell.getOutputs(), branch_first )
-				addToStack( shell.node, stack, shell.plug.getAffected(), branch_first )
+				addOutputToStack( stack, shell.outputs(), branch_first )
+				addToStack( shell.node, stack, shell.plug.affected(), branch_first )
 		# END downstream
 	# END for each shell on work stack
 
@@ -196,7 +196,7 @@ class Attribute( object ):
 
 		# check default value for compatability !
 		if default is not None:
-			if not hasattr( default, '__call__' ) and self.getCompatabilityRate( default ) == 0:
+			if not hasattr( default, '__call__' ) and self.compatabilityRate( default ) == 0:
 				raise TypeError( "Default value %r is not compatible with this attribute" % default )
 		# END default type check
 
@@ -230,11 +230,11 @@ class Attribute( object ):
 
 	#{ Interface
 
-	def getAffinity( self, otherattr ):
+	def affinity( self, otherattr ):
 		"""@return: rating from 0 to 255 defining how good the attribtues match
 		each other in general - how good can we store values of otherattr ?
 		Thus this comparison is directed
-		@note: for checking connections, use L{getConnectionAffinity}"""
+		@note: for checking connections, use L{connectionAffinity}"""
 		# see whether our class flags match
 		if self.flags & self.cls != otherattr.flags & self.cls:
 			return 0
@@ -245,8 +245,8 @@ class Attribute( object ):
 		# just go for a class comparison
 		rate = self.kNo
 		try:
-			defvalue = otherattr.getDefault()
-			rate = self.getCompatabilityRate( defvalue )
+			defvalue = otherattr.default()
+			rate = self.compatabilityRate( defvalue )
 		except (MissingDefaultValueError,TypeError):
 			rate = self._getClassRating( otherattr.typecls, self.flags & self.exact_type )
 		# finally check how good our types match
@@ -255,7 +255,7 @@ class Attribute( object ):
 
 
 
-	def getConnectionAffinity( self, destinationattr ):
+	def connectionAffinity( self, destinationattr ):
 		"""@return: rating from 0 to 255 defining the quality of the connection to
 		otherplug. an affinity of 0 mean connection is not possible, 255 mean the connection
 		is perfectly suited.
@@ -264,9 +264,9 @@ class Attribute( object ):
 			return 0
 
 		# how good can the destination attr deal with us ?
-		return destinationattr.getAffinity( self )
+		return destinationattr.affinity( self )
 
-	def getCompatabilityRate( self, value ):
+	def compatabilityRate( self, value ):
 		"""@return: value between 0 and 255, 0 means no compatability, 255 a perfect match
 		if larger than 0, the plug can hold the value ( assumed the flags are set correctly )"""
 		if isinstance( value, type ):
@@ -284,7 +284,7 @@ class Attribute( object ):
 
 		return 0
 
-	def getDefault( self ):
+	def default( self ):
 		"""@return: default value stored for this attribute, or raise
 		@note: handles dynamic defaults, so you should not directly access the default member variable
 		@raise MissingDefaultValueError: if attribute does not have a default value
@@ -296,7 +296,7 @@ class Attribute( object ):
 		######################
 		if hasattr( self._default, '__call__' ):
 			default = self._default()
-			if self.flags & self.check_passing_values and self.getCompatabilityRate( default ) == 0:
+			if self.flags & self.check_passing_values and self.compatabilityRate( default ) == 0:
 				raise TypeError( "Dynamic default value had incorrect type: %s" % type( default ) )
 			return default
 		# END dynamic default handling
@@ -327,13 +327,13 @@ class iPlug( object ):
 
 	#{ Base Implementation
 	def __str__( self ):
-		return self.getName()
+		return self.name()
 
 	#} END base implementation
 
 
 	#{ Interface
-	def getName( self ):
+	def name( self ):
 		"""@return: name of the plug ( the name that identifies it on the node"""
 		raise NotImplementedError( "Implement this in subclass" )
 
@@ -342,11 +342,11 @@ class iPlug( object ):
 		that this plug affects otherplug."""
 		raise NotImplementedError( "Implement this in subclass" )
 
-	def getAffected( self ):
+	def affected( self ):
 		"""@return: tuple containing affected plugs ( plugs that are affected by our value )"""
 		raise NotImplementedError( "Implement this in subclass" )
 
-	def getAffectedBy( self ):
+	def affectedBy( self ):
 		"""@return: tuple containing plugs that affect us ( plugs affecting our value )"""
 		raise NotImplementedError( "Implement this in subclass" )
 
@@ -414,7 +414,7 @@ class plug( iPlug ):
 
 	#{ Interface
 
-	def getName( self ):
+	def name( self ):
 		"""@return: name of plug"""
 		return self._name
 
@@ -434,17 +434,17 @@ class plug( iPlug ):
 		if self not in otherplug._affectedBy:
 			otherplug._affectedBy.append( self )
 
-	def getAffected( self ):
+	def affected( self ):
 		"""@return: tuple containing affected plugs ( plugs that are affected by our value )"""
 		return tuple( self._affects )
 
-	def getAffectedBy( self ):
+	def affectedBy( self ):
 		"""@return: tuple containing plugs that affect us ( plugs affecting our value )"""
 		return tuple( self._affectedBy )
 
 	def providesOutput( self ):
 		"""@return: True if this is an output plug that can trigger computations"""
-		return bool( len( self.getAffectedBy() ) != 0 or self.attr.flags & Attribute.computable )
+		return bool( len( self.affectedBy() ) != 0 or self.attr.flags & Attribute.computable )
 
 	def providesInput( self ):
 		"""@return: True if this is an input plug that will never cause computations"""
@@ -500,7 +500,7 @@ class _PlugShell( tuple ):
 		"""@return: value of the plug
 		@mode: optional arbitary value specifying the mode of the get attempt"""
 		if self.hasCache( ):
-			return self.getCache( )
+			return self.cache( )
 
 		# Output plugs compute values
 		if self.plug.providesOutput( ):
@@ -522,11 +522,11 @@ class _PlugShell( tuple ):
 		# END plug provides output
 		elif self.plug.providesInput( ):	# has to be separately checked
 			# check for connection
-			inputshell = self.getInput()
+			inputshell = self.input()
 			if not inputshell:
 				# check for default value
 				try:
-					return self.plug.attr.getDefault()
+					return self.plug.attr.default()
 				except ( TypeError, MissingDefaultValueError ),e:
 					raise MissingDefaultValueError( "Plug %r failed to getrieve its default value and is not connected" % repr( self ), e )
 			# END if we have no input
@@ -534,7 +534,7 @@ class _PlugShell( tuple ):
 			# query the connected plug for the value
 			value = inputshell.get( mode )
 			if self.plug.attr.flags & Attribute.check_passing_values:
-				if not self.plug.attr.getCompatabilityRate( value ):
+				if not self.plug.attr.compatabilityRate( value ):
 					raise TypeError( "Value coming from input %s is not compatible with %s" % ( str( inputshell ), str( self ) ) )
 
 			return value
@@ -563,16 +563,16 @@ class _PlugShell( tuple ):
 			raise AssertionError( "Writable attributes must be cached - otherwise the value will not be held" )
 
 		# check connection
-		if not ignore_connection and self.getInput() is not None:
-			raise NotWritableError( "Plug %r is connected to %r and thus not explicitly writable" % ( self, self.getInput() ) )
+		if not ignore_connection and self.input() is not None:
+			raise NotWritableError( "Plug %r is connected to %r and thus not explicitly writable" % ( self, self.input() ) )
 
 		self.setCache( value )
 
 
-	def getCompatabilityRate( self, value ):
+	def compatabilityRate( self, value ):
 		"""@return: value between 0 and 255, 0 means no compatability, 255 a perfect match
 		if larger than 0, the plug can hold the value ( assumed the flags are set correctly )"""
-		return self.plug.attr.getCompatabilityRate( value )
+		return self.plug.attr.compatabilityRate( value )
 
 
 	#} END values
@@ -600,22 +600,22 @@ class _PlugShell( tuple ):
 
 		return self.node.graph.disconnect( self, otherplugshell )
 
-	def getInput( self, predicate = lambda shell: True ):
+	def input( self, predicate = lambda shell: True ):
 		"""@return: the connected input plug or None if there is no such connection
 		@param predicate: plug will only be returned if predicate is true for it
 		@note: input plugs have on plug at most, output plugs can have more than one
 		connected plug"""
-		sourceshell = self.node.graph.getInput( self )
+		sourceshell = self.node.graph.input( self )
 		if sourceshell and predicate( sourceshell ):
 			return sourceshell
 		return None
 
-	def getOutputs( self, predicate = lambda shell: True ):
+	def outputs( self, predicate = lambda shell: True ):
 		"""@return: a list of plugs being the destination of the connection
 		@param predicate: plug will only be returned if predicate is true for it - shells will be passed in """
-		return self.node.graph.getOutputs( self, predicate = predicate )
+		return self.node.graph.outputs( self, predicate = predicate )
 
-	def getConnections( self, inpt, output, predicate = lambda shell: True ):
+	def connections( self, inpt, output, predicate = lambda shell: True ):
 		"""@return: get all input and or output connections from this shell
 		or to this shell as edges ( sourceshell, destinationshell )
 		@param predicate: return true for each destination shell that you can except in the
@@ -623,19 +623,19 @@ class _PlugShell( tuple ):
 		@note: Use this method to get edges read for connection/disconnection"""
 		outcons = list()
 		if inpt:
-			sourceshell = self.getInput( predicate = predicate )
+			sourceshell = self.input( predicate = predicate )
 			if sourceshell:
 				outcons.append( ( sourceshell, self ) )
 		# END input connection handling
 
 		if output:
-			outcons.extend( ( self, oshell ) for oshell in self.getOutputs( predicate = predicate ) )
+			outcons.extend( ( self, oshell ) for oshell in self.outputs( predicate = predicate ) )
 
 		return outcons
 
 	def isConnected( self ):
 		"""@return: True, if the shell is connected as source or as destination of a connection"""
-		return self.getInput() or self.getOutputs()
+		return self.input() or self.outputs()
 
 	def iterShells( self, **kwargs ):
 		"""Iterate plugs and their connections starting at this plug
@@ -649,7 +649,7 @@ class _PlugShell( tuple ):
 
 	#{Caching
 	def _cachename( self ):
-		return self.plug.getName() + "_c"
+		return self.plug.name() + "_c"
 
 	def hasCache( self ):
 		"""@return: True if currently store a cached value"""
@@ -660,7 +660,7 @@ class _PlugShell( tuple ):
 		@raise: TypeError if the value is not compatible to our defined type"""
 		# attr compatability - always run this as we want to be warned if the compute
 		# method returns a value that does not match
-		if self.plug.attr.getCompatabilityRate( value ) == 0:
+		if self.plug.attr.compatabilityRate( value ) == 0:
 			raise TypeError( "Plug %r cannot hold value %r as it is not compatible" % ( repr( self ), repr( value ) ) )
 
 		if self.plug.attr.flags & Attribute.uncached:
@@ -671,7 +671,7 @@ class _PlugShell( tuple ):
 		self.clearCache( clear_affected = True )
 		setattr( self.node, self._cachename(), value )
 
-	def getCache( self ):
+	def cache( self ):
 		"""@return: the cached value or raise
 		@raise: ValueError"""
 		if self.hasCache():
@@ -701,7 +701,7 @@ class _PlugShell( tuple ):
 
 			cleared_shells_set.add( self )	# assure we do not come here twice
 
-			all_shells = itertools.chain( self.node.toShells( self.plug.getAffected() ), self.getOutputs() )
+			all_shells = itertools.chain( self.node.toShells( self.plug.affected() ), self.outputs() )
 			for shell in all_shells:
 				shell.clearCache( clear_affected = True, cleared_shells_set = cleared_shells_set )
 			# END for each shell in all_shells to clear
@@ -741,7 +741,7 @@ class Graph( nx.DiGraph, iDuplicatable ):
 	def __getattr__( self , attr ):
 		"""Allows access to nodes by name just by accessing the graph directly"""
 		try:
-			return self.getNodeByID( attr )
+			return self.nodeByID( attr )
 		except NameError:
 			return super( Graph, self ).__getattribute__( attr )
 
@@ -791,7 +791,7 @@ class Graph( nx.DiGraph, iDuplicatable ):
 
 			# nodecpy - just get the shell of the given name directly - getattr always creates
 			# shells as it is equal to node.plugname
-			return getattr( nodecpy, shell.plug.getName() )
+			return getattr( nodecpy, shell.plug.name() )
 
 		# copy name ( networkx )
 		self.name = other.name
@@ -849,7 +849,7 @@ class Graph( nx.DiGraph, iDuplicatable ):
 		"""Remove the given node from the graph ( if it exists in it )"""
 		try:
 			# remove connections
-			for sshell, eshell in node.getConnections( 1, 1 ):
+			for sshell, eshell in node.connections( 1, 1 ):
 				self.disconnect( sshell, eshell )
 
 			# assure the node does not call us anymore
@@ -896,15 +896,15 @@ class Graph( nx.DiGraph, iDuplicatable ):
 				yield node
 		# END for each node
 
-	def getNodes( self ):
+	def nodes( self ):
 		"""@return: immutable copy of the nodes used in the graph"""
 		return tuple( self._nodes )
 
-	def getNumNodes( self ):
+	def numNodes( self ):
 		"""@return: number of nodes in the graph"""
 		return len( self._nodes )
 
-	def getNodeByID( self, nodeID ):
+	def nodeByID( self, nodeID ):
 		"""@return: instance of a node according to the given node id
 		@raise NameError: if no such node exists in graph"""
 		for node in self.iterNodes():
@@ -934,11 +934,11 @@ class Graph( nx.DiGraph, iDuplicatable ):
 		self._nodes.add( destinationshell.node )
 
 		# check compatability
-		if sourceshell.plug.attr.getConnectionAffinity( destinationshell.plug.attr ) == 0:
+		if sourceshell.plug.attr.connectionAffinity( destinationshell.plug.attr ) == 0:
 			raise PlugIncompatible( "Cannot connect %r to %r as they are incompatible" % ( repr( sourceshell ), repr( destinationshell ) ) )
 
 
-		oinput = destinationshell.getInput( )
+		oinput = destinationshell.input( )
 		if oinput is not None:
 			if oinput == sourceshell:
 				return sourceshell
@@ -965,7 +965,7 @@ class Graph( nx.DiGraph, iDuplicatable ):
 			if len( self.neighbors( shell ) ) == 0:
 				self.remove_node( shell )
 
-	def getInput( self, plugshell ):
+	def input( self, plugshell ):
 		"""@return: the connected input plug of plugshell or None if there is no such connection
 		@param predicate: plug will only be returned if predicate is true for it
 		@note: input plugs have on plug at most, output plugs can have more than one
@@ -979,7 +979,7 @@ class Graph( nx.DiGraph, iDuplicatable ):
 
 		return None
 
-	def getOutputs( self, plugshell, predicate = lambda x : True ):
+	def outputs( self, plugshell, predicate = lambda x : True ):
 		"""@return: a list of plugs being the destination of the connection to plugshell
 		@param predicate: plug will only be returned if predicate is true for it - shells will be passed in """
 		try:
@@ -1000,17 +1000,17 @@ class _NodeBaseCheckMeta( type ):
 
 		# EVERY PLUG NAME MUST MATCH WITH THE ACTUAL NAME IN THE CLASS
 		# set the name according to its slot name in the parent class
-		membersdict = inspect.getmembers( newcls )		# do not filter, as getPlugs could be overridden
+		membersdict = inspect.getmembers( newcls )		# do not filter, as plugs could be overridden
 		try:
-			if hasattr( newcls, "getPlugsStatic" ):
-				for plug in newcls.getPlugsStatic( ):
+			if hasattr( newcls, "plugsStatic" ):
+				for plug in newcls.plugsStatic( ):
 					for name,member in membersdict:
-						if member == plug and plug.getName() != name:
+						if member == plug and plug.name() != name:
 							# try to set it
 							if hasattr( plug, 'setName' ):
 								plug.setName( name )
 							else:
-								raise AssertionError( "Plug %r is named %s, but must be named %s as in its class %s" % ( plug, plug.getName(), name, newcls ) )
+								raise AssertionError( "Plug %r is named %s, but must be named %s as in its class %s" % ( plug, plug.name(), name, newcls ) )
 							# END setName special handling
 						# END if member nanme is wrong
 					# END for each class member
@@ -1137,16 +1137,16 @@ class NodeBase( iDuplicatable ):
 	def clearCache( self ):
 		"""Clear the cache of all plugs on this node - this basically forces it
 		to recompute the next time an output plug is being queried"""
-		for plug in self.getPlugs( ):
+		for plug in self.plugs( ):
 			self.toShell( plug ).clearCache( clear_affected = False )
 
 	@classmethod
-	def getPlugsStatic( cls, predicate = lambda x: True ):
+	def plugsStatic( cls, predicate = lambda x: True ):
 		"""@return: list of static plugs as defined on this node - they are class members
 		@param predicate: return static plug only if predicate is true
 		@note: Use this method only if you do not have an instance - there are nodes
 		that actually have no static plug information, but will dynamically generate them.
-		For this to work, they need an instance - thus the getPlugs method is an instance
+		For this to work, they need an instance - thus the plugs method is an instance
 		method and is meant to be the most commonly used one."""
 		pred = lambda m: isinstance( m, plug )
 
@@ -1154,7 +1154,7 @@ class NodeBase( iDuplicatable ):
 		pluggen = ( m[1] for m in inspect.getmembers( cls, predicate = pred ) if predicate( m[1] ) )
 		return list( pluggen )
 
-	def getPlugs( self, predicate = lambda x: True ):
+	def plugs( self, predicate = lambda x: True ):
 		"""@return: list of dynamic plugs as defined on this node - they are usually retrieved
 		on class level, but may be overridden on instance level
 		@param predicate: return static plug only if predicate is true"""
@@ -1168,40 +1168,40 @@ class NodeBase( iDuplicatable ):
 		return list( pluggen )
 
 	@classmethod
-	def getInputPlugsStatic( cls, **kwargs ):
+	def inputPlugsStatic( cls, **kwargs ):
 		"""@return: list of static plugs suitable as input
 		@note: convenience method"""
-		return cls.getPlugsStatic( predicate = lambda p: p.providesInput(), **kwargs )
+		return cls.plugsStatic( predicate = lambda p: p.providesInput(), **kwargs )
 
-	def getInputPlugs( self, **kwargs ):
+	def inputPlugs( self, **kwargs ):
 		"""@return: list of plugs suitable as input
 		@note: convenience method"""
-		return self.getPlugs( predicate = lambda p: p.providesInput(), **kwargs )
+		return self.plugs( predicate = lambda p: p.providesInput(), **kwargs )
 
 	@classmethod
-	def getOutputPlugsStatic( cls, **kwargs ):
+	def outputPlugsStatic( cls, **kwargs ):
 		"""@return: list of static plugs suitable to deliver output
 		@note: convenience method"""
-		return cls.getPlugsStatic( predicate = lambda p: p.providesOutput(), **kwargs )
+		return cls.plugsStatic( predicate = lambda p: p.providesOutput(), **kwargs )
 
-	def getOutputPlugs( self, **kwargs ):
+	def outputPlugs( self, **kwargs ):
 		"""@return: list of plugs suitable to deliver output
 		@note: convenience method"""
-		return self.getPlugs( predicate = lambda p: p.providesOutput(), **kwargs )
+		return self.plugs( predicate = lambda p: p.providesOutput(), **kwargs )
 
-	def getConnections( self, inpt, output ):
+	def connections( self, inpt, output ):
 		"""@return: Tuples of input shells defining a connection of the given type from
 		tuple( InputNodeOuptutShell, OurNodeInputShell ) for input connections and
 		tuple( OurNodeOuptutShell, OutputNodeInputShell )
 		@param inpt: include input connections to this node
 		@param output: include output connections ( from this node to others )"""
 		outConnections = list()
-		plugs = self.getPlugs()
+		plugs = self.plugs()
 		# HANDLE INPUT
 		if inpt:
 			shells = self.toShells( ( p for p in plugs if p.providesInput() ) )
 			for shell in shells:
-				ishell = shell.getInput( )
+				ishell = shell.input( )
 				if ishell:
 					outConnections.append( ( ishell, shell ) )
 			# END for each shell in this node's shells
@@ -1211,7 +1211,7 @@ class NodeBase( iDuplicatable ):
 		if output:
 			shells = self.toShells( ( p for p in plugs if p.providesOutput() ) )
 			for shell in shells:
-				outConnections.extend( ( ( shell, oshell ) for oshell in shell.getOutputs() ) )
+				outConnections.extend( ( ( shell, oshell ) for oshell in shell.outputs() ) )
 		# END output handling
 
 		return outConnections
@@ -1254,13 +1254,13 @@ class NodeBase( iDuplicatable ):
 					sourceattr = plug.attr
 
 				if attr_affinity:
-					rate = destinationattr.getAffinity( sourceattr )	# how good can dest store source ?
+					rate = destinationattr.affinity( sourceattr )	# how good can dest store source ?
 				else:
-					rate = sourceattr.getConnectionAffinity( destinationattr )
+					rate = sourceattr.connectionAffinity( destinationattr )
 				# END which affinity type
 			# END attribute rating
 			else:
-				rate = plug.attr.getCompatabilityRate( value )
+				rate = plug.attr.compatabilityRate( value )
 			# END value rating
 
 			if not rate:

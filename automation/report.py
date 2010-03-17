@@ -16,7 +16,7 @@ class ReportBase( object ):
 
 	#{ Report Methods
 
-	def getReport( self ):
+	def makeReport( self ):
 		"""@return: report as result of a prior Callgraph analysis"""
 		raise NotImplementedError( "This method needs to be implemented by subclasses" )
 
@@ -33,7 +33,7 @@ class Plan( ReportBase ):
 		return self._callgraph.toCallList( **kwargs )
 
 
-	def getReport( self, headline=None ):
+	def makeReport( self, headline=None ):
 		"""@return: list of strings ( lines ) resembling a plan-like formatting
 		of the call graph
 		@param headline: line to be given as first line """
@@ -48,10 +48,10 @@ class Plan( ReportBase ):
 			i += 1 		# plans start at 1
 			# its an edge
 			if ep:
-				line = "%i. %s provides %r through %s to %s" % ( i, sp.process.id, sp.getResult(), sp.plug, ep.process.noun )
+				line = "%i. %s provides %r through %s to %s" % ( i, sp.process.id, sp.result(), sp.plug, ep.process.noun )
 			else:
 				# its root
-				line = "%i. %s %s %r when asked for %s" % ( i, sp.process.id, sp.process.verb, sp.getResult(), sp.plug )
+				line = "%i. %s %s %r when asked for %s" % ( i, sp.process.id, sp.process.verb, sp.result(), sp.plug )
 			out.append( line )
 		# END for each process data edge
 		return out
