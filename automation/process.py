@@ -101,13 +101,13 @@ class ProcessBase( NodeBase ):
 		otherwise the output plugs
 		@raise TypeError: if the result is ambiguous and raise_on_ambiguity = 1"""
 		# query our ouput plugs for a compatible attr
-		targetplugs = None
+		tarplugs = None
 		if check_input_plugs:
-			targetplugs = self.inputPlugs( )
+			tarplugs = self.inputPlugs( )
 		else:
-			targetplugs = self.outputPlugs( )
+			tarplugs = self.outputPlugs( )
 
-		plugrating = self.filterCompatiblePlugs( targetplugs, target, attr_as_source=False , **kwargs )
+		plugrating = self.filterCompatiblePlugs( tarplugs, target, attr_as_source=False , **kwargs )
 
 		if not plugrating:		#	 no plug ?
 			return ( 0 , None )
@@ -178,7 +178,7 @@ class ProcessBase( NodeBase ):
 	#{ Overridden from NodeBase
 	@track_output_call
 	def compute( self, plug, mode = None ):
-		"""Base implementation of the output, called by L{getInput} Method.
+		"""Base implementation of the output, called by L{input} Method.
 		Its used to have a general hook for the flow tracing
 		@param plug: plug to evaluate
 		@param mode: the mode of the valuation
@@ -188,7 +188,7 @@ class ProcessBase( NodeBase ):
 
 		# if we are root, we take the mode given by the caller though
 		if self.track_compute_calls:
-			if wfl.callGraph().callRoot().process == self:
+			if wfl.callgraph().callRoot().process == self:
 				finalmode = mode
 		else:
 			# either use the explicit mode or the global one

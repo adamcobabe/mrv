@@ -202,7 +202,7 @@ class QAWorkflow( Workflow, EventSender ):
 		for checkshell in checks:
 			if self.info_to_stdout:
 				checkplug = checkshell.plug
-				sys.stdout.write( "Running %s: %s ... " % ( checkplug.name(), checkplug.annotation ) )
+				sys.__stdout__.write( "Running %s: %s ... " % ( checkplug.name(), checkplug.annotation ) )
 			# END extra info
 
 			self.e_preCheck.send( self.e_preCheck, checkshell )
@@ -229,7 +229,7 @@ class QAWorkflow( Workflow, EventSender ):
 				msg = "FAILED"
 				if result.isSuccessful():
 					msg = "OK"
-				sys.stdout.write( msg + "\n" )
+				sys.__stdout__.write( msg + "\n" )
 			# END extra info
 
 			# record result

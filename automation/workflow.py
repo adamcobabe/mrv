@@ -19,7 +19,7 @@ class DirtyException( Exception ):
 	that it is dirty.
 
 	The exception can also contain a report that will be returned using the
-	getReport function.
+	makeReport function.
 	@note: Thus exeption class must NOT be derived from ComputeError as it will be caught
 	by the DG engine and mis-interpreted - unknown exceptions will just be passed on by it
 	"""
@@ -33,7 +33,7 @@ class DirtyException( Exception ):
 		return str( self.report )
 	#{ Interface
 
-	def report( self ):
+	def makeReport( self ):
 		"""@return: printable report, usually a string or some object that
 		responds to str() appropriately"""
 		return self.report
@@ -130,7 +130,7 @@ class Workflow( Graph ):
 			"""@return: root at which the call started"""
 			return self._root
 
-		def sizeCallStack( self ):
+		def callstackSize( self ):
 			"""@return: length of the callstack"""
 			return len( self._call_stack )
 
@@ -144,7 +144,7 @@ class Workflow( Graph ):
 			def predecessors( node, nextNode, reverse, pruneIfTrue ):
 				out = []
 
-				# invert the callorder - each predecessor list defines the getInput calls
+				# invert the callorder - each predecessor list defines the input calls
 				# a process has made - to properly reporoduce that, the call order needs to be
 				# inverted as well
 				predlist = self.predecessors( node )
@@ -260,7 +260,7 @@ class Workflow( Graph ):
 
 	def _evaluateDirtyState( self, outputplug, processmode ):
 		"""Evaluate the given plug in process mode and return a dirty report tuple
-		as used by L{dirtyReport}"""
+		as used by L{makeDirtyReport}"""
 		report = list( ( outputplug, None ) )
 		try:
 			outputplug.clearCache( clear_affected = False ) 		# assure it eavaluates
@@ -275,7 +275,7 @@ class Workflow( Graph ):
 		return tuple( report )
 
 
-	def dirtyReport( self, target, mode = "single" ):
+	def makeDirtyReport( self, target, mode = "single" ):
 		"""@return: list of tuple( shell, DirtyReport|None )
 		If a process ( shell.node ) is dirty, a dirty report will be given explaining
 		why the process is dirty and needs an update
@@ -429,13 +429,13 @@ class Workflow( Graph ):
 		return ( outputshell, result )
 
 
-	def reportInstance( self, reportType ):
+	def createReportInstance( self, reportType ):
 		"""Create a report instance that describes how the previous target was made
 		@param reportType: Report to populate with information - it must be a Plan based
 		class that can be instantiated and populated with call information.
 		A report analyses the call dependency graph generated during dg evaluation
 		and presents it.
-		@return: report instance whose getReport method can be called to retrieve it"""
+		@return: report instance whose makeReport method can be called to retrieve it"""
 		# make the target as dry run
 		return reportType( self._callgraph )
 
@@ -503,7 +503,7 @@ class Workflow( Graph ):
 		# recompute rate as we might have changed it
 		return shell.node.targetRating( target )
 
-	def callGraph( self ):
+	def callgraph( self ):
 		"""@return: current callgraph instance
 		@note: its strictly read-only and may not be changed"""
 		return self._callgraph

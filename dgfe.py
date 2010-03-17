@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 """Contains nodes supporting facading within a dependency graph  - this can be used
-for container types or nodes containing their own subgraph even
+for container tyoes or nodes containing their own subgraph even
 """
 from networkx import DiGraph, NetworkXError
 from collections import deque
@@ -15,6 +15,7 @@ from dge import Attribute
 
 #{ Shells
 
+
 class _OIShellMeta( type ):
 	"""Metaclass building the method wrappers for the _FacadeShell class - not
 	all methods should be overridden, just the ones important to use"""
@@ -22,6 +23,7 @@ class _OIShellMeta( type ):
 	@classmethod
 	def createUnfacadeMethod( cls, funcname ):
 		def unfacadeMethod( self, *args, **kwargs ):
+			# print "OIShell: unfacade %s.%s" % ( repr(self), funcname )
 			return getattr( self._toIShell(), funcname )( *args, **kwargs )
 		return unfacadeMethod
 
@@ -29,10 +31,11 @@ class _OIShellMeta( type ):
 	def createFacadeMethod( cls, funcname ):
 		"""in our case, connections just are handled by our own OI plug, staying
 		in the main graph"""
-		return list()
+		return []
+		return None
 
 	@classmethod
-	def method( cls,funcname, facadetype ):
+	def createMethod( cls,funcname, facadetype ):
 		method = None
 		if facadetype == "unfacade":
 			method = cls.createUnfacadeMethod( funcname )
@@ -53,7 +56,7 @@ class _OIShellMeta( type ):
 		# original shell, thus we unfacade them
 		for funcnamelist, functype in ( ( unfacadelist, "unfacade" ), ( facadelist, "facade" ) ):
 			for funcname in funcnamelist:
-				method = metacls.method( funcname, functype )
+				method = metacls.createMethod( funcname, functype )
 				if method:
 					clsdict[ funcname ] = method
 			# END for each funcname in funcnamelist
@@ -73,6 +76,7 @@ class _IOShellMeta( _OIShellMeta ):
 		if funcname == "get":						# drection to input
 			def unfacadeMethod( self, *args, **kwargs ):
 				"""apply to the input shell"""
+				#print "IOShell INPUT: unfacade %s.%s" % ( repr(self), funcname )
 				# behave like the base implementation and check the internal shell
 				# for caches first - if it exists, we use it.
 				# It would have been cleared if it is affecfted by another plug being set,
@@ -80,16 +84,17 @@ class _IOShellMeta( _OIShellMeta ):
 				# if there is no cache, just trace the connections upwards.
 				# This means for get we specifiaclly override the normal "original last"
 				# behaviour to allow greater flexibility
-				oshell = self._originalShell( )
+				oshell = self._getOriginalShell( )
 				if oshell.hasCache():
 					return oshell.cache()
 
-				return getattr( self._shells( "input" )[0], funcname )( *args, **kwargs )
+				return getattr( self._getShells( "input" )[0], funcname )( *args, **kwargs )
 			method = unfacadeMethod
 		else:										# direction to output
 			def unfacadeMethod( self, *args, **kwargs ):
 				"""Clear caches of all output plugs as well"""
-				for shell in self._shells( "output" ):
+				#print "IOShell OUTPUT: unfacade %s.%s" % ( repr(self), funcname )
+				for shell in self._getShells( "output" ):
 					getattr( shell, funcname )( *args, **kwargs )
 			# END unfacade method
 			method = unfacadeMethod
@@ -100,7 +105,8 @@ class _IOShellMeta( _OIShellMeta ):
 	def createFacadeMethod( cls, funcname ):
 		"""Call the main shell's function"""
 		def facadeMethod( self, *args, **kwargs ):
-			return getattr( self._originalShell( ), funcname )( *args, **kwargs )
+			# print "IOShell: Facade: %s, shell: %s" % ( funcname, repr( self._getOriginalShell( ) ) )
+			return getattr( self._getOriginalShell( ), funcname )( *args, **kwargs )
 		return facadeMethod
 
 
@@ -202,6 +208,8 @@ class _IOShell( _PlugShell ):
 		"""@return: oiplug suitable for this shell or None"""
 		try:
 			# cannot use weak references, don't want to use strong references
+			#print self.plug.name()
+			#print self.node.shellcls.iomap[ self.plug.name() ]
 			return self.node.shellcls.iomap[ self.plug.name() ]
 		except KeyError:
 			# plug not on facadenode - this is fine as we get always called
@@ -213,12 +221,19 @@ class _IOShell( _PlugShell ):
 
 		return None
 
-	def _originalShell( self ):
+	def _getOriginalShell( self ):
 		"""@return: instance of the original shell class that was replaced by our instance"""
 		return self.node.shellcls.origshellcls( self.node, self.plug )
 
+	def _getTopFacadeNodeShell( self ):
+		"""Recursive method to find the first facade parent having an OI shell
+		@return: topmost facade node shell or None if we are not a managed plug"""
 
-	def _shells( self, shelltype ):
+		# otherwise we have found the topmost parent
+		return facadeNodeShell
+
+
+	def _getShells( self, shelltype ):
 		"""@return: list of ( outside ) shells, depending on the shelltype and availability.
 		If no outside shell is avaiable, return the actual shell only
 		As facade nodes can be nested, we have to check each level of nesting
@@ -235,7 +250,7 @@ class _IOShell( _PlugShell ):
 		oiplug = self._getoiplug( )
 		if not oiplug:
 			# plug not on facadenode, just ignore and return the original shell
-			return [ self._originalShell( ) ]
+			return [ self._getOriginalShell( ) ]
 		# END if there is no cached oiplug
 
 
@@ -265,7 +280,7 @@ class _IOShell( _PlugShell ):
 			# if we are nested, use an imput connection of our parent as they
 			# override lower level connections
 			if not connectionShell is facadeNodeShell:
-				aboveLevelInputShells = facadeNodeShell._shells( shelltype )
+				aboveLevelInputShells = facadeNodeShell._getShells( shelltype )
 
 				# this is either the real input shell, or the original shell of the toplevel
 				# By convention, we return the facadeshell that is connected to the input
@@ -289,7 +304,7 @@ class _IOShell( _PlugShell ):
 				outShells.append( inputShell )
 				outShells.append( self )
 			else:
-				outShells.append( self._originalShell( ) )
+				outShells.append( self._getOriginalShell( ) )
 
 		# END outside INPUT shell handling
 		else:
@@ -297,13 +312,13 @@ class _IOShell( _PlugShell ):
 
 			# ADD 'INSIDE' ORIGINAL SHELL
 			# always allow our 'inside' level to get informed as well
-			outShells.append( self._originalShell( ) )
+			outShells.append( self._getOriginalShell( ) )
 
 			# NESTED SHELL SPECIAL CASE
 			##############################
 			# query the IO Parent Shell for the shells on its level and add them
 			if not connectionShell is facadeNodeShell:
-				outShells.extend( facadeNodeShell._shells( shelltype ) )
+				outShells.extend( facadeNodeShell._getShells( shelltype ) )
 		# END outside OUTPUT shell handling
 
 		return outShells
@@ -323,7 +338,7 @@ class FacadeNodeBase( NodeBase ):
 	Using a non-default shell it is possibly to guide all calls through to the
 	virtual PlugShell.
 
-	Derived classes must override _plugShells which will be queried when
+	Derived classes must override _plugshells which will be queried when
 	plugs or plugshells are requested. This node will cache the result and do
 	everything required to integrate itself.
 
@@ -336,7 +351,7 @@ class FacadeNodeBase( NodeBase ):
 	your node will be asked for information.
 
 	@note: facades are intrusive for the nodes they are facading - thus the nodes
-	returned by L{_nodePlugs} will be altered. Namely the instance will get a
+	returned by L{_getNodePlugs} will be altered. Namely the instance will get a
 	shellcls and plug override to allow us to hook into the callchain. Thus you should have
 	your own instance of the node - otherwise things might behave differently for
 	others using your nodes from another angle
@@ -358,7 +373,7 @@ class FacadeNodeBase( NodeBase ):
 
 	def __getattr__( self, attr ):
 		"""@return: shell on attr made from our plugs - we do not have real ones, so we
-		need to call L{plugs} and find it by name
+		need to call plugs and find it by name
 		@note: to make this work, you should always name the plug names equal to their
 		class attribute"""
 		check_ambigious = not attr.startswith( OIFacadePlug._fp_prefix )	# non long names are not garantueed to be unique
@@ -401,7 +416,7 @@ class FacadeNodeBase( NodeBase ):
 
 	#{ To be Subclass-Implemented
 
-	def _nodePlugs( self ):
+	def _getNodePlugs( self ):
 		"""Implement this as if it was your plugs method - it will be called by the
 		base - your result needs processing before it can be returned
 		@return: list( tuple( node, plug ) )
@@ -420,7 +435,7 @@ class FacadeNodeBase( NodeBase ):
 
 	#{ Nodebase Methods
 	def plugs( self, **kwargs ):
-		"""Calls L{_nodePlugs} method to ask you to actuallly return your
+		"""Calls L{_getNodePlugs} method to ask you to actuallly return your
 		actual nodes and plugs or shells.
 		We prepare the returne value to assure we are being called in certain occasion,
 		which actually glues outside and inside worlds together """
@@ -445,7 +460,7 @@ class FacadeNodeBase( NodeBase ):
 
 		# GATHER PLUGS FROM SUBCLASS
 		##############################
-		yourResult = self._nodePlugs( )
+		yourResult = self._getNodePlugs( )
 
 
 		def toFacadePlug( node, plug ):
@@ -478,6 +493,7 @@ class FacadeNodeBase( NodeBase ):
 			# of _IOShell as shellcls, but no instance
 			if not isinstance( orignode.shellcls, _IOShell ):
 				classShellCls = orignode.shellcls
+				# print "%s: SETTING SHELLCLS on %s" %  ( self, orignode )
 				orignode.shellcls = _IOShell( classShellCls, self )
 				# END for each shell to reconnect
 			# END if we have to swap in our facadeIOShell
@@ -514,6 +530,8 @@ class FacadeNodeBase( NodeBase ):
 				# END for each shell in edge
 
 				if created_shell:
+					#print "UPDATING CONNECTION: %r -> %r" % ( edge[0],edge[1] )
+					#print "WITH %s -> %s" % ( type( nedge[0] ), type( nedge[1] ) )
 					edge[0].disconnect( edge[1] )
 					nedge[0].connect( nedge[1] )
 				# END new shell needs connection
@@ -674,7 +692,7 @@ class GraphNodeBase( FacadeNodeBase ):
 		# substract our pairs accordingly to modify the set
 		outset -= excludepairs
 
-	def _nodePlugs( self ):
+	def _getNodePlugs( self ):
 		"""@return: all plugs on nodes we wrap ( as node,plug tuple )"""
 		outset = set()
 

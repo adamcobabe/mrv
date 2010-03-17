@@ -39,8 +39,8 @@ class TestProcesses( unittest.TestCase ):
 		# NESTED WFLS AND PLANS
 		########################
 		#print wfl._callgraph.nodes()
-		plan = wfl.reportInstance( Plan )
-		lines = plan.report( headline = "WRAPPED WORKFLOW" )
+		plan = wfl.createReportInstance( Plan )
+		lines = plan.makeReport( headline = "WRAPPED WORKFLOW" )
 
 
 		# MULTI-NESTED WORKFLOW
@@ -73,8 +73,8 @@ class TestProcesses( unittest.TestCase ):
 		self.failUnless( mires[0] < res )		# must be 3 nodes only, thus its smaller at least
 
 		# report
-		plan = mwfl.reportInstance( Plan )
-		lines = plan.report( headline = "MULTI WRAPPED WORKFLOW" )
+		plan = mwfl.createReportInstance( Plan )
+		lines = plan.makeReport( headline = "MULTI WRAPPED WORKFLOW" )
 		self.failUnless( len( lines ) == 7 )
 		for l in lines:
 			print l

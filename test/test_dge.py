@@ -68,7 +68,6 @@ class TestDGEngine( unittest.TestCase ):
 		addrem = SimpleNode( "addrem" )
 		graph.addNode( addrem )
 		self.failUnless( graph.hasNode( addrem ) )
-		addrem.connections(1,0)
 		graph.removeNode( addrem )
 		self.failUnless( not graph.hasNode( addrem ) )
 		graph.addNode( addrem )

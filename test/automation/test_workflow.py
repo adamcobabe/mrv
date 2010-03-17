@@ -61,7 +61,7 @@ class TestWorkflow( unittest.TestCase ):
 
 	def test_simpleDirtyCheck( self ):
 		scwfl = workflows.simpleconnection
-		scwfl.dirtyReport( 5, mode="deep" )
+		scwfl.makeDirtyReport( 5, mode="deep" )
 		d = workflow.DirtyException()
 
 

@@ -16,7 +16,7 @@ class ReportBase( object ):
 
 	#{ Report Methods
 
-	def report( self ):
+	def makeReport( self ):
 		"""@return: report as result of a prior Callgraph analysis"""
 		raise NotImplementedError( "This method needs to be implemented by subclasses" )
 
@@ -33,7 +33,7 @@ class Plan( ReportBase ):
 		return self._callgraph.toCallList( **kwargs )
 
 
-	def report( self, headline=None ):
+	def makeReport( self, headline=None ):
 		"""@return: list of strings ( lines ) resembling a plan-like formatting
 		of the call graph
 		@param headline: line to be given as first line """

@@ -200,7 +200,7 @@ class Attribute( object ):
 				raise TypeError( "Default value %r is not compatible with this attribute" % default )
 		# END default type check
 
-	def _classRating( self, cls, exact_type ):
+	def _getClassRating( self, cls, exact_type ):
 		"""@return: rating based on value being a class and compare
 		0 : value is no type
 		255: value matches comparecls, or linearly less if is just part of the mro of value"""
@@ -248,7 +248,7 @@ class Attribute( object ):
 			defvalue = otherattr.default()
 			rate = self.compatabilityRate( defvalue )
 		except (MissingDefaultValueError,TypeError):
-			rate = self._classRating( otherattr.typecls, self.flags & self.exact_type )
+			rate = self._getClassRating( otherattr.typecls, self.flags & self.exact_type )
 		# finally check how good our types match
 
 		return rate
@@ -275,11 +275,11 @@ class Attribute( object ):
 				return 0		# its a class
 
 			# check compatability
-			return self._classRating( value, self.flags & self.exact_type )
+			return self._getClassRating( value, self.flags & self.exact_type )
 		# END is class type
 		else:
 			if not self.flags & self.cls:
-				return self._classRating( value.__class__, self.flags & self.exact_type )
+				return self._getClassRating( value.__class__, self.flags & self.exact_type )
 		# END is instance type
 
 		return 0
@@ -358,7 +358,7 @@ class iPlug( object ):
 		"""@return: True if this is an input plug that will never cause computations"""
 		raise NotImplementedError( "Implement this in subclass" )
 
-	#} END interface
+	#}
 
 
 class plug( iPlug ):
@@ -402,6 +402,7 @@ class plug( iPlug ):
 
 		# class attributes just return the descriptor itself for direct access
 		return self
+
 
 	#def __set__( self, obj, value ):
 		"""We do not use a set method, allowing to override our descriptor through
@@ -541,6 +542,8 @@ class _PlugShell( tuple ):
 
 		raise AssertionError( "Plug %s did not provide any output or input!" % repr( self ) )
 
+
+
 	def set( self, value, ignore_connection = False ):
 		"""Set the given value to be used in our plug
 		@param ignore_connection: if True, the plug can be destination of a connection and
@@ -564,6 +567,7 @@ class _PlugShell( tuple ):
 			raise NotWritableError( "Plug %r is connected to %r and thus not explicitly writable" % ( self, self.input() ) )
 
 		self.setCache( value )
+
 
 	def compatabilityRate( self, value ):
 		"""@return: value between 0 and 255, 0 means no compatability, 255 a perfect match
@@ -947,6 +951,7 @@ class Graph( nx.DiGraph, iDuplicatable ):
 		# END destinationshell already connected
 
 		# connect us
+		# print "CON: %r -> %r" % ( repr(sourceshell), repr(destinationshell) )
 		self.add_edge( sourceshell, v = destinationshell )
 		return sourceshell
 
@@ -995,7 +1000,7 @@ class _NodeBaseCheckMeta( type ):
 
 		# EVERY PLUG NAME MUST MATCH WITH THE ACTUAL NAME IN THE CLASS
 		# set the name according to its slot name in the parent class
-		membersdict = inspect.getmembers( newcls )		# do not filter, as getPlugs could be overridden
+		membersdict = inspect.getmembers( newcls )		# do not filter, as plugs could be overridden
 		try:
 			if hasattr( newcls, "plugsStatic" ):
 				for plug in newcls.plugsStatic( ):
@@ -1141,7 +1146,7 @@ class NodeBase( iDuplicatable ):
 		@param predicate: return static plug only if predicate is true
 		@note: Use this method only if you do not have an instance - there are nodes
 		that actually have no static plug information, but will dynamically generate them.
-		For this to work, they need an instance - thus the getPlugs method is an instance
+		For this to work, they need an instance - thus the plugs method is an instance
 		method and is meant to be the most commonly used one."""
 		pred = lambda m: isinstance( m, plug )
 
