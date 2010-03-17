@@ -8,7 +8,7 @@ d = path('/home/guido/bin')
 for f in d.files('*.py'):
 	f.chmod(0755)
 
-This module requires Python 2.2 or later.
+This module requires Python 2.4 or later.
 
 TODO
 ----
@@ -41,7 +41,7 @@ import codecs
 import re
 from interface import iDagItem
 
-__version__ = '2.1'
+__version__ = '3.0'
 __all__ = ['Path']
 
 # Platform-specific support for path.owner
@@ -176,11 +176,10 @@ class Path( _base, iDagItem ):
 		return self
 
 
+	@classmethod
 	def getcwd(cls):
 		""" Return the current working directory as a path object. """
 		return cls(_getcwd())
-	getcwd = classmethod( getcwd )
-
 
 	#{ iDagItem Implementation
 
@@ -241,39 +240,29 @@ class Path( _base, iDagItem ):
 		if rval.containsvars():
 			raise ValueError("Failed to expand all environment variables in %r, got %r" % (self, rval))
 		return rval
-		
-
-	def _get_namebase(self):
-		base, ext = os.path.splitext(self.basename())
-		return base
-
-	def _get_ext(self):
-		f, ext = os.path.splitext(_base(self))
-		return ext
-
-	def _get_drive(self):
-		drive, r = os.path.splitdrive(self)
-		return self.__class__(drive)
 
 	def namebase(self):
-		"""The same as path.name, but with one file extension stripped off.
+		"""The same as path.basename(), but with one file extension stripped off.
 
 		For example, path('/home/guido/python.tar.gz').name		== 'python.tar.gz',
 		but			 path('/home/guido/python.tar.gz').namebase == 'python.tar'"""
-		return self._get_namebase()
+		base, ext = os.path.splitext(self.basename())
+		return base
 
 	def ext(self):
 		""" The file extension, for example '.py'. """
-		return self._get_ext()
+		f, ext = os.path.splitext(_base(self))
+		return ext
 
 	def drive(self):
 		""" The drive specifier, for example 'C:'.
 		This is always empty on systems that don't use drive specifiers.
 		"""
-		return self._get_drive()
+		drive, r = os.path.splitdrive(self)
+		return self.__class__(drive)
 
 	def splitpath(self):
-		""" p.splitpath() -> Return (p.parent, p.name). """
+		""" p.splitpath() -> Return (p.parent(), p.basename()). """
 		parent, child = os.path.split(self)
 		return self.__class__(parent), child
 
@@ -325,7 +314,7 @@ class Path( _base, iDagItem ):
 		return self.__class__(os.path.join(self, *args))
 
 	def splitall(self):
-		r""" Return a list of the path components in this path.
+		""" Return a list of the path components in this path.
 
 		The first item in the list will be a path.	Its value will be
 		either os.curdir, os.pardir, empty, or the root directory of
@@ -442,20 +431,21 @@ class Path( _base, iDagItem ):
 
 		return [p for p in self.listdir(pattern) if p.isfile()]
 
-	def walk(self, pattern=None, errors='strict'):
+	def walk(self, pattern=None, errors='strict', predicate=lambda p: True):
 		""" D.walk() -> iterator over files and subdirs, recursively.
 
 		The iterator yields path objects naming each child item of
-		this directory and its descendants.	 This requires that
-		D.isdir().
+		this directory and its descendants.
 
-		This performs a depth-first traversal of the directory tree.
+		It performs a depth-first traversal of the directory tree.
 		Each directory is returned just before all its children.
 
-		The errors= keyword argument controls behavior when an
+		@param pattern: fnmatch compatible pattern or None
+		@param errors: controls behavior when an
 		error occurs.  The default is 'strict', which causes an
 		exception.	The other allowed values are 'warn', which
 		reports the error via warnings.warn(), and 'ignore'.
+		@param predicate: returns True for each Path p to be yielded by iterator
 		"""
 		if errors not in ('strict', 'warn', 'ignore'):
 			raise ValueError("invalid errors parameter")
@@ -470,111 +460,55 @@ class Path( _base, iDagItem ):
 					"Unable to list directory '%s': %s"
 					% (self, sys.exc_info()[1]),
 					TreeWalkWarning)
+				childList = list()
 			else:
 				raise
+			# END handle errors value
+		# END listdir exception handling
 
 		for child in childList:
-			if pattern is None or child.fnmatch(pattern):
+			if ( pattern is None or child.fnmatch(pattern) ) and predicate(child):
 				yield child
+				
 			try:
 				isdir = child.isdir()
 			except Exception:
+				isdir = False
 				if errors == 'ignore':
-					isdir = False
+					pass
 				elif errors == 'warn':
 					warnings.warn(
 						"Unable to access '%s': %s"
 						% (child, sys.exc_info()[1]),
 						TreeWalkWarning)
-					isdir = False
 				else:
 					raise
+				# END handle errors value
+			# END directory access exception handling
+			
+			if not isdir:
+				continue
+				
+			for item in child.walk(pattern, errors, predicate):
+				yield item
+			# END for each item
+		# END for each child in childlist
 
-			if isdir:
-				for item in child.walk(pattern, errors):
-					yield item
-
-	def walkdirs(self, pattern=None, errors='strict'):
+	def walkdirs(self, pattern=None, errors='strict', predicate=lambda p: True):
 		""" D.walkdirs() -> iterator over subdirs, recursively.
-
-		With the optional 'pattern' argument, this yields only
-		directories whose names match the given pattern.  For
-		example, mydir.walkdirs('*test') yields only directories
-		with names ending in 'test'.
-
-		The errors= keyword argument controls behavior when an
-		error occurs.  The default is 'strict', which causes an
-		exception.	The other allowed values are 'warn', which
-		reports the error via warnings.warn(), and 'ignore'.
+		@param **kwargs: see L{walk}
 		"""
-		if errors not in ('strict', 'warn', 'ignore'):
-			raise ValueError("invalid errors parameter")
+		pred = lambda p: p.isdir() and predicate(p)
+		return self.walk(pattern, errors, pred)
 
-		try:
-			dirs = self.dirs()
-		except Exception:
-			if errors == 'ignore':
-				return
-			elif errors == 'warn':
-				warnings.warn(
-					"Unable to list directory '%s': %s"
-					% (self, sys.exc_info()[1]),
-					TreeWalkWarning)
-			else:
-				raise
-
-		for child in dirs:
-			if pattern is None or child.fnmatch(pattern):
-				yield child
-			for subsubdir in child.walkdirs(pattern, errors):
-				yield subsubdir
-
-	def walkfiles(self, pattern=None, errors='strict'):
+	def walkfiles(self, pattern=None, errors='strict', predicate=lambda p: True):
 		""" D.walkfiles() -> iterator over files in D, recursively.
 
-		The optional argument, pattern, limits the results to files
-		with names that match the pattern.	For example,
-		mydir.walkfiles('*.tmp') yields only files with the .tmp
-		extension.
+		@param **kwargs: see L{walk}
 		"""
-		if errors not in ('strict', 'warn', 'ignore'):
-			raise ValueError("invalid errors parameter")
-
-		try:
-			childList = self.listdir()
-		except Exception:
-			if errors == 'ignore':
-				return
-			elif errors == 'warn':
-				warnings.warn(
-					"Unable to list directory '%s': %s"
-					% (self, sys.exc_info()[1]),
-					TreeWalkWarning)
-			else:
-				raise
-
-		for child in childList:
-			try:
-				isfile = child.isfile()
-				isdir = not isfile and child.isdir()
-			except:
-				if errors == 'ignore':
-					return
-				elif errors == 'warn':
-					warnings.warn(
-						"Unable to access '%s': %s"
-						% (self, sys.exc_info()[1]),
-						TreeWalkWarning)
-				else:
-					raise
-
-			if isfile:
-				if pattern is None or child.fnmatch(pattern):
-					yield child
-			elif isdir:
-				for f in child.walkfiles(pattern, errors):
-					yield f
-
+		pred = lambda p: p.isfile() and predicate(p)
+		return self.walk(pattern, errors, pred)
+		
 	def fnmatch(self, pattern):
 		""" Return True if self.basename() matches the given pattern.
 
@@ -582,7 +516,7 @@ class Path( _base, iDagItem ):
 			for example '*.py'.
 		"""
 		pathexpanded = self.expandvars()
-		return fnmatch.fnmatch(pathexpanded.name, pattern)
+		return fnmatch.fnmatch(pathexpanded.basename(), pattern)
 
 	def glob(self, pattern):
 		""" Return a list of path objects that match the pattern.
@@ -596,15 +530,14 @@ class Path( _base, iDagItem ):
 		pathexpanded = self.expandvars()
 		return [cls(s) for s in glob.glob(_base(pathexpanded / pattern))]
 
-
 	#} END Listing, searching, walking and watching
 
 
 	#{ Reading or writing an entire file at once
 
-	def open(self, mode='r'):
+	def open(self, *args, **kwargs):
 		""" Open this file.	 Return a file object. """
-		return open(self._expandvars(), mode)
+		return open(self._expandvars(), *args, **kwargs)
 
 	def bytes(self):
 		""" Open this file, read all bytes, return them as a string. """
@@ -619,6 +552,7 @@ class Path( _base, iDagItem ):
 
 		Default behavior is to overwrite any existing file.
 		Call p.write_bytes(bytes, append=True) to append instead.
+		@return: self
 		"""
 		if append:
 			mode = 'ab'
@@ -629,9 +563,11 @@ class Path( _base, iDagItem ):
 			f.write(bytes)
 		finally:
 			f.close()
+			
+		return self
 
 	def text(self, encoding=None, errors='strict'):
-		r""" Open this file, read it in, return the content as a string.
+		""" Open this file, read it in, return the content as a string.
 
 		This uses 'U' mode in Python 2.3 and later, so '\r\n' and '\r'
 		are automatically translated to '\n'.
@@ -645,30 +581,23 @@ class Path( _base, iDagItem ):
 		errors - How to handle Unicode errors; see help(str.decode)
 			for the options.  Default is 'strict'.
 		"""
+		mode = 'U'	# we are in python 2.4 at least
+		
+		f = None
 		if encoding is None:
-			# 8-bit
-			f = self.open(_textmode)
-			try:
-				return f.read()
-			finally:
-				f.close()
+			f = self.open(mode)
 		else:
-			# Unicode
 			f = codecs.open(self, 'r', encoding, errors)
-			# (Note - Can't use 'U' mode here, since codecs.open
-			# doesn't support 'U' mode, even in Python 2.3.)
-			try:
-				t = f.read()
-			finally:
-				f.close()
-			return (t.replace(u'\r\n', u'\n')
-					 .replace(u'\r\x85', u'\n')
-					 .replace(u'\r', u'\n')
-					 .replace(u'\x85', u'\n')
-					 .replace(u'\u2028', u'\n'))
+		# END handle encoding
+		
+		try:
+			return f.read()
+		finally:
+			f.close()
+		# END handle file read
 
 	def write_text(self, text, encoding=None, errors='strict', linesep=os.linesep, append=False):
-		r""" Write the given text to this file.
+		""" Write the given text to this file.
 
 		The default behavior is to overwrite any existing file;
 		to append instead, use the 'append=True' keyword argument.
@@ -729,7 +658,8 @@ class Path( _base, iDagItem ):
 		specified 'encoding' (or the default encoding if 'encoding'
 		isn't specified).  The 'errors' argument applies only to this
 		conversion.
-
+		
+		@return: self
 		"""
 		bytes = ""
 		if isinstance(text, unicode):
@@ -756,32 +686,7 @@ class Path( _base, iDagItem ):
 				bytes = text.replace('\n', linesep)
 
 		self.write_bytes(bytes, append)
-
-	def lines(self, encoding=None, errors='strict', retain=True):
-		r""" Open this file, read all lines, return them in a list.
-
-		Optional arguments:
-			encoding - The Unicode encoding (or character set) of
-				the file.  The default is None, meaning the content
-				of the file is read as 8-bit characters and returned
-				as a list of (non-Unicode) str objects.
-			errors - How to handle Unicode errors; see help(str.decode)
-				for the options.  Default is 'strict'
-			retain - If true, retain newline characters; but all newline
-				character combinations ('\r', '\n', '\r\n') are
-				translated to '\n'.	 If false, newline characters are
-				stripped off.  Default is True.
-
-		This uses 'U' mode in Python 2.3 and later.
-		"""
-		if encoding is None and retain:
-			f = self.open(_textmode)
-			try:
-				return f.readlines()
-			finally:
-				f.close()
-		else:
-			return self.text(encoding, errors).splitlines(retain)
+		return self
 
 	def write_lines(self, lines, encoding=None, errors='strict',
 					linesep=os.linesep, append=False):
@@ -816,6 +721,8 @@ class Path( _base, iDagItem ):
 		you specify with the encoding= parameter, the result is
 		mixed-encoding data, which can really confuse someone trying
 		to read the file later.
+		
+		@return: self
 		"""
 		if append:
 			mode = 'ab'
@@ -847,31 +754,54 @@ class Path( _base, iDagItem ):
 				f.write(line)
 		finally:
 			f.close()
+			
+		return self
 
-	def read_md5(self):
-		""" Calculate the md5 hash for this file.
+	def lines(self, encoding=None, errors='strict', retain=True):
+		""" Open this file, read all lines, return them in a list.
 
-		This reads through the entire file.
+		Optional arguments:
+			encoding - The Unicode encoding (or character set) of
+				the file.  The default is None, meaning the content
+				of the file is read as 8-bit characters and returned
+				as a list of (non-Unicode) str objects.
+			errors - How to handle Unicode errors; see help(str.decode)
+				for the options.  Default is 'strict'
+			retain - If true, retain newline characters; but all newline
+				character combinations ('\r', '\n', '\r\n') are
+				translated to '\n'.	 If false, newline characters are
+				stripped off.  Default is True.
+
+		This uses 'U' mode in Python 2.3 and later.
+		"""
+		if encoding is None and retain:
+			f = self.open(_textmode)
+			try:
+				return f.readlines()
+			finally:
+				f.close()
+		else:
+			return self.text(encoding, errors).splitlines(retain)
+
+	def digest(self, hashobject):
+		""" Calculate the  hash for this file using the given hashobject. It must 
+		support the 'update' and 'digest' methods.
+
+		@note: This reads through the entire file.
 		"""
 
 		f = self.open('rb')
 		try:
-			m = None
-			try:
-				# fix for python 2.5 - module md5 is deprecated and now part of new hashlib
-				import hashlib
-				m = hashlib.md5()
-			except ImportError:
-				import md5
-				m = md5.new()
 			while True:
 				d = f.read(8192)
 				if not d:
 					break
-				m.update(d)
+				hashobject.update(d)
 		finally:
 			f.close()
-		return m.digest()
+		# END assure file gets closed
+		
+		return hashobject.digest()
 
 	#} END Reading or writing an enitre file at once
 
@@ -886,28 +816,13 @@ class Path( _base, iDagItem ):
 	ismount = lambda self: os.path.ismount( self._expandvars() )
 
 	if hasattr(os.path, 'samefile'):
-		samefile = lambda self: os.path.samefile( self._expandvars() )
+		samefile = lambda self, other: os.path.samefile( self._expandvars(), other )
 
-	getatime = lambda self: os.path.getatime( self._expandvars() )
-	p_atime = property(
-		getatime, None, None,
-		""" Last access time of the file. """)
-
-	getmtime = lambda self: os.path.getmtime( self._expandvars() )
-	p_mtime = property(
-		getmtime, None, None,
-		""" Last-modified time of the file. """)
-
+	atime = lambda self: os.path.getatime( self._expandvars() )
+	mtime = lambda self: os.path.getmtime( self._expandvars() )
 	if hasattr(os.path, 'getctime'):
-		getctime = lambda self: os.path.getctime( self._expandvars() )
-		p_ctime = property(
-			getctime, None, None,
-			""" Creation time of the file. """)
-
-	getsize = lambda self: os.path.getsize( self._expandvars() )
-	p_size = property(
-		getsize, None, None,
-		""" Size of the file, in bytes. """)
+		ctime = lambda self: os.path.getctime( self._expandvars() )
+	size = lambda self: os.path.getsize( self._expandvars() )
 
 	if hasattr(os, 'access'):
 		def access(self, mode):
@@ -925,8 +840,8 @@ class Path( _base, iDagItem ):
 		""" Like path.stat(), but do not follow symbolic links. """
 		return os.lstat(self._expandvars())
 
-	def get_owner(self):
-		r""" Return the name of the owner of this file or directory.
+	def owner(self):
+		""" Return the name of the owner of this file or directory.
 
 		This follows symbolic links.
 
@@ -947,10 +862,6 @@ class Path( _base, iDagItem ):
 			st = self.stat()
 			return pwd.getpwuid(st.st_uid).pw_name
 
-	p_owner = property(
-		get_owner, None, None,
-		""" Name of the owner of this file or directory. """)
-
 	if hasattr(os, 'statvfs'):
 		def statvfs(self):
 			""" Perform a statvfs() system call on this path. """
@@ -958,6 +869,7 @@ class Path( _base, iDagItem ):
 
 	if hasattr(os, 'pathconf'):
 		def pathconf(self, name):
+			"""see os.pathconf"""
 			return os.pathconf(self._expandvars(), name)
 
 	def isWritable( self ):
@@ -972,67 +884,97 @@ class Path( _base, iDagItem ):
 		else:
 			fileobj.close()
 			return True
+		# END handle file open
 
 
 	#} END Methods for querying the filesystem
 
 	#{ Modifying operations on files and directories
 
-	def utime(self, times):
-		""" Set the access and modified times of this file. """
+	def setutime(self, times):
+		""" Set the access and modified times of this file.
+		@return: self"""
 		os.utime(self._expandvars(), times)
+		return self
 
 	def chmod(self, mode):
+		"""Change file mode
+		@return: self"""
 		os.chmod(self._expandvars(), mode)
+		return self
 
 	if hasattr(os, 'chown'):
 		def chown(self, uid, gid):
+			"""Change file ownership
+			@return: self"""
 			os.chown(self._expandvars(), uid, gid)
+			return self
 
 	def rename(self, new):
+		"""os.rename
+		@return: Path to new file"""
 		os.rename(self._expandvars(), new)
+		return type(self)(new)
 
 	def renames(self, new):
+		"""os.renames, super rename
+		@return: Path to new file"""
 		os.renames(self._expandvars(), new)
-
-
+		return type(self)(new)
 
 	#} END Modifying operations on files and directories
 
 	#{ Create/delete operations on directories
 
 	def mkdir(self, mode=0777):
+		"""Make this directory, fail if it already exists
+		@return: self"""
 		os.mkdir(self._expandvars(), mode)
+		return self
 
 	def makedirs(self, mode=0777):
+		"""Smarter makedir, see os.makedirs
+		@return: self"""
 		os.makedirs(self._expandvars(), mode)
+		return self
 
 	def rmdir(self):
+		"""Remove this empty directory
+		@return: self"""
 		os.rmdir(self._expandvars())
+		return self
 
 	def removedirs(self):
+		"""see os.removedirs
+		@return: self"""
 		os.removedirs(self._expandvars())
-
+		return self
 
 	#} END Create/delete operations on directories
 
 	#{ Modifying operations on files
 
-	def touch(self):
+	def touch(self, flags = os.O_WRONLY | os.O_CREAT, mode = 0666):
 		""" Set the access/modified times of this file to the current time.
 		Create the file if it does not exist.
+		@return: self
 		"""
-		fd = os.open(self._expandvars(), os.O_WRONLY | os.O_CREAT, 0666)
+		fd = os.open(self._expandvars(), flags, mode)
 		os.close(fd)
 		os.utime(self._expandvars(), None)
+		return self
 
 	def remove(self):
+		"""Remove this file
+		@return: self"""
 		os.remove(self._expandvars())
+		return self
 
 	def unlink(self):
+		"""unlink this file
+		@return: self"""
 		os.unlink(self._expandvars())
-
-
+		return self
 
 	#} END Modifying operations on files
 
@@ -1040,13 +982,18 @@ class Path( _base, iDagItem ):
 
 	if hasattr(os, 'link'):
 		def link(self, newpath):
-			""" Create a hard link at 'newpath', pointing to this file. """
+			""" Create a hard link at 'newpath', pointing to this file. 
+			@return: Path to newpath"""
 			os.link(self._expandvars(), newpath)
+			return type(self)(newpath)
+			
 
 	if hasattr(os, 'symlink'):
 		def symlink(self, newlink):
-			""" Create a symbolic link at 'newlink', pointing here. """
+			""" Create a symbolic link at 'newlink', pointing here. 
+			@return: Path to newlink"""
 			os.symlink(self._expandvars(), newlink)
+			return type(self)(newlink)
 
 	if hasattr(os, 'readlink'):
 		def readlink(self):
@@ -1067,31 +1014,76 @@ class Path( _base, iDagItem ):
 			else:
 				return (self.parent() / p).abspath()
 
-
-
 	#} END Links
 
 	#{ High-level functions from shutil
 
-	copyfile = lambda self, dest: shutil.copyfile( self._expandvars(), dest )
-	copymode = lambda self, dest: shutil.copymode( self._expandvars(), dest )
-	copystat = lambda self, dest: shutil.copystat( self._expandvars(), dest )
-	copy = lambda self, dest: shutil.copy( self._expandvars(), dest )
-	copy2 = lambda self, dest: shutil.copy2( self._expandvars(), dest )
-	copytree = lambda self, dest, **kwargs: shutil.copytree( self._expandvars(), dest, **kwargs )
+	def copyfile(self, dest):
+		"""Copy self to dest
+		@return: Path to dest"""
+		shutil.copyfile( self._expandvars(), dest )
+		return type(self)(dest)
+	
+	def copymode(self, dest):
+		"""Copy our mode to dest
+		@return: Path to dest"""
+		shutil.copymode( self._expandvars(), dest )
+		return type(self)(dest)
+		
+	def copystat(self, dest):
+		"""Copy our stats to dest
+		@return: Path to dest"""
+		shutil.copystat( self._expandvars(), dest )
+		return type(self)(dest)
+		
+	def copy(self, dest):
+		"""Copy data and source bits to dest
+		@return: Path to dest"""
+		shutil.copy( self._expandvars(), dest )
+		return type(self)(dest)
+	
+	def copy2(self, dest):
+		"""Shutil.copy2 self to dest
+		@return: Path to dest"""
+		shutil.copy2( self._expandvars(), dest )
+		return type(self)(dest)
+		
+	def copytree(self, dest, **kwargs):
+		"""Deep copy this file or directory to destination
+		@param **kwargs: passed to shutil.copytree
+		@return: Path to dest"""
+		shutil.copytree( self._expandvars(), dest, **kwargs )
+		return type(self)(dest)
+		
 	if hasattr(shutil, 'move'):
-		move = lambda self, dest: shutil.move( self._expandvars(), dest )
-	rmtree = lambda self, **kwargs: shutil.rmtree( self._expandvars(),  **kwargs )
-
+		def move(self, dest):
+			"""Move self to dest
+			@return: Path to dest"""
+			shutil.move( self._expandvars(), dest )
+			return type(self)(dest)
+			
+	def rmtree(self, **kwargs):
+		"""Remove self recursively
+		@param **kwargs: passed to shutil.rmtree
+		@return: self"""
+		shutil.rmtree( self._expandvars(),  **kwargs )
+		return self
+			
 	#} END High-Level
 
 
 	#{ Special stuff from os
 	if hasattr(os, 'chroot'):
 		def chroot(self):
+			"""Change the root directory path
+			@return: self"""
 			os.chroot(self._expandvars())
+			return self
 
 	if hasattr(os, 'startfile'):
 		def startfile(self):
+			"""see os.startfile
+			@return: self"""
 			os.startfile(self._expandvars())
+			return self
 	#} END Special stuff from os
