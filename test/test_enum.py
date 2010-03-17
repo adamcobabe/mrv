@@ -231,7 +231,7 @@ class EnumerateTestCase(unittest.TestCase):
 		self.failUnlessRaises( TypeError, Enumeration.create, "hello", ( "this", "fails" ), bitflag = 1 )
 
 		# xor
-		assert e1.foo ^ e1.foo.getValue() == 0
+		assert e1.foo ^ e1.foo.value() == 0
 
 	def test_dict( self ):
 		# should always work as elements or global items

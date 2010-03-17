@@ -125,37 +125,37 @@ class TestConfigAccessor( unittest.TestCase ):
 	def test_iterators( self ):
 		"""ConfigAccessor: assure that the provided iterators for sections and keys work """
 		ca = _getca( 'valid_4keys' )
-		self.failUnless( len( list( ca.getSectionIterator( ) ) ) == 2 )
-		self.failUnless( len( list( ca.getKeyIterator( ) ) ) == 4 )
+		self.failUnless( len( list( ca.sectionIterator( ) ) ) == 2 )
+		self.failUnless( len( list( ca.keyIterator( ) ) ) == 4 )
 
 	def test_keypropertyparsing( self ):
 		"""ConfigAccessor.Properties: Assure that key properties can be parsed"""
 		ca = _getca( 'valid_keyproperty' )
-		self.failUnless( ca.getKeysByName( "my_key_with_property" )[0][0].properties.getKey( 'property' ).value =='value' )
+		self.failUnless( ca.keysByName( "my_key_with_property" )[0][0].properties.key( 'property' ).value =='value' )
 		self.failUnless( len( list( ca.iterateKeysByName( "my_key_with_property" ) ) ) )
 
 	def test_sectionprortyparsing( self ):
 		"""ConfigAccessor.Properties: Assure that section properties can be parsed"""
 		ca = _getca( 'valid_sectionproperty' )
-		self.failUnless( ca.getSection( "section" ).properties.getKey( 'property' ).value =='value' )
+		self.failUnless( ca.section( "section" ).properties.key( 'property' ).value =='value' )
 
 	def test_sectionkeyprortyparsing( self ):
 		"""ConfigAccessor.Properties: Assure that section and key properties can be parsed"""
 		ca = _getca( 'valid_sectionandkeyproperty' )
-		self.failUnless( ca.getSection( "section" ).properties.getKey( 'property' ).value =='value' )
-		self.failUnless( ca.getKeysByName( "key_with_property" )[0][0].properties.getKey( 'property' ).value =='value' )
+		self.failUnless( ca.section( "section" ).properties.key( 'property' ).value =='value' )
+		self.failUnless( ca.keysByName( "key_with_property" )[0][0].properties.key( 'property' ).value =='value' )
 
 	def test_propertyundefiniedpropertyattribute( self ):
 		"""ConfigAccessor.Properties: Property attribute of property must not be set"""
 		ca = _getca( 'valid_sectionandkeyproperty' )
-		self.failUnless( ca.getSection( "section" ).properties.properties == None )
-		self.failUnless( ca.getKeysByName( "key_with_property" )[0][0].properties.getKey( 'property' ).properties == None )
+		self.failUnless( ca.section( "section" ).properties.properties == None )
+		self.failUnless( ca.keysByName( "key_with_property" )[0][0].properties.key( 'property' ).properties == None )
 
 	def test_property_auto_qualification_on_write( self ):
 		"""ConfigAccessor.Properties: if properties are set at runtime, the propertysections might need long names for qualification when written"""
 		ca = _getca( 'valid_4keys' )
-		key = ca.getKeyDefault( "section", "key", "doesntmatter" )
-		key_prop = key.properties.getKeyDefault( "new_property", "value" )			# this creates a new physical attribute key
+		key = ca.keyDefault( "section", "key", "doesntmatter" )
+		key_prop = key.properties.keyDefault( "new_property", "value" )			# this creates a new physical attribute key
 
 		# write to memfile
 		memfile = ConfigStringIO()
@@ -167,7 +167,7 @@ class TestConfigAccessor( unittest.TestCase ):
 		assert nca.isEmpty()
 		memfile.seek( 0 )
 		nca.readfp( memfile )
-		self.failUnless( nca.getKeyDefault( "section", "key", "" ).properties.name == "+section:key" )
+		self.failUnless( nca.keyDefault( "section", "key", "" ).properties.name == "+section:key" )
 
 	def test_multi_flatten( self ):
 		"""ConfigAccessor:If a configuration gets flattened several times, the result must always match with the original"""
@@ -220,25 +220,25 @@ class TestConfigManager( unittest.TestCase ):
 		cm = ConfigManager( inifps, write_back_on_desctruction=False )
 
 		# create new secttion
-		cm.config.getSectionDefault("myNewSection").getKeyDefault( "myNewKey", "thisDefault" )[0].value = "this"
+		cm.config.sectionDefault("myNewSection").keyDefault( "myNewKey", "thisDefault" )[0].value = "this"
 
 		# remove a section completely - all are writable, they must be no failed node
 		self.failIf( cm.config.removeSection( "section_to_be_removed" ) != 0 )
 
 		# add keys to existing section - it wires through the calls
-		key,created = cm.getSection( "section" ).getKeyDefault( "anotherNewKey", "thisDefaultValue" )
+		key,created = cm.section( "section" ).keyDefault( "anotherNewKey", "thisDefaultValue" )
 		self.failUnlessRaises(AttributeError, getattr, cm, 'that')
 
 		# remove keys - this one is garantueed to exist
-		cm.config.getSection( "section_removekey_2" ).keys.remove( "key_2" )
-		cm.config.getSection( "section_nonunique" ).keys.remove( "key_nonunique" )
+		cm.config.section( "section_removekey_2" ).keys.remove( "key_2" )
+		cm.config.section( "section_nonunique" ).keys.remove( "key_nonunique" )
 
 		# add values to existing key
-		cm.config.getSection( "section_addkeyvals" ).getKey( "key3" ).appendValue( "appendedValue" )
-		cm.config.getSection( "section_addkeyvals" ).getKey( "key4" ).appendValue( [ "appendedValue2", "anotherappendedValue" ] )
+		cm.config.section( "section_addkeyvals" ).key( "key3" ).appendValue( "appendedValue" )
+		cm.config.section( "section_addkeyvals" ).key( "key4" ).appendValue( [ "appendedValue2", "anotherappendedValue" ] )
 
 		# remove a value
-		cm.config.getSection( "section_removeval" ).getKey( "key_rmval" ).removeValue( "val2" )
+		cm.config.section( "section_removeval" ).key( "key_rmval" ).removeValue( "val2" )
 
 		# manaully force the writeback - if it happens in the destructor, errors will be cought automatically
 		cm.write( )
@@ -251,29 +251,29 @@ class TestConfigManager( unittest.TestCase ):
 		cm = ConfigManager( inifps, write_back_on_desctruction=False )
 
 		# check created section
-		cm.config.getSection( "myNewSection" ).getKey( "myNewKey" )
+		cm.config.section( "myNewSection" ).key( "myNewKey" )
 
 		# assure removed section is not there
-		self.failUnlessRaises( NoSectionError, cm.config.getSection, *["section_to_be_removed"] )
+		self.failUnlessRaises( NoSectionError, cm.config.section, *["section_to_be_removed"] )
 
 		# check added key
-		self.failUnless( cm.config.getSection( "section" ).getKey( "anotherNewKey" ).value == "thisDefaultValue" )
+		self.failUnless( cm.config.section( "section" ).key( "anotherNewKey" ).value == "thisDefaultValue" )
 
 		# assure removed keys are gone
-		self.failUnlessRaises( NoOptionError, cm.config.getSection( "section_removekey_2" ).getKey, *[ "key_2" ] )
+		self.failUnlessRaises( NoOptionError, cm.config.section( "section_removekey_2" ).key, *[ "key_2" ] )
 		# this key may be there as it is used in two writable section in different nodes
 		# we only apply changed sections to the first section we find
-		cm.config.getSection( "section_nonunique" ).getKey( "key_nonunique" )
+		cm.config.section( "section_nonunique" ).key( "key_nonunique" )
 
 
 		# check appended values
-		self.failUnless( "appendedValue" in cm.config.getSection( "section_addkeyvals" ).getKey( "key3" ).values )
+		self.failUnless( "appendedValue" in cm.config.section( "section_addkeyvals" ).key( "key3" ).values )
 		for val in ( "appendedValue2", "anotherappendedValue" ):
-			self.failUnless( val in cm.config.getSection( "section_addkeyvals" ).getKey( "key4" ).values )
+			self.failUnless( val in cm.config.section( "section_addkeyvals" ).key( "key4" ).values )
 
 
 		# check removed value
-		self.failUnless( "val2" not in cm.config.getSection( "section_removeval" ).getKey( "key_rmval" ).values )
+		self.failUnless( "val2" not in cm.config.section( "section_removeval" ).key( "key_rmval" ).values )
 		
 		
 		# test key access
@@ -315,7 +315,7 @@ class TestConfigManager( unittest.TestCase ):
 		# END check bits per os
 		
 		tags = [ sys.platform, str(bits), 'myproject' ]
-		descriptors = ConfigManager.getTaggedFileDescriptors( directories, tags )
+		descriptors = ConfigManager.taggedFileDescriptors( directories, tags )
 		
 		expected_descriptor_count = 4
 		if bits == 64:

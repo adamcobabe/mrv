@@ -84,11 +84,11 @@ class TestGeneral( unittest.TestCase ):
 		for handlePlugs in range(2):
 			sellist = api.MSelectionList()
 			for obj  in objs:
-				setsandcomps = obj.getComponentAssignments( setFilter = nt.Shape.fSetsRenderable )
+				setsandcomps = obj.componentAssignments( setFilter = nt.Shape.fSetsRenderable )
 				for setnode,comp in setsandcomps:
 					if comp:
-						sellist.add( obj.getApiObject(), comp, True )
-					sellist.add( obj.getApiObject(), api.MObject(), True )
+						sellist.add( obj.apiObject(), comp, True )
+					sellist.add( obj.apiObject(), api.MObject(), True )
 				# for component assignment
 			# for obj in objs
 	

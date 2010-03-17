@@ -56,7 +56,7 @@ def uncapitalize(s, preserveAcronymns=False):
 
 	return s[0].lower() + s[1:]
 
-def getPythonIndex( index, length ):
+def pythonIndex( index, length ):
 	"""Compute the actual index based on the given index and array length, thus
 	-1 will result in the last array element's index"""
 	if index > -1: return index
@@ -89,7 +89,7 @@ def copyClsMembers( sourcecls, destcls, overwritePrefix = None, forbiddenMembers
 			pass
 	# END for each memebr in sourcecls
 
-def getPackageClasses( importBase, packageFile, predicate = lambda x: True ):
+def packageClasses( importBase, packageFile, predicate = lambda x: True ):
 	"""@return: all classes of modules of the given package file that additionally
 	match given predicate
 	@param importBase: longest import base path whose submodules contain the classes to import
@@ -489,7 +489,7 @@ class InterfaceMaster( iDuplicatable ):
 				return self
 
 			try:
-				return inst.getInterface( self.iname )
+				return inst.interface( self.iname )
 			except KeyError:
 				raise AttributeError( "Interface %s does not exist" % self.iname )
 
@@ -528,11 +528,11 @@ class InterfaceMaster( iDuplicatable ):
 			self._current_caller_id	 = -1 # id of the caller currently operating on us
 			self._num_callers = 0		# the amount of possible callers, ids range from 0 to (num_callers-1)
 
-		def getNumCallers( self ):
+		def numCallers( self ):
 			"""@return: number possible callers"""
 			return self._num_callers
 
-		def getCallerId( self ):
+		def callerId( self ):
 			"""Return the number of the caller that called your interface method
 			@note: the return value of this method is undefined if called if the
 			method has been called by someone not being an official caller ( like yourself )"""
@@ -604,7 +604,7 @@ class InterfaceMaster( iDuplicatable ):
 
 		# provide class variables ?
 
-	def getInterface( self, interfaceName ):
+	def interface( self, interfaceName ):
 		"""@return: an interface registered with interfaceName
 		@raise ValueError: if no such interface exists"""
 		try:

@@ -92,7 +92,7 @@ class Element(object):
 		@raise TypeError: if we are not a bitflag or other is not an element of our enumeration"""
 		self._checkType( other )
 		self._checkBitflag()
-		return self.getValue() | other.getValue()
+		return self.value() | other.value()
 
 	def __xor__( self, other ):
 		"""Allows to x-or values together - only works if element's values are xorable
@@ -100,7 +100,7 @@ class Element(object):
 		@param other: integer
 		@return: integer with the xored result"""
 		self._checkBitflag()
-		return self.getValue() ^ other
+		return self.value() ^ other
 
 
 	def __and__( self, other ):
@@ -110,16 +110,16 @@ class Element(object):
 		if not isinstance( other, int ):
 			raise TypeError( "require integer, got %s" % type( other ) )
 
-		if self.getValue() & other:
+		if self.value() & other:
 			return self
 
 		return None
 
-	def getValue( self ):
+	def value( self ):
 		"""@return: own value"""
 		return self._value
 		
-	def getName( self ):
+	def name( self ):
 		"""@return: name of the element"""
 		return self._name
 
@@ -333,7 +333,7 @@ def create(*elements, **kwargs ):
 			names.append(element)
 		elif isinstance(element, elmcls):
 			values.append(element)
-			names.append(element.getName())
+			names.append(element.name())
 		else:
 			raise "Unsupported element type: %s" % type( element )
 	# END for each element

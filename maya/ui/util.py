@@ -162,7 +162,7 @@ class UIContainerBase( object ):
 		@param key: if integer, will return the given list index, if string, the child
 		matching the id"""
 		if isinstance( key, basestring ):
-			return self.getChildByName( key )
+			return self.childByName( key )
 		else:
 			return self._children[ key ]
 
@@ -187,7 +187,7 @@ class UIContainerBase( object ):
 
 		prevparent = None
 		if set_self_active:
-			prevparent = self.getActiveParent()
+			prevparent = self.activeParent()
 			self.setActive( )
 		# END set active handling
 
@@ -221,7 +221,7 @@ class UIContainerBase( object ):
 		@note: children will be returned in the order in which they have been added"""
 		return [ c for c in self._children if predicate( c ) ]
 
-	def getChildByName( self, childname ):
+	def childByName( self, childname ):
 		"""@return: stored child instance, specified either as short name ( without pipes )
 		or fully qualified ( i.e. mychild or parent|subparent|mychild" )
 		@raise KeyError: if a child with that name does not exist"""
@@ -234,7 +234,7 @@ class UIContainerBase( object ):
 
 		childname = childname.split( '|' )[-1]		# |hello|world -> world
 		for child in self._children:
-			if child.getBasename() == childname:
+			if child.basename() == childname:
 				return child
 		# END non- fqn handling
 
@@ -269,7 +269,7 @@ class iItemSet( object ):
 		@note: you are responsible for generating a list of item_ids and call this
 		method to trigger the update
 		@return: tuple( SetOfDeletedItemIds, SetOfCreatedItemIds ) """
-		existing_items = set( self.getCurrentItemIds( **kwargs ) )
+		existing_items = set( self.currentItemIds( **kwargs ) )
 		todo_items = set( item_ids )
 
 		items_to_create = todo_items - existing_items
@@ -312,7 +312,7 @@ class iItemSet( object ):
 
 	#{ SubClass Implementation
 
-	def getCurrentItemIds( self, **kwargs ):
+	def currentItemIds( self, **kwargs ):
 		"""@return: list of item ids that are currently available in your layout.
 		They will be passed around to the L{createItem}, L{updateItem} andL{removeItem}
 		methods and is the foundation of the L{setItems} method. Ids returned here

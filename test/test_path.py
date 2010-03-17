@@ -30,7 +30,7 @@ class TestPath( unittest.TestCase ):
 		self.failUnless( len( s ) == 1 )
 
 		self.failUnless( len( list( userexp.iterParents() ) ) )
-		self.failUnless( len( list( userexp.getChildren() ) ) )
+		self.failUnless( len( list( userexp.children() ) ) )
 		
 	def test_expand_or_raise(self):
 		self.failUnlessRaises( ValueError, Path("$doesnt_exist/without/variable").expand_or_raise) 

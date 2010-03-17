@@ -51,12 +51,12 @@ class TestGeometry( unittest.TestCase ):
 		for obj in noncomplist:
 			# shaders - object assignment method
 			setfilter = nt.Shape.fSetsRenderable
-			sets = obj.getConnectedSets( setFilter = setfilter )
+			sets = obj.connectedSets( setFilter = setfilter )
 			assert len( sets ) == 1 and sets[0] == sg1 
 
 			# TEST OBJECT SET ASSIGNMENTS
 			setfilter = nt.Shape.fSetsObject
-			sets = obj.getConnectedSets( setFilter = setfilter )
+			sets = obj.connectedSets( setFilter = setfilter )
 			assert len( sets ) == 2 and sets[0] == set1 and sets[1] == set2 
 		# END assignmnet query
 
@@ -65,7 +65,7 @@ class TestGeometry( unittest.TestCase ):
 		######################################
 		# if queried with connectedSets
 		for obj in noncomplist:
-			sets = obj.getConnectedSets( nt.Shape.fSets )
+			sets = obj.connectedSets( nt.Shape.fSets )
 			for s in sets:
 				assert s in ( sg1, set1, set2 ) 
 		# END non-component lists check
@@ -80,7 +80,7 @@ class TestGeometry( unittest.TestCase ):
 			# OBJECT SET MEMBERSHIP
 			# even this method can retrieve membership to default object sets
 			setfilter = nt.Shape.fSetsObject
-			sets = obj.getComponentAssignments( setFilter = setfilter )
+			sets = obj.componentAssignments( setFilter = setfilter )
 			assert len( sets ) == 2 
 
 			# but the components must be 0, and it must have our sets
@@ -94,7 +94,7 @@ class TestGeometry( unittest.TestCase ):
 			# COMPONENT ASSIGNMENTS
 			##########################
 			setfilter = nt.Shape.fSetsRenderable
-			setcomps = obj.getComponentAssignments( setFilter = setfilter )
+			setcomps = obj.componentAssignments( setFilter = setfilter )
 
 			assert len( setcomps ) == 3 
 
@@ -102,13 +102,13 @@ class TestGeometry( unittest.TestCase ):
 				assert not component.isEmpty() 
 
 				if setnode == sg1:
-					assert component.getElement( 0 ) == 0 
+					assert component.element( 0 ) == 0 
 				if setnode == sg2:
-					assert component.getElement( 0 ) == 1 
+					assert component.element( 0 ) == 1 
 				if setnode == sg3:
-					assert component.getElement( 0 ) == 2 
-					assert component.getElement( 1 ) == 3 
-					assert component.getElementCount( ) == 2 
+					assert component.element( 0 ) == 2 
+					assert component.element( 1 ) == 3 
+					assert component.elementCount( ) == 2 
 			# END for each setcomponent
 		# END for each object
 
@@ -116,7 +116,7 @@ class TestGeometry( unittest.TestCase ):
 		# TEST DEFORMER CONNECTIONS
 		#############################
 		for dm in deformedlist:
-			setcomps = dm.getComponentAssignments( setFilter = nt.Shape.fSetsDeformer )
+			setcomps = dm.componentAssignments( setFilter = nt.Shape.fSetsDeformer )
 
 			for setobj,component in setcomps:
 				if component:
@@ -131,7 +131,7 @@ class TestGeometry( unittest.TestCase ):
 
 					dm.addTo( setobj, component = component )
 					#print type( component )
-					#print "compinfo: numitems = %i, type = %i" % ( component.getElementCount(), component.type() )
+					#print "compinfo: numitems = %i, type = %i" % ( component.elementCount(), component.type() )
 				# END if there is a component assignment
 			# END for each component
 
@@ -142,7 +142,7 @@ class TestGeometry( unittest.TestCase ):
 		# TEST TWEAK HANDLING
 		# make tweak
 		ofs = ( 1.0, 1.0, 1.0 )						# offset array
-		ptweak = p1.pnts.getElementByLogicalIndex( 0 )
+		ptweak = p1.pnts.elementByLogicalIndex( 0 )
 		ptweak.mchildByName('px').msetFloat( ofs[0] )
 		ptweak.mchildByName('py').msetFloat( ofs[1] )
 		ptweak.mchildByName('pz').msetFloat( ofs[2] )
@@ -152,7 +152,7 @@ class TestGeometry( unittest.TestCase ):
 		assert ptweak.mchildByName('py').asFloat() == 0.0
 		assert ptweak.mchildByName('pz').asFloat() == 0.0
 
-		puvtweak = p1.uvpt.getElementByLogicalIndex( 0 )
+		puvtweak = p1.uvpt.elementByLogicalIndex( 0 )
 		puvtweak.mchildByName('ux').msetFloat( ofs[0] )
 		puvtweak.mchildByName('uy').msetFloat( ofs[1] )
 
@@ -185,7 +185,7 @@ class TestGeometry( unittest.TestCase ):
 				# HISTORY CHECK
 				# assure tweak nodes have been created
 				if history_mode:
-					assert mesh.inMesh.minput().mwrappedNode().getApiType() == tweaktype
+					assert mesh.inMesh.minput().mwrappedNode().apiType() == tweaktype
 				else:
 					assert mesh.inMesh.minput().isNull()
 				# END history  check
@@ -208,7 +208,7 @@ class TestGeometry( unittest.TestCase ):
 		pc = nt.PolyCube()
 		pc.output.mconnectTo(m.inMesh)
 		
-		assert len(m.getComponentAssignments()) == 0 and m.numVertices() == 8
+		assert len(m.componentAssignments()) == 0 and m.numVertices() == 8
 		
 		# TEST ITERATION
 		################
@@ -237,8 +237,8 @@ class TestGeometry( unittest.TestCase ):
 		
 		
 		# CONSTRAIN MIT USING COMPONENT
-		self.failUnlessRaises(ValueError, m.getComponent, 1)	# invalid arg type
-		vc = m.getComponent(ec.vertex).addElements(api.MIntArray.mfromMultiple(1,2))
+		self.failUnlessRaises(ValueError, m.component, 1)	# invalid arg type
+		vc = m.component(ec.vertex).addElements(api.MIntArray.mfromMultiple(1,2))
 		assert isinstance(vc, nt.SingleIndexedComponent)
 		
 		miv = m.iterComponents(ec.vertex, vc)
@@ -312,30 +312,30 @@ class TestGeometry( unittest.TestCase ):
 			
 			# empty
 			c = c_helper.empty()
-			assert len(c.getElements()) == 0 and not c.isComplete()
+			assert len(c.elements()) == 0 and not c.isComplete()
 			
 			# slice
 			c = c_helper[0:2]
-			e = c.getElements()
+			e = c.elements()
 			assert len(e) == 2 and e[0] == 0 and e[1] == 1
 			
 			# full slice
 			c = c_helper[:]
-			assert len(c.getElements()) == 0 and c.isComplete()
+			assert len(c.elements()) == 0 and c.isComplete()
 			
 			# single
 			c = c_helper[5]
-			assert c.getElements()[0] == 5
+			assert c.elements()[0] == 5
 			
 			# multi
 			c = c_helper[5,10]
-			e = c.getElements()
+			e = c.elements()
 			assert len(e) == 2 and e[0] == 5 and e[1] == 10 
 			
 			# list/iter/IntArray
 			for conv in converters:
 				c = c_helper[conv((1,5))]
-				e = c.getElements()
+				e = c.elements()
 				assert len(e) == 2 and e[0] == 1 and e[1] == 5
 			# END for each type to check
 		# END for each component shortcut

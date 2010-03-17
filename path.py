@@ -184,14 +184,14 @@ class Path( _base, iDagItem ):
 
 	#{ iDagItem Implementation
 
-	def getParent( self ):
+	def parent( self ):
 		"""@return: the parent directory of this Path or None if this is the root"""
 		parent = self.p_parent
 		if parent == self:
 			return None
 		return parent
 
-	def getChildren( self, predicate = lambda p: True, pattern = None ):
+	def children( self, predicate = lambda p: True, pattern = None ):
 		"""@return: child paths as retrieved by queryiing the file system.
 		@note: files cannot have children, and willl return an empty array accordingly
 		@param predicate: return p if predicate( p ) returns True

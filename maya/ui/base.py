@@ -233,25 +233,25 @@ class NamedUI( unicode, BaseUI , iDagItem, EventSenderUI ):
 	#} END overridden methods
 
 	#{ Hierachy Handling
-	def getChildren( self, **kwargs ):
+	def children( self, **kwargs ):
 		"""@return: all intermediate child instances
 		@note: the order of children is lexically ordered at this time
 		@note: this implementation is slow and should be overridden by more specialized subclasses"""
-		return filter( lambda x: len( x.replace( self , '' ).split('|') ) - 1 ==len( self.split( '|' ) ), self.getChildrenDeep() )
+		return filter( lambda x: len( x.replace( self , '' ).split('|') ) - 1 ==len( self.split( '|' ) ), self.childrenDeep() )
 
-	def getChildrenDeep( self, **kwargs ):
+	def childrenDeep( self, **kwargs ):
 		"""@return: all child instances recursively
 		@note: the order of children is lexically ordered at this time
 		@note: this implementation is slow and should be overridden by more specialized subclasses"""
 		kwargs['long'] = True
 		return filter( lambda x: x.startswith(self) and not x == self, lsUI(**kwargs))
 
-	def getParent( self ):
+	def parent( self ):
 		"""@return: parent instance of this ui element"""
 		return wrapUI( '|'.join( self.split('|')[:-1] ) )
 
 	@classmethod
-	def getActiveParent( cls ):
+	def activeParent( cls ):
 		"""@return: NameUI of the currently set parent
 		@raise RuntimeError: if no active parent was set"""
 		# MENU
@@ -305,10 +305,6 @@ class NamedUI( unicode, BaseUI , iDagItem, EventSenderUI ):
 			# although it should just return False if it does NOT exist, it raises
 			return False
 
-	#{ Properties
-	p_parent = property( getParent )
-	p_children = property( getChildren )
-	#} END properties
 
 class SizedControl( NamedUI ):
 	"""Base Class for all controls having a dimension"""
@@ -331,18 +327,18 @@ class SizedControl( NamedUI ):
 
 	#{ Query Methods
 
-	def getAnnotation( self ):
+	def annotation( self ):
 		"""@return : the annotation string """
 		try:
 			return self.__melcmd__( self, q=1, ann=1 )
 		except TypeError:
 			return ""
 
-	def getDimension( self ):
+	def dimension( self ):
 		"""@return: (x,y) tuple of x and y dimensions of the UI element"""
 		return ( self.__melcmd__( self, q=1, w=1 ), self.__melcmd__( self, q=1, h=1 ) )
 
-	def getPopupMenuArray( self ):
+	def popupMenuArray( self ):
 		"""@return: popup menus attached to this control"""
 		return wrapUI( self.__melcmd__( self, q=1, pma=1 ) )
 
@@ -363,11 +359,11 @@ class SizedControl( NamedUI ):
 
 	#}END edit methods
 
-	p_annotation = property( getAnnotation, setAnnotation )
+	p_annotation = property( annotation, setAnnotation )
 	p_ann = p_annotation
-	p_dimension = property( getDimension, setDimension )
-	p_pma = property( getPopupMenuArray )
-	p_popupMenuArray = property( getPopupMenuArray )
+	p_dimension = property( dimension, setDimension )
+	p_pma = property( popupMenuArray )
+	p_popupMenuArray = property( popupMenuArray )
 
 
 
@@ -401,11 +397,11 @@ class Window( SizedControl, uiutil.UIContainerBase ):
 		""" Show Window"""
 		cmds.showWindow( self )
 
-	def getNumberOfMenus( self ):
+	def numberOfMenus( self ):
 		"""@return: number of menus in the menu array"""
 		return int( self.__melcmd__( self, q=1, numberOfMenus=1 ) )
 
-	def getMenuArray( self ):
+	def menuArray( self ):
 		"""@return: Menu instances attached to this window"""
 		return wrapUI( self.__melcmd__( self, q=1, menuArray=1 ) )
 
@@ -421,7 +417,7 @@ class Window( SizedControl, uiutil.UIContainerBase ):
 
 	#} END window speciic
 
-	p_numberOfMenus = property( getNumberOfMenus )
+	p_numberOfMenus = property( numberOfMenus )
 	p_nm = p_numberOfMenus
 
 

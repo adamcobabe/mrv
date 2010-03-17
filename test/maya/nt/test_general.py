@@ -19,7 +19,7 @@ class TestGeneral( unittest.TestCase ):
 		print >> sys.stderr, "NodeTypeDB and wrapping test disabled - use it to check for new types"
 		return 
 		
-		filename = get_maya_file( "allnodetypes_%s.mb" % env.getAppVersion( )[0] )
+		filename = get_maya_file( "allnodetypes_%s.mb" % env.appVersion( )[0] )
 		if not Path( filename ).isfile():
 			raise AssertionError( "File %s not found for loading" % filename )
 		bmaya.Scene.open( filename, force=True )
@@ -41,7 +41,7 @@ class TestGeneral( unittest.TestCase ):
 			
 			# skip duplicate types - it truly happens that there is the same typename
 			# with a different parent class - we cannot handle this 
-			nodetypename = node.getTypeName()
+			nodetypename = node.typeName()
 			if nodetypename in seen_types:
 				continue
 			seen_types.add( nodetypename )
@@ -72,7 +72,7 @@ class TestGeneral( unittest.TestCase ):
 		# END for each type in file
 
 		if len( missingTypesList ):
-			nodecachefile = "nodeHierarchy%s.html" % env.getAppVersion( )[0]
+			nodecachefile = "nodeHierarchy%s.html" % env.appVersion( )[0]
 			for fn in missingTypesList:
 				print fn
 			
@@ -207,14 +207,14 @@ class TestGeneral( unittest.TestCase ):
 		assert instnode.getMObject() == node.getMObject()  # compare mobject
 		assert instnode != node 		# compare dag paths
 
-		path = instnode.getDagPath( )
+		path = instnode.dagPath( )
 		childm1 = nt.Node( "parent|middle1|child" )
 
 		# if it didnt work, he would have returned a "|parent|middle|child"
 		assert "|parent|middle1|child" == str(childm1) 
 
-		npath = node.getDagPath( )
-		ipath = instnode.getDagPath( )
+		npath = node.dagPath( )
+		ipath = instnode.dagPath( )
 		
 		assert npath != ipath
 		assert node.getMObject() == instnode.getMObject()	# same object after all
@@ -231,42 +231,42 @@ class TestGeneral( unittest.TestCase ):
 		# SELECTION
 		############
 		nt.select( "persp" )
-		persp = nt.getSelection()[0]
+		persp = nt.selection()[0]
 		assert persp == nt.Node( "persp" ) 
 
 		# clear selection
 		nt.select( )
-		assert not nt.getSelection() 
+		assert not nt.selection() 
 		
 		# undo/redo
 		cmds.undo()
-		assert len(nt.getSelection()) == 1
+		assert len(nt.selection()) == 1
 		cmds.redo()
-		assert len(nt.getSelection()) == 0
+		assert len(nt.selection()) == 0
 
 		# select object and selection list
 		nt.select( persp )
-		assert len( nt.getSelection( ) ) == 1 
-		nt.select( nt.toSelectionList( nt.getSelection( ) ) )
-		assert len( nt.getSelection( ) ) == 1 
+		assert len( nt.selection( ) ) == 1 
+		nt.select( nt.toSelectionList( nt.selection( ) ) )
+		assert len( nt.selection( ) ) == 1 
 
 		# select mixed
 		nt.select( persp, "front" )
-		assert len( nt.getSelection( ) ) == 2 
+		assert len( nt.selection( ) ) == 2 
 
 
 		# GET BY NAME
 		###############
-		persp = nt.getByName( "pers*" )[0]
+		persp = nt.byName( "pers*" )[0]
 		assert persp == nt.Node( "persp" ) 
 		
 		# filter selection
 		##################
 		nt.select("persp", "perspShape")
-		assert len(nt.getSelection(api.MFn.kCamera)) == 1
+		assert len(nt.selection(api.MFn.kCamera)) == 1
 		assert len(list(nt.iterSelection(api.MFn.kCamera))) == 1
 		
-		sl = nt.getSelectionList()
+		sl = nt.activeSelectionList()
 		assert len(sl) and isinstance(sl, api.MSelectionList)
 
 
@@ -315,7 +315,7 @@ class TestNodeBase( unittest.TestCase ):
 		# self.failUnlessRaises( TypeError, nt.Node, "this", 1 )  # skip check , maya throws
 
 		# string should be name
-		assert str( node ) == node.getName( ) 
+		assert str( node ) == node.name( ) 
 		repr( node )
 
 
@@ -336,38 +336,38 @@ class TestNodeBase( unittest.TestCase ):
 			assert not plug.isNull() 
 
 		# check connection methods
-		cons = node.getConnections( )
+		cons = node.connections( )
 		assert len( cons ) 
 
 
 		# DEPENDENCY INFO
 		persp = nt.Node( "persp" )
-		affected_attrs = persp.getDependencyInfo( "t", by=0 )
+		affected_attrs = persp.dependencyInfo( "t", by=0 )
 		assert len( affected_attrs ) > 1 
-		affected_attrs = persp.getDependencyInfo( "t", by=1 )
+		affected_attrs = persp.dependencyInfo( "t", by=1 )
 		assert len( affected_attrs ) > 1 
 
 
 		# CHECK LAZY WRAPPING
 		# get mfn lazy wrapped attributes
-		t = node.type()
-		t = node.getType()
+		t = node.getAttributeCount()
+		t = node.attributeCount()
 		for state in [1,0]:
 			node.setLocked( state )
 			assert node.isLocked() == state 
 
 		# ATTRIBUTES
-		attr = node.getAttribute( 0 )
-		attr.getName( )
+		attr = node.attribute( 0 )
+		attr.name( )
 		assert not attr.isNull() 
 
 		for i in xrange( node.attributeCount() ):
-			attr = node.getAttribute( i )
+			attr = node.attribute( i )
 			assert not attr.isNull() 
 
 		# CHECK namespaces - should be root namespace
-		ns = node.getNamespace( )
-		assert ns == nt.Namespace.root 
+		ns = node.namespace( )
+		assert ns == nt.Namespace.rootpath 
 		
 
 		# RENAME DEP NODES
@@ -424,14 +424,14 @@ class TestNodeBase( unittest.TestCase ):
 		dg = nt.Network()
 		
 		childns = nsm.Namespace.create(":foo:bar")
-		parentns = childns.getParent()
+		parentns = childns.parent()
 		for node in (dag, dg):
-			assert node.getNamespace() == nsm.RootNamespace
+			assert node.namespace() == nsm.RootNamespace
 			assert isinstance(node.setNamespace(childns), nt.Node)
 			
-			assert node.getNamespace() == childns
-			assert node.setNamespace(parentns).getNamespace() == parentns
-			assert node.setNamespace(nsm.RootNamespace).getNamespace() == nsm.RootNamespace
+			assert node.namespace() == childns
+			assert node.setNamespace(parentns).namespace() == parentns
+			assert node.setNamespace(nsm.RootNamespace).namespace() == nsm.RootNamespace
 		# END for each node
 		
 
@@ -442,7 +442,7 @@ class TestNodeBase( unittest.TestCase ):
 		rbase = nt.createNode( "reparentBase", "transform" )
 
 		# test basic functions
-		assert rbase.getApiType() == api.MFn.kTransform 
+		assert rbase.apiType() == api.MFn.kTransform 
 		assert rbase.hasFn( api.MFn.kTransform ) 
 
 		baseinst = base.addInstancedChild( mesh )
@@ -466,11 +466,11 @@ class TestNodeBase( unittest.TestCase ):
 		assert mesh.isValid() and not baseinst.isValid() and not obaseinst.isValid() 
 		
 		# try unparent
-		meshtrans = mesh.getTransform()
+		meshtrans = mesh.transform()
 		meshtrans.setParent(obase)
-		assert meshtrans.getParent() == obase
+		assert meshtrans.parent() == obase
 		meshtrans.unparent()
-		assert meshtrans.getParent() is None
+		assert meshtrans.parent() is None
 
 	def test_duplicateInstances( self ):
 		base = nt.createNode( "base", "transform" )
@@ -483,7 +483,7 @@ class TestNodeBase( unittest.TestCase ):
 		assert duplmesh != obasemeshinst 
 
 		dupltrans = base.duplicate( "duplbase" )
-		baseduplmesh = dupltrans.getChildrenByType( nt.Mesh )[0]
+		baseduplmesh = dupltrans.childrenByType( nt.Mesh )[0]
 		assert baseduplmesh != basemesh 		# its a separate copy
 
 	def test_wrapping(self):
@@ -496,12 +496,16 @@ class TestNodeBase( unittest.TestCase ):
 		# we don't accept other Nodes - it makes no sense and should be fixed
 		self.failUnlessRaises(TypeError, nt.Node, p)
 		
-		# tries to access a non-existing attribute
-		self.failUnlessRaises(AttributeError, nt.NodeFromObj, p)
+		# works, but first mfn access fails !
+		pfail = nt.NodeFromObj(p)
+		expected_type = RuntimeError
+		if env.appVersion()[0] > 8.5:
+			expected_type = TypeError
+		self.failUnlessRaises(expected_type, pfail.findPlug, 'wm')
 
 	def test_wrapDagNode( self ):
 		mesh = nt.createNode( "parent|mesh", "mesh" )
-		parent = mesh.getParent( )
+		parent = mesh.parent( )
 
 		# simple rename
 		mesh.rename( "fancymesh" )
@@ -509,7 +513,7 @@ class TestNodeBase( unittest.TestCase ):
 
 		# simple dupl test
 		duplbase = nt.createNode( "parent|this|other|duplbase", "mesh" )
-		transcopy = duplbase.getTransform( ).duplicate()
+		transcopy = duplbase.transform( ).duplicate()
 		copy = duplbase.duplicate( "parent|this|other|duplcopy" )
 		assert copy != duplbase 
 		assert str( copy ) != str( duplbase ) 
@@ -521,8 +525,8 @@ class TestNodeBase( unittest.TestCase ):
 			assert str( ocopy ) == str( duplbase ) + str( i ) 
 
 			ocopy = duplbase.duplicate( newTransform=1 )
-			assert ocopy.getBasename( ) == duplbase.getBasename() 
-			assert str( ocopy.getParent() ) == str( duplbase.getParent() ) + str( i + 1 ) 
+			assert ocopy.basename( ) == duplbase.basename() 
+			assert str( ocopy.parent() ) == str( duplbase.parent() ) + str( i + 1 ) 
 
 			# undo both duplications and redo
 			# CRASHES MAYA AFTER REDO
@@ -541,9 +545,9 @@ class TestNodeBase( unittest.TestCase ):
 
 		# REPARENT UNDO TEST
 		cmds.undo()
-		assert mesh.getParent() == parent 
+		assert mesh.parent() == parent 
 		cmds.redo()
-		assert mesh.getParent() == otherparent 
+		assert mesh.parent() == otherparent 
 
 
 
@@ -557,7 +561,7 @@ class TestNodeBase( unittest.TestCase ):
 
 		# now it works
 		othermesh.rename( "mesh", renameOnClash = True )
-		assert othermesh.getBasename( ) == "mesh" 
+		assert othermesh.basename( ) == "mesh" 
 
 
 		# shape under root
@@ -579,11 +583,11 @@ class TestNodeBase( unittest.TestCase ):
 
 		wtransnewparent = wtrans.setParent( parent )
 		assert wtrans == wtransnewparent
-		assert wtransnewparent.getInstanceCount( 1 ) == 1 
+		assert wtransnewparent.instanceCount( 1 ) == 1 
 		wtransnewparent.addParent( oparent )
-		assert wtransnewparent.getInstanceCount( 1 ) == 2 
+		assert wtransnewparent.instanceCount( 1 ) == 2 
 		wtransnewparent.removeParent( oparent )
-		assert wtrans.getInstanceCount( 1 ) == 1 
+		assert wtrans.instanceCount( 1 ) == 1 
 
 
 
@@ -636,11 +640,11 @@ class TestNodeBase( unittest.TestCase ):
 		self.failUnlessRaises( RuntimeError, mesh.duplicate, "|parent|this" )
 
 		# if the path is too short ...
-		self.failUnlessRaises( NameError, mesh.duplicate, str( mesh.getTransform() ) )
-		self.failUnlessRaises( NameError, mesh.getParent().duplicate, '|' )
+		self.failUnlessRaises( NameError, mesh.duplicate, str( mesh.transform() ) )
+		self.failUnlessRaises( NameError, mesh.parent().duplicate, '|' )
 
 
-		meshinstname = mesh.getTransform().getFullChildName( "newns:meshinst" )
+		meshinstname = mesh.transform().fullChildName( "newns:meshinst" )
 		assert isinstance( meshinst, nt.Mesh ) 
 
 	def test_removeChild( self ):
@@ -662,8 +666,8 @@ class TestNodeBase( unittest.TestCase ):
 	def test_dependnode_getitem( self ):
 		mesh = nt.createNode( "p1|p2|mesh", "mesh" )
 		assert len( list( mesh.iterParents() ) ) == 2 
-		p2 = mesh.getParent()
-		p1 = p2.getParent()
+		p2 = mesh.parent()
+		p1 = p2.parent()
 		assert mesh[-1] == p2 
 		assert mesh[-2] == p1 
 		self.failUnlessRaises( IndexError, mesh.__getitem__, -3 )
@@ -741,33 +745,33 @@ class TestNodeBase( unittest.TestCase ):
 		m = nt.Node( "m" )			# mesh, two direct and two indirect instances
 		c1 = nt.createNode( "|c1", "transform" )
 
-		assert m.getInstanceCount( 0 ) == 2 
-		assert m.getInstanceCount( 1 ) == 4 
+		assert m.instanceCount( 0 ) == 2 
+		assert m.instanceCount( 1 ) == 4 
 
 		# test parenting
 		mci = c1.addInstancedChild( m )
 
-		assert m.getInstanceCount( 0 ) == 3 
-		assert m.getInstanceCount( 1 ) == 5 	# direct + indirect
+		assert m.instanceCount( 0 ) == 3 
+		assert m.instanceCount( 1 ) == 5 	# direct + indirect
 
 		c1.removeChild( mci )
 
-		assert m.getInstanceCount( 0 ) == 2 
-		assert m.getInstanceCount( 1 ) == 4 	# direct + indirect
+		assert m.instanceCount( 0 ) == 2 
+		assert m.instanceCount( 1 ) == 4 	# direct + indirect
 
 		# check reparent
 		d1 = nt.createNode( "|d1", "transform" )
 		c1 = c1.reparent( d1 )
 
-		assert m.getInstanceCount( 0 ) == 2 
-		assert m.getInstanceCount( 1 ) == 4 
+		assert m.instanceCount( 0 ) == 2 
+		assert m.instanceCount( 1 ) == 4 
 
 		# reparent an instanced transform under d1
 		a2 = nt.Node( "a2" )
 
 		a2 = a2.reparent( d1, raiseOnInstance=0 )			# destroys instances
-		assert m.getInstanceCount( 0 ) == 2 
-		assert m.getInstanceCount( 1 ) == 2 
+		assert m.instanceCount( 0 ) == 2 
+		assert m.instanceCount( 1 ) == 2 
 
 
 	def test_instanceTraversal( self ):
@@ -787,8 +791,8 @@ class TestNodeBase( unittest.TestCase ):
 
 		# INSTANCE TRAVERSAL
 		for inst in instances:
-			assert inst.getInstanceCount( False ) == 4 
-			assert inst == inst.getInstance( inst.getInstanceNumber( ) ) 
+			assert inst.instanceCount( False ) == 4 
+			assert inst == inst.instance( inst.instanceNumber( ) ) 
 			for instinst in inst.iterInstances( excludeSelf = True ):
 				assert instinst != inst 
 			foundself = False
@@ -798,7 +802,7 @@ class TestNodeBase( unittest.TestCase ):
 			assert foundself 
 
 			base.removeChild( inst )	# remove one inst
-			assert inst.getInstanceCount( False ) == 3 
+			assert inst.instanceCount( False ) == 3 
 			base.addInstancedChild( inst )	# readd it
 			# END for each instance path
 		# END for each instanced node
@@ -809,11 +813,11 @@ class TestNodeBase( unittest.TestCase ):
 
 		# TEST DIRECT VS INDIRECT INSTANCES
 		baseinst = base.addParent( obase )
-		assert base.getInstanceCount( False ) == 2 
-		assert trans.getInstanceCount( False ) != trans.getInstanceCount( True ) 
+		assert base.instanceCount( False ) == 2 
+		assert trans.instanceCount( False ) != trans.instanceCount( True ) 
 
 		# iteration is always over all instances
-		assert len( list( ( trans.iterInstances(excludeSelf=False))) ) == trans.getInstanceCount( True ) 
+		assert len( list( ( trans.iterInstances(excludeSelf=False))) ) == trans.instanceCount( True ) 
 
 
 	def test_displaySettings( self ):
@@ -827,7 +831,7 @@ class TestNodeBase( unittest.TestCase ):
 		cmds.undo()
 		assert not mesh.isTemplate() 
 
-		a1 = mesh.getRoot()
+		a1 = mesh.root()
 		a1.v.msetInt( 0 )
 
 		# VISIBLE
@@ -840,10 +844,10 @@ class TestNodeBase( unittest.TestCase ):
 		###################
 		a1.do.mchildByName('ove').msetInt( 1 )
 		a1.do.mchildByName('ovdt').msetInt( 2 )
-		assert mesh.getDisplayOverrideValue( 'ovdt' ) == 2 
+		assert mesh.displayOverrideValue( 'ovdt' ) == 2 
 		cmds.undo()
 		cmds.undo()
-		assert mesh.getDisplayOverrideValue( 'ovdt' ) == None 
+		assert mesh.displayOverrideValue( 'ovdt' ) == None 
 
 
 	def test_addremoveAttr( self ):
@@ -866,7 +870,7 @@ class TestNodeBase( unittest.TestCase ):
 		assert trans2.sna.asInt() == 20 and trans.sna.asInt() == 10 
 
 		# remove the attribute - with Attribute class this time
-		trans.removeAttribute( attrplug.getAttribute() )
+		trans.removeAttribute( attrplug.attribute() )
 
 		# have to use find plug as our transform has cached the plug which might
 		# have gone out of scope
@@ -934,7 +938,7 @@ class TestNodeBase( unittest.TestCase ):
 		# come along with a transform
 		mesh = nt.Mesh()
 		assert isinstance(mesh, nt.Mesh)
-		assert len(mesh.getParentDeep()) == 1
+		assert len(mesh.parentDeep()) == 1
 		
 		# multiple calls create multiple shapes, but under the same transform
 		mesh2 = nt.Mesh()
@@ -944,7 +948,7 @@ class TestNodeBase( unittest.TestCase ):
 		# transforms are created plain and under the root
 		trans = nt.Transform()
 		assert isinstance(trans, nt.Transform)
-		assert trans.getParent() is None
+		assert trans.parent() is None
 		
 		trans2 = nt.Transform()
 		assert trans2 != trans

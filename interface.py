@@ -50,20 +50,20 @@ class iDagItem( Interface ):
 
 	def isRoot( self ):
 		"""@return: True if this path is the root of the DAG """
-		return self ==  self.getRoot()
+		return self ==  self.root()
 
-	def getRoot( self ):
+	def root( self ):
 		"""@return: the root of the DAG - it has no further parents"""
-		parents = self.getParentDeep( )
+		parents = self.parentDeep( )
 		if not parents:
 			return self
 		return parents[-1]
 
-	def getBasename( self ):
+	def basename( self ):
 		"""@return: basename of this path, '/hello/world' -> 'world'"""
 		return str(self).split( self._sep )[-1]
 
-	def getParent( self ):
+	def parent( self ):
 		"""@return: parent of this path, '/hello/world' -> '/hello' or None if this path
 		is the dag's root"""
 		tokens =  str(self).split( self._sep )
@@ -72,19 +72,19 @@ class iDagItem( Interface ):
 
 		return self.__class__( self._sep.join( tokens[0:-1] ) )
 
-	def getParentDeep( self ):
+	def parentDeep( self ):
 		"""@return: all parents of this path, '/hello/my/world' -> [ '/hello/my','/hello' ]"""
 		return list( self.iterParents( ) )
 
 		return out
 
-	def getChildren( self , predicate = lambda x: True):
+	def children( self , predicate = lambda x: True):
 		"""@return: list of intermediate children of path, [ child1 , child2 ]
 		@param predicate: return True to include x in result
 		@note: the child objects returned are supposed to be valid paths, not just relative paths"""
 		raise NotImplementedError( )
 
-	def getChildrenDeep( self , order = kOrder_BreadthFirst, predicate=lambda x: True ):
+	def childrenDeep( self , order = kOrder_BreadthFirst, predicate=lambda x: True ):
 		"""@return: list of all children of path, [ child1 , child2 ]
 		@param order: order enumeration
 		@param predicate: returns true if x may be returned
@@ -94,7 +94,7 @@ class iDagItem( Interface ):
 			def depthSearch( child ):
 				if not predicate( c ):
 					return
-				children = child.getChildren( predicate = predicate )
+				children = child.children( predicate = predicate )
 				for c in children:
 					depthSearch( c )
 				out.append( child )
@@ -108,7 +108,7 @@ class iDagItem( Interface ):
 				item = childstack.pop( )
 				if not predicate( item ):
 					continue
-				children = item.getChildren( predicate = predicate )
+				children = item.children( predicate = predicate )
 
 				childstack.extendleft( children )
 				out.extend( children )
@@ -137,7 +137,7 @@ class iDagItem( Interface ):
 		@param predicate: returns True for all x that you want to be returned"""
 		curpath = self
 		while True:
-			parent = curpath.getParent( )
+			parent = curpath.parent( )
 			if not parent:
 				raise StopIteration
 
@@ -161,7 +161,7 @@ class iDagItem( Interface ):
 			item += sep
 		return item
 
-	def getFullChildName( self, childname ):
+	def fullChildName( self, childname ):
 		"""Add the given name to the string version of our instance
 		@return: string with childname added like name _sep childname"""
 		sname = self.addSep( str( self ), self._sep )
@@ -319,7 +319,7 @@ class iChoiceDialog( Interface ):
 		self.cancel_choice = kwargs.get( "cc", kwargs.get( "cancelChoice", self.choices[-1] ) )
 
 
-	def getChoice( self ):
+	def choice( self ):
 		"""Make the choice
 		@return: name of the choice made by the user, the type shall equal the type given
 		as button names
@@ -407,7 +407,7 @@ class iProgressIndicator( Interface ):
 		p = self.get( )
 
 		if not message:
-			message = self.getPrefix( p )
+			message = self.prefix( p )
 
 		print message
 
@@ -474,9 +474,9 @@ class iProgressIndicator( Interface ):
 		@note: if set to relative mode, values will range
 		from 0.0 to 100.0.
 		Values will always be within the ones returned by L{getRange}"""
-		p = self.getValue()
-		mn,mx = self.getRange()
-		if self.getRoundRobin():
+		p = self.value()
+		mn,mx = self.range()
+		if self.roundRobin():
 			p = p % mx
 				
 		if not self.isRelative():
@@ -486,29 +486,29 @@ class iProgressIndicator( Interface ):
 		# compute the percentage
 		return min( max( ( p - mn ) / float( mx - mn ), 0.0 ), 1.0 ) * 100.0
 		
-	def getValue( self ):
+	def value( self ):
 		"""@return: current progress as it is stored internally, without regarding 
 		the range or round-robin options.
 		@note: This allows you to use this instance as a counter without concern to 
 		the range and round-robin settings"""
 		return self.__progress
 
-	def getRange( self ):
+	def range( self ):
 		"""@return: tuple( min, max ) value"""
 		return ( self.__min, self.__max )
 
-	def getRoundRobin( self ):
+	def roundRobin( self ):
 		"""@return: True if roundRobin mode is enabled"""
 		return self.__rr
 
-	def getPrefix( self, value ):
+	def prefix( self, value ):
 		"""@return: a prefix indicating the progress according to the current range
 		and given value """
 		prefix = ""
 		if self.isRelative():
 			prefix = "%i%%" % value
 		else:
-			mn,mx = self.getRange()
+			mn,mx = self.range()
 			prefix = "%i/%i" % ( value, mx )
 
 		return prefix

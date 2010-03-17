@@ -18,7 +18,7 @@ class TestAnim( unittest.TestCase ):
 		
 		# test mfn wrapping
 		anim_curve = nt.Node(anim_curve)
-		assert anim_curve.getNumKeyframes() == 0
+		assert anim_curve.numKeyframes() == 0
 		
 		# assure we are connected to the plug, for curiousity
 		assert p.rx in anim_curve.output.moutputs()
@@ -28,17 +28,17 @@ class TestAnim( unittest.TestCase ):
 		anim_curve.setIsWeighted(True)
 		anim_curve.addKeyframe(nt.api.MTime(-1.0), 5.0)
 		anim_curve.addKeyframe(nt.api.MTime(1.0), 10.0)
-		assert anim_curve.getNumKeyframes() == 2
+		assert anim_curve.numKeyframes() == 2
 		
 		# test method overrides 
 		
 		for index in range(anim_curve.numKeyframes()):
 			for isInTangent in range(2):
-				rval = anim_curve.getTangent(index, isInTangent)
+				rval = anim_curve.tangent(index, isInTangent)
 				assert isinstance(rval, tuple) and len(rval) == 2
 				assert rval[0] != 0.0 and rval[1] != 0.0
 				
-				rval = anim_curve.getTangentAsAngle(index, isInTangent)
+				rval = anim_curve.tangentAsAngle(index, isInTangent)
 				assert len(rval) == 2
 				assert isinstance(rval[0], api.MAngle)
 				assert rval[0].value() != 0.0 and rval[1] != 0.0
@@ -65,7 +65,7 @@ class TestAnim( unittest.TestCase ):
 				if as_node:
 					target_type = nt.Node
 				# END define target type
-				for anode in nt.AnimCurve.getAnimation(converter([p]), as_node):
+				for anode in nt.AnimCurve.animation(converter([p]), as_node):
 					assert isinstance(anode, target_type)
 					nc += 1
 				# END for each anim node

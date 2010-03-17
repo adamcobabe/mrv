@@ -15,21 +15,21 @@ class GeometryShape( base.Shape ):	# base for epydoc !
 		them. This is practical in case you create a new shape below a transform that
 		had a previously visible and manipulated shape whose external connections you
 		wouuld like to keep"""
-		def getFreeLogicalIndex( parent_plug ):
+		def freeLogicalIndex( parent_plug ):
 			"""@return: a free parent compound index"""
-			ilogical = parent_plug.getLogicalIndex()
-			array_plug = parent_plug.getArray()
-			num_elments = array_plug.getNumElements()
+			ilogical = parent_plug.logicalIndex()
+			array_plug = parent_plug.array()
+			num_elments = array_plug.numElements()
 
 
 			# one of the logical indices must be the highest one - start searching
 			# at the end of the physical array
 			for iphysical in xrange( num_elments - 1, -1, -1 ):
 				p_plug = array_plug[ iphysical ]
-				try_index = p_plug.getLogicalIndex() + 1
-				try_plug = array_plug.getElementByLogicalIndex( try_index )
+				try_index = p_plug.logicalIndex() + 1
+				try_plug = array_plug.elementByLogicalIndex( try_index )
 
-				if try_plug.getChild( 0 ).minput().isNull():
+				if try_plug.child( 0 ).minput().isNull():
 					return try_index
 			# END endless loop
 
@@ -39,7 +39,7 @@ class GeometryShape( base.Shape ):	# base for epydoc !
 		substitute = kwargs.get( "substitute", False )
 		for input_plug in self.message.moutputs():
 			node = input_plug.mwrappedNode()
-			if node.getApiType() != api.MFn.kLightLink:
+			if node.apiType() != api.MFn.kLightLink:
 				continue
 
 			# we are always connected to the object portion of the compound model
@@ -47,23 +47,24 @@ class GeometryShape( base.Shape ):	# base for epydoc !
 			parent_compound = input_plug.mparent()
 			target_compound_index = -1
 			if substitute:
-				target_compound_index = parent_compound.getLogicalIndex()
+				target_compound_index = parent_compound.logicalIndex()
 			else:
-				target_compound_index = getFreeLogicalIndex( parent_compound )
+				target_compound_index = freeLogicalIndex(parent_compound)
+			# END get some logical index
 
-			new_parent_compound = parent_compound.getArray().getElementByLogicalIndex( target_compound_index )
+			new_parent_compound = parent_compound.array().elementByLogicalIndex( target_compound_index )
 
 			# retrieve light link, connect other - light is only needed if we do not
 			# substitute
 			if not substitute:
-				light_plug = parent_compound.getChild( 0 ).minput()
+				light_plug = parent_compound.child( 0 ).minput()
 				if not light_plug.isNull():
-					light_plug.mconnectTo(new_parent_compound.getChild( 0 ), force=False)
+					light_plug.mconnectTo(new_parent_compound.child( 0 ), force=False)
 				# END if lightplug is connected
 			# END if no substitute required
 
 			# connect object
-			other.message.mconnectTo(new_parent_compound.getChild(1))
+			other.message.mconnectTo(new_parent_compound.child(1))
 
 
 		# END for each output plug
@@ -102,7 +103,7 @@ class _SingleIndexedComponentGenerator(object):
 		self._component = component
 		
 	def __getslice__(self, i, j):
-		comp = self._mesh.getComponent(self._component)
+		comp = self._mesh.component(self._component)
 		# for some reason , python inside maya returns 31 bit ints to indicate 
 		# slices, instead of sys.maxint. To be sure we handle all, we just 
 		# check larger/than cases
@@ -115,7 +116,7 @@ class _SingleIndexedComponentGenerator(object):
 		return comp
 		
 	def __getitem__(self, *args):
-		comp = self._mesh.getComponent(self._component)
+		comp = self._mesh.component(self._component)
 		ia = None
 		if len(args) == 1:
 			arg = args[0]
@@ -136,7 +137,7 @@ class _SingleIndexedComponentGenerator(object):
 		
 	def empty(self):
 		"""@return: empty component of our type"""
-		return self._mesh.getComponent(self._component)
+		return self._mesh.component(self._component)
 		
 
 class _SingleIndexedComponentIterator(_SingleIndexedComponentGenerator):
@@ -176,12 +177,12 @@ class _SingleIndexedComponentIterator(_SingleIndexedComponentGenerator):
 		return self._mesh.iterComponents(self._component, comp) 
 		
 		
-	def getIterator(self):
+	def iterator(self):
 		"""@return: Iterator for all components in the mesh"""
 		return self._get_complete_iterator()
 		
 	# shortcut alias
-	iter = property(getIterator)
+	iter = property(iterator)
 		
 #} END helpers 
 
@@ -224,7 +225,7 @@ class Mesh( SurfaceShape ):		# base for epydoc !
 		opnts = other.pnts
 		pnts = self.pnts
 		for splug in pnts:
-			opnts.getElementByLogicalIndex( splug.logicalIndex() ).msetMObject( splug.asMObject() )
+			opnts.elementByLogicalIndex( splug.logicalIndex() ).msetMObject( splug.asMObject() )
 		# END for each source plug in pnts
 
 	def isValidMesh( self ):
@@ -242,7 +243,7 @@ class Mesh( SurfaceShape ):		# base for epydoc !
 		@param setFilter: default is fSetsRenderable
 		@param **kwargs: passed to set.addMember"""
 		setFilter = kwargs.pop( "setFilter", base.Shape.fSetsRenderable )
-		for sg, comp in self.getComponentAssignments( setFilter = setFilter ):
+		for sg, comp in self.componentAssignments( setFilter = setFilter ):
 			sg.addMember( other, comp, **kwargs )
 
 
@@ -311,10 +312,10 @@ class Mesh( SurfaceShape ):		# base for epydoc !
 						if tweak_node_type_API == api.MFn.kPolyTweakUV:
 							names = list()
 							self.getUVSetNames( names )
-							index = names.index( self.getCurrentUVSetName( ) )
+							index = names.index( self.currentUVSetName( ) )
 
-							own_tweak_location_plug = self.uvSet.getElementByLogicalIndex( index ).mchildByName('uvSetTweakLocation')
-							tweak_node.uvTweak.getElementByLogicalIndex( index ).mconnectTo(own_tweak_location_plug)
+							own_tweak_location_plug = self.uvSet.elementByLogicalIndex( index ).mchildByName('uvSetTweakLocation')
+							tweak_node.uvTweak.elementByLogicalIndex( index ).mconnectTo(own_tweak_location_plug)
 						# END uv special setup
 					# END create tweak node
 
@@ -333,7 +334,7 @@ class Mesh( SurfaceShape ):		# base for epydoc !
 						except RuntimeError:
 							continue
 						else:
-							dtweak_plug.getElementByLogicalIndex(i).msetMObject(tplug.asMObject())
+							dtweak_plug.elementByLogicalIndex(i).msetMObject(tplug.asMObject())
 						# END exception handling
 					# END for each tweak plug
 
@@ -357,12 +358,12 @@ class Mesh( SurfaceShape ):		# base for epydoc !
 				pass
 		# END for tweak type to reset
 		
-	def getComponent(self, component_type):
+	def component(self, component_type):
 		"""@return: A component object able to hold the given component type
 		@param component_type: a member of the L{eComponentType} enumeration"""
 		if component_type not in self.eComponentType:
 			raise ValueError("Invalid component type")
-		return base.SingleIndexedComponent.create(component_type.getValue())
+		return base.SingleIndexedComponent.create(component_type.value())
 		# END handle face-vertex components
 		
 	#} END utilities

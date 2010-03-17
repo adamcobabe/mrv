@@ -15,7 +15,6 @@ import base
 import mayarv.maya.undo as undo
 import mayarv.util as util
 from mayarv.interface import iDagItem 
-from mayarv.util import getPythonIndex
 import maya.OpenMaya as api
 import maya.cmds as cmds
 import inspect
@@ -206,7 +205,7 @@ class MTransformationMatrix( api.MTransformationMatrix, PatchMatrix ):
 		type.__setattr__( cls.__bases__[0], '__iter__', __iter__ )
 		return True
 
-	def mscale( self , space = api.MSpace.kTransform ):
+	def mgetScale( self , space = api.MSpace.kTransform ):
 		ms = api.MScriptUtil()
 		ms.createFromDouble( 1.0, 1.0, 1.0 )
 		p = ms.asDoublePtr()
@@ -308,7 +307,7 @@ class MPlug( api.MPlug ):
 		"""@return: number of physical elements in the array, but only if they are 
 		not connected. If in doubt, run evaluateNumElements beforehand"""
 		if not self.isArray( ): return 0
-		return self.getNumElements( )
+		return self.numElements( )
 
 	def __iter__( self ):
 		"""@return: iterator object"""
@@ -328,7 +327,7 @@ class MPlug( api.MPlug ):
 
 		# see whether elements are right - both must be elements if one is
 		if self.isElement():
-			return self.getLogicalIndex( ) == other.getLogicalIndex()
+			return self.logicalIndex( ) == other.logicalIndex()
 
 		return True
 
@@ -356,9 +355,9 @@ class MPlug( api.MPlug ):
 		@param predicate: return True to include x in result"""
 		outchildren = []
 		if self.isCompound():
-			nc = self.getNumChildren()
+			nc = self.numChildren()
 			for c in xrange( nc ):
-				child = self.getChild( c )
+				child = self.child( c )
 				if predicate( child ):
 					outchildren.append( child )
 			# END FOR EACH CHILD
@@ -374,9 +373,9 @@ class MPlug( api.MPlug ):
 			raise TypeError( "Plug %s is not a compound plug" % self )
 		# END if is compound
 		
-		nc = self.getNumChildren( )
+		nc = self.numChildren( )
 		for c in xrange( nc ):
-			child = self.getChild( c )
+			child = self.child( c )
 			if (	child.partialName( ).split('.')[-1] == childname or
 					child.partialName( 0, 0, 0, 0, 0, 1 ).split('.')[-1] == childname ):
 				return child
@@ -392,9 +391,9 @@ class MPlug( api.MPlug ):
 		combinations of array and compound plugs"""
 		if self.isCompound( ):
 			outchildren = []
-			nc = self.getNumChildren( )
+			nc = self.numChildren( )
 			for c in xrange( nc ):
-				child = self.getChild( c )
+				child = self.child( c )
 				if predicate( child ):
 					outchildren.append( child )
 			# END FOR EACH CHILD
@@ -697,7 +696,7 @@ class MPlug( api.MPlug ):
 		required - this will also be faster
 		@note: have to use MEL :("""
 		ownnode = self.mwrappedNode()
-		attrs = cmds.affects( self.mwrappedAttribute().getName() , str( ownnode ), by=by ) or list()
+		attrs = cmds.affects( self.mwrappedAttribute().name() , str( ownnode ), by=by ) or list()
 
 		outplugs = list()
 		depfn = api.MFnDependencyNode( ownnode.getMObject() )
@@ -746,7 +745,7 @@ class MPlug( api.MPlug ):
 	def mnextLogicalPlug( self ):
 		"""@return: plug at newly created logical index
 		@note: only valid for array plugs"""
-		return self.getElementByLogicalIndex(self.mnextLogicalIndex())
+		return self.elementByLogicalIndex(self.mnextLogicalIndex())
 
 	def mwrappedAttribute( self ):
 		"""@return: Attribute instance of our underlying attribute"""

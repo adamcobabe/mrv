@@ -12,7 +12,7 @@ def parseProcessesFromPackage( importBase, packageFile ):
 	@param packageFile: the pointing to your processes package, usually __file__ of your package
 	"""
 	isProcess = lambda cls: hasattr( cls, 'mro' ) and ProcessBase in cls.mro()
-	processes = util.getPackageClasses( importBase, packageFile, predicate = isProcess )
+	processes = util.packageClasses( importBase, packageFile, predicate = isProcess )
 
 	gd = globals()
 	for pcls in processes:

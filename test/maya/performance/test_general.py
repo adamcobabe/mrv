@@ -139,7 +139,7 @@ class TestGeneralPerformance( unittest.TestCase ):
 			# END for each node
 			
 			# iterate namespaces
-			for namespace in chain((ns.RootNamespace, ), ns.RootNamespace.getChildrenDeep()):
+			for namespace in chain((ns.RootNamespace, ), ns.RootNamespace.childrenDeep()):
 				self._iterate_namespace(namespace)
 			# END for each namespace
 		# END for each run
@@ -242,7 +242,7 @@ class TestGeneralPerformance( unittest.TestCase ):
 		# RENAME PERFORMANCE
 		st = time.time()
 		for node in tmplist:
-			node.rename(node.getBasename()[:-1])
+			node.rename(node.basename()[:-1])
 		# END for each node 
 		elapsed = time.time() - st
 		ltl = len(tmplist)
@@ -361,7 +361,7 @@ class TestGeneralPerformance( unittest.TestCase ):
 			# RENAME
 			st = time.time()
 			for node in node_list:
-				node.rename(node.getBasename()[:-1])
+				node.rename(node.basename()[:-1])
 			# END for each node to rename
 			elapsed = time.time() - st
 			print >>sys.stderr, "Renamed %i %s nodes in  %f s ( %f nodes / s )" % (nn, node_type, elapsed, nn/elapsed)
@@ -393,7 +393,7 @@ class TestGeneralPerformance( unittest.TestCase ):
 		# END for each asNode option
 		
 		# try namespace iteration
-		self._iterate_namespace(ref.getNamespace(), unlimited_depth=True)
+		self._iterate_namespace(ref.namespace(), unlimited_depth=True)
 		
 		
 

@@ -70,19 +70,19 @@ class FileReference( iDagItem ):
 		if isinstance( other, FileReference ):
 			return self._refnode == other._refnode
 
-		return self.getPath() == other
+		return self.path() == other
 
 	def __ne__( self, other ):
 		return not self.__eq__( other )
 
 	def __hash__(self):
-		return hash(self.getPath(copynumber=1))
+		return hash(self.path(copynumber=1))
 
 	def __str__(self):
-		return str(self.getPath())
+		return str(self.path())
 		
 	def __repr__(self):
-		return "FileReference(%s)" % str(self.getPath(copynumber=1))
+		return "FileReference(%s)" % str(self.path(copynumber=1))
 
 	#} END object overrides
 
@@ -110,12 +110,12 @@ class FileReference( iDagItem ):
 		else:
 			ns = Namespace( ns )		# assure we have a namespace object
 
-		ns = ns.getRelativeTo( Namespace( Namespace.root ) )
+		ns = ns.relativeTo( Namespace( Namespace.rootpath ) )
 		if ns.exists():
 			raise ValueError( "Namespace %s for %s does already exist" % (ns,filepath) )
 
 		# assure we keep the current namespace
-		prevns = Namespace.getCurrent()
+		prevns = Namespace.current()
 		try:
 			createdRefpath = cmds.file( filepath, ns=str(ns),r=1,dr=not load )
 		finally:
@@ -132,8 +132,8 @@ class FileReference( iDagItem ):
 		This fails if there are referenced objects in the subnamespace - we currently 
 		ignore that issue as the main reference removal worked at that point.
 		@note: **kwargs passed to namespace.delete """
-		ns = self.getNamespace( )
-		cmds.file( self.getPath( copynumber=1 ), rr=1 )
+		ns = self.namespace( )
+		cmds.file( self.path( copynumber=1 ), rr=1 )
 		try:
 			ns.delete( **kwargs )
 		except RuntimeError:
@@ -145,7 +145,7 @@ class FileReference( iDagItem ):
 		@param filepath: the path to the file to replace this reference with
 		Reference instances will be handled as well.
 		@return: self"""
-		filepath = (isinstance(filepath, type(self)) and filepath.getPath()) or filepath
+		filepath = (isinstance(filepath, type(self)) and filepath.path()) or filepath
 		filepath = self._splitCopyNumber( filepath )[0]
 		cmds.file( filepath, lr=self._refnode )
 		return self
@@ -162,8 +162,8 @@ class FileReference( iDagItem ):
 		def importRecursive( reference, curdepth, maxdepth ):
 			# load ref
 			reference.setLoaded( True )
-			children = reference.getChildren()
-			cmds.file( reference.getPath(copynumber=1), importReference=1 )
+			children = reference.children()
+			cmds.file( reference.path(copynumber=1), importReference=1 )
 
 			if curdepth == maxdepth:
 				return children
@@ -209,14 +209,14 @@ class FileReference( iDagItem ):
 		# build dict for fast lookup
 		# It will keep each reference
 		lut = dict()
-		pathscp = [ (isinstance(p, cls) and p.getPath()) or Path(p) for p in paths ]
+		pathscp = [ (isinstance(p, cls) and p.path()) or Path(p) for p in paths ]
 		
 		conv = lambda f: f
 		if ignore_ext:
 			conv = lambda f: f.expandvars().splitext()[0]
 		# END ignore extension converter
 		
-		def getCountTuple( filepath, lut ):
+		def countTuple( filepath, lut ):
 			count = lut.get( filepath, 0 )
 			lut[ filepath ] = count + 1
 			return ( filepath , count )
@@ -224,12 +224,12 @@ class FileReference( iDagItem ):
 		
 		clut = dict()
 		for ref in refs:
-			lut[ getCountTuple(conv(ref.getPath()), clut) ] = ref			# keys have no ext
+			lut[ countTuple(conv(ref.path()), clut) ] = ref			# keys have no ext
 		# END for each ref to put into lut
 		
 		clut.clear()
 		for i,path in enumerate( pathscp ):
-			pathscp[i] = getCountTuple(conv(path), clut)
+			pathscp[i] = countTuple(conv(path), clut)
 		# END for each path to prepare
 		
 		outlist = list()
@@ -250,7 +250,7 @@ class FileReference( iDagItem ):
 		should be part of the return value.
 		@return: list of L{FileReference}s objects"""
 		if isinstance(rootReference, cls):
-			rootReference = rootReference.getPath(copynumber=1)
+			rootReference = rootReference.path(copynumber=1)
 		# END handle non-string type
 		out = list()
 		for reffile in cmds.file( str( rootReference ), q=1, r=1 ):
@@ -269,7 +269,7 @@ class FileReference( iDagItem ):
 		refs = cls.ls( **kwargs )
 		out = refs
 		for ref in refs:
-			out.extend(ref.getChildrenDeep(order=cls.kOrder_BreadthFirst, predicate=predicate))
+			out.extend(ref.childrenDeep(order=cls.kOrder_BreadthFirst, predicate=predicate))
 		return out
 
 	#} listing
@@ -297,7 +297,7 @@ class FileReference( iDagItem ):
 		@raise ValueError: if incompatible arguments have been given"""
 		import nt
 		
-		rns = self.getNamespace()
+		rns = self.namespace()
 		rnsrela = rns.toRelative()+':'
 		asNode = kwargs.get('asNode', True)
 		predicate = kwargs.get('predicate', lambda n: True)
@@ -393,15 +393,15 @@ class FileReference( iDagItem ):
 		The loading state of the reference will stay unchanged after the operation.
 		@param editTypes: list of edit types to remove during cleanup
 		@return: self"""
-		wasloaded = self.p_loaded
+		wasloaded = self.isLoaded()
 		if not unresolvedEdits:
-			self.p_loaded = False
+			self.setLoaded(False)
 
 		for etype in editTypes:
 			cmds.file( cr=self._refnode, editCommand=etype )
 
 		if not unresolvedEdits:
-			self.p_loaded = wasloaded
+			self.setLoaded(wasloaded)
 			
 		return self
 
@@ -415,14 +415,14 @@ class FileReference( iDagItem ):
 			return
 
 		# unload ref
-		wasloaded = self.p_loaded
-		self.p_loaded = False
+		wasloaded = self.isLoaded()
+		self.setLoaded(False)
 
 		# set locked
 		cmds.setAttr( self._refnode+".locked", state )
 
 		# reset the loading state
-		self.p_loaded = wasloaded
+		self.setLoaded(wasloaded)
 		
 		return self
 
@@ -450,10 +450,10 @@ class FileReference( iDagItem ):
 		@return: self"""
 		shortname = namespace
 		if isinstance( namespace, Namespace ):
-			shortname = namespace.getBasename( )
+			shortname = namespace.basename( )
 
 		# set the namespace
-		cmds.file( self.getPath(copynumber=1), e=1, ns=shortname )
+		cmds.file( self.path(copynumber=1), e=1, ns=shortname )
 		
 		return self
 
@@ -464,7 +464,7 @@ class FileReference( iDagItem ):
 	def exists( self ):
 		"""@return: True if our file reference exists in maya"""
 		try:
-			self.getPath(copynumber=1)
+			self.path(copynumber=1)
 		except RuntimeError:
 			return False
 		else:
@@ -478,27 +478,27 @@ class FileReference( iDagItem ):
 		"""@return: True if the reference is loaded"""
 		return cmds.file( rfn=self._refnode, q=1, dr=1 ) == False
 
-	def getParent( self ):
+	def parent( self ):
 		"""@return: the parent reference of this instance or None if we are root"""
 		parentrfn = cmds.referenceQuery( self._refnode, rfn=1, p=1 )
 		if not parentrfn:
 			return None
 		return FileReference( refnode = parentrfn )
 
-	def getChildren( self , predicate = lambda x: True ):
+	def children( self , predicate = lambda x: True ):
 		""" @return: all intermediate child references of this instance """
 		return self.ls( rootReference = self, predicate = predicate )
 
 
-	def getCopyNumber( self ):
+	def copynumber( self ):
 		"""@return: the references copy number - starting at 0 for the first reference
 		@note: we do not cache the copy number as mayas internal numbering can change on
 		when references change - the only stable thing is the reference node name"""
-		return self._splitCopyNumber( self.getPath(copynumber=1) )[1]
+		return self._splitCopyNumber( self.path(copynumber=1) )[1]
 
-	def getNamespace( self ):
+	def namespace( self ):
 		"""@return: namespace object of the full namespace holding all objects in this reference"""
-		fullpath = self.getPath(copynumber=1)
+		fullpath = self.path(copynumber=1)
 		refspace = cmds.file( fullpath, q=1, ns=1 )
 		parentspace = cmds.file( fullpath, q=1, pns=1 )[0]		# returns lists, although its always just one string
 		if parentspace:
@@ -506,7 +506,7 @@ class FileReference( iDagItem ):
 		# END handle parent namespace
 		return Namespace( ":" + parentspace + refspace )
 
-	def getPath( self, copynumber=False, unresolved = False ):
+	def path( self, copynumber=False, unresolved = False ):
 		"""@return: Path object with the path containing the reference's data
 		@param copynumber: If True, the returned path will include the copy number.
 		As it will be a path object, it might not be fully usable in that state
@@ -519,20 +519,11 @@ class FileReference( iDagItem ):
 		# END handle copy number
 		return Path(path_str)
 
-	def getReferenceNode( self ):
+	def referenceNode( self ):
 		"""@return: wrapped reference node managing this reference"""
 		import mayarv.maya.nt as nt
 		return nt.NodeFromStr( self._refnode )
 
 	#}END query methods
-
-	#{ Properties
-	p_path = property( getPath )
-	p_locked = property( isLocked, setLocked )
-	p_loaded = property( isLoaded, setLoaded )
-	p_copynumber = property( getCopyNumber )
-	p_namespace = property( getNamespace, setNamespace )
-	#}
-
 
 

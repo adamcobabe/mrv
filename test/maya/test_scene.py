@@ -42,7 +42,7 @@ class TestScene( unittest.TestCase ):
 		assert event_inst._getCallbackID(sc) is None
 
 	def test_cbgroup_zero( self ):
-		if env.getAppVersion( )[0] == 8.5:
+		if env.appVersion( )[0] == 8.5:
 			return
 
 		self._runMessageTest( 'beforeNewCheck',
@@ -50,7 +50,7 @@ class TestScene( unittest.TestCase ):
 								Scene.new )
 
 	def test_cbgroup_one( self ):
-		if env.getAppVersion( )[0] == 8.5:
+		if env.appVersion( )[0] == 8.5:
 			return
 
 		scenepath = get_maya_file( "sphere.ma" )
@@ -80,7 +80,7 @@ class TestScene( unittest.TestCase ):
 	@with_scene('empty.ma')
 	def test_rename(self):
 		new_ext = ".mb"
-		new_path = Scene.rename(Scene.getName()	.splitext()[0] + "newname%s" % new_ext)
+		new_path = Scene.rename(Scene.name()	.splitext()[0] + "newname%s" % new_ext)
 		assert new_path.p_ext == new_ext
 
 	@with_scene('empty.ma')
@@ -100,7 +100,7 @@ class TestScene( unittest.TestCase ):
 		# END for each file to save
 		
 		# test remove unknown nodes
-		assert Scene.getName().p_ext == ".ma"
+		assert Scene.name().p_ext == ".ma"
 		target_path = tmpdir / 'withoutunknown.mb'
 		unode = cmds.createNode("unknown")
 		

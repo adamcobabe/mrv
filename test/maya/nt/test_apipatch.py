@@ -60,7 +60,7 @@ class TestDataBase( unittest.TestCase ):
 
 		# CHECK CONNECTION FORCING
 		persp.translate.mconnectTo(front.translate, force=False) 			# already connected
-		self.failUnlessRaises( RuntimeError, persp.scale.mconnectTo, front.translate, force=False )# lhs > rhs
+		self.failUnlessRaises( RuntimeError, persp.s.mconnectTo, front.translate, force=False )
 
 		# overwrite connection
 		side.translate.mconnectTo(front.translate)	# force default True
@@ -109,7 +109,7 @@ class TestDataBase( unittest.TestCase ):
 		
 		def pir(array_plug, range_iter):
 			for index in range_iter:
-				yield array_plug.getElementByLogicalIndex(index)
+				yield array_plug.elementByLogicalIndex(index)
 			# END for each item in range
 		# END plugs-in-range
 		
@@ -117,7 +117,7 @@ class TestDataBase( unittest.TestCase ):
 		r = range(10)
 		api.MPlug.mconnectMultiToMulti(	izip(pir(sn.a, r), pir(tn.affectedBy, r)), force=False) 
 		for i in r:
-			assert sn.a.getElementByLogicalIndex(i).misConnectedTo(tn.affectedBy.getElementByLogicalIndex(i))
+			assert sn.a.elementByLogicalIndex(i).misConnectedTo(tn.affectedBy.elementByLogicalIndex(i))
 		# END make connection assertion
 		
 		# connection of overlapping range fails without force
@@ -126,13 +126,13 @@ class TestDataBase( unittest.TestCase ):
 		
 		# there no connection should have worked ( its atomic )
 		# hence slot 10 is free
-		persp.tx > tn.affectedBy.getElementByLogicalIndex(10)
+		persp.tx > tn.affectedBy.elementByLogicalIndex(10)
 		
 		# force connection works
 		api.MPlug.mconnectMultiToMulti(izip(pir(sn2.a, r), pir(tn.affectedBy, r)), force=True)
 		
 		for i in r:
-			assert sn2.a.getElementByLogicalIndex(i).misConnectedTo(tn.affectedBy.getElementByLogicalIndex(i))
+			assert sn2.a.elementByLogicalIndex(i).misConnectedTo(tn.affectedBy.elementByLogicalIndex(i))
 		# END make connection assertion
 
 		# ATTRIBUTES AND UNDO
@@ -177,7 +177,7 @@ class TestDataBase( unittest.TestCase ):
 
 		translate = persp.translate
 
-		assert len( translate.mchildren() ) == translate.getNumChildren() 
+		assert len( translate.mchildren() ) == translate.numChildren() 
 
 		# CHILD ITERATION
 		for child in translate.mchildren( ):
@@ -249,8 +249,8 @@ class TestDataBase( unittest.TestCase ):
 		# called at least once. I don't trust my 'old'  tests, although they do 
 		# something and are valuable to the testing framework. 
 		nwnode = nt.Network()
-		persp.msg.mct(nwnode.affectedBy.getElementByLogicalIndex(0))
-		front.msg.mct(nwnode.affectedBy.getElementByLogicalIndex(1))
+		persp.msg.mct(nwnode.affectedBy.elementByLogicalIndex(0))
+		front.msg.mct(nwnode.affectedBy.elementByLogicalIndex(1))
 		
 		t = persp.translate
 		tx = persp.tx
@@ -418,12 +418,12 @@ class TestDataBase( unittest.TestCase ):
 
 	def test_matrixData( self ):
 		node = nt.Node( "persp" )
-		matplug = node.getPlug( "worldMatrix" )
+		matplug = node.findPlug( "worldMatrix" )
 		assert not matplug.isNull() 
 		assert matplug.isArray() 
 		matplug.evaluateNumElements()							# to assure we have something !
 
-		assert matplug.getName() == "persp.worldMatrix" 
+		assert matplug.name() == "persp.worldMatrix" 
 		assert len( matplug ) 
 
 		matelm = matplug[0]
@@ -440,7 +440,7 @@ class TestDataBase( unittest.TestCase ):
 
 		tmat.msetScale( ( 2.0, 4.0, 6.0 ) )
 
-		s = tmat.mscale()
+		s = tmat.mgetScale()
 		assert s.x == 2.0 
 		assert s.y == 4.0 
 		assert s.z == 6.0 
@@ -451,10 +451,10 @@ class TestDataBase( unittest.TestCase ):
 
 	def test_MPlugArray( self ):
 		node = nt.Node( "defaultRenderGlobals" )
-		pa = node.getConnections( )
+		pa = node.connections( )
 
 		myplug = pa[0]
-		myplug.getName()				# special Plug method not available in the pure api object
+		myplug.name()				# special Plug method not available in the pure api object
 		pa.append( myplug )
 
 		assert len( pa ) == 4 
@@ -469,7 +469,7 @@ class TestDataBase( unittest.TestCase ):
 
 		# __ITER__
 		for plug in pa:
-			plug.getName( )
+			plug.name( )
 			assert isinstance( plug, api.MPlug ) 
 
 		self.failIf( len( pa ) != 5 )

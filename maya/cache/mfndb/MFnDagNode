@@ -45,7 +45,7 @@ x   | create                                  | None                |
     | delete_MFnDagNode                       | None                |                                         
     | duplicate                               | Node                |                                         
     | fullPathName                            | None                | getFullPathName                         
-    | getAllPaths                             | None                |                                         
+    | getAllPaths                             | None                | allPaths                                         
 x   | getPath                                 | None                |                                         
     | hasChild                                | None                |                                         
     | hasParent                               | None                |                                         

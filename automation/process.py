@@ -23,16 +23,16 @@ def track_output_call( func ):
 		if not self.track_compute_calls:
 			return func( self, plug, mode )
 
-		pdata = self.getWorkflow()._trackOutputQueryStart( self, plug, mode )
+		pdata = self.workflow()._trackOutputQueryStart( self, plug, mode )
 
 		try:
 			result = func( self, plug, mode )
 		except Exception,e:
 			pdata.exception = e
-			self.getWorkflow()._trackOutputQueryEnd( None )
+			self.workflow()._trackOutputQueryEnd( None )
 			raise
 
-		self.getWorkflow()._trackOutputQueryEnd( result )
+		self.workflow()._trackOutputQueryEnd( result )
 		return result
 
 	# END track func
@@ -88,7 +88,7 @@ class ProcessBase( NodeBase ):
 
 	#{ Query
 
-	def getTargetRating( self, target, check_input_plugs = True, **kwargs ):
+	def targetRating( self, target, check_input_plugs = True, **kwargs ):
 		"""@return: tuple( int, PlugShell )
 		int between 0 and 255 - 255 means target matches perfectly, 0
 		means complete incompatability. Any inbetweens indicate the target can be
@@ -103,9 +103,9 @@ class ProcessBase( NodeBase ):
 		# query our ouput plugs for a compatible attr
 		targetplugs = None
 		if check_input_plugs:
-			targetplugs = self.getInputPlugs( )
+			targetplugs = self.inputPlugs( )
 		else:
-			targetplugs = self.getOutputPlugs( )
+			targetplugs = self.outputPlugs( )
 
 		plugrating = self.filterCompatiblePlugs( targetplugs, target, attr_as_source=False , **kwargs )
 
@@ -119,7 +119,7 @@ class ProcessBase( NodeBase ):
 				continue			# need to set the attribute
 
 			# connected plugs are an option, but prefer the ones being open
-			if self.toShell( plug ).getInput():
+			if self.toShell( plug ).input():
 				rate /= 2.0
 
 			writableRatedPlugs.append( (rate,plug) )
@@ -134,10 +134,10 @@ class ProcessBase( NodeBase ):
 		return ( int(rate), self.toShell( plug ) )
 
 
-	def getSupportedTargetTypes( self ):
+	def supportedTargetTypes( self ):
 		"""@return: list target types that can be output
 		@note: targetTypes are classes, not instances"""
-		return [ p.attr.typecls for p in self.getInputPlugs() ]
+		return [ p.attr.typecls for p in self.inputPlugs() ]
 
 	#} END query
 
@@ -183,12 +183,12 @@ class ProcessBase( NodeBase ):
 		@param plug: plug to evaluate
 		@param mode: the mode of the valuation
 		@return: result of the computation"""
-		wfl = self.getWorkflow()
+		wfl = self.workflow()
 		finalmode = wfl._mode			# use global mode
 
 		# if we are root, we take the mode given by the caller though
 		if self.track_compute_calls:
-			if wfl.getCallGraph().getCallRoot().process == self:
+			if wfl.callGraph().callRoot().process == self:
 				finalmode = mode
 		else:
 			# either use the explicit mode or the global one
@@ -211,7 +211,7 @@ class ProcessBase( NodeBase ):
 		This uauslly is a special case for most preocesses"""
 		pass
 
-	def getWorkflow( self ):
+	def workflow( self ):
 		"""@return: the workflow instance we are connected with. Its used to query global data"""
 		return self.graph
 
@@ -308,8 +308,8 @@ class WorkflowProcessBase( GraphNodeBase, ProcessBase ):
 
 	def _iterNodes( self ):
 		"""@return: generator for nodes that have no output connections or no input connections """
-		noOutput = lambda node: not node.getConnections( 0, 1 )
-		noInput = lambda node: not node.getConnections( 1, 0 )
+		noOutput = lambda node: not node.connections( 0, 1 )
+		noInput = lambda node: not node.connections( 1, 0 )
 		return self.wgraph.iterNodes( predicate = Or( noInput, noOutput ) )
 
 	def _getNodePlugs( self ):

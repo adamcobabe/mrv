@@ -20,25 +20,25 @@ class TestReferenceRunner( unittest.TestCase ):
 		assert len( allRefs ) != 0 
 
 		for ref in allRefs:
-			ref.getChildrenDeep( )		# try function
+			ref.childrenDeep( )		# try function
 
 
-			assert isinstance( ref.p_copynumber, int ) 
-			assert isinstance( ref.p_namespace, Namespace ) 
+			assert isinstance( ref.copynumber(), int ) 
+			assert isinstance( ref.namespace(), Namespace ) 
 
 			# change root reference namespaces
 			if ref.isRoot( ):
-				curNS = ref.p_namespace
-				assert ref.setNamespace( curNS.getBasename( ) + "_renamed" ) == ref
-				assert str( ref.getNamespace( ) ).endswith( "_renamed" ) 
+				curNS = ref.namespace()
+				assert ref.setNamespace( curNS.basename( ) + "_renamed" ) == ref
+				assert str( ref.namespace( ) ).endswith( "_renamed" ) 
 			# END if is root
 
 			# get children
 
 			def childTest( refobj ):
-				subrefs = refobj.getChildren( )
+				subrefs = refobj.children( )
 				for subref in subrefs:
-					assert subref.getParent( ) 
+					assert subref.parent( ) 
 					assert not subref.isRoot() 
 					childTest( subref )
 			# END childTest
@@ -47,22 +47,22 @@ class TestReferenceRunner( unittest.TestCase ):
 
 			# load-unload test
 			assert ref.isLoaded( ) 
-			ref.p_loaded = False
-			assert not ref.p_loaded 
+			ref.setLoaded(False)
+			assert not ref.isLoaded() 
 			assert ref.setLoaded(True) == ref 
-			assert ref.p_loaded 
+			assert ref.isLoaded() 
 
 			# lock test
 			assert ref.isLocked( ) == False 
-			ref.p_locked = True
-			assert ref.p_locked == True 
+			ref.setLocked(True)
+			assert ref.isLocked() == True 
 			assert ref.setLocked(False) == ref
-			assert ref.p_locked == False 
+			assert ref.isLocked() == False 
 
 			assert ref.cleanup( ) == ref
 			ref.cleanup( unresolvedEdits=False )
 
-			refnode = ref.getReferenceNode( )
+			refnode = ref.referenceNode( )
 			assert not isinstance( refnode, basestring ) 
 
 			# it should always find our reference as well
@@ -85,12 +85,12 @@ class TestReferenceRunner( unittest.TestCase ):
 				for node in ref.iterNodes( asNode = 1 ):
 					pass
 
-				assert ref.p_loaded == load 
+				assert ref.isLoaded() == load 
 				
 				# on windows inner maya paths use slash and paths outside of maya use backslash
 				# would prefer to use normpath but python 2.5 is buggy with slash-backslash conversion here
-				assert os.path.abspath(ref.getPath()) == newreffile
-				assert ref.getPath() == ref.p_path
+				assert os.path.abspath(ref.path()) == newreffile
+				assert ref.path() == ref.path()
 				assert ref.exists() 
 
 				# try to create a reference with the same namespace
@@ -98,20 +98,20 @@ class TestReferenceRunner( unittest.TestCase ):
 				newrefs.append( ref )
 				
 				# check getPath and copy number
-				if ref.getCopyNumber() != 0:
-					assert ref.getPath(copynumber=1) != ref.getPath(copynumber=0)
+				if ref.copynumber() != 0:
+					assert ref.path(copynumber=1) != ref.path(copynumber=0)
 				# END check copy number
 
 				# should found newref
 				findresult = FileReference.fromPaths( [ ref ] )
-				assert len( findresult ) == 1 and findresult[0].getPath() == ref.getPath() 
-				assert ref.getPath() in findresult 	# see that >in< operator works
+				assert len( findresult ) == 1 and findresult[0].path() == ref.path() 
+				assert ref.path() in findresult 	# see that >in< operator works
 
 
 				# iterate the objects
-				for node in ref.getNamespace( ).iterNodes( ):
-					if node.getApiType() != api.MFn.kReference:
-						filename = node.getReferenceFile( )
+				for node in ref.namespace( ).iterNodes( ):
+					if node.apiType() != api.MFn.kReference:
+						filename = node.referenceFile( )
 						assert FileReference( filepath=filename ) == ref 
 				# END for each node in filename
 
@@ -132,7 +132,7 @@ class TestReferenceRunner( unittest.TestCase ):
 		for ref in unloadedrefs:
 			ref.remove( )
 			assert not ref.exists() 
-			self.failUnlessRaises( RuntimeError, ref.getNamespace )
+			self.failUnlessRaises( RuntimeError, ref.namespace )
 
 		# cross-replace references
 		for i in range( 0, 4, 2 ):
@@ -149,7 +149,7 @@ class TestReferenceRunner( unittest.TestCase ):
 
 
 		# import references
-		subrefbases = FileReference.ls( predicate = lambda r: r.getPath().endswith("subrefbase.ma"))
+		subrefbases = FileReference.ls( predicate = lambda r: r.path().endswith("subrefbase.ma"))
 		assert len( subrefbases ) == 2 			# check predicate works
 
 		# slowly import step by step
@@ -201,7 +201,7 @@ class TestReferenceRunner( unittest.TestCase ):
 	def _assert_ref_node(self, rfn):
 		assert isinstance(rfn, nt.Reference)
 		
-		assert rfn.getFileReference().getReferenceNode() == rfn
+		assert rfn.fileReference().referenceNode() == rfn
 	
 	
 	@with_scene('ref2re.ma')
@@ -222,17 +222,16 @@ class TestReferenceRunner( unittest.TestCase ):
 		
 		# ASSORTED QUERY
 		for ref in subrefs:
-			assert not ref.isLocked() and not ref.p_locked
+			assert not ref.isLocked() and not ref.isLocked()
 			assert ref.exists()
-			assert ref.isLoaded() and ref.p_loaded
-			assert ref.getNamespace() == ref.p_namespace
-			assert isinstance(ref.p_namespace, Namespace)
-			assert len(ref.getChildren()) == 0
-			assert isinstance(ref.getCopyNumber(), int)
-			assert ref.getParent() in tlrs
-			assert ref.getPath(unresolved=0) != ref.getPath(unresolved=1)
-			assert ref.p_path == ref.getPath()
-			self._assert_ref_node(ref.getReferenceNode())
+			assert ref.isLoaded() and ref.isLoaded()
+			assert ref.namespace() == ref.namespace()
+			assert isinstance(ref.namespace(), Namespace)
+			assert len(ref.children()) == 0
+			assert isinstance(ref.copynumber(), int)
+			assert ref.parent() in tlrs
+			assert ref.path(unresolved=0) != ref.path(unresolved=1)
+			self._assert_ref_node(ref.referenceNode())
 			
 			# cannot set namespace of subreferences
 			self.failUnlessRaises(RuntimeError, ref.setNamespace, "something")
@@ -243,7 +242,7 @@ class TestReferenceRunner( unittest.TestCase ):
 		def assert_from_paths(p, **kwargs):
 			# one item 
 			match = fr.fromPaths([p], **kwargs)
-			assert len(match) == 1 and match[0].getPath() == tlr.getPath()
+			assert len(match) == 1 and match[0].path() == tlr.path()
 			
 			# two items
 			match = fr.fromPaths([p, p], **kwargs)
@@ -261,7 +260,7 @@ class TestReferenceRunner( unittest.TestCase ):
 			assert_from_paths(tconv(tlr))
 			
 			if tconv is not str:
-				basepath = tlr.getPath().splitext()[0]
+				basepath = tlr.path().splitext()[0]
 				basepath += ".mb"
 				
 				# it should match even though mb is referenced
@@ -271,8 +270,8 @@ class TestReferenceRunner( unittest.TestCase ):
 		
 		
 		# TEST NAMESPACE
-		tlns = tlr.getNamespace()
-		assert len(tlns.getChildren()) == 2 and len(tlns.getChildrenDeep()) == 2
+		tlns = tlr.namespace()
+		assert len(tlns.children()) == 2 and len(tlns.childrenDeep()) == 2
 		
 		# tl ref has four meshes
 		assert len(list(tlns.iterNodes(nt.api.MFn.kMesh))) == 4

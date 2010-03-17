@@ -42,7 +42,7 @@ if not cmds.about(batch=1):
 			# END for each uitype
 	
 			col.setParentActive()
-			assert len( win.getChildren() ) 
+			assert len( win.children() ) 
 			win.delete()
 	
 	
@@ -65,7 +65,7 @@ if not cmds.about(batch=1):
 				#	ui.Button( l="sub" )
 				# END with test
 				#b = ui.Button( l="previous column" )
-				#assert b.getParent() == col 
+				#assert b.parent() == col 
 				# END python 2.6 or higher required
 			# END column layout
 			win.show()
@@ -108,7 +108,7 @@ if not cmds.about(batch=1):
 			tlc = win.p_topLeftCorner
 			win.p_topLeftCorner = ( tlc[1], tlc[0] )
 	
-			win.getMenuArray()
+			win.menuArray()
 			assert win.exists() 
 			# win.delete()
 	
@@ -137,7 +137,7 @@ if not cmds.about(batch=1):
 				if grid:
 					bduplname = ui.Button( l="gone", name=bname )
 	
-					assert bduplname.getBasename() == b2.getBasename()
+					assert bduplname.basename() == b2.basename()
 					grid.add( bduplname )	 # different parents may have a child with same name
 					grid.add( ui.Button( l="gtwo" ) )
 				grid.setParentActive( )
@@ -149,10 +149,10 @@ if not cmds.about(batch=1):
 					
 				b1.e_released = func2
 	
-				assert len( col.getChildren( ) ) == 4 
-				assert len( col.getChildrenDeep( ) ) == 6 
-				assert grid.getParent( ) == col 
-				assert grid.getParent() is not col 
+				assert len( col.children( ) ) == 4 
+				assert len( col.childrenDeep( ) ) == 6 
+				assert grid.parent( ) == col 
+				assert grid.parent() is not col 
 			col.setParentActive()
 	
 			win.show()
@@ -162,7 +162,7 @@ if not cmds.about(batch=1):
 			win = ui.Window( title="Test Callback Window" )
 	
 			col = win.add( ui.ColumnLayout( adj=1 ) )
-			assert win.getChildByName( str( col ) ) == col 
+			assert win.childByName( str( col ) ) == col 
 			def func( b, *args ):
 				b.p_label = "pressed"
 				b.p_actionIsSubstitute = 1
@@ -252,7 +252,7 @@ if not cmds.about(batch=1):
 				# for UI events
 				qa.setChecks( checks )
 	
-				assert len( qa.getChecks() ) == len( checks )
+				assert len( qa.checks() ) == len( checks )
 	
 				# another layout without runall button
 				incol.setActive()

@@ -9,7 +9,7 @@ paths.
 from maya import cmds
 
 
-def getAppVersion( ):
+def appVersion( ):
 	"""
 	@return: tuple( float( version ), int( bits ), string( versionString ) ), the
 	version will be truncated to *not* include sub-versions

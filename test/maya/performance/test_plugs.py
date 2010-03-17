@@ -24,7 +24,7 @@ class TestPlugPerformance( unittest.TestCase ):
 		
 		def pir(array, range_iter):
 			for i in range_iter:
-				yield array.getElementByLogicalIndex(i)
+				yield array.elementByLogicalIndex(i)
 		# END plugs in range utility
 		
 		# single connection
@@ -61,8 +61,8 @@ class TestPlugPerformance( unittest.TestCase ):
 		s1 = nt.createNode( "storage1", "storageNode" )
 		s2 = nt.createNode( "storage2", "storageNode" )
 		
-		s1msg = s1.getStoragePlug( "s1", plugType = 1, autoCreate = True )
-		s2msg = s1.getStoragePlug( "s1", plugType = 1, autoCreate = True )
+		s1msg = s1.storagePlug( "s1", plugType = 1, autoCreate = True )
+		s2msg = s1.storagePlug( "s1", plugType = 1, autoCreate = True )
 
 		# connect the message attributes respectively
 
@@ -96,7 +96,7 @@ class TestPlugPerformance( unittest.TestCase ):
 
 		# CONNECT MULTI PLUGS
 		######################
-		multifunc = lambda i: s1msg.getElementByLogicalIndex( i ).mconnectTo(s2msg.getElementByLogicalIndex( i ))
+		multifunc = lambda i: s1msg.elementByLogicalIndex( i ).mconnectTo(s2msg.elementByLogicalIndex( i ))
 		measurePlugConnection( "MULTI PLUG Connected", multifunc, conlist )
 
 		# CONNECT SINGLE PLUGS

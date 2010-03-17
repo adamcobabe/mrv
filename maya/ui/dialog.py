@@ -40,7 +40,7 @@ class PromptDialog( Dialog ):
 		if ret == okText:
 			self._text = cmds.promptDialog( q=1, text = 1 )
 
-	def getText( self ):
+	def text( self ):
 		"""@return: the entered text or None if the box has been aborted"""
 		return self._text
 
@@ -81,7 +81,7 @@ class Prompt( iPrompt ):
 class ChoiceDialog( iChoiceDialog ):
 	"""Maya implementation of the generic choice dialog interface"""
 
-	def getChoice( self ):
+	def choice( self ):
 		"""Return the choice made by the user"""
 		# don't do anything inbatch mode
 		if cmds.about( b=1 ):
@@ -119,7 +119,7 @@ class ProgressWindow( iProgressIndicator ):
 
 	def refresh( self, message = None ):
 		"""Finally show the progress window"""
-		mn,mx = ( self.isRelative() and ( 0,100) ) or self.getRange()
+		mn,mx = ( self.isRelative() and ( 0,100) ) or self.range()
 		p = self.get()
 
 		myargs = dict()

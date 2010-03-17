@@ -54,8 +54,8 @@ class TestDAGTree( unittest.TestCase ):
 				super( TrackedInterface, self ).__init__( )
 
 			def testcall( self, targetcallers, targetcallerid ):
-				self.test.failUnless( self.getNumCallers( ) == targetcallers )
-				self.test.failUnless( self.getCallerId( ) == targetcallerid )
+				self.test.failUnless( self.numCallers( ) == targetcallers )
+				self.test.failUnless( self.callerId( ) == targetcallerid )
 		# END tracked interface
 
 
@@ -66,7 +66,7 @@ class TestDAGTree( unittest.TestCase ):
 		imaster.setInterface( "iTest", iinst )
 
 		self.failUnless( len( imaster.listInterfaces() ) == 1 and imaster.listInterfaces()[0] == "iTest" )
-		self.failUnless( iinst == imaster.getInterface( "iTest" ) )
+		self.failUnless( iinst == imaster.interface( "iTest" ) )
 		self.failUnless( iinst == imaster.iTest )
 
 
@@ -76,7 +76,7 @@ class TestDAGTree( unittest.TestCase ):
 		imaster.setInterface( "iTest2", None ) # non-existing
 
 		self.failUnlessRaises( AttributeError, getattr, imaster, "iTest" )
-		self.failUnlessRaises( ValueError, imaster.getInterface, "iTest" )
+		self.failUnlessRaises( ValueError, imaster.interface, "iTest" )
 
 
 		# NO CLASS ACCESS
@@ -84,7 +84,7 @@ class TestDAGTree( unittest.TestCase ):
 		imaster.setInterface( "iTest", iinst )
 
 		self.failUnlessRaises( AttributeError, getattr, imaster, "iTest" )
-		self.failUnless( imaster.getInterface( "iTest" ) == iinst )
+		self.failUnless( imaster.interface( "iTest" ) == iinst )
 		imaster.setInterface( "iTest", None )
 
 		self.failUnless( len( imaster.listInterfaces( ) ) == 0 )
@@ -96,7 +96,7 @@ class TestDAGTree( unittest.TestCase ):
 		imaster.im_provide_on_instance = True
 		imaster.setInterface( "iTest", binst )
 
-		caller = imaster.getInterface( "iTest" )
+		caller = imaster.interface( "iTest" )
 		self.failUnless( type( caller ) == InterfaceMaster._InterfaceHandler )
 		caller.testcall( 1, 0 )
 
@@ -118,11 +118,11 @@ class TestDAGTree( unittest.TestCase ):
 	def test_choiceDialog( self ):
 		c1 = "single choice"
 		choice_dialog = iChoiceDialog( t = "my title", m = "my message", c = c1 )
-		self.failUnless( choice_dialog.getChoice() == c1 )
+		self.failUnless( choice_dialog.choice() == c1 )
 
 		c2 = "other choice"
 		choice_dialog = iChoiceDialog( t = "my title", m = "my message", c = (c1,c2) )
-		self.failUnless( choice_dialog.getChoice() == c1 )
+		self.failUnless( choice_dialog.choice() == c1 )
 
 	def test_prompt( self ):
 		assert iPrompt( m="Enter your name:", d="test", ct="Enter" ).prompt() == "test"
@@ -166,13 +166,13 @@ class TestDAGTree( unittest.TestCase ):
 		progress.setup( (0,99), True, False, True )
 		progress.setup( (0,99), relative=None, abortable=True, begin=False )
 		# round-robin
-		assert progress.getRoundRobin() == False
+		assert progress.roundRobin() == False
 		progress.setup( (0,10), relative=False, round_robin=True)
-		assert progress.getRoundRobin() == True
+		assert progress.roundRobin() == True
 		
 		# absolute 
 		progress.set( 15 )
-		assert progress.getValue() == 15
+		assert progress.value() == 15
 		assert progress.get() == 5
 		progress.set( 10 )
 		assert progress.get() == 0
@@ -181,7 +181,7 @@ class TestDAGTree( unittest.TestCase ):
 		progress.setRelative(True)
 		progress.set( 15 )
 		assert progress.get() == 50.0
-		assert progress.getValue() == 15
+		assert progress.value() == 15
 		
 		
 	def test_weak_inst(self):

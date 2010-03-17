@@ -72,13 +72,13 @@ class TestTransform( unittest.TestCase ):
 		assert p in s and t in s and len(s | s) == 2
 		
 		# getApiObject returns the api object which represents the underlying maya node best
-		assert isinstance(p.getApiObject(), api.MDagPath)
-		assert isinstance(t.getApiObject(), api.MObject)
+		assert isinstance(p.apiObject(), api.MDagPath)
+		assert isinstance(t.apiObject(), api.MObject)
 		
 		# api types
-		assert isinstance(p, Transform) and p.getApiType() == api.MFn.kTransform
-		assert isinstance(t, Time) and t.getApiType() == api.MFn.kTime
-		assert p.hasFn(p.getApiType())
+		assert isinstance(p, Transform) and p.apiType() == api.MFn.kTransform
+		assert isinstance(t, Time) and t.apiType() == api.MFn.kTime
+		assert p.hasFn(p.apiType())
 		
 		# get the MObject representation
 		assert isinstance(p.getMObject(), api.MObject) and isinstance(t.getMObject(), api.MObject)
@@ -88,32 +88,32 @@ class TestTransform( unittest.TestCase ):
 		#########
 		self.failUnlessRaises(AttributeError, getattr, p, 'doesnt_exist')
 		
-		assert p.getName == p.name
+		assert p.name == p.name
 		
 		assert isinstance(p.getMFnClasses(), list)
 		
 		# DAG NAVIGATION
 		################
-		ps = p.getChildren()[0]
+		ps = p.children()[0]
 		assert ps == p[0]
 		assert ps[-1] == p
 		
-		assert ps == p.getShapes()[0]
-		assert ps.getParent() == p == ps.getTransform()
+		assert ps == p.shapes()[0]
+		assert ps.parent() == p == ps.transform()
 		
 		# filtering
-		assert len(p.getChildrenByType(Transform)) == 0
-		assert p.getChildrenByType(Camera) == p.getChildrenByType(Shape)
+		assert len(p.childrenByType(Transform)) == 0
+		assert p.childrenByType(Camera) == p.childrenByType(Shape)
 		
 		# deep and iteration
-		assert ps.iterParents().next() == p == ps.getRoot()
-		assert ps.getParentDeep()[0] == p
-		assert p.getChildrenDeep()[0] == ps
+		assert ps.iterParents().next() == p == ps.root()
+		assert ps.parentDeep()[0] == p
+		assert p.childrenDeep()[0] == ps
 		
 		# NODE CREATION
 		###############
 		cs = createNode("namespace:subspace:group|other:camera|other:cameraShape", "camera")
-		assert len(cs.getParentDeep()) == 2
+		assert len(cs.parentDeep()) == 2
 		
 		m = Mesh()
 		assert isinstance(m, Mesh) and m.isValid()
@@ -128,14 +128,14 @@ class TestTransform( unittest.TestCase ):
 		
 		# NAMESPACES
 		#############
-		ons = cs.getNamespace()
-		assert ons == cs[-1].getNamespace()
+		ons = cs.namespace()
+		assert ons == cs[-1].namespace()
 		
-		sns = cs[-2].getNamespace()
+		sns = cs[-2].namespace()
 		assert sns != ons
 		
-		pns = sns.getParent()
-		assert pns.getChildren()[0] == sns
+		pns = sns.parent()
+		assert pns.children()[0] == sns
 		
 		assert len(list(sns.iterNodes())) == 1
 		assert len(list(pns.iterNodes())) == 0
@@ -143,17 +143,17 @@ class TestTransform( unittest.TestCase ):
 		
 		# DAG MANIPULATION
 		##################
-		csp = cs.getTransform()
+		csp = cs.transform()
 		cs.setParent(p)
-		assert cs.getInstanceCount(0) == 1
+		assert cs.instanceCount(0) == 1
 		csi = cs.addParent(csp)
 		
-		assert csi.isInstanced() and cs.getInstanceCount(0) == 2
+		assert csi.isInstanced() and cs.instanceCount(0) == 2
 		assert csi != cs
 		assert csi.getMObject() == cs.getMObject()
 		
-		assert cs.getParentAtIndex(0) == p
-		assert cs.getParentAtIndex(1) == csp
+		assert cs.parentAtIndex(0) == p
+		assert cs.parentAtIndex(1) == csp
 		
 		p.removeChild(csi)
 		assert not cs.isValid() and csi.isValid()
@@ -165,8 +165,8 @@ class TestTransform( unittest.TestCase ):
 		csi.reparent(cspp)
 		
 		csp.unparent()
-		assert csp.getParent() is None and len(csp.getChildren()) == 0
-		assert len(cspp.getChildren()) == 1
+		assert csp.parent() is None and len(csp.children()) == 0
+		assert len(cspp.children()) == 1
 		
 		
 		# NODE- AND GRAPH-ITERATION
@@ -190,12 +190,12 @@ class TestTransform( unittest.TestCase ):
 		sl3 = api.MSelectionList.mfromStrings([str(n) for n in nl])
 		
 		
-		osl = getSelection()
+		osl = selection()
 		select(sl)
 		select(p, t)
 		# clear the selection
 		select()
-		assert len(getSelection()) == 0
+		assert len(selection()) == 0
 		
 		for n in sl:
 			assert isinstance(n, DependNode)
@@ -240,13 +240,13 @@ class TestTransform( unittest.TestCase ):
 		pc.output.mconnectTo(m.inMesh)
 		assert m.numVertices() == 8
 		assert m not in isb                            # it has no shaders on object level
-		assert len(m.getComponentAssignments()) == 0   # nor on component leveld 
+		assert len(m.componentAssignments()) == 0   # nor on component leveld 
 		
 		# object level
 		m.addTo(isb)
 		assert m in isb
 		
-		assert m.getSets(m.fSetsRenderable)[0] == isb
+		assert m.sets(m.fSetsRenderable)[0] == isb
 		m.removeFrom(isb)
 		assert not m.isMemberOf(isb)
 		
@@ -259,9 +259,9 @@ class TestTransform( unittest.TestCase ):
 		isb.add(m, m.cf[4,5])				# add remaining faces
 		
 		# query assignments
-		se, comp = m.getComponentAssignments()[0]
+		se, comp = m.componentAssignments()[0]
 		assert se == isb
-		e = comp.getElements()
+		e = comp.elements()
 		assert len(e) == 6					# we have added all 6 faces
 		
 		
@@ -291,7 +291,7 @@ class TestTransform( unittest.TestCase ):
 		assert isinstance(p.tx.asFloat(), float)
 		assert isinstance(t.outTime.asMTime(), api.MTime)
 		
-		ninst = p.getInstanceNumber()
+		ninst = p.instanceNumber()
 		pewm = p.worldMatrix.elementByLogicalIndex(ninst)
 		
 		matfn = api.MFnMatrixData(pewm.asMObject())
@@ -363,7 +363,7 @@ class TestTransform( unittest.TestCase ):
 		assert len(n.compound.mchildren()) == 3
 		assert n.compound.mchildByName('mymessage').isArray()
 		
-		n.removeAttribute(n.compound.getAttribute())
+		n.removeAttribute(n.compound.attribute())
 		
 		
 		# MESH COMPONENT ITERATION
@@ -392,49 +392,49 @@ class TestTransform( unittest.TestCase ):
 		# SELECTIONS
 		#############
 		select(p.t, "time1", p, ps)
-		assert len(getSelection()) == 4
+		assert len(selection()) == 4
 		
 		# simple filtering
-		assert getSelectionList().miterPlugs().next() == p.t
-		assert getSelection(api.MFn.kTransform)[-1] == p
+		assert activeSelectionList().miterPlugs().next() == p.t
+		assert selection(api.MFn.kTransform)[-1] == p
 		
 		# adjustments
-		sl = getSelectionList()
+		sl = activeSelectionList()
 		sl.remove(0)		# remove plug
 		select(sl)
-		assert len(getSelectionList()) == len(getSelection()) == 3
+		assert len(activeSelectionList()) == len(selection()) == 3
 		
-		assert len(getSelection(predicate=lambda n: n.isReferenced())) == 0
+		assert len(selection(predicate=lambda n: n.isReferenced())) == 0
 		
 		# COMPONENTS AND PLUGS#
 		sl = api.MSelectionList()
 		sl.add(m.getMDagPath(), m.cf[:4])			# first 4 faces
 		select(sl)
-		assert len(getSelectionList().miterComponents().next()[1].getElements()) == 4
+		assert len(activeSelectionList().miterComponents().next()[1].elements()) == 4
 		
 		sl.clear()
 		sl.add(p.t)
 		sl.add(m.outMesh)
 		select(sl)
-		assert len(getSelection()) == 2
+		assert len(selection()) == 2
 		
 		
 		# NAMESPACES
 		############
-		assert p.getNamespace() == RootNamespace
+		assert p.namespace() == RootNamespace
 		# we created 2 namespaces implicitly with objects
-		assert len(RootNamespace.getChildren()) == 2
+		assert len(RootNamespace.children()) == 2
 		
 		barns = Namespace.create("foo:bar")
-		foons = barns.getParent()
-		assert len(RootNamespace.getChildren()) == 3
+		foons = barns.parent()
+		assert len(RootNamespace.children()) == 3
 		
 		assert len(list(barns.iterNodes())) == 0 and len(list(RootNamespace.iterNodes())) != 0
 		
 		
 		# editing namespaces
 		m.setNamespace(barns)
-		assert m.getNamespace() == barns
+		assert m.namespace() == barns
 		
 		barns.moveNodes(foons)
 		assert foons.iterNodes().next() == m
@@ -442,7 +442,7 @@ class TestTransform( unittest.TestCase ):
 		# deleting / rename
 		foons.delete()
 		assert not barns.exists() and not foons.exists()
-		assert m.getNamespace() == RootNamespace
+		assert m.namespace() == RootNamespace
 		
 		subns = Namespace.create("sub")
 		subnsrenamed = subns.rename("bar")
@@ -455,18 +455,18 @@ class TestTransform( unittest.TestCase ):
 		refa = FileReference.create(get_maya_file('ref8m.ma'))     # file with 8 meshes
 		refb = FileReference.create(get_maya_file('ref2re.ma'))    # two subreferences with subreferences
 		
-		assert refa.p_loaded and refb.isLoaded()
+		assert refb.isLoaded()
 		assert len(FileReference.ls()) == 2
 		
-		assert len(refa.getChildren()) == 0 and len(refb.getChildren()) == 2
-		subrefa, subrefb = refb.getChildren()
+		assert len(refa.children()) == 0 and len(refb.children()) == 2
+		subrefa, subrefb = refb.children()
 		
-		assert subrefa.p_namespace != subrefb.getNamespace()
-		assert subrefa.p_path == subrefb.getPath()
-		assert subrefa.getParent() == refb
+		assert subrefa.namespace() != subrefb.namespace()
+		assert subrefa.path() == subrefb.path()
+		assert subrefa.parent() == refb
 		
-		refa.p_loaded = False
-		assert not refa.p_loaded
+		refa.setLoaded(False)
+		assert not refa.isLoaded()
 		assert refa.setLoaded(True).isLoaded()
 		
 		assert len(list(refa.iterNodes(api.MFn.kMesh))) == 8
@@ -480,12 +480,12 @@ class TestTransform( unittest.TestCase ):
 		#######
 		empty_scene = get_maya_file('empty.ma')
 		mrv.Scene.open(empty_scene, force=1)
-		assert mrv.Scene.getName() == empty_scene
+		assert mrv.Scene.name() == empty_scene
 		
 		files = list()
 		def beforeAndAfterNewCB( data ):
 			assert data is None
-			files.append(mrv.Scene.getName())
+			files.append(mrv.Scene.name())
 			
 		mrv.Scene.beforeNew = beforeAndAfterNewCB
 		mrv.Scene.afterNew = beforeAndAfterNewCB
@@ -539,8 +539,8 @@ class TestTransform( unittest.TestCase ):
 		#############
 		did = 'dataid'
 		sn = StorageNode()
-		snn = sn.getName()
-		pd = sn.getPythonData( did, autoCreate = True )
+		snn = sn.name()
+		pd = sn.pythonData( did, autoCreate = True )
 		
 		pd[0] = "hello"
 		pd['l'] = [1,2,3]
@@ -550,18 +550,18 @@ class TestTransform( unittest.TestCase ):
 		mrv.Scene.open(tmpscene)
 		
 		sn = Node(snn)
-		pd = sn.getPythonData( did )
+		pd = sn.pythonData( did )
 		assert len(pd) == 2
 		assert pd[0]  == "hello"
 		assert pd['l'] == [1,2,3]
 		
-		objset = sn.getObjectSet(did, 0, autoCreate=True)
+		objset = sn.objectSet(did, 0, autoCreate=True)
 		objset.add(Transform())
 		
 		mrv.Scene.save(tmpscene)
 		mrv.Scene.open(tmpscene)
 		
-		assert len(Node(snn).getObjectSet(did, 0)) == 1
+		assert len(Node(snn).objectSet(did, 0)) == 1
 		
 		os.remove(tmpscene)
 		
