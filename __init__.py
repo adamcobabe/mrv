@@ -81,8 +81,10 @@ def init_modules( filepath, moduleprefix, recurse=False, self_module = None):
 		# call init
 		args = ( self_module and [ self_module ] ) or tuple()
 		if hasattr( module, "__initialize" ):
-			print "Initializing " + module.__name__
-			module.__initialize( *args )
+			res = module.__initialize( *args )
+			if res:
+				print "Initialized " + module.__name__
+			# EMD handle result
 	# END for each file or dir
 
 ## Version Info 

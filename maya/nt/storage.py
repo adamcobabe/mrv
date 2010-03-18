@@ -30,6 +30,7 @@ def __initialize( nodes_module ):
 	pluginpath = os.path.splitext( __file__ )[0] + ".py"
 	if not cmds.pluginInfo( pluginpath, q=1, loaded=1 ):
 		cmds.loadPlugin( pluginpath )
+	return True
 
 #} END initialization
 

@@ -33,8 +33,6 @@ and do not incur any overhead.
 """
 import sys
 import os
-import maya.cmds as cmds
-import maya.mel as mel
 
 _undo_enabled_envvar = "MAYARV_UNDO_ENABLED"
 
@@ -46,7 +44,8 @@ def __initialize():
 	global _undo_enabled_envvar
 	
 	pluginpath = os.path.splitext( __file__ )[0] + ".py"
-	if int(os.environ.get(_undo_enabled_envvar, True)) and not cmds.pluginInfo( pluginpath, q=1, loaded=1 ):
+	should_initialize_plugin = int(os.environ.get(_undo_enabled_envvar, True))
+	if should_initialize_plugin and not cmds.pluginInfo( pluginpath, q=1, loaded=1 ):
 		cmds.loadPlugin( pluginpath )
 
 	# assure our decorator is available !
@@ -54,6 +53,8 @@ def __initialize():
 	setattr( __builtin__, 'undoable', undoable )
 	setattr( __builtin__, 'notundoable', notundoable )
 	setattr( __builtin__, 'forceundoable', forceundoable )
+	
+	return should_initialize_plugin
 
 
 
@@ -63,6 +64,8 @@ def __initialize():
 #{ Undo Plugin
 import maya.OpenMaya as api
 import maya.OpenMayaMPx as mpx
+import maya.cmds as cmds
+import maya.mel as mel
 
 # cache
 isUndoing = api.MGlobal.isUndoing
