@@ -419,8 +419,6 @@ class EventSender( object ):
 	to supply event information to clients.
 	
 	Usage
-	-----
-	
 	Derive from this class and define your callbacks like :
 	event = Event( )
 	Call it using

@@ -640,8 +640,8 @@ class Path( _base, iDagItem ):
 		write_text() to preserve the newlines as-is, use 'linesep=None'.
 
 		This applies to Unicode text the same as to 8-bit text, except
-		there are three additional standard Unicode end-of-line sequences:
-		u'\x85', u'\r\x85', and u'\u2028'.
+		there are additional standard Unicode end-of-line sequences, check 
+		the code to see them.
 
 		(This is slightly different from when you open a file for
 		writing with fopen(filename, "w") in C or file(filename, 'w')
@@ -707,8 +707,7 @@ class Path( _base, iDagItem ):
 
 		linesep - The desired line-ending.	This line-ending is
 			applied to every line.	If a line already has any
-			standard line ending ('\r', '\n', '\r\n', u'\x85',
-			u'\r\x85', u'\u2028'), that will be stripped off and
+			standard line ending, that will be stripped off and
 			this will be used instead.	The default is os.linesep,
 			which is platform-dependent ('\r\n' on Windows, '\n' on
 			Unix, etc.)	 Specify None to write the lines as-is,
