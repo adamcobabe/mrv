@@ -29,18 +29,7 @@ from mayarv import init_modules
 import sys
 import os
 
-if not hasattr( sys,"_dataTypeIdToTrackingDictMap" ):
-		sys._dataTypeIdToTrackingDictMap = dict()			 # DataTypeId : tracking dict
-
-
 #{ Common
-
-def registerPluginDataTrackingDict( dataTypeID, trackingDict ):
-	"""Using the given dataTypeID and tracking dict, nt.PluginData can return
-	self pointers belonging to an MPxPluginData instance as returned by MFnPluginData.
-	Call this method to register your PluginData information to the mayarv system.
-	Afterwards you can extract the self pointer using plug.masData().data()"""
-	sys._dataTypeIdToTrackingDictMap[ dataTypeID.id() ] = trackingDict
 
 def addCustomType( newcls, parentClsName=None, **kwargs ):
 	""" Add a custom class to this module - it will be handled like a native type

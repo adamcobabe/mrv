@@ -12,6 +12,12 @@ from mayarv.util import capitalize, DAGTree
 from mayarv.exc import MayaRVError
 from mayarv.path import Path
 
+
+# initialize globals
+if not hasattr( sys,"_dataTypeIdToTrackingDictMap" ):
+	sys._dataTypeIdToTrackingDictMap = dict()			 # DataTypeId : tracking dict
+
+
 ############################
 #### COMMON   			####
 ##########################
@@ -156,6 +162,14 @@ def moveVarsToEnviron( ):
 			continue
 		else:
 			os.environ[ var ] = value.strip()
+
+
+def registerPluginDataTrackingDict( dataTypeID, trackingDict ):
+	"""Using the given dataTypeID and tracking dict, nt.PluginData can return
+	self pointers belonging to an MPxPluginData instance as returned by MFnPluginData.
+	Call this method to register your PluginData information to the mayarv system.
+	Afterwards you can extract the self pointer using plug.masData().data()"""
+	sys._dataTypeIdToTrackingDictMap[ dataTypeID.id() ] = trackingDict
 
 #} End Common
 

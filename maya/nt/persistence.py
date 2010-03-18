@@ -234,18 +234,14 @@ if _should_initialize_plugin:
 	
 	
 	def initializePlugin(mobject):
-		# ugly, but necessary at this point. Unfortunately we are being called 
-		# while nt is being initialized, so we cannot access nt directly.
-		# Also its impossible to access modules on the same level ( like base )
-		# as the import works differently when being loaded as a plugin.
-		nt = __import__( "mayarv.maya.nt", globals(), locals(), ['nt'])
+		import mayarv.maya as mrv
 
 		mplugin = mpx.MFnPlugin( mobject )
 		mplugin.registerData( PyPickleData.kDataName, PyPickleData.kPluginDataId, PyPickleData.creator )
 		mplugin.registerNode( 	StoragePluginNode.kPluginNodeTypeName, StoragePluginNode.kPluginNodeId, StoragePluginNode.creator, initStoragePluginNodeAttrs, mpx.MPxNode.kDependNode )
 		
 		# register plugin data in the respective class
-		nt.registerPluginDataTrackingDict( PyPickleData.kPluginDataId, sys._maya_pyPickleData_trackingDict )
+		mrv.registerPluginDataTrackingDict( PyPickleData.kPluginDataId, sys._maya_pyPickleData_trackingDict )
 	
 	def uninitializePlugin( mobject ):
 		mplugin = mpx.MFnPlugin( mobject )
