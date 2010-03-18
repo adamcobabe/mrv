@@ -14,12 +14,15 @@ NOT: thisImportedClass BUT: module.thisImportedClass !
 import base
 import mayarv.maya.undo as undo
 import mayarv.util as util
-from mayarv.interface import iDagItem 
+from mayarv.interface import iDagItem
+
 import maya.OpenMaya as api
 import maya.cmds as cmds
+
 import inspect
 import itertools
 import it
+import os
 
 
 def init_applyPatches( ):
@@ -794,6 +797,20 @@ class MPlug( api.MPlug ):
 	mattribute = mwrappedAttribute
 	#} END name remapping
 
+
+# SETUP DEBUG MODE ?
+if int(os.environ.get('MAYARV_DEBUG_MPLUG_SETX', 0)):
+	def __getattribute__(self, attr):
+		"""Get attribute for MPlug which will raise if a setX method is used.
+		This could cause undo bugs that you'd better catch before they hit the user"""
+		if attr.startswith('set'):
+			raise AssertionError("%s method called on MPlug - this causes undo-issues if it happens unintended" % attr)
+		return api.MPlug._api___getattribute__(self, attr)
+	# END method override
+	
+	# will be transferred onto api.MPlug when the patches are auto-applied.
+	MPlug.__getattribute__ = __getattribute__
+# END setup debug mode
 
 
 #} END basic types
