@@ -29,17 +29,7 @@ from mayarv import init_modules
 import sys
 import os
 
-if not hasattr( sys,"_dataTypeIdToTrackingDictMap" ):
-		sys._dataTypeIdToTrackingDictMap = dict()			 # DataTypeId : tracking dict
-
-
 #{ Common
-def registerPluginDataTrackingDict( dataTypeID, trackingDict ):
-	"""Using the given dataTypeID and tracking dict, nt.MFnPluginData can return
-	self pointers belonging to an MPxPluginData instance as returned by MFnPluginData.
-	Call this method to register your PluginData information to the mayarv system.
-	Afterwards you can extract the self pointer using plug.asMObject.data()"""
-	sys._dataTypeIdToTrackingDictMap[ dataTypeID.id() ] = trackingDict
 
 def addCustomType( newcls, parentClsName=None, **kwargs ):
 	""" Add a custom class to this module - it will be handled like a native type
@@ -118,10 +108,12 @@ def enforcePersistance( ):
 	be sure it is not disabled on the target system"""
 	global _thismodule
 	import mayarv.maya.nt.storage as storage
+	import mayarv.maya.nt.persistence as persistence
 	
-	os.environ[storage.persistence_enabled_envvar] = "1"
+	os.environ[persistence.persistence_enabled_envvar] = "1"
+	reload(persistence)
 	reload(storage)
-	storage.__initialize( _thismodule )
+	persistence.__initialize( _thismodule )
 
 #} END common utilities
 
