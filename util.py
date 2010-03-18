@@ -62,7 +62,7 @@ def pythonIndex( index, length ):
 	if index > -1: return index
 	return length + index			# yes, length be better 1 or more ;)
 
-def copyClsMembers( sourcecls, destcls, overwritePrefix = None, forbiddenMembers = list()):
+def copyClsMembers( sourcecls, destcls, overwritePrefix = None, forbiddenMembers = list(), copyNamespaceGlobally=None):
 	"""Copy the members or sourcecls to destcls while ignoring member names in forbiddenMembers
 	It will only copy mebers of this class, not its base classes
 	@param sourcecls: class whose members should be copied
@@ -70,23 +70,34 @@ def copyClsMembers( sourcecls, destcls, overwritePrefix = None, forbiddenMembers
 	@param overwritePrefix: if None, existing members on destcls will not be overwritten, if string,
 	the original method will be stored in a name like prefix+originalname ( allowing you to access the
 	original method lateron )
+	@param copyNamespaceGlobally: if not None, the variable contains the name of the namespace as string 
+	whose methods should also be copied into the global namespace, possibly overwriting existing ones.
+	For instance, 'nsmethod' will be available as obj.nsmethod and as obj.method if the namespace value was 'ns.
+	The forbiddenMembers list is applied to the original as well as the global name
 	@note: this can be useful if you cannot inherit from a class directly because you would get
 	method resolution order problems
 	@note: see also the L{MetaCopyClsMembers} meta class"""
-	for name,member in sourcecls.__dict__.iteritems():
-		if name in forbiddenMembers:
-			continue
-		try:
-			# store original - overwritten members must still be able to access it
-			if hasattr( destcls, name ):
-				if not overwritePrefix:
-					continue
-				morig = getattr( destcls, name )
-				type.__setattr__( destcls, overwritePrefix+name, morig )
-			#print ( "%s - adjusted with %s.%s" % ( destcls.__name__,sourcecls.__name__, name ) )
-			type.__setattr__( destcls, name, member )
-		except TypeError:
-			pass
+	for orig_name,member in sourcecls.__dict__.iteritems():
+		names = [orig_name]
+		if copyNamespaceGlobally is not None and orig_name.startswith(copyNamespaceGlobally):
+			names.append(orig_name[len(copyNamespaceGlobally):])	# truncate namespace
+		# END handle namespace removal
+		
+		for name in names:
+			if name in forbiddenMembers:
+				continue
+			try:
+				# store original - overwritten members must still be able to access it
+				if hasattr( destcls, name ):
+					if not overwritePrefix:
+						continue
+					morig = getattr( destcls, name )
+					type.__setattr__( destcls, overwritePrefix+name, morig )
+				#print ( "%s - adjusted with %s.%s" % ( destcls.__name__,sourcecls.__name__, name ) )
+				type.__setattr__( destcls, name, member )
+			except TypeError:
+				pass
+		# END for each name
 	# END for each memebr in sourcecls
 
 def packageClasses( importBase, packageFile, predicate = lambda x: True ):

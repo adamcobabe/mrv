@@ -19,6 +19,12 @@ nt.enforcePersistance()
 class TestGeneral( unittest.TestCase ):
 	""" Test general maya framework """
 	
+	def test_apipatch_not_globally_applied(self):
+		p = nt.Node("persp")
+		assert hasattr(p.t, 'mconnectTo')	  # has our namespace
+		assert not hasattr(p.t, 'connectTo') # but not global namespace
+		
+	
 	def test_testWrappers( self ):
 		print >> sys.stderr, "NodeTypeDB and wrapping test disabled - use it to check for new types"
 		return 

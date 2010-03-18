@@ -13,6 +13,10 @@ The notation used is: NAME_OF_VARIABLE (=default value).
   * If enabled, the persitance module will initialize itself and load the respective plugin.
   * If disabled, the plugin will not be loaded automatically. Also the plugin specific code will not be generated. In case your plugin or tool relies on the availability of persitence, call ``mayarv.maya.nt.enforcePersistance``.
   
+ * *MAYARV_APIPATCH_APPLY_GLOBALLY* (=0)
+  * If enabled, the patched methods of global api classes such as the ones of MPlug, which resided in the 'm' namespace, will additionally copied into the global namespace. This makes them available as i.e. MPlug.asetFloat as well as MPlug.setFloat, possibly overriding the existing ones. Use this setting if you would like to use MayaRV's enhancements more naturally when typing, but only if you can control the environment in which your program is running ( i.e within a studio ).
+  * If disabled, all additions to API types provided by MayaRV will reside in the 'm' namespace unless they only make the type more pythonic in a general and optimized way. This is the default to assure MayaRV does not mess with existing setups. All software meant for use in incontrolled environments must use the 'm' namespace methods, otherwise proper behavior is not garantueed.
+  
  * *MAYARV_DEBUG_MPLUG_SETX* (=0)
   * If enabled, all calls to MPlug.setX will raise an AssertionError. This helps to assure that you do not accidentally put in bugs related to incorrect undo by using the non-mrv, non-undoable MPlug.setX methods directly ( instead of using the msetX methods instead ). Its adivsed to only turn on this mode for individual runs or if a bug of that kind is suspected, as the performance loss will be tremendous !
   

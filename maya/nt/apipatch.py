@@ -40,7 +40,14 @@ def init_applyPatches( ):
 	module = __import__( "mayarv.maya.nt.apipatch", globals(), locals(), ['apipatch'] )
 	classes = [ v for v in globals().values() if inspect.isclass(v) ]
 	forbiddenMembers = [ '__module__','_applyPatch','__dict__','__weakref__','__doc__' ]
-
+	apply_globally = int(os.environ.get('MAYARV_APIPATCH_APPLY_GLOBALLY', 0))
+	
+	ns = None
+	if apply_globally:
+		ns = 'm'
+	# END configure namespace mode
+	
+	
 	for cls in classes:
 		# use the main class as well as all following base
 		# the first base is always the main maya type that is patched - we skip it
@@ -65,7 +72,8 @@ def init_applyPatches( ):
 
 		for tplcls in templateclasses:
 			util.copyClsMembers( tplcls, apicls, overwritePrefix="_api_",
-										forbiddenMembers = forbiddenMembers )
+										forbiddenMembers = forbiddenMembers, 
+										copyNamespaceGlobally=ns)
 		# END for each template class
 	# END for each cls of this module
 	pass
