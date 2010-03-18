@@ -25,10 +25,12 @@ from mayarv.path import Path
 import mayarv.maya.env as env
 import mayarv.maya.util as bmayautil
 from mayarv import init_modules
+
 import sys
+import os
 
 if not hasattr( sys,"_dataTypeIdToTrackingDictMap" ):
-		sys._dataTypeIdToTrackingDictMap = {}			 # DataTypeId : tracking dict
+		sys._dataTypeIdToTrackingDictMap = dict()			 # DataTypeId : tracking dict
 
 
 #{ Common
@@ -110,7 +112,18 @@ def forceClassCreation( typeNameList ):
 	# END for each typename
 	return outclslist
 
-#}
+def enforcePersistance( ):
+	"""Call this method to ensure that the persistance plugin is loaded and available.
+	This should by used by plugins which require persitence features but want to 
+	be sure it is not disabled on the target system"""
+	global _thismodule
+	import mayarv.maya.nt.storage as storage
+	
+	os.environ[storage.persistence_enabled_envvar] = "1"
+	reload(storage)
+	storage.__initialize( _thismodule )
+
+#} END common utilities
 
 def init_package( ):
 	"""Do the main initialization of this package"""

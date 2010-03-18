@@ -1,30 +1,22 @@
 # -*- coding: utf-8 -*-
-""" This module has to be started standalone as it initializes mayarv.maya with 
-Plug debugging enabled. If that was not the case, it will bail out early.
-@note: This module duplicates a lot of code from test/maya/test_undo_disabled.
-It might be better to have a common base"""
-import unittest
-import time
 import os
+import mayarv.test.maya.util as tutil
 
-class TestPlug( unittest.TestCase ):
+class TestUndoDisabled( tutil.StandaloneTestBase ):
+	envvarname = 'MAYARV_DEBUG_MPLUG_SETX'
+	prev_val = None
 	
-	def test_mplug_setx_raises(self):
-		envvarname = 'MAYARV_DEBUG_MPLUG_SETX'
-		os.environ[envvarname] = "1"
+	def setup_environment(self):
+		self.prev_val = os.environ.get(self.envvarname, "0") 
+		os.environ[self.envvarname] = "1"
 		
-		st = time.time()
-		import mayarv.maya.nt as nt
+	def undo_setup_environment(self):
+		os.environ[self.envvarname] = self.prev_val
 		
-		# too fast ? It was loaded already as we have not been run standalone
-		if time.time() - st < 0.1:
-			os.environ[envvarname] = "1"
-			print "MPlug.setX test bailed out at it couldn't be the first one to initialize mayarv.maya.nt"
-			return
-		# END handle non-standalone mode
-		
+	def post_standalone_initialized(self):
 		# plugs raise if set is used
-		p = nt.Node("persp")
+		from mayarv.maya.nt import Node
+		p = Node("persp")
 		val = 30.0
 		assert p.tx.asDouble() != val
 		p.tx.msetDouble(val)		# fine

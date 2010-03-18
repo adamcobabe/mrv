@@ -3,7 +3,7 @@ import os
 import mayarv.test.maya.util as tutil
 
 class TestUndoDisabled( tutil.StandaloneTestBase ):
-	envvarname = 'MAYARV_UNDO_ENABLED'
+	envvarname = 'MAYARV_PERSISTENCE_ENABLED'
 	prev_val = None
 	
 	def setup_environment(self):
@@ -16,6 +16,10 @@ class TestUndoDisabled( tutil.StandaloneTestBase ):
 	def post_standalone_initialized(self):
 		# plugin shouldn't have loaded
 		import maya.cmds as cmds
-		import mayarv.maya
-		undo_plugin_file = os.path.splitext(mayarv.maya.undo.__file__)[0] + '.py'
-		assert not cmds.pluginInfo( undo_plugin_file, q=1, loaded=1 )
+		import mayarv.maya.nt
+		storage_plugin_file = os.path.splitext(mayarv.maya.nt.storage.__file__)[0] + '.py'
+		assert not cmds.pluginInfo( storage_plugin_file, q=1, loaded=1 )
+		
+		# if we enforce persitence, it should be loaded and available !
+		mayarv.maya.nt.enforcePersistance()
+		assert cmds.pluginInfo( storage_plugin_file, q=1, loaded=1 )
