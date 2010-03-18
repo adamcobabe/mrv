@@ -1,0 +1,19 @@
+#!/bin/bash
+# Run nose with coverage
+set -f	# disable globbing, these are passed to the lock command
+IFS=''	# allows "John Doe" to be passed properly
+
+# copy paste evil code - cleanup
+firstArg=
+if [[ $1 == 8.5 || $1 == 20?? ]]; then
+	firstArg=$1
+	shift
+fi
+
+coverdir=coverage
+
+mkdir -p $coverdir
+${0%/*}/tmrv $firstArg --with-coverage --cover-html --cover-package=mayarv --cover-html-dir=$coverdir $@
+stat=$?
+echo "Coverage report saved in $coverdir/"
+exit $stat

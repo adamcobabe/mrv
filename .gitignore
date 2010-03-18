@@ -1,2 +1,4 @@
 *.pyc
 testresult.*.log
+.coverage
+coverage
