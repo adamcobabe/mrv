@@ -17,9 +17,9 @@ class TestUndoDisabled( tutil.StandaloneTestBase ):
 		# plugin shouldn't have loaded
 		import maya.cmds as cmds
 		import mayarv.maya.nt
-		storage_plugin_file = os.path.splitext(mayarv.maya.nt.storage.__file__)[0] + '.py'
-		assert not cmds.pluginInfo( storage_plugin_file, q=1, loaded=1 )
+		persistence_plugin_file = os.path.splitext(mayarv.maya.nt.persistence.__file__)[0] + '.py'
+		assert not cmds.pluginInfo( persistence_plugin_file, q=1, loaded=1 )
 		
 		# if we enforce persitence, it should be loaded and available !
 		mayarv.maya.nt.enforcePersistance()
-		assert cmds.pluginInfo( storage_plugin_file, q=1, loaded=1 )
+		assert cmds.pluginInfo( persistence_plugin_file, q=1, loaded=1 )

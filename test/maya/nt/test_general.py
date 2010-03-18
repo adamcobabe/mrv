@@ -5,6 +5,7 @@ import mayarv.maya as bmaya
 import mayarv.maya.env as env
 import mayarv.maya.ns as nsm
 import mayarv.maya.nt as nt
+from mayarv.maya.nt.persistence import PyPickleData
 from mayarv.test.maya import get_maya_file
 from mayarv.util import capitalize, uncapitalize
 import maya.cmds as cmds
@@ -991,7 +992,7 @@ class TestNodeBase( unittest.TestCase ):
 		
 		# PLUGIN DATA
 		# use storage node data type
-		pd = nt.PluginData.create(nt.PyPickleData.kPluginDataId)
+		pd = nt.PluginData.create(PyPickleData.kPluginDataId)
 		
 		
 		# NUMERIC DATA
@@ -1051,7 +1052,7 @@ class TestNodeBase( unittest.TestCase ):
 		# END for each type
 		
 		# test plugin data type
-		attr = nt.TypedAttribute.create(l, s, nt.PyPickleData.kPluginDataId)
+		attr = nt.TypedAttribute.create(l, s, PyPickleData.kPluginDataId)
 		assert isinstance(attr, nt.TypedAttribute)
 		assert attr.attrType() == nt.api.MFnData.kInvalid	 # its okay, it works, see storage node
 		
