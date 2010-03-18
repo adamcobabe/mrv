@@ -2,7 +2,7 @@
 #
 
 # You can set these variables from the command line.
-SPHINXOPTS    =
+SPHINXOPTS    = 
 SPHINXBUILD   ?= ./sphinx_build
 SPHINXAUTOGEN   ?= ./sphinx_autogen
 SPHINXAUTOGENPOST ?= ./sphinx_autogen_postprocess

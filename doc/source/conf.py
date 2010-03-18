@@ -24,7 +24,7 @@ sys.path.append(os.path.abspath('.'))
 
 # Add any Sphinx extension module names here, as strings. They can be extensions
 # coming with Sphinx (named 'sphinx.ext.*') or your custom ones.
-extensions = ['sphinx.ext.autodoc', 'sphinx.ext.autosummary', 'sphinx.ext.doctest','extapi', 'numpydoc' ]
+extensions = ['sphinx.ext.autodoc', 'sphinx.ext.autosummary', 'sphinx.ext.doctest','extapi' ]
 
 # Add any paths that contain templates here, relative to this directory.
 templates_path = ['.templates']
@@ -37,7 +37,7 @@ master_doc = 'index'
 
 # General substitutions.
 project = 'MayaRV'
-copyright = '2009, Sebastian Thiel'
+copyright = '2010, Sebastian Thiel'
 
 # The default replacements for |version| and |release|, also used in various
 # other places throughout the built documents.
