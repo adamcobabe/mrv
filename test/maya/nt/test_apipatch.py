@@ -54,9 +54,9 @@ class TestDataBase( unittest.TestCase ):
 		cmds.redo( )
 		assert front.translate in persp.translate.moutputs() 
 
-		# check p_output
+		# check moutput
 		assert persp.translate.moutput() == front.translate 
-		self.failUnlessRaises( IndexError, persp.rotate.moutput )
+		assert persp.rotate.moutput().isNull()		# unconnected return nullPlus as minput does
 
 		# CHECK CONNECTION FORCING
 		persp.translate.mconnectTo(front.translate, force=False) 			# already connected
@@ -272,11 +272,11 @@ class TestDataBase( unittest.TestCase ):
 		assert a[0] == a[0]
 		assert a[0] != a[1]
 		
-		# mgetParent 
+		# mparent 
 		assert tx.mparent() == t
 		assert a[0].mparent() == a
 		
-		# mgetChildren
+		# mchildren
 		assert len(a[0].mchildren()) == 0
 		assert len(t.mchildren()) == 3
 		
@@ -285,7 +285,7 @@ class TestDataBase( unittest.TestCase ):
 		self.failUnlessRaises(TypeError, tx.mchildByName, 'something')
 		self.failUnlessRaises(AttributeError, t.mchildByName, 'doesntexist')
 		
-		# mgetSubPlugs
+		# msubPlugs
 		assert len(t.msubPlugs()) == 3
 		assert len(a.msubPlugs()) == 2
 		assert len(tx.msubPlugs()) == 0
@@ -348,14 +348,14 @@ class TestDataBase( unittest.TestCase ):
 		# misConnectedTo
 		# st
 		
-		# mgetOutputs
+		# moutputs
 		assert len(front.msg.moutputs()) == 1 and front.msg.moutputs()[0] == a[1]
 		assert len(a[0].moutputs()) == 0
 		
-		# mgetOutput
+		# moutput
 		# st
 		
-		# mgetInputs
+		# minputs
 		assert len(a.minputs()) == 2
 		assert len(a[1].minputs()) == 1
 		
@@ -369,36 +369,38 @@ class TestDataBase( unittest.TestCase ):
 		# miterOutputGraph
 		# st
 		
-		# mgetInput
+		# minput
 		# st
 		
-		# mgetConnections
+		# mconnections
 		assert len(front.msg.mconnections()) == 2
 		assert len(a[1].mconnections()) == 2
 		
 		
-		# mgetDependencyInfo
+		# mdependencyInfo
 		m = nt.Mesh()
 		assert len(m.outMesh.maffected())
+		assert isinstance(m.outMesh.maffected()[0], api.MPlug)
 		assert m.outMesh.maffected() == m.outMesh.mdependencyInfo(by=True)
 		assert isinstance(m.inMesh.maffects(), list)	# no affected items for some reason
 		assert m.inMesh.maffects() == m.inMesh.mdependencyInfo(by=False)
 		
-		# mgetNextLogicalIndex|plug
+		
+		# mnextLogicalIndex|plug
 		assert a.mnextLogicalIndex() == 2
 		assert a.mnextLogicalPlug().logicalIndex()
 		
-		# mgetWrappedAttribute
+		# mwrappedAttribute
 		assert isinstance(a.mwrappedAttribute(), nt.Attribute)
 		
-		# mgetWrappedNode
+		# mwrappedNode
 		assert isinstance(a.mwrappedNode(), nt.Node)
 		
 		# masData
 		nt.PolyCube().output.mconnectTo(m.inMesh)	# need data here
 		assert isinstance(m.outMesh.masData(), nt.Data)
 		
-		# mgetFullyQualifiedName
+		# mfullyQualifiedName
 		assert a.mfullyQualifiedName() != a.partialName()
 		
 	@with_scene('empty.ma')

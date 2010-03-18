@@ -74,7 +74,7 @@ class TestGeometryPerformance( unittest.TestCase ):
 		ia = nt.api.MIntArray()
 		nc = 0
 		for it in m.f:
-			it.vertices(ia)
+			it.getVertices(ia)
 			nc += 1
 		# END for each vertex
 		assert nc == nf
@@ -104,7 +104,7 @@ class TestGeometryPerformance( unittest.TestCase ):
 		m.setCurrentColorSetName(cset)
 		
 		lp = nt.api.MPointArray()
-		m.points(lp)
+		m.getPoints(lp)
 		
 		colors = nt.api.MColorArray()
 		colors.setLength(m.numVertices())
@@ -119,7 +119,7 @@ class TestGeometryPerformance( unittest.TestCase ):
 		# compute average edge-lengths
 		max_len = 0.0
 		for vid, vit in enumerate(m.vtx):
-			vit.connectedVertices(cvids)
+			vit.getConnectedVertices(cvids)
 			cvp = lp[vid]
 			accum_edge_len=0.0
 			for cvid in cvids:

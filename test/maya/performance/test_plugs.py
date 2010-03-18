@@ -112,7 +112,7 @@ class TestPlugPerformance( unittest.TestCase ):
 		##############
 		persp = nt.Node( "persp" )
 		perspshape = persp[0]
-		plugs = [ persp.t['x'], perspshape.fl ]
+		plugs = [ persp.tx, perspshape.fl ]
 
 		num_iterations = 2500
 		iterations = range( num_iterations )

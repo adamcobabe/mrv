@@ -45,9 +45,6 @@ class TestAnim( unittest.TestCase ):
 			# END for each isInTangent value
 		# END for each keyindex
 		
-		
-		# save_for_debugging('anim')
-		
 	def test_get_animation( self ):
 		mmaya.Scene.new(force=True)
 		p = nt.Node("persp")

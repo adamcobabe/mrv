@@ -1130,12 +1130,9 @@ class DependNode( Node, iDuplicatable ):		# parent just for epydoc -
 		@note: USING MEL: as api command and mObject array always crashed on me ... don't know :("""
 		if not isinstance( attribute, basestring ):
 			attribute = attribute.name()
+		# END handle input
 		attrs = cmds.affects( attribute , str(self), by=by )
-
-		outattrs = []
-		for attr in attrs:
-			outattrs.append( self.attribute( attr ) )
-		return outattrs
+		return [ self.attribute(an) for an in attrs ]
 
 	#} END connections and attribtues
 

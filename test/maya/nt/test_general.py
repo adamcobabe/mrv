@@ -346,6 +346,7 @@ class TestNodeBase( unittest.TestCase ):
 		assert len( affected_attrs ) > 1 
 		affected_attrs = persp.dependencyInfo( "t", by=1 )
 		assert len( affected_attrs ) > 1 
+		assert isinstance(affected_attrs[0], nt.Attribute)
 
 
 		# CHECK LAZY WRAPPING
@@ -362,7 +363,7 @@ class TestNodeBase( unittest.TestCase ):
 
 		for i in xrange( node.attributeCount() ):
 			attr = node.attribute( i )
-			assert not attr.isNull() 
+			assert not attr.isNull()  and attr.name()
 
 		# CHECK namespaces - should be root namespace
 		ns = node.namespace( )

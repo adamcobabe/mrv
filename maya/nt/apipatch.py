@@ -615,14 +615,29 @@ class MPlug( api.MPlug ):
 		return outputs
 
 	def moutput( self ):
-		"""@return: out first plug that has this plug as source of a connection
-		@raise IndexError: if the plug has no outputs
+		"""@return: first plug that has this plug as source of a connection, or null plug 
+		if no such plug exists.
 		@note: convenience method"""
 		outputs = self.moutputs()
 		if len( outputs ) == 0:
-			raise IndexError( "Plug %s was not connected to output plugs" % self )
-
+			return self.pa[0]
 		return outputs[0]
+
+	def minput( self ):
+		"""@return: plug being the source of a connection to this plug or a null plug
+		if no such plug exists"""
+		inputs = api.MPlugArray()
+		self.connectedTo( inputs, True, False )
+
+		noInputs = len( inputs )
+		if noInputs == 0:
+			# TODO: find a better way to get a MPlugPtr type that can properly be tested for isNull
+			return self.pa[0]
+		elif noInputs == 1:
+			return inputs[0]
+
+		# must have more than one input - can this ever be ?
+		raise ValueError( "Plug %s has more than one input plug - check how that can be" % self )
 
 	def minputs( self ):
 		"""Special handler returning the input plugs of array elements
@@ -666,22 +681,6 @@ class MPlug( api.MPlug ):
 		kwargs['input'] = False
 		return self.miterGraph(*args, **kwargs)
 
-	def minput( self ):
-		"""@return: plug being the source of a connection to this plug or a null plug
-		if no such plug exists"""
-		inputs = api.MPlugArray()
-		self.connectedTo( inputs, True, False )
-
-		noInputs = len( inputs )
-		if noInputs == 0:
-			# TODO: find a better way to get a MPlugPtr type that can properly be tested for isNull
-			return self.pa[0]
-		elif noInputs == 1:
-			return inputs[0]
-
-		# must have more than one input - can this ever be ?
-		raise ValueError( "Plug %s has more than one input plug - check how that can be" % self )
-
 	def mconnections( self ):
 		"""@return: tuple with input and outputs ( inputPlug, outputPlugs )"""
 		return ( self.minput( ), self.moutputs( ) )
@@ -696,8 +695,7 @@ class MPlug( api.MPlug ):
 		required - this will also be faster
 		@note: have to use MEL :("""
 		ownnode = self.mwrappedNode()
-		attrs = cmds.affects( self.mwrappedAttribute().name() , str( ownnode ), by=by ) or list()
-
+		attrs = cmds.affects( self.mwrappedAttribute().name() , ownnode.name(), by=by ) or list()
 		outplugs = list()
 		depfn = api.MFnDependencyNode( ownnode.object() )
 
@@ -794,18 +792,6 @@ class MPlug( api.MPlug ):
 	mdc = mdisconnectFrom
 	mnode = mwrappedNode
 	mattribute = mwrappedAttribute
-	getNode = api.MPlug.node
-	getAttribute = api.MPlug.attribute
-	getChild = api.MPlug.child
-	getArray = api.MPlug.array
-	getElementByPhysicalIndex = api.MPlug.elementByPhysicalIndex
-	getElementByLogicalIndex = api.MPlug.elementByLogicalIndex
-	getConnectionByPhysicalIndex = api.MPlug.connectionByPhysicalIndex
-	getNumElements = api.MPlug.numElements
-	getName = api.MPlug.name
-	getPartialName = api.MPlug.partialName
-	getLogicalIndex = api.MPlug.logicalIndex
-	getNumChildren = api.MPlug.numChildren
 	#} END name remapping
 
 
