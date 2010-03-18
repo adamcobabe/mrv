@@ -2,7 +2,7 @@
 #
 
 # You can set these variables from the command line.
-SPHINXOPTS    =
+SPHINXOPTS    = -P
 SPHINXBUILD   ?= ./sphinx_build
 SPHINXAUTOGEN   ?= ./sphinx_autogen
 SPHINXAUTOGENPOST ?= ./sphinx_autogen_postprocess
@@ -52,7 +52,7 @@ autogen: source/index.rst
 	$(SPHINXAUTOGENPOST) $(AUTOGEN_TARGET)
 	
 	
-html: source/index.rst autogen epydoc
+html: source/index.rst autogen
 	@mkdir -p build/html build/doctrees
 	$(SPHINXBUILD) -b html $(ALLSPHINXOPTS) build/html
 	@echo

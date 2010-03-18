@@ -19,14 +19,15 @@ It will:
 import os, re, pydoc
 from docscrape_sphinx import get_doc_object, SphinxDocString
 import inspect
+title_re = re.compile(ur'^\s*[#*=]{4,}\n[a-z0-9 -]+\n[#*=]{4,}\s*',
+                              re.I|re.S)
 
 def mangle_docstrings(app, what, name, obj, options, lines,
                       reference_offset=[0]):
 
     if what == 'module':
         # Strip top title
-        title_re = re.compile(ur'^\s*[#*=]{4,}\n[a-z0-9 -]+\n[#*=]{4,}\s*',
-                              re.I|re.S)
+        global title_re 
         lines[:] = title_re.sub(u'', u"\n".join(lines)).split(u"\n")
     else:
         doc = get_doc_object(obj, what, u"\n".join(lines))
@@ -69,8 +70,7 @@ def mangle_docstrings(app, what, name, obj, options, lines,
 
 def mangle_signature(app, what, name, obj, options, sig, retann):
     # Do not try to inspect classes that don't define `__init__`
-    if (inspect.isclass(obj) and
-        'initializes x; see ' in pydoc.getdoc(obj.__init__)):
+    if inspect.isclass(obj) and not hasattr(obj, '__init__'):
         return '', ''
 
     if not (callable(obj) or hasattr(obj, '__argspec_is_invalid_')): return
@@ -107,7 +107,6 @@ def monkeypatch_sphinx_ext_autodoc():
     if sphinx.ext.autodoc.format_signature is our_format_signature:
         return
 
-    print "[numpydoc] Monkeypatching sphinx.ext.autodoc ..."
     _original_format_signature = sphinx.ext.autodoc.format_signature
     sphinx.ext.autodoc.format_signature = our_format_signature
 

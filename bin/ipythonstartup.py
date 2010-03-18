@@ -58,8 +58,3 @@ setup_syspath()
 init_ipython()
 ################
 
-
- 
-	
-
-
