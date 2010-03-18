@@ -19,7 +19,9 @@ from path import Path
 def init_modules( filepath, moduleprefix, recurse=False, self_module = None):
 	""" Call '__initialize' functions in submodules of module at filepath if they exist
 	These functions should setup the module to be ready for work, its a callback informing
-	the submodules that the super module is being requested
+	the submodules that the super module is being requested. They return a True value if
+	the initialization was performed, or a False one if they weren't for some reason.
+	Throw to indicate error.
 	@param filepath: your module module.__file__ value
 	@param moduleprefix: prefix like "super.yourmodule." leading to the submodules from
 	an available system include path

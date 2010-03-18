@@ -35,17 +35,17 @@ import sys
 import os
 
 _undo_enabled_envvar = "MAYARV_UNDO_ENABLED"
+_should_initialize_plugin = int(os.environ.get(_undo_enabled_envvar, True))
 
 #{ Initialization
 
 def __initialize():
 	""" Assure our plugin is loaded - called during module intialization
 	@note: will only load the plugin if the undo system is not disabled"""
-	global _undo_enabled_envvar
+	global _should_initialize_plugin
 	
 	pluginpath = os.path.splitext( __file__ )[0] + ".py"
-	should_initialize_plugin = int(os.environ.get(_undo_enabled_envvar, True))
-	if should_initialize_plugin and not cmds.pluginInfo( pluginpath, q=1, loaded=1 ):
+	if _should_initialize_plugin and not cmds.pluginInfo( pluginpath, q=1, loaded=1 ):
 		cmds.loadPlugin( pluginpath )
 
 	# assure our decorator is available !
@@ -54,7 +54,7 @@ def __initialize():
 	setattr( __builtin__, 'notundoable', notundoable )
 	setattr( __builtin__, 'forceundoable', forceundoable )
 	
-	return should_initialize_plugin
+	return _should_initialize_plugin
 
 
 
@@ -62,8 +62,8 @@ def __initialize():
 
 
 #{ Undo Plugin
+# when we are here, these have been imported already
 import maya.OpenMaya as api
-import maya.OpenMayaMPx as mpx
 import maya.cmds as cmds
 import maya.mel as mel
 
@@ -84,83 +84,87 @@ _maya_undo_enabled = int(os.environ.get(_undo_enabled_envvar, True))
 if not _maya_undo_enabled:
 	undoInfo(swf=0)
 
-# command
-class UndoCmd( mpx.MPxCommand ):
-	kCmdName = "storeAPIUndo"
-	fId = "-id"
-
-	def __init__(self):
-		mpx.MPxCommand.__init__(self)
-		self._operations = None
-
-	#{ Command Methods
-	def doIt(self,argList):
-		"""Store out undo information on maya's undo stack"""
-		# if we reach the starting level, we can actually store the undo buffer
-		# and allow us to be placed on the undo queue
-		if sys._maya_stack_depth == 0:
-			self._operations = sys._maya_stack
-			sys._maya_stack = list()					# clear the operations list
-			return
-		# END if stack 0
-
-
-		# still here ?
-		msg = "storeAPIUndo may only be called by the top-level function"
-		self.displayError( msg )
-		raise RuntimeError( msg )
-
-	def redoIt( self ):
-		"""Called on once a redo is requested"""
-		if not self._operations:
-			return
-
-		for op in self._operations:
-			op.doIt( )
-
-	def undoIt( self ):
-		"""Called once undo is requested"""
-		if not self._operations:
-			return
-
-		# run in reversed order !
-		for op in reversed(self._operations):
-			op.undoIt()
-
-	def isUndoable( self ):
-		"""@return: True if we are undoable - it depends on the state of our
-		undo stack
-		@note: we are always undoable as doIt is called first and stores operations"""
-		return self._operations is not None
-
-	# END command methods
-
-	@staticmethod
-	def creator():
-		return mpx.asMPxPtr( UndoCmd() )
-
-
-	# Syntax creator
-	@staticmethod
-	def createSyntax( ):
-		syntax = api.MSyntax()
-
-		# id - just for information and debugging
-		syntax.addFlag( UndoCmd.fId, "-callInfo", syntax.kString )
-
-		syntax.enableEdit( )
-
-		return syntax
-
-
-def initializePlugin(mobject):
-	mplugin = mpx.MFnPlugin(mobject)
-	mplugin.registerCommand( UndoCmd.kCmdName, UndoCmd.creator, UndoCmd.createSyntax )
-
-# Uninitialize the script plug-in
-def uninitializePlugin(mobject):
-	mplugin = mpx.MFnPlugin(mobject)
-	mplugin.deregisterCommand( UndoCmd.kCmdName )
+# command - only generate code if we are to initialize undo
+# mpx takes .3 s to load and we can just safe that time
+if _should_initialize_plugin:
+	import maya.OpenMayaMPx as mpx
+	class UndoCmd( mpx.MPxCommand ):
+		kCmdName = "storeAPIUndo"
+		fId = "-id"
+	
+		def __init__(self):
+			mpx.MPxCommand.__init__(self)
+			self._operations = None
+	
+		#{ Command Methods
+		def doIt(self,argList):
+			"""Store out undo information on maya's undo stack"""
+			# if we reach the starting level, we can actually store the undo buffer
+			# and allow us to be placed on the undo queue
+			if sys._maya_stack_depth == 0:
+				self._operations = sys._maya_stack
+				sys._maya_stack = list()					# clear the operations list
+				return
+			# END if stack 0
+	
+	
+			# still here ?
+			msg = "storeAPIUndo may only be called by the top-level function"
+			self.displayError( msg )
+			raise RuntimeError( msg )
+	
+		def redoIt( self ):
+			"""Called on once a redo is requested"""
+			if not self._operations:
+				return
+	
+			for op in self._operations:
+				op.doIt( )
+	
+		def undoIt( self ):
+			"""Called once undo is requested"""
+			if not self._operations:
+				return
+	
+			# run in reversed order !
+			for op in reversed(self._operations):
+				op.undoIt()
+	
+		def isUndoable( self ):
+			"""@return: True if we are undoable - it depends on the state of our
+			undo stack
+			@note: we are always undoable as doIt is called first and stores operations"""
+			return self._operations is not None
+	
+		# END command methods
+	
+		@staticmethod
+		def creator():
+			return mpx.asMPxPtr( UndoCmd() )
+	
+	
+		# Syntax creator
+		@staticmethod
+		def createSyntax( ):
+			syntax = api.MSyntax()
+	
+			# id - just for information and debugging
+			syntax.addFlag( UndoCmd.fId, "-callInfo", syntax.kString )
+	
+			syntax.enableEdit( )
+	
+			return syntax
+	
+	
+	def initializePlugin(mobject):
+		mplugin = mpx.MFnPlugin(mobject)
+		mplugin.registerCommand( UndoCmd.kCmdName, UndoCmd.creator, UndoCmd.createSyntax )
+	
+	# Uninitialize the script plug-in
+	def uninitializePlugin(mobject):
+		mplugin = mpx.MFnPlugin(mobject)
+		mplugin.deregisterCommand( UndoCmd.kCmdName )
+# END if plugin should be initialized
 
 #} END plugin
 

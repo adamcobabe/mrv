@@ -18,7 +18,6 @@ from mayarv.interface import iDuplicatable, iDagItem
 from mayarv.maya.util import StandinClass
 import maya.OpenMaya as api
 import maya.cmds as cmds
-import maya.OpenMayaMPx as mpx
 import mayarv.maya.ns as nsm
 import mayarv.maya.undo as undo
 from new import instancemethod
@@ -2235,6 +2234,8 @@ class PluginData( Data ):
 		@note: the data retrieved by this method cannot be used in plug.msetMObject( data ) as it
 		is ordinary python data, not an mobject
 		@raise RuntimeError: if the data object's id is unknown to this class"""
+		import maya.OpenMayaMPx as mpx	# delayed import as it takes plenty of time
+		
 		mfn = self._mfncls( self._apiobj )
 		datatype = mfn.typeId( )
 		try:

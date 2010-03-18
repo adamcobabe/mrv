@@ -7,9 +7,6 @@ data within maya scenes.
 @todo: more documentation, how to use the system
 """
 import os
-import mayarv.maya.undo as undo
-from mayarv.util import iDuplicatable
-import maya.cmds as cmds
 	
 __all__ = ("StorageBase", "StorageNode", "PyPickleData")
 
@@ -34,9 +31,12 @@ def __initialize( nodes_module ):
 
 #} END initialization
 
-
+import mayarv.maya.undo as undo
+import maya.cmds as cmds
 import maya.OpenMaya as api
 import maya.OpenMayaMPx as mpx
+
+from mayarv.util import iDuplicatable
 
 import sys
 import cPickle
