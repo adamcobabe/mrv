@@ -7,6 +7,8 @@ from mayarv.path import Path
 import maya.cmds as cmds
 import tempfile
 
+# require persistence
+nt.enforcePersistance()
 
 class TestStorage( unittest.TestCase ):
 	def test_storagePickleData( self ):

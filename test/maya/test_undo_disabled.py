@@ -19,3 +19,9 @@ class TestUndoDisabled( tutil.StandaloneTestBase ):
 		import mayarv.maya
 		undo_plugin_file = os.path.splitext(mayarv.maya.undo.__file__)[0] + '.py'
 		assert not cmds.pluginInfo( undo_plugin_file, q=1, loaded=1 )
+		
+		# should still be able to use MPlug.msetX
+		import mayarv.maya.nt as nt
+		p = nt.Node("persp")
+		p.tx.msetDouble(10.0)
+		assert p.tx.asDouble() == 10.0
