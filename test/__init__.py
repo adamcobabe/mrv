@@ -1,2 +1,2 @@
 # -*- coding: utf-8 -*-
-"""Initialize the test framework """
+"""Initialize the testing framework """

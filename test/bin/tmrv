@@ -1,5 +1,5 @@
 #!/bin/bash
-# runtests [ mayaversion ] [ args ]
+# tmrv [ mayaversion ] [ args ]
 # Maya version can be 8.5, 2008, 2009 and so forth
 # 
 # Uses nose to run tests defined by mayarv, options are provided to nose
