@@ -10,7 +10,7 @@ class AnimCurve( base.DependNode ):
 	methods and provides new convenience methods as well"""
 
 	@classmethod
-	def animation( cls, iter_nodes, asNode=True ):
+	def findAnimation( cls, iter_nodes, asNode=True ):
 		"""@return: list-compatible object containing animation curves attached to
 		the nodes in the given object.
 		@param nodes: MSelection list or list of MObjects or Nodes containing

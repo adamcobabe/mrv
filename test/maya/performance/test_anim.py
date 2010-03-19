@@ -16,7 +16,7 @@ class TestAnimPerformance( unittest.TestCase ):
 			# find animation
 			st = time.time()
 			sel_list = nt.toSelectionList(nt.it.iterDgNodes(asNode=False))
-			anim_nodes = nt.AnimCurve.animation(sel_list, as_node)
+			anim_nodes = nt.AnimCurve.findAnimation(sel_list, as_node)
 			num_nodes = len(anim_nodes)
 			elapsed = time.time() - st
 			print >>sys.stderr, "Found %i animation nodes ( as_node=%i ) in %f s ( %f anim nodes / s )" % (num_nodes, as_node, elapsed, num_nodes/elapsed)

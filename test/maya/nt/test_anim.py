@@ -62,7 +62,7 @@ class TestAnim( unittest.TestCase ):
 				if as_node:
 					target_type = nt.Node
 				# END define target type
-				for anode in nt.AnimCurve.animation(converter([p]), as_node):
+				for anode in nt.AnimCurve.findAnimation(converter([p]), as_node):
 					assert isinstance(anode, target_type)
 					nc += 1
 				# END for each anim node
