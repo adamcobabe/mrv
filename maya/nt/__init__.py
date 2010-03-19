@@ -102,7 +102,7 @@ def forceClassCreation( typeNameList ):
 	# END for each typename
 	return outclslist
 
-def enforcePersistance( ):
+def enforcePersistence( ):
 	"""Call this method to ensure that the persistance plugin is loaded and available.
 	This should by used by plugins which require persitence features but want to 
 	be sure it is not disabled on the target system"""

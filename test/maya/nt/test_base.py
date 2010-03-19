@@ -14,7 +14,7 @@ from mayarv.path import Path
 import sys
 
 # require persistence
-nt.enforcePersistance()
+nt.enforcePersistence()
 
 class TestGeneral( unittest.TestCase ):
 	""" Test general maya framework """
