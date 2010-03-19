@@ -654,7 +654,7 @@ class MPlug( api.MPlug ):
 		"""Special handler returning the input plugs of array elements
 		@return: list of plugs connected to the elements of this arrayplug
 		@note: if self is not an array, a list with 1 or 0 plugs will be returned"""
-		out = []
+		out = list()
 		if self.isArray():
 			self.evaluateNumElements()
 			for elm in self:

@@ -13,3 +13,4 @@ MFn to NodeTypeMap
 MFn Method Mutators
 ===================
 
+Attribute creation, reference counts, point out possible problems
