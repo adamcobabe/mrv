@@ -88,13 +88,14 @@ class FileReference( iDagItem ):
 
 	#{ Reference Adjustments 
 	@classmethod
-	def create( cls, filepath, namespace=None, load = True ):
+	def create( cls, filepath, namespace=None, load = True, **kwargs ):
 		"""Create a reference with the given namespace
 		@param filename: path describing the reference file location
 		@param namespace: if None, a unique namespace will be generated for you
 		The namespace will contain all referenced objects.
 		@param load: if True, the reference will be created in loaded state, other
 		wise its loading is deferred
+		@param **kwargs: passed to file command
 		@raise ValueError: if the namespace does already exist
 		@raise RuntimeError: if the reference could not be created"""
 		filepath = Path( cls._splitCopyNumber( filepath )[0] )
@@ -116,8 +117,13 @@ class FileReference( iDagItem ):
 
 		# assure we keep the current namespace
 		prevns = Namespace.current()
+		
+		# removing duplicate **kwargs
+		kwargs.pop('ns', None)
+		kwargs.pop('reference', kwargs.pop('r', None))
+		kwargs.pop('deferReference', kwargs.pop('dr', None))
 		try:
-			createdRefpath = cmds.file( filepath, ns=str(ns),r=1,dr=not load )
+			createdRefpath = cmds.file( filepath, ns=str(ns),r=1,dr=not load, **kwargs )
 		finally:
 			prevns.setCurrent( )
 		# END assure we keep the namespace
