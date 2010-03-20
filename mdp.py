@@ -3,8 +3,16 @@
 """Module containing the commandline interface for the Maya Depdendency Parser"""
 # may not be imported directly
 __all__ = None
-
+# assure we have the main module initialized
+import mayarv
 from mdepparse import *
+
+from networkx.readwrite import gpickle
+
+from itertools import chain
+import getopt
+import sys
+
 
 
 def main( fileList, **kwargs ):
@@ -265,7 +273,7 @@ if __name__ == "__main__":
 	# ALL INVALID FILES OUTPUT
 	###########################
 	if not queried_files and return_invalid:
-		invalidFiles = graph.invalid()
+		invalidFiles = graph.invalidFiles()
 		sys.stdout.writelines( ( iv + "\n" for iv in invalidFiles ) )
 
 

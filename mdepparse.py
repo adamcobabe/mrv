@@ -2,13 +2,9 @@
 """Contains parser allowing to retrieve dependency information from maya ascii files
 and convert it into an easy-to-use networkx graph with convenience methods.
 """
-import mayarv				# assure we have the main module initialized
 from networkx import DiGraph, NetworkXError
-from networkx.readwrite import gpickle
 from util import iterNetworkxGraph
-from itertools import chain
 
-import getopt
 import sys
 import os
 import re
@@ -39,7 +35,7 @@ class MayaFileGraph( DiGraph ):
 	def _addInvalid( self, invalidfile ):
 		"""Add an invalid file to our special location
 		@note: we prefix it to assure it does not popup in our results"""
-		self.add_edge( ( self.invalidNodeID, self.invalidPrefix + str( invalidfile ) ) )
+		self.add_edge( self.invalidNodeID, self.invalidPrefix + str( invalidfile ) )
 
 	@classmethod
 	def _parseReferences( cls, mafile, allPaths = False ):
@@ -97,8 +93,7 @@ class MayaFileGraph( DiGraph ):
 
 	def addFromFiles( self, mafiles, parse_all_paths = False,
 					to_os_path = lambda f: os.path.expandvars( f ),
-					os_path_to_db_key = lambda f: f,
-					ignorelist=None ):
+					os_path_to_db_key = lambda f: f):
 		"""Parse the dependencies from the given maya ascii files and add them to
 		this graph
 		@note: the more files are given, the more efficient the method can be
@@ -113,8 +108,6 @@ class MayaFileGraph( DiGraph ):
 		@param os_path_to_db_key: converts the given path as used in the filesystem into
 		a path to be used as key in the database. It should be general.
 		Ideally, os_path_to_db_key is the inverse as to_os_path.
-		@param ignorelist: global ignore list that can be passed in to allow us
-		to skip files that have already been proecss
 		@note: if the parsed path contain environment variables you must start the
 		tool such that these can be resolved by the system. Otherwise files might
 		not be found
@@ -151,7 +144,7 @@ class MayaFileGraph( DiGraph ):
 						dbdepfile = depfile								# invalid - revert it
 						self._addInvalid( depfile )						# store it as invalid, no further processing
 
-					self.add_edge( ( dbdepfile, os_path_to_db_key( curfilestr ) ) )
+					self.add_edge( dbdepfile, os_path_to_db_key( curfilestr ) )
 
 				# add to stack and go on
 				depfiles.extend( valid_depends )
@@ -183,7 +176,7 @@ class MayaFileGraph( DiGraph ):
 		kwargs[ 'branch_first' ] = 1		# default
 
 		keypath = os_path_to_db_key( to_os_path( filePath ) )	# convert key
-		invalid = set( self.invalid() )
+		invalid = set( self.invalidFiles() )
 
 		if return_unresolved:
 			to_os_path = lambda f: f
@@ -205,7 +198,7 @@ class MayaFileGraph( DiGraph ):
 
 		return outlist
 
-	def invalid( self ):
+	def invalidFiles( self ):
 		"""@return: list of filePaths that could not be parsed, most probably
 		because they could not be found by the system"""
 		lenp = len( self.invalidPrefix  )

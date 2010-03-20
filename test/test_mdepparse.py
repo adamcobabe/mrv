@@ -6,6 +6,15 @@ from mayarv.mdepparse import *
 class TestMayaDependencyParsing( unittest.TestCase ):
 
 	def test_base( self ):
-		# TODO: Testing
-		pass
+		reffile = get_maya_file('ref2re.ma')
+		
+		# two equal refs, each two subrefs 
+		mfg = MayaFileGraph.createFromFiles([reffile])
+		affectedBy = mfg.depends(reffile, mfg.kAffectedBy)
+		print mfg.invalidFiles()
+		assert len(mfg.invalidFiles()) == 0
+		 
+		
+		# it cannot handle mb yet
+		
 
