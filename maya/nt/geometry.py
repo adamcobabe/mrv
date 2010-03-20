@@ -1,9 +1,11 @@
 # -*- coding: utf-8 -*-
 """ Contains implementations ( or improvements ) to mayas geometric shapes """
 import base
-from typ import MetaClassCreatorNodes
 from mayarv.enum import (create as enum, Element as elm)
 import maya.OpenMaya as api
+
+__all__ = ("GeometryShape", "DeformableShape", "ControlPoint", "SurfaceShape", 
+	       "Mesh")
 
 class GeometryShape( base.Shape ):	# base for epydoc !
 	"""Contains common methods for all geometry types"""
@@ -192,7 +194,6 @@ class Mesh( SurfaceShape ):		# base for epydoc !
 	convenient
 	
 	.. todo:: Write a litte more here, restructuredText, e[x:y], e[1,5,7], e[iter], e[list], e[ia], ce, cvtx ..."""
-	__metaclass__ = MetaClassCreatorNodes
 	# component types that make up a mesh
 	eComponentType = enum( elm("vertex", api.MFn.kMeshVertComponent), 
 							elm("edge", api.MFn.kMeshEdgeComponent ), 

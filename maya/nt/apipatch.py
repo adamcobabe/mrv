@@ -24,6 +24,9 @@ import itertools
 import it
 import os
 
+# Doesnt need all as it is just a utility package containing patches that are applies
+# to API classes
+# __all__ 
 
 def init_applyPatches( ):
 	"""Called by package __init__ method to finally apply the patch according to

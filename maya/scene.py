@@ -6,15 +6,15 @@ as disambiguation to a filesystem file.
 
 @todo: more documentation
 """
-__all__ = [ 'Scene' ]
-
 import util as mutil
 import mayarv.util as util
 import maya.OpenMaya as api
 import maya.cmds as cmds
 from mayarv.path import Path
 
-import inspect 
+import inspect
+
+__all__ = [ 'Scene' ]
 
 
 class _SceneEvent( mutil.CallbackEventBase ):

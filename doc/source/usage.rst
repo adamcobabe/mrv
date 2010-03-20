@@ -316,7 +316,7 @@ The ``MPlug`` type has been extended with various convenience methods which are 
 	
 Connections
 -----------
-Connect and disconnect plugs using simple, chainable functions. The most common connection related methods can be called using overloaded operators::
+Connect and disconnect plugs using simple, chainable functions::
 	>>> p.tx.mconnectTo(p.ty).mconnectTo(p.tz)
 	>>> assert p.tx.misConnectedTo(p.ty)
 	>>> assert p.ty.misConnectedTo(p.tz)

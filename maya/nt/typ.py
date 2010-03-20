@@ -20,12 +20,15 @@ from new import instancemethod
 import UserDict
 import maya.cmds as cmds
 
+__all__ = ("MetaClassCreatorNodes", "mfnDBPath", "cacheFilePath", "initNodeHierarchy", "initWrappers", 
+           "initNodeTypeToMfnClsMap", "MfnMemberMap", "writeMfnDBCacheFiles")
+
 ####################
 ### CACHES ########
 ##################
 _nodesdict = None					# to be set during initialization
 nodeTypeTree = None
-nodeTypeToMfnClsMap = {}			# allows to see the most specialized compatible mfn cls for a given node type
+nodeTypeToMfnClsMap = dict()		# allows to see the most specialized compatible mfn cls for a given node type
 
 
 
@@ -392,7 +395,7 @@ def cacheFilePath( filename, ext, use_version = False ):
 	return mfile / ( "cache/%s%s.%s" % ( filename, version, ext ) )
 
 
-def init_nodehierarchy( ):
+def initNodeHierarchy( ):
 	""" Parse the nodes hiearchy from the maya doc and create an Indexed tree from it
 	@todo: cache the pickled tree and try to load it instead"""
 	mfile = cacheFilePath( "nodeHierarchy", "html", use_version = 1 )
@@ -412,17 +415,17 @@ def init_nodehierarchy( ):
 		hierarchylist.append( ( level, name ) )
 	# END for each line
 	global nodeTypeTree
-	nodeTypeTree = bmaya._dagTreeFromTupleList( hierarchylist )
+	nodeTypeTree = bmaya.dag_tree_from_tuple_list( hierarchylist )
 
-def init_wrappers( targetmodule ):
+def initWrappers( targetmodule ):
 	""" Create Standin Classes that will delay the creation of the actual class till
 	the first instance is requested
 	@param targetmodule: the module to which to put the wrappers"""
 	global nodeTypeTree
-	bmaya._initWrappers( targetmodule, nodeTypeTree.nodes_iter(), MetaClassCreatorNodes )
+	bmaya.initWrappers( targetmodule, nodeTypeTree.nodes_iter(), MetaClassCreatorNodes )
 
 
-def init_nodeTypeToMfnClsMap( ):
+def initNodeTypeToMfnClsMap( ):
 	"""Fill the cache map supplying additional information about the MFNClass to use
 	when creating the classes"""
 	cfile = cacheFilePath( "nodeTypeToMfnCls", "map" )
@@ -465,7 +468,7 @@ def _addCustomType( targetmodule, parentclsname, newclsname,
 	nodeTypeTree.add_edge( parentclsname, newclsname )
 
 	# create wrapper ( in case newclsname does not yet exist in target module )
-	bmaya._initWrappers( targetmodule, [ newclsname ], metaclass, **kwargs )
+	bmaya.initWrappers( targetmodule, [ newclsname ], metaclass, **kwargs )
 
 
 def _addCustomTypeFromDagtree( targetModule, dagtree, metaclass=MetaClassCreatorNodes,
@@ -487,7 +490,7 @@ def _addCustomTypeFromDagtree( targetModule, dagtree, metaclass=MetaClassCreator
 				yield edge
 
 	nodeTypeTree.add_edges_from( recurseOutEdges( rootnode ) )
-	bmaya._initWrappers( targetModule, dagtree.nodes_iter(), metaclass, force_creation = force_creation, **kwargs )
+	bmaya.initWrappers( targetModule, dagtree.nodes_iter(), metaclass, force_creation = force_creation, **kwargs )
 
 
 ################################

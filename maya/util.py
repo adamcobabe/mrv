@@ -9,6 +9,10 @@ import networkx.exception as networkxexc
 
 import weakref
 
+__all__ = ("noneToList", "isIterable", "pythonToMel", "makeEditOrQueryMethod", 
+           "queryMethod", "editMethod", "propertyQE", "Mel", "OptionVarDict", 
+           "optionvars", "StandinClass", "MetaClassCreator", "CallbackEventBase")
+
 #{ Utility Functions
 def noneToList( res ):
 	"""@return: list instead of None"""
@@ -26,7 +30,6 @@ def pythonToMel(arg):
 		return u'{%s}' % ','.join( map( pythonToMel, arg) )
 	return unicode(arg)
 #} END utility functions
-
 
 
 #{ MEL Function Wrappers
@@ -63,7 +66,6 @@ def makeEditOrQueryMethod( inCmd, flag, isEdit=False, methodName=None ):
 
 	return func
 
-
 def queryMethod( inCmd, flag, methodName = None ):
 	""" Shorthand query version of makeEditOrQueryMethod """
 	return makeEditOrQueryMethod( inCmd, flag, isEdit=False, methodName=methodName )
@@ -79,7 +81,6 @@ def propertyQE( inCmd, flag, methodName = None ):
 	return property( queryFunc, editFunc )
 
 #} END mel function wrappers
-
 
 
 #{ Utitliy Classes
@@ -248,20 +249,6 @@ class OptionVarDict( util.Singleton ):
 
 # use it as singleton
 optionvars = OptionVarDict()
-
-
-class MuteUndo( object ):
-	"""Instantiate this class to disable the maya undo queue - on deletion, the
-	previous state will be restored
-	@note: useful if you want to save the undo overhead involved in an operation,
-	but assure that the previous state is always being reset"""
-	__slots__ = ( "prevstate", )
-	def __init__( self ):
-		self.prevstate = cmds.undoInfo( q=1, st=1 )
-		cmds.undoInfo( swf = 0 )
-
-	def __del__( self ):
-		cmds.undoInfo( swf = self.prevstate )
 
 #} END utility classes
 

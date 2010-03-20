@@ -14,6 +14,8 @@ import maya.cmds as cmds
 import maya.OpenMaya as api
 from itertools import ifilter
 
+__all__ = ("createReference", "listReferences", "FileReference", "FileReferenceError")
+
 #{ Exceptions
 class FileReferenceError( MayaRVError ):
 	pass

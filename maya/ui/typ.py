@@ -34,15 +34,15 @@ def init_classhierarchy( ):
 
 	# STORE THE TYPE TREE
 	global _typetree
-	_typetree = bmaya._dagTreeFromTupleList( bmaya._tupleListFromFile( mfile ) )
+	_typetree = bmaya.dag_tree_from_tuple_list( bmaya.tuple_list_from_file( mfile ) )
 
 
-def init_wrappers( ):
+def initWrappers( ):
 	""" Create Standin Classes that will delay the creation of the actual class till
 	the first instance is requested"""
 	global _typetree
 	global _thismodule
-	bmaya._initWrappers( _thismodule, _typetree.nodes_iter(), MetaClassCreatorUI )
+	bmaya.initWrappers( _thismodule, _typetree.nodes_iter(), MetaClassCreatorUI )
 
 
 #####################

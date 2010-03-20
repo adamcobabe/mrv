@@ -14,7 +14,7 @@ if 'init_done' not in locals():
 
 
 #{ Initialization Utilities
-def _force_type_creation():
+def force_type_creation():
 	"""Enforce the creation of all ui types - must be called once all custom types 
 	were imported"""
 	from mayarv.maya.util import StandinClass
@@ -29,7 +29,7 @@ def _force_type_creation():
 if not init_done:
 	import typ
 	typ.init_classhierarchy()				# populate hierarchy DAG from cache
-	typ.init_wrappers( )					# create wrappers for all classes
+	typ.initWrappers( )					# create wrappers for all classes
 	
 	import base
 	base._uidict = globals()
@@ -45,7 +45,7 @@ if not init_done:
 	from util import Signal
 	
 	# automatic types need to be created in the end !
-	_force_type_creation()
+	force_type_creation()
 # END initialization
 
 init_done = True

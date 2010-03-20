@@ -8,6 +8,7 @@ paths.
 """
 from maya import cmds
 
+__all__ = ("appVersion", )
 
 def appVersion( ):
 	"""

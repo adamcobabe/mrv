@@ -18,12 +18,26 @@ if not hasattr( sys,"_dataTypeIdToTrackingDictMap" ):
 	sys._dataTypeIdToTrackingDictMap = dict()			 # DataTypeId : tracking dict
 
 
+__all__ = ("registerPluginDataTrackingDict", )
+
 ############################
 #### COMMON   			####
 ##########################
 
 #{ Common
-def _dagTreeFromTupleList( tuplelist ):
+
+def registerPluginDataTrackingDict( dataTypeID, trackingDict ):
+	"""Using the given dataTypeID and tracking dict, nt.PluginData can return
+	self pointers belonging to an MPxPluginData instance as returned by MFnPluginData.
+	Call this method to register your PluginData information to the mayarv system.
+	Afterwards you can extract the self pointer using plug.masData().data()"""
+	sys._dataTypeIdToTrackingDictMap[ dataTypeID.id() ] = trackingDict
+
+#} End Common
+
+
+#{· Internal Utilities
+def dag_tree_from_tuple_list( tuplelist ):
 	"""@return: DagTree from list of tuples [ (level,name),...], where level specifies
 	the level of items in the dag.
 	@note: there needs to be only one root node which should be first in the list
@@ -66,9 +80,9 @@ def _dagTreeFromTupleList( tuplelist ):
 
 	return tree
 
-def _tupleListFromFile( filepath ):
+def tuple_list_from_file( filepath ):
 	"""Create a tuple hierarchy list from the file at the given path
-	@return: tuple list suitable for _dagTreeFromTupleList"""
+	@return: tuple list suitable for dag_tree_from_tuple_list"""
 	lines = Path( filepath ).lines( retain = False )
 
 	hierarchytuples = []
@@ -79,7 +93,7 @@ def _tupleListFromFile( filepath ):
 
 	return hierarchytuples
 
-def _initWrappers( module, types, metacreatorcls, force_creation = False ):
+def initWrappers( module, types, metacreatorcls, force_creation = False ):
 	""" Create standin classes that will create the actual class once creation is
 	requested.
 	@param module: module object from which the latter classes will be imported from
@@ -144,7 +158,7 @@ def parse_maya_env( envFilePath ):
 	os.environ = environ_bak
 	return out
 
-def moveVarsToEnviron( ):
+def move_vars_to_environ( ):
 	"""Move the maya vars as set in the shell into the os.environ to make them available to python"""
 	import maya.cmds as cmds
 	import subprocess
@@ -162,16 +176,9 @@ def moveVarsToEnviron( ):
 			continue
 		else:
 			os.environ[ var ] = value.strip()
-
-
-def registerPluginDataTrackingDict( dataTypeID, trackingDict ):
-	"""Using the given dataTypeID and tracking dict, nt.PluginData can return
-	self pointers belonging to an MPxPluginData instance as returned by MFnPluginData.
-	Call this method to register your PluginData information to the mayarv system.
-	Afterwards you can extract the self pointer using plug.masData().data()"""
-	sys._dataTypeIdToTrackingDictMap[ dataTypeID.id() ] = trackingDict
-
-#} End Common
+		# END try to split line
+	# END for each line from process' stdout 
+#} END internal utilities
 
 
 
@@ -272,7 +279,7 @@ def init_system( ):
 	###############
 	# NOTE: this might have to be redone in your own package dependent on when
 	# we are called - might be too early here
-	moveVarsToEnviron( )
+	move_vars_to_environ( )
 
 	# RUN USER SETUP
 	###################

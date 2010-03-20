@@ -32,6 +32,21 @@ import sys
 _nodesdict = None				# will be set during maya.nodes initialization
 
 
+__all__ = ("nodeTypeToNodeTypeCls", "isAbsolutePath", "toApiobj", "toApiobjOrDagPath", 
+           "toSelectionList", "toComponentSelectionList", "toSelectionListFromNames", 
+           "fromSelectionList", "toNodesFromNames", "findByName", "objExists", 
+           "delete", "selection", "activeSelectionList", "iterSelection", "select", 
+           "createNode", "SetFilter", "Node", "NodeFromObj", "NodeFromStr", 
+           "DependNode", "Entity", "DagNode", "Attribute", "UnitAttribute", "TypedAttribute", 
+           "NumericAttribute", "MessageAttribute", "MatrixAttribute", "LightDataAttribute", 
+           "GenericAttribute", "EnumAttribute", "CompoundAttribute", "Data", "VectorArrayData", 
+           "UInt64ArrayData", "StringData", "StringArrayData", "SphereData", "PointArrayData", 
+           "PluginData", "NumericData", "NObjectData", "MatrixData", "IntArrayData", 
+           "GeometryData", "SubdData", "NurbsSurfaceData", "NurbsCurveData", "MeshData", 
+           "LatticeData", "DynSweptGeometryData", "DoubleArrayData", "ComponentListData", 
+           "ArrayAttrsData", "Component", "SingleIndexedComponent", "DoubleIndexedComponent", 
+           "TripleIndexedComponent", "MDagPathUtil", "Reference", "Transform", "Shape" )
+
 
 ############################
 #### Cache 			  	####
@@ -90,7 +105,6 @@ def toDagPath( apiobj ):
 	MFnDagNode( apiobj ).getPath( dagpath )
 	return dagpath
 
-
 def toApiobj( nodename ):
 	""" Convert the given nodename to the respective MObject
 	@note: uses unique names only, and will fail if a non-unique path is given, which is
@@ -125,8 +139,6 @@ def toApiobj( nodename ):
 		# END if no exception on selectionList.add
 	# END for each test-object
 	return None
-
-
 
 def toApiobjOrDagPath( nodename ):
 	"""Convert the given nodename to the respective MObject or MDagPath
@@ -227,7 +239,7 @@ def toNodesFromNames( nodenames, **kwargs ):
 	@param **kwargs: passed to L{fromSelectionList}"""
 	return fromSelectionList( toSelectionListFromNames( nodenames ), **kwargs )
 
-def byName( name , **kwargs ):
+def findByName( name , **kwargs ):
 	"""@return: list of node matching name, whereas simple regex using * can be used
 	to describe a pattern
 	@param name: string like pcube, or pcube*, or pcube*|*Shape
@@ -771,7 +783,6 @@ def _lookup_type( mobject_or_mdagpath ):
 		return typename
 	# END handle cache miss
 
-	
 
 class NodeFromObj( object ):
 	"""Virtual Constructor, producing nodes as the L{Node} does, but it will only
@@ -2604,9 +2615,6 @@ class Shape( DagNode ):	 # base for epydoc !
 	@note: bases determined by metaclass"""
 
 	__metaclass__ = MetaClassCreatorNodes
-
-
-
 
 	#{ preset type filters
 	fSetsRenderable = SetFilter( api.MFn.kShadingEngine, False, 0 )	# shading engines only

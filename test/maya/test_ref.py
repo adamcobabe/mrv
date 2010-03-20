@@ -6,6 +6,9 @@ from mayarv.maya.ref import *
 from mayarv.maya.ns import *
 import mayarv.maya as bmaya
 import mayarv.maya.nt as nt
+
+import maya.OpenMaya as api
+
 import re
 import os
 

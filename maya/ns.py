@@ -11,6 +11,9 @@ import maya.cmds as cmds
 import maya.OpenMaya as api
 import re
 
+__all__ = ("Namespace", "createNamespace", "currentNamespace", "findUniqueNamespace", 
+           "existsNamespace", "RootNamespace")
+
 #{ internal utilties
 def _isRootOf( root, other ):
 	"""@return: True if other which may be a string, is rooted at 'root

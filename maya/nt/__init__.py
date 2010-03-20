@@ -29,6 +29,9 @@ from mayarv import init_modules
 import sys
 import os
 
+# May not use all as it will receive all submodules 
+# __all__
+
 #{ Common
 
 def addCustomType( newcls, parentClsName=None, **kwargs ):
@@ -87,7 +90,7 @@ def addCustomClasses( clsobjlist ):
 	# add the classes
 	for cls in clsobjlist:
 		setattr( _thismodule, cls.__name__, cls )
-
+	# END for each class to add
 
 def forceClassCreation( typeNameList ):
 	"""Create the types from standin classes from the given typeName iterable.
@@ -117,14 +120,16 @@ def enforcePersistence( ):
 
 #} END common utilities
 
-def init_package( ):
+#{ Initialization 
+
+def _init_package( ):
 	"""Do the main initialization of this package"""
 	global _thismodule
 	typ.MetaClassCreatorNodes.targetModule = _thismodule			# init metaclass with our module
 	typ._nodesdict = globals()
-	typ.init_nodehierarchy( )
-	typ.init_nodeTypeToMfnClsMap( )
-	typ.init_wrappers( _thismodule )
+	typ.initNodeHierarchy( )
+	typ.initNodeTypeToMfnClsMap( )
+	typ.initWrappers( _thismodule )
 
 	# initialize base module with our global namespace dict
 	import base
@@ -149,14 +154,15 @@ def _force_type_creation():
 		# END create type 
 	# END for each stored type
 	
-	
+#} END initialization	
+
 
 if 'init_done' not in locals():
 	init_done = False
 
 if not init_done:
 
-	init_package( )
+	_init_package( )
 
 
 	# overwrite dummy node bases with hand-implemented ones

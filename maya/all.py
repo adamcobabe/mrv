@@ -3,14 +3,7 @@
 @note: It will not import anything if the sphinx build system is active as it 
 will take too much memory ( ~2gig )"""
 import sys
-skip_import = False
-
-for imported_path in sys.path_importer_cache.keys():
-	if 'sphinx' in imported_path:
-		skip_import = True
-		break
-	# END check for imported sphinx
-# END for each imported path to check
+skip_import = sys.modules.has_key('sphinx')
 
 if not skip_import:
 	# maya 

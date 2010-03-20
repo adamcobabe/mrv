@@ -34,6 +34,10 @@ and do not incur any overhead.
 import sys
 import os
 
+__all__ = ("undoable", "forceundoable", "notundoable", "StartUndo", "endUndo", "undoAndClear", 
+           "UndoRecorder", "Operation", "GenericOperation", "GenericOperationStack", "DGModifier", 
+           "DagModifier")
+
 _undo_enabled_envvar = "MAYARV_UNDO_ENABLED"
 _should_initialize_plugin = int(os.environ.get(_undo_enabled_envvar, True))
 
@@ -273,6 +277,20 @@ def notundoable( func ):
 	return notundoableDecoratorWrapFunc
 
 
+class MuteUndo( object ):
+	"""Instantiate this class to disable the maya undo queue - on deletion, the
+	previous state will be restored
+	@note: useful if you want to save the undo overhead involved in an operation,
+	but assure that the previous state is always being reset"""
+	__slots__ = ( "prevstate", )
+	def __init__( self ):
+		self.prevstate = cmds.undoInfo( q=1, st=1 )
+		cmds.undoInfo( swf = 0 )
+
+	def __del__( self ):
+		cmds.undoInfo( swf = self.prevstate )
+
+
 class StartUndo( object ):
 	"""Utility class that will push the undo stack on __init__ and pop it on __del__
 	@note: Prefer the undoable decorator over this one as they are easier to use and FASTER !
@@ -287,6 +305,7 @@ class StartUndo( object ):
 			_decrStack( self.id )
 		else:
 			_decrStack( )
+
 
 def startUndo( ):
 	"""Call before you start undoable operations
@@ -683,15 +702,6 @@ class DagModifier( DGModifier ):
 	__slots__ = tuple()
 	_modifier_class_ = api.MDagModifier
 	
-
-# keep aliases
-#{ Aliases
-
-MDGModifier = DGModifier
-MDagModifier = DagModifier
-
-#} END aliases
-
 
 #} END operations
 

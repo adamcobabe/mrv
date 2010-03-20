@@ -5,6 +5,8 @@ import maya.OpenMaya as api
 import maya.OpenMayaAnim as apianim
 import util
 
+__all__ = ( "AnimCurve", )
+
 class AnimCurve( base.DependNode ):
 	"""Type representing a maya animation cuvrve, fixes existing MFnAnimCurve
 	methods and provides new convenience methods as well"""

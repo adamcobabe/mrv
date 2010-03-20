@@ -267,7 +267,7 @@ class TestGeneral( unittest.TestCase ):
 
 		# GET BY NAME
 		###############
-		persp = nt.byName( "pers*" )[0]
+		persp = nt.findByName( "pers*" )[0]
 		assert persp == nt.Node( "persp" ) 
 		
 		# filter selection

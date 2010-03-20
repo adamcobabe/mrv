@@ -9,6 +9,8 @@ import maya.cmds as cmds
 from maya.OpenMaya import MDagPath, MObject
 from base import Node, DagNode, NodeFromObj, Component
 
+__all__ = ("dgIterator", "dagIterator", "graphIterator", "selectionListIterator", 
+           "iterDgNodes", "iterDagNodes", "iterGraph", "iterSelectionList")
 
 def _argsToFilter( args ):
 	"""convert the MFnTypes in args list to the respective typeFilter"""
