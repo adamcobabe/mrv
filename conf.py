@@ -28,6 +28,12 @@ import sys
 import StringIO
 import os
 
+__all__ = ("ConfigParsingError", "ConfigParsingPropertyError", "DictToINIFile", 
+           "ConfigAccessor", "ConfigManager", "ExtendedFileInterface", "ConfigFile", 
+           "DictConfigINIFile", "ConfigStringIO", "ConfigChain", "BasicSet", 
+           "Key", "Section", "PropertySection", "ConfigNode", "DiffData", 
+           "DiffKey", "DiffSection", "ConfigDiffer")
+
 #{ Exceptions
 ################################################################################
 class ConfigParsingError( MayaRVError ):
@@ -272,13 +278,13 @@ class ConfigAccessor( object ):
 		@return: list of names of files that have actually been written - as files can be read-only
 		this list might be smaller than the amount of nodes in the accessor.
 		"""
-		writtenFiles = []
+		writtenFiles = list()
 
 		# for each node put the information into the parser and write to the node's
 		# file object after assuring it is opened
 		for cn in self._configChain:
 			try:
-				writtenFiles.append( cn.write( FixedConfigParser(), close_fp=close_fp ) )
+				writtenFiles.append( cn.write( _FixedConfigParser(), close_fp=close_fp ) )
 			except IOError:
 				pass
 
@@ -618,7 +624,7 @@ class ConfigManager( object ):
 		"""
 
 		# get patterns
-		workpatterns = []
+		workpatterns = list()
 		if isinstance( pattern, ( list , set ) ):
 			workpatterns.extend( pattern )
 		else:
@@ -628,7 +634,7 @@ class ConfigManager( object ):
 		# GET ALL FILES IN THE GIVEN DIRECTORIES
 		########################################
 		from path import Path
-		matchedFiles = []
+		matchedFiles = list()
 		for folder in directories:
 			for pattern in workpatterns:
 				matchedFiles.extend( Path( folder ).files( pattern ) )
@@ -637,7 +643,7 @@ class ConfigManager( object ):
 
 		# APPLY THE PATTERN SEARCH
 		############################
-		tagMatchList = []
+		tagMatchList = list()
 		for taggedFile in sorted( matchedFiles ):
 			filetags = os.path.split( taggedFile )[1].split( '.' )[1:-1]
 
@@ -652,7 +658,7 @@ class ConfigManager( object ):
 
 		# END for each tagged file
 
-		outDescriptors = []
+		outDescriptors = list()
 		for numtags,taggedFile in sorted( tagMatchList ):
 			outDescriptors.append( ConfigFile( taggedFile ) )	# just open for reading
 		return outDescriptors
@@ -772,6 +778,7 @@ class DictConfigINIFile( DictToINIFile, ExtendedFileInterface ):
 		""" We cannot be opened for writing, and are always read-only """
 		raise IOError( "DictINIFiles do not support writing" )
 
+
 class ConfigStringIO( StringIO.StringIO, ExtendedFileInterface ):
 	""" cStringIO object implementation of ExtendedFileInterface """
 	__slots__ = tuple()
@@ -792,18 +799,19 @@ class ConfigStringIO( StringIO.StringIO, ExtendedFileInterface ):
 		if self.closed:
 			raise IOError( "cStringIO instances cannot be written once closed" )
 
+#} END extended file interface 
 
-#}
 
+#{ Utility Classes
 
-#{Utility Classes
-class FixedConfigParser( RawConfigParser ):
+class _FixedConfigParser( RawConfigParser ):
 	"""The RawConfigParser stores options lowercase - but we do not want that
 	and keep the case - for this we just need to override a method"""
 	__slots__ = tuple()
 	
 	def optionxform( self, option ):
 		return option
+
 
 class ConfigChain( list ):
 	""" A chain of config nodes
@@ -844,7 +852,7 @@ class ConfigChain( list ):
 	def sort( self, *args, **kwargs ):
 		""" @raise NotImplementedError: """
 		raise NotImplementedError
-	#}
+	#} END list overridden methodss
 
 	#{ Iterators
 	def sectionIterator( self ):
@@ -861,7 +869,6 @@ class ConfigChain( list ):
 		# note: we do not use iterators as we want to use sets for faster search !
 		return ( (section.keys[name],section) for section in self.sectionIterator() if name in section.keys )
 	#} END ITERATORS
-
 
 
 def _checkString( string, re ):
@@ -914,7 +921,7 @@ class BasicSet( set ):
 		raise AssertionError( "Should never have come here" )
 
 
-class PropertyHolder( object ):
+class _PropertyHolderBase( object ):
 	"""Simple Base defining how to deal with properties
 	@note: to use this interface, the subclass must have a 'name' field"""
 	__slots__ = ( 'properties', 'name', 'order') 
@@ -929,10 +936,10 @@ class PropertyHolder( object ):
 				self.properties = PropertySection( "+" + self.name, self.order+1 ) # default is to write our properties after ourselves		# will be created on demand to avoid recursion on creation
 		except:
 			pass
+		# END exception handling
 
 
-
-class Key( PropertyHolder ):
+class Key( _PropertyHolderBase ):
 	""" Key with an associated values and an optional set of propterties
 
 	@note: a key's value will be always be stripped if its a string
@@ -948,9 +955,9 @@ class Key( PropertyHolder ):
 		""" Basic Field Initialization
 		@param order: -1 = will be written to end of list, or to given position otherwise """
 		self._name			= ''
-		self._values 		= []				# value will always be stored as a list
+		self._values 		= list()				# value will always be stored as a list
 		self.values 		= value				# store the value
-		PropertyHolder.__init__( self, name, order )
+		_PropertyHolderBase.__init__( self, name, order )
 
 	def __hash__( self ):
 		return self._name.__hash__()
@@ -1048,7 +1055,7 @@ class Key( PropertyHolder ):
 		self.values = finalvalues
 
 
-	#{Utilities
+	#{ Utilities
 	def appendValue( self, value ):
 		"""Append the given value or list of values to the list of current values
 		@param value: list, tuple or scalar value
@@ -1076,7 +1083,7 @@ class Key( PropertyHolder ):
 		#@todo: merge properly, default is setting the values
 		self._values = otherkey._values[:]
 
-	#}
+	#} END utilities
 
 	#{Properties
 	name = property( _getName, _setName )
@@ -1087,11 +1094,10 @@ class Key( PropertyHolder ):
 	value = property( _getValueSingle, _setValue )
 	"""read: first value if the key's values
 	write: same effect as write of 'values' """
-	#}
+	#} END properties 
 
 
-
-class Section( PropertyHolder ):
+class Section( _PropertyHolderBase ):
 	""" Class defininig an indivual section of a configuration file including
 	all its keys and section properties
 
@@ -1108,7 +1114,7 @@ class Section( PropertyHolder ):
 		@param order: -1 = will be written to end of list, or to given position otherwise """
 		self._name 			= ''
 		self.keys 			= BasicSet()
-		PropertyHolder.__init__( self, name, order )
+		_PropertyHolderBase.__init__( self, name, order )
 
 	def __hash__( self ):
 		return self._name.__hash__()
@@ -1160,7 +1166,7 @@ class Section( PropertyHolder ):
 		for fkey in othersection.keys:
 			key,created = self.keyDefault( fkey.name, 1 )
 			if created:
-				key._values = []	# reset the value if key has been newly created
+				key._values = list()	# reset the value if key has been newly created
 
 			# merge the keys
 			key.mergeWith( fkey )
@@ -1168,7 +1174,6 @@ class Section( PropertyHolder ):
 	#{ Properties
 	name = property( _getName, _setName )
 	#}
-
 
 	#{Key Access
 	def key( self, name ):
@@ -1199,8 +1204,7 @@ class Section( PropertyHolder ):
 		"""
 		k = self.keyDefault( name, value )[0]
 		k.values = value
-	#}
-
+	#} END key acccess
 
 
 class PropertySection( Section ):
@@ -1235,7 +1239,7 @@ class ConfigNode( object ):
 		""" Update our data with data from configparser """
 		# first get all data
 		snames = configparser.sections()
-		validsections = []
+		validsections = list()
 		for i in xrange( 0, len( snames ) ):
 			sname = snames[i]
 			items = configparser.items( sname )
@@ -1251,10 +1255,10 @@ class ConfigNode( object ):
 	def parse( self ):
 		""" parse default INI information into the extended structure
 
-		Parse the given INI file using a FixedConfigParser, convert all information in it
+		Parse the given INI file using a _FixedConfigParser, convert all information in it
 		into an internal format
 		@raise ConfigParsingError: """
-		rcp = FixedConfigParser( )
+		rcp = _FixedConfigParser( )
 		try:
 			rcp.readfp( self._fp )
 			self._update( rcp )
@@ -1285,7 +1289,7 @@ class ConfigNode( object ):
 		if not self._fp.isWritable( ):
 			raise IOError( self._fp.name() + " is not writable" )
 
-		sectionsforwriting = []		# keep sections - will be ordered later for actual writing operation
+		sectionsforwriting = list()		# keep sections - will be ordered later for actual writing operation
 		for section in iter( self._sections ):
 			# skip 'old' property sections - they have been parsed to the
 			# respective object ( otherwise we get duplicate section errors of rawconfig parser )
@@ -1328,9 +1332,9 @@ class ConfigNode( object ):
 	#{Section Access
 
 	def listSections( self ):
-		""" @return: [] with string names of available sections
+		""" @return: list() with string names of available sections
 		@todo: return an iterator instead"""
-		out = []
+		out = list()
 		for section in self._sections: out.append( str( section ) )
 		return out
 
@@ -1360,13 +1364,9 @@ class ConfigNode( object ):
 			section = sectionclass( name, -1 )
 			self._sections.add( section )
 			return section
-
-
-	#}
-
-
-#} END GROUP
-
+			
+	#} END section access
+#} END utility classes
 
 
 #{ Configuration Diffing Classes
@@ -1426,6 +1426,7 @@ class DiffData( object ):
 		"""@return: true if we have stored differences ( A  is not equal to B )"""
 		return  ( len( self.added ) or len( self.removed ) or len ( self.changed ) or \
 				( self.properties is not None and self.properties.hasDifferences() ) )
+
 
 class DiffKey( DiffData ):
 	""" Implements DiffData on Key level """
@@ -1526,7 +1527,7 @@ class DiffSection( DiffData ):
 	def _getNewKey( cls, section, keyname ):
 		"""@return: key from section - either existing or properly initialized without default value"""
 		key,created = section.keyDefault( keyname, "dummy" )
-		if created: key._values = []			# reset value if created to assure we have no dummy values in there
+		if created: key._values = list()			# reset value if created to assure we have no dummy values in there
 		return key
 
 	def applyTo( self, targetSection ):
@@ -1652,9 +1653,6 @@ class ConfigDiffer( DiffData ):
 				self.unchanged.append( asection )
 		# END for each common section
 
-
-
-
 	def applyTo( self, ca ):
 		"""Apply the stored differences in this ConfigDiffer instance to the given ConfigAccessor
 
@@ -1674,7 +1672,7 @@ class ConfigDiffer( DiffData ):
 		 - [2] = list of L{DiffSection}s failed to apply their changes """
 
 		# merge the added sections - only to the first we find
-		rval = ([],[],[])
+		rval = (list(),list(),list())
 		for addedsection in self.added:
 			try:
 				ca.mergeSection( addedsection )
@@ -1703,8 +1701,5 @@ class ConfigDiffer( DiffData ):
 
 		return rval
 
-#}
-
-
-#} END GROUP
+#} END configuration diffing classes
 

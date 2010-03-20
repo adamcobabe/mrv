@@ -13,6 +13,11 @@ import weakref
 import itertools
 from util import iDuplicatable
 
+__all__ = ("ConnectionError", "PlugIncompatible", "PlugAlreadyConnected", "AccessError",
+           "NotWritableError", "NotReadableError", "MissingDefaultValueError", "ComputeError", 
+           "ComputeFailed", "ComputeFailed", "PlugUnhandled", 
+           "iterShells", "Attribute", "iPlug", "plug", "Graph", "NodeBase")
+
 #####################
 ## EXCEPTIONS ######
 ###################

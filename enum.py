@@ -41,6 +41,8 @@ __license__='freeware'
 
 import platform
 
+__all__ = ("Element", "Enumeration", "create")
+
 class Element(object):
 	"""Internal helper class used to represent an ordered abstract value.
 
@@ -79,7 +81,6 @@ class Element(object):
 		# If we are both elements in the same enumeration, compare
 		#	values for ordering
 		return cmp(self._value, other._value)
-
 
 	def _checkBitflag( self ):
 		if not self.enumeration._supports_bitflags:
@@ -265,14 +266,7 @@ class Enumeration(tuple):
 		@raise ValueError: if wrap_around is False and there is no previous element"""
 		return self._nextOrPrevious( element, -1, wrap_around )
 
-
-	#{ Pickle Protocol
-
-	#} END pickle protocol
-
-
 	__call__ = valueFromName
-
 
 
 def create(*elements, **kwargs ):

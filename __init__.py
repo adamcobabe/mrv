@@ -7,8 +7,7 @@ Initialize mayarv system assisting development, debugging and maintenance
 import __builtin__
 from inspect import isfunction
 
-# EXPORTsd
-__all__ = []
+__all__ = ("init_modules", )
 
 
 import os, sys

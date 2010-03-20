@@ -7,6 +7,13 @@ import inspect
 import itertools
 from interface import iDuplicatable
 
+__all__ = ("decodeString", "decodeStringOrList", "capitalize", "uncapitalize", 
+           "pythonIndex", "copyClsMembers", "packageClasses", "iterNetworkxGraph", 
+           "Call", "CallAdv", "WeakInstFunction", "Event", "EventSender", 
+           "InterfaceMaster", "Singleton", "IntKeyGenerator", "CallOnDeletion", 
+           "DAGTree", "PipeSeparatedFile", "MetaCopyClsMembers", "And", "Or") 
+           
+
 def decodeString( valuestr ):
 	""" @return: int,float or str from string valuestr - a string that encodes a
 	numeric value or a string

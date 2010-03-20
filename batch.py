@@ -1,3 +1,4 @@
+#!/usr/bin/env python 
 # -*- coding: utf-8 -*-
 """This modules contains utilities to do opeations in batch mode.
 The module can be used from within python if required, but is more commonly used
@@ -9,6 +10,8 @@ from collections import deque
 import subprocess
 import time
 
+# module is supposed to be used as standalone program
+__all__ = None
 
 def superviseJobs( jobs, returnIfLessThan, cmdinput, errorstream, donestream ):
 	"""Check on the jobs we have and wait for finished ones. Write information

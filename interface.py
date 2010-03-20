@@ -2,6 +2,8 @@
 """Contains interface definitions """
 from collections import deque as Deque
 
+__all__ = ("Interface", "iDagItem", "iDuplicatable", "iChoiceDialog", "iPrompt", 
+           "iProgressIndicator")
 
 class Interface( object ):
 	"""Base for all interfaces.

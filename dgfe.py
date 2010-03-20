@@ -13,6 +13,8 @@ from dge import _PlugShell
 from dge import iPlug
 from dge import Attribute
 
+__all__ = ("FacadeNodeBase", "GraphNodeBase", "OIFacadePlug")
+
 #{ Shells
 
 
