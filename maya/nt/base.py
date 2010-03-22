@@ -29,7 +29,7 @@ from maya.OpenMaya import MFnDagNode, MDagPath, MObject, MObjectHandle
 from itertools import chain
 import sys
 
-_nodesdict = None				# will be set during maya.nodes initialization
+_nodesdict = None				# will be set during maya.nt initialization
 
 
 __all__ = ("nodeTypeToNodeTypeCls", "isAbsolutePath", "toApiobj", "toApiobjOrDagPath", 

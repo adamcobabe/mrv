@@ -435,11 +435,6 @@ class Namespace( unicode, iDagItem ):
 		# END for each object to yield
 	#} END object retrieval
 	
-	
-	# Properties 
-	p_exists = property(exists)
-	p_isabsolute = property(isAbsolute)
-	
 
 #{ Static Access
 def createNamespace( *args ):

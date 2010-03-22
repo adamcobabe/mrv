@@ -295,7 +295,7 @@ class TestConfigManager( unittest.TestCase ):
 		
 
 
-	def test_getTaggedFileDescriptors( self ):
+	def test_taggedFileDescriptors( self ):
 		"""ConfigManager: check if filedescriptor parsing is generally working"""
 
 		# initialization

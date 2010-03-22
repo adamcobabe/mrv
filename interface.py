@@ -475,7 +475,7 @@ class iProgressIndicator( Interface ):
 		"""@return: the current progress value
 		@note: if set to relative mode, values will range
 		from 0.0 to 100.0.
-		Values will always be within the ones returned by L{getRange}"""
+		Values will always be within the ones returned by L{range}"""
 		p = self.value()
 		mn,mx = self.range()
 		if self.roundRobin():
