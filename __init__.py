@@ -6,6 +6,8 @@ Initialize mrv system assisting development, debugging and maintenance
 """
 import __builtin__
 from inspect import isfunction
+import logging
+log = logging.getLogger("mrv")
 
 __all__ = ("init_modules", )
 
@@ -31,6 +33,7 @@ def init_modules( filepath, moduleprefix, recurse=False, self_module = None):
 	module is not yet possible as it is in the course of being intialized itself.
 	The module will be given only to intermediate submodules in case recurse is True.
 	@note: in this moment, all submodules will be 'pulled' in"""
+	global log
 	moduledir = Path( filepath  ).parent()
 	moduleitems = moduledir.listdir( )
 	moduleitems.sort()					# assure we have the same order on every system
@@ -84,7 +87,7 @@ def init_modules( filepath, moduleprefix, recurse=False, self_module = None):
 		if hasattr( module, "__initialize" ):
 			res = module.__initialize( *args )
 			if res:
-				print "Initialized " + module.__name__
+				log.info("Initialized " + module.__name__)
 			# EMD handle result
 	# END for each file or dir
 

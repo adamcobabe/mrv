@@ -23,7 +23,7 @@ def main( fileList, **kwargs ):
 
 
 def _usageAndExit( msg = None ):
-	print """bpython mdepparse.py [-shortflags ] [--longflags] file_to_parse.ma [file_to_parse, ...]
+	sys.stdout.write("""bpython mdepparse.py [-shortflags ] [--longflags] file_to_parse.ma [file_to_parse, ...]
 
 OUTPUT
 ------
@@ -96,10 +96,11 @@ All values returned in query mode will be new-line separated file paths
 
 -v				enable more verbose output
 
-"""
+""")
 	if msg:
-		print msg
-
+		sys.stdout.write(msg+"\n")
+	# END print message
+	
 	sys.exit( 1 )
 
 
@@ -180,7 +181,7 @@ if __name__ == "__main__":
 		graph = main( filelist, **kwargs_creategraph )
 	else:
 		if verbose:
-			print "Reading dependencies from: %s" % sourceFile
+			sys.stdout.write("Reading dependencies from: %s\n" % sourceFile)
 		graph = gpickle.read_gpickle( sourceFile )
 
 
@@ -190,7 +191,7 @@ if __name__ == "__main__":
 	# save to target file
 	if targetFile:
 		if verbose:
-			print  "Saving dependencies to %s" % targetFile
+			sys.stdout.write("Saving dependencies to %s\n" % targetFile)
 		gpickle.write_gpickle( graph, targetFile )
 
 
@@ -281,7 +282,7 @@ if __name__ == "__main__":
 	###################
 	if dotOutputFile:
 		if verbose:
-			print "Saving dot file to %s" % dotOutputFile
+			sys.stdout.write("Saving dot file to %s\n" % dotOutputFile)
 		try:
 			import networkx.drawing.nx_pydot as pydot
 		except ImportError:

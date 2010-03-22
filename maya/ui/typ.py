@@ -124,7 +124,6 @@ class MetaClassCreatorUI( mutil.MetaClassCreator ):
 		newcls = super( MetaClassCreatorUI, metacls ).__new__( _typetree, _thismodule,
 																metacls, name, bases, clsdict )
 
-		# print newcls.mro()
 		return newcls
 
 

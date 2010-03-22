@@ -27,6 +27,8 @@ import re
 import sys
 import StringIO
 import os
+import logging
+log = logging.getLogger("mrv.conf")
 
 __all__ = ("ConfigParsingError", "ConfigParsingPropertyError", "DictToINIFile", 
            "ConfigAccessor", "ConfigManager", "ExtendedFileInterface", "ConfigFile", 
@@ -564,7 +566,7 @@ class ConfigManager( object ):
 		thus cannot be written - this will also raise as the request to write
 		the changes could not be accomodated.
 		@return: the names of the files that have been written as string list"""
-
+		global log
 		if self.config is None:
 			raise ValueError( "Internal configuration does not exist" )
 
@@ -576,7 +578,7 @@ class ConfigManager( object ):
 			outwrittenfiles = self.__config.write( close_fp = self._closeFp )
 			return outwrittenfiles
 		except Exception,e:
-			print str( e ) 
+			log.error(str( e )) 
 			raise
 			# for now we reraise
 			# TODO: raise a proper error here as mentioned in the docs

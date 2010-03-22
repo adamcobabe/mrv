@@ -13,6 +13,9 @@ from itertools import chain
 import re
 from mrv.util import capitalize
 
+import logging
+log = logging.getLogger("mrv.maya.ui.qa")
+
 class QACheckLayout( layout.RowLayout ):
 	"""Row Layout able to display a qa check and related information
 	@note: currently we make assumptions about the positions of the children in the
@@ -194,9 +197,10 @@ class QACheckLayout( layout.RowLayout ):
 		"""Called if the checks fails with an error
 		@param exception: exception object that was thrown by our check
 		@param workflow: workflow that ran the check"""
+		global log
 		text = self.listChildren()[0]
 		text.p_label = str( self._toNiceName( self.check().plug.name() ) + " ( ERROR )" )
-		print str( exception )
+		log.error(str( exception ))
 
 	def setResult( self, result ):
 		"""Setup ourselves to indicate the given check result
@@ -481,9 +485,10 @@ class QALayout( layout.FormLayout, uiutil.iItemSet ):
 		do not sort them by workflow
 		@note: currently we only run in query mode as sort of safety measure - check and fix
 		on all might be too much and lead to unexpected results"""
+		global log
 		checks = self.checks()
 		if not checks:
-			print "No checks found to run"
+			log.error("No checks found to run")
 			return
 		# END check assertion
 

@@ -7,6 +7,7 @@ import mrv.maya.ns as ns
 from mrv.maya.ref import *
 from mrv.maya.nt import Node, NodeFromObj
 import mrv.maya.nt.it as it
+import mrv.maya.undo as undo
 
 import maya.cmds as cmds
 import maya.OpenMaya as api

@@ -22,6 +22,8 @@ import mrv.maya.ns as nsm
 import mrv.maya.undo as undo
 from new import instancemethod
 from util import in_double3_out_vector, undoable_in_double3_as_vector
+import logging
+log = logging.getLogger("mrv.maya.nt.base")
 
 # direct import to safe api. lookup
 from maya.OpenMaya import MFnDagNode, MDagPath, MObject, MObjectHandle
@@ -112,7 +114,7 @@ def toApiobj( nodename ):
 	@note: even dag objects will end up as MObject
 	@note: code repeats partly in toApiobjOrDagPath as its supposed to be as fast
 	as possible - this method gets called quite a few times in benchmarks"""
-	global _nameToApiSelList
+	global _nameToApiSelList, log
 	_nameToApiSelList.clear()
 
 	nodename = _makeAbsolutePath( nodename )
@@ -132,8 +134,9 @@ def toApiobj( nodename ):
 
 			# if we requested a dg node, but got a dag node, fail
 			if name.count( '|' ) == 0 and obj.hasFn( api.MFn.kDagNode ):
-				print "Skipped %s as a dependency node was expected, but got a dag node" % name
+				log.warn("Skipped %s as a dependency node was expected, but got a dag node" % name)
 				continue
+			# END dag/dg inconsistency handling
 
 			return obj
 		# END if no exception on selectionList.add
@@ -146,7 +149,7 @@ def toApiobjOrDagPath( nodename ):
 	same namespace - one time a dep node is meant, the other time a dag node.
 	If querying a dag node, the dep node with the same name is not found, although it is in
 	the same freaking namespace ! IMHO this is a big bug !"""
-	global _nameToApiSelList
+	global _nameToApiSelList, log
 	_nameToApiSelList.clear()
 
 	nodename = _makeAbsolutePath( nodename )
@@ -171,8 +174,9 @@ def toApiobjOrDagPath( nodename ):
 
 				# if we requested a dg node, but got a dag node, fail
 				if name.count( '|' ) == 0 and obj.hasFn( api.MFn.kDagNode ):
-					print "Skipped %s as a dependency node was expected, but got a dag node" % name
+					log.warn("Skipped %s as a dependency node was expected, but got a dag node" % name)
 					continue
+				# END dag/dg inconsistency handling
 
 				return obj
 		# END if no exception on selectionList.add
@@ -277,6 +281,7 @@ def delete( *args, **kwargs ):
 	@note: in general , no matter which options have been chosen , api deletion does not work well
 	as the used algorithm is totally different and inferior to the mel implementaiton
 	@note: will not raise in case of an error, but print a notification message"""
+	global log
 	presort = kwargs.get( "presort", False )
 
 	# presort - this allows objects high up in the hierarchy to be deleted first
@@ -310,7 +315,7 @@ def delete( *args, **kwargs ):
 		try:
 			node.delete()
 		except RuntimeError:
-			print "Deletion of %s failed" % node
+			log.error("Deletion of %s failed" % node)
 		# END exception handling
 	# END for each node to delete
 
@@ -2686,12 +2691,13 @@ class Shape( DagNode ):	 # base for epydoc !
 		cannot be wrapped into any component function set - reevaluate that with new maya versions !
 		@note: deformer set component assignments are only returned for instance 0 ! They apply to all
 		output meshes though"""
+		global log
 
 		# SUBDEE SPECIAL CASE
 		#########################
 		# cannot handle components for subdees - return them empty
 		if self._apiobj.apiType() == api.MFn.kSubdiv:
-			print "WARNING: components are not supported for Subdivision surfaces due to m8.5 api limitation"
+			log.warn("components are not supported for Subdivision surfaces due to m8.5 api limitation")
 			sets = self.connectedSets( setFilter = setFilter )
 			return [ ( setnode, MObject() ) for setnode in sets ]
 		# END subdee handling

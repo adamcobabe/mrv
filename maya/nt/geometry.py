@@ -3,6 +3,8 @@
 import base
 from mrv.enum import (create as enum, Element as elm)
 import maya.OpenMaya as api
+import logging
+log = logging.getLogger("mrv.maya.nt.geometry")
 
 __all__ = ("GeometryShape", "DeformableShape", "ControlPoint", "SurfaceShape", 
 	       "Mesh")
@@ -264,6 +266,7 @@ class Mesh( SurfaceShape ):		# base for epydoc !
 			* put tweakNode into mesh history, copy tweaks onto tweak node
 		@note: currently vertex and uv tweaks will be removed if keep is enabled, thus they must
 		both be specified"""
+		global log
 		check_types = ( isinstance( tweak_type, ( list, tuple ) ) and tweak_type ) or [ tweak_type ]
 		type_map = {
 							self.eComponentType.vertex : ( "pnts", api.MFnNumericData.k3Float, "polyTweak", api.MFn.kPolyTweak, "tweak" ),
@@ -287,7 +290,8 @@ class Mesh( SurfaceShape ):		# base for epydoc !
 					# assert as we had to make the handling much more complex to allow this to work right as we copy the whole mesh here
 					# containing all tweaks , not only one type
 					if not ( self.eComponentType.vertex in check_types and self.eComponentType.uv in check_types ):
-						print "WARNING: Currently vertex AND uv tweaks will be removed if a mesh has no history and a reset is requested"
+						log.warn("Currently vertex AND uv tweaks will be removed if a mesh has no history and a reset is requested")
+					# END print warning
 
 					# take the output mesh, and stuff it into the input, then proceed
 					# with the reset. This implies that all tweaks have to be removed

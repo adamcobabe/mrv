@@ -9,6 +9,9 @@ import sys
 import os
 import re
 
+import logging
+log = logging.getLogger("mrv.mdepparse")
+
 class MayaFileGraph( DiGraph ):
 	"""Contains dependnecies between maya files including utility functions
 	allowing to more easily find what you are looking for"""
@@ -78,8 +81,9 @@ class MayaFileGraph( DiGraph ):
 		"""@return: list of filepath as parsed from the given mafile.
 		@param allPaths: if True, the whole file will be parsed, if False, only
 		the reference section will be parsed"""
+		global log
 		outdepends = list()
-		print "Parsing %s" % ( mafile )
+		log.info("Parsing %s" % ( mafile ))
 
 		try:
 			outdepends = self._parseReferences( mafile, allPaths )

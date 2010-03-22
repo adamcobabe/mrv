@@ -13,20 +13,16 @@ The quality assurance framework is defined by:
 	L{QACheckResult}
 	L{QACheckAttribute}
 
-They specialize the respective parts of the workflow
-
-
-
-"""
-
-
-
+They specialize the respective parts of the workflow"""
 from workflow import Workflow
 from process import ProcessBase
 from mrv.util import EventSender, Event
 from mrv.dge import Attribute, plug, ComputeFailed
 from mrv.enum import create as enum
 import sys
+
+import logging
+log = logging.getLogger("mrv.automation.qa")
 
 #{ Exceptions
 class CheckIncompatibleError( ComputeFailed ):
@@ -193,7 +189,8 @@ class QAWorkflow( Workflow, EventSender ):
 		@events: e_preCheck , e_postCheck, e_checkError
 		e_checkError may set the abort_on_error variable to True to cause the operation
 		not to proceed with other checks"""
-
+		global log
+		
 		# reset abort on error to class default
 		self.abort_on_error = self.__class__.abort_on_error
 		self._clearState( mode )	# assure we get a new callgraph
@@ -202,7 +199,7 @@ class QAWorkflow( Workflow, EventSender ):
 		for checkshell in checks:
 			if self.info_to_stdout:
 				checkplug = checkshell.plug
-				sys.__stdout__.write( "Running %s: %s ... " % ( checkplug.name(), checkplug.annotation ) )
+				log.info( "Running %s: %s ... " % ( checkplug.name(), checkplug.annotation ) )
 			# END extra info
 
 			self.e_preCheck.send( self.e_preCheck, checkshell )
@@ -229,7 +226,7 @@ class QAWorkflow( Workflow, EventSender ):
 				msg = "FAILED"
 				if result.isSuccessful():
 					msg = "OK"
-				sys.__stdout__.write( msg + "\n" )
+				log.info(msg)
 			# END extra info
 
 			# record result

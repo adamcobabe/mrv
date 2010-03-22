@@ -5,6 +5,8 @@ from mrv.dge import Graph, ComputeError
 import time
 import weakref
 import traceback
+import logging
+log = logging.getLogger('mrv.automation.workflow')
 
 #####################
 ## EXCEPTIONS ######
@@ -227,24 +229,26 @@ class Workflow( Graph ):
 		during operation
 		@param donestream: if list, targets successfully done will be appended to it, if
 		it is a stream, the string representation will be wrtten to it"""
+		global log
+		def to_stream(msg, stream):
+			"""print msg to stream or use the logger instead"""
+			if stream:
+				stream.write( msg )
+			else:
+				log.info(msg)
+			# END errstream handling
+		# END utility
+			
 		for target in targetList:
 			try:
 				self.makeTarget( target )
 			except ComputeError,e:
-				msg = str( e ) + "\n"
-				if errstream:
-					errstream.write( msg )
-				else:
-					print msg			# default output stream
+				to_stream(str( e ) + "\n", errstream)
 			except Exception, e:
 				# except all
 				msg = "--> UNHANDLED EXCEPTION: " + str( e ) + "\n"
 				msg += traceback.format_exc( )
-				if errstream:
-					errstream.write( msg )
-				else:
-					print msg
-
+				to_stream(msg, errstream)
 			if donestream is None:
 				continue
 
@@ -318,7 +322,6 @@ class Workflow( Graph ):
 					continue
 
 				outputshell = d_pdata.process.toShell( d_pdata.plug )
-				# print "Querying %s" % repr( outputshell )
 				outreports.append( self._evaluateDirtyState( outputshell, processmode ) )
 			# END for each s_pdata, d_pdata
 		# END if multi handling
@@ -339,6 +342,8 @@ class Workflow( Graph ):
 		@param globalmode: mode with which all other processes will be handling
 		their input calls
 		"""
+		global log
+		
 		# find suitable process
 		inputshell = self.targetRating( target )[1]
 		if inputshell is None:
@@ -370,9 +375,10 @@ class Workflow( Graph ):
 			try:
 				shell = node.targetRating( target, check_input_plugs = False, raise_on_ambiguity = 0 )[1] # 1 == plug
 			except TypeError,e:		# ambiguous outputs
-				print str( e )
+				log.error(str( e ))
 				continue
-
+			# END handle exceptions
+			
 			if shell:
 				outputshell = shell
 				# so here it comes - take this break away, and workflow might not work anymore
@@ -394,7 +400,7 @@ class Workflow( Graph ):
 				shell = inputshell.node.toShell( plug )
 
 				if is_valid_shell( shell ):
-					print "WARNING: Did not find output plug delivering our target type - fallback to simple affected checks on node"
+					log.warning("Did not find output plug delivering our target type - fallback to simple affected checks on node")
 					outputshell = shell
 					break
 				# END valid shell check
@@ -407,9 +413,7 @@ class Workflow( Graph ):
 
 		# we do not care about ambiguity, simply pull one
 		# QUESTION: should we warn about multiple affected plugs ?
-		# print "SETTING %s" % str( inputshell )
 		inputshell.set( target, ignore_connection = True )
-		# print "WILL QUERY: %s" % str( outputshell )
 		return outputshell
 
 

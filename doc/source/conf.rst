@@ -21,3 +21,8 @@ The notation used is: NAME_OF_VARIABLE (=default value).
   * If enabled, all calls to MPlug.setX will raise an AssertionError. This helps to assure that you do not accidentally put in bugs related to incorrect undo by using the non-mrv, non-undoable MPlug.setX methods directly ( instead of using the msetX methods instead ). Its adivsed to only turn on this mode for individual runs or if a bug of that kind is suspected, as the performance loss will be tremendous !
   
 .. note:: Environment variables are only effective if they are set before the respective mrv modules are imported, hence it is not possible to alter the behaviour after the import.
+
+=======
+Logging
+=======
+TODO: Primer about how to configure the logging of mrv - it is the default logging module. Change the test system to use a file config instead of the basicConfig method

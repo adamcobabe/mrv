@@ -10,6 +10,9 @@ import maya.utils as mutils
 import mrv.util as util
 from mrv.interface import iPrompt, iChoiceDialog, iProgressIndicator
 
+import logging
+log = logging.getLogger("mrv.maya.ui.dialog")
+
 #{ Exceptions
 ################################################################################
 
@@ -119,6 +122,7 @@ class ProgressWindow( iProgressIndicator ):
 
 	def refresh( self, message = None ):
 		"""Finally show the progress window"""
+		global log
 		mn,mx = ( self.isRelative() and ( 0,100) ) or self.range()
 		p = self.get()
 
@@ -132,8 +136,9 @@ class ProgressWindow( iProgressIndicator ):
 		try:
 			cmds.progressWindow( **myargs )
 		except RuntimeError,e:
-			print str( e )
+			log.warn(str( e ))
 			pass 		# don't know yet why that happens
+		# END handle progress window errors
 
 	def begin( self ):
 		"""Show our window"""

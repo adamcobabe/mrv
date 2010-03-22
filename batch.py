@@ -111,7 +111,7 @@ def process( cmd, args, inputList, errorstream = None, donestream = None, inputs
 			for process in jobs:
 				killProcess( process )
 			jobs = list()
-			print "Aborted all running processes - continueing"
+			sys.stdout.write("Aborted all running processes - continuing\n")
 	# END for each chunk of inputs
 
 	# queue is empty, finalize our pending jobs
@@ -122,7 +122,7 @@ def process( cmd, args, inputList, errorstream = None, donestream = None, inputs
 
 def _usageAndExit( msg = None ):
 	"""Print usage"""
-	print """python batch.py inputarg [inputarg ...] [-E fileForErrors|-] [-D fileForFinishedOutput|-] [-s numInputsPerProcess] -e cmd [cmdArg ...]
+	sys.stdout.write("""python batch.py inputarg [inputarg ...] [-E fileForErrors|-] [-D fileForFinishedOutput|-] [-s numInputsPerProcess] -e cmd [cmdArg ...]
 -E|D - 	means to use the default stream, either stderr or stdout
 -I	if specified, arguments will also be read from stdin until it is depleted as
 	newline separated list of names
@@ -134,11 +134,11 @@ def _usageAndExit( msg = None ):
 -j	the number of processes to keep running in parallel, default 1
 
 	The given inputargs will be passed as arguments to the commands or into
-	the standardinput of the process"""
+	the standardinput of the process""")
 	if msg:
-		print msg
+		sys.stdout.write(msg+"\n")
 
-	sys.exit( 1 )
+	sys.exit(1)
 
 
 def _toStream( arg, stream ):

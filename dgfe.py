@@ -25,7 +25,6 @@ class _OIShellMeta( type ):
 	@classmethod
 	def createUnfacadeMethod( cls, funcname ):
 		def unfacadeMethod( self, *args, **kwargs ):
-			# print "OIShell: unfacade %s.%s" % ( repr(self), funcname )
 			return getattr( self._toIShell(), funcname )( *args, **kwargs )
 		return unfacadeMethod
 
@@ -78,7 +77,6 @@ class _IOShellMeta( _OIShellMeta ):
 		if funcname == "get":						# drection to input
 			def unfacadeMethod( self, *args, **kwargs ):
 				"""apply to the input shell"""
-				#print "IOShell INPUT: unfacade %s.%s" % ( repr(self), funcname )
 				# behave like the base implementation and check the internal shell
 				# for caches first - if it exists, we use it.
 				# It would have been cleared if it is affecfted by another plug being set,
@@ -95,7 +93,6 @@ class _IOShellMeta( _OIShellMeta ):
 		else:										# direction to output
 			def unfacadeMethod( self, *args, **kwargs ):
 				"""Clear caches of all output plugs as well"""
-				#print "IOShell OUTPUT: unfacade %s.%s" % ( repr(self), funcname )
 				for shell in self._getShells( "output" ):
 					getattr( shell, funcname )( *args, **kwargs )
 			# END unfacade method
@@ -107,7 +104,6 @@ class _IOShellMeta( _OIShellMeta ):
 	def createFacadeMethod( cls, funcname ):
 		"""Call the main shell's function"""
 		def facadeMethod( self, *args, **kwargs ):
-			# print "IOShell: Facade: %s, shell: %s" % ( funcname, repr( self._getOriginalShell( ) ) )
 			return getattr( self._getOriginalShell( ), funcname )( *args, **kwargs )
 		return facadeMethod
 
@@ -210,8 +206,6 @@ class _IOShell( _PlugShell ):
 		"""@return: oiplug suitable for this shell or None"""
 		try:
 			# cannot use weak references, don't want to use strong references
-			#print self.plug.name()
-			#print self.node.shellcls.iomap[ self.plug.name() ]
 			return self.node.shellcls.iomap[ self.plug.name() ]
 		except KeyError:
 			# plug not on facadenode - this is fine as we get always called
@@ -495,7 +489,6 @@ class FacadeNodeBase( NodeBase ):
 			# of _IOShell as shellcls, but no instance
 			if not isinstance( orignode.shellcls, _IOShell ):
 				classShellCls = orignode.shellcls
-				# print "%s: SETTING SHELLCLS on %s" %  ( self, orignode )
 				orignode.shellcls = _IOShell( classShellCls, self )
 				# END for each shell to reconnect
 			# END if we have to swap in our facadeIOShell
@@ -532,8 +525,6 @@ class FacadeNodeBase( NodeBase ):
 				# END for each shell in edge
 
 				if created_shell:
-					#print "UPDATING CONNECTION: %r -> %r" % ( edge[0],edge[1] )
-					#print "WITH %s -> %s" % ( type( nedge[0] ), type( nedge[1] ) )
 					edge[0].disconnect( edge[1] )
 					nedge[0].connect( nedge[1] )
 				# END new shell needs connection

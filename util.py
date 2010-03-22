@@ -7,6 +7,9 @@ import inspect
 import itertools
 from interface import iDuplicatable
 
+import logging
+log = logging.getLogger("mrv.maya.ui.qa")
+
 __all__ = ("decodeString", "decodeStringOrList", "capitalize", "uncapitalize", 
            "pythonIndex", "copyClsMembers", "packageClasses", "iterNetworkxGraph", 
            "Call", "CallAdv", "WeakInstFunction", "Event", "EventSender", 
@@ -100,7 +103,6 @@ def copyClsMembers( sourcecls, destcls, overwritePrefix = None, forbiddenMembers
 						continue
 					morig = getattr( destcls, name )
 					type.__setattr__( destcls, overwritePrefix+name, morig )
-				#print ( "%s - adjusted with %s.%s" % ( destcls.__name__,sourcecls.__name__, name ) )
 				type.__setattr__( destcls, name, member )
 			except TypeError:
 				pass
@@ -361,6 +363,7 @@ class Event( object ):
 		@note: if an event listener is weak referenced and goes out of scope
 		@note: will catch all event exceptions trown by the methods called
 		@return: False if at least one event call threw an exception, true otherwise"""
+		global log
 		inst = self._get_last_instance()
 		callbackset = self._getFunctionSet( inst )
 		success = True
@@ -375,7 +378,7 @@ class Event( object ):
 			try:
 				func = self._key_to_func( function )
 				if func is None:
-					print "Listener for callback of %s was not available anymore" % self
+					log.warn("Listener for callback of %s was not available anymore" % self)
 					failed_callbacks.append( function )
 					continue
 
@@ -388,7 +391,7 @@ class Event( object ):
 					# thrown if self in instance methods went out of scope
 					if inst.reraise_on_error:
 						raise 
-					print str( e )
+					log.error(str( e ))
 					failed_callbacks.append( function )
 				# END sendder as argument
 			except Exception, e :
@@ -397,7 +400,7 @@ class Event( object ):
 				
 				if inst.reraise_on_error:
 					raise 
-				print str( e )
+				log.error(str( e ))
 				success = False
 		# END for each registered event
 

@@ -1,6 +1,8 @@
 # -*- coding: utf-8 -*-
 """general methods and classes """
 from mrv.dge import PlugAlreadyConnected
+import logging
+log = logging.getLogger("mrv.automation.base")
 
 #{ Edit
 
@@ -48,6 +50,7 @@ def loadWorkflowFromDotFile( dotfile, workflowcls = None ):
 	for workflow creation. Defaults to automation.workflow.Workflow.
 	@return: List of initialized workflow classes - as they can be nested, the
 	creation of one workflow can actually create several of them"""
+	global log
 	import pydot
 	import processes
 	from workflow import Workflow
@@ -63,7 +66,6 @@ def loadWorkflowFromDotFile( dotfile, workflowcls = None ):
 	wfl = wflclass( name=dotfile.namebase() )
 
 
-	#print "LOADING %s FROM FILE %s" % (wfl,dotfile)
 	for node in dotgraph.get_node_list():
 		# can have initializers
 		nodeid = node.get_name().strip( '"' )
@@ -87,7 +89,7 @@ def loadWorkflowFromDotFile( dotfile, workflowcls = None ):
 		try:
 			processinst = processcls( *args, **kwargs )
 		except TypeError:
-			print "Process %r could not be created as it required a different init call" % processcls
+			log.error( "Process %r could not be created as it required a different init call" % processcls )
 			raise
 		else:
 			edge_lut[ nodeid ] = processinst
@@ -108,8 +110,8 @@ def loadWorkflowFromDotFile( dotfile, workflowcls = None ):
 			try:
 				# first is best
 				targetcandidates = snode.filterCompatiblePlugs( destplugs, sourceplug.attr, raise_on_ambiguity = 0, attr_affinity = False, attr_as_source = True )
-			except ( TypeError,IndexError ),e:	# could have no compatible or is ambigous
-				print e.args		# debug
+			except ( TypeError,IndexError ),e:	# could have no compatible plugs or is ambigous
+				log.debug(str(e.args))		# debug
 				continue
 			else:
 				# if a plug is already connected, try another one
