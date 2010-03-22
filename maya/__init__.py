@@ -1,11 +1,5 @@
 # -*- coding: utf-8 -*-
-"""
-Inialize the mrv.maya sub-system and assure and startup maya natively
-
-@todo: more documentation
-@todo: logger !
-@todo: configuration support
-"""
+""" Inialize the mrv.maya sub-system and startup maya as completely as possible or configured """
 import os, sys                                                                         
 from mrv import init_modules
 from mrv.util import capitalize, DAGTree
@@ -36,7 +30,7 @@ def registerPluginDataTrackingDict( dataTypeID, trackingDict ):
 #} End Common
 
 
-#{· Internal Utilities
+#{ Internal Utilities
 def dag_tree_from_tuple_list( tuplelist ):
 	"""@return: DagTree from list of tuples [ (level,name),...], where level specifies
 	the level of items in the dag.

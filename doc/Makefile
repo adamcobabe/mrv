@@ -14,7 +14,7 @@ PAPEROPT_letter ?= -D latex_paper_size=letter
 ALLSPHINXOPTS   ?= -d build/doctrees $(PAPEROPT_$(PAPER)) $(SPHINXOPTS) source
 EPYTARGET       ?= build/html/generated/api
 AUTOGEN_TARGET  ?= source/generated
-PY_IMPORT_BASE	?= mayarv
+PY_IMPORT_BASE	?= mrv
 
 
 .PHONY: help clean html web pickle htmlhelp latex changes linkcheck epydoc autogen
