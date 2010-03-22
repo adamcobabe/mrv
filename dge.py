@@ -153,45 +153,39 @@ class Attribute( object ):
 	"""Simple class defining the type of a plug and several flags that
 	affect it. Additionally it can determine how well suited another attribute is
 
-	Flags
-	=====
-
-	exact_type: if True, derived classes of our typecls are not considered to be a valid type.
-	i.e: basestring could be stored in a str attr if exact type is false - its less than we need, but
-	still something.
-	Putting a str into a basestring attribute will always work though, as it would be more than we need
-	readonly: if True, the attribute's plug cannot be written to. Read-only attributes can be used
-	as storage that the user can read, but not write.
-	You can write read-only plugs by directly setting its cache - this of course - is only
-	for the node itself, but will never be done by the framework
+	**Flags**:
+		exact_type: if True, derived classes of our typecls are not considered to be a valid type.
+		i.e: basestring could be stored in a str attr if exact type is false - its less than we need, but
+		still something.
+		Putting a str into a basestring attribute will always work though, as it would be more than we need
+		readonly: if True, the attribute's plug cannot be written to. Read-only attributes can be used
+		as storage that the user can read, but not write.
+		You can write read-only plugs by directly setting its cache - this of course - is only
+		for the node itself, but will never be done by the framework
 	
-	computable
-	==========
+	**computable**:
+		Nodes are automatically computable if they are affected by another plug.
+		If this is not the case, they are marked input only and are not computed.
+		If this flag is true, even unaffeted plugs are computable.
+		Plugs that affect something are automatically input plugs and will not be computed.
+		If the plug does not affect anything and this flag is False, they are seen as input plugs
+		anyway.
 	
-	Nodes are automatically computable if they are affected by another plug.
-	If this is not the case, they are marked input only and are not computed.
-	If this flag is true, even unaffeted plugs are computable.
-	Plugs that affect something are automatically input plugs and will not be computed.
-	If the plug does not affect anything and this flag is False, they are seen as input plugs
-	anyway.
-	
-	The system does not allow plugs to be input and output plugs at the same time, thus your compute
-	cannot be triggered by your own compute
+		The system does not allow plugs to be input and output plugs at the same time, thus your compute
+		cannot be triggered by your own compute
 				
-	cls: if True, the plug requires classes to be set ( instances of 'type' ) , but no instances of these classes
-	uncached: if False, computed values may be cached, otherwise they will always be recomputed.
-	unconnectable: if True, the node cannot be the destination of a connection
-	check_passing_values: check each value as it flows through a connection - usually compatability is only checked
-	on connection and once values are set, but not if they flow through an existing connection
+		cls: if True, the plug requires classes to be set ( instances of 'type' ) , but no instances of these classes
+		uncached: if False, computed values may be cached, otherwise they will always be recomputed.
+		unconnectable: if True, the node cannot be the destination of a connection
+		check_passing_values: check each value as it flows through a connection - usually compatability is only checked
+		on connection and once values are set, but not if they flow through an existing connection
 	
-	Default Values
-	==============
-	
-	Although default values can be simple primitives are classes, a callable is specifically supported.
-	It allows you to get a callback whenever a default value is required.
-	The same result could be achieved by connected the plug in question, but dynamic defaults are a quick
-	way to achive that.
-	Your returned value will be type-checked against the required type if check_passing_values is set."""
+	**Default Values**:
+		Although default values can be simple primitives are classes, a callable is specifically supported.
+		It allows you to get a callback whenever a default value is required.
+		The same result could be achieved by connected the plug in question, but dynamic defaults are a quick
+		way to achive that.
+		Your returned value will be type-checked against the required type if check_passing_values is set."""
 	kNo, kGood, kPerfect = 0, 127, 255				# specify how good attributes fit together
 	exact_type, readonly, computable, cls, uncached, unconnectable,check_passing_values = ( 1, 2, 4, 8, 16, 32, 64 )
 

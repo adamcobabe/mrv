@@ -3,20 +3,22 @@
 Contains implementation of the configuration system allowing to flexibly control
 the programs behaviour.
 
-	- read and write sections with key=value pairs from and to INI style file-like objects !
-		- Wrappers for these file-like objects allow virtually any source for the operation
-	- configuration inheritance
-		- allow precise control over the inheritance behaviour and inheritance
-		  defaults
-		- final results of the inheritance operation will be cached into the `ConfigurationManager`
-		- Environment Variables can serve as final instance to override values using the `DictConfigINIFile`
-	- Creation and Maintenance of individual configuration files as controlled by
-	  submodules of the application
-			- These configuration go to a default location, or to the given file-like object
-	- embed more complex data to be read by specialised classes using URLs
-	- its safe and easy to write back possibly altered values even if complex inheritance
-		schemes are applied
+ * read and write sections with key=value pairs from and to INI style file-like objects !
+ * Wrappers for these file-like objects allow virtually any source for the operation
+ * configuration inheritance
+ * allow precise control over the inheritance behaviour and inheritance
+   defaults
+ * final results of the inheritance operation will be cached into the `ConfigManager`
+ * Environment Variables can serve as final instance to override values using the `DictConfigINIFile`
+ * Creation and Maintenance of individual configuration files as controlled by
+   submodules of the application
+ * These configuration go to a default location, or to the given file-like object
+ * embed more complex data to be read by specialised classes using URLs
+ * its safe and easy to write back possibly altered values even if complex inheritance
+   schemes are applied
 """
+__docformat__ = "restructuredtext"
+
 from ConfigParser import (	RawConfigParser,
 							NoSectionError,
 							NoOptionError,
@@ -61,7 +63,8 @@ class DictToINIFile( StringIO.StringIO ):
 
 	:note: writing back values to the object will not alter the original dict
 	:note: the current implementation caches the dict's INI representation, data
-	is not generated on demand
+		is not generated on demand
+	
 	:note: implementation speed has been preferred over runtime speed """
 	@classmethod
 	def _checkstr( cls, string ):
@@ -74,11 +77,13 @@ class DictToINIFile( StringIO.StringIO ):
 
 	def __init__( self, option_dict, section = 'DEFAULT', description = "" ):
 		"""Initialize the file-like object
+		
 		:param option_dict: dictionary with simple key-value pairs - the keys and
-		values must translate to meaningful strings ! Empty dicts are allowed
+			values must translate to meaningful strings ! Empty dicts are allowed
+			
 		:param section: the parent section of the key-value pairs
 		:param description: will be used as comment directly below the section, it
-		must be a single line only
+			must be a single line only
 
 		:raise ValueError: newlines are are generally not allowed and will cause a parsing error later on """
 		StringIO.StringIO.__init__( self )
@@ -101,11 +106,9 @@ class DictToINIFile( StringIO.StringIO ):
 # Classes that allow direct access to the respective configuration
 
 class ConfigAccessor( object ):
-	"""
-	Provides full access to the Configuration
+	"""Provides full access to the Configuration
 
-	Differences to ConfigParser
-	
+	**Differences to ConfigParser**:
 		As the functionality and featureset is very different from the original
 		ConfigParser implementation, this class does not support the interface directly.
 		It contains functions to create original ConfigParser able to fully write and alter
@@ -113,8 +116,7 @@ class ConfigAccessor( object ):
 
 		Additional Exceptions have been defined to cover extended functionality.
 
-	Sources and Nodes
-	
+	**Sources and Nodes**:
 		Each input providing configuration data is stored in a node. This node
 		knows about its writable state. Nodes that are not writable can be altered in memory,
 		but the changes cannot be written back to the source.
@@ -122,23 +124,20 @@ class ConfigAccessor( object ):
 		one writable node in the chain - due to the inheritance scheme applied by the configmanager,
 		the final configuration result will match the changes applied at runtime.
 
-	Additional Information
-	
-		The term configuration is rather complex though:
-			- configuration is based on an extended INI file format
-				- its not fully compatible, but slightly more narrow regarding allowed input
-				  to support extended functionality
-			- configuration is read from file-like objects
-			- a list of file-like objects creates a configuration chain
-			- keys have properties attached to them defining how they behave when being overridden
-			- once all the INI configurations have been read and processed, one can access
-			  the configuration as if it was just in one file.
-			- Direct access is obtained though `Key` and `Section` objects
-			- Keys and Sections have property attributes of type `Section`
-				- Their keys and values are used to further define key merging behaviour for example
-
-	:note: The configaccessor should only be used in conjunction with the `ConfigManager`
-	"""
+	**Additional Information**:
+		The term configuration is rather complex though
+		configuration is based on an extended INI file format
+		its not fully compatible, but slightly more narrow regarding allowed input to support extended functionality
+		configuration is read from file-like objects
+		a list of file-like objects creates a configuration chain
+		keys have properties attached to them defining how they behave when being overridden
+		once all the INI configurations have been read and processed, one can access
+		the configuration as if it was just in one file.
+		Direct access is obtained though `Key` and `Section` objects
+		Keys and Sections have property attributes of type `Section`
+		Their keys and values are used to further define key merging behaviour for example
+		
+	:note: The configaccessor should only be used in conjunction with the `ConfigManager`"""
 	__slots__ = "_configChain"
 
 	def __init__( self ):
@@ -153,7 +152,7 @@ class ConfigAccessor( object ):
 
 	@classmethod
 	def _isProperty( cls, propname ):
-		""" :return: true if propname appears to be an attribute """
+		""":return: true if propname appears to be an attribute """
 		return propname.startswith( '+' )
 
 	@classmethod
@@ -170,8 +169,9 @@ class ConfigAccessor( object ):
 		to the respective sections and keys
 
 		:note: we are userfriendly regarding the error handling - if there is an invlid
-		property, we warn and simply ignore it - for the system it will stay just a key and will
-		thus be written back to the file as required
+			property, we warn and simply ignore it - for the system it will stay just a key and will
+			thus be written back to the file as required
+		
 		:raise ConfigParsingPropertyError: """
 		sectioniter = self._configChain.sectionIterator()
 		exc = ConfigParsingPropertyError( )
@@ -239,10 +239,12 @@ class ConfigAccessor( object ):
 	#{ IO Interface
 	def readfp( self, filefporlist, close_fp = True ):
 		""" Read the configuration from the file like object(s) representing INI files.
+		
 		:note: This will overwrite and discard all existing configuration.
 		:param filefporlist: single file like object or list of such
+		
 		:param close_fp: if True, the file-like object will be closed before the method returns,
-		but only for file-like objects that have actually been processed
+			but only for file-like objects that have actually been processed
 
 		:raise ConfigParsingError: """
 		fileobjectlist = filefporlist
@@ -272,13 +274,14 @@ class ConfigAccessor( object ):
 
 	def write( self, close_fp=True ):
 		""" Write current state back to files.
-		During initialization in `readfp`, `ExtendedFileInterface` objects have been passed in - these
-		will now be used to write back the current state of the configuration - the files will be
-		opened for writing if possible.
+			During initialization in `readfp`, `ExtendedFileInterface` objects have been passed in - these
+			will now be used to write back the current state of the configuration - the files will be
+			opened for writing if possible.
 
 		:param close_fp: close the file-object after writing to it
+		
 		:return: list of names of files that have actually been written - as files can be read-only
-		this list might be smaller than the amount of nodes in the accessor.
+			this list might be smaller than the amount of nodes in the accessor.
 		"""
 		writtenFiles = list()
 
@@ -306,6 +309,7 @@ class ConfigAccessor( object ):
 		can quickly be accessed.
 
 		Flattened configurations are provided by the `ConfigManager`.
+		
 		:param fp: file-like object that will be used as storage once the configuration is written
 		:return: Flattened copy of self"""
 		# create config node
@@ -364,8 +368,9 @@ class ConfigAccessor( object ):
 	def section( self, section ):
 		""" :return: first section with name
 		:note: as there might be several nodes defining the section for inheritance,
-		you might not get the desired results unless this config accessor acts on a
-		`flatten`ed list.
+			you might not get the desired results unless this config accessor acts on a
+			`flatten` ed list.
+			
 		:raise NoSectionError: if the requested section name does not exist """
 		for node in self._configChain:
 			if section in node._sections:
@@ -375,10 +380,12 @@ class ConfigAccessor( object ):
 
 	def keyDefault( self, sectionname, keyname, value ):
 		"""Convenience Function: get key with keyname in first section with sectionname with the key's value being initialized to value if it did not exist.
+		
 		:param sectionname: the name of the sectionname the key is supposed to be in - it will be created if needed
 		:param keyname: the name of the key you wish to find
 		:param value: the value you wish to receive as as default if the key has to be created.
-		It can be a list of values as well, basically anything that `Key` allows as value
+			It can be a list of values as well, basically anything that `Key` allows as value
+			
 		:return: `Key`"""
 		return self.sectionDefault( sectionname ).keyDefault(keyname, value )[0]
 
@@ -394,16 +401,18 @@ class ConfigAccessor( object ):
 	def get( self, key_id, default = None ):
 		"""Convenience function allowing to easily specify the key you wish to retrieve
 		with the option to provide a default value
-		:param key_id: string specifying a key, either as 
-		* 'sectionname.keyname'
-		* 'keyname'
-		In case you specify a section, the key must reside in the given section, 
-		if only a keyname is given, it may reside in any section
+		
+		:param key_id: string specifying a key, either as ``sectionname.keyname``
+			or ``keyname``.
+			In case you specify a section, the key must reside in the given section, 
+			if only a keyname is given, it may reside in any section
+			
 		:param default: Default value to be given to a newly created key in case 
-		there is no existing value. If None, the method may raise in case the given
-		key_id does not exist.
-		:return: `Key` instance whose value may be queried through its 'value' or 
-		'values' attributes"""
+			there is no existing value. If None, the method may raise in case the given
+			key_id does not exist.
+			
+		:return: `Key` instance whose value may be queried through its ``value`` or 
+			``values`` attributes"""
 		sid = None
 		kid = key_id
 		if '.' in key_id:
@@ -469,8 +478,9 @@ class ConfigAccessor( object ):
 
 	def removeSection( 	self, name ):
 		"""Completely remove the given section name from all nodes in our configuration
+		
 		:return: the number of nodes that did *not* allow the section to be removed as they are read-only, thus
-		0 will be returned if everything was alright"""
+			0 will be returned if everything was alright"""
 		numReadonly = 0
 		for node in self._configChain:
 			if not node.hasSection( name ):
@@ -488,6 +498,7 @@ class ConfigAccessor( object ):
 
 	def mergeSection( self, section ):
 		"""Merge and/or add the given section into our chain of nodes. The first writable node will be used
+		
 		:raise IOError: if no writable node was found
 		:return: name of the file source that has received the section"""
 		for node in self._configChain:
@@ -525,16 +536,17 @@ class ConfigManager( object ):
 
 	def __init__( self, filePointers=list(), write_back_on_desctruction=True, close_fp = True ):
 		"""Initialize the class with a list of Extended File Classes
+		
 		:param filePointers: Point to the actual configuration to use
-		If not given, you have to call the `readfp` function with filePointers respectively
+			If not given, you have to call the `readfp` function with filePointers respectively
 		:type filePointers: `ExtendedFileInterface`
 
 		:param close_fp: if true, the files will be closed and can thus be changed.
-		This should be the default as files might be located on the network as shared resource
+			This should be the default as files might be located on the network as shared resource
 
 		:param write_back_on_desctruction: if True, the config chain and possible
-		changes will be written once this instance is being deleted. If false,
-		the changes must explicitly be written back using the write method"""
+			changes will be written once this instance is being deleted. If false,
+			the changes must explicitly be written back using the write method"""
 		self.__config = ConfigAccessor( )
 		self.config = None					# will be set later
 		self._writeBackOnDestruction = write_back_on_desctruction
@@ -559,12 +571,15 @@ class ConfigManager( object ):
 
 	#{ IO Methods
 	def write( self ):
-		""" Write the possibly changed configuration back to its sources
-		:raise IOError: if at least one node could not be properly written
-		:raise ValueError: if instance is not properly initialized
+		""" Write the possibly changed configuration back to its sources.
+		
+		:raise IOError: if at least one node could not be properly written.
+		:raise ValueError: if instance is not properly initialized.
+		
 		:note: It could be the case that all nodes are marked read-only and
-		thus cannot be written - this will also raise as the request to write
-		the changes could not be accomodated.
+			thus cannot be written - this will also raise as the request to write
+			the changes could not be accomodated.
+		
 		:return: the names of the files that have been written as string list"""
 		global log
 		if self.config is None:
@@ -585,7 +600,8 @@ class ConfigManager( object ):
 			# raise IOError()
 
 	def readfp( self, filefporlist, close_fp=True ):
-		""" Read the configuration from the file pointers
+		""" Read the configuration from the file pointers.
+		
 		:raise ConfigParsingError:
 		:param filefporlist: single file like object or list of such
 		:return: the configuration that is meant to be used for accessing the configuration"""
@@ -622,7 +638,7 @@ class ConfigManager( object ):
 		:param directories: [ string( path ) ... ] of directories to look in for files
 		:param taglist: [ string( tag ) ... ] of tags, like a tag for the operating system, or the user name
 		:param pattern: simple fnmatch pattern as used for globs or a list of them ( allowing to match several
-		different patterns at once )
+			different patterns at once )
 		"""
 
 		# get patterns
@@ -683,11 +699,11 @@ class ExtendedFileInterface( object ):
 	__slots__ = tuple()
 
 	def isWritable( self ):
-		""" :return: True if the file can be written to """
+		""":return: True if the file can be written to """
 		raise False
 
 	def isClosed( self ):
-		""" :return: True if the file has been closed, and needs to be reopened for writing """
+		""":return: True if the file has been closed, and needs to be reopened for writing """
 		raise NotImplementedError
 
 	def name( self ):
@@ -822,7 +838,7 @@ class ConfigChain( list ):
 	like any other list.
 
 	:note: this solution is mainly fast to implement, but a linked-list like
-	behaviour is intended """
+		behaviour is intended """
 	__slots__ = tuple()
 	
 	#{ List Overridden Methods
@@ -906,7 +922,7 @@ class BasicSet( set ):
 	hash functions, put them into a set, and finally retrieve the same object again !
 
 	:note: indexing a set is not the fastest because the matching key has to be searched.
-	Good news is that the actual 'is k in set' question can be answered quickly"""
+		Good news is that the actual 'is k in set' question can be answered quickly"""
 	__slots__ = tuple()
 	
 	def __getitem__( self, item ):
@@ -947,7 +963,7 @@ class Key( _PropertyHolderBase ):
 	:note: a key's value will be always be stripped if its a string
 	:note: a key's name will be stored stripped only, must not contain certain chars
 	:todo: add support for escpaing comas within quotes - currently it split at
-	comas, no matter what"""
+		comas, no matter what"""
 	__slots__ = ( '_name', '_values', 'values' )
 	validchars = r'[\w\(\)]'
 	_re_checkName = re.compile( validchars+r'+' )			# only word characters are allowed in key names, and paranthesis
@@ -955,6 +971,7 @@ class Key( _PropertyHolderBase ):
 
 	def __init__( self, name, value, order ):
 		""" Basic Field Initialization
+		
 		:param order: -1 = will be written to end of list, or to given position otherwise """
 		self._name			= ''
 		self._values 		= list()				# value will always be stored as a list
@@ -1012,7 +1029,6 @@ class Key( _PropertyHolderBase ):
 			self._excPrependNameAndRaise()
 
 	def _getName( self ):
-		""":return: the key's name"""
 		return self._name
 
 	def _setValue( self, value ):
@@ -1041,6 +1057,7 @@ class Key( _PropertyHolderBase ):
 
 	def _addRemoveValue( self, value, mode ):
 		"""Append or remove value to/from our value according to mode
+		
 		:param mode: 0 = remove, 1 = add"""
 		tmpvalues = value
 		if not isinstance( value, (list,tuple) ):
@@ -1060,12 +1077,14 @@ class Key( _PropertyHolderBase ):
 	#{ Utilities
 	def appendValue( self, value ):
 		"""Append the given value or list of values to the list of current values
+		
 		:param value: list, tuple or scalar value
 		:todo: this implementation could be faster ( costing more code )"""
 		self._addRemoveValue( value, True )
 
 	def removeValue( self, value ):
 		"""remove the given value or list of values from the list of current values
+		
 		:param value: list, tuple or scalar value
 		:todo: this implementation could be faster ( costing more code )"""
 		self._addRemoveValue( value, False )
@@ -1077,6 +1096,7 @@ class Key( _PropertyHolderBase ):
 
 	def mergeWith( self, otherkey ):
 		"""Merge self with otherkey according to our properties
+		
 		:note: self will be altered"""
 		# merge properties
 		if self.properties != None:
@@ -1113,6 +1133,7 @@ class Section( _PropertyHolderBase ):
 
 	def __init__( self, name, order ):
 		"""Basic Field Initialization
+		
 		:param order: -1 = will be written to end of list, or to given position otherwise """
 		self._name 			= ''
 		self.keys 			= BasicSet()
@@ -1151,11 +1172,11 @@ class Section( _PropertyHolderBase ):
 			self._excPrependNameAndRaise()
 
 	def _getName( self ):
-		""":return: the key's name"""
 		return self._name
 
 	def mergeWith( self, othersection ):
 		"""Merge our section with othersection
+		
 		:note:self will be altered"""
 		# adjust name - the default name is mostly not going to work - property sections
 		# possibly have non-qualified property names
@@ -1201,6 +1222,7 @@ class Section( _PropertyHolderBase ):
 
 	def setKey( self, name, value ):
 		""" Set the value to key with name, or create a new key with name and value
+		
 		:param value: int, long, float, string or list of any of such
 		:raise ValueError: if key has incorrect value
 		"""
@@ -1230,7 +1252,6 @@ class ConfigNode( object ):
 
 
 	def _isWritable( self ):
-		""" :return: True if the instance can be altered """
 		return self._fp.isWritable()
 
 	#{Properties
@@ -1259,6 +1280,7 @@ class ConfigNode( object ):
 
 		Parse the given INI file using a _FixedConfigParser, convert all information in it
 		into an internal format
+		
 		:raise ConfigParsingError: """
 		rcp = _FixedConfigParser( )
 		try:
@@ -1277,6 +1299,7 @@ class ConfigNode( object ):
 	@classmethod
 	def _check_and_append( cls, sectionsforwriting, section ):
 		"""Assure we ignore empty sections
+		
 		:return: True if section has been appended, false otherwise"""
 		if section is not None and len( section.keys ):
 			sectionsforwriting.append( section )
@@ -1285,6 +1308,7 @@ class ConfigNode( object ):
 
 	def write( self, rcp, close_fp=True ):
 		""" Write our contents to our file-like object
+		
 		:param rcp: RawConfigParser to use for writing
 		:return: the name of the written file
 		:raise IOError: if we are read-only"""
@@ -1376,12 +1400,14 @@ class ConfigNode( object ):
 class DiffData( object ):
 	""" Struct keeping data about added, removed and/or changed data
 	Subclasses should override some private methods to automatically utilize some
-	basic functionality"""
+	basic functionality
+	
+	Class instances define the following values:
+	 * ivar added: Copies of all the sections that are only in B ( as they have been added to B )
+	 * ivar removed: Copies of all the sections that are only in A ( as they have been removed from B )
+	 * ivar changed: Copies of all the sections that are in A and B, but with changed keys and/or properties"""
 	__slots__ = ( 'added', 'removed', 'changed', 'unchanged','properties','name' )
 
-	"""#:ivar added: Copies of all the sections that are only in B ( as they have been added to B )"""
-	"""#:ivar removed: Copies of all the sections that are only in A ( as they have been removed from B )"""
-	""":ivar changed: Copies of all the sections that are in A and B, but with changed keys and/or properties"""
 
 	def __init__( self , A, B ):
 		""" Initialize this instance with the differences of B compared to A """
@@ -1457,6 +1483,7 @@ class DiffKey( DiffData ):
 
 	def _populate( self, A, B ):
 		""" Find added and removed key values
+		
 		:note: currently the implementation is not index based, but set- and thus value based
 		:note: changed has no meaning in this case and will always be empty """
 
@@ -1564,26 +1591,31 @@ class ConfigDiffer( DiffData ):
 	Use this class to find added/removed sections or keys or differences in values
 	and properties.
 
-	Example Applicance
+	**Example Applicance**:
+		Test use it to verify that reading and writing a ( possibly ) changed
+		configuration has the expected results
+		Programs interacting with the User by a GUI can easily determine whether
+		the user has actually changed something, applying actions only if required
+		alternatively, programs can simply be more efficient by acting only on
+		items that actually changed
 	
-		- Test use it to verify that reading and writing a ( possibly ) changed
-		  configuration has the expected results
-		- Programs interacting with the User by a GUI can easily determine whether
-		  the user has actually changed something, applying actions only if required
-			- alternatively, programs can simply be more efficient by acting only on
-		  	  items that actually changed
-
-	Data Structure
-	
-	- every object in the diffing structure has a 'name' attribute
-	- ConfigDiffer.added|removed|unchanged: `Section` objects that have been added, removed
-	  or kept unchanged respectively
-	- ConfigDiffer.changed: `DiffSection` objects that indicate the changes in respective section
-	  - DiffSection.added|removed|unchanged: `Key` objects that have been added, removed or kept unchanged respectively
-	  - DiffSection.changed: `DiffKey` objects that indicate the changes in the repsective key
-	    - DiffKey.added|removed: the key's values that have been added and/or removed respectively
-		- DiffKey.properties: see DiffSection.properties
-	  - DiffSection.properties:None if this is a section diff, otherwise it contains a DiffSection with the respective differences
+	**Data Structure**:
+		* every object in the diffing structure has a 'name' attribute
+		
+		* ConfigDiffer.added|removed|unchanged: `Section` objects that have been added, removed
+		  or kept unchanged respectively
+		  
+		* ConfigDiffer.changed: `DiffSection` objects that indicate the changes in respective section
+		
+		 * DiffSection.added|removed|unchanged: `Key` objects that have been added, removed or kept unchanged respectively
+		 
+		 * DiffSection.changed: `DiffKey` objects that indicate the changes in the repsective key
+		 
+		  * DiffKey.added|removed: the key's values that have been added and/or removed respectively
+		  
+		  * DiffKey.properties: see DiffSection.properties
+		  
+		  * DiffSection.properties:None if this is a section diff, otherwise it contains a DiffSection with the respective differences
 	"""
 	__slots__ = tuple()
 	
@@ -1593,9 +1625,10 @@ class ConfigDiffer( DiffData ):
 
 	@classmethod
 	def _getMergedSections( cls, configaccessor ):
-		""" NOTE: within config nodes, sections must be unique, between nodes,
+		"""within config nodes, sections must be unique, between nodes,
 		this is not the case - sets would simply drop keys with the same name
 		leading to invalid results - thus we have to merge equally named sections
+		
 		:return: BasicSet with merged sections
 		:todo: make this algo work on sets instead of individual sections for performance"""
 		sectionlist = list( configaccessor.sectionIterator() )
@@ -1662,16 +1695,20 @@ class ConfigDiffer( DiffData ):
 		ourselves to A would make A equal B.
 
 		:note: individual nodes reqpresenting an input source ( like a file )
-		can be marked read-only. This means they cannot be altered - thus it can
-		be that section or key removal fails for them. Addition of elements normally
-		works as long as there is one writable node.
+			can be marked read-only. This means they cannot be altered - thus it can
+			be that section or key removal fails for them. Addition of elements normally
+			works as long as there is one writable node.
 
 		:param ca: The configacceesor to apply our differences to
 		:return: tuple of lists containing the sections that could not be added, removed or get
-		their changes applied
-		 - [0] = list of `Section`s failed to be added
-		 - [1] = list of `Section`s failed to be removed
-		 - [2] = list of `DiffSection`s failed to apply their changes """
+			their changes applied
+		
+			 - [0] = list of `Section` s failed to be added
+			 
+			 - [1] = list of `Section` s failed to be removed
+			 
+			 - [2] = list of `DiffSection` s failed to apply their changes """
+			 
 
 		# merge the added sections - only to the first we find
 		rval = (list(),list(),list())
