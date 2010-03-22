@@ -164,13 +164,13 @@ class MayaFileGraph( DiGraph ):
 		kAffects = Files that filePath affects
 		kAffectedBy = Files that affect filePath
 		@param to_os_path,os_path_to_db_key: see L{addFromFiles}
-		@param **kwargs: correspon to L{iterNetworkxGraph}
 		@param return_unresolved: if True, the output paths will not be translated to
 		an os paths and you get the paths as stored in the graph.
 		Please not that the to_os_path function is still needed to generate
 		a valid key, depending on the format of filepaths stored in this graph
 		@param invalid_only: if True, only invalid dependencies will be returned, all
-		including the invalid ones otherwise"""
+		including the invalid ones otherwise
+		@param **kwargs: passed to L{iterNetworkxGraph}"""
 		kwargs[ 'direction' ] = direction
 		kwargs[ 'ignore_startitem' ] = 1			# default
 		kwargs[ 'branch_first' ] = 1		# default
