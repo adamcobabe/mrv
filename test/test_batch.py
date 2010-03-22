@@ -1,10 +1,10 @@
 # -*- coding: utf-8 -*-
 """Tests for the batch processing tool"""
-from mayarv.test.lib import *
+from mrv.test.lib import *
 
 # shouldn't import anything
 try:
-	from mayarv.batch import *
+	from mrv.batch import *
 except TypeError:
 	pass		# expected
 else:
@@ -12,7 +12,7 @@ else:
 # END check import all 
 
 
-import mayarv.batch as batch
+import mrv.batch as batch
 
 class TestBatch( unittest.TestCase ):
 

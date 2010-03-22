@@ -13,7 +13,7 @@ import binascii
 import maya.OpenMaya as api
 import maya.OpenMayaMPx as mpx
 
-persistence_enabled_envvar = "MAYARV_PERSISTENCE_ENABLED"
+persistence_enabled_envvar = "Mrv_PERSISTENCE_ENABLED"
 _should_initialize_plugin = int(os.environ.get(persistence_enabled_envvar, False))
 
 
@@ -233,7 +233,7 @@ class PyPickleData( mpx.MPxData ):
 
 
 def initializePlugin(mobject):
-	import mayarv.maya as mrv
+	import mrv.maya as mrv
 
 	mplugin = mpx.MFnPlugin( mobject )
 	mplugin.registerData( PyPickleData.kDataName, PyPickleData.kPluginDataId, PyPickleData.creator )

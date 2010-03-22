@@ -4,7 +4,7 @@
 # may not be imported directly
 __all__ = None
 # assure we have the main module initialized
-import mayarv
+import mrv
 from mdepparse import *
 
 from networkx.readwrite import gpickle

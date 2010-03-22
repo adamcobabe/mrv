@@ -1,10 +1,10 @@
 # -*- coding: utf-8 -*-
 """ Tests the geometric nodes, focussing on the set handling """
-from mayarv.test.maya import *
-import mayarv.maya.nt as nt
-import mayarv.maya.nt.geometry as modgeo
+from mrv.test.maya import *
+import mrv.maya.nt as nt
+import mrv.maya.nt.geometry as modgeo
 import maya.OpenMaya as api
-import mayarv.maya as bmaya
+import mrv.maya as bmaya
 
 class TestGeometry( unittest.TestCase ):
 	""" Test general maya framework """

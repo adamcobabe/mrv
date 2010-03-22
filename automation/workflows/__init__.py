@@ -10,10 +10,10 @@ for now that appears like overkill though
 
 
 
-from mayarv.path import Path
-_this_module = __import__( "mayarv.automation.workflows", globals(), locals(), ['workflows'] )
+from mrv.path import Path
+_this_module = __import__( "mrv.automation.workflows", globals(), locals(), ['workflows'] )
 import pydot
-import mayarv.automation.processes
+import mrv.automation.processes
 
 
 #{ Initialization
@@ -25,7 +25,7 @@ if 'init_done' not in locals():
 
 # SYSTEM INITIALIZATIONs
 if not init_done:
-	import mayarv.automation.base as common
+	import mrv.automation.base as common
 
 	# load all workflows at once
 	common.addWorkflowsFromDotFiles( _this_module, Path( __file__ ).parent().glob( "*.dot" ) )

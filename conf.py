@@ -21,7 +21,7 @@ from ConfigParser import (	RawConfigParser,
 							NoSectionError,
 							NoOptionError,
 							ParsingError)
-from exc import MayaRVError
+from exc import MrvError
 import copy
 import re
 import sys
@@ -36,7 +36,7 @@ __all__ = ("ConfigParsingError", "ConfigParsingPropertyError", "DictToINIFile",
 
 #{ Exceptions
 ################################################################################
-class ConfigParsingError( MayaRVError ):
+class ConfigParsingError( MrvError ):
 	""" Indicates that the parsing failed """
 	pass
 

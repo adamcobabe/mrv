@@ -25,10 +25,10 @@ To globally disable the undo queue using cmds.undo will disable tracking of opea
 still call the mel command.
 
 Disable the 'undoable' decorator effectively remove the surrounding mel script calls
-by setting the 'MAYARV_UNDO_ENABLED' environment variable to 0 ( default 1 ). 
+by setting the 'Mrv_UNDO_ENABLED' environment variable to 0 ( default 1 ). 
 Additionally it will turn off the maya undo queue as a convenience.
 
-If the mayarv undo queue is disabled, MPlugs will not store undo information anymore
+If the mrv undo queue is disabled, MPlugs will not store undo information anymore
 and do not incur any overhead.
 """
 import sys
@@ -38,7 +38,7 @@ __all__ = ("undoable", "forceundoable", "notundoable", "StartUndo", "endUndo", "
            "UndoRecorder", "Operation", "GenericOperation", "GenericOperationStack", "DGModifier", 
            "DagModifier")
 
-_undo_enabled_envvar = "MAYARV_UNDO_ENABLED"
+_undo_enabled_envvar = "Mrv_UNDO_ENABLED"
 _should_initialize_plugin = int(os.environ.get(_undo_enabled_envvar, True))
 
 #{ Initialization
@@ -581,7 +581,7 @@ class GenericOperationStack( Operation ):
 	You can have only one command stored, or many if they should be executed in a row.
 	The vital part is that with each do command, you supply an undo command.
 	This way your operations can be undone and redone once undo / redo is requested
-	@note: this class works well with L{mayarv.util.Call}
+	@note: this class works well with L{mrv.util.Call}
 	@note: to execute the calls added, you must call L{doIt} or L{addCmdAndCall} - otherwise
 	the undoqueue might brake if exceptions occour !
 	@note: your calls may use MEL commands safely as the undo-queue will be torn off during execution

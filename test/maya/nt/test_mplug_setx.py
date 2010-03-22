@@ -1,9 +1,9 @@
 # -*- coding: utf-8 -*-
 import os
-import mayarv.test.maya.util as tutil
+import mrv.test.maya.util as tutil
 
 class TestUndoDisabled( tutil.StandaloneTestBase ):
-	envvarname = 'MAYARV_DEBUG_MPLUG_SETX'
+	envvarname = 'Mrv_DEBUG_MPLUG_SETX'
 	prev_val = None
 	
 	def setup_environment(self):
@@ -15,7 +15,7 @@ class TestUndoDisabled( tutil.StandaloneTestBase ):
 		
 	def post_standalone_initialized(self):
 		# plugs raise if set is used
-		from mayarv.maya.nt import Node
+		from mrv.maya.nt import Node
 		p = Node("persp")
 		val = 30.0
 		assert p.tx.asDouble() != val

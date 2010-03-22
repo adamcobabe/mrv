@@ -1,9 +1,9 @@
 # -*- coding: utf-8 -*-
 """ Test node iterators """
-from mayarv.test.maya import *
+from mrv.test.maya import *
 import maya.OpenMaya as api
-from mayarv.maya.nt.it import *
-import mayarv.maya.nt as nt
+from mrv.maya.nt.it import *
+import mrv.maya.nt as nt
 import maya.cmds as cmds
 
 class TestGeneral( unittest.TestCase ):

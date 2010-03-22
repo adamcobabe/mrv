@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 """general methods and classes """
-from mayarv.dge import PlugAlreadyConnected
+from mrv.dge import PlugAlreadyConnected
 
 #{ Edit
 

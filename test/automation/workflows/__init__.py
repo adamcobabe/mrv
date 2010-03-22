@@ -1,9 +1,9 @@
 # -*- coding: utf-8 -*-
 """ Intialize suite checking all workflows """
-import mayarv.test.automation.processes as process # assure procs are initialized
-import mayarv.automation.base as wflbase
-from mayarv.path import Path
-from mayarv.automation.qa import QAWorkflow
+import mrv.test.automation.processes as process # assure procs are initialized
+import mrv.automation.base as wflbase
+from mrv.path import Path
+from mrv.automation.qa import QAWorkflow
 
 #{ Interface
 def createWorkflow( workflowName ):
@@ -14,7 +14,7 @@ def createWorkflow( workflowName ):
 
 #{ Initialize
 def init_loadWorkflows( ):
-	_this_module = __import__( "mayarv.test.automation.workflows", globals(), locals(), ['workflows'] )
+	_this_module = __import__( "mrv.test.automation.workflows", globals(), locals(), ['workflows'] )
 	wflbase.addWorkflowsFromDotFiles( _this_module, Path( __file__ ).parent().glob( "*.dot" ) )
 	wflbase.addWorkflowsFromDotFiles( _this_module, Path( __file__ ).parent().glob( "*.dotQA" ), workflowcls = QAWorkflow )
 

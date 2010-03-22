@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 """ Test general nodes features """
-from mayarv.test.maya import *
-import mayarv.maya.nt as nt
+from mrv.test.maya import *
+import mrv.maya.nt as nt
 import maya.cmds as cmds
 import maya.OpenMaya as api
 from itertools import izip

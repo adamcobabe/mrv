@@ -1,10 +1,10 @@
 # -*- coding: utf-8 -*-
 """ Test undo queue performance """
-from mayarv.test.maya import *
-import mayarv.maya as bmaya
+from mrv.test.maya import *
+import mrv.maya as bmaya
 import maya.cmds as cmds
-import mayarv.maya.undo as undo
-from mayarv.test.maya.test_undo import TestUndoQueue
+import mrv.maya.undo as undo
+from mrv.test.maya.test_undo import TestUndoQueue
 import sys
 
 class TestUndoPerformance( unittest.TestCase ):

@@ -1,12 +1,12 @@
 # -*- coding: utf-8 -*-
 """ Test general performance """
-from mayarv.test.maya import *
-import mayarv.maya as bmaya
-import mayarv.maya.nt as nt
-import mayarv.maya.ns as ns
-from mayarv.maya.ref import *
-from mayarv.maya.nt import Node, NodeFromObj
-import mayarv.maya.nt.it as it
+from mrv.test.maya import *
+import mrv.maya as bmaya
+import mrv.maya.nt as nt
+import mrv.maya.ns as ns
+from mrv.maya.ref import *
+from mrv.maya.nt import Node, NodeFromObj
+import mrv.maya.nt.it as it
 
 import maya.cmds as cmds
 import maya.OpenMaya as api

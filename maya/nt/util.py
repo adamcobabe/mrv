@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 """General utility methods"""
 import maya.OpenMaya as api
-import mayarv.maya.undo as undo
+import mrv.maya.undo as undo
 
 MScriptUtil = api.MScriptUtil
 #{ Decorators

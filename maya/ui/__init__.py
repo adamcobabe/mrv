@@ -17,7 +17,7 @@ if 'init_done' not in locals():
 def force_type_creation():
 	"""Enforce the creation of all ui types - must be called once all custom types 
 	were imported"""
-	from mayarv.maya.util import StandinClass
+	from mrv.maya.util import StandinClass
 	for cls in globals().itervalues():
 		if isinstance( cls, StandinClass ):
 			cls.createCls()

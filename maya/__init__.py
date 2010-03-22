@@ -1,16 +1,16 @@
 # -*- coding: utf-8 -*-
 """
-Inialize the mayarv.maya sub-system and assure and startup maya natively
+Inialize the mrv.maya sub-system and assure and startup maya natively
 
 @todo: more documentation
 @todo: logger !
 @todo: configuration support
 """
 import os, sys                                                                         
-from mayarv import init_modules
-from mayarv.util import capitalize, DAGTree
-from mayarv.exc import MayaRVError
-from mayarv.path import Path
+from mrv import init_modules
+from mrv.util import capitalize, DAGTree
+from mrv.exc import MrvError
+from mrv.path import Path
 
 
 # initialize globals
@@ -29,7 +29,7 @@ __all__ = ("registerPluginDataTrackingDict", )
 def registerPluginDataTrackingDict( dataTypeID, trackingDict ):
 	"""Using the given dataTypeID and tracking dict, nt.PluginData can return
 	self pointers belonging to an MPxPluginData instance as returned by MFnPluginData.
-	Call this method to register your PluginData information to the mayarv system.
+	Call this method to register your PluginData information to the mrv system.
 	Afterwards you can extract the self pointer using plug.masData().data()"""
 	sys._dataTypeIdToTrackingDictMap[ dataTypeID.id() ] = trackingDict
 
@@ -52,7 +52,7 @@ def dag_tree_from_tuple_list( tuplelist ):
 
 		if level == 0:
 			if tree != None:
-				raise MayaRVError( "Ui tree must currently be rooted - thus there must only be one root node, found another: " + name )
+				raise MrvError( "Ui tree must currently be rooted - thus there must only be one root node, found another: " + name )
 			else:
 				tree = DAGTree(  )		# create root
 				tree.add_node( name )
@@ -62,7 +62,7 @@ def dag_tree_from_tuple_list( tuplelist ):
 
 		direction = level - lastlevel
 		if direction > 1:
-			raise MayaRVError( "Can only change by one down the dag, changed by %i in item %s" % ( direction, str( item ) ) )
+			raise MrvError( "Can only change by one down the dag, changed by %i in item %s" % ( direction, str( item ) ) )
 
 		lastlevel = level
 		if direction == 0:
@@ -99,7 +99,7 @@ def initWrappers( module, types, metacreatorcls, force_creation = False ):
 	@param module: module object from which the latter classes will be imported from
 	@param types: iterable containing the names of classnames ( they will be capitalized
 	as classes must begin with a capital letter )"""
-	from mayarv.maya.util import StandinClass
+	from mrv.maya.util import StandinClass
 
 	# create dummy class that will generate the class once it is first being instatiated
 	standin_instances = list()
@@ -314,7 +314,7 @@ if 'init_done' not in locals():
 if not init_done:
 	# assure we do not run several times
 	init_system( )
-	init_modules( __file__, "mayarv.maya" )
+	init_modules( __file__, "mrv.maya" )
 	init_singletons( )
 
 

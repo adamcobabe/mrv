@@ -2,13 +2,13 @@
 """Contains base class and common methods for all processes """
 __all__ = list()
 
-from mayarv.dge import NodeBase
-from mayarv.dgfe import GraphNodeBase
-from mayarv.dge import Attribute
-import mayarv.automation.base as wflbase
+from mrv.dge import NodeBase
+from mrv.dgfe import GraphNodeBase
+from mrv.dge import Attribute
+import mrv.automation.base as wflbase
 
-from mayarv.path import Path
-from mayarv.util import Or
+from mrv.path import Path
+from mrv.util import Or
 
 
 #####################

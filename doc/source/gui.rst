@@ -3,17 +3,17 @@
 =========================
 Graphical User Interfaces
 =========================
-MayaRV wraps all ( maybe most ) user interface commands into python classes and places these into a hierarchy to allow polymorphic behaviour through inheritance. Even though inheritance relationships within the set of Maya User Interface commands was boiled down to flat commands, there is such a relation ship.
+Mrv wraps all ( maybe most ) user interface commands into python classes and places these into a hierarchy to allow polymorphic behaviour through inheritance. Even though inheritance relationships within the set of Maya User Interface commands was boiled down to flat commands, there is such a relation ship.
 
 The ``ColumnLayout`` for example, is a ``Layout``, a ``UIContainer``, a ``SizedControl`` and a ``NamedUI``, inheriting functionality from all its bases. 
 
 
-All user interface classes live in the ``mayarv.maya.ui`` package, and are implemented in descriptive subpackages such as ``ui.layout``, ``ui.control``, ``ui.panel`` and ``ui.editor``.
+All user interface classes live in the ``mrv.maya.ui`` package, and are implemented in descriptive subpackages such as ``ui.layout``, ``ui.control``, ``ui.panel`` and ``ui.editor``.
 
 Instantiation
 ==============
 Creating new interface elements is straightforward, and the fact that all user interface elements call MEL in the background becomes obvious when looking at the way they are created::
-	>>> from mayarv.maya.ui import *
+	>>> from mrv.maya.ui import *
 	
 	>>> win = Window(title="demo")
 
@@ -24,7 +24,7 @@ Properties
 ==========
 In this example, we have set the title of the Window to 'demo'. In MEL it would be quite easy to query or to change this, just call ``window -q -title $win`` or ``window -e -title "property demo" $win`` respectively. 
 
-In MayaRV, everything that is *at least* queryable is a property. Properties are prefixed with *p_* and hence live in their own namespace. The name of the properties follow the capitalization of the MEL flag which they represent. 
+In Mrv, everything that is *at least* queryable is a property. Properties are prefixed with *p_* and hence live in their own namespace. The name of the properties follow the capitalization of the MEL flag which they represent. 
 Some properties can only be queried, and you will get an AttributeError if you try to query them::
 	>>> assert "demo" == win.p_title
 	>>> win.p_title = "property demo"
@@ -37,7 +37,7 @@ Layouts behave like containers as they will keep other user interface element. A
 
 They will only receive newly created controls if they are set to be the current, newly created Layouts and Windows will automatically set the parent to be themselves. 
 
-In MayaRV you may either set a specific Container active using ``container.setActive()`` or the previous parent using ``container.setParentActive()``::
+In Mrv you may either set a specific Container active using ``container.setActive()`` or the previous parent using ``container.setParentActive()``::
 	>>> form = FormLayout( )        # an empty form layout
 	>>> win.setActive()
 		
@@ -63,7 +63,7 @@ To make interface elements respond to user interaction like mouse clicks and key
 
 The Maya UI System provides simple string or python callbacks which will be executed when the event occours. This has the inherent disadvantage that there may be only listener for each event - workaround have to be implemented manually.
 
-With MayaRV, events are properties of the class prefixed with *e_*. You can assign any amount of callable objects to them. Any MEL command flag ending with *somethingCommand* is available under the name with the 'Command' portion removed, i.e. *e_something*. 
+With Mrv, events are properties of the class prefixed with *e_*. You can assign any amount of callable objects to them. Any MEL command flag ending with *somethingCommand* is available under the name with the 'Command' portion removed, i.e. *e_something*. 
 	>>> def adjust_button( sender ):
 	>>> 	sender.p_label = "pressed"
 	>>> 	b2.p_label = "affected"

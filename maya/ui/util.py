@@ -4,16 +4,16 @@ Utilities and classes useful for user interfaces
 
 @todo: more documentation
 """
-from mayarv.util import EventSender, Event, Call, WeakInstFunction
+from mrv.util import EventSender, Event, Call, WeakInstFunction
 import maya.cmds as cmds
-from mayarv.enum import create as enum
+from mrv.enum import create as enum
 import weakref
 
 #{ MEL Function Wrappers
 
 def makeEditOrQueryMethod( flag, isEdit=False, methodName=None ):
 	"""Create a function calling inFunc with an edit or query flag set.
-	@note: only works on mayarv wrapped ui elements
+	@note: only works on mrv wrapped ui elements
 	@note: THIS IS MOSTLY A DUPLICATION OF PROVEN CODE FROM MAYA.UTIL !
 	@param flag: name of the query or edit flag
 	@param isEdit: If not False, the method returned will be an edit function

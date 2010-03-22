@@ -4,7 +4,7 @@ __contact__='garret at bgb dot cc'
 __license__='freeware'
 
 import unittest
-import mayarv.enum as Enumeration
+import mrv.enum as Enumeration
 import operator
 import pickle
 from cStringIO import StringIO

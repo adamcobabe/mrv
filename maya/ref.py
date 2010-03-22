@@ -3,12 +3,12 @@
 Allows convenient access and handling of references in an object oriented manner
 @todo: more documentation
 """
-from mayarv.path import Path
-from mayarv.util import And
-from mayarv.exc import MayaRVError
-from mayarv.maya.ns import Namespace, _isRootOf
-from mayarv.maya.util import noneToList
-from mayarv.interface import iDagItem
+from mrv.path import Path
+from mrv.util import And
+from mrv.exc import MrvError
+from mrv.maya.ns import Namespace, _isRootOf
+from mrv.maya.util import noneToList
+from mrv.interface import iDagItem
 import undo
 import maya.cmds as cmds
 import maya.OpenMaya as api
@@ -17,7 +17,7 @@ from itertools import ifilter
 __all__ = ("createReference", "listReferences", "FileReference", "FileReferenceError")
 
 #{ Exceptions
-class FileReferenceError( MayaRVError ):
+class FileReferenceError( MrvError ):
 	pass
 
 #}
@@ -529,7 +529,7 @@ class FileReference( iDagItem ):
 
 	def referenceNode( self ):
 		"""@return: wrapped reference node managing this reference"""
-		import mayarv.maya.nt as nt
+		import mrv.maya.nt as nt
 		return nt.NodeFromStr( self._refnode )
 
 	#}END query methods

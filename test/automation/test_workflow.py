@@ -2,9 +2,9 @@
 """ Test the workflow class """
 import unittest
 import workflows
-import mayarv.automation.workflow as workflow
-from mayarv.automation.workflow import Workflow
-from mayarv.automation.process import *
+import mrv.automation.workflow as workflow
+from mrv.automation.workflow import Workflow
+from mrv.automation.process import *
 from cStringIO import StringIO
 
 class TestWorkflow( unittest.TestCase ):
@@ -72,7 +72,7 @@ class TestWorkflow( unittest.TestCase ):
 		####################
 		# target resolved by the actual node - no input needed
 		res = scwfl.makeTarget( 5 )		# computes in-node
-		from mayarv.automation.report import Plan
+		from mrv.automation.report import Plan
 
 		cg = scwfl._callgraph
 		self.failUnless( len( cg.nodes() ) == 2 )

@@ -1,10 +1,10 @@
 # -*- coding: utf-8 -*-
 """ Test sets and partitions """
-from mayarv.test.maya import *
-import mayarv.maya.nt as nt
+from mrv.test.maya import *
+import mrv.maya.nt as nt
 import maya.cmds as cmds
 import maya.OpenMaya as api
-import mayarv.maya.nt.set as set
+import mrv.maya.nt.set as set
 
 class TestSets( unittest.TestCase ):
 	""" Test set and partition handling """

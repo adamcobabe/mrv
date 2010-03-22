@@ -1,8 +1,8 @@
 # -*- coding: utf-8 -*-
 """Performance Testing"""
-from mayarv.test.maya import *
+from mrv.test.maya import *
 
-import mayarv.maya.nt as nt
+import mrv.maya.nt as nt
 import time
 import sys
 

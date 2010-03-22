@@ -5,7 +5,7 @@ import typ
 import maya.OpenMaya as api
 import maya.cmds as cmds
 import it
-import mayarv.maya.undo as undo
+import mrv.maya.undo as undo
 
 
 #{ Exceptions 

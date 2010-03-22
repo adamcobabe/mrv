@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 """Contains all processes """
-from mayarv.automation.process import ProcessBase
-import mayarv.util as util
+from mrv.automation.process import ProcessBase
+import mrv.util as util
 
 #} Interface
 

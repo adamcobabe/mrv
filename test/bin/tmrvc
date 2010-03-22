@@ -13,7 +13,7 @@ fi
 coverdir=coverage
 
 mkdir -p $coverdir
-${0%/*}/tmrv $firstArg --with-coverage --cover-html --cover-package=mayarv --cover-html-dir=$coverdir $@
+${0%/*}/tmrv $firstArg --with-coverage --cover-html --cover-package=mrv --cover-html-dir=$coverdir $@
 stat=$?
 echo "Coverage report saved in $coverdir/"
 exit $stat

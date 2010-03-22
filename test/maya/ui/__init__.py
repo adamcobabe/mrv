@@ -2,7 +2,7 @@
 """ Intialize the maya UI testing suite - this code is required to be able to 
 start the tests easily from within MEL !"""
 import unittest
-import mayarv.maya.ui as ui
+import mrv.maya.ui as ui
 
 #{ Initialization
 
@@ -37,7 +37,7 @@ def get_package_suite( moduleObject ):
 
 def get_suite( ):
 	""" @return: testsuite with all tests of this package"""
-	import mayarv.test.maya.ui as self
+	import mrv.test.maya.ui as self
 	import maya.cmds as cmds
 
 	# each test has to check whether he can run in batch mode or not

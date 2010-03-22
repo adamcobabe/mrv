@@ -1,8 +1,8 @@
 # -*- coding: utf-8 -*-
 """Specialization of workflow to allow checks to be natively implemented in MEL """
-from mayarv.automation.qa import QACheck, QACheckAttribute, QACheckResult
-from mayarv.maya.util import Mel
-from mayarv.dge import _NodeBaseCheckMeta
+from mrv.automation.qa import QACheck, QACheckAttribute, QACheckResult
+from mrv.maya.util import Mel
+from mrv.dge import _NodeBaseCheckMeta
 import sys
 
 __all__ = ("QAMELCheckAttribute", "QAMELCheck", "QAMetaMel", "QAMELMixin")

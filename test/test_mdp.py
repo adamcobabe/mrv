@@ -1,9 +1,9 @@
 # -*- coding: utf-8 -*-
 """Tests for the mdp dependency parser commandline tool"""
-from mayarv.test.lib import *
+from mrv.test.lib import *
 
 try:
-	from mayarv.mdp import *
+	from mrv.mdp import *
 except TypeError:
 	pass # expected 
 else:

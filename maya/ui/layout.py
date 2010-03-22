@@ -7,7 +7,7 @@ These are specialized and thus more powerful than the default wraps
 """
 import base as uibase
 import maya.cmds as cmds
-import mayarv.maya.util as mutil
+import mrv.maya.util as mutil
 import util as uiutil
 
 

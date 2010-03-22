@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 """ Contains implementations ( or improvements ) to mayas geometric shapes """
 import base
-from mayarv.enum import (create as enum, Element as elm)
+from mrv.enum import (create as enum, Element as elm)
 import maya.OpenMaya as api
 
 __all__ = ("GeometryShape", "DeformableShape", "ControlPoint", "SurfaceShape", 

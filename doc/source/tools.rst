@@ -2,13 +2,13 @@
 Commandline Tools
 =================
 
-.. _imayarv-label:
+.. _imrv-label:
 -------
-imayarv
+imrv
 -------
 
 ------
-mayarv
+mrv
 ------
 
 --------

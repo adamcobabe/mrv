@@ -1,9 +1,9 @@
 # -*- coding: utf-8 -*-
 import os
-import mayarv.test.maya.util as tutil
+import mrv.test.maya.util as tutil
 
 class TestPersistenceEnabled( tutil.StandaloneTestBase ):
-	envvarname = 'MAYARV_APIPATCH_APPLY_GLOBALLY'
+	envvarname = 'Mrv_APIPATCH_APPLY_GLOBALLY'
 	prev_val = None
 	
 	def setup_environment(self):
@@ -14,7 +14,7 @@ class TestPersistenceEnabled( tutil.StandaloneTestBase ):
 		os.environ[self.envvarname] = self.prev_val
 		
 	def post_standalone_initialized(self):
-		import mayarv.maya.nt as nt
+		import mrv.maya.nt as nt
 		
 		# expecting overridden methods both locally and globally
 		p = nt.Node("persp")

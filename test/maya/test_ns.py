@@ -1,8 +1,8 @@
 # -*- coding: utf-8 -*-
 """ Test the namespace methods """
-from mayarv.test.maya import *
-from mayarv.maya.ns import *
-import mayarv.maya as bmaya
+from mrv.test.maya import *
+from mrv.maya.ns import *
+import mrv.maya as bmaya
 import maya.cmds as cmds
 
 class TestReferenceRunner( unittest.TestCase ):

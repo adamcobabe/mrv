@@ -7,11 +7,11 @@ present their results. It should be easy to override and adjust it to suit addit
 import control
 import util as uiutil
 import layout
-from mayarv.automation.qa import QAWorkflow
+from mrv.automation.qa import QAWorkflow
 import maya.OpenMaya as api
 from itertools import chain
 import re
-from mayarv.util import capitalize
+from mrv.util import capitalize
 
 class QACheckLayout( layout.RowLayout ):
 	"""Row Layout able to display a qa check and related information

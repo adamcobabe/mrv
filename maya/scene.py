@@ -7,10 +7,10 @@ as disambiguation to a filesystem file.
 @todo: more documentation
 """
 import util as mutil
-import mayarv.util as util
+import mrv.util as util
 import maya.OpenMaya as api
 import maya.cmds as cmds
-from mayarv.path import Path
+from mrv.path import Path
 
 import inspect
 

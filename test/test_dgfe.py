@@ -1,8 +1,8 @@
 # -*- coding: utf-8 -*-
 """Test dependency graph engine """
 import unittest
-from mayarv.dge import *
-from mayarv.dgfe import *
+from mrv.dge import *
+from mrv.dgfe import *
 
 A = Attribute
 

@@ -1,10 +1,10 @@
 # -*- coding: utf-8 -*-
 """ Intialize suite checking all processes """
-import mayarv.automation.process as process
-import mayarv.automation.processes as processes
-from mayarv.dge import plug, Attribute as A
-from mayarv.path import Path
-from mayarv.automation.qa import QAProcessBase, QACheck, QACheckResult
+import mrv.automation.process as process
+import mrv.automation.processes as processes
+from mrv.dge import plug, Attribute as A
+from mrv.path import Path
+from mrv.automation.qa import QAProcessBase, QACheck, QACheckResult
 
 #{ Processes
 

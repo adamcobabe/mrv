@@ -2,10 +2,10 @@
 """
 Test general MPlug performance
 """
-from mayarv.test.lib import *
-import mayarv.maya as bmaya
-import mayarv.maya.undo as undo
-import mayarv.maya.nt as nt
+from mrv.test.lib import *
+import mrv.maya as bmaya
+import mrv.maya.undo as undo
+import mrv.maya.nt as nt
 import maya.cmds as cmds
 import maya.OpenMaya as api
 from itertools import izip

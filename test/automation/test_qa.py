@@ -2,8 +2,8 @@
 """ Test the quality assurance framework """
 import unittest
 import workflows
-import mayarv.automation.qa as qa
-from mayarv.automation.processes import QACheckProcess
+import mrv.automation.qa as qa
+from mrv.automation.processes import QACheckProcess
 
 class TestQualityAssurance( unittest.TestCase ):
 	"""Test qa framework"""

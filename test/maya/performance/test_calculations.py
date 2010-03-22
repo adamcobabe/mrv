@@ -5,12 +5,12 @@ import string
 import random
 import time
 
-from mayarv.test.maya import *
-import mayarv.maya.nt as nt
+from mrv.test.maya import *
+import mrv.maya.nt as nt
 import maya.cmds as cmds
-import mayarv.maya.undo as undo
+import mrv.maya.undo as undo
 import maya.OpenMaya as api
-import mayarv.maya.nt.it as it
+import mrv.maya.nt.it as it
 
 class TestCalculations( unittest.TestCase ):
 

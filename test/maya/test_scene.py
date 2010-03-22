@@ -1,12 +1,12 @@
 # -*- coding: utf-8 -*-
 """ Test the scene methods """
-from mayarv.test.maya import *
-from mayarv.maya.scene import *
+from mrv.test.maya import *
+from mrv.maya.scene import *
 import maya.cmds as cmds
 import maya.OpenMaya as api
-import mayarv.maya.env as env
-from mayarv.path import Path
-import mayarv.maya.ref as ref
+import mrv.maya.env as env
+from mrv.path import Path
+import mrv.maya.ref as ref
 
 import tempfile
 import shutil

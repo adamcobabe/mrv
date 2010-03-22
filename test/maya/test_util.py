@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 """ Test utility classes """
-from mayarv.test.maya import *
-from mayarv.maya.util import *
+from mrv.test.maya import *
+from mrv.maya.util import *
 
 class TestUtil( unittest.TestCase ):
 	def test_optionvardict( self ):

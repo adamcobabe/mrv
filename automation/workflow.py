@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 """Contains workflow classes that conenct processes in a di - graph """
 import networkx as nx
-from mayarv.dge import Graph, ComputeError
+from mrv.dge import Graph, ComputeError
 import time
 import weakref
 import traceback

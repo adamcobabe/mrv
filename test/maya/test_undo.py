@@ -1,10 +1,10 @@
 # -*- coding: utf-8 -*-
 """ Test ALL features of the undo queue """
-from mayarv.test.maya import *
-import mayarv.maya as bmaya
+from mrv.test.maya import *
+import mrv.maya as bmaya
 import maya.cmds as cmds
-import mayarv.maya.undo as undo
-from mayarv.maya.nt import *
+import mrv.maya.undo as undo
+from mrv.maya.nt import *
 import maya.OpenMaya as api
 import sys
 
@@ -94,7 +94,7 @@ class TestUndoQueue( unittest.TestCase ):
 		# Print a reminder though
 		# TODO: Try to fix this
 		# assert len( sys._maya_stack ) == 0, "Known Undo-Limitation"
-		# http://github.com/Byron/mayarv/issues#issue/2
+		# http://github.com/Byron/mrv/issues#issue/2
 		print "FIX KNOWN UNDO LIMITATION WHICH HAS BEEN SKIPPED TO ALLOW RELEASES"
 		undo.endUndo()
 

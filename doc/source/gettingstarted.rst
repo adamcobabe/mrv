@@ -2,7 +2,7 @@
 ===================
 Getting an Overview
 ===================
-Besides the fact that you need to be familiar with Python, you should be able to get started with MayaRV quickly by working though the Usage Guide: :ref:`usage-label`.
+Besides the fact that you need to be familiar with Python, you should be able to get started with Mrv quickly by working though the Usage Guide: :ref:`usage-label`.
 
 ================
 Helping Yourself
@@ -17,5 +17,5 @@ Most modules contain their own documentation. Module and Class doc strings are w
 
 The latter one works fine for epydoc, but looks awkward in this documentation. For your convenience, a link to the respective epydoc documentation page is provided on the top of each sphinx module docuemntation page.
 
-In theory, you will never have to look into mayarv's code yourself, even if code studies are desired, you could use the epydoc's 'source code' links to do so.
+In theory, you will never have to look into mrv's code yourself, even if code studies are desired, you could use the epydoc's 'source code' links to do so.
 

@@ -16,25 +16,25 @@ def setup_syspath():
 def apply_user_configuration():
 	"""Run optional user scripts"""
 	# try to load custom settings
-	if "IMAYARV_CONFIG" in os.environ:
-		filepath = os.environ[ "IMAYARV_CONFIG" ]
+	if "IMrv_CONFIG" in os.environ:
+		filepath = os.environ[ "IMrv_CONFIG" ]
 		try:
 			execfile( filepath )
 		except Exception:
 			print "Failed to run configuration script"
 	else:
-		print "Set IMAYARV_CONFIG to point to python script doing additional setup"
+		print "Set IMrv_CONFIG to point to python script doing additional setup"
 
 def setup_ipython():
 	"""Perform additional ipython initialization"""
 	import IPython
 	
 	# init maya
-	import mayarv.maya
+	import mrv.maya
 	
 	# make default imports
 	ip = IPython.ipapi.get()
-	ip.ex("from mayarv.maya.all import *")
+	ip.ex("from mrv.maya.all import *")
 
 def init_ipython():
 	"""Get the main ipython system up and running"""

@@ -6,7 +6,7 @@ dependency probles with the python import system as we always need workflows for
 """
 import unittest
 import workflows
-from mayarv.automation.report import Plan
+from mrv.automation.report import Plan
 import processes
 import tempfile
 

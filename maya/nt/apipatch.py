@@ -12,9 +12,9 @@ As they are usually derived from the class they patch , they could also be used 
 NOT: thisImportedClass BUT: module.thisImportedClass !
 """
 import base
-import mayarv.maya.undo as undo
-import mayarv.util as util
-from mayarv.interface import iDagItem
+import mrv.maya.undo as undo
+import mrv.util as util
+from mrv.interface import iDagItem
 
 import maya.OpenMaya as api
 import maya.cmds as cmds
@@ -40,10 +40,10 @@ def init_applyPatches( ):
 
 	@note: overwritten api methods will be renamed to _api_methodname
 	@note: currently this method works not recursively"""
-	module = __import__( "mayarv.maya.nt.apipatch", globals(), locals(), ['apipatch'] )
+	module = __import__( "mrv.maya.nt.apipatch", globals(), locals(), ['apipatch'] )
 	classes = [ v for v in globals().values() if inspect.isclass(v) ]
 	forbiddenMembers = [ '__module__','_applyPatch','__dict__','__weakref__','__doc__' ]
-	apply_globally = int(os.environ.get('MAYARV_APIPATCH_APPLY_GLOBALLY', 0))
+	apply_globally = int(os.environ.get('Mrv_APIPATCH_APPLY_GLOBALLY', 0))
 	
 	ns = None
 	if apply_globally:
@@ -810,7 +810,7 @@ class MPlug( api.MPlug ):
 
 
 # SETUP DEBUG MODE ?
-if int(os.environ.get('MAYARV_DEBUG_MPLUG_SETX', 0)):
+if int(os.environ.get('Mrv_DEBUG_MPLUG_SETX', 0)):
 	def __getattribute__(self, attr):
 		"""Get attribute for MPlug which will raise if a setX method is used.
 		This could cause undo bugs that you'd better catch before they hit the user"""

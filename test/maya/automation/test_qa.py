@@ -1,11 +1,11 @@
 # -*- coding: utf-8 -*-
 """ Test the quality assurance framework and it's mel bindings """
-from mayarv.test.maya import *
-import mayarv.automation.qa as bqa
-import mayarv.maya.automation.qa as qa
-import mayarv.automation.processes as processes
-import mayarv.test.automation.workflows as workflows
-import mayarv.test.automation.processes as processes
+from mrv.test.maya import *
+import mrv.automation.qa as bqa
+import mrv.maya.automation.qa as qa
+import mrv.automation.processes as processes
+import mrv.test.automation.workflows as workflows
+import mrv.test.automation.processes as processes
 import maya.mel as mmel
 
 #  create test methods

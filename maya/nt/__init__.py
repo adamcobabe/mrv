@@ -18,13 +18,13 @@ Default maya commands will require them to be used as string variables instead.
 
 @todo: more documentation
 """
-import mayarv.maya as bmaya
+import mrv.maya as bmaya
 import typ
-_thismodule = __import__( "mayarv.maya.nt", globals(), locals(), ['nt'] )
-from mayarv.path import Path
-import mayarv.maya.env as env
-import mayarv.maya.util as bmayautil
-from mayarv import init_modules
+_thismodule = __import__( "mrv.maya.nt", globals(), locals(), ['nt'] )
+from mrv.path import Path
+import mrv.maya.env as env
+import mrv.maya.util as bmayautil
+from mrv import init_modules
 
 import sys
 import os
@@ -110,8 +110,8 @@ def enforcePersistence( ):
 	This should by used by plugins which require persitence features but want to 
 	be sure it is not disabled on the target system"""
 	global _thismodule
-	import mayarv.maya.nt.storage as storage
-	import mayarv.maya.nt.persistence as persistence
+	import mrv.maya.nt.storage as storage
+	import mrv.maya.nt.persistence as persistence
 	
 	os.environ[persistence.persistence_enabled_envvar] = "1"
 	reload(persistence)
@@ -140,7 +140,7 @@ def _init_package( ):
 	apipatch.init_applyPatches( )
 	
 	# initialize modules
-	init_modules( __file__, "mayarv.maya.nt", self_module = _thismodule )
+	init_modules( __file__, "mrv.maya.nt", self_module = _thismodule )
 
 
 def _force_type_creation():
@@ -174,7 +174,7 @@ if not init_done:
 	from storage import *
 	
 	# import additional classes required in this module
-	from mayarv.maya.ns import Namespace
+	from mrv.maya.ns import Namespace
 	
 	# Setup all actual types - this makes the use much easier
 	_force_type_creation()

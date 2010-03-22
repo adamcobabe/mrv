@@ -1,12 +1,12 @@
 # -*- coding: utf-8 -*-
 """ Test animCurves and related types """
-from mayarv.test.maya import *
+from mrv.test.maya import *
 
 import maya.OpenMaya as api
 import maya.OpenMayaAnim as apianim
 
-import mayarv.maya as mmaya
-import mayarv.maya.nt as nt
+import mrv.maya as mmaya
+import mrv.maya.nt as nt
 
 
 class TestAnim( unittest.TestCase ):

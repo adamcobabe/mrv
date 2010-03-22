@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 """Test dependency graph engine """
 import unittest
-from mayarv.dge import *
+from mrv.dge import *
 from random import randint
 import tempfile
 

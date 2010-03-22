@@ -5,8 +5,8 @@ that the module can at least be imported
 """
 import os
 import unittest
-from mayarv.path import Path
-from mayarv.interface import iDagItem
+from mrv.path import Path
+from mrv.interface import iDagItem
 import tempfile
 import shutil
 import sha

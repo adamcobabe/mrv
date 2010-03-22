@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
-from mayarv.test.maya import *
-from mayarv.maya.ui import *
+from mrv.test.maya import *
+from mrv.maya.ui import *
 import maya.cmds as cmds
 
 if not cmds.about(batch=1):

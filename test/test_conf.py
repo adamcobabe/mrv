@@ -1,10 +1,10 @@
 # -*- coding: utf-8 -*-
 """Test all aspects of the configuration management system """
-from mayarv.test.lib import *
+from mrv.test.lib import *
 import os
 import sys
 from ConfigParser import *
-from mayarv.conf import *
+from mrv.conf import *
 from itertools import *
 import shutil
 import tempfile
@@ -304,7 +304,7 @@ class TestConfigManager( unittest.TestCase ):
 
 		directories = [ taggedIniFileDir, userFileDir ]
 		# we default to 32 bits for now
-		# TODO: a reliable mayarv system method to obtain bits would be nice to have
+		# TODO: a reliable mrv system method to obtain bits would be nice to have
 		bits = 32
 		if os.name == 'nt':
 			if os.path.exists(os.path.expandvars("$windir/SysWOW64")):

@@ -23,9 +23,9 @@ They specialize the respective parts of the workflow
 
 from workflow import Workflow
 from process import ProcessBase
-from mayarv.util import EventSender, Event
-from mayarv.dge import Attribute, plug, ComputeFailed
-from mayarv.enum import create as enum
+from mrv.util import EventSender, Event
+from mrv.dge import Attribute, plug, ComputeFailed
+from mrv.enum import create as enum
 import sys
 
 #{ Exceptions

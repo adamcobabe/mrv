@@ -1,9 +1,9 @@
 # -*- coding: utf-8 -*-
 """ Test storage system and storage node """
-from mayarv.test.maya import *
-import mayarv.maya.nt as nt
-import mayarv.maya as bmaya
-from mayarv.path import Path
+from mrv.test.maya import *
+import mrv.maya.nt as nt
+import mrv.maya as bmaya
+from mrv.path import Path
 import maya.cmds as cmds
 import tempfile
 

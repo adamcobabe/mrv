@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 """
-Initialize mayarv system assisting development, debugging and maintenance
+Initialize mrv system assisting development, debugging and maintenance
 
 	- install general L{decorator} into __builtin__ namespace
 """
@@ -158,11 +158,11 @@ def _init_internationalization( ):
 
 	Will map the '_' function to translate enclosed strings """
 	import gettext
-	gettext.install( "mayarv" )
+	gettext.install( "mrv" )
 
 
 def _init_logging( ):
-	""" Initialize the default mayarv logging interface
+	""" Initialize the default mrv logging interface
 
 	The logging interface unifies the way messages for the end user are handled
 	and assure a flexible message handling.

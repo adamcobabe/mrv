@@ -1,16 +1,16 @@
 # -*- coding: utf-8 -*-
 """ Test general nodes features """
-from mayarv.test.maya import *
-import mayarv.maya as bmaya
-import mayarv.maya.env as env
-import mayarv.maya.ns as nsm
-import mayarv.maya.nt as nt
-from mayarv.maya.nt.persistence import PyPickleData
-from mayarv.test.maya import get_maya_file
-from mayarv.util import capitalize, uncapitalize
+from mrv.test.maya import *
+import mrv.maya as bmaya
+import mrv.maya.env as env
+import mrv.maya.ns as nsm
+import mrv.maya.nt as nt
+from mrv.maya.nt.persistence import PyPickleData
+from mrv.test.maya import get_maya_file
+from mrv.util import capitalize, uncapitalize
 import maya.cmds as cmds
 import maya.OpenMaya as api
-from mayarv.path import Path
+from mrv.path import Path
 import sys
 
 # require persistence

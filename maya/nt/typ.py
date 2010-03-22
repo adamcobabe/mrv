@@ -4,11 +4,11 @@ Deals with types of objects and mappings between them
 
 @todo: more documentation
 """
-from mayarv.maya.util import MetaClassCreator
-import mayarv.maya as bmaya
-from mayarv.path import Path
-import mayarv.maya.env as env
-from mayarv.util import uncapitalize, PipeSeparatedFile
+from mrv.maya.util import MetaClassCreator
+import mrv.maya as bmaya
+from mrv.path import Path
+import mrv.maya.env as env
+from mrv.util import uncapitalize, PipeSeparatedFile
 import maya.OpenMaya as api
 import maya.OpenMayaAnim as apianim
 import maya.OpenMayaUI	as apiui

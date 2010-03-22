@@ -7,8 +7,8 @@ Contains some default dialogs as well as layouts suitable for layout dialogs
 import base as uibase
 import maya.cmds as cmds
 import maya.utils as mutils
-import mayarv.util as util
-from mayarv.interface import iPrompt, iChoiceDialog, iProgressIndicator
+import mrv.util as util
+from mrv.interface import iPrompt, iChoiceDialog, iProgressIndicator
 
 #{ Exceptions
 ################################################################################

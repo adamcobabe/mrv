@@ -2,7 +2,7 @@
 """ Test default report classes """
 import unittest
 import workflows
-from mayarv.automation.report import *
+from mrv.automation.report import *
 
 class TestReport( unittest.TestCase ):
 	"""Test workflow class"""

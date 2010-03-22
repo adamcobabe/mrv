@@ -13,13 +13,13 @@ Implementing an undoable method
    - if you raise, you should not have created an undo operation
 """
 from typ import nodeTypeToMfnClsMap, nodeTypeTree, MetaClassCreatorNodes
-from mayarv.util import uncapitalize, capitalize, pythonIndex, Call 
-from mayarv.interface import iDuplicatable, iDagItem
-from mayarv.maya.util import StandinClass
+from mrv.util import uncapitalize, capitalize, pythonIndex, Call 
+from mrv.interface import iDuplicatable, iDagItem
+from mrv.maya.util import StandinClass
 import maya.OpenMaya as api
 import maya.cmds as cmds
-import mayarv.maya.ns as nsm
-import mayarv.maya.undo as undo
+import mrv.maya.ns as nsm
+import mrv.maya.undo as undo
 from new import instancemethod
 from util import in_double3_out_vector, undoable_in_double3_as_vector
 
@@ -544,7 +544,7 @@ def _checkedInstanceCreation( apiobj, typeName, clsToBeCreated, basecls ):
 	# It is also okay if the user provided a class which is a subclass of the most 
 	# suitable class we know, which acts like a virtal specialization
 	if clsToBeCreated is not basecls and clsToBeCreated is not nodeTypeCls:
-		vclass_attr = '__mayarv_virtual_subtype__'
+		vclass_attr = '__mrv_virtual_subtype__'
 		# If the class is a virtual subtype and indeed a subclass of our best known type,  
 		# its a valid class
 		if not issubclass( nodeTypeCls, clsToBeCreated ) and \
@@ -2545,7 +2545,7 @@ class Reference( DependNode ):
 	def fileReference(self):
 		"""@return: L{FileReference} instance initialized with the reference we 
 		represent"""
-		import mayarv.maya.ref as refmod
+		import mrv.maya.ref as refmod
 		return refmod.FileReference(refnode=self)
 	
 
@@ -2675,7 +2675,7 @@ class Shape( DagNode ):	 # base for epydoc !
 		If False, a custom non-api implementation will be used instead.
 		This can be required if the apiImplementation is not reliable which happens in
 		few cases of 'weird' component assignments
-		@param asComponent: If True, the components will be wrapped into the matching MayaRV compontent type
+		@param asComponent: If True, the components will be wrapped into the matching Mrv compontent type
 		to provide a nicer interface. This might slightly slow down the process, but this is usually 
 		neglectable.
 		@note: the sets order will be the order of connections of the respective component list

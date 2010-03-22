@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 """Contains specialized attributes that judge value based on different criteria,
 allowing more elaborate typecheckingr """
-from mayarv.dge import Attribute
+from mrv.dge import Attribute
 
 class RegexStringAttr( Attribute ):
 	"""Attribute that accepts string values matching a given regular expression"""

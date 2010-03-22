@@ -1,8 +1,8 @@
 # -*- coding: utf-8 -*-
-""" Contains all exceptions used by the mayarv package in general """
+""" Contains all exceptions used by the mrv package in general """
 
-class MayaRVError( Exception ):
-	""" Base Class for all exceptions that the mayarv framework throws"""
+class MrvError( Exception ):
+	""" Base Class for all exceptions that the mrv framework throws"""
 	def __init__(self, *args, **kwargs):
 		self._message = ""
 		if args and isinstance(args[0], basestring):
@@ -19,24 +19,24 @@ class MayaRVError( Exception ):
 
 
 #{Decorator Exceptions
-class MethodTypeError( TypeError, MayaRVError ):
+class MethodTypeError( TypeError, MrvError ):
 	""" Indicates that a method either produced or returned a type that was not anticipated """
 	pass
 
-class InterfaceError( TypeError, MayaRVError ):
+class InterfaceError( TypeError, MrvError ):
 	""" Indicates that an instances interface does not fully match the requrested interface """
 	pass
 #}
 
 #{ Decorator Internal Exceptions
-class DecoratorError( MayaRVError ):
+class DecoratorError( MrvError ):
 	""" Thrown if decorators are used in an incorrect way
 	@note: this can only happen if decorators take arguments that do not resolve as
 	requested
 	@todo: store actual function that caused the error """
 	pass
 
-class InterfaceSetupError( MayaRVError ):
+class InterfaceSetupError( MrvError ):
 	""" Thrown if L{interface} attributes are used incorrectly
 		- only and ignore are both given, although they are mutually exclusive """
 	pass

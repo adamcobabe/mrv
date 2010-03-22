@@ -1,9 +1,9 @@
 # -*- coding: utf-8 -*-
 import os
-import mayarv.test.maya.util as tutil
+import mrv.test.maya.util as tutil
 
 class TestPersistenceEnabled( tutil.StandaloneTestBase ):
-	envvarname = 'MAYARV_PERSISTENCE_ENABLED'
+	envvarname = 'Mrv_PERSISTENCE_ENABLED'
 	prev_val = None
 	
 	def setup_environment(self):
@@ -16,7 +16,7 @@ class TestPersistenceEnabled( tutil.StandaloneTestBase ):
 	def post_standalone_initialized(self):
 		# plugin should have loaded automatically
 		import maya.cmds as cmds
-		import mayarv.maya.nt
-		persistence_plugin_file = os.path.splitext(mayarv.maya.nt.persistence.__file__)[0] + '.py'
+		import mrv.maya.nt
+		persistence_plugin_file = os.path.splitext(mrv.maya.nt.persistence.__file__)[0] + '.py'
 		assert cmds.pluginInfo( persistence_plugin_file, q=1, loaded=1 )
 		

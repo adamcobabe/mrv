@@ -3,8 +3,8 @@
 import maya.mel as mm
 import maya.cmds as cmds
 import maya.OpenMaya as api
-import mayarv.util as util
-from mayarv.util import capitalize,uncapitalize
+import mrv.util as util
+from mrv.util import capitalize,uncapitalize
 import networkx.exception as networkxexc
 
 import weakref
@@ -151,7 +151,7 @@ class Mel(util.Singleton):
 
 class OptionVarDict( util.Singleton ):
 	"""	 A singleton dictionary-like class for accessing and modifying optionVars.
-	@note: Idea and base Implementation from PyMel, modified to adapt to mayarv """
+	@note: Idea and base Implementation from PyMel, modified to adapt to mrv """
 	class OptionVarList(tuple):
 		def __new__( cls, key, val ):
 			"""modify constructor to work with tuple"""
@@ -287,7 +287,7 @@ class MetaClassCreator( type ):
 					nameToTreeFunc=uncapitalize, treeToNameFunc=capitalize ):
 		"""Create a new class from hierarchy information found in dagtree and
 		put it into the module if it not yet exists
-		@param dagtree: L{mayarv.util.DAGTree} instance with hierarchy information
+		@param dagtree: L{mrv.util.DAGTree} instance with hierarchy information
 		@param module: the module instance to which to add the new classes to
 		@param nameToTreeFunc: convert the class name to a name suitable for dagTree look-up
 		@param treeToNameFunc: convert a value from the dag tree into a valid class name ( used for parent lookup )"""
@@ -335,7 +335,7 @@ class MetaClassCreator( type ):
 
 
 class CallbackEventBase( util.Event ):
-	"""Allows the mapping of MMessage callbacks to mayarv's event sender system.
+	"""Allows the mapping of MMessage callbacks to mrv's event sender system.
 	This event will register a new message once the first event receiver registers
 	itself. Once the last event receiver deregisters, the message will be deregistered in 
 	maya as well.

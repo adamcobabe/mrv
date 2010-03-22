@@ -1,4 +1,4 @@
-from mayarv.test.lib import *
+from mrv.test.lib import *
 import tempfile
 import time
 import os
@@ -8,7 +8,7 @@ __all__ = ('save_temp_file', 'save_for_debugging', 'get_maya_file', 'with_scene'
 
 def save_temp_file( filename ):
 	"""save the current scene as given filename in a temp directory, print path"""
-	import mayarv.maya as mrvmaya		# late import
+	import mrv.maya as mrvmaya		# late import
 	filepath = tempfile.gettempdir( ) + "/" + filename
 	savedfile = mrvmaya.Scene.save( filepath )
 	print "SAVED TMP FILE TO: %s" % savedfile
@@ -17,7 +17,7 @@ def save_temp_file( filename ):
 def save_for_debugging(scene_name):
 	"""Save the currently actve scene as MayaAscii for debugging purposes
 	@return: absolute path string at which the file was saved"""
-	import mayarv.maya as mrvmaya		# late import
+	import mrv.maya as mrvmaya		# late import
 	scene_path = os.path.join(tempfile.gettempdir(), scene_name + ".ma")
 	mrvmaya.Scene.save(scene_path, force=True)
 	
@@ -28,7 +28,7 @@ def save_for_debugging(scene_name):
 def with_scene( basename ):
 	"""Loads the specified scene . the basename is supposed to be in our fixtures
 	directory"""
-	import mayarv.maya as mrvmaya		# late import
+	import mrv.maya as mrvmaya		# late import
 	if not isinstance(basename, basestring):
 		raise ValueError("Need basename of a scene as string, not %r" % basename)
 	# END arg check
@@ -77,10 +77,10 @@ class StandaloneTestBase( unittest.TestCase ):
 		self.setup_environment()
 		try:
 			st = time.time()
-			import mayarv.maya
+			import mrv.maya
 			# too fast ? It was loaded already as we have not been run standalone
 			if time.time() - st < 0.1:
-				print "%s standalone test bailed out at it couldn't be the first one to initialize mayarv.maya" % type(self).__name__
+				print "%s standalone test bailed out at it couldn't be the first one to initialize mrv.maya" % type(self).__name__
 				return
 			# END handle non-standalone mode
 			

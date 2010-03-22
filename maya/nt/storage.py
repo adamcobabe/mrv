@@ -8,8 +8,8 @@ import os
 from persistence import PyPickleData
 import maya.OpenMaya as api
 
-import mayarv.maya.undo as undo
-from mayarv.util import iDuplicatable
+import mrv.maya.undo as undo
+from mrv.util import iDuplicatable
 
 from base import Node, DependNode, Data, createNode, delete
 from set import ObjectSet
@@ -45,7 +45,7 @@ class StorageBase( iDuplicatable ):
 		It acts like a namespace
 	mayaNode: the maya node holding the actual attributes
 
-	@note: A mayarv node should derive from this class to allow easy attribute access of its
+	@note: A mrv node should derive from this class to allow easy attribute access of its
 	own compatible attributes - its designed for flexiblity
 	@note: attribute accepts on the generic attribute should be set by a plugin node when it
 	creates its attributes

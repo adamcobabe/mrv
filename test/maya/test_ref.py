@@ -1,11 +1,11 @@
 # -*- coding: utf-8 -*-
 """ Test the reference methods """
-from mayarv.test.maya import *
+from mrv.test.maya import *
 import maya.cmds as cmds
-from mayarv.maya.ref import *
-from mayarv.maya.ns import *
-import mayarv.maya as bmaya
-import mayarv.maya.nt as nt
+from mrv.maya.ref import *
+from mrv.maya.ns import *
+import mrv.maya as bmaya
+import mrv.maya.nt as nt
 
 import maya.OpenMaya as api
 
@@ -232,7 +232,8 @@ class TestReferenceRunner( unittest.TestCase ):
 			assert len(ref.children()) == 0
 			assert isinstance(ref.copynumber(), int)
 			assert ref.parent() in tlrs
-			assert ref.path(unresolved=0) != ref.path(unresolved=1)
+			# returned as path, which can auto-expand items for comparison
+			assert str(ref.path(unresolved=0)) != str(ref.path(unresolved=1))
 			self._assert_ref_node(ref.referenceNode())
 			
 			# cannot set namespace of subreferences

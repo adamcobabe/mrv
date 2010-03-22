@@ -5,11 +5,11 @@ Module containing helpers to create the UI types at runtime.
 """
 
 
-import mayarv.maya as bmaya
-from mayarv.util import uncapitalize
-import mayarv.maya.util as mutil
-from mayarv.path import Path
-_thismodule = __import__( "mayarv.maya.ui", globals(), locals(), ['ui'] )
+import mrv.maya as bmaya
+from mrv.util import uncapitalize
+import mrv.maya.util as mutil
+from mrv.path import Path
+_thismodule = __import__( "mrv.maya.ui", globals(), locals(), ['ui'] )
 import maya.cmds as mcmds
 from util import propertyQE, EventSenderUI
 

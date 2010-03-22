@@ -1,16 +1,16 @@
 # -*- coding: utf-8 -*-
 """Test basic node features """
-from mayarv.test.maya import *
-import mayarv.maya as bmaya
-import mayarv.maya.nt as nt
+from mrv.test.maya import *
+import mrv.maya as bmaya
+import mrv.maya.nt as nt
 import maya.OpenMaya as api
 import maya.cmds as cmds
 
-from mayarv.maya.nt import *
-from mayarv.maya.ns import *
-from mayarv.maya.ref import FileReference
-import mayarv.maya as mrv
-import mayarv.maya.undo as undo
+from mrv.maya.nt import *
+from mrv.maya.ns import *
+from mrv.maya.ref import FileReference
+import mrv.maya as mrv
+import mrv.maya.undo as undo
 import tempfile
 import __builtin__
 set = __builtin__.set		# fix set, it was overwritten by the set module when importing nodes *
