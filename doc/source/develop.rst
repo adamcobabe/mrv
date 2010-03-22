@@ -89,7 +89,7 @@ isSomething, but issometh	# abbreviations lower case
 =====================================
 Performance and Memory Considerations
 =====================================
-MayaReVised has been created with performance in mind. Core code as gone through several iteration in order to be as fast as it can possibly be within python. This is beneficial to the developer as he can be sure that conveniently written code will run at a high pace. 
+MRV has been created with performance in mind. Core code as gone through several iteration in order to be as fast as it can possibly be within python. This is beneficial to the developer as he can be sure that conveniently written code will run at a high pace. 
 Usually this kind of code is the most readable and the most maintainable which is why it is preferred. Nonetheless there are situations when performance outweights code convenience, this article explains what to look out for and how to improve the performance of your programs.
 
 The respective tips are listed in the order of simplicity and effect, hence simler and more effective ways to enhance performance come first.

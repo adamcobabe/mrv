@@ -7,7 +7,7 @@ Besides the fact that you need to be familiar with Python, you should be able to
 ================
 Helping Yourself
 ================
-MayaReVised uses Sphinx as main documentation system, but uses Epydoc to fill the gap.
+MRV uses Sphinx as main documentation system, but uses Epydoc to fill the gap.
 
 The sphinx documentation provides additional hand-manufactured documentation whereas the epydoc documentation pages are created from the source code only.
 

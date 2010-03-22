@@ -3,7 +3,7 @@
 =========
 Using MRV
 =========
-This document gives an overview of the facilities within the Maya portion of MayaReVised, which contains classes that require maya to be initialized.
+This document gives an overview of the facilities within the Maya portion of the development framework, which contains modules that require maya to be initialized.
 
 The examples given here can be viewed as one consecutive script which should work of all the code is pasted into a mrv testcase for instance. The latter one can be found in ``mrv.test.maya.nt.test_general`` (test_usage_examples). If you want to be more explorative, adjust the test's code yourself and run it to see the results. For more information on how to run tests, see :ref:`runtestsdoc-label`.
 
@@ -620,7 +620,7 @@ It is important to remove callbacks once you are done with them to allow the cor
 ====
 Undo
 ====
-The MayaAPI, the very basis of MayaReVised, has limited support for undo as it clearly focuses on performance. Changes to the dependency graph can only be made through a utility which supports undo, but changes to values through plugs for instance  are not covered by that. To allow MRV to be used within user scripts, full undo was implemented wherever needed. This is indicated by the ``undoable`` decorator. Whenever a method which changes the state cannot be undone for whichever reason, it is decorated with ``notundoable``.
+The MayaAPI, the very basis of MRV, has limited support for undo as it clearly focuses on performance. Changes to the dependency graph can only be made through a utility which supports undo, but changes to values through plugs for instance  are not covered by that. To allow MRV to be used within user scripts, full undo was implemented wherever needed. This is indicated by the ``undoable`` decorator. Whenever a method which changes the state cannot be undone for whichever reason, it is decorated with ``notundoable``.
 
 As you are unlikely going to need undo support when running in batch mode or standalone, you can disable the undo system by setting MRV_UNDO_ENABLED to 0, which causes the undo implementation to completely disappear in many cases, which reduces the overhead considerably as well as the memory usage.
 
