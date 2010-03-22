@@ -11,7 +11,7 @@ import tempfile
 from glob import glob
 
 def _getIniFileDir( base_dir = 'ini' ):
-	return os.path.join( fixturePath( base_dir ) )
+	return os.path.join( fixture_path( base_dir ) )
 
 class _ConverterLibrary( object ):
 	""" For use with Converter Test Cases - contains different dictionaries for INI conversion """
@@ -206,7 +206,7 @@ class TestConfigManager( unittest.TestCase ):
 	def setUp( self ):
 		""" Copy valid files into seprate working directory as we want to alter them"""
 
-		dirWithTests = fixturePath( "configman_inis" )
+		dirWithTests = fixture_path( "configman_inis" )
 		try:
 			shutil.rmtree( self.testpath, ignore_errors=False )
 		except:

@@ -10,7 +10,7 @@ from collections import deque
 import subprocess
 import time
 
-# module is supposed to be used as standalone program
+# module is supposed to be used as standalone program - we prevent from x import *
 __all__ = None
 
 def superviseJobs( jobs, returnIfLessThan, cmdinput, errorstream, donestream ):

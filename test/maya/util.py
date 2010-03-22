@@ -14,7 +14,6 @@ def save_temp_file( filename ):
 	print "SAVED TMP FILE TO: %s" % savedfile
 	return savedfile
 
-
 def save_for_debugging(scene_name):
 	"""Save the currently actve scene as MayaAscii for debugging purposes
 	@return: absolute path string at which the file was saved"""
@@ -24,10 +23,6 @@ def save_for_debugging(scene_name):
 	
 	print "Saved scene for debugging at: %r" % scene_path
 	return scene_path
-
-def get_maya_file( filename ):
-	"""@return: path to specified maya ( test ) file """
-	return fixturePath( "ma/"+filename )
 
 #{ Decorators
 def with_scene( basename ):
