@@ -49,7 +49,7 @@ class ProcessBase( NodeBase ):
 	"""The base class for all processes, defining a common interface
 
 	Inputs and Outputs of this node are statically described using plugs
-	@note: the process base is able to duplcate properly as it stores in constructor
+	:note: the process base is able to duplcate properly as it stores in constructor
 	arguments accordingly
 	"""
 	kNo, kGood, kPerfect = 0, 127, 255				# specify how good a certain target can be produced
@@ -67,9 +67,9 @@ class ProcessBase( NodeBase ):
 
 	def __init__( self, id, *args, **kwargs ):
 		"""Initialize process with most common information
-		@param noun: noun describing the process, ( i.e. "Process" )
-		@param verb: verb describing the process, ( i.e. "processing" )
-		@param workflow: workflow this instance of part of """
+		:param noun: noun describing the process, ( i.e. "Process" )
+		:param verb: verb describing the process, ( i.e. "processing" )
+		:param workflow: workflow this instance of part of """
 		self._args = args
 		self._kwargs = kwargs
 		NodeBase.__init__( self, id = id, *args, **kwargs )		# init last - need our info first !
@@ -89,17 +89,17 @@ class ProcessBase( NodeBase ):
 	#{ Query
 
 	def targetRating( self, target, check_input_plugs = True, **kwargs ):
-		"""@return: tuple( int, PlugShell )
+		""":return: tuple( int, PlugShell )
 		int between 0 and 255 - 255 means target matches perfectly, 0
 		means complete incompatability. Any inbetweens indicate the target can be
 		achieved, but maybe just in a basic way
 		If rate is 0, the object will be None, otherwise its a plugShell to the
 		input attribute that can take target as input. In process terms this means
 		that at least one output plug exists that produces the target.
-		@param target: instance or class of target to check for compatability
-		@param check_input_plugs: if True, input plugs will be checked for compatability of target,
+		:param target: instance or class of target to check for compatability
+		:param check_input_plugs: if True, input plugs will be checked for compatability of target,
 		otherwise the output plugs
-		@raise TypeError: if the result is ambiguous and raise_on_ambiguity = 1"""
+		:raise TypeError: if the result is ambiguous and raise_on_ambiguity = 1"""
 		# query our ouput plugs for a compatible attr
 		tarplugs = None
 		if check_input_plugs:
@@ -135,8 +135,8 @@ class ProcessBase( NodeBase ):
 
 
 	def supportedTargetTypes( self ):
-		"""@return: list target types that can be output
-		@note: targetTypes are classes, not instances"""
+		""":return: list target types that can be output
+		:note: targetTypes are classes, not instances"""
 		return [ p.attr.typecls for p in self.inputPlugs() ]
 
 	#} END query
@@ -144,11 +144,11 @@ class ProcessBase( NodeBase ):
 	#{ Interface
 
 	def evaluateState( self, plug, mode ):
-		"""@return: an instance suitable to be stored in the given plug
-		@param plug: plug that triggered the computation - use it to compare against
+		""":return: an instance suitable to be stored in the given plug
+		:param plug: plug that triggered the computation - use it to compare against
 		your classes plugs to see which output is required and return a result suitable
 		to be stored in plug
-		@param mode: bit flags as follows:
+		:param mode: bit flags as follows:
 		is_state: your return value represents the current state of the process - your output will
 				represent what actually is present. You may not alter the state of your environment,
 				thus this operation is strictly read-only.
@@ -168,7 +168,7 @@ class ProcessBase( NodeBase ):
 				to deliver the plug state. If the is_state if the environment is the plug_state
 				as there is nothing to do for you, do not raise and simply return your output.
 		The call takes place as there is no cache for plugType.
-		@note: needs to be implemented by subclasses, but subclasses can just call their
+		:note: needs to be implemented by subclasses, but subclasses can just call their
 		superclass for all unhandled plugs resulting in consistent error messages"""
 		raise PlugUnhandled( "Plug %s.%s cannot be handled - check your implementation" % ( self, str( plug ) ) )
 
@@ -178,11 +178,11 @@ class ProcessBase( NodeBase ):
 	#{ Overridden from NodeBase
 	@track_output_call
 	def compute( self, plug, mode = None ):
-		"""Base implementation of the output, called by L{input} Method.
+		"""Base implementation of the output, called by `input` Method.
 		Its used to have a general hook for the flow tracing
-		@param plug: plug to evaluate
-		@param mode: the mode of the valuation
-		@return: result of the computation"""
+		:param plug: plug to evaluate
+		:param mode: the mode of the valuation
+		:return: result of the computation"""
 		wfl = self.workflow()
 		finalmode = wfl._mode			# use global mode
 
@@ -212,7 +212,7 @@ class ProcessBase( NodeBase ):
 		pass
 
 	def workflow( self ):
-		"""@return: the workflow instance we are connected with. Its used to query global data"""
+		""":return: the workflow instance we are connected with. Its used to query global data"""
 		return self.graph
 
 	#} END base
@@ -225,7 +225,7 @@ class WorkflowProcessBase( GraphNodeBase, ProcessBase ):
 	nodeInsideNestedWorkflow -> thisworkflow.node.plug connections
 
 	Workflows are standin nodes - they can connect anything their wrapped nodes can connect
-	@note: to prevent dependency issues, the workflow instance will be bound on first use
+	:note: to prevent dependency issues, the workflow instance will be bound on first use
 	"""
 	__all__.append( "WorkflowProcessBase" )
 	workflow_file = "name of the workflow dot file ( incl. extension )"
@@ -241,9 +241,9 @@ class WorkflowProcessBase( GraphNodeBase, ProcessBase ):
 	def __init__( self, id, wflInstance=None, **kwargs ):
 		""" Will take all important configuration variables from its class variables
 		- you should override these with your subclass
-		@param wflInstance: if given, this instance will be used instead of creating
+		:param wflInstance: if given, this instance will be used instead of creating
 		a new workflow. Used by copy constructor.
-		@param **kwargs: all arguments required to initialize the ProcessBase"""
+		:param **kwargs: all arguments required to initialize the ProcessBase"""
 
 		wrappedwfl = wflInstance
 		if not wrappedwfl:
@@ -276,7 +276,7 @@ class WorkflowProcessBase( GraphNodeBase, ProcessBase ):
 
 
 	def _createWrappedWfl( self, wfldir, wflname ):
-		"""@return: our wrapped workflow instance as created by a method loading a workflow
+		""":return: our wrapped workflow instance as created by a method loading a workflow
 		from a file"""
 		wfl = wflbase.loadWorkflowFromDotFile( Path( wfldir ) / wflname )
 		return wfl
@@ -290,7 +290,7 @@ class WorkflowProcessBase( GraphNodeBase, ProcessBase ):
 		"""As we have different callgraphs, but want proper reports, just swap in the
 		callgraph of our own workflow to allow it to be maintained correctly when the nodes
 		of the wrapped graph evaluate.
-		@note: this requires that we get called after the callgraph has bene initialized"""
+		:note: this requires that we get called after the callgraph has bene initialized"""
 		if self.graph._callgraph.number_of_nodes():
 			raise AssertionError( "Callgraph of parent workflow %r was not empty" % self.graph )
 
@@ -307,7 +307,7 @@ class WorkflowProcessBase( GraphNodeBase, ProcessBase ):
 	#{ GraphNodeBase Methods
 
 	def _iterNodes( self ):
-		"""@return: generator for nodes that have no output connections or no input connections """
+		""":return: generator for nodes that have no output connections or no input connections """
 		noOutput = lambda node: not node.connections( 0, 1 )
 		noInput = lambda node: not node.connections( 1, 0 )
 		return self.wgraph.iterNodes( predicate = Or( noInput, noOutput ) )

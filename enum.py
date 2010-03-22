@@ -31,7 +31,7 @@ assert x == Colors('red')
 assert Borders.FLAT == 2:
 assert 1 in Borders
 
-@note: slightly modified by Sebastian Thiel to be more flexible and suitable as
+:note: slightly modified by Sebastian Thiel to be more flexible and suitable as
 base class
 
 
@@ -65,7 +65,7 @@ class Element(object):
 		return self._name
 
 	def _checkType( self, other ):
-		"""@raise TypeError: if other cannot be used with this element"""
+		""":raise TypeError: if other cannot be used with this element"""
 		if ( self.__class__ != other.__class__ ) or ( self.enumeration is not other.enumeration ):
 			raise TypeError( "%s is incompatible with %s" % ( other, self ) )
 
@@ -89,8 +89,8 @@ class Element(object):
 	def __or__( self, other ):
 		"""Allows oring values together - only works if the values are actually orable
 		integer values
-		@return: integer with the ored result
-		@raise TypeError: if we are not a bitflag or other is not an element of our enumeration"""
+		:return: integer with the ored result
+		:raise TypeError: if we are not a bitflag or other is not an element of our enumeration"""
 		self._checkType( other )
 		self._checkBitflag()
 		return self.value() | other.value()
@@ -98,16 +98,16 @@ class Element(object):
 	def __xor__( self, other ):
 		"""Allows to x-or values together - only works if element's values are xorable
 		integer values.
-		@param other: integer
-		@return: integer with the xored result"""
+		:param other: integer
+		:return: integer with the xored result"""
 		self._checkBitflag()
 		return self.value() ^ other
 
 
 	def __and__( self, other ):
 		"""Allow and with integers
-		@return: self if self & other == self or None if our bit is not set in other
-		@raise TypeError: if other is not an int"""
+		:return: self if self & other == self or None if our bit is not set in other
+		:raise TypeError: if other is not an int"""
 		if not isinstance( other, int ):
 			raise TypeError( "require integer, got %s" % type( other ) )
 
@@ -117,11 +117,11 @@ class Element(object):
 		return None
 
 	def value( self ):
-		"""@return: own value"""
+		""":return: own value"""
 		return self._value
 		
 	def name( self ):
-		"""@return: name of the element"""
+		""":return: name of the element"""
 		return self._name
 
 
@@ -140,9 +140,9 @@ class Enumeration(tuple):
 	are _repr_'d by the name of the element, which is convenient for testing,
 	debugging, and generation text output.
 
-	@note: pickling this class with Elements will fail as they contain cyclic
+	:note: pickling this class with Elements will fail as they contain cyclic
 	references that it cannot deal with
-	@todo: implement proper pickle __getstate__ and __setstate__ that deal with
+	:todo: implement proper pickle __getstate__ and __setstate__ that deal with
 	that problem
 	"""
 	_slots_ = ( "_nameMap", "_valueMap", "_supports_bitflags" )
@@ -205,7 +205,7 @@ class Enumeration(tuple):
 
 	def valueFromName(self, name):
 		"""Look up the enumeration value for a given element name.
-		@raise ValueError:"""
+		:raise ValueError:"""
 		try:
 			return self._nameMap[name]
 		except KeyError:
@@ -217,7 +217,7 @@ class Enumeration(tuple):
 
 		If there are multiple elements with the same value, you will only
 		get a single matching name back. Which name is undefined.
-		@raise ValueError: if value is not a part of our enumeration"""
+		:raise ValueError: if value is not a part of our enumeration"""
 		try:
 			return self._valueMap[value]
 		except KeyError:
@@ -225,8 +225,8 @@ class Enumeration(tuple):
 		# END exception handling  
 
 	def _nextOrPrevious( self, element, direction, wrap_around ):
-		"""do-it method, see L{next} and L{previous}
-		@param direction: -1 = previous, 1 = next """
+		"""do-it method, see `next` and `previous`
+		:param direction: -1 = previous, 1 = next """
 		curindex = -1
 		for i,elm in enumerate( self ):
 			if elm == element:
@@ -252,18 +252,18 @@ class Enumeration(tuple):
 
 
 	def next( self, element, wrap_around = False ):
-		"""@return: element following after given element
-		@param element: element whose successor to return
-		@param wrap_around: if True, the first Element will be returned if there is
+		""":return: element following after given element
+		:param element: element whose successor to return
+		:param wrap_around: if True, the first Element will be returned if there is
 		no next element
-		@raise ValueError: if wrap_around is False and there is no next element"""
+		:raise ValueError: if wrap_around is False and there is no next element"""
 		return self._nextOrPrevious( element, 1, wrap_around )
 
 	def previous( self, element, wrap_around = False ):
-		"""@return: element coming before the given element
-		@param element: element whose predecessor to return
-		@param wrap_around: see L{next}
-		@raise ValueError: if wrap_around is False and there is no previous element"""
+		""":return: element coming before the given element
+		:param element: element whose predecessor to return
+		:param wrap_around: see `next`
+		:raise ValueError: if wrap_around is False and there is no previous element"""
 		return self._nextOrPrevious( element, -1, wrap_around )
 
 	__call__ = valueFromName
@@ -280,10 +280,10 @@ def create(*elements, **kwargs ):
 	Example:  Enumeration.create('fred', cls = EnumerationSubClass )
 	Example:  Enumeration.create(Element('fred', Marge), ...)
 
-	@param cls: The class to create an enumeration with, must be an instance of
+	:param cls: The class to create an enumeration with, must be an instance of
 	Enumeration
-	@param elmcls: The class to create elements from, must be instance of Element
-	@param bitflag: if True, default False, the values created will be suitable as bitflags.
+	:param elmcls: The class to create elements from, must be instance of Element
+	:param bitflag: if True, default False, the values created will be suitable as bitflags.
 	This will fail if you passed more items in than supported by the OS ( 32 , 64, etc ) or if
 	you pass in tuples and thus define the values yourself.
 	@raise TypeError,ValueError: if bitflags cannot be supported in your case """

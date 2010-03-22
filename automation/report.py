@@ -17,7 +17,7 @@ class ReportBase( object ):
 	#{ Report Methods
 
 	def makeReport( self ):
-		"""@return: report as result of a prior Callgraph analysis"""
+		""":return: report as result of a prior Callgraph analysis"""
 		raise NotImplementedError( "This method needs to be implemented by subclasses" )
 
 	#} END report methods
@@ -34,9 +34,9 @@ class Plan( ReportBase ):
 
 
 	def makeReport( self, headline=None ):
-		"""@return: list of strings ( lines ) resembling a plan-like formatting
+		""":return: list of strings ( lines ) resembling a plan-like formatting
 		of the call graph
-		@param headline: line to be given as first line """
+		:param headline: line to be given as first line """
 		cl = self._analyseCallgraph( )
 
 		out = []

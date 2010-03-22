@@ -148,7 +148,7 @@ class Path( _base, iDagItem ):
 
 	def _expandvars( self ):
 		"""Internal version returning a string only
-		@note: It is a slightly changed copy of the version in posixfile
+		:note: It is a slightly changed copy of the version in posixfile
 		as the windows version was implemented differently ( it expands
 		variables to an empty space which is undesireable )"""
 		if '$' not in self:
@@ -184,17 +184,17 @@ class Path( _base, iDagItem ):
 	#{ iDagItem Implementation
 
 	def parent( self ):
-		"""@return: the parent directory of this Path or None if this is the root"""
+		""":return: the parent directory of this Path or None if this is the root"""
 		parent = self.dirname()
 		if parent == self:
 			return None
 		return parent
 
 	def children( self, predicate = lambda p: True, pattern = None ):
-		"""@return: child paths as retrieved by queryiing the file system.
-		@note: files cannot have children, and willl return an empty array accordingly
-		@param predicate: return p if predicate( p ) returns True
-		@param pattern: list only elements that match the given simple  pattern
+		""":return: child paths as retrieved by queryiing the file system.
+		:note: files cannot have children, and willl return an empty array accordingly
+		:param predicate: return p if predicate( p ) returns True
+		:param pattern: list only elements that match the given simple  pattern
 		i.e. *.*"""
 		try:
 			children = self.listdir( pattern )
@@ -229,12 +229,12 @@ class Path( _base, iDagItem ):
 		return self.expandvars().expanduser()
 
 	def containsvars( self ):
-		"""@return: True if this path contains environment variables"""
+		""":return: True if this path contains environment variables"""
 		return self.find( '$' ) != -1
 		
 	def expand_or_raise(self):
-		"""@return: Copy of self with all variables expanded ( using L{expand}
-		@raise ValueError: If we could not expand all environment variables as
+		""":return: Copy of self with all variables expanded ( using `expand`
+		:raise ValueError: If we could not expand all environment variables as
 		their values where missing in the environment"""
 		rval = self.expand()
 		if rval.containsvars():
@@ -377,7 +377,7 @@ class Path( _base, iDagItem ):
 	def tonative( self ):
 		"""Convert the path separator to the type required by the current operating
 		system - on windows / becomes \ and on linux \ becomes /
-		@return: native version of self"""
+		:return: native version of self"""
 		s = "\\"
 		d = "/"
 		if sys.platform.startswith( "win" ):
@@ -440,12 +440,12 @@ class Path( _base, iDagItem ):
 		It performs a depth-first traversal of the directory tree.
 		Each directory is returned just before all its children.
 
-		@param pattern: fnmatch compatible pattern or None
-		@param errors: controls behavior when an
+		:param pattern: fnmatch compatible pattern or None
+		:param errors: controls behavior when an
 		error occurs.  The default is 'strict', which causes an
 		exception.	The other allowed values are 'warn', which
 		reports the error via warnings.warn(), and 'ignore'.
-		@param predicate: returns True for each Path p to be yielded by iterator
+		:param predicate: returns True for each Path p to be yielded by iterator
 		"""
 		if errors not in ('strict', 'warn', 'ignore'):
 			raise ValueError("invalid errors parameter")
@@ -496,7 +496,7 @@ class Path( _base, iDagItem ):
 
 	def walkdirs(self, pattern=None, errors='strict', predicate=lambda p: True):
 		""" D.walkdirs() -> iterator over subdirs, recursively.
-		@param **kwargs: see L{walk}
+		:param **kwargs: see `walk`
 		"""
 		pred = lambda p: p.isdir() and predicate(p)
 		return self.walk(pattern, errors, pred)
@@ -504,7 +504,7 @@ class Path( _base, iDagItem ):
 	def walkfiles(self, pattern=None, errors='strict', predicate=lambda p: True):
 		""" D.walkfiles() -> iterator over files in D, recursively.
 
-		@param **kwargs: see L{walk}
+		:param **kwargs: see `walk`
 		"""
 		pred = lambda p: p.isfile() and predicate(p)
 		return self.walk(pattern, errors, pred)
@@ -552,7 +552,7 @@ class Path( _base, iDagItem ):
 
 		Default behavior is to overwrite any existing file.
 		Call p.write_bytes(bytes, append=True) to append instead.
-		@return: self
+		:return: self
 		"""
 		if append:
 			mode = 'ab'
@@ -659,7 +659,7 @@ class Path( _base, iDagItem ):
 		isn't specified).  The 'errors' argument applies only to this
 		conversion.
 		
-		@return: self
+		:return: self
 		"""
 		bytes = ""
 		if isinstance(text, unicode):
@@ -721,7 +721,7 @@ class Path( _base, iDagItem ):
 		mixed-encoding data, which can really confuse someone trying
 		to read the file later.
 		
-		@return: self
+		:return: self
 		"""
 		if append:
 			mode = 'ab'
@@ -786,7 +786,7 @@ class Path( _base, iDagItem ):
 		""" Calculate the  hash for this file using the given hashobject. It must 
 		support the 'update' and 'digest' methods.
 
-		@note: This reads through the entire file.
+		:note: This reads through the entire file.
 		"""
 
 		f = self.open('rb')
@@ -872,7 +872,7 @@ class Path( _base, iDagItem ):
 			return os.pathconf(self._expandvars(), name)
 
 	def isWritable( self ):
-		"""@return: true if the file can be written to"""
+		""":return: true if the file can be written to"""
 		if not self.exists():
 			return False		# assure we do not create anything not already there
 
@@ -892,32 +892,32 @@ class Path( _base, iDagItem ):
 
 	def setutime(self, times):
 		""" Set the access and modified times of this file.
-		@return: self"""
+		:return: self"""
 		os.utime(self._expandvars(), times)
 		return self
 
 	def chmod(self, mode):
 		"""Change file mode
-		@return: self"""
+		:return: self"""
 		os.chmod(self._expandvars(), mode)
 		return self
 
 	if hasattr(os, 'chown'):
 		def chown(self, uid, gid):
 			"""Change file ownership
-			@return: self"""
+			:return: self"""
 			os.chown(self._expandvars(), uid, gid)
 			return self
 
 	def rename(self, new):
 		"""os.rename
-		@return: Path to new file"""
+		:return: Path to new file"""
 		os.rename(self._expandvars(), new)
 		return type(self)(new)
 
 	def renames(self, new):
 		"""os.renames, super rename
-		@return: Path to new file"""
+		:return: Path to new file"""
 		os.renames(self._expandvars(), new)
 		return type(self)(new)
 
@@ -927,25 +927,25 @@ class Path( _base, iDagItem ):
 
 	def mkdir(self, mode=0777):
 		"""Make this directory, fail if it already exists
-		@return: self"""
+		:return: self"""
 		os.mkdir(self._expandvars(), mode)
 		return self
 
 	def makedirs(self, mode=0777):
 		"""Smarter makedir, see os.makedirs
-		@return: self"""
+		:return: self"""
 		os.makedirs(self._expandvars(), mode)
 		return self
 
 	def rmdir(self):
 		"""Remove this empty directory
-		@return: self"""
+		:return: self"""
 		os.rmdir(self._expandvars())
 		return self
 
 	def removedirs(self):
 		"""see os.removedirs
-		@return: self"""
+		:return: self"""
 		os.removedirs(self._expandvars())
 		return self
 
@@ -956,7 +956,7 @@ class Path( _base, iDagItem ):
 	def touch(self, flags = os.O_WRONLY | os.O_CREAT, mode = 0666):
 		""" Set the access/modified times of this file to the current time.
 		Create the file if it does not exist.
-		@return: self
+		:return: self
 		"""
 		fd = os.open(self._expandvars(), flags, mode)
 		os.close(fd)
@@ -965,13 +965,13 @@ class Path( _base, iDagItem ):
 
 	def remove(self):
 		"""Remove this file
-		@return: self"""
+		:return: self"""
 		os.remove(self._expandvars())
 		return self
 
 	def unlink(self):
 		"""unlink this file
-		@return: self"""
+		:return: self"""
 		os.unlink(self._expandvars())
 		return self
 
@@ -982,7 +982,7 @@ class Path( _base, iDagItem ):
 	if hasattr(os, 'link'):
 		def link(self, newpath):
 			""" Create a hard link at 'newpath', pointing to this file. 
-			@return: Path to newpath"""
+			:return: Path to newpath"""
 			os.link(self._expandvars(), newpath)
 			return type(self)(newpath)
 			
@@ -990,7 +990,7 @@ class Path( _base, iDagItem ):
 	if hasattr(os, 'symlink'):
 		def symlink(self, newlink):
 			""" Create a symbolic link at 'newlink', pointing here. 
-			@return: Path to newlink"""
+			:return: Path to newlink"""
 			os.symlink(self._expandvars(), newlink)
 			return type(self)(newlink)
 
@@ -1019,52 +1019,52 @@ class Path( _base, iDagItem ):
 
 	def copyfile(self, dest):
 		"""Copy self to dest
-		@return: Path to dest"""
+		:return: Path to dest"""
 		shutil.copyfile( self._expandvars(), dest )
 		return type(self)(dest)
 	
 	def copymode(self, dest):
 		"""Copy our mode to dest
-		@return: Path to dest"""
+		:return: Path to dest"""
 		shutil.copymode( self._expandvars(), dest )
 		return type(self)(dest)
 		
 	def copystat(self, dest):
 		"""Copy our stats to dest
-		@return: Path to dest"""
+		:return: Path to dest"""
 		shutil.copystat( self._expandvars(), dest )
 		return type(self)(dest)
 		
 	def copy(self, dest):
 		"""Copy data and source bits to dest
-		@return: Path to dest"""
+		:return: Path to dest"""
 		shutil.copy( self._expandvars(), dest )
 		return type(self)(dest)
 	
 	def copy2(self, dest):
 		"""Shutil.copy2 self to dest
-		@return: Path to dest"""
+		:return: Path to dest"""
 		shutil.copy2( self._expandvars(), dest )
 		return type(self)(dest)
 		
 	def copytree(self, dest, **kwargs):
 		"""Deep copy this file or directory to destination
-		@param **kwargs: passed to shutil.copytree
-		@return: Path to dest"""
+		:param **kwargs: passed to shutil.copytree
+		:return: Path to dest"""
 		shutil.copytree( self._expandvars(), dest, **kwargs )
 		return type(self)(dest)
 		
 	if hasattr(shutil, 'move'):
 		def move(self, dest):
 			"""Move self to dest
-			@return: Path to dest"""
+			:return: Path to dest"""
 			shutil.move( self._expandvars(), dest )
 			return type(self)(dest)
 			
 	def rmtree(self, **kwargs):
 		"""Remove self recursively
-		@param **kwargs: passed to shutil.rmtree
-		@return: self"""
+		:param **kwargs: passed to shutil.rmtree
+		:return: self"""
 		shutil.rmtree( self._expandvars(),  **kwargs )
 		return self
 			
@@ -1075,14 +1075,14 @@ class Path( _base, iDagItem ):
 	if hasattr(os, 'chroot'):
 		def chroot(self):
 			"""Change the root directory path
-			@return: self"""
+			:return: self"""
 			os.chroot(self._expandvars())
 			return self
 
 	if hasattr(os, 'startfile'):
 		def startfile(self):
 			"""see os.startfile
-			@return: self"""
+			:return: self"""
 			os.startfile(self._expandvars())
 			return self
 	#} END Special stuff from os

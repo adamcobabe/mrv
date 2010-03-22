@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 """
 Contains implementations of maya editors
-@todo: more documentation
+:todo: more documentation
 """
 import base as uibase
 import util as uiutil

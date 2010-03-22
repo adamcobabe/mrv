@@ -2,7 +2,7 @@
 """
 Utilities and classes useful for user interfaces
 
-@todo: more documentation
+:todo: more documentation
 """
 from mrv.util import EventSender, Event, Call, WeakInstFunction
 import maya.cmds as cmds
@@ -13,11 +13,11 @@ import weakref
 
 def makeEditOrQueryMethod( flag, isEdit=False, methodName=None ):
 	"""Create a function calling inFunc with an edit or query flag set.
-	@note: only works on mrv wrapped ui elements
-	@note: THIS IS MOSTLY A DUPLICATION OF PROVEN CODE FROM MAYA.UTIL !
-	@param flag: name of the query or edit flag
-	@param isEdit: If not False, the method returned will be an edit function
-	@param methoName: the name of the method returned, defaults to inCmd name  """
+	:note: only works on mrv wrapped ui elements
+	:note: THIS IS MOSTLY A DUPLICATION OF PROVEN CODE FROM MAYA.UTIL !
+	:param flag: name of the query or edit flag
+	:param isEdit: If not False, the method returned will be an edit function
+	:param methoName: the name of the method returned, defaults to inCmd name  """
 
 	func = None
 	if isEdit:
@@ -84,9 +84,9 @@ class EventSenderUI( EventSender ):
 	To make this work it is essential that you work with one and the same instance of your
 	class.
 
-	To use this class , see the documentation of L{EventSender}, but use the Event
+	To use this class , see the documentation of `EventSender`, but use the Event
 	instead.
-	If you want to add your own events, use your own events, use the L{Event} class instead
+	If you want to add your own events, use your own events, use the `Event` class instead
 
 	The class does NOT use weakreferences for the main callbacks to make it easier to use.
 	Use the WeakFunction to properly and weakly bind an instance function
@@ -94,7 +94,7 @@ class EventSenderUI( EventSender ):
 	When registered for an event, the sender will be provided to each callback as first
 	argument.
 
-	@note: your functions that are being registered for a certain event should
+	:note: your functions that are being registered for a certain event should
 	reside on a class that is being held alive by more than the callback
 	"""
 	#( Configuration
@@ -158,8 +158,8 @@ class UIContainerBase( object ):
 		super( UIContainerBase, self ).__init__( *args, **kwargs )
 
 	def __getitem__( self, key ):
-		"""@return: the child with the given name, see L{getChildByName}
-		@param key: if integer, will return the given list index, if string, the child
+		""":return: the child with the given name, see `getChildByName`
+		:param key: if integer, will return the given list index, if string, the child
 		matching the id"""
 		if isinstance( key, basestring ):
 			return self.childByName( key )
@@ -176,11 +176,11 @@ class UIContainerBase( object ):
 
 	def add( self, child, set_self_active = False, revert_to_previous_parent = True ):
 		"""Add the given child UI item to our list of children
-		@param set_self_active: if True, we explicitly make ourselves the current parent
+		:param set_self_active: if True, we explicitly make ourselves the current parent
 		for newly created UI elements
-		@param revert_to_previous_parent: if True, the previous parent will be restored
+		:param revert_to_previous_parent: if True, the previous parent will be restored
 		once we are done, if False we keep the parent - only effective if set_self_active is True
-		@return: the newly added child, allowing contructs like
+		:return: the newly added child, allowing contructs like
 		button = layout.addChild( Button( ) )"""
 		if child in self._children:
 			return child
@@ -200,7 +200,7 @@ class UIContainerBase( object ):
 
 	def removeChild( self, child ):
 		"""Remove the given child from our list
-		@return: True if the child was found and has been removed, False otherwise"""
+		:return: True if the child was found and has been removed, False otherwise"""
 		try:
 			self._children.remove( child )
 			return True
@@ -214,17 +214,17 @@ class UIContainerBase( object ):
 			child.delete()
 
 	def listChildren( self, predicate = lambda c: True ):
-		"""@return: list with our child instances
-		@param predicate: function returning True for each child to include in result,
+		""":return: list with our child instances
+		:param predicate: function returning True for each child to include in result,
 		allows to easily filter children
-		@note: it's a copy, so you can freely act on the list
-		@note: children will be returned in the order in which they have been added"""
+		:note: it's a copy, so you can freely act on the list
+		:note: children will be returned in the order in which they have been added"""
 		return [ c for c in self._children if predicate( c ) ]
 
 	def childByName( self, childname ):
-		"""@return: stored child instance, specified either as short name ( without pipes )
+		""":return: stored child instance, specified either as short name ( without pipes )
 		or fully qualified ( i.e. mychild or parent|subparent|mychild" )
-		@raise KeyError: if a child with that name does not exist"""
+		:raise KeyError: if a child with that name does not exist"""
 		if "|" in childname:
 			for child in self._children:
 				if child == childname:
@@ -243,7 +243,7 @@ class UIContainerBase( object ):
 	def setActive( self ):
 		"""Set this container active, such that newly created items will be children
 		of this layout
-		@note: always use the addChild function to add the children !"""
+		:note: always use the addChild function to add the children !"""
 		cmds.setParent( self )
 
 	def clearChildren( self ):
@@ -262,13 +262,13 @@ class iItemSet( object ):
 	#{ Interface
 	def setItems( self, item_ids, **kwargs ):
 		"""Set the UI to display items identified by the given item_ids
-		@param item_ids: ids behaving appropriately if put into a set
-		@param kwargs: passed on to the handler methods ( which are implemented by the subclass ).
+		:param item_ids: ids behaving appropriately if put into a set
+		:param kwargs: passed on to the handler methods ( which are implemented by the subclass ).
 		Use these to pass on additional data that you might want to use to keep additional information about
 		your item ids
-		@note: you are responsible for generating a list of item_ids and call this
+		:note: you are responsible for generating a list of item_ids and call this
 		method to trigger the update
-		@return: tuple( SetOfDeletedItemIds, SetOfCreatedItemIds ) """
+		:return: tuple( SetOfDeletedItemIds, SetOfCreatedItemIds ) """
 		existing_items = set( self.currentItemIds( **kwargs ) )
 		todo_items = set( item_ids )
 
@@ -313,21 +313,21 @@ class iItemSet( object ):
 	#{ SubClass Implementation
 
 	def currentItemIds( self, **kwargs ):
-		"""@return: list of item ids that are currently available in your layout.
-		They will be passed around to the L{createItem}, L{updateItem} andL{removeItem}
-		methods and is the foundation of the L{setItems} method. Ids returned here
-		must be compatible to the ids passed in to L{setItems}"""
+		""":return: list of item ids that are currently available in your layout.
+		They will be passed around to the `createItem`, `updateItem` and`removeItem`
+		methods and is the foundation of the `setItems` method. Ids returned here
+		must be compatible to the ids passed in to `setItems`"""
 		raise NotImplementedError( "To be implemented by subClass" )
 
 	def handleEvent( self, eventid, **kwargs ):
 		"""Called whenever a block of items is being handled for an operation identified
 		by eventid, allowing you to prepare for such a block or finish it
-		@param eventid: eSetItemCBID identifying the event to handle"""
+		:param eventid: eSetItemCBID identifying the event to handle"""
 		pass
 
 	def createItem( self, itemid, **kwargs ):
 		"""Create an item identified by the given itemid and add it to your layout
-		@return: created item or None to indicate error. On error, the item will not
+		:return: created item or None to indicate error. On error, the item will not
 		be updated anymore"""
 		raise NotImplementedError( "To be implemented by subClass" )
 
@@ -339,7 +339,7 @@ class iItemSet( object ):
 	def removeItem( self, itemid, **kwargs ):
 		"""Remove the given item identified by itemid so it does not show up in this
 		layout anymore
-		@note: its up to you how you remove the item, as long as it is not visible anymore"""
+		:note: its up to you how you remove the item, as long as it is not visible anymore"""
 		raise NotImplementedError( "To be implemented by subClass" )
 
 	#} END subclass implementation

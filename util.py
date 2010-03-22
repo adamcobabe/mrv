@@ -18,9 +18,9 @@ __all__ = ("decodeString", "decodeStringOrList", "capitalize", "uncapitalize",
            
 
 def decodeString( valuestr ):
-	""" @return: int,float or str from string valuestr - a string that encodes a
+	""" :return: int,float or str from string valuestr - a string that encodes a
 	numeric value or a string
-	@raise TypeError: if the type could not be determined"""
+	:raise TypeError: if the type could not be determined"""
 	# put this check here intentionally - want to allow
 	if not isinstance( valuestr, basestring ):
 		raise TypeError( "Invalid value type: only int, long, float and str are allowed", valuestr )
@@ -43,7 +43,7 @@ def decodeString( valuestr ):
 	return valuestr
 
 def decodeStringOrList( valuestrOrList ):
-	"""@return: as L{decodeString}, but returns a list of appropriate values if
+	""":return: as `decodeString`, but returns a list of appropriate values if
 	the input argument is a list or tuple type"""
 	if isinstance( valuestrOrList , ( list, tuple ) ):
 		return [ decodeString( valuestr ) for valuestr in valuestrOrList ]
@@ -51,13 +51,13 @@ def decodeStringOrList( valuestrOrList ):
 	return decodeString( valuestrOrList )
 
 def capitalize(s):
-	"""@return: s with first letter capitalized"""
+	""":return: s with first letter capitalized"""
 	return s[0].upper() + s[1:]
 
 def uncapitalize(s, preserveAcronymns=False):
-	"""@return: s with first letter lower case
-	@param preserveAcronymns: enabled ensures that 'NTSC' does not become 'nTSC'
-	@note: from pymel
+	""":return: s with first letter lower case
+	:param preserveAcronymns: enabled ensures that 'NTSC' does not become 'nTSC'
+	:note: from pymel
 	"""
 	try:
 		if preserveAcronymns and s[0:2].isupper():
@@ -75,18 +75,18 @@ def pythonIndex( index, length ):
 def copyClsMembers( sourcecls, destcls, overwritePrefix = None, forbiddenMembers = list(), copyNamespaceGlobally=None):
 	"""Copy the members or sourcecls to destcls while ignoring member names in forbiddenMembers
 	It will only copy mebers of this class, not its base classes
-	@param sourcecls: class whose members should be copied
-	@param destcls: class to receive members from sourcecls
-	@param overwritePrefix: if None, existing members on destcls will not be overwritten, if string,
+	:param sourcecls: class whose members should be copied
+	:param destcls: class to receive members from sourcecls
+	:param overwritePrefix: if None, existing members on destcls will not be overwritten, if string,
 	the original method will be stored in a name like prefix+originalname ( allowing you to access the
 	original method lateron )
-	@param copyNamespaceGlobally: if not None, the variable contains the name of the namespace as string 
+	:param copyNamespaceGlobally: if not None, the variable contains the name of the namespace as string 
 	whose methods should also be copied into the global namespace, possibly overwriting existing ones.
 	For instance, 'nsmethod' will be available as obj.nsmethod and as obj.method if the namespace value was 'ns.
 	The forbiddenMembers list is applied to the original as well as the global name
-	@note: this can be useful if you cannot inherit from a class directly because you would get
+	:note: this can be useful if you cannot inherit from a class directly because you would get
 	method resolution order problems
-	@note: see also the L{MetaCopyClsMembers} meta class"""
+	:note: see also the `MetaCopyClsMembers` meta class"""
 	for orig_name,member in sourcecls.__dict__.iteritems():
 		names = [orig_name]
 		if copyNamespaceGlobally is not None and orig_name.startswith(copyNamespaceGlobally):
@@ -110,11 +110,11 @@ def copyClsMembers( sourcecls, destcls, overwritePrefix = None, forbiddenMembers
 	# END for each memebr in sourcecls
 
 def packageClasses( importBase, packageFile, predicate = lambda x: True ):
-	"""@return: all classes of modules of the given package file that additionally
+	""":return: all classes of modules of the given package file that additionally
 	match given predicate
-	@param importBase: longest import base path whose submodules contain the classes to import
-	@param packageFile: the filepath to the package, as given in your __file__ variables
-	@param predicate: receives the class and returns True if it is a class you are looking for"""
+	:param importBase: longest import base path whose submodules contain the classes to import
+	:param packageFile: the filepath to the package, as given in your __file__ variables
+	:param predicate: receives the class and returns True if it is a class you are looking for"""
 	from glob import glob
 	import os
 
@@ -138,23 +138,23 @@ def packageClasses( importBase, packageFile, predicate = lambda x: True ):
 def iterNetworkxGraph( graph, startItem, direction = 0, prune = lambda i,g: False,
 					   stop = lambda i,g: False, depth = -1, branch_first=True,
 					   visit_once = True, ignore_startitem=1 ):
-	"""@return: list of items that are related to the given startItem
-	@param direction: specifies search direction, either :
+	""":return: list of items that are related to the given startItem
+	:param direction: specifies search direction, either :
 	0 = items being successors of startItem
 	1 = items being predecessors of startItem
-	@param prune: return True if item i in graph g should be pruned from result
-	@param stop: return True if item i in graph g
+	:param prune: return True if item i in graph g should be pruned from result
+	:param stop: return True if item i in graph g
 	stop the search in that direction. It will not be returned.
-	@param depth: define at which level the iteration should not go deeper
+	:param depth: define at which level the iteration should not go deeper
 	if -1, there is no limit
 	if 0, you would only get startitem.
 	i.e. if 1, you would only get the startitem and the first level of predessessors/successors
-	@param branch_first: if True, items will be returned branch first, otherwise depth first
-	@param visit_once: if True, items will only be returned once, although they might be encountered
+	:param branch_first: if True, items will be returned branch first, otherwise depth first
+	:param visit_once: if True, items will only be returned once, although they might be encountered
 	several times
-	@param ignore_startitem: if True, the startItem will be ignored and automatically pruned from
+	:param ignore_startitem: if True, the startItem will be ignored and automatically pruned from
 	the result
-	@note: this is an adjusted version of L{dgengine.iterShells}"""
+	:note: this is an adjusted version of `dgengine.iterShells`"""
 	visited = set()
 	stack = Deque()
 	stack.append( ( 0 , startItem ) )		# startitem is always depth level 0
@@ -200,7 +200,7 @@ def iterNetworkxGraph( graph, startItem, direction = 0, prune = lambda i,g: Fals
 
 class Call( object ):
 	"""Call object encapsulating any code, thus providing a simple facade for it
-	@note: derive from it if a more complex call is required"""
+	:note: derive from it if a more complex call is required"""
 	__slots__ = ( "func", "args", "kwargs" )
 	
 	def __init__( self, func, *args,**kwargs ):
@@ -211,7 +211,7 @@ class Call( object ):
 
 	def __call__( self, *args, **kwargs ):
 		"""Execute the stored function on call
-		@note: having *args and **kwargs set makes it more versatile"""
+		:note: having *args and **kwargs set makes it more versatile"""
 		return self.func( *self.args, **self.kwargs )
 
 
@@ -259,7 +259,7 @@ class WeakInstFunction( object ):
 		return hash((self._clsfunc,  self._weakinst()))
 
 	def __call__( self, *args, **kwargs ):
-		"""@raise LookupError: if the instance referred to by the instance method
+		""":raise LookupError: if the instance referred to by the instance method
 		does not exist anymore"""
 		inst = self._weakinst()
 		if inst is None:	# went out of scope
@@ -289,10 +289,10 @@ class Event( object ):
 
 
 	def __init__( self, **kwargs ):
-		"""@param weak: if True, default class configuration use_weakref, weak
+		""":param weak: if True, default class configuration use_weakref, weak
 		references will be created for event handlers, if False it will be strong
 		references
-		@param remove_failed: if True, defailt False, failed callback handlers
+		:param remove_failed: if True, defailt False, failed callback handlers
 		will be removed silently"""
 		self.use_weakref = kwargs.get( "weak", self.__class__.use_weakref )
 		self.remove_on_error = kwargs.get( "remove_failed", self.__class__.remove_on_error )
@@ -300,7 +300,7 @@ class Event( object ):
 		self._last_inst_ref = None
 
 	def _func_to_key( self, eventfunc ):
-		"""@return: an eventfunction suitable to be used as key in our instance
+		""":return: an eventfunction suitable to be used as key in our instance
 		event set"""
 		if self.use_weakref:
 			if inspect.ismethod( eventfunc ):
@@ -312,9 +312,9 @@ class Event( object ):
 		return eventfunc
 
 	def _key_to_func( self, eventkey ):
-		"""@return: event function from the given eventkey as stored in
+		""":return: event function from the given eventkey as stored in
 		our events set.
-		@note: this is required as the event might be weakreffed or not"""
+		:note: this is required as the event might be weakreffed or not"""
 		if self.use_weakref:
 			if isinstance( eventkey, WeakInstFunction ):
 				return eventkey
@@ -325,7 +325,7 @@ class Event( object ):
 		return eventkey
 
 	def _get_last_instance(self):
-		"""@return: The last instance that retrieved us"""
+		""":return: The last instance that retrieved us"""
 		if self._last_inst_ref is None or self._last_inst_ref() is None:
 			raise TypeError("Cannot send events through class descriptor")
 		return self._last_inst_ref()
@@ -344,7 +344,7 @@ class Event( object ):
 		return self
 		
 	def _getFunctionSet(self, inst):
-		"""@return: function set of the given instance containing functions of our 
+		""":return: function set of the given instance containing functions of our 
 		event"""
 		if not hasattr( inst, self._inst_event_attr ):
 			setattr( inst, self._inst_event_attr, dict() )
@@ -360,9 +360,9 @@ class Event( object ):
 		
 	def send( self, *args, **kwargs ):
 		"""Send our event using the given args
-		@note: if an event listener is weak referenced and goes out of scope
-		@note: will catch all event exceptions trown by the methods called
-		@return: False if at least one event call threw an exception, true otherwise"""
+		:note: if an event listener is weak referenced and goes out of scope
+		:note: will catch all event exceptions trown by the methods called
+		:return: False if at least one event call threw an exception, true otherwise"""
 		global log
 		inst = self._get_last_instance()
 		callbackset = self._getFunctionSet( inst )
@@ -415,7 +415,7 @@ class Event( object ):
 
 	def remove( self, eventfunc ):
 		"""remove the given function from this event
-		@note: will not raise if eventfunc does not exist"""
+		:note: will not raise if eventfunc does not exist"""
 		inst = self._get_last_instance()
 		eventfunc = self._func_to_key( eventfunc )
 		try:
@@ -451,11 +451,11 @@ class EventSender( object ):
 	and deregister using
 	yourinstance.event.remove( callable )
 
-	@note: if use_weakref is True, we will weakref the eventfunction, and deal
+	:note: if use_weakref is True, we will weakref the eventfunction, and deal
 	properly with instance methods which would go out of scope immediatly otherwise
 
-	@note: using weak-references to ensure one does not keep objects alive,
-	see L{use_weakref}"""
+	:note: using weak-references to ensure one does not keep objects alive,
+	see `use_weakref`"""
 	__slots__ = tuple()
 	
 	#{ Configuration
@@ -470,12 +470,12 @@ class EventSender( object ):
 
 	@classmethod
 	def listEventNames( cls ):
-		"""@return: list of event ids that exist on our class"""
+		""":return: list of event ids that exist on our class"""
 		return [ name for name,member in inspect.getmembers( cls, lambda m: isinstance( m, Event ) ) ]
 
 	def clearAllEvents(self):
 		"""Remove all event receivers for all events registered in this instance.
-		@note: This usually doesn't need to be called directly, but might be useful 
+		:note: This usually doesn't need to be called directly, but might be useful 
 		in conjunction with other system that do not release your strongly bound 
 		instance"""
 		try:
@@ -540,7 +540,7 @@ class InterfaceMaster( iDuplicatable ):
 	class InterfaceBase( object ):
 		"""If your interface class is derived from this base, you get access to
 		access to call to the number of your current caller.
-		@note: You can register an InterfaceBase with several InterfaceMasters and
+		:note: You can register an InterfaceBase with several InterfaceMasters and
 		share the caller count respectively"""
 		__slots__ = ( "_current_caller_id", "_num_callers" )
 		def __init__( self ):
@@ -548,12 +548,12 @@ class InterfaceMaster( iDuplicatable ):
 			self._num_callers = 0		# the amount of possible callers, ids range from 0 to (num_callers-1)
 
 		def numCallers( self ):
-			"""@return: number possible callers"""
+			""":return: number possible callers"""
 			return self._num_callers
 
 		def callerId( self ):
 			"""Return the number of the caller that called your interface method
-			@note: the return value of this method is undefined if called if the
+			:note: the return value of this method is undefined if called if the
 			method has been called by someone not being an official caller ( like yourself )"""
 			return self._current_caller_id
 
@@ -592,12 +592,12 @@ class InterfaceMaster( iDuplicatable ):
 	def setInterface( self, interfaceName, interfaceInstance ):
 		"""Set the given interfaceInstance to be handed out once an interface
 		with interfaceName is requested from the provider base
-		@param interfaceName: should start with i..., i.e. names would be iInterface
+		:param interfaceName: should start with i..., i.e. names would be iInterface
 		The name can be used to refer to the interface later on
-		@param interfaceInstance: instance to be handed out once an interface with the
+		:param interfaceInstance: instance to be handed out once an interface with the
 		given name is requested by the InterfaceMaster or None
 		if None, the interface will effectively be deleted
-		@raise ValueError: if given InterfaceBase has a master already """
+		:raise ValueError: if given InterfaceBase has a master already """
 		if interfaceInstance is None:			# delete interface ?
 			# delete from dict
 			try:
@@ -624,8 +624,8 @@ class InterfaceMaster( iDuplicatable ):
 		# provide class variables ?
 
 	def interface( self, interfaceName ):
-		"""@return: an interface registered with interfaceName
-		@raise ValueError: if no such interface exists"""
+		""":return: an interface registered with interfaceName
+		:raise ValueError: if no such interface exists"""
 		try:
 			iinst = self._idict[ interfaceName ]
 
@@ -638,7 +638,7 @@ class InterfaceMaster( iDuplicatable ):
 			raise ValueError( "Interface %s does not exist" % interfaceName )
 
 	def listInterfaces( self ):
-		"""@return: list of names indicating interfaces available at our InterfaceMaster"""
+		""":return: list of names indicating interfaces available at our InterfaceMaster"""
 		return self._idict.keys()
 
 	#} END interface
@@ -656,7 +656,7 @@ class Singleton(object) :
 class IntKeyGenerator( object ):
 	"""Provides iterators for directly access list like objects supporting
 	__getitem__ method
-	@note: the list must not change size during iteration !"""
+	:note: the list must not change size during iteration !"""
 	def __init__( self, listobj ):
 		"""Initialize the generator with the list to iterate"""
 		self.listobj = listobj
@@ -690,26 +690,26 @@ class CallOnDeletion( object ):
 
 class DAGTree( nx.DiGraph ):
 	"""Adds utility functions to DirectedTree allowing to handle a directed tree like a dag
-	@note: currently this tree does not support instancing
-	@todo: add instancing support"""
+	:note: currently this tree does not support instancing
+	:todo: add instancing support"""
 
 	def children( self, n ):
-		""" @return: list of children of given node n """
+		""" :return: list of children of given node n """
 		return list( self.children_iter( n ) )
 
 	def children_iter( self, n ):
-		""" @return: iterator with children of given node n"""
+		""" :return: iterator with children of given node n"""
 		return ( e[1] for e in self.out_edges_iter( n ) )
 
 	def parent( self, n ):
-		"""@return: parent of node n
-		@note: currently there is only one parent, as instancing is not supported yet"""
+		""":return: parent of node n
+		:note: currently there is only one parent, as instancing is not supported yet"""
 		for parent in  self.predecessors_iter( n ):
 			return parent
 		return None
 
 	def parent_iter( self, n ):
-		"""@return: iterator returning all parents of node n"""
+		""":return: iterator returning all parents of node n"""
 		while True:
 			p = self.parent( n )
 			if p is None:
@@ -718,8 +718,8 @@ class DAGTree( nx.DiGraph ):
 			n = p
 
 	def get_root( self, startnode = None ):
-		"""@return: the root node of this dag tree
-		@param startnode: if None, the first node will be used to get the root from
+		""":return: the root node of this dag tree
+		:param startnode: if None, the first node will be used to get the root from
 		( good for single rooted dags ), otherwise this node will be used to get the root from
 		- thus it must exist in the dag tree"""
 		if startnode is None:
@@ -745,7 +745,7 @@ class PipeSeparatedFile( object ):
 
 	def __init__( self, fileobj ):
 		"""Initialize the instance
-		@param fileobj: fileobject where new lines will be written to or read from
+		:param fileobj: fileobject where new lines will be written to or read from
 		It must already be opened for reading and/or writing respectively"""
 		self._fileobj = fileobj
 		self._columncount = None
@@ -755,8 +755,8 @@ class PipeSeparatedFile( object ):
 
 	def readColumnLine( self ):
 		"""Generator reading one line after another, returning the stripped columns
-		@return: tuple of stripped column strings
-		@raise ValueError: if the column count changes between the lines"""
+		:return: tuple of stripped column strings
+		:raise ValueError: if the column count changes between the lines"""
 		for line in self._fileobj:
 			if not len( line.strip() ):
 				continue
@@ -773,15 +773,15 @@ class PipeSeparatedFile( object ):
 
 	def beginWriting( self, columnSizes ):
 		"""intiialize the writing process
-		@param columnSizes: list of ints defining the size in characters for each column you plan to feed
-		@note: When done writing, you have to close the file object yourself ( there is no endWriting method here )"""
+		:param columnSizes: list of ints defining the size in characters for each column you plan to feed
+		:note: When done writing, you have to close the file object yourself ( there is no endWriting method here )"""
 		columnTokens = [ "%%-%is" % csize for csize in columnSizes ]
 		self._formatstr = ( ( self.kSeparator + " " ).join( columnTokens ) ) + "\n"
 
 	def writeTokens( self, tokens ):
 		"""Write the list of tokens to the file accordingly
-		@param tokens: one token per column that you want to write
-		@raise TypeError: If column count changed between successive calls"""
+		:param tokens: one token per column that you want to write
+		:raise TypeError: If column count changed between successive calls"""
 		self._fileobj.write( self._formatstr % tokens )
 
 
@@ -791,7 +791,7 @@ class MetaCopyClsMembers( type ):
 	forbiddenMembers, overwritePrefix, __virtual_bases__
 
 	The virtual bases are a tuple of base classes whose members you whish to receive
-	For information on these members, check the docs of L{copyClsMembers}"""
+	For information on these members, check the docs of `copyClsMembers`"""
 	def __new__( metacls, name, bases, clsdict ):
 		forbiddenMembers = clsdict.get( 'forbiddenMembers', [] )
 		overwritePrefix = clsdict.get( 'overwritePrefix', None )

@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 """
 Module containing helpers to create the UI types at runtime.
-@todo: more documentation
+:todo: more documentation
 """
 
 
@@ -29,7 +29,7 @@ _typemap = { "floatingWindow" : "window" }
 
 def init_classhierarchy( ):
 	""" Read a simple hiearchy file and create an Indexed tree from it
-	@todo: cache the pickled tree and try to load it instead  """
+	:todo: cache the pickled tree and try to load it instead  """
 	mfile = Path( __file__ ).parent().parent() / "cache/UICommandsHierachy"
 
 	# STORE THE TYPE TREE

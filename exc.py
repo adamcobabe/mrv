@@ -31,13 +31,13 @@ class InterfaceError( TypeError, MRVError ):
 #{ Decorator Internal Exceptions
 class DecoratorError( MRVError ):
 	""" Thrown if decorators are used in an incorrect way
-	@note: this can only happen if decorators take arguments that do not resolve as
+	:note: this can only happen if decorators take arguments that do not resolve as
 	requested
-	@todo: store actual function that caused the error """
+	:todo: store actual function that caused the error """
 	pass
 
 class InterfaceSetupError( MRVError ):
-	""" Thrown if L{interface} attributes are used incorrectly
+	""" Thrown if `interface` attributes are used incorrectly
 		- only and ignore are both given, although they are mutually exclusive """
 	pass
 

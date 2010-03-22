@@ -11,12 +11,12 @@ These classes follow the node hierarchy as supplied by the maya api.
 Optionally: Attribute access is as easy as using properties like
   node.translateX
 
-@note: it is important not to cache these as the underlying obejcts my change over time.
+:note: it is important not to cache these as the underlying obejcts my change over time.
 For long-term storage, use handles instead.
 
 Default maya commands will require them to be used as string variables instead.
 
-@todo: more documentation
+:todo: more documentation
 """
 import mrv.maya as bmaya
 import typ
@@ -36,15 +36,15 @@ import os
 
 def addCustomType( newcls, parentClsName=None, **kwargs ):
 	""" Add a custom class to this module - it will be handled like a native type
-	@param newcls: new class object if metaclass is None, otherwise string name of the
+	:param newcls: new class object if metaclass is None, otherwise string name of the
 	type name to be created by your metaclass
-	@param parentClsName: if metaclass is set, the parentclass name ( of a class existing
+	:param parentClsName: if metaclass is set, the parentclass name ( of a class existing
 	in the nodeTypeTree ( see /maya/cache/nodeHierarchy.html )
 	Otherwise, if unset, the parentclassname will be extracted from the newcls object
-	@param force_creation: if True, default False, the class type will be created immediately. This
+	:param force_creation: if True, default False, the class type will be created immediately. This
 	can be useful if you wish to use the type for comparison, possibly before it is first being
 	queried by the system. The latter case would bind the StandinClass instead of the actual type.
-	@raise KeyError: if the parentClsName does not exist"""
+	:raise KeyError: if the parentClsName does not exist"""
 	newclsname = newcls
 	newclsobj = None
 	parentname = parentClsName
@@ -67,15 +67,15 @@ def addCustomTypeFromFile( hierarchyfile, **kwargs ):
 	Call addCustomClasses afterwards to register your own base classes to the system
 	This will be required to assure your own base classes will be used instead of auto-generated
 	stand-in classes
-	@param hierarchyfile: Filepath to file modeling the class hierarchy:
+	:param hierarchyfile: Filepath to file modeling the class hierarchy:
 	basenode
 		derivednode
 			subnode
 		otherderivednode
-	@param force_creation: see L{addCustomType}
-	@note: all attributes of L{addCustomType} are supported
-	@note: there must be exactly one root type
-	@return: iterator providing all class names that have been added"""
+	:param force_creation: see `addCustomType`
+	:note: all attributes of `addCustomType` are supported
+	:note: there must be exactly one root type
+	:return: iterator providing all class names that have been added"""
 	dagtree = bmaya._dagTreeFromTupleList( bmaya._tupleListFromFile( hierarchyfile ) )
 	typ._addCustomTypeFromDagtree( _thismodule, dagtree, **kwargs )
 	return ( capitalize( nodetype ) for nodetype in dagtree.nodes_iter() )
@@ -83,10 +83,10 @@ def addCustomTypeFromFile( hierarchyfile, **kwargs ):
 
 def addCustomClasses( clsobjlist ):
 	"""Add the given classes to the nodes module, making them available to the sytem
-	@note: first the class hierarchy need to be updated using addCustomTypeFromFile. This
+	:note: first the class hierarchy need to be updated using addCustomTypeFromFile. This
 	must appen before your additional classes are parsed to assure our metaclass creator will not
 	be called before it knows the class hierarchy ( and where to actually put your type
-	@param clslist: list of class objects whose names are mentioned in the dagtree"""
+	:param clslist: list of class objects whose names are mentioned in the dagtree"""
 	# add the classes
 	for cls in clsobjlist:
 		setattr( _thismodule, cls.__name__, cls )
@@ -95,7 +95,7 @@ def addCustomClasses( clsobjlist ):
 def forceClassCreation( typeNameList ):
 	"""Create the types from standin classes from the given typeName iterable.
 	The typenames must be upper case
-	@return: List of type instances ( the classes ) that have been created"""
+	:return: List of type instances ( the classes ) that have been created"""
 	outclslist = []
 	standincls = bmayautil.StandinClass
 	for typename in typeNameList:

@@ -45,7 +45,7 @@ _should_initialize_plugin = int(os.environ.get(_undo_enabled_envvar, True))
 
 def __initialize():
 	""" Assure our plugin is loaded - called during module intialization
-	@note: will only load the plugin if the undo system is not disabled"""
+	:note: will only load the plugin if the undo system is not disabled"""
 	global _should_initialize_plugin
 	
 	pluginpath = os.path.splitext( __file__ )[0] + ".py"
@@ -135,9 +135,9 @@ if _should_initialize_plugin:
 				op.undoIt()
 	
 		def isUndoable( self ):
-			"""@return: True if we are undoable - it depends on the state of our
+			""":return: True if we are undoable - it depends on the state of our
 			undo stack
-			@note: we are always undoable as doIt is called first and stores operations"""
+			:note: we are always undoable as doIt is called first and stores operations"""
 			return self._operations is not None
 	
 		# END command methods
@@ -198,11 +198,11 @@ def undoable( func ):
 	@@undoable
 	def func( ):
 		pass
-	@note: Using decorated functions appears to be only FASTER  than implementing it
+	:note: Using decorated functions appears to be only FASTER  than implementing it
 	manually, thus using these is will greatly improve code readability
-	@note: if you use undoable functions, you should mark yourself undoable too - otherwise the
+	:note: if you use undoable functions, you should mark yourself undoable too - otherwise the
 	functions you call will create individual undo steps
-	@note: if the undo queue is disabled, the decorator does nothing"""
+	:note: if the undo queue is disabled, the decorator does nothing"""
 	global _maya_undo_enabled
 	if not _maya_undo_enabled:
 		return func
@@ -228,7 +228,7 @@ def undoable( func ):
 def forceundoable( func ):
 	"""As undoable, but will enable the undo queue if it is currently disabled. It will 
 	forcibly enable maya's undo queue. 
-	@note: can only be employed reasonably if used in conjunction with L{undoAndClear}
+	:note: can only be employed reasonably if used in conjunction with `undoAndClear`
 	as it will restore the old state of the undoqueue afterwards, which might be off, thus
 	rendering attempts to undo impossible"""
 	undoable_func = undoable( func )
@@ -251,9 +251,9 @@ def forceundoable( func ):
 def notundoable( func ):
 	"""Decorator wrapping a function into a muteUndo call, thus all undoable operations
 	called from this method will not enter the UndoRecorder and thus pollute it.
-	@note: use it if your method cannot support undo, butcalls undoable operations itself
-	@note: all functions using a notundoable should be notundoable themselves
-	@note: does nothing if the undo queue is globally disabled"""
+	:note: use it if your method cannot support undo, butcalls undoable operations itself
+	:note: all functions using a notundoable should be notundoable themselves
+	:note: does nothing if the undo queue is globally disabled"""
 	global _maya_undo_enabled
 	if not _maya_undo_enabled:
 		return func
@@ -280,7 +280,7 @@ def notundoable( func ):
 class MuteUndo( object ):
 	"""Instantiate this class to disable the maya undo queue - on deletion, the
 	previous state will be restored
-	@note: useful if you want to save the undo overhead involved in an operation,
+	:note: useful if you want to save the undo overhead involved in an operation,
 	but assure that the previous state is always being reset"""
 	__slots__ = ( "prevstate", )
 	def __init__( self ):
@@ -293,8 +293,8 @@ class MuteUndo( object ):
 
 class StartUndo( object ):
 	"""Utility class that will push the undo stack on __init__ and pop it on __del__
-	@note: Prefer the undoable decorator over this one as they are easier to use and FASTER !
-	@note: use this class to assure that you pop undo when your method exists"""
+	:note: Prefer the undoable decorator over this one as they are easier to use and FASTER !
+	:note: use this class to assure that you pop undo when your method exists"""
 	__slots__ = ( "id", )
 	def __init__( self, id = None ):
 		self.id = id
@@ -309,12 +309,12 @@ class StartUndo( object ):
 
 def startUndo( ):
 	"""Call before you start undoable operations
-	@note: prefer the @undoable decorator"""
+	:note: prefer the @undoable decorator"""
 	_incrStack()
 
 def endUndo( ):
 	"""Call before your function with undoable operations ends
-	@note: prefer the @undoable decorator"""
+	:note: prefer the @undoable decorator"""
 	_decrStack()
 
 def undoAndClear( ):
@@ -322,7 +322,7 @@ def undoAndClear( ):
 	undo command will do nothing once undo, but would undo all future operations.
 	The state of the undoqueue is well defined afterwards, but callers may stop functioning
 	if their changes have been undone.
-	@note: can be used if you need control over undo in very specific operations and in
+	:note: can be used if you need control over undo in very specific operations and in
 	a well defined context"""
 	operations = sys._maya_stack
 	sys._maya_stack = list()
@@ -340,19 +340,19 @@ class UndoRecorder( object ):
 	It can be used to define sections that need to be undone afterwards, for example
 	to reset a scene to its original state after it was prepared for export.
 	
-	Use the L{startRecording} method to record all future undoable operations 
-	onto the stack. L{endRecording} will finalize the operation, allowing 
-	the L{undo} and L{redo} methods to be used.
+	Use the `startRecording` method to record all future undoable operations 
+	onto the stack. `endRecording` will finalize the operation, allowing 
+	the `undo` and `redo` methods to be used.
 	
 	If you never call startRecording, the instance does not do anything.
-	If you call startRecording and stopRecording but do not call L{undo}, it 
+	If you call startRecording and stopRecording but do not call `undo`, it 
 	will integrate itself transparently with the default undo queue.
 	
-	@note: as opposed to L{undoAndClear}, this utility may be used even if the 
+	:note: as opposed to `undoAndClear`, this utility may be used even if the 
 	user is not at the very beginning of an undoable operation.
-	@note: If this utility is used incorrectly, the undo queue will be in an 
+	:note: If this utility is used incorrectly, the undo queue will be in an 
 	inconsistent state which may crash maya or cause unexpected behaviour
-	@note: You may not interleave the start/stop recording areas of different 
+	:note: You may not interleave the start/stop recording areas of different 
 	instances which could happen easily in recursive calls."""
 	__slots__ = ("_orig_stack", "_recorded_commands", "_undoable_helper", "_undo_called")
 	
@@ -379,9 +379,9 @@ class UndoRecorder( object ):
 	def startRecording(self):
 		"""Start recording all future undoable commands onto this stack.
 		The previous stack will be safed and restored once this class gets destroyed
-		or once L{stopRecording} gets called.
-		@note: this method may only be called once, subsequent calls have no effect
-		@note: This will forcibly enable the undo queue if required until 
+		or once `stopRecording` gets called.
+		:note: this method may only be called once, subsequent calls have no effect
+		:note: This will forcibly enable the undo queue if required until 
 		stopRecording is called."""
 		if self._orig_stack is not None:
 			return
@@ -408,7 +408,7 @@ class UndoRecorder( object ):
 	def stopRecording(self):
 		"""Stop recording of undoable comamnds and restore the previous command stack.
 		The instance is now ready to undo and redo the recorded commands
-		@note: this method may only be called once, subsequent calls have no effect"""
+		:note: this method may only be called once, subsequent calls have no effect"""
 		if self._recorded_commands is not None:
 			return
 		
@@ -436,11 +436,11 @@ class UndoRecorder( object ):
 		
 	def undo(self):
 		"""Undo all stored operations
-		@note: Must be called at the right time, otherwise the undo queue is in an 
+		:note: Must be called at the right time, otherwise the undo queue is in an 
 		inconsistent state.
-		@note: If this method is never being called, the undo-stack will undo itself
+		:note: If this method is never being called, the undo-stack will undo itself
 		as part of mayas undo queue, and thus behaves transparently
-		@raise AssertionError: if called before L{stopRecording} as called"""
+		:raise AssertionError: if called before `stopRecording` as called"""
 		if self._recorded_commands is None:
 			raise AssertionError("Undo called before stopRecording")
 			
@@ -451,7 +451,7 @@ class UndoRecorder( object ):
 		
 	def redo(self):
 		"""Redo all stored operations after they have been undone
-		@raise AssertionError: if called before L{stopRecording}"""
+		:raise AssertionError: if called before `stopRecording`"""
 		if self._recorded_commands is None:
 			raise AssertionError("Redo called before stopRecording")
 			
@@ -502,7 +502,7 @@ class Operation( object ):
 	def __init__( self ):
 		"""Operations will always be placed on the undo queue if undo is available
 		This happens automatically upon creation
-		@note: assure subclasses call the superclass init !"""
+		:note: assure subclasses call the superclass init !"""
 		global _maya_undo_enabled
 		global isUndoing
 		global undoInfo
@@ -558,7 +558,7 @@ class GenericOperation( Operation ):
 
 	def doIt( self ):
 		"""Execute the doit command
-		@return: result of the doit command"""
+		:return: result of the doit command"""
 		try:
 			return self._dofunc( *self._doargs, **self._dokwargs )
 		except:
@@ -576,16 +576,16 @@ class GenericOperation( Operation ):
 class GenericOperationStack( Operation ):
 	"""Operation able to undo generic callable commands ( one or multiple ). It would be used
 	whenever a simple generic operatino is not sufficient
-	@usage: in your api command, create a GenericOperationStack operation instance, add your (mel) commands
+	:usage: in your api command, create a GenericOperationStack operation instance, add your (mel) commands
 	that should be executed in a row as Call. To apply them, call doIt once ( and only once ! ).
 	You can have only one command stored, or many if they should be executed in a row.
 	The vital part is that with each do command, you supply an undo command.
 	This way your operations can be undone and redone once undo / redo is requested
-	@note: this class works well with L{mrv.util.Call}
-	@note: to execute the calls added, you must call L{doIt} or L{addCmdAndCall} - otherwise
+	:note: this class works well with `mrv.util.Call`
+	:note: to execute the calls added, you must call `doIt` or `addCmdAndCall` - otherwise
 	the undoqueue might brake if exceptions occour !
-	@note: your calls may use MEL commands safely as the undo-queue will be torn off during execution
-	@note: Undocommand will be applied in reversed order automatically"""
+	:note: your calls may use MEL commands safely as the undo-queue will be torn off during execution
+	:note: Undocommand will be applied in reversed order automatically"""
 
 	__slots__ = ( "_docmds", "_undocmds", "_undocmds_tmp" )
 
@@ -647,17 +647,17 @@ class GenericOperationStack( Operation ):
 
 	def addCmd( self, doCall, undoCall ):
 		"""Add a command to the queue for later application
-		@param doCall: instance supporting __call__ interface, called on doIt
-		@param undoCall: instance supporting __call__ interface, called on undoIt"""
+		:param doCall: instance supporting __call__ interface, called on doIt
+		:param undoCall: instance supporting __call__ interface, called on undoIt"""
 
 		self._docmds.append( doCall )		# push
 		self._undocmds_tmp.append( undoCall )
 
 	def addCmdAndCall( self, doCall, undoCall ):
 		"""Add commands to the queue and execute it right away - either always use
-		this way to add your commands or the L{addCmd} method, never mix them !
-		@return: return value of the doCall
-		@note: use this method if you need the return value of the doCall right away"""
+		this way to add your commands or the `addCmd` method, never mix them !
+		:return: return value of the doCall
+		:note: use this method if you need the return value of the doCall right away"""
 		global undoInfo
 		prevstate = undoInfo( q=1, st=1 )
 		undoInfo( swf=False )
@@ -672,9 +672,9 @@ class GenericOperationStack( Operation ):
 
 class DGModifier( Operation ):
 	"""Undo-aware DG Modifier - using it will automatically put it onto the API undo queue
-	@note: You MUST call doIt() before once you have instantiated an instance, even though you
+	:note: You MUST call doIt() before once you have instantiated an instance, even though you
 	have nothing on it. This requiredment is related to the undo queue mechanism
-	@note: May NOT derive directly from dg modifier!"""
+	:note: May NOT derive directly from dg modifier!"""
 	__slots__ = ( "_modifier", )
 	_modifier_class_ = api.MDGModifier		# do be overridden by subclasses
 

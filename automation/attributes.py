@@ -8,13 +8,13 @@ class RegexStringAttr( Attribute ):
 
 	def __init__( self, regexstring, *args, **kwargs ):
 		"""Initialize the attribute with a glob filter
-		@param regexstring: i.e. .*\..* or .*\.py or ^base_.*\.pyo"""
+		:param regexstring: i.e. .*\..* or .*\.py or ^base_.*\.pyo"""
 		import re
 		self.regex = re.compile( regexstring )
 		Attribute.__init__( self, *args, **kwargs )
 
 	def compatabilityRate( self, value ):
-		"""@return: rate of base class provided that the regex matches, 0 otherwise"""
+		""":return: rate of base class provided that the regex matches, 0 otherwise"""
 		rate = Attribute.compatabilityRate( self, value )		# get default rate
 		if not rate:
 			return rate

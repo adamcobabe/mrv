@@ -77,7 +77,7 @@ class OtherTestProcess( process.ProcessBase ):
 
 
 	def evaluateState( self, plug, mode ):
-		"""@return: version of plug requireing int and float instance"""
+		""":return: version of plug requireing int and float instance"""
 		if plug == OtherTestProcess.outString:
 			floatinst = self.inFloat.get()
 			intinst = self.inInt.get()

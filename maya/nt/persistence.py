@@ -2,7 +2,7 @@
 """generic python style persitance plugin
 This module contains a storage interface able to easily handle python-style
 data within maya scenes. 
-@todo: more documentation, how to use the system
+:todo: more documentation, how to use the system
 """
 import os
 import sys
@@ -50,10 +50,10 @@ if not hasattr( sys, "_maya_pyPickleData_trackingDict" ):
 def addStorageAttributes( cls, dataType ):
 	""" Call this method with your MPxNode derived class to add attributes
 	which can be used by the StorageClass
-	@note: this allows your own plugin node to receive storage compatability
-	@param dataType: the type of the typed attribute - either MTypeID or MFnData enumeration
+	:note: this allows your own plugin node to receive storage compatability
+	:param dataType: the type of the typed attribute - either MTypeID or MFnData enumeration
 	An MTypeID must point to a valid and already registered plugin data.
-	@return: attribute api object of its master compound attribute ( it corresponds
+	:return: attribute api object of its master compound attribute ( it corresponds
 	to the class's aData attribute )"""
 	tAttr = api.MFnTypedAttribute()
 	mAttr = api.MFnMessageAttribute()
@@ -111,10 +111,10 @@ class PyPickleData( mpx.MPxData ):
 	To get the respective dict-references back, we use a tracking dict as proposed
 	by the API Docs
 
-	@note: This datatype is copies the data by reference which is why maya always calls
+	:note: This datatype is copies the data by reference which is why maya always calls
 	the copy constructor, even if you retrieve a const data reference, where this would not be
 	required actually. This is fine for most uses
-	@note: as the datatype is reference based, undo is currently not supported ( or does not
+	:note: as the datatype is reference based, undo is currently not supported ( or does not
 	work as it is expected to do"""
 
 	kPluginDataId = api.MTypeId( 0x0010D135 )
@@ -127,7 +127,7 @@ class PyPickleData( mpx.MPxData ):
 
 	def __del__( self ):
 		"""Remove ourselves from the dictionary to prevent flooding
-		@note: we can be called even if maya is already unloaded or shutting down"""
+		:note: we can be called even if maya is already unloaded or shutting down"""
 		if mpx.asHashable is not None:
 			del( sys._maya_pyPickleData_trackingDict[ mpx.asHashable( self ) ] )
 		# call super just to be on the safe side in future, currently it appears
@@ -171,9 +171,9 @@ class PyPickleData( mpx.MPxData ):
 
 	def readBinary(self, inStream, numBytesToRead ):
 		"""Read in 4 byte packs to cStringIO, unpickle from there
-		@note: this method is more complicated than it needs be since asCharPtr does not work !
+		:note: this method is more complicated than it needs be since asCharPtr does not work !
 		It returns a string of a single char ... which is not the same :) !
-		@note: YES, this is a CUMBERSOME way to deal with bytes ... terrible, thanks maya :), thanks python"""
+		:note: YES, this is a CUMBERSOME way to deal with bytes ... terrible, thanks maya :), thanks python"""
 		sio = cStringIO.StringIO( )
 		scriptutil = api.MScriptUtil( )
 		scriptutil.createFromInt( 0 )
