@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 #
-# Mrv documentation build configuration file, created by
+# MRV documentation build configuration file, created by
 # sphinx-quickstart on Thu Jul 30 18:13:56 2009.
 #
 # This file is execfile()d with the current directory set to its containing dir.
@@ -36,7 +36,7 @@ source_suffix = '.rst'
 master_doc = 'index'
 
 # General substitutions.
-project = 'Mrv'
+project = 'MRV'
 copyright = '2010, Sebastian Thiel'
 
 # The default replacements for |version| and |release|, also used in various
@@ -143,7 +143,7 @@ html_last_updated_fmt = '%b %d, %Y'
 #html_file_suffix = ''
 
 # Output file base name for HTML help builder.
-htmlhelp_basename = 'Mrvdoc'
+htmlhelp_basename = 'MRVdoc'
 
 
 # Options for LaTeX output
@@ -158,7 +158,7 @@ htmlhelp_basename = 'Mrvdoc'
 # Grouping the document tree into LaTeX files. List of tuples
 # (source start file, target name, title, author, document class [howto/manual]).
 latex_documents = [
-  ('index', 'Mrv.tex', 'Mrv Documentation',
+  ('index', 'MRV.tex', 'MRV Documentation',
    'Sebastian Thiel', 'manual'),
 ]
 

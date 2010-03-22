@@ -2675,7 +2675,7 @@ class Shape( DagNode ):	 # base for epydoc !
 		If False, a custom non-api implementation will be used instead.
 		This can be required if the apiImplementation is not reliable which happens in
 		few cases of 'weird' component assignments
-		@param asComponent: If True, the components will be wrapped into the matching Mrv compontent type
+		@param asComponent: If True, the components will be wrapped into the matching MRV compontent type
 		to provide a nicer interface. This might slightly slow down the process, but this is usually 
 		neglectable.
 		@note: the sets order will be the order of connections of the respective component list

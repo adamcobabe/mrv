@@ -3,7 +3,7 @@ import os
 import mrv.test.maya.util as tutil
 
 class TestUndoDisabled( tutil.StandaloneTestBase ):
-	envvarname = 'Mrv_DEBUG_MPLUG_SETX'
+	envvarname = 'MRV_DEBUG_MPLUG_SETX'
 	prev_val = None
 	
 	def setup_environment(self):

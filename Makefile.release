@@ -15,7 +15,7 @@ TESTRESULTLOGBASE ?= testresult
 DOCINDEX ?= doc/build/html/index.html
 
 # shell script launching all tests based on NOSE_TEST_EXECUTABLE, hence it must support to given flags
-NOSE_TEST_EXECUTABLE ?= start/testmayarv
+NOSE_TEST_EXECUTABLE ?= test/bin/tmrv
 
 # shell script making a release, will be given following parameters:
 # source_revspec, target_branch, maya_version, precompile, for more information see 

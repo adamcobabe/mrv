@@ -5,7 +5,7 @@ Allows convenient access and handling of references in an object oriented manner
 """
 from mrv.path import Path
 from mrv.util import And
-from mrv.exc import MrvError
+from mrv.exc import MRVError
 from mrv.maya.ns import Namespace, _isRootOf
 from mrv.maya.util import noneToList
 from mrv.interface import iDagItem
@@ -17,7 +17,7 @@ from itertools import ifilter
 __all__ = ("createReference", "listReferences", "FileReference", "FileReferenceError")
 
 #{ Exceptions
-class FileReferenceError( MrvError ):
+class FileReferenceError( MRVError ):
 	pass
 
 #}

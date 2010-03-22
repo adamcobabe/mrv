@@ -1,8 +1,8 @@
 .. _usage-label:
 
-==================
-Using Mrv.Maya
-==================
+=========
+Using MRV
+=========
 This document gives an overview of the facilities within the Maya portion of MayaReVised, which contains classes that require maya to be initialized.
 
 The examples given here can be viewed as one consecutive script which should work of all the code is pasted into a mrv testcase for instance. The latter one can be found in ``mrv.test.maya.nt.test_general`` (test_usage_examples). If you want to be more explorative, adjust the test's code yourself and run it to see the results. For more information on how to run tests, see :ref:`runtestsdoc-label`.
@@ -16,7 +16,7 @@ Nodes
 =====
 The term *Node* means any Dependency Node or DagNode which has been wrapped for convenient use. It is derived from ``mrv.maya.nt.base.Node``.
 
-A Node wraps an underlying *MObject* or an *MDagPath*, and it can be retrieved either by iteration, by using one of the various methods of the Mrv library or by manually wrapping a maya node whose name is known::
+A Node wraps an underlying *MObject* or an *MDagPath*, and it can be retrieved either by iteration, by using one of the various methods of the MRV library or by manually wrapping a maya node whose name is known::
 	>>> from mrv.maya.nt import *
 	>>> # wrap a node by name
 	>>> p = Node("persp")
@@ -57,7 +57,7 @@ Calling these methods involves nothing special, you just make the call on your n
 	>>> # this will raise an AttributeError
 	>>> p.doesnt_exist()
 	
-Mrv looks up the name in the following order:
+MRV looks up the name in the following order:
  1. Find a method on the instance itself. This would succeed if the method has been implemented on the respective python type, in order to make it easier to use for instance, or to work around limitations.
  
  2. Find the method name on the topmost MFnFunction set, and resort to more general function sets if the name could not be found. If a Node wraps a mesh for example, it would try to find the Method in MFnMesh, then in MFnDagNode.
@@ -108,7 +108,7 @@ Generally, all items that are organized in a hierarchy support the  ``mrv.interf
 
 Node Creation
 =============
-Creating nodes in Mrv is simple and maybe a bit slow as you can only create about 1200 Nodes per second. There is only one method to accomplish this with plenty of functionality built-in, ``mrv.maya.nt.base.createNode``. This shall only be brief example::
+Creating nodes in MRV is simple and maybe a bit slow as you can only create about 1200 Nodes per second. There is only one method to accomplish this with plenty of functionality built-in, ``mrv.maya.nt.base.createNode``. This shall only be brief example::
 	>>> cs = createNode("namespace:subspace:group|other:camera|other:cameraShape", "camera")
 	>>> assert len(cs.parentsDeep()) == 2
 	
@@ -124,7 +124,7 @@ Node duplication is an interesting problem as it might involve many secondary ta
 
 When using the blank duplicate function as provided by the MayaAPI, one will only get a bare copy of the input node, without any connections. Its safe to state that the MayaAPI duplicate is far behind the MEL implementation, as it can take care of much more. Lets just call it a design mistake that they implement functionality in a MEL command instead of in a library so that it can be made accessible in the MayaAPI *and* in MEL.
 
-Mrv tackles the problem by providing an interface called ``mrv.interface.iDuplicatable``. It works much like a c++ copy constructor, and anyone who implements it correctly is able to be duplicated properly. Node-derived types may implement special duplication routines to assure their are duplicated correctly::
+MRV tackles the problem by providing an interface called ``mrv.interface.iDuplicatable``. It works much like a c++ copy constructor, and anyone who implements it correctly is able to be duplicated properly. Node-derived types may implement special duplication routines to assure their are duplicated correctly::
 	>>> # this duplicated tweaks, set and shader assignments as well
 	>>> md = m.duplicate()
 	>>> assert md != m
@@ -133,7 +133,7 @@ If you ever miss anything to be duplicated on a certain node-type, you only need
 	
 Namespaces
 ==========
-Namespaces in Mrv are objects which may create a hierarchy, hence they support the ``mrv.interface.iDagItem`` interface::
+Namespaces in MRV are objects which may create a hierarchy, hence they support the ``mrv.interface.iDagItem`` interface::
 	>>> ons = cs.namespace()
 	>>> assert ons == cs[-1].namespace()	# namespace of parent node
 	
@@ -149,13 +149,13 @@ Namespaces in Mrv are objects which may create a hierarchy, hence they support t
 	
 DAG-Manipulation and Instancing
 ===============================
-Change the structure of the DAG, adjust parent-child relation ships and handle instances. DAG manipulation is an interesting topic as it is implemented using the MayaAPI, but it provides a new programming interface unique to Mrv in order to be more intuitive and as a workaround to many issues that can occur when using the MayaAPI otherwise.
+Change the structure of the DAG, adjust parent-child relation ships and handle instances. DAG manipulation is an interesting topic as it is implemented using the MayaAPI, but it provides a new programming interface unique to MRV in order to be more intuitive and as a workaround to many issues that can occur when using the MayaAPI otherwise.
 
 Transforms can be parented under the world's root, which is the root of the Directed Acyclic Graph, and under other transforms. Shape nodes may be parented under transforms only. Some special nodes may appear parented under Shape nodes, which effectively puts them into the Shape's ``underworld``.
 
 As long as Transforms and Shapes have only one parent, there is only one DAGPath leading up to the object in question. If you add more parents to them, there are more DAGPaths leading to the same object, which is called ``instancing`` in Maya.
 
-The Mrv DAG manipulation API provides multiple methods to adjust the number of children and parents of the individual items, including undo support::
+The MRV DAG manipulation API provides multiple methods to adjust the number of children and parents of the individual items, including undo support::
 	>>> csp = cs.transform()
 	>>> cs.setParent(p)
 	>>> assert cs.instanceCount(0) == 1
@@ -183,15 +183,15 @@ It is worth noting that the only 'real' methods are ``addChild`` and ``removeChi
 	>>> assert len(cspp.children()) == 1
 	>>> assert csi.instanceCount(0) == 1
 
-The MayaAPI provides methods to handle instances and to accomplish fundamental re-parenting, Mrv makes this more usable by providing own methods. Nonetheless, the general feeling of inconsistency remains as these sets of functions are slightly opposing each other, some are instance aware, some are not.
+The MayaAPI provides methods to handle instances and to accomplish fundamental re-parenting, MRV makes this more usable by providing own methods. Nonetheless, the general feeling of inconsistency remains as these sets of functions are slightly opposing each other, some are instance aware, some are not.
 
-As a general advice, you should be aware of instances and the methods to use to safely operate on them. ``reparent`` and ``unparent`` in Mrv can be used safely as well as they will raise by default if instances would be destroyed otherwise.
+As a general advice, you should be aware of instances and the methods to use to safely operate on them. ``reparent`` and ``unparent`` in MRV can be used safely as well as they will raise by default if instances would be destroyed otherwise.
 
 Node- and Graph-Iteration
 =========================
 The fastest way to retrieve Nodes is by iterating them. There are three major areas to iterate: DAG Nodes only, DG Nodes only, or the dependency graph which is defined by plug connections between DG Nodes.
 
-Mrv iterators are built around their MayaAPI counterparts, but provide a more intuitive and pythonic interface::
+MRV iterators are built around their MayaAPI counterparts, but provide a more intuitive and pythonic interface::
 	>>> for dagnode in it.iterDagNodes():
 	>>> 	assert isinstance(dagnode, DagNode)
 		
@@ -203,7 +203,7 @@ Mrv iterators are built around their MayaAPI counterparts, but provide a more in
 	
 Handling Selections with SelectionLists
 =======================================
-Many methods within the MayaAPI and within Mrv will take MSelectionLists as input or return them. An MSelectionList is an ordered heterogeneous list which keeps MObjects, MDagPaths, MPlugs as well as ComponentLists, and although the name may suggest otherwise, it has nothing to do with the selection within the maya scene.
+Many methods within the MayaAPI and within MRV will take MSelectionLists as input or return them. An MSelectionList is an ordered heterogeneous list which keeps MObjects, MDagPaths, MPlugs as well as ComponentLists, and although the name may suggest otherwise, it has nothing to do with the selection within the maya scene.
 
 SelectionLists can easily be created using the ``mrv.maya.nt.base.toSelectionList`` function, or the monkey-patched creator functions. Conversion functions come in several variants which may be more specialized, but will be faster as well. Its safe and mostly fast enough to use the general version though::
 	>>> nl = (p, t, rlm)
@@ -235,7 +235,7 @@ ObjectSets and Partitions
 =========================
 Sets and Partitions are a major feature of Maya, which uses ObjectSets and their derivatives in many locations of the program. Partitions allow to enforce exclusive membership among sets. 
 
-ObjectSets in Mrv can be controlled much like ordinary python sets, but they in fact correspond to an ObjectSet compatible node with your scene::
+ObjectSets in MRV can be controlled much like ordinary python sets, but they in fact correspond to an ObjectSet compatible node with your scene::
 	>>> objset = ObjectSet()
 	>>> aobjset = ObjectSet()
 	>>> partition = Partition()
@@ -299,7 +299,7 @@ To query component assignments, use the ``mrv.maya.nt.base.Shape.componentAssign
 ====================
 Plugs and Attributes 
 ====================
-People coming from MEL might be confused at first as MEL always uses the term ``attr`` when dealing with plugs and attributes. The MayaAPI, as well as Mrv differentiate these.
+People coming from MEL might be confused at first as MEL always uses the term ``attr`` when dealing with plugs and attributes. The MayaAPI, as well as MRV differentiate these.
 
  * Attributes define the type of data to be stored, its name and a suitable default value. They do not hold any other data themselves.
  
@@ -307,7 +307,7 @@ People coming from MEL might be confused at first as MEL always uses the term ``
 
 Plugs
 ======
-To access data on a node, you need to retrieve a plug to it, which is represented by the patched API type ``MPlug``. Whenever you deal with data and connections within Mrv, you deal with plugs::
+To access data on a node, you need to retrieve a plug to it, which is represented by the patched API type ``MPlug``. Whenever you deal with data and connections within MRV, you deal with plugs::
 	>>> assert isinstance(p.translate, api.MPlug)
 	>>> assert p.translate == p.findPlug('t')
 	>>> assert p.t == p.translate 
@@ -337,7 +337,7 @@ Primitive values, like ints, floats, values with units as well as strings can ea
 	>>> assert isinstance(p.tx.asFloat(), float)
 	>>> assert isinstance(t.outTime.asMTime(), api.MTime)
 	
-All other data is returned as an MObject serving as a container for the possibly copied data. Data-specific function sets can operate on this data. You need to know which function set is actually compatible with the ``MObject``, or use a Mrv data wrapper::
+All other data is returned as an MObject serving as a container for the possibly copied data. Data-specific function sets can operate on this data. You need to know which function set is actually compatible with the ``MObject``, or use a MRV data wrapper::
 	>>> ninst = p.getInstanceNumber()
 	>>> pewm = p.worldMatrix.elementByLogicalIndex(ninst)
 		
@@ -411,7 +411,7 @@ Attributes
 ==========
 As attributes are just describing the type and further meta information of data, their most interesting purpose is to create new attributes which can be customized to fully suit your specific needs. 
 
-The following example will use facilities of Mrv to create a complex attribute.
+The following example will use facilities of MRV to create a complex attribute.
  * master ( Compound, Array )
  
   * String
@@ -562,7 +562,7 @@ References
 ==========
 References within maya can be referred to by Path or by Reference Node. The latter one is a stable entity in your scene, whereas the first one is dependent on the amount of references as well as the actual reference file.
 
-Dealing with references correctly can be complex in times, but the ``FileReference`` type in Mrv greatly facilitates this.
+Dealing with references correctly can be complex in times, but the ``FileReference`` type in MRV greatly facilitates this.
 
 Maya organizes its references hierarchically, which can be queried using the ``iDagItem`` interface of the FileReference type. Additional functionality includes reference creation, import, removal as well as to query information and to iterate its contained nodes.
 
@@ -620,9 +620,9 @@ It is important to remove callbacks once you are done with them to allow the cor
 ====
 Undo
 ====
-The MayaAPI, the very basis of MayaReVised, has limited support for undo as it clearly focuses on performance. Changes to the dependency graph can only be made through a utility which supports undo, but changes to values through plugs for instance  are not covered by that. To allow Mrv to be used within user scripts, full undo was implemented wherever needed. This is indicated by the ``undoable`` decorator. Whenever a method which changes the state cannot be undone for whichever reason, it is decorated with ``notundoable``.
+The MayaAPI, the very basis of MayaReVised, has limited support for undo as it clearly focuses on performance. Changes to the dependency graph can only be made through a utility which supports undo, but changes to values through plugs for instance  are not covered by that. To allow MRV to be used within user scripts, full undo was implemented wherever needed. This is indicated by the ``undoable`` decorator. Whenever a method which changes the state cannot be undone for whichever reason, it is decorated with ``notundoable``.
 
-As you are unlikely going to need undo support when running in batch mode or standalone, you can disable the undo system by setting Mrv_UNDO_ENABLED to 0, which causes the undo implementation to completely disappear in many cases, which reduces the overhead considerably as well as the memory usage.
+As you are unlikely going to need undo support when running in batch mode or standalone, you can disable the undo system by setting MRV_UNDO_ENABLED to 0, which causes the undo implementation to completely disappear in many cases, which reduces the overhead considerably as well as the memory usage.
 
 In case your method or function uses an undoable method, it must be decorated with ``undoable`` as well. If you fail doing so, undo will pick up your individual undoable calls, and a single invocation of maya's undo will just undo one of them ( instead of your complete method ).
 
@@ -647,11 +647,11 @@ The following example shows how multiple undoable operations are bundled into a 
 	>>> assert not p.tx.misConnectedTo(p.tz)
 	>>> assert t.isValid() and t.isAlive()
 	
-Whenever non-overridden MFnFunctions are called, these will not support undo by default unless it gets implemented specifically within Mrv.
+Whenever non-overridden MFnFunctions are called, these will not support undo by default unless it gets implemented specifically within MRV.
 
 Advanced Uses
 =============
-Mrv keeps an own undo stack for its undoable commands which integrates itself with maya's undo queue using a custom MEL command. Effectively it records every change on that stack, once the main undoable method completes, the stack is moved onto maya's own undo queue.
+MRV keeps an own undo stack for its undoable commands which integrates itself with maya's undo queue using a custom MEL command. Effectively it records every change on that stack, once the main undoable method completes, the stack is moved onto maya's own undo queue.
 
 This allows for interesting uses considering that you can, at any time undo, your own doing in a controlled and safe fashion. This can be very useful to prepare a scene for export by changing it, and then undo your changes once you are done. This way, the user wouldn't have to reload the scene::
 	>>> import mrv.maya.undo as undo
@@ -675,7 +675,7 @@ Persistence
 ===========
 Being able to use python data natively within your program is a great plus - unfortunately there is no default way to store that data in a native format within the maya scene. Everyone who desires to store python data would need to implement marshaling functions to convert python data to maya compatible data to be stored in nodes, and vice versa, which is time consuming and a possible source of bugs.
 
-Mrv tackles the problem by providing a generic storage node which comes as part of the ``nt`` package. It is implemented as a plugin node which allows to store data and connections flexibly, allowing access by a convenient python interface::
+MRV tackles the problem by providing a generic storage node which comes as part of the ``nt`` package. It is implemented as a plugin node which allows to store data and connections flexibly, allowing access by a convenient python interface::
 	>>> did = 'dataid'
 	>>> sn = StorageNode()
 	>>> snn = sn.name()

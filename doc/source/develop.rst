@@ -3,7 +3,7 @@ Development Environment
 =======================
 *NOTE*: This article is still under development
 
-This article describes the required setup and configuration of your system to develop Mrv.
+This article describes the required setup and configuration of your system to develop MRV.
 
 Prerequesites
 =============
@@ -29,7 +29,7 @@ On Windows, make sure that the maya revised repository has at least one folder b
 * This would work:
  * c:\\projects\\mrv\\[.git]
 
-Set your '''MAYA_LOCATION''' environment variable to the location of the maya version to use. Mrv will be run using ''mayapy'' of the specified version.
+Set your '''MAYA_LOCATION''' environment variable to the location of the maya version to use. MRV will be run using ''mayapy'' of the specified version.
 
 Install nose in maya's python site-libararies.
 
@@ -102,7 +102,7 @@ When operating in large scenes, its important to limit the amount of nodes that 
 
 Undo
 =====
-Turn off the undo queue completely by setting the Mrv_UNDO_ENABLED=0 in your environment. This will reduce overhead by at least 10% and increase the performance of many core methods. As a positive side-effect, you have more memory at runtime as the undoqueue will not store the history of operations.
+Turn off the undo queue completely by setting the MRV_UNDO_ENABLED=0 in your environment. This will reduce overhead by at least 10% and increase the performance of many core methods. As a positive side-effect, you have more memory at runtime as the undoqueue will not store the history of operations.
 
 Turning off the undo queue is feasible if you run in maya batch mode and a very easy way to speed up programs.
 
@@ -191,7 +191,7 @@ Generally within python, each attribute access costs time, time that shows up to
 
 Node-Wrapping
 ==============
-Mrv is very aware of the fact that the added convenience comes at a cost. Where programming convenience and programmer's efficiency is improved, its likely that the runtime of the resulting programs is much less than optimal.
+MRV is very aware of the fact that the added convenience comes at a cost. Where programming convenience and programmer's efficiency is improved, its likely that the runtime of the resulting programs is much less than optimal.
 
 Here its important to make a tradeoff by keeping the code convenient and readable in most spots, but to optimize it only where it matters.
 

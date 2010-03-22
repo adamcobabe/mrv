@@ -3,7 +3,7 @@ import os
 import mrv.test.maya.util as tutil
 
 class TestPersistenceEnabled( tutil.StandaloneTestBase ):
-	envvarname = 'Mrv_PERSISTENCE_ENABLED'
+	envvarname = 'MRV_PERSISTENCE_ENABLED'
 	prev_val = None
 	
 	def setup_environment(self):

@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 """ Contains all exceptions used by the mrv package in general """
 
-class MrvError( Exception ):
+class MRVError( Exception ):
 	""" Base Class for all exceptions that the mrv framework throws"""
 	def __init__(self, *args, **kwargs):
 		self._message = ""
@@ -19,24 +19,24 @@ class MrvError( Exception ):
 
 
 #{Decorator Exceptions
-class MethodTypeError( TypeError, MrvError ):
+class MethodTypeError( TypeError, MRVError ):
 	""" Indicates that a method either produced or returned a type that was not anticipated """
 	pass
 
-class InterfaceError( TypeError, MrvError ):
+class InterfaceError( TypeError, MRVError ):
 	""" Indicates that an instances interface does not fully match the requrested interface """
 	pass
 #}
 
 #{ Decorator Internal Exceptions
-class DecoratorError( MrvError ):
+class DecoratorError( MRVError ):
 	""" Thrown if decorators are used in an incorrect way
 	@note: this can only happen if decorators take arguments that do not resolve as
 	requested
 	@todo: store actual function that caused the error """
 	pass
 
-class InterfaceSetupError( MrvError ):
+class InterfaceSetupError( MRVError ):
 	""" Thrown if L{interface} attributes are used incorrectly
 		- only and ignore are both given, although they are mutually exclusive """
 	pass

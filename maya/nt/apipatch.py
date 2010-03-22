@@ -43,7 +43,7 @@ def init_applyPatches( ):
 	module = __import__( "mrv.maya.nt.apipatch", globals(), locals(), ['apipatch'] )
 	classes = [ v for v in globals().values() if inspect.isclass(v) ]
 	forbiddenMembers = [ '__module__','_applyPatch','__dict__','__weakref__','__doc__' ]
-	apply_globally = int(os.environ.get('Mrv_APIPATCH_APPLY_GLOBALLY', 0))
+	apply_globally = int(os.environ.get('MRV_APIPATCH_APPLY_GLOBALLY', 0))
 	
 	ns = None
 	if apply_globally:
@@ -810,7 +810,7 @@ class MPlug( api.MPlug ):
 
 
 # SETUP DEBUG MODE ?
-if int(os.environ.get('Mrv_DEBUG_MPLUG_SETX', 0)):
+if int(os.environ.get('MRV_DEBUG_MPLUG_SETX', 0)):
 	def __getattribute__(self, attr):
 		"""Get attribute for MPlug which will raise if a setX method is used.
 		This could cause undo bugs that you'd better catch before they hit the user"""

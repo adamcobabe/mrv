@@ -1,7 +1,7 @@
 <map version="0.9.0">
 <!-- To view this file, download free mind mapping software FreeMind from http://freemind.sourceforge.net -->
 <attribute_registry SHOW_ATTRIBUTES="hide"/>
-<node COLOR="#000000" CREATED="1208681350261" ID="ID_823383288" MODIFIED="1216038536694" TEXT="MayaRVIndex">
+<node COLOR="#000000" CREATED="1208681350261" ID="ID_823383288" MODIFIED="1216038536694" TEXT="MRVIndex">
 <font NAME="SansSerif" SIZE="20"/>
 <hook NAME="accessories/plugins/AutomaticLayout.properties"/>
 <node COLOR="#0033ff" CREATED="1208686847712" FOLDED="true" HGAP="84" ID="ID_1582204477" MODIFIED="1216038547035" POSITION="right" TEXT="Packaging" VSHIFT="-90">
@@ -359,11 +359,11 @@
 </node>
 </node>
 </node>
-<node COLOR="#0033ff" CREATED="1208870853042" ID="ID_1565932175" LINK="MayaRV_Development.mm" MODIFIED="1208870853043" POSITION="left" TEXT="Development">
+<node COLOR="#0033ff" CREATED="1208870853042" ID="ID_1565932175" LINK="MRV_Development.mm" MODIFIED="1208870853043" POSITION="left" TEXT="Development">
 <edge STYLE="sharp_bezier" WIDTH="8"/>
 <font NAME="SansSerif" SIZE="18"/>
 </node>
-<node COLOR="#0033ff" CREATED="1208789464984" HGAP="110" ID="ID_1157250519" LINK="MayaRV_PackageStructure.mm" MODIFIED="1208789473175" POSITION="left" TEXT="Package Structure" VSHIFT="-4">
+<node COLOR="#0033ff" CREATED="1208789464984" HGAP="110" ID="ID_1157250519" LINK="MRV_PackageStructure.mm" MODIFIED="1208789473175" POSITION="left" TEXT="Package Structure" VSHIFT="-4">
 <edge STYLE="sharp_bezier" WIDTH="8"/>
 <font NAME="SansSerif" SIZE="18"/>
 </node>

@@ -73,7 +73,7 @@ function compilePyToPyc () {
 }
 
 
-# add files suitable for a mayarv release
+# add files suitable for a mrv release
 # NOTE: Assumes we are in the root of the git repository
 function _addFiles () {
 	

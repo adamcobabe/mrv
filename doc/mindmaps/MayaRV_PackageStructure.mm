@@ -1,6 +1,6 @@
 <map version="0.9.0_Beta_8">
 <!-- To view this file, download free mind mapping software FreeMind from http://freemind.sourceforge.net -->
-<node COLOR="#000000" CREATED="1208686967220" HGAP="117" ID="ID_526511468" LINK="MayaRVIndex.mm" MODIFIED="1208870099182" TEXT="Byronimo" VSHIFT="-51">
+<node COLOR="#000000" CREATED="1208686967220" HGAP="117" ID="ID_526511468" LINK="MRVIndex.mm" MODIFIED="1208870099182" TEXT="Byronimo" VSHIFT="-51">
 <richcontent TYPE="NOTE"><html>
   <head>
     

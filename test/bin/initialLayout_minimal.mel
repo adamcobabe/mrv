@@ -63,8 +63,8 @@ global proc setupUITest()
 // in python standalone mode
 {
 	string $pycmd = "import sys\n";
-	$pycmd += "sys.path.append(\""+`getenv "MAYARV_PYTHON_PATH"` + "\")\n";
-	$pycmd += "import mayarv.test.maya.ui as test_ui\n";
+	$pycmd += "sys.path.append(\""+`getenv "MRV_PYTHON_PATH"` + "\")\n";
+	$pycmd += "import mrv.test.maya.ui as test_ui\n";
 	$pycmd += "test_ui.run()";
 	catch( `python $pycmd` );
 	

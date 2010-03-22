@@ -1,13 +1,13 @@
-MayaReVised
------------
+MRV Development Framework
+--------------------------
 Use the MayaAPI with ease, boost your productivity and write more maintainable and reliable code !
 
 
 Links
 -----
 For more information, see the official wiki
-http://wiki.byronimo.de/mayarv
+http://wiki.byronimo.de/mrv
 
 Developers can obtain the source code from github or gitorious, which also enable collaboration:
-http://gitorious.org/mayarv     ( main )
-http://github.com/Byron/mayarv  ( secondary )
+http://gitorious.org/mrv     ( main )
+http://github.com/Byron/mrv  ( secondary )

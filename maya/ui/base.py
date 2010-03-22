@@ -9,7 +9,7 @@ from mrv.util import capitalize
 from mrv.interface import iDagItem
 from util import EventSenderUI
 import util as uiutil
-from mrv.exc import MrvError
+from mrv.exc import MRVError
 import typ
 _uidict = None 			# set during initialization
 
@@ -95,7 +95,7 @@ class BaseUI( object ):
 
 	def __init__( self, *args, **kwargs ):
 		if self.__class__ == BaseUI:
-			raise MrvError( "Cannot instantiate" + self.__class__.__name__ + " directly - it can only be a base class" )
+			raise MRVError( "Cannot instantiate" + self.__class__.__name__ + " directly - it can only be a base class" )
 
 		# return object.__init__( self , *args, **kwargs )
 		super( BaseUI, self ).__init__( *args, **kwargs )

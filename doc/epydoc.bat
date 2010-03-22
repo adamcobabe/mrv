@@ -36,7 +36,7 @@ GOTO HELP
 	GOTO END
 	
 :HELP
-	echo Automatically creates html documentation of mayarv to .\html subfolder.
+	echo Automatically creates html project documentation to .\html subfolder.
 	echo If .\html does not exist it will be created.
 	echo.
 	echo usage: epydoc.bat [mayapy]

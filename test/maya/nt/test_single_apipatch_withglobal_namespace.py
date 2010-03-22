@@ -3,7 +3,7 @@ import os
 import mrv.test.maya.util as tutil
 
 class TestPersistenceEnabled( tutil.StandaloneTestBase ):
-	envvarname = 'Mrv_APIPATCH_APPLY_GLOBALLY'
+	envvarname = 'MRV_APIPATCH_APPLY_GLOBALLY'
 	prev_val = None
 	
 	def setup_environment(self):

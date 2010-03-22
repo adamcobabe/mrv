@@ -16,14 +16,14 @@ def setup_syspath():
 def apply_user_configuration():
 	"""Run optional user scripts"""
 	# try to load custom settings
-	if "IMrv_CONFIG" in os.environ:
-		filepath = os.environ[ "IMrv_CONFIG" ]
+	if "IMRV_CONFIG" in os.environ:
+		filepath = os.environ[ "IMRV_CONFIG" ]
 		try:
 			execfile( filepath )
 		except Exception:
 			print "Failed to run configuration script"
 	else:
-		print "Set IMrv_CONFIG to point to python script doing additional setup"
+		print "Set IMRV_CONFIG to point to python script doing additional setup"
 
 def setup_ipython():
 	"""Perform additional ipython initialization"""

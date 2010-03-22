@@ -21,7 +21,7 @@ from ConfigParser import (	RawConfigParser,
 							NoSectionError,
 							NoOptionError,
 							ParsingError)
-from exc import MrvError
+from exc import MRVError
 import copy
 import re
 import sys
@@ -36,7 +36,7 @@ __all__ = ("ConfigParsingError", "ConfigParsingPropertyError", "DictToINIFile",
 
 #{ Exceptions
 ################################################################################
-class ConfigParsingError( MrvError ):
+class ConfigParsingError( MRVError ):
 	""" Indicates that the parsing failed """
 	pass
 

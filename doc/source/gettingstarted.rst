@@ -2,7 +2,7 @@
 ===================
 Getting an Overview
 ===================
-Besides the fact that you need to be familiar with Python, you should be able to get started with Mrv quickly by working though the Usage Guide: :ref:`usage-label`.
+Besides the fact that you need to be familiar with Python, you should be able to get started with MRV quickly by working though the Usage Guide: :ref:`usage-label`.
 
 ================
 Helping Yourself

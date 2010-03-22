@@ -25,7 +25,7 @@ To globally disable the undo queue using cmds.undo will disable tracking of opea
 still call the mel command.
 
 Disable the 'undoable' decorator effectively remove the surrounding mel script calls
-by setting the 'Mrv_UNDO_ENABLED' environment variable to 0 ( default 1 ). 
+by setting the 'MRV_UNDO_ENABLED' environment variable to 0 ( default 1 ). 
 Additionally it will turn off the maya undo queue as a convenience.
 
 If the mrv undo queue is disabled, MPlugs will not store undo information anymore
@@ -38,7 +38,7 @@ __all__ = ("undoable", "forceundoable", "notundoable", "StartUndo", "endUndo", "
            "UndoRecorder", "Operation", "GenericOperation", "GenericOperationStack", "DGModifier", 
            "DagModifier")
 
-_undo_enabled_envvar = "Mrv_UNDO_ENABLED"
+_undo_enabled_envvar = "MRV_UNDO_ENABLED"
 _should_initialize_plugin = int(os.environ.get(_undo_enabled_envvar, True))
 
 #{ Initialization

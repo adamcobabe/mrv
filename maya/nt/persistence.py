@@ -13,7 +13,7 @@ import binascii
 import maya.OpenMaya as api
 import maya.OpenMayaMPx as mpx
 
-persistence_enabled_envvar = "Mrv_PERSISTENCE_ENABLED"
+persistence_enabled_envvar = "MRV_PERSISTENCE_ENABLED"
 _should_initialize_plugin = int(os.environ.get(persistence_enabled_envvar, False))
 
 

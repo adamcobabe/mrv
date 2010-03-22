@@ -9,7 +9,7 @@ Inialize the mrv.maya sub-system and assure and startup maya natively
 import os, sys                                                                         
 from mrv import init_modules
 from mrv.util import capitalize, DAGTree
-from mrv.exc import MrvError
+from mrv.exc import MRVError
 from mrv.path import Path
 
 
@@ -52,7 +52,7 @@ def dag_tree_from_tuple_list( tuplelist ):
 
 		if level == 0:
 			if tree != None:
-				raise MrvError( "Ui tree must currently be rooted - thus there must only be one root node, found another: " + name )
+				raise MRVError( "Ui tree must currently be rooted - thus there must only be one root node, found another: " + name )
 			else:
 				tree = DAGTree(  )		# create root
 				tree.add_node( name )
@@ -62,7 +62,7 @@ def dag_tree_from_tuple_list( tuplelist ):
 
 		direction = level - lastlevel
 		if direction > 1:
-			raise MrvError( "Can only change by one down the dag, changed by %i in item %s" % ( direction, str( item ) ) )
+			raise MRVError( "Can only change by one down the dag, changed by %i in item %s" % ( direction, str( item ) ) )
 
 		lastlevel = level
 		if direction == 0:
