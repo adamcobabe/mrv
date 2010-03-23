@@ -65,7 +65,7 @@ class TestConfigAccessor( unittest.TestCase ):
 	def _verifiedRead( self, ca, fileobjectlist, close_fp = True ):
 		"""ConfigAccessor: Assure that the given list of file objects can be read properly
 		without loosing information.
-		@param fileobjectlist: list of fileobjects
+		:param fileobjectlist: list of fileobjects
 			- A simple differ is used to accomplish this
 			- assure file object is closed after read
 		Fail otherwise
@@ -343,8 +343,8 @@ class TestConfigDiffer( unittest.TestCase ):
 
 
 	def _getDiff( self, testid ):
-		"""@param testid: the name of the test, it looks for 'valid_${id}_a|b" respectively
-		@return: ConfigDiffer initialized to the A and B files of test with id """
+		""":param testid: the name of the test, it looks for 'valid_${id}_a|b" respectively
+		:return: ConfigDiffer initialized to the A and B files of test with id """
 		pre = "valid_"
 		filenames = []
 		for char in 'ab':
@@ -449,7 +449,7 @@ def _getprefixedinifps( prefix, mode='r', dirname = _getIniFileDir() ):
 
 
 def _getca( prefix ):
-	"""@return: config accessor initialized with all files matching the given prefix"""
+	""":return: config accessor initialized with all files matching the given prefix"""
 	ca = ConfigAccessor( )
 	ca.readfp( _getprefixedinifps( prefix ) )
 	return ca

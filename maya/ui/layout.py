@@ -2,9 +2,8 @@
 """
 Contains the most important mel-layouts wrapped into easy to use python classes
 These are specialized and thus more powerful than the default wraps
-
-@todo: more documentation
 """
+__docformat__ = "restructuredtext"
 import base as uibase
 import maya.cmds as cmds
 import mrv.maya.util as mutil
@@ -18,20 +17,15 @@ class Layout( uibase.SizedControl, uiutil.UIContainerBase ):
 	_properties_ = ( "nch", "numberOfChildren" )
 
 	def __init__( self, *args, **kwargs ):
-		"""  Initialize the layout
-		@param name: name of layout, several class instances can exist with the
-		same name - it will be adjusted for maya as it requires unique names for each
-		layout. """
+		"""Initialize the layout"""
 		super( Layout, self ).__init__( *args, **kwargs )
 
 	def __getitem__( self, key ):
-		"""Implemented by L{UIContainerBase}"""
+		"""Implemented by `UIContainerBase`"""
 		return uiutil.UIContainerBase.__getitem__( self, key )
 
-	#{ Layout Hierarchy
-
 	def children( self ):
-		""" @return: children of this layout """
+		""" :return: children of this layout """
 		childnames = mutil.noneToList( cmds.layout( self, q=1, ca=1 ) )
 		# assure we have long names to ensure uniqueness
 		return uibase.wrapUI( [ "%s|%s" % ( self, c ) for c in childnames ] )
@@ -39,11 +33,9 @@ class Layout( uibase.SizedControl, uiutil.UIContainerBase ):
 	def setParentActive( self ):
 		"""Set the parent ( layout ) of this layout active - newly created items
 		will be children of the parent layout
-		@note: can safely be called several times """
+		
+		:note: can safely be called several times """
 		cmds.setParent( self.parent( ) )
-
-	#} END Layout Hierarchy
-
 
 	#{ Properties
 	p_ca = property(children)
@@ -60,11 +52,13 @@ class FormLayout( Layout ):
 
 	class FormConstraint( object ):
 		""" defines the way a child is constrained, possibly to other children
-		@todo: proper constraint system, but could be complicated to make it really easy to use"""
+		
+		:todo: proper constraint system, but could be complicated to make it really easy to use"""
 
 	def setup( self, **kwargs ):
 		"""Apply the given setup to the form layout, specified using kwargs
-		@param **kwargs: arguments you would set use to setup the form layout"""
+		
+		:param kwargs: arguments you would set use to setup the form layout"""
 		self.__melcmd__( self, e=1, **kwargs )
 
 

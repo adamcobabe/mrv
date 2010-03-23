@@ -8,9 +8,9 @@ import mrv.maya.ui as ui
 
 def get_package_suite( moduleObject ):
 	"""
-	@param moduleObject: the module object pointing to the package ( or module within a package )
-	@return: testsuite containing all testSuites of all package submodules
-	@todo: make this work recursively with sub-packages
+	:param moduleObject: the module object pointing to the package ( or module within a package )
+	:return: testsuite containing all testSuites of all package submodules
+	:todo: make this work recursively with sub-packages
 	"""
 	from glob import glob
 	import os
@@ -36,7 +36,7 @@ def get_package_suite( moduleObject ):
 
 
 def get_suite( ):
-	""" @return: testsuite with all tests of this package"""
+	""" :return: testsuite with all tests of this package"""
 	import mrv.test.maya.ui as self
 	import maya.cmds as cmds
 

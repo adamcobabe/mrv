@@ -35,10 +35,10 @@ def registerPluginDataTrackingDict( dataTypeID, trackingDict ):
 
 #{ Internal Utilities
 def dag_tree_from_tuple_list( tuplelist ):
-	"""@return: DagTree from list of tuples [ (level,name),...], where level specifies
+	""":return: DagTree from list of tuples [ (level,name),...], where level specifies
 	the level of items in the dag.
-	@note: there needs to be only one root node which should be first in the list
-	@return: L{DagTree} item allowing to easily query the hierarchy """
+	:note: there needs to be only one root node which should be first in the list
+	:return: `DagTree` item allowing to easily query the hierarchy """
 	tree = None
 	lastparent = None
 	lastchild = None
@@ -79,7 +79,7 @@ def dag_tree_from_tuple_list( tuplelist ):
 
 def tuple_list_from_file( filepath ):
 	"""Create a tuple hierarchy list from the file at the given path
-	@return: tuple list suitable for dag_tree_from_tuple_list"""
+	:return: tuple list suitable for dag_tree_from_tuple_list"""
 	lines = Path( filepath ).lines( retain = False )
 
 	hierarchytuples = []
@@ -93,8 +93,8 @@ def tuple_list_from_file( filepath ):
 def initWrappers( module, types, metacreatorcls, force_creation = False ):
 	""" Create standin classes that will create the actual class once creation is
 	requested.
-	@param module: module object from which the latter classes will be imported from
-	@param types: iterable containing the names of classnames ( they will be capitalized
+	:param module: module object from which the latter classes will be imported from
+	:param types: iterable containing the names of classnames ( they will be capitalized
 	as classes must begin with a capital letter )"""
 	from mrv.maya.util import StandinClass
 
@@ -125,8 +125,8 @@ def parse_maya_env( envFilePath ):
 	"""
 	Parse the key-value pairs out of the maya environment file given in
 	envFilePath
-	@todo: remove this obsolete method
-	@return: dict( "Variable":"Value" )
+	:todo: remove this obsolete method
+	:return: dict( "Variable":"Value" )
 	"""
 	out = dict()
 

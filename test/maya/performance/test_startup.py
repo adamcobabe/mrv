@@ -4,7 +4,7 @@ import time
 import sys
 
 class TestStartupPerformance( unittest.TestCase ):
-	"""@note: this test must run alone"""
+	""":note: this test must run alone"""
 	
 	def test_startup(self):
 		st = time.time()

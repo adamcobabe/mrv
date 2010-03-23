@@ -73,7 +73,7 @@ class TestSets( unittest.TestCase ):
 		
 		
 	def _getMemberList( self ):
-		"""@return: object list with all types"""
+		""":return: object list with all types"""
 		persp = nt.Node( "persp" )
 		front = nt.Node( "front" )
 		rg = nt.Node( "defaultRenderGlobals" )

@@ -1102,7 +1102,7 @@ class TestNodeBase( unittest.TestCase ):
 		"""byroniom.maya.nt.base: write a generated cache using the builder function
 		should be redone for maya 8.5 perhaps ... or in fact its enough to have one for all maya versions
 		and just merge them
-		@todo: do it """
+		:todo: do it """
 		# nt.typ.writeMfnDBCacheFiles( )
 
 

@@ -1,9 +1,8 @@
 # -*- coding: utf-8 -*-
 """
 Module containing helpers to create the UI types at runtime.
-@todo: more documentation
 """
-
+__docformat__ = "restructuredtext"
 
 import mrv.maya as bmaya
 from mrv.util import uncapitalize
@@ -14,22 +13,15 @@ import maya.cmds as mcmds
 from util import propertyQE, EventSenderUI
 
 
-
-############################
-#### CACHES		 	   ####
-#########################
+# CACHES
 _typetree = None
 _typemap = { "floatingWindow" : "window" }
 
 
-############################
-#### INITIALIZATION   ####
-#########################
-
-
+#{ Initialization
 def init_classhierarchy( ):
 	""" Read a simple hiearchy file and create an Indexed tree from it
-	@todo: cache the pickled tree and try to load it instead  """
+	:todo: cache the pickled tree and try to load it instead  """
 	mfile = Path( __file__ ).parent().parent() / "cache/UICommandsHierachy"
 
 	# STORE THE TYPE TREE
@@ -44,35 +36,39 @@ def initWrappers( ):
 	global _thismodule
 	bmaya.initWrappers( _thismodule, _typetree.nodes_iter(), MetaClassCreatorUI )
 
+#} END initialization
 
-#####################
-#### META 		####
-##################
 
 class MetaClassCreatorUI( mutil.MetaClassCreator ):
 	""" Builds the base hierarchy for the given classname based on our
-	typetree
+	typetree.
 	Additional support for :
-	* AUTOMATIC PROPERTY GENERATION *
-	  - if flags are simple get and set properties, these can be listed in the
-	    _properties_ attribute ( list ). These must be queriable and editable
-	  - Properties will be available as:
-	  	inst.p_myProperty to access myProperty ( equivalent to cmd -q|e -myProperty
-	  - This only works if our class knows it's mel command in the __melcmd__ member
-		variable - inheritance for it does not work
+	
+	**AUTOMATIC PROPERTY GENERATION**:
+	 - if flags are simple get and set properties, these can be listed in the
+	   _properties_ attribute ( list ). These must be queriable and editable
+	    
+	 - Properties will be available as:
+	   inst.p_myProperty to access myProperty ( equivalent to cmd -q|e -myProperty
+	  	
+	 - This only works if our class knows it's mel command in the __melcmd__ member
+	   variable - inheritance for it does not work
 
-	* AUTOMATIC UI-EVENT GENERATION *
-	  - define names of mel events in _events_ as list of names
-	  - these will be converted into Events sitting at attribute names like
-	  	e_eventName ( for even called 'eventName'
-	  - assign an event:
-	    windowinstance.e_restoreCommand = func
-		whereas func takes: func( windowinstance, *args, **kwargs )
+	**AUTOMATIC UI-EVENT GENERATION**:
+	 - define names of mel events in _events_ as list of names
+	 
+	 - these will be converted into Events sitting at attribute names like
+	   e_eventName ( for even called 'eventName'
+	 	
+	 - assign an event:
+	   windowinstance.e_restoreCommand = func
+	   whereas func takes: ``func( windowinstance, *args, **kwargs )``
 
-	* ADDITIONAL CONFIGURAITON *
-		- strong_event_handlers
-		 	- if True, defeault class default, events will use strong references to their handlers
-	  """
+	**ADDITIONAL CONFIGURAITON**:
+	 - strong_event_handlers:
+	 	if True, events will use strong references to their handlers
+	 
+	"""
 
 	melcmd_attrname = '__melcmd__'
 

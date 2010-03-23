@@ -26,7 +26,7 @@ class TestGeneralPerformance( unittest.TestCase ):
 	dagtypes =[ "nurbsCurve", "nurbsSurface", "subdiv", "transform" ]
 
 	def _createNodeFromName( self, name ):
-		"""@return: newly created maya node named 'name', using the respective
+		""":return: newly created maya node named 'name', using the respective
 		type depending on its path ( with pipe or without"""
 		nodetype = None
 		if '|' in name:			# name decides whether dag or dep node is created
@@ -402,9 +402,9 @@ class TestGeneralPerformance( unittest.TestCase ):
 #{ Name Generators
 def genRandomNames( numNames, wordLength ):
 	"""Generate random names from characters allowed by maya
-	@param wordLength: length of the generated word
-	@return: list of names
-	@note: currently we do not use numbers"""
+	:param wordLength: length of the generated word
+	:return: list of names
+	:note: currently we do not use numbers"""
 	outlist = []
 	for n in xrange( numNames ):
 		name = ''
@@ -417,11 +417,11 @@ def genRandomNames( numNames, wordLength ):
 def genNestedNamesList( numNames, nestingRange, wordList, sep ):
 	"""Create a random list of nested names where each subname is separated by sep, like
 	[ 'asdf:efwsf','asdfic:oeafsdf:asdfas' ]
-	@param numNames: number of names to generate
-	@param maxNestingLevel: tuple( min,max ) 0 for single names, other for names combined using sep
-	@param wordList: words we may choose from to create nested names
-	@param sep: separator between name tokens
-	@return: list of nested words"""
+	:param numNames: number of names to generate
+	:param maxNestingLevel: tuple( min,max ) 0 for single names, other for names combined using sep
+	:param wordList: words we may choose from to create nested names
+	:param sep: separator between name tokens
+	:return: list of nested words"""
 	outnames = []
 	for n in xrange( numNames ):
 		nlist = []
@@ -432,11 +432,11 @@ def genNestedNamesList( numNames, nestingRange, wordList, sep ):
 
 def genNodeNames( numNames, dagLevelRange, wordRange, nslist ):
 	"""Create  random nodenames with a dag path as depe as maxDagLevel using
-	@param numNames: number of names to generate
-	@param dagLevelRange: tuple( min, max ), defining how deept the nesting may be
-	@param wordRange: tuple ( min,max ), defining the minimum and maximum word length
-	@note: subnamespaces can repeat in name
-	@return: the generated name """
+	:param numNames: number of names to generate
+	:param dagLevelRange: tuple( min, max ), defining how deept the nesting may be
+	:param wordRange: tuple ( min,max ), defining the minimum and maximum word length
+	:note: subnamespaces can repeat in name
+	:return: the generated name """
 	# gen names
 	nodenames = genRandomNames( numNames, wordRange )
 	dagpaths = genNestedNamesList( numNames, dagLevelRange, nodenames, '|' )

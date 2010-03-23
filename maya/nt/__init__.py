@@ -8,16 +8,17 @@ commands will be natively working on them.
 
 These classes follow the node hierarchy as supplied by the maya api.
 
-Optionally: Attribute access is as easy as using properties like
-  node.translateX
+Optionally: Attribute access is as easy as using properties like:
 
-@note: it is important not to cache these as the underlying obejcts my change over time.
-For long-term storage, use handles instead.
+	>>> node.translateX
 
-Default maya commands will require them to be used as string variables instead.
+:note: it is important not to cache these as the underlying obejcts my change over time.
+	For long-term storage, use handles instead.
 
-@todo: more documentation
+Default maya commands will require them to be used as strings instead.
 """
+__docformat__ = "restructuredtext"
+
 import mrv.maya as bmaya
 import typ
 _thismodule = __import__( "mrv.maya.nt", globals(), locals(), ['nt'] )
@@ -36,15 +37,18 @@ import os
 
 def addCustomType( newcls, parentClsName=None, **kwargs ):
 	""" Add a custom class to this module - it will be handled like a native type
-	@param newcls: new class object if metaclass is None, otherwise string name of the
-	type name to be created by your metaclass
-	@param parentClsName: if metaclass is set, the parentclass name ( of a class existing
-	in the nodeTypeTree ( see /maya/cache/nodeHierarchy.html )
-	Otherwise, if unset, the parentclassname will be extracted from the newcls object
-	@param force_creation: if True, default False, the class type will be created immediately. This
-	can be useful if you wish to use the type for comparison, possibly before it is first being
-	queried by the system. The latter case would bind the StandinClass instead of the actual type.
-	@raise KeyError: if the parentClsName does not exist"""
+	
+	:param newcls: new class object if metaclass is None, otherwise string name of the
+		type name to be created by your metaclass
+	:param parentClsName: if metaclass is set, the parentclass name ( of a class existing
+		in the nodeTypeTree ( see /maya/cache/nodeHierarchy.html )
+		Otherwise, if unset, the parentclassname will be extracted from the newcls object
+	:param kwargs:
+		 * force_creation: 
+				if True, default False, the class type will be created immediately. This
+				can be useful if you wish to use the type for comparison, possibly before it is first being
+				queried by the system. The latter case would bind the StandinClass instead of the actual type.
+	:raise KeyError: if the parentClsName does not exist"""
 	newclsname = newcls
 	newclsobj = None
 	parentname = parentClsName
@@ -61,32 +65,32 @@ def addCustomType( newcls, parentClsName=None, **kwargs ):
 	if newclsobj:
 		setattr( _thismodule, newclsname, newclsobj )
 
-
 def addCustomTypeFromFile( hierarchyfile, **kwargs ):
 	"""Add a custom classes as defined by the given tab separated file.
 	Call addCustomClasses afterwards to register your own base classes to the system
 	This will be required to assure your own base classes will be used instead of auto-generated
 	stand-in classes
-	@param hierarchyfile: Filepath to file modeling the class hierarchy:
-	basenode
-		derivednode
-			subnode
-		otherderivednode
-	@param force_creation: see L{addCustomType}
-	@note: all attributes of L{addCustomType} are supported
-	@note: there must be exactly one root type
-	@return: iterator providing all class names that have been added"""
+	
+	:param hierarchyfile: Filepath to file modeling the class hierarchy using tab-indentation.
+		The root node has no indentation, whereas each child node adds one indentation level using 
+		tabs.
+	:param kwargs:
+		 * force_creation: see `addCustomType`
+	:note: all attributes of `addCustomType` are supported
+	:note: there must be exactly one root type
+	:return: iterator providing all class names that have been added"""
 	dagtree = bmaya._dagTreeFromTupleList( bmaya._tupleListFromFile( hierarchyfile ) )
 	typ._addCustomTypeFromDagtree( _thismodule, dagtree, **kwargs )
 	return ( capitalize( nodetype ) for nodetype in dagtree.nodes_iter() )
 
-
 def addCustomClasses( clsobjlist ):
 	"""Add the given classes to the nodes module, making them available to the sytem
-	@note: first the class hierarchy need to be updated using addCustomTypeFromFile. This
-	must appen before your additional classes are parsed to assure our metaclass creator will not
-	be called before it knows the class hierarchy ( and where to actually put your type
-	@param clslist: list of class objects whose names are mentioned in the dagtree"""
+	
+	:note: first the class hierarchy need to be updated using addCustomTypeFromFile.
+		This must appen before your additional classes are parsed to assure our metaclass creator will not
+		be called before it knows the class hierarchy ( and where to actually put your type ).
+	
+	:param clsobjlist: list of class objects whose names are mentioned in the dagtree"""
 	# add the classes
 	for cls in clsobjlist:
 		setattr( _thismodule, cls.__name__, cls )
@@ -95,8 +99,9 @@ def addCustomClasses( clsobjlist ):
 def forceClassCreation( typeNameList ):
 	"""Create the types from standin classes from the given typeName iterable.
 	The typenames must be upper case
-	@return: List of type instances ( the classes ) that have been created"""
-	outclslist = []
+	
+	:return: List of type instances ( the classes ) that have been created"""
+	outclslist = list()
 	standincls = bmayautil.StandinClass
 	for typename in typeNameList:
 		typeCls = getattr( _thismodule, typename )
@@ -154,7 +159,7 @@ def _force_type_creation():
 		# END create type 
 	# END for each stored type
 	
-#} END initialization	
+#} END initialization
 
 
 if 'init_done' not in locals():

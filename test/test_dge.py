@@ -31,7 +31,7 @@ class SimpleNode( NodeBase ):
 	#{ iDuplicatable Interface
 	def createInstance( self, *args, **kwargs ):
 		"""Create a copy of self and return it
-		@note: override by subclass  - the __init__ methods shuld do the rest"""
+		:note: override by subclass  - the __init__ methods shuld do the rest"""
 		return self.__class__( self.id() )
 	#} END iDuplicatable
 

@@ -1,5 +1,7 @@
 # -*- coding: utf-8 -*-
 """Contains workflow classes that conenct processes in a di - graph """
+__docformat__ = "restructuredtext"
+
 import networkx as nx
 from mrv.dge import Graph, ComputeError
 import time
@@ -22,8 +24,9 @@ class DirtyException( Exception ):
 
 	The exception can also contain a report that will be returned using the
 	makeReport function.
-	@note: Thus exeption class must NOT be derived from ComputeError as it will be caught
-	by the DG engine and mis-interpreted - unknown exceptions will just be passed on by it
+	
+	:note: Thus exeption class must NOT be derived from ComputeError as it will be caught
+		by the DG engine and mis-interpreted - unknown exceptions will just be passed on by it
 	"""
 	__slots__ = "report"
 	def __init__( self, report = '' ):
@@ -36,8 +39,9 @@ class DirtyException( Exception ):
 	#{ Interface
 
 	def makeReport( self ):
-		"""@return: printable report, usually a string or some object that
-		responds to str() appropriately"""
+		"""
+		:return: printable report, usually a string or some object that
+			responds to str() appropriately"""
 		return self.report
 
 	#} END interface
@@ -50,7 +54,8 @@ class DirtyException( Exception ):
 
 class Workflow( Graph ):
 	"""Implements a workflow as connected processes
-	@note: if you have to access the processes directly, use the DiGraph methods"""
+	
+	:note: if you have to access the processes directly, use the DiGraph methods"""
 
 	#{ Utility Classes
 	class ProcessData( object ):
@@ -73,14 +78,15 @@ class Workflow( Graph ):
 			return out
 
 		def elapsed( ):
-			"""@return: time to process the call"""
+			""":return: time to process the call"""
 			return self.endtime - self.starttime
 
 		def setResult( self, result ):
 			"""Set the given result
-			@note: uses weak references as the tracking structure should not cause a possible
-			mutation of the program flow ( as instances stay alive although code expects it to be
-			deleted"""
+			
+			:note: uses weak references as the tracking structure should not cause a possible
+				mutation of the program flow ( as instances stay alive although code expects it to be
+				deleted"""
 			if result is not None:
 				try:
 					self._result = weakref.ref( result )
@@ -89,7 +95,7 @@ class Workflow( Graph ):
 			# END if result not None
 
 		def result( self ):
-			"""@return: result stored in this instance, or None if it is not present or not alive"""
+			""":return: result stored in this instance, or None if it is not present or not alive"""
 			if self._result:
 				if isinstance( self._result, weakref.ref ):
 					return self._result()
@@ -100,8 +106,8 @@ class Workflow( Graph ):
 
 	class CallGraph( nx.DiGraph ):
 		"""Simple wrapper storing a call graph, keeping the root at which the call started
-		@note: this class is specialized to be used by workflows, its not general for that
-		purpose"""
+		
+		:note: this class is specialized to be used by workflows, its not general for that purpose"""
 		def __init__( self ):
 			super( Workflow.CallGraph, self ).__init__( name="Callgraph" )
 			self._call_stack = []
@@ -123,25 +129,28 @@ class Workflow( Graph ):
 
 		def endCall( self, result ):
 			"""End the call start started previously
-			@param result: the result of the call"""
+			
+			:param result: the result of the call"""
 			lastprocessdata = self._call_stack.pop( )
 			lastprocessdata.endtime = time.clock( )
 			lastprocessdata.setResult( result )
 
 		def callRoot( self ):
-			"""@return: root at which the call started"""
+			""":return: root at which the call started"""
 			return self._root
 
 		def callstackSize( self ):
-			"""@return: length of the callstack"""
+			""":return: length of the callstack"""
 			return len( self._call_stack )
 
 		def toCallList( self, reverse = True, pruneIfTrue = lambda x: False ):
-			"""@return: flattened version of graph as list of ProcessData edges in call order , having
-			the root as last element of the list
-			@param pruneIfTrue: Function taking ProcessData to return true if the node
-			should be pruned from the result
-			@param reverse: if true, the calllist will be properly reversed ( taking childre into account """
+			"""
+			:return: flattened version of graph as list of ProcessData edges in call order , having
+				the root as last element of the list
+			
+			:param pruneIfTrue: Function taking ProcessData to return true if the node
+				should be pruned from the result
+			:param reverse: if true, the calllist will be properly reversed ( taking childre into account """
 
 			def predecessors( node, nextNode, reverse, pruneIfTrue ):
 				out = []
@@ -177,9 +186,6 @@ class Workflow( Graph ):
 
 	#} END utility classes
 
-
-
-	#{ Overridden Methods
 	def __init__( self, **kwargs ):
 		"""Initalized base class"""
 		super( Workflow, self ).__init__( **kwargs )
@@ -191,29 +197,17 @@ class Workflow( Graph ):
 	def __str__( self ):
 		return self.name
 
-	#} # END overridden methods
-
-	#{ iDuplicatable Interface
-
 	def copyFrom( self, other ):
 		"""Only mode is required """
 		self._mode = other._mode
 		# shallow copy callgraph
 		self._callgraph = other._callgraph
 
-	#} END iDuplicatable
-
-
-
 	#{ Main Interface
 
 	def makeTarget( self, target ):
-		"""@param target: target to make - can be class or instance
-		@param reportType: Report to populate with information - it must be a Plan based
-		class that can be instantiated and populated with call information.
-		A report analyses the call dependency graph generated during dg evaluation
-		and presents it.
-		@return: result when producing the target"""
+		""":param target: target to make - can be class or instance
+		:return: result when producing the target"""
 		# generate mode
 		import process
 		pb = process.ProcessBase
@@ -223,12 +217,13 @@ class Workflow( Graph ):
 		return result
 
 	def makeTargets( self, targetList, errstream=None, donestream=None ):
-		""" batch module compatible method allowing to make mutliple targets at once
-		@param targetList: iterable providing the targets to make
-		@param errstream: object with file interface allowing to log errors that occurred
-		during operation
-		@param donestream: if list, targets successfully done will be appended to it, if
-		it is a stream, the string representation will be wrtten to it"""
+		"""batch module compatible method allowing to make mutliple targets at once
+		
+		:param targetList: iterable providing the targets to make
+		:param errstream: object with file interface allowing to log errors that occurred
+			during operation
+		:param donestream: if list, targets successfully done will be appended to it, if
+			it is a stream, the string representation will be wrtten to it"""
 		global log
 		def to_stream(msg, stream):
 			"""print msg to stream or use the logger instead"""
@@ -264,7 +259,7 @@ class Workflow( Graph ):
 
 	def _evaluateDirtyState( self, outputplug, processmode ):
 		"""Evaluate the given plug in process mode and return a dirty report tuple
-		as used by L{makeDirtyReport}"""
+		as used by `makeDirtyReport`"""
 		report = list( ( outputplug, None ) )
 		try:
 			outputplug.clearCache( clear_affected = False ) 		# assure it eavaluates
@@ -280,17 +275,18 @@ class Workflow( Graph ):
 
 
 	def makeDirtyReport( self, target, mode = "single" ):
-		"""@return: list of tuple( shell, DirtyReport|None )
-		If a process ( shell.node ) is dirty, a dirty report will be given explaining
-		why the process is dirty and needs an update
-		@param target: target you which to check for it's dirty state
-		@param mode:
-		 	single - only the process assigned to evaluate target will be checked
-			multi - as single, but the whole callgraph will be checked, starting
-					at the first node, stepping down the callgraph. This gives a per
-					node dirty report.
-			deep - try to evaluate target, but fail if one process in the target's
-			call history is dirty
+		"""
+		:return: list of tuple( shell, DirtyReport|None )
+			If a process ( shell.node ) is dirty, a dirty report will be given explaining
+			why the process is dirty and needs an update
+		:param target: target you which to check for it's dirty state
+		:param mode:
+		 	 * single - only the process assigned to evaluate target will be checked
+			 * multi - as single, but the whole callgraph will be checked, starting
+						at the first node, stepping down the callgraph. This gives a per
+						node dirty report.
+			 * deep - try to evaluate target, but fail if one process in the target's
+			 	call history is dirty
 		"""
 		import process
 		pb = process.ProcessBase
@@ -331,7 +327,8 @@ class Workflow( Graph ):
 	def _clearState( self, global_evaluation_mode ):
 		"""Clear the previous state and re-initialize this instance getting ready
 		for a new instance
-		@param global_evaluation_mode: evaluation mode to be used"""
+		
+		:param global_evaluation_mode: evaluation mode to be used"""
 		self._callgraph = Workflow.CallGraph( )
 		self._mode = global_evaluation_mode
 
@@ -339,8 +336,9 @@ class Workflow( Graph ):
 	def _setupProcess( self, target, globalmode ):
 		"""Setup the workflow's dg such that the returned output shell can be queried
 		to evaluate target
-		@param globalmode: mode with which all other processes will be handling
-		their input calls
+		
+		:param globalmode: mode with which all other processes will be handling
+			their input calls
 		"""
 		global log
 		
@@ -419,8 +417,9 @@ class Workflow( Graph ):
 
 	def _evaluate( self, target, processmode, globalmode ):
 		"""Make or update the target using a process in our workflow
-		@param processmode: the mode with which to call the initial process
-		@return: tuple( shell, result ) - plugshell queried to get the result
+		
+		:param processmode: the mode with which to call the initial process
+		:return: tuple( shell, result ) - plugshell queried to get the result
 		"""
 		outputshell = self._setupProcess( target, globalmode )
 		######################################################
@@ -435,11 +434,12 @@ class Workflow( Graph ):
 
 	def createReportInstance( self, reportType ):
 		"""Create a report instance that describes how the previous target was made
-		@param reportType: Report to populate with information - it must be a Plan based
-		class that can be instantiated and populated with call information.
-		A report analyses the call dependency graph generated during dg evaluation
-		and presents it.
-		@return: report instance whose makeReport method can be called to retrieve it"""
+		
+		:param reportType: Report to populate with information - it must be a Plan based
+			class that can be instantiated and populated with call information.
+			A report analyses the call dependency graph generated during dg evaluation
+			and presents it.
+		:return: report instance whose makeReport method can be called to retrieve it"""
 		# make the target as dry run
 		return reportType( self._callgraph )
 
@@ -449,8 +449,8 @@ class Workflow( Graph ):
 	#{ Query
 
 	def targetSupportList( self ):
-		"""@return: list of all supported target type
-		@note: this method is for informational purposes only"""
+		""":return: list of all supported target type
+		:note: this method is for informational purposes only"""
 		uniqueout = set()
 		for node in self.iterNodes():
 			try:
@@ -462,13 +462,16 @@ class Workflow( Graph ):
 
 
 	def targetRating( self, target ):
-		"""@return: int range(0,255) indicating how well a target can be made
-		0 means not at all, 255 means perfect.
-		Return value is tuple ( rate, PlugShell ), containing the process and plug with the
-		highest rating or None if rate is 0
-		Walk the dependency graph such that leaf nodes have higher ratings than
-		non-leaf nodes
-		@note: you can use the L{processes.ProcessBase} enumeration for comparison"""
+		"""
+		:return: int range(0,255) indicating how well a target can be made
+			0 means not at all, 255 means perfect.
+			
+			Return value is tuple ( rate, PlugShell ), containing the process and plug with the
+			highest rating or None if rate is 0
+			
+			Walk the dependency graph such that leaf nodes have higher ratings than
+			non-leaf nodes
+		:note: you can use the `process.ProcessBase` enumeration for comparison"""
 		rescache = list()
 		best_process = None
 
@@ -508,8 +511,8 @@ class Workflow( Graph ):
 		return shell.node.targetRating( target )
 
 	def callgraph( self ):
-		"""@return: current callgraph instance
-		@note: its strictly read-only and may not be changed"""
+		""":return: current callgraph instance
+		:note: its strictly read-only and may not be changed"""
 		return self._callgraph
 
 	#} END query
@@ -517,7 +520,7 @@ class Workflow( Graph ):
 	#{ Internal Process Interface
 
 	def _isDryRun( self ):
-		"""@return: True if the current computation is a dry run"""
+		""":return: True if the current computation is a dry run"""
 		return self._mode
 
 	def _trackOutputQueryStart( self, process, plug, mode ):
@@ -542,7 +545,8 @@ class Workflow( Graph ):
 	def _populateFromGraph( self, graph ):
 		"""Parse the networkx graph and populate ourselves with the respective process
 		instances as described by the graph
-		@param graph: networkx graph whose nodes are process names to be found in the processes
-		module """
+		
+		:param graph: networkx graph whose nodes are process names to be found in the processes
+			module """
 		raise NotImplementedError( "TODO" )
 

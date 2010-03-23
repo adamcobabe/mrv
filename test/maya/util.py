@@ -16,7 +16,7 @@ def save_temp_file( filename ):
 
 def save_for_debugging(scene_name):
 	"""Save the currently actve scene as MayaAscii for debugging purposes
-	@return: absolute path string at which the file was saved"""
+	:return: absolute path string at which the file was saved"""
 	import mrv.maya as mrvmaya		# late import
 	scene_path = os.path.join(tempfile.gettempdir(), scene_name + ".ma")
 	mrvmaya.Scene.save(scene_path, force=True)

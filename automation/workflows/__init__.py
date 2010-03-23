@@ -1,14 +1,11 @@
 # -*- coding: utf-8 -*-
 """Keeps all workflows specific to maya
 
-@note: L{createWorkflow} method must be supported in a module keeping workflows
-@todo: it would be better to have the createWorkflow method in some sort of workflowManager,
-for now that appears like overkill though
-
-
+:note: ``createWorkflow`` method must be supported in a module keeping workflows
+:todo: it would be better to have the createWorkflow method in some sort of workflowManager,
+	for now that appears like overkill though 
 """
-
-
+__docformat__ = "restructuredtext"
 
 from mrv.path import Path
 _this_module = __import__( "mrv.automation.workflows", globals(), locals(), ['workflows'] )
@@ -17,7 +14,6 @@ import mrv.automation.processes
 
 
 #{ Initialization
-
 
 # assure we only do certain things once
 if 'init_done' not in locals():

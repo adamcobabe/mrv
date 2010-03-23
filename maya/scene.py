@@ -3,9 +3,9 @@
 Provides methodes to query and alter the currently loaded scene. It covers
 most of the functionality of the 'file' command, but has been renamed to scene
 as disambiguation to a filesystem file.
-
-@todo: more documentation
 """
+__docformat__ = "restructuredtext"
+
 import util as mutil
 import mrv.util as util
 import maya.OpenMaya as api
@@ -54,7 +54,8 @@ class Scene( util.Singleton, util.EventSender ):
 	"""Singleton Class allowing access to the maya scene
 	
 	You can register all events available in MSceneMessage easily usnig the following 
-	syntax::
+	syntax:
+	
 		>>> scene.kBeforeSoftwareRender = myFunctionObject
 	
 	"""
@@ -81,12 +82,13 @@ class Scene( util.Singleton, util.EventSender ):
 	@classmethod
 	def open( cls, scenepath=None, force=False, **kwargs ):
 		""" Open the scene at the given scenepath
-		@param scenepath: The path to the file to be opened
-		If None, the currently loaded file will reopened
-		@param force - if True, the new scene will be loaded although currently
-		loaded contains unsaved changes
-		@param **kwargs: passed to *cmds.file*
-		@return: a Path to the loaded scene"""
+		
+		:param scenepath: The path to the file to be opened
+			If None, the currently loaded file will reopened
+		:param force: if True, the new scene will be loaded although currently
+			loaded contains unsaved changes
+		:param kwargs: passed to *cmds.file*
+		:return: a Path to the loaded scene"""
 		if not scenepath:
 			scenepath = cls.name()
 
@@ -100,10 +102,11 @@ class Scene( util.Singleton, util.EventSender ):
 	@classmethod
 	def new( cls, force = False, **kwargs ):
 		""" Create a new scene
-		@param force: if True, the new scene will be created even though there
-		are unsaved modifications
-		@param **kwargs: passed to *cmds.file*
-		@return: Path with name of the new file"""
+		
+		:param force: if True, the new scene will be created even though there
+			are unsaved modifications
+		:param kwargs: passed to *cmds.file*
+		:return: Path with name of the new file"""
 		kwargs.pop('new', kwargs.pop('n', None))
 		kwargs.pop('force', kwargs.pop('f', None))
 		return Path( cmds.file( new = True, force = force, **kwargs ) )
@@ -111,11 +114,11 @@ class Scene( util.Singleton, util.EventSender ):
 	@classmethod
 	def rename( cls, scenepath ):
 		"""Rename the currently loaded file to be the file at scenepath
-		@param scenepath: string or Path pointing describing the new location of the scene.
-		@return: Path to scenepath
-		@note: as opposed to the normal file -rename it will also adjust the
-		extension
-		@raise RuntimeError: if the scene's extension is not supported."""
+		
+		:param scenepath: string or Path pointing describing the new location of the scene.
+		:return: Path to scenepath
+		:note: as opposed to the normal file -rename it will also adjust the extension
+		:raise RuntimeError: if the scene's extension is not supported."""
 		scenepath = Path(scenepath)
 		try:
 			cmds.file( rename = scenepath.expandvars() )
@@ -129,12 +132,13 @@ class Scene( util.Singleton, util.EventSender ):
 	@classmethod
 	def save( cls, scenepath=None, autodeleteUnknown = False, **kwargs ):
 		"""Save the currently opened scene under scenepath in the respective format
-		@param scenepath: if None, the currently opened scene will be saved, otherwise 
-		the name will be changed. Paths leading to the file will automatically be created.
-		@param autodeleteUnknown: if true, unknown nodes will automatically be deleted
-		before an attempt is made to change the maya file's type
-		@param **kwargs: passed to cmds.file
-		@return: Path at which the scene has been saved."""
+		
+		:param scenepath: if None, the currently opened scene will be saved, otherwise 
+			the name will be changed. Paths leading to the file will automatically be created.
+		:param autodeleteUnknown: if true, unknown nodes will automatically be deleted
+			before an attempt is made to change the maya file's type
+		:param kwargs: passed to cmds.file
+		:return: Path at which the scene has been saved."""
 		if scenepath is None or scenepath == "":
 			scenepath = cls.name( )
 
@@ -169,14 +173,14 @@ class Scene( util.Singleton, util.EventSender ):
 	@classmethod
 	def export(cls, outputFile, nodeListOrIterable=None, **kwargs):
 		"""Export the given nodes or everything into the file at path
-		@param outputFile: Path object or path string to which the data should 
-		be written to. Parent directories will be created as needed
-		@param nodeListOrIterable: if None, everything will be exported. 
-		Otherwise it may be an MSelectionList ( recommended ), or a list of
-		Nodes, MObjects or MDagPaths
-		@param **kwargs: passed to cmds.file, see the mel docs for modifying 
-		flags
-		@return: Path to which the data was exported"""
+		
+		:param outputFile: Path object or path string to which the data should 
+			be written to. Parent directories will be created as needed
+		:param nodeListOrIterable: if None, everything will be exported. 
+			Otherwise it may be an MSelectionList ( recommended ), or a list of
+			Nodes, MObjects or MDagPaths
+		:param kwargs: passed to cmds.file, see the mel docs for modifying flags
+		:return: Path to which the data was exported"""
 		outputFile = Path(outputFile) 
 		if not outputFile.dirname().isdir():
 			outputFile.dirname().makedirs()
@@ -215,9 +219,10 @@ class Scene( util.Singleton, util.EventSender ):
 	@classmethod
 	def deleteUnknownNodes( cls ):
 		"""Deletes all unknown nodes in the scene
-		@note: only do this if you are about to change the type of the scene during
-		save or export - otherwise the operation would fail if there are still unknown nodes
-		in the scene"""
+		
+		:note: only do this if you are about to change the type of the scene during
+			save or export - otherwise the operation would fail if there are still unknown nodes
+			in the scene"""
 		unknownNodes = cmds.ls( type="unknown" )		# using mel is the faatest here
 		if unknownNodes:
 			cmds.delete( unknownNodes )

@@ -18,7 +18,7 @@ import sys
 def main( fileList, **kwargs ):
 	"""Called if this module is called directly, creating a file containing
 	dependency information
-	@param kwargs: will be passed directly to L{createFromFiles}"""
+	:param kwargs: will be passed directly to `createFromFiles`"""
 	return MayaFileGraph.createFromFiles( fileList, **kwargs )
 
 
@@ -106,7 +106,7 @@ All values returned in query mode will be new-line separated file paths
 
 def tokensToRemapFunc( tokenstring ):
 	"""Return a function applying remapping as defined by tokenstring
-	@note: it also applies a mapping from mb to ma, no matter what.
+	:note: it also applies a mapping from mb to ma, no matter what.
 	Thus we currently only store .ma files as keys even though it might be mb files"""
 	tokens = tokenstring.split( "=" )
 	if len( tokens ) % 2 != 0:

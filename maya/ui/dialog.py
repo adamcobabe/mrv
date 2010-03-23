@@ -1,9 +1,9 @@
 # -*- coding: utf-8 -*-
 """
 Contains some default dialogs as well as layouts suitable for layout dialogs
-
-@todo: more documentation
 """
+__docformat__ = "restructuredtext"
+
 import base as uibase
 import maya.cmds as cmds
 import maya.utils as mutils
@@ -13,19 +13,9 @@ from mrv.interface import iPrompt, iChoiceDialog, iProgressIndicator
 import logging
 log = logging.getLogger("mrv.maya.ui.dialog")
 
-#{ Exceptions
-################################################################################
-
-
-#} End Exceptions
-
 
 class Dialog( uibase.BaseUI ):
 	""" Base for all dialog classes """
-
-	#{ Overridden Methods
-
-	#}
 
 
 class PromptDialog( Dialog ):
@@ -33,7 +23,7 @@ class PromptDialog( Dialog ):
 
 	def __init__( self, title, message, okText, cancelText, **kwargs ):
 		""" Create a prompt dialog and allow to query the result
-		@note: return default text in batch mode, given with 'text' key"""
+		:note: return default text in batch mode, given with 'text' key"""
 		if cmds.about( batch=1 ):
 			return kwargs.get( 'text', kwargs.get( 't', '' ) )
 
@@ -44,7 +34,7 @@ class PromptDialog( Dialog ):
 			self._text = cmds.promptDialog( q=1, text = 1 )
 
 	def text( self ):
-		"""@return: the entered text or None if the box has been aborted"""
+		""":return: the entered text or None if the box has been aborted"""
 		return self._text
 
 
@@ -53,10 +43,11 @@ class Prompt( iPrompt ):
 
 	def prompt( self ):
 		"""Aquire the information using a prompt dialog
-		@return: prompted value if input was confirmed using confirmToken, or the cancelValue
-		if cancelToken was pressed
-		@note: tokens correspond to buttons
-		@note: handles batch mode correctly"""
+		
+		:return: prompted value if input was confirmed using confirmToken, or the cancelValue
+			if cancelToken was pressed
+		:note: tokens correspond to buttons
+		:note: handles batch mode correctly"""
 		if cmds.about( batch = 1 ):
 			return super( Prompt, self ).prompt( )
 
@@ -117,9 +108,6 @@ class ProgressWindow( iProgressIndicator ):
 
 		self.kwargs = kwargs  			# store for begin
 
-
-	#{ iProgress Overrides
-
 	def refresh( self, message = None ):
 		"""Finally show the progress window"""
 		global log
@@ -152,14 +140,13 @@ class ProgressWindow( iProgressIndicator ):
 		mutils.executeDeferred( cmds.progressWindow, ep=1 )
 
 	def isCancelRequested( self ):
-		"""@return: True if the action should be cancelled, False otherwise"""
+		""":return: True if the action should be cancelled, False otherwise"""
 		return cmds.progressWindow( q=1, ic=1 )
 
 	def isAbortable( self ):
-		"""@return : true if the process can be aborted"""
+		""":return : true if the process can be aborted"""
 		return cmds.progressWindow( q=1, ii=1 )
 
 	def setAbortable( self, state ):
 		cmds.progressWindow( e=1, ii=state )
 		return super( ProgressWindow, self ).setAbortable( state )
-	#} END iProgressOverrides
