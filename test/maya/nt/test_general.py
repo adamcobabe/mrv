@@ -6,6 +6,7 @@ import mrv.maya.nt as nt
 import maya.OpenMaya as api
 import maya.cmds as cmds
 
+import mrv.maya.nt as mrvnt
 from mrv.maya.nt import *
 from mrv.maya.ns import *
 from mrv.maya.ref import FileReference
@@ -55,6 +56,8 @@ class TestTransform( unittest.TestCase ):
 		
 	def test_usage_examples(self):
 		bmaya.Scene.new(force=True)
+		mrvnt.enforcePersistence()
+		
 		# NOTE: If this test fails ( because of name changes for instance ), the 
 		# documentation needs to be fixed as well, usage.rst.
 		
@@ -568,4 +571,13 @@ class TestTransform( unittest.TestCase ):
 		assert len(Node(snn).objectSet(did, 0)) == 1
 		
 		os.remove(tmpscene)
+		
+		# ABOUT METHODS AND TYPES
+		#########################
+		p = Node("persp")
+		ps = p.child(0)			# method originally on MFnDagNode
+		assert isinstance(ps, DagNode)
+		
+		self.failUnlessRaises(TypeError, ps.hasSamePerspective, ps)
+		assert ps.hasSamePerspective(ps.dagPath())		# method on MFnCamera
 		

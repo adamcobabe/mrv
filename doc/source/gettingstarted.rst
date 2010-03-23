@@ -4,7 +4,6 @@ Getting an Overview
 ===================
 Besides the fact that you need to be familiar with Python, you should be able to get started with MRV quickly by working though the Usage Guide: :ref:`usage-label`.
 
-================
 Helping Yourself
 ================
 MRV uses Sphinx as main documentation system, but uses Epydoc to fill the gap.

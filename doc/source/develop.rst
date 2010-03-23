@@ -76,12 +76,34 @@ Lifetime of MObjects/reference count
 mat == p.wm.getByLogicalIndex(0).asData().matrix()	# matrix is ref, parent goes out of scope
 
 
-======
-Naming
-======
-X and setX
-If overridden MFnMethod uses getX, an alias X is provided, the method itself is overridden as getX.
+=====================
+MRV Naming Convention
+=====================
+MRV's primary intention regarding its naming conventions is to fit into the ones already setup by the MayaAPI.
+
+MRV uses methods named ``setProperty`` to set the given property on an instance, and ``property`` to retrieve that property. ``property`` may take arguments as well to possibly configure the way the property is retrieved.
+
+To indicate non-property values, which are values that have to be generated or retrieved in some way, the method is prefixed to give a hint on the underlying operation, such as in ``findValue`` or ``createValue``.
+
+If the property is a boolean, and if it equals a state of the instance, the method prefix is chosen to be close to 'natural english', i.e. ``isLocked``, or ``hasCache``.
+
+MayaAPI Method Names
+====================
+TODO: write it nicely
+If overridden MFnMethod uses getX, an alias X is provided, the method itself is overridden as getX. 
+
+If an overridden MFnMethod uses X, no alias is provided for getX.
+
 isSomething, but issometh	# abbreviations lower case
+
+=====
+Types
+=====
+Return values of overridden methods return the wrapped type. ( DagNode.child )
+
+At the current time, MFn methods which receive MObjects or MDagPaths will only 
+allow MObjects or MDagPaths, wrapped nodes must be converted explicitly. At some 
+point this should change to allow wrapped nodes as well.
 
 
 .. _performance-docs-label:

@@ -396,6 +396,48 @@ class TestGeneralPerformance( unittest.TestCase ):
 		# try namespace iteration
 		self._iterate_namespace(ref.namespace(), unlimited_depth=True)
 		
+	@with_scene('empty.ma')
+	def test_typeconversion_overhead(self):
+		# this method will be extended once we actually do typeconversions automatically 
+		ps = nt.Node("perspShape")
+		n = 10000
+		
+		# if this check fails, the test needs to be updated, as we now obviously
+		# implement typeconversions
+		self.failUnlessRaises(TypeError, ps.hasSamePerspective, ps)
+		
+		# use api method here to get the pure marshalling overhead
+		hasSamePerspective = ps._api_hasSamePerspective
+		
+		# OPTIMAL CONVERSION
+		# we know that we have to convert
+		st = time.time()
+		for i in xrange(n):
+			hasSamePerspective(ps.dagPath())
+		# END for each iteration
+		elapsedotc = time.time() - st
+		
+		# NORMAL CONVERSION
+		# the type has to be checked
+		st = time.time()
+		for i in xrange(n):
+			if type(ps) is not api.MDagPath:
+				hasSamePerspective(ps.dagPath())
+			else:
+				hasSamePerspective(ps)	# never gets called
+		# END for each iteration
+		elapseddtc = time.time() - st
+		
+		# WITHOUT CONVERSION
+		# the proper type is passed in right away
+		st = time.time()
+		psdp = ps.dagPath()
+		for i in xrange(n):
+			hasSamePerspective(psdp)
+		# END for each iteration
+		elapsedntc = time.time() - st
+		
+		print >>sys.stderr, "Called MFnMethod %i times without (%f s, %f calls / s), with optimal (%f s) and with normal type conversion(%f s), overhead is 1.0~%f~%f" % (n, elapsedntc, n/elapsedntc, elapsedotc, elapseddtc, elapsedotc/elapsedntc, elapseddtc/elapsedntc)
 		
 
 
