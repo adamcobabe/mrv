@@ -3,7 +3,7 @@
 
 All classes of the ui submodules can be accessed by importing this package.
 """
-
+__docformat__ = "restructuredtext"
 
 ############################
 #### Exceptions		 	####
@@ -26,6 +26,7 @@ def force_type_creation():
 
 #} END initialization utilities
 
+#{ Initialization
 if not init_done:
 	import typ
 	typ.init_classhierarchy()				# populate hierarchy DAG from cache
@@ -46,6 +47,6 @@ if not init_done:
 	
 	# automatic types need to be created in the end !
 	force_type_creation()
-# END initialization
+#} END initialization
 
 init_done = True

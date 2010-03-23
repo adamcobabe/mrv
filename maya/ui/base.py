@@ -1,9 +1,8 @@
 # -*- coding: utf-8 -*-
 """
 Contains some basic  classes that are required to run the UI system
-
-:todo: more documentation
 """
+__docformat__ = "restructuredtext"
 import maya.cmds as cmds
 from mrv.util import capitalize
 from mrv.interface import iDagItem
@@ -18,17 +17,19 @@ _uidict = None 			# set during initialization
 ##########################
 
 def getUIType( uiname ):
-	""":return: uitype string having a corresponding mel command - some types returned do not correspond
-	to the actual name of the command used to manipulate the type """
+	"""
+	:return: uitype string having a corresponding mel command - some types returned do not correspond
+		to the actual name of the command used to manipulate the type """
 	uitype = cmds.objectTypeUI( uiname )
 	return typ._typemap.get( uitype, uitype )
 
 
 def wrapUI( uinameOrList, ignore_errors = False ):
-	""" :return: a new instance ( or list of instances ) of a suitable python UI wrapper class for the
-	UI with the given uiname(s)
+	"""
+	:return: a new instance ( or list of instances ) of a suitable python UI wrapper class for the
+		UI with the given uiname(s)
 	:param uinameOrList: if single name, a single instance will be returned, if a list of names is given,
-	a list of respective instances. None will be interpreted as empty list
+		a list of respective instances. None will be interpreted as empty list
 	:param ignore_errors: ignore ui items that cannot be wrapped as the type is unknown.
 	:raise RuntimeError: if uiname does not exist or is not wrapped in python """
 	uinames = uinameOrList
@@ -60,9 +61,10 @@ def wrapUI( uinameOrList, ignore_errors = False ):
 
 def lsUI( **kwargs ):
 	""" List UI elements as python wrapped types
-	:param **kwargs: flags from the respective maya command are valid
-	If no special type keyword is specified, all item types will be returned
-	:return: [] of NamedUI instances of respective UI elements """
+	
+	:param kwargs: flags from the respective maya command are valid
+		If no special type keyword is specified, all item types will be returned
+	:return: list of NamedUI instances of respective UI elements """
 	long = kwargs.pop( 'long', kwargs.pop( 'l', True ) )
 	head = kwargs.pop( 'head', kwargs.pop( 'hd', None ) )
 	tail = kwargs.pop( 'tail', kwargs.pop( 'tl', None) )
@@ -107,19 +109,20 @@ class NamedUI( unicode, BaseUI , iDagItem, EventSenderUI ):
 	faster implementation.
 	If the 'name' keyword is supplied, an existing UI element will be wrapped
 
-	Events
+	**Events**
+		
+		As subclass of EventSenderUI, it can provide events that are automatically
+		added by the metaclass as described by the _events_ attribute list.
+		This allows any number of clients to register for one maya event. Derived classes
+		may also use their own events which is useful if you create components
 	
-	As subclass of EventSenderUI, it can provide events that are automatically
-	added by the metaclass as described by the _events_ attribute list.
-	This allows any number of clients to register for one maya event. Derived classes
-	may also use their own events which is useful if you create components
-
-	Register for an event like:K
-	uiinstance.e_eventlongname = yourFunction( sender, *args, **kwargs )
-	*args and **kwargs are determined by maya
+		Register for an event like:
+		
+		>>> uiinstance.e_eventlongname = yourFunction( sender, *args, **kwargs )
+		>>> *args and **kwargs are determined by maya
 
 	:note: although many access methods look quite 'repeated' as they are quite
-	similar except for a changing flag, they are hand-written to provide proper docs for them"""
+		similar except for a changing flag, they are hand-written to provide proper docs for them"""
 	__metaclass__ = typ.MetaClassCreatorUI
 
 	#( Configurtation
@@ -130,9 +133,10 @@ class NamedUI( unicode, BaseUI , iDagItem, EventSenderUI ):
 	#{ Overridden Methods
 	@classmethod
 	def _exists( cls, uiname ):
-		""":return: 1 if the given UI element exists, 0 if it does not exist
-		and 2 it exists but the passed in name does not guarantee there are not more
-		objects with the same name"""
+		"""
+		:return: 1 if the given UI element exists, 0 if it does not exist
+			and 2 it exists but the passed in name does not guarantee there are not more
+			objects with the same name"""
 		try:
 			uitype = cmds.objectTypeUI( uiname )
 		except RuntimeError:
@@ -149,21 +153,30 @@ class NamedUI( unicode, BaseUI , iDagItem, EventSenderUI ):
 	def __new__( cls, *args, **kwargs ):
 		"""If name is given, the newly created UI will wrap the UI with the given name.
 		Otherwise the UIelement will be created
-		:param name: name of the user interface to wrap or the target name of a new elf element.
-		Valid names for creation are short names ( without a | in it's path ), valid names
-		for wrapping are short and preferably long names.
-		:param wrap_only: if True, default False, a wrap will be done even if the passed
-		in name uses the short form ( for non-window elements ). If it exists, one cannot be sure
-		whether more elements with the given name exist. If False, the system will create a new
-		element of our type.
-		:param force_creation: if True, default False, a new item will be created
-		even if an item with the given name uniquely exists. This might be necessary that
-		you wish to create the given named item under the current parent, although an item
-		with that name might already exist below another parent. This is required if
-		you have a short name only
+
+		:param kwargs:
+		
+			 * name: 
+			 	name of the user interface to wrap or the target name of a new elf element.
+				Valid names for creation are short names ( without a | in it's path ), valid names
+				for wrapping are short and preferably long names.
+				
+			 * wrap_only: 
+				if True, default False, a wrap will be done even if the passed
+				in name uses the short form ( for non-window elements ). If it exists, one cannot be sure
+				whether more elements with the given name exist. If False, the system will create a new
+				element of our type.
+				
+			 * force_creation: 
+				if True, default False, a new item will be created
+				even if an item with the given name uniquely exists. This might be necessary that
+				you wish to create the given named item under the current parent, although an item
+				with that name might already exist below another parent. This is required if
+				you have a short name only
+				
 		:note: you can use args safely for your own purposes
 		:note: if name is set but does not name a valid user interface, a new one
-		will be created, and passed to the constructor"""
+			will be created, and passed to the constructor"""
 		name = kwargs.pop( "name", None )
 		exists = ( ( name is not None ) and NamedUI._exists( str( name ) ) ) or False
 		force_creation = kwargs.pop( "force_creation", False )
@@ -232,7 +245,6 @@ class NamedUI( unicode, BaseUI , iDagItem, EventSenderUI ):
 		super( NamedUI, self ).__init__( *args, **kwargs )
 	#} END overridden methods
 
-	#{ Hierachy Handling
 	def children( self, **kwargs ):
 		""":return: all intermediate child instances
 		:note: the order of children is lexically ordered at this time
@@ -249,6 +261,8 @@ class NamedUI( unicode, BaseUI , iDagItem, EventSenderUI ):
 	def parent( self ):
 		""":return: parent instance of this ui element"""
 		return wrapUI( '|'.join( self.split('|')[:-1] ) )
+
+	#{ Hierachy Handling
 
 	@classmethod
 	def activeParent( cls ):
@@ -277,10 +291,11 @@ class NamedUI( unicode, BaseUI , iDagItem, EventSenderUI ):
 		
 		Use this callback to register yourself from all your event senders, then call 
 		the base class method.
+		
 		:note: This is not related to the __del__ method of your object. Its worth
-		noting that your instance will be strongly bound to a maya event, hence 
-		your instance will exist as long as your user interface element exists 
-		within maya."""
+			noting that your instance will be strongly bound to a maya event, hence 
+			your instance will exist as long as your user interface element exists 
+			within maya."""
 		self.clearAllEvents()
 	
 	def type( self ):
@@ -369,6 +384,7 @@ class SizedControl( NamedUI ):
 
 class Window( SizedControl, uiutil.UIContainerBase ):
 	"""Simple Window Wrapper
+	
 	:note: Window does not support some of the properties provided by sizedControl"""
 	__metaclass__ = typ.MetaClassCreatorUI
 	_properties_ = (	"t", "title",
@@ -411,6 +427,7 @@ class Window( SizedControl, uiutil.UIContainerBase ):
 
 	def setMenuIndex( self, menu, index ):
 		"""Set the menu index of the specified menu
+		
 		:param menu: name of child menu to set
 		:param index: new index at which the menu should appear"""
 		return self.__melcmd__( self, e=1, menuIndex=( menu, index ) )

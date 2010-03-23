@@ -1,9 +1,9 @@
 # -*- coding: utf-8 -*-
 """
 Contains some default dialogs as well as layouts suitable for layout dialogs
-
-:todo: more documentation
 """
+__docformat__ = "restructuredtext"
+
 import base as uibase
 import maya.cmds as cmds
 import maya.utils as mutils
@@ -13,19 +13,9 @@ from mrv.interface import iPrompt, iChoiceDialog, iProgressIndicator
 import logging
 log = logging.getLogger("mrv.maya.ui.dialog")
 
-#{ Exceptions
-################################################################################
-
-
-#} End Exceptions
-
 
 class Dialog( uibase.BaseUI ):
 	""" Base for all dialog classes """
-
-	#{ Overridden Methods
-
-	#}
 
 
 class PromptDialog( Dialog ):
@@ -53,8 +43,9 @@ class Prompt( iPrompt ):
 
 	def prompt( self ):
 		"""Aquire the information using a prompt dialog
+		
 		:return: prompted value if input was confirmed using confirmToken, or the cancelValue
-		if cancelToken was pressed
+			if cancelToken was pressed
 		:note: tokens correspond to buttons
 		:note: handles batch mode correctly"""
 		if cmds.about( batch = 1 ):
@@ -117,9 +108,6 @@ class ProgressWindow( iProgressIndicator ):
 
 		self.kwargs = kwargs  			# store for begin
 
-
-	#{ iProgress Overrides
-
 	def refresh( self, message = None ):
 		"""Finally show the progress window"""
 		global log
@@ -162,4 +150,3 @@ class ProgressWindow( iProgressIndicator ):
 	def setAbortable( self, state ):
 		cmds.progressWindow( e=1, ii=state )
 		return super( ProgressWindow, self ).setAbortable( state )
-	#} END iProgressOverrides

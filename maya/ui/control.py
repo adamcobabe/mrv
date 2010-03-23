@@ -1,9 +1,9 @@
 # -*- coding: utf-8 -*-
 """
 Contains the most controls like buttons and sliders for more convenient use
-
-:todo: more documentation
 """
+__docformat__ = "restructuredtext"
+
 import base as uibase
 import util as uiutil
 
@@ -46,6 +46,7 @@ class RadioButtonBase( BooleanBase ):
 
 class GroupBase( uibase.SizedControl ):
 	"""Base allowing access to all grouped controls
+	
 	:note: using short property names to ... keep it sane """
 
 	_properties_ = [ 	"cw", "columnWidth",
@@ -193,8 +194,9 @@ class CheckBoxGrp( BooleanGroupBase, CheckBoxBase ):
 
 class Button( LabelBase ):
 	""" Simple button interface
+	
 	:note: you can only use either the onpress or the onrelease event, both
-	together apparently do not work"""
+		together apparently do not work"""
 	_properties_ = ( "actionIsSubstitute" )
 	_events_ = ( "c", "command" )
 
@@ -284,6 +286,7 @@ class Separator( uibase.SizedControl ):
 class OptionMenu( OptionMenuBase, uibase.SizedControl ):
 	"""Class just for multiple inheritance - this cannot be expressed in the hierarchy
 	file
+	
 	:note: Order of inheritance matters due to method resolution order !"""
 	#( Configuration
 	_is_menu = True
@@ -293,6 +296,7 @@ class OptionMenu( OptionMenuBase, uibase.SizedControl ):
 class OptionMenuGrp( OptionMenuBase, GroupBase ):
 	"""Class just for multiple inheritance - this cannot be expressed in the hierarchy
 	file
+	
 	:note: Order of inheritance matters due to method resolution order !"""
 	#( Configuration
 	_is_menu = True

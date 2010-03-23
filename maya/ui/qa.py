@@ -2,8 +2,8 @@
 """
 Contains a modular UI able to display quality assurance checks, run them and
 present their results. It should be easy to override and adjust it to suit additional needs
-:todo: more documentation
 """
+__docformat__ = "restructuredtext"
 import control
 import util as uiutil
 import layout
@@ -18,8 +18,9 @@ log = logging.getLogger("mrv.maya.ui.qa")
 
 class QACheckLayout( layout.RowLayout ):
 	"""Row Layout able to display a qa check and related information
+	
 	:note: currently we make assumptions about the positions of the children in the
-	RowLayout, thus you may only append new ones"""
+		RowLayout, thus you may only append new ones"""
 	reNiceNamePattern = re.compile( "[A-Z][a-z]" )
 
 	#{ Configuration
@@ -39,7 +40,11 @@ class QACheckLayout( layout.RowLayout ):
 
 	def __new__( cls, *args, **kwargs ):
 		"""Initialize this RowColumnLayout instance with a check instance
-		:param check: the check this instance should attach itself to - it needs to be set"""
+		
+		:param kwargs:
+			 * check:
+				the check this instance should attach itself to - it needs to be set
+				or the instance creation will fail"""
 		check = kwargs.pop( "check" )
 
 		numcols = cls.numcols # without fix
@@ -68,6 +73,7 @@ class QACheckLayout( layout.RowLayout ):
 	@staticmethod
 	def _replInsSpace( match ):
 		"""Generate a replace string from the match in the match object
+		
 		:note: match should contain only a range of two chars"""
 		assert match.end() - match.start() == 2
 		if match.start() == 0:	# in the beginning , replace by itself
@@ -78,8 +84,9 @@ class QACheckLayout( layout.RowLayout ):
 
 
 	def _toNiceName( self, name ):
-		""":return: nice name version of name, replacing underscores by spaces, and
-		separating camel cases, as well as chaning to the capitalizaion of word"""
+		"""
+		:return: nice name version of name, replacing underscores by spaces, and
+			separating camel cases, as well as chaning to the capitalizaion of word"""
 		name_tokens = name.split( "_" )
 
 		# parse camel case
@@ -141,11 +148,16 @@ class QACheckLayout( layout.RowLayout ):
 
 	def _runCheck( self, *args, **kwargs ):
 		"""Run our check
+		
 		:note: we may also be used as a ui callback and figure out ourselves
-		whether we have been pressed by the fix button or by the run button
-		:param force_check: if True, default True, a computation will be forced,
-		otherwise a cached result may be used
-		:param **kwargs: will be passed to the workflow's runChecks method
+			whether we have been pressed by the fix button or by the run button
+		:param kwargs: will be passed to the workflow's runChecks method. The following 
+			additional kwargs may be specified:
+			
+			 * force_check: 
+			 	if True, default True, a computation will be forced,
+				otherwise a cached result may be used
+			
 		:return: result of our check"""
 		check = self.check()
 		wfl = check.node.workflow()
@@ -195,6 +207,7 @@ class QACheckLayout( layout.RowLayout ):
 
 	def checkError( self, exception, workflow ):
 		"""Called if the checks fails with an error
+		
 		:param exception: exception object that was thrown by our check
 		:param workflow: workflow that ran the check"""
 		global log
@@ -204,6 +217,7 @@ class QACheckLayout( layout.RowLayout ):
 
 	def setResult( self, result ):
 		"""Setup ourselves to indicate the given check result
+		
 		:return: our adjusted iconTextButton Member"""
 		target_icon = self.icons[2]		# failed by default
 
@@ -284,7 +298,8 @@ class QALayout( layout.FormLayout, uiutil.iItemSet ):
 
 	def setChecks( self, checks ):
 		"""Set the checks this layout should display
-		:param checks: iterable of qa checks as retrieved by `listChecks`
+		
+		:param checks: iterable of qa checks as retrieved by `checks`
 		:raise ValueErorr: if one check is from a different workflow and there is a run_all button"""
 		# we might change the layout, so be active
 		# IMPORTANT: if this is not the case, we might easily confuse layouts ...
@@ -391,8 +406,6 @@ class QALayout( layout.FormLayout, uiutil.iItemSet ):
 
 	#} END interface
 
-	#{ iItemSet Implementation
-
 	def currentItemIds( self, name_to_child_map = None, **kwargs ):
 		""":return: current check ids as defined by exsiting children.
 		:note: additionally fills in the name_to_child_map"""
@@ -415,8 +428,9 @@ class QALayout( layout.FormLayout, uiutil.iItemSet ):
 
 	def createItem( self, checkid, name_to_child_map = None, name_to_check_map = None, **kwargs ):
 		"""Create and return a layout displaying the given check instance
+		
 		:param kwargs: will be passed to checkui class's initializer, allowing subclasses to easily
-		adjust the paramter list
+			adjust the paramter list
 		:note: its using self.checkuicls to create the instance"""
 		self.col_layout.setActive()
 		check_child = self.checkuicls( check = name_to_check_map[ checkid ], **kwargs )
@@ -434,8 +448,6 @@ class QALayout( layout.FormLayout, uiutil.iItemSet ):
 		"""Delete the user interface portion representing the checkid"""
 		self.col_layout.deleteChild( name_to_child_map[ checkid ] )
 
-	#} END iitemset implementation
-
 	#{ Eventhandlers
 
 	def _checkLayoutHasCheck( self, checkLayout, check ):
@@ -445,8 +457,9 @@ class QALayout( layout.FormLayout, uiutil.iItemSet ):
 	def checkHandler( self, event, check, *args ):
 		"""Called for the given event - it will find the UI element handling the
 		call respective function on the UI instance
+		
 		:note: find the check using predefined names as they server as unique-enough keys.
-		This would possibly be faster, but might not make a difference after all"""
+			This would possibly be faster, but might not make a difference after all"""
 
 		# as we do not track the deletion of the window, our class might actually
 		# persist even though the window is long gone - throw if we are not existing
@@ -480,11 +493,12 @@ class QALayout( layout.FormLayout, uiutil.iItemSet ):
 
 	def runAllPressed( self, *args, **kwargs ):
 		"""Called once the Run-All button is pressed
-		:param **kwargs: will be passed to runChecks method of workflow
+		
+		:param kwargs: will be passed to runChecks method of workflow
 		:note: we assume all checks are from one workflow only as we
-		do not sort them by workflow
+			do not sort them by workflow
 		:note: currently we only run in query mode as sort of safety measure - check and fix
-		on all might be too much and lead to unexpected results"""
+			on all might be too much and lead to unexpected results"""
 		global log
 		checks = self.checks()
 		if not checks:
@@ -495,7 +509,5 @@ class QALayout( layout.FormLayout, uiutil.iItemSet ):
 		wfl = checks[0].node.workflow()
 		wfl.runChecks( checks, clear_result = 1, **kwargs )
 
-
 	#} END Eventhandlers
-
 
