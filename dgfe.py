@@ -34,7 +34,7 @@ class _OIShellMeta( type ):
 	def createFacadeMethod( cls, funcname ):
 		"""in our case, connections just are handled by our own OI plug, staying
 		in the main graph"""
-		return list
+		return list()
 
 	@classmethod
 	def createMethod( cls,funcname, facadetype ):

@@ -2,11 +2,10 @@
 """path.py - An object representing a path to a file or directory.
 
 Example:
-
-from path import path
-d = path('/home/guido/bin')
-for f in d.files('*.py'):
-	f.chmod(0755)
+	>>> from path import path
+	>>> d = path('/home/guido/bin')
+	>>> for f in d.files('*.py'):
+	>>>		f.chmod(0755)
 
 This module requires Python 2.4 or later.
 
@@ -28,6 +27,7 @@ TODO
    - Could add split() and join() methods that generate warnings.
 """
 from __future__ import generators
+__docformat__ = "restructuredtext"
 
 __license__='Freeware'
 
@@ -148,9 +148,10 @@ class Path( _base, iDagItem ):
 
 	def _expandvars( self ):
 		"""Internal version returning a string only
+		
 		:note: It is a slightly changed copy of the version in posixfile
-		as the windows version was implemented differently ( it expands
-		variables to an empty space which is undesireable )"""
+			as the windows version was implemented differently ( it expands
+			variables to an empty space which is undesireable )"""
 		if '$' not in self:
 			return self
 		
@@ -178,7 +179,7 @@ class Path( _base, iDagItem ):
 
 	@classmethod
 	def getcwd(cls):
-		""" Return the current working directory as a path object. """
+		""":return: the current working directory as a path object. """
 		return cls(_getcwd())
 
 	#{ iDagItem Implementation
@@ -195,7 +196,7 @@ class Path( _base, iDagItem ):
 		:note: files cannot have children, and willl return an empty array accordingly
 		:param predicate: return p if predicate( p ) returns True
 		:param pattern: list only elements that match the given simple  pattern
-		i.e. *.*"""
+			i.e. *.*"""
 		try:
 			children = self.listdir( pattern )
 		except OSError:
@@ -233,9 +234,10 @@ class Path( _base, iDagItem ):
 		return self.find( '$' ) != -1
 		
 	def expand_or_raise(self):
-		""":return: Copy of self with all variables expanded ( using `expand`
+		""":return: Copy of self with all variables expanded ( using `expand` )
+		
 		:raise ValueError: If we could not expand all environment variables as
-		their values where missing in the environment"""
+			their values where missing in the environment"""
 		rval = self.expand()
 		if rval.containsvars():
 			raise ValueError("Failed to expand all environment variables in %r, got %r" % (self, rval))
@@ -309,8 +311,7 @@ class Path( _base, iDagItem ):
 	def joinpath(self, *args):
 		""" Join two or more path components, adding a separator
 		character (os.sep) if needed.  Returns a new path
-		object.
-		"""
+		object. """
 		return self.__class__(os.path.join(self, *args))
 
 	def splitall(self):
@@ -321,7 +322,7 @@ class Path( _base, iDagItem ):
 		this path (for example, '/' or 'C:\\').	 The other items in
 		the list will be strings.
 
-		path.path.joinpath(*result) will yield the original path.
+		path.path.joinpath(\*result) will yield the original path.
 		"""
 		parts = []
 		loc = self
@@ -375,8 +376,9 @@ class Path( _base, iDagItem ):
 		return self.__class__(dest).relpathto(self)
 
 	def tonative( self ):
-		"""Convert the path separator to the type required by the current operating
+		r"""Convert the path separator to the type required by the current operating
 		system - on windows / becomes \ and on linux \ becomes /
+		
 		:return: native version of self"""
 		s = "\\"
 		d = "/"
@@ -390,7 +392,7 @@ class Path( _base, iDagItem ):
 	#{ Listing, searching, walking, and matching
 
 	def listdir(self, pattern=None):
-		""" D.listdir() -> List of items in this directory.
+		"""return list of items in this directory.
 
 		Use D.files() or D.dirs() instead if you want a listing
 		of just files or just subdirectories.
@@ -412,9 +414,9 @@ class Path( _base, iDagItem ):
 		This does not walk recursively into subdirectories
 		(but see path.walkdirs).
 
-		With the optional 'pattern' argument, this only lists
+		With the optional ``pattern`` argument, this only lists
 		directories whose names match the given pattern.  For
-		example, d.dirs('build-*').
+		example, d.dirs("build-\*").
 		"""
 		return [p for p in self.listdir(pattern) if p.isdir()]
 
@@ -424,15 +426,15 @@ class Path( _base, iDagItem ):
 		The elements of the list are path objects.
 		This does not walk into subdirectories (see path.walkfiles).
 
-		With the optional 'pattern' argument, this only lists files
+		With the optional ``pattern`` argument, this only lists files
 		whose names match the given pattern.  For example,
-		d.files('*.pyc').
+		d.files("\*.pyc").
 		"""
 
 		return [p for p in self.listdir(pattern) if p.isfile()]
 
 	def walk(self, pattern=None, errors='strict', predicate=lambda p: True):
-		""" D.walk() -> iterator over files and subdirs, recursively.
+		"""create iterator over files and subdirs, recursively.
 
 		The iterator yields path objects naming each child item of
 		this directory and its descendants.
@@ -442,9 +444,9 @@ class Path( _base, iDagItem ):
 
 		:param pattern: fnmatch compatible pattern or None
 		:param errors: controls behavior when an
-		error occurs.  The default is 'strict', which causes an
-		exception.	The other allowed values are 'warn', which
-		reports the error via warnings.warn(), and 'ignore'.
+			error occurs.  The default is 'strict', which causes an
+			exception.	The other allowed values are 'warn', which
+			reports the error via warnings.warn(), and 'ignore'.
 		:param predicate: returns True for each Path p to be yielded by iterator
 		"""
 		if errors not in ('strict', 'warn', 'ignore'):
@@ -496,16 +498,13 @@ class Path( _base, iDagItem ):
 
 	def walkdirs(self, pattern=None, errors='strict', predicate=lambda p: True):
 		""" D.walkdirs() -> iterator over subdirs, recursively.
-		:param **kwargs: see `walk`
-		"""
+		see `walk` for a parameter description """
 		pred = lambda p: p.isdir() and predicate(p)
 		return self.walk(pattern, errors, pred)
 
 	def walkfiles(self, pattern=None, errors='strict', predicate=lambda p: True):
 		""" D.walkfiles() -> iterator over files in D, recursively.
-
-		:param **kwargs: see `walk`
-		"""
+		see `walk` for a parameter description"""
 		pred = lambda p: p.isfile() and predicate(p)
 		return self.walk(pattern, errors, pred)
 		
@@ -513,7 +512,7 @@ class Path( _base, iDagItem ):
 		""" Return True if self.basename() matches the given pattern.
 
 		pattern - A filename pattern with wildcards,
-			for example '*.py'.
+			for example "\*.py".
 		"""
 		pathexpanded = self.expandvars()
 		return fnmatch.fnmatch(pathexpanded.basename(), pattern)
@@ -567,19 +566,18 @@ class Path( _base, iDagItem ):
 		return self
 
 	def text(self, encoding=None, errors='strict'):
-		""" Open this file, read it in, return the content as a string.
+		r""" Open this file, read it in, return the content as a string.
 
-		This uses 'U' mode in Python 2.3 and later, so '\r\n' and '\r'
+		This uses "U" mode in Python 2.3 and later, so "\r\n" and "\r"
 		are automatically translated to '\n'.
 
 		Optional arguments:
-
-		encoding - The Unicode encoding (or character set) of
-			the file.  If present, the content of the file is
-			decoded and returned as a unicode object; otherwise
-			it is returned as an 8-bit str.
-		errors - How to handle Unicode errors; see help(str.decode)
-			for the options.  Default is 'strict'.
+		 * encoding - The Unicode encoding (or character set) of
+		   the file.  If present, the content of the file is
+		   decoded and returned as a unicode object; otherwise
+		   it is returned as an 8-bit str.
+		 * errors - How to handle Unicode errors; see help(str.decode)
+		   for the options.  Default is 'strict'.
 		"""
 		mode = 'U'	# we are in python 2.4 at least
 		
@@ -597,7 +595,7 @@ class Path( _base, iDagItem ):
 		# END handle file read
 
 	def write_text(self, text, encoding=None, errors='strict', linesep=os.linesep, append=False):
-		""" Write the given text to this file.
+		r""" Write the given text to this file.
 
 		The default behavior is to overwrite any existing file;
 		to append instead, use the 'append=True' keyword argument.
@@ -606,8 +604,7 @@ class Path( _base, iDagItem ):
 		path.write_bytes(): newline handling and Unicode handling.
 		See below.
 
-		Parameters:
-
+		**Parameters**:
 		  - text - str/unicode - The text to be written.
 
 		  - encoding - str - The Unicode encoding that will be used.
@@ -628,36 +625,34 @@ class Path( _base, iDagItem ):
 			False: overwrite it.)  The default is False.
 
 
-		--- Newline handling.
+		**Newline handling**:
+		 - write_text() converts all standard end-of-line sequences
+			("\n", "\r", and "\r\n") to your platforms default end-of-line
+			sequence (see os.linesep; on Windows, for example, the
+			end-of-line marker is "\r\n").
+	
+		 - If you don't like your platform's default, you can override it
+			using the "linesep=" keyword argument.	If you specifically want
+			write_text() to preserve the newlines as-is, use "linesep=None".
+	
+		 - This applies to Unicode text the same as to 8-bit text, except
+			there are additional standard Unicode end-of-line sequences, check 
+			the code to see them.
+	
+		 - (This is slightly different from when you open a file for
+			writing with fopen(filename, "w") in C or file(filename, "w")
+			in Python.)
 
-		write_text() converts all standard end-of-line sequences
-		('\n', '\r', and '\r\n') to your platform's default end-of-line
-		sequence (see os.linesep; on Windows, for example, the
-		end-of-line marker is '\r\n').
 
-		If you don't like your platform's default, you can override it
-		using the 'linesep=' keyword argument.	If you specifically want
-		write_text() to preserve the newlines as-is, use 'linesep=None'.
-
-		This applies to Unicode text the same as to 8-bit text, except
-		there are additional standard Unicode end-of-line sequences, check 
-		the code to see them.
-
-		(This is slightly different from when you open a file for
-		writing with fopen(filename, "w") in C or file(filename, 'w')
-		in Python.)
-
-
-		--- Unicode
-
-		If 'text' isn't Unicode, then apart from newline handling, the
-		bytes are written verbatim to the file.	 The 'encoding' and
-		'errors' arguments are not used and must be omitted.
-
-		If 'text' is Unicode, it is first converted to bytes using the
-		specified 'encoding' (or the default encoding if 'encoding'
-		isn't specified).  The 'errors' argument applies only to this
-		conversion.
+		**Unicode**:
+			If "text" isn't Unicode, then apart from newline handling, the
+			bytes are written verbatim to the file.	 The "encoding" and
+			'errors' arguments are not used and must be omitted.
+	
+			If 'text' is Unicode, it is first converted to bytes using the
+			specified 'encoding' (or the default encoding if 'encoding'
+			isn't specified).  The 'errors' argument applies only to this
+			conversion.
 		
 		:return: self
 		"""
@@ -757,21 +752,23 @@ class Path( _base, iDagItem ):
 		return self
 
 	def lines(self, encoding=None, errors='strict', retain=True):
-		""" Open this file, read all lines, return them in a list.
+		r""" Open this file, read all lines, return them in a list.
 
 		Optional arguments:
-			encoding - The Unicode encoding (or character set) of
+			 * encoding: The Unicode encoding (or character set) of
 				the file.  The default is None, meaning the content
 				of the file is read as 8-bit characters and returned
 				as a list of (non-Unicode) str objects.
-			errors - How to handle Unicode errors; see help(str.decode)
+				
+			 * errors: How to handle Unicode errors; see help(str.decode)
 				for the options.  Default is 'strict'
-			retain - If true, retain newline characters; but all newline
-				character combinations ('\r', '\n', '\r\n') are
-				translated to '\n'.	 If false, newline characters are
+				
+			 * retain: If true, retain newline characters; but all newline
+				character combinations ("\r", "\n", "\r\n") are
+				translated to "\n".	 If false, newline characters are
 				stripped off.  Default is True.
-
-		This uses 'U' mode in Python 2.3 and later.
+		
+		This uses "U" mode in Python 2.3 and later.
 		"""
 		if encoding is None and retain:
 			f = self.open(_textmode)
@@ -892,12 +889,14 @@ class Path( _base, iDagItem ):
 
 	def setutime(self, times):
 		""" Set the access and modified times of this file.
+		
 		:return: self"""
 		os.utime(self._expandvars(), times)
 		return self
 
 	def chmod(self, mode):
 		"""Change file mode
+		
 		:return: self"""
 		os.chmod(self._expandvars(), mode)
 		return self
@@ -905,18 +904,21 @@ class Path( _base, iDagItem ):
 	if hasattr(os, 'chown'):
 		def chown(self, uid, gid):
 			"""Change file ownership
+			
 			:return: self"""
 			os.chown(self._expandvars(), uid, gid)
 			return self
 
 	def rename(self, new):
 		"""os.rename
+		
 		:return: Path to new file"""
 		os.rename(self._expandvars(), new)
 		return type(self)(new)
 
 	def renames(self, new):
 		"""os.renames, super rename
+		
 		:return: Path to new file"""
 		os.renames(self._expandvars(), new)
 		return type(self)(new)
@@ -927,24 +929,28 @@ class Path( _base, iDagItem ):
 
 	def mkdir(self, mode=0777):
 		"""Make this directory, fail if it already exists
+		
 		:return: self"""
 		os.mkdir(self._expandvars(), mode)
 		return self
 
 	def makedirs(self, mode=0777):
 		"""Smarter makedir, see os.makedirs
+		
 		:return: self"""
 		os.makedirs(self._expandvars(), mode)
 		return self
 
 	def rmdir(self):
 		"""Remove this empty directory
+		
 		:return: self"""
 		os.rmdir(self._expandvars())
 		return self
 
 	def removedirs(self):
 		"""see os.removedirs
+		
 		:return: self"""
 		os.removedirs(self._expandvars())
 		return self
@@ -956,6 +962,7 @@ class Path( _base, iDagItem ):
 	def touch(self, flags = os.O_WRONLY | os.O_CREAT, mode = 0666):
 		""" Set the access/modified times of this file to the current time.
 		Create the file if it does not exist.
+		
 		:return: self
 		"""
 		fd = os.open(self._expandvars(), flags, mode)
@@ -965,12 +972,14 @@ class Path( _base, iDagItem ):
 
 	def remove(self):
 		"""Remove this file
+		
 		:return: self"""
 		os.remove(self._expandvars())
 		return self
 
 	def unlink(self):
 		"""unlink this file
+		
 		:return: self"""
 		os.unlink(self._expandvars())
 		return self
@@ -982,6 +991,7 @@ class Path( _base, iDagItem ):
 	if hasattr(os, 'link'):
 		def link(self, newpath):
 			""" Create a hard link at 'newpath', pointing to this file. 
+			
 			:return: Path to newpath"""
 			os.link(self._expandvars(), newpath)
 			return type(self)(newpath)
@@ -990,6 +1000,7 @@ class Path( _base, iDagItem ):
 	if hasattr(os, 'symlink'):
 		def symlink(self, newlink):
 			""" Create a symbolic link at 'newlink', pointing here. 
+			
 			:return: Path to newlink"""
 			os.symlink(self._expandvars(), newlink)
 			return type(self)(newlink)
@@ -1019,37 +1030,43 @@ class Path( _base, iDagItem ):
 
 	def copyfile(self, dest):
 		"""Copy self to dest
+		
 		:return: Path to dest"""
 		shutil.copyfile( self._expandvars(), dest )
 		return type(self)(dest)
 	
 	def copymode(self, dest):
 		"""Copy our mode to dest
+		
 		:return: Path to dest"""
 		shutil.copymode( self._expandvars(), dest )
 		return type(self)(dest)
 		
 	def copystat(self, dest):
 		"""Copy our stats to dest
+		
 		:return: Path to dest"""
 		shutil.copystat( self._expandvars(), dest )
 		return type(self)(dest)
 		
 	def copy(self, dest):
 		"""Copy data and source bits to dest
+		
 		:return: Path to dest"""
 		shutil.copy( self._expandvars(), dest )
 		return type(self)(dest)
 	
 	def copy2(self, dest):
 		"""Shutil.copy2 self to dest
+		
 		:return: Path to dest"""
 		shutil.copy2( self._expandvars(), dest )
 		return type(self)(dest)
 		
 	def copytree(self, dest, **kwargs):
 		"""Deep copy this file or directory to destination
-		:param **kwargs: passed to shutil.copytree
+		
+		:param kwargs: passed to shutil.copytree
 		:return: Path to dest"""
 		shutil.copytree( self._expandvars(), dest, **kwargs )
 		return type(self)(dest)
@@ -1057,13 +1074,15 @@ class Path( _base, iDagItem ):
 	if hasattr(shutil, 'move'):
 		def move(self, dest):
 			"""Move self to dest
+			
 			:return: Path to dest"""
 			shutil.move( self._expandvars(), dest )
 			return type(self)(dest)
 			
 	def rmtree(self, **kwargs):
 		"""Remove self recursively
-		:param **kwargs: passed to shutil.rmtree
+		
+		:param kwargs: passed to shutil.rmtree
 		:return: self"""
 		shutil.rmtree( self._expandvars(),  **kwargs )
 		return self
@@ -1075,6 +1094,7 @@ class Path( _base, iDagItem ):
 	if hasattr(os, 'chroot'):
 		def chroot(self):
 			"""Change the root directory path
+			
 			:return: self"""
 			os.chroot(self._expandvars())
 			return self
@@ -1082,6 +1102,7 @@ class Path( _base, iDagItem ):
 	if hasattr(os, 'startfile'):
 		def startfile(self):
 			"""see os.startfile
+			
 			:return: self"""
 			os.startfile(self._expandvars())
 			return self

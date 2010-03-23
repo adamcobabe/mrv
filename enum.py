@@ -14,28 +14,26 @@ are _repr_'d by the name of the element, which is convenient for testing,
 debugging, and generation text output.
 
 Example Code:
-
-# Using Element values
-Colors = Enumeration.create('red', 'green', 'blue')
-
-# Using explicitly specified values
-Borders = Enumeration.create(('SUNKEN', 1),
-							 ('RAISED', 32),
-							 ('FLAT', 2))
-
-x = Colors.red
-y = Colors.blue
-
-assert x < y
-assert x == Colors('red')
-assert Borders.FLAT == 2:
-assert 1 in Borders
+	>>>	# Using Element values
+	>>> Colors = Enumeration.create('red', 'green', 'blue')
+		
+	>>> # Using explicitly specified values
+	>>>Borders = Enumeration.create(('SUNKEN', 1),
+	>>>							 	('RAISED', 32),
+	>>>							 	('FLAT', 2))
+		
+	>>> x = Colors.red
+	>>> y = Colors.blue
+		
+	>>> assert x < y
+	>>> assert x == Colors('red')
+	>>> assert Borders.FLAT == 2:
+	>>> assert 1 in Borders
 
 :note: slightly modified by Sebastian Thiel to be more flexible and suitable as
-base class
-
-
+	base class
 """
+__docformat__ = "restructuredtext"
 __contact__='garret at bgb dot cc'
 __license__='freeware'
 
@@ -89,6 +87,7 @@ class Element(object):
 	def __or__( self, other ):
 		"""Allows oring values together - only works if the values are actually orable
 		integer values
+		
 		:return: integer with the ored result
 		:raise TypeError: if we are not a bitflag or other is not an element of our enumeration"""
 		self._checkType( other )
@@ -98,6 +97,7 @@ class Element(object):
 	def __xor__( self, other ):
 		"""Allows to x-or values together - only works if element's values are xorable
 		integer values.
+		
 		:param other: integer
 		:return: integer with the xored result"""
 		self._checkBitflag()
@@ -106,6 +106,7 @@ class Element(object):
 
 	def __and__( self, other ):
 		"""Allow and with integers
+		
 		:return: self if self & other == self or None if our bit is not set in other
 		:raise TypeError: if other is not an int"""
 		if not isinstance( other, int ):
@@ -141,9 +142,9 @@ class Enumeration(tuple):
 	debugging, and generation text output.
 
 	:note: pickling this class with Elements will fail as they contain cyclic
-	references that it cannot deal with
+		references that it cannot deal with
 	:todo: implement proper pickle __getstate__ and __setstate__ that deal with
-	that problem
+		that problem
 	"""
 	_slots_ = ( "_nameMap", "_valueMap", "_supports_bitflags" )
 
@@ -205,6 +206,7 @@ class Enumeration(tuple):
 
 	def valueFromName(self, name):
 		"""Look up the enumeration value for a given element name.
+		
 		:raise ValueError:"""
 		try:
 			return self._nameMap[name]
@@ -217,6 +219,7 @@ class Enumeration(tuple):
 
 		If there are multiple elements with the same value, you will only
 		get a single matching name back. Which name is undefined.
+		
 		:raise ValueError: if value is not a part of our enumeration"""
 		try:
 			return self._valueMap[value]
@@ -226,6 +229,7 @@ class Enumeration(tuple):
 
 	def _nextOrPrevious( self, element, direction, wrap_around ):
 		"""do-it method, see `next` and `previous`
+		
 		:param direction: -1 = previous, 1 = next """
 		curindex = -1
 		for i,elm in enumerate( self ):
@@ -255,7 +259,7 @@ class Enumeration(tuple):
 		""":return: element following after given element
 		:param element: element whose successor to return
 		:param wrap_around: if True, the first Element will be returned if there is
-		no next element
+			no next element
 		:raise ValueError: if wrap_around is False and there is no next element"""
 		return self._nextOrPrevious( element, 1, wrap_around )
 
@@ -280,13 +284,13 @@ def create(*elements, **kwargs ):
 	Example:  Enumeration.create('fred', cls = EnumerationSubClass )
 	Example:  Enumeration.create(Element('fred', Marge), ...)
 
-	:param cls: The class to create an enumeration with, must be an instance of
-	Enumeration
-	:param elmcls: The class to create elements from, must be instance of Element
-	:param bitflag: if True, default False, the values created will be suitable as bitflags.
-	This will fail if you passed more items in than supported by the OS ( 32 , 64, etc ) or if
-	you pass in tuples and thus define the values yourself.
-	@raise TypeError,ValueError: if bitflags cannot be supported in your case """
+	:param kwargs: 
+		 * cls: The class to create an enumeration with, must be an instance of Enumeration
+		 * elmcls: The class to create elements from, must be instance of Element
+		 * bitflag: if True, default False, the values created will be suitable as bitflags.
+					This will fail if you passed more items in than supported by the OS ( 32 , 64, etc ) or if
+					you pass in tuples and thus define the values yourself.
+	:raise TypeError,ValueError: if bitflags cannot be supported in your case"""
 	cls = kwargs.pop( "cls", Enumeration )
 	elmcls = kwargs.pop( "elmcls", Element )
 	bitflag = kwargs.pop( "bitflag", False )
@@ -305,8 +309,8 @@ def create(*elements, **kwargs ):
 		kwargs[ '_is_bitflag' ] = True
 	# END bitflag assertion
 
-	names = []
-	values = []
+	names = list()
+	values = list()
 
 	for element in elements:
 		# we explicitly check this per element !
