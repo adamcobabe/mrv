@@ -1,6 +1,8 @@
 # -*- coding: utf-8 -*-
 """Contains specialized attributes that judge value based on different criteria,
 allowing more elaborate typecheckingr """
+__docformat__ = "restructuredtext"
+
 from mrv.dge import Attribute
 
 class RegexStringAttr( Attribute ):

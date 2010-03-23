@@ -1,8 +1,7 @@
 # -*- coding: utf-8 -*-
 """contains report implementations allowing to analyse the callgraph of """
-#####################
-## CLASSES    ######
-###################
+__docformat__ = "restructuredtext"
+
 
 class ReportBase( object ):
 	"""Provides main interface for all reports as well as the basic implementation"""
@@ -34,8 +33,9 @@ class Plan( ReportBase ):
 
 
 	def makeReport( self, headline=None ):
-		""":return: list of strings ( lines ) resembling a plan-like formatting
-		of the call graph
+		"""
+		:return: list of strings ( lines ) resembling a plan-like formatting
+			of the call graph
 		:param headline: line to be given as first line """
 		cl = self._analyseCallgraph( )
 
