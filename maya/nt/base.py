@@ -4,14 +4,9 @@ Contains some basic  classes that are required to run the nodes system
 
 All classes defined here can replace classes in the node type hierarachy if the name
 matches. This allows to create hand-implemented types.
-
-Implementing an undoable method
--------------------------------
-   - decorate with @undoable
-   - minimize probability that your operation will fail before creating an operation ( for efficiency )
-   - only use operation's doIt() method to apply your changes
-   - if you raise, you should not have created an undo operation
 """
+__docformat__ = "restructuredtext"
+
 from typ import nodeTypeToMfnClsMap, nodeTypeTree, MetaClassCreatorNodes
 from mrv.util import uncapitalize, capitalize, pythonIndex, Call 
 from mrv.interface import iDuplicatable, iDagItem
@@ -78,6 +73,7 @@ _apitype_to_name = dict()			# [int] - > type name string
 
 def nodeTypeToNodeTypeCls( nodeTypeName ):
 	""" Convert the given  node type (str) to the respective python node type class
+	
 	:param nodeTypeName: the type name you which to have the actual class for  """
 	try:
 		nodeTypeCls = _nodesdict[capitalize( nodeTypeName )]
@@ -109,11 +105,12 @@ def toDagPath( apiobj ):
 
 def toApiobj( nodename ):
 	""" Convert the given nodename to the respective MObject
+	
 	:note: uses unique names only, and will fail if a non-unique path is given, which is
-	as selection lists do not work properly with partial names !
+		as selection lists do not work properly with partial names !
 	:note: even dag objects will end up as MObject
 	:note: code repeats partly in toApiobjOrDagPath as its supposed to be as fast
-	as possible - this method gets called quite a few times in benchmarks"""
+		as possible - this method gets called quite a few times in benchmarks"""
 	global _nameToApiSelList, log
 	_nameToApiSelList.clear()
 
@@ -145,10 +142,11 @@ def toApiobj( nodename ):
 
 def toApiobjOrDagPath( nodename ):
 	"""Convert the given nodename to the respective MObject or MDagPath
-	:note: we treat "nodename" and "|nodename" as the same objects as they occupy the
-	same namespace - one time a dep node is meant, the other time a dag node.
-	If querying a dag node, the dep node with the same name is not found, although it is in
-	the same freaking namespace ! IMHO this is a big bug !"""
+	
+	:note: we treat "nodename" and "\|nodename" as the same objects as they occupy the
+		same namespace - one time a dep node is meant, the other time a dag node.
+		If querying a dag node, the dep node with the same name is not found, although it is in
+		the same freaking namespace ! IMHO this is a big bug !"""
 	global _nameToApiSelList, log
 	_nameToApiSelList.clear()
 
@@ -185,9 +183,10 @@ def toApiobjOrDagPath( nodename ):
 
 def toSelectionList( nodeList, mergeWithExisting = False ):
 	"""Convert an iterable filled with Nodes to a selection list
+	
 	:param nodeList: iterable filled with dg and dag nodes as well as plugs, dagpaths or mobjects or strings
 	:param mergeWithExisting: if true, the selection list will not allow dupliacates , but adding objects
-	also takes ( much )  longer, depending on the size of the list
+		also takes ( much )  longer, depending on the size of the list
 	:return: selection list filled with objects from node list"""
 	if isinstance( nodeList, api.MSelectionList ):		# sanity check
 		return nodeList
@@ -208,8 +207,9 @@ def toSelectionList( nodeList, mergeWithExisting = False ):
 def toComponentSelectionList( nodeCompList, mergeWithExisting = False ):
 	"""As above, but only works on DagNodes having components - the components
 	can be a nullObject though to add the whole object after all.
+	
 	:param nodeCompList: list of tuple( DagNode, Component ), Component can be
-	filled component or null MObject"""
+		filled component or null MObject"""
 	if isinstance( nodeCompList, api.MSelectionList ):		# sanity check
 		return nodeList
 
@@ -221,6 +221,7 @@ def toComponentSelectionList( nodeCompList, mergeWithExisting = False ):
 
 def toSelectionListFromNames( nodenames ):
 	"""Convert the given iterable of nodenames to a selection list
+	
 	:return: MSelectionList, use `iterSelectionList` to retrieve the objects"""
 	sellist = api.MSelectionList()
 	for name in nodenames:
@@ -230,7 +231,7 @@ def toSelectionListFromNames( nodenames ):
 
 def fromSelectionList( sellist, handlePlugs=1, **kwargs ):
 	""":return: list of Nodes and MPlugs stored in the given selection list
-	:param **kwargs: passed to selectionListIterator"""
+	:param kwargs: passed to selectionListIterator"""
 	kwargs['asNode'] = 1
 	kwargs['handlePlugs'] = handlePlugs
 	return list(sellist.mtoIter(**kwargs))
@@ -238,16 +239,17 @@ def fromSelectionList( sellist, handlePlugs=1, **kwargs ):
 def toNodesFromNames( nodenames, **kwargs ):
 	""":return: list of wrapped nodes from the given list of node names
 	:note: this function is supposed to be faster for multiple nodes compared to
-	just creating a Node directly as we optimize the process due to the intermediate
-	selection list getting the api objects for the given names
-	:param **kwargs: passed to `fromSelectionList`"""
+		just creating a Node directly as we optimize the process due to the intermediate
+		selection list getting the api objects for the given names
+	:param kwargs: passed to `fromSelectionList`"""
 	return fromSelectionList( toSelectionListFromNames( nodenames ), **kwargs )
 
 def findByName( name , **kwargs ):
-	""":return: list of node matching name, whereas simple regex using * can be used
-	to describe a pattern
-	:param name: string like pcube, or pcube*, or pcube*|*Shape
-	:param **kwargs: passed to `fromSelectionList`"""
+	"""
+	:return: list of node matching name, whereas simple regex using ``*`` can be used
+		to describe a pattern
+	:param name: string like pcube, or pcube*, or ``pcube*|*Shape``
+	:param kwargs: passed to `fromSelectionList`"""
 	sellist = api.MSelectionList()
 	api.MGlobal.getSelectionListByName( name, sellist )
 
@@ -263,23 +265,26 @@ def objExists( objectname ):
 	""":return: True if given object exists, false otherwise
 	:param objectname: we always use absolute paths to have a unique name
 	:note: perfer this method over mel as the API is used directly as we have some special
-	handling to assure we get the right nodes"""
+		handling to assure we get the right nodes"""
 	return toApiobj( objectname ) is not None
 
 
 @undoable
 def delete( *args, **kwargs ):
 	"""Delete the given Node instances
+	
 	:note: all deletions will be stored on one undo operation
-	:param presort: if True, default False, will do alot of pre-work to actually
-	make the deletion work properly using  the UI, thus we :
-		* sort dag nodes by dag path token length to delete top level ones first
-		and individually
-		* delete all dependency nodes in a bunch
-	Using this flag will be slower, but yields much better results if deleting complex
-	dag and dependency trees with locked attributes, conversion nodes, transforms and shapes
+	:param kwargs:
+		 * presort: 
+		 	if True, default False, will do alot of pre-work to actually
+		 	make the deletion work properly using  the UI, thus we sort dag nodes
+		 	by dag path token length to delete top level ones first and individually, 
+		 	to finally delete all dependency nodes in a bunch
+		 
+		Using this flag will be slower, but yields much better results if deleting complex
+		dag and dependency trees with locked attributes, conversion nodes, transforms and shapes
 	:note: in general , no matter which options have been chosen , api deletion does not work well
-	as the used algorithm is totally different and inferior to the mel implementaiton
+		as the used algorithm is totally different and inferior to the mel implementaiton
 	:note: will not raise in case of an error, but print a notification message"""
 	global log
 	presort = kwargs.get( "presort", False )
@@ -321,9 +326,9 @@ def delete( *args, **kwargs ):
 
 def selection( filterType=api.MFn.kInvalid, **kwargs ):
 	""":return: list of Nodes from the current selection
-	:parma filterType: The type of nodes to return exclusively. Defaults to 
-	returning all nodes.
-	:param **kwargs: passed to `fromSelectionList`"""
+	:param filterType: The type of nodes to return exclusively. Defaults to 
+		returning all nodes.
+	:param kwargs: passed to `fromSelectionList`"""
 	kwargs['filterType'] = filterType
 	return fromSelectionList( activeSelectionList(), **kwargs )
 	
@@ -336,8 +341,8 @@ def activeSelectionList( ):
 def iterSelection(filterType=api.MFn.kInvalid, **kwargs):
 	""":return: iterator over current scene selection
 	:param filterType: MFn type specifying the node type to iterate upon. Defaults
-	to all node types.
-	:param **kwargs: passed to `it.iterSelectionList`
+		to all node types.
+	:param kwargs: passed to `it.iterSelectionList`
 	:note: This iterator will always return Nodes"""
 	kwargs['asNode'] = 1	# remove our overridden warg
 	kwargs['filterType'] = filterType
@@ -345,11 +350,13 @@ def iterSelection(filterType=api.MFn.kInvalid, **kwargs):
 
 def select( *nodesOrSelectionList , **kwargs ):
 	"""Select the given list of wrapped nodes or selection list in maya
+	
 	:param nodesOrSelectionList: single selection list or multiple wrapped nodes
-	, or multiple names
-	:param listAdjustment: default api.MGlobal.kReplaceList
+		, or multiple names
+	:param kwargs:
+		 * listAdjustment: default api.MGlobal.kReplaceList
 	:note: as this is a convenience function that is not required by the api itself,
-	but for interactive sessions, it will be undoable
+		but for interactive sessions, it will be undoable
 	:note: Components are only supported if a selection list is given
 	:note: This method is implicitly undoable"""
 	nodenames = list()
@@ -380,26 +387,27 @@ def select( *nodesOrSelectionList , **kwargs ):
 def createNode( nodename, nodetype, autocreateNamespace=True, renameOnClash = True,
 			     forceNewLeaf=True , maxShapesPerTransform = 0 ):
 	"""Create a new node of nodetype with given nodename
-	:param nodename: like "mynode" or "namespace:mynode" or "|parent|mynode" or
-	"|ns1:parent|ns1:ns2:parent|ns3:mynode". The name may contain any amount of parents
-	and/or namespaces.
-	:note: For reasons of safety, dag nodes must use absolute paths like "|parent|child" -
-	otherwise names might be ambiguous ! This method will assume absolute paths !
+	
+	:param nodename: like ``mynode``or ``namespace:mynode`` or ``|parent|mynode`` or
+		``|ns1:parent|ns1:ns2:parent|ns3:mynode``. The name may contain any amount of parents
+		and/or namespaces.
+	:note: For reasons of safety, dag nodes must use absolute paths like ``|parent|child`` -
+		otherwise names might be ambiguous ! This method will assume absolute paths !
 	:param nodetype: a nodetype known to maya to be created accordingly
 	:param autocreateNamespace: if True, namespaces given in the nodename will be created
-	if required
+		if required
 	:param renameOnClash: if True, nameclashes will automatcially be resolved by creating a unique
-	name - this only happens if a dependency node has the same name as a dag node
+		name - this only happens if a dependency node has the same name as a dag node
 	:param forceNewLeaf: if True, nodes will be created anyway if a node with the same name
-	already exists - this will recreate the leaf portion of the given paths. Implies renameOnClash
-	If False, you will receive an already existing node if the name and type matches.
+		already exists - this will recreate the leaf portion of the given paths. Implies renameOnClash
+		If False, you will receive an already existing node if the name and type matches.
 	:param maxShapesPerTransform: only used when renameOnClash is True, defining the number of
-	shapes you may have below a transform. If the number would be exeeded by the creation of
-	a shape below a given transform, a new auto-renamed transform will be created automatically.
-	This transform is garantueed to be new and will be used as new parent for the shape.
+		shapes you may have below a transform. If the number would be exeeded by the creation of
+		a shape below a given transform, a new auto-renamed transform will be created automatically.
+		This transform is garantueed to be new and will be used as new parent for the shape.
 	:raise RuntimeError: If nodename contains namespaces or parents that may not be created
 	:raise NameError: If name of desired node clashes as existing node has different type
-	:note: As this method is checking a lot and tries to be smart, its relatively slow ( creates ~400 nodes / s )
+	:note: As this method is checking a lot and tries to be smart, its relatively slow ( creates ~1200 nodes / s )
 	:return: the newly create Node"""
 	global _mfndep_setobject, _mfndep_name
 
@@ -533,11 +541,12 @@ def _checkedInstanceCreationDagPathSupport( mobject_or_mdagpath, clsToBeCreated,
 def _checkedInstanceCreation( apiobj, typeName, clsToBeCreated, basecls ):
 	"""Utiliy method creating a new class instance according to additional type information
 	Its used by __new__ constructors to finalize class creation
+	
 	:param apiobj: the MObject of object to wrap
 	:param typeName: the name of the node type to be created
 	:param clsToBeCreated: the cls object as passed in to __new__
 	:param basecls: the class of the caller containing the __new__ method
-	:return: create clsinstance if the proper type ( according to nodeTypeTree"""
+	:return: create clsinstance if the proper type ( according to nodeTypeTree )"""
 	# get the node type class for the api type object
 
 	nodeTypeCls = nodeTypeToNodeTypeCls( typeName )
@@ -585,10 +594,11 @@ def _createInstByPredicate( apiobj, cls, basecls, predicate ):
 	"""Allows to wrap objects around MObjects where the actual compatabilty
 	cannot be determined by some nodetypename, but by the function set itself.
 	Thus it uses the nodeTypeToMfnClsMap to get mfn cls for testing
+	
 	:param cls: the class to be created
 	:param basecls: the class where __new__ has actually been called
 	:param predicate: returns true if the given nodetypename is valid, and its mfn
-	should be taken for tests
+		should be taken for tests
 	:return: new class instance, or None if no mfn matched the apiobject"""
 	# try which node type fits
 	# All attribute instances end with attribute
@@ -655,8 +665,7 @@ class SetFilter( tuple ):
 		return apiobj.hasFn( self[ 0 ] )
 	# END SetFilter
 
-
-#}
+#} END utilities
 
 
 #{ Base
@@ -670,16 +679,19 @@ class Node( object ):
 
 	def __new__ ( cls, *args, **kwargs ):
 		"""return the proper class for the given object
+		
 		:param args: arg[0] is the node to be wrapped
-			- string: wrap the API object with the respective name
-			- MObject
-			- MObjectHandle
-			- MDagPath
-		If args is empty, a new node of the given type will be created within
-		maya. Shapes will automatically receive a parent transform. 
-		**kwargs will be passed to `createNode` in that case.
+		
+			 * string: wrap the API object with the respective name
+			 * MObject
+			 * MObjectHandle
+			 * MDagPath
+			 
+			If args is empty, a new node of the given type will be created within
+			maya. Shapes will automatically receive a parent transform. 
+			kwargs will be passed to `createNode` in that case.
 		:note: This multi-purpose constructor is not perfectly optimized for speed, 
-		consider using `NodeFromObj` instead"""
+			consider using `NodeFromObj` instead"""
 
 		if not args:
 			if not issubclass(cls, DependNode): # cls can be DependNode as well
@@ -739,23 +751,26 @@ class Node( object ):
 		return not Node.__eq__( self, other )
 
 	def __hash__( self ):
-		""":return: our name as hash - as python keeps a pool, each name will
-		correspond to the exact object.
+		"""
+		:return: our name as hash - as python keeps a pool, each name will
+			correspond to the exact object.
 		:note: using asHashable of openMayaMPx did not work as it returns addresses
-		to instances - this does not work for MObjects though"""
+			to instances - this does not work for MObjects though"""
 		return hash(str(self))
 
 	#} END overridden methods
 
 	#{ Interface
 	def apiObject( self ):
-		""":return: the highest qualified api object of the actual superclass,
-		usually either MObject or MDagPath"""
+		"""
+		:return: the highest qualified api object of the actual superclass,
+			usually either MObject or MDagPath"""
 		raise NotImplementedError( "To be implemented in subclass" )
 
 	def getMFnClasses( self ):
-		""":return: list of all function set classes this node supports, most derived
-		function set comes first"""
+		"""
+		:return: list of all function set classes this node supports, most derived
+			function set comes first"""
 		return [ cls._mfncls for cls in self.__class__.mro() if hasattr( cls, '_mfncls' ) ]
 
 	def apiType( self ):
@@ -837,10 +852,8 @@ class NodeFromStr( object ):
 
 
 class DependNode( Node, iDuplicatable ):		# parent just for epydoc -
-	""" Implements access to dependency nodes
+	""" Implements access to dependency nodes"""
 
-	Depdency Nodes are manipulated using an MObjectHandle which is safest to go with,
-	but consumes more memory too !"""
 	__metaclass__ = MetaClassCreatorNodes
 
 	#{ Overridden Methods
@@ -883,15 +896,17 @@ class DependNode( Node, iDuplicatable ):		# parent just for epydoc -
 	@notundoable
 	def duplicate( self, name = None, *args, **kwargs ):
 		"""Duplicate our node and return a wrapped version to it
+		
 		:param name: if given, the newly created node will use the given name
-		:param renameOnClash: if Trrue, default True, clashes are prevented by renaming the new node
-		:param autocreateNamespace: if True, default True, namespaces will be created if mentioned in the name
+		:param kwargs:
+			 * renameOnClash: if Trrue, default True, clashes are prevented by renaming the new node
+			 * autocreateNamespace: if True, default True, namespaces will be created if mentioned in the name
 		:note: the copyTo method may not have not-undoable side-effects to be a proper
-		implementation
+			implementation
 		:note: undo could be implemented for dg nodes - but for reasons of consistency, its disabled here -
-		who knows how much it will crap out after a while as duplicate is not undoable ( mel command )  -
-		it never really worked to undo a mel command from within python, executed using a dgmodifier - unfortunately
-		it does not return any result making it hard to find the newly duplicated object !"""
+			who knows how much it will crap out after a while as duplicate is not undoable ( mel command )  -
+			it never really worked to undo a mel command from within python, executed using a dgmodifier - unfortunately
+			it does not return any result making it hard to find the newly duplicated object !"""
 		# returns name of duplicated node
 		duplnode = NodeFromStr( cmds.duplicate( str( self ) )[0] )
 
@@ -930,13 +945,13 @@ class DependNode( Node, iDuplicatable ):		# parent just for epydoc -
 	def connectedSets( self, setFilter = fSets ):
 		""":return: list of object set compatible Nodes having self as member
 		:param setFilter: tuple( apiType, use_exact_type ) - the combination of the
-		desired api type and the exact type flag allow precise control whether you which
-		to get only renderable shading engines, only objectfSets ( tuple[1] = True ),
-		or all objects supporting the given object type.
-		Its preset to only return shading engines
+			desired api type and the exact type flag allow precise control whether you which
+			to get only renderable shading engines, only objectfSets ( tuple[1] = True ),
+			or all objects supporting the given object type.
+			Its preset to only return shading engines
 		:note: the returned sets order is defined by the order connections to instObjGroups
 		:note: only sets will be returned that have the whole object as member, thus you will not
-		see sets having component assignments like per-compoent shader assignments or deformer sets """
+			see sets having component assignments like per-compoent shader assignments or deformer sets """
 
 		# have to parse the connections to fSets manually, finding fSets matching the required
 		# type and returning them
@@ -959,19 +974,21 @@ class DependNode( Node, iDuplicatable ):		# parent just for epydoc -
 	def isMemberOf( self, setnode, component = MObject() ):
 		""":return: True if self is part of setnode
 		:note: method is undoable
-		:see: `ObjectSet`"""
+		:see: `sets.ObjectSet`"""
 		return setnode.isMember( self, component = component )
 
 	def addTo( self, setnode, component = MObject(), **kwargs ):
 		"""Add ourselves to the given set
+		
 		:note: method is undoable
-		:see: `ObjectSet`"""
+		:see: `sets.ObjectSet`"""
 		return setnode.addMember( self, component = component, **kwargs )
 
 	def removeFrom( self, setnode, component = MObject() ):
 		"""remove ourselves to the given set
+		
 		:note: method is undoable
-		:see: `ObjectSet`"""
+		:see: `sets.ObjectSet`"""
 		return setnode.removeMember( self, component = component )
 
 	#} END sets handling
@@ -981,9 +998,10 @@ class DependNode( Node, iDuplicatable ):		# parent just for epydoc -
 	@undoable
 	def rename( self, newname, autocreateNamespace=True, renameOnClash = True ):
 		"""Rename this node to newname
+		
 		:param newname: new name of the node
 		:param autocreateNamespace: if true, namespaces given in newpath will be created automatically, otherwise
-		a RuntimeException will be thrown if a required namespace does not exist
+			a RuntimeException will be thrown if a required namespace does not exist
 		:param renameOnClash: if true, clashing names will automatically be resolved by adjusting the name
 		:return: renamed node which is the node itself
 		:note: for safety reasons, this node is dagnode aware and uses a dag modifier for them !"""
@@ -1051,10 +1069,11 @@ class DependNode( Node, iDuplicatable ):		# parent just for epydoc -
 	@undoable
 	def delete( self ):
 		"""Delete this node
+		
 		:note: if the undo queue is enabled, the object becomes invalid, but stays alive until it
-		drops off the queue
+			drops off the queue
 		:note: if you want to delete many nodes, its more efficient to delete them
-		using the global `delete` method"""
+			using the global `delete` method"""
 		mod = undo.DGModifier( )
 		mod.deleteNode( self.object() )
 		mod.doIt()
@@ -1071,12 +1090,13 @@ class DependNode( Node, iDuplicatable ):		# parent just for epydoc -
 
 	def addAttribute( self, attr ):
 		"""Add the given attribute to the node as local dynamic attribute
+		
 		:param attr: MObject of attribute or Attribute instance as retrieved from
-		a plug
+			a plug
 		:return: plug to the newly added attribute
 		:note: This method is explicitly not undoable as attributes are being deleted
-		in memory right in the moment they are being removed, thus they cannot
-		reside on the undo queue"""
+			in memory right in the moment they are being removed, thus they cannot
+			reside on the undo queue"""
 		# return it if it already exists
 		attrname = api.MFnAttribute( attr ).name()
 		try:
@@ -1089,6 +1109,7 @@ class DependNode( Node, iDuplicatable ):		# parent just for epydoc -
 
 	def removeAttribute( self, attr ):
 		"""Remove the given attribute from the node
+		
 		:param attr: see `addAttribute`"""
 		# don't do anyting if it does not exist
 		attrname = api.MFnAttribute( attr ).name()
@@ -1102,10 +1123,11 @@ class DependNode( Node, iDuplicatable ):		# parent just for epydoc -
 
 	@undoable
 	def setNamespace(self, newns, **kwargs ):
-		""":return: self after being moved to the given namespace. This will effectively
-		rename the object.
+		"""
+		:return: self after being moved to the given namespace. This will effectively
+			rename the object.
 		:param newns: Namespace instance to put this Node into
-		:param **kwargs: to be passed to `rename`"""
+		:param kwargs: to be passed to `rename`"""
 		namespace, objname = nsm.Namespace.splitNamespace(self.basename())
 		return self.rename(newns + objname, **kwargs)
 
@@ -1114,8 +1136,9 @@ class DependNode( Node, iDuplicatable ):		# parent just for epydoc -
 	@undoable
 	def setLocked( self, state ):
 		"""Lock or unloack this node
+		
 		:param state: if True, the node is locked. Locked nodes cannot be deleted,
-		renamed or reparented
+			renamed or reparented
 		:note: you can query the lock state with `isLocked`"""
 		curstate = self.isLocked()
 		# also works for dag nodes !
@@ -1136,9 +1159,10 @@ class DependNode( Node, iDuplicatable ):		# parent just for epydoc -
 		return cons
 
 	def dependencyInfo( self, attribute, by=True ):
-		""":return: list of attributes that given attribute affects or that the given attribute
-		is affected by
-		if the attribute turns dirty.
+		"""
+		:return: list of attributes that given attribute affects or that the given attribute
+			is affected by
+			if the attribute turns dirty.
 		:param attribute: attribute instance or attribute name
 		:param by: if false, affected attributes will be returned, otherwise the attributes affecting this one
 		:note: see also `MPlug.affectedByPlugs`
@@ -1172,25 +1196,21 @@ class DependNode( Node, iDuplicatable ):		# parent just for epydoc -
 	apiObject = object		# overridden from Node
 
 	def referenceFile( self ):
-		""":return: name ( str ) of file this node is coming from - it could contain
-		a copy number as {x}
+		"""
+		:return: name ( str ) of file this node is coming from - it could contain
+			a copy number as {x}
 		:note: will raise if the node is not referenced, use isReferenced to figure
-		that out"""
+			that out"""
 		# apparently, we have to use MEL here :(
 		return cmds.referenceQuery( str( self ) , f=1 )
 
 	def basename(self):
 		""":return: name of this instance
 		:note: it is mainly for compatability with dagNodes which need this method 
-		in order to return the name of their leaf node"""
+			in order to return the name of their leaf node"""
 		return self.name()
 
 	#}END general query
-
-	#{ Edit Methods
-
-
-	#}
 
 
 class Entity( DependNode ):		# parent just for epydoc
@@ -1204,8 +1224,6 @@ class DagNode( Entity, iDagItem ):	# parent just for epydoc
 	_sep = "|"
 	kNextPos = MFnDagNode.kNextPos
 
-
-	#{ Overridden from Object
 	def __eq__( self, other ):
 		"""Compare MDagPaths directly
 		Valid inputs are Node, DagNode, MObject and MDagPath instances."""
@@ -1219,11 +1237,14 @@ class DagNode( Entity, iDagItem ):	# parent just for epydoc
 		return not DagNode.__eq__( self, other )
 
 	def __getitem__( self, index ):
-		""":return: if index >= 0: Node( child )  at index
-		if index < 0: Node parent at  -(index+1)( if walking up the hierarchy )
-		If index is string, use DependNodes implementation
-		:note: returned child can be transform or shape, use `getShapes` or
-		`getChildTransforms` if you need a quickfilter """
+		"""
+		:return: if index >= 0: Node( child )  at index
+		
+			 * if index < 0: Node parent at  -(index+1)( if walking up the hierarchy )
+			 * If index is string, use DependNodes implementation
+			 
+		:note: returned child can be transform or shape, use `shapes` or
+			`childTransforms` if you need a quickfilter """
 		if index > -1:
 			return self.child( index )
 		else:
@@ -1233,23 +1254,22 @@ class DagNode( Entity, iDagItem ):	# parent just for epydoc
 			# END for each parent
 			raise IndexError( "Parent with index %i did not exist for %r" % ( index, self ) )
 
-	#} END overridden from objects
 
-	#{ Set Handling
 	def _getSetPlug( self ):
-		""":return: the iogplug properly initialized for self
-		Dag Nodes have the iog plug as they support instancing """
+		"""
+		:return: the iogplug properly initialized for self
+			Dag Nodes have the iog plug as they support instancing """
 		return self.iog.elementByLogicalIndex( self.instanceNumber() )
-	#} END set handling
 
 	#{ DAG Modification
 
 	def _setWorldspaceTransform( self, parentnode ):
 		"""Set ourselve's transformation matrix to our absolute worldspace transformation,
 		possibly relative to the optional parentnode
+		
 		:param parentnode: if not None, it is assumed to be the future parent of the node,
-		our transformation will be set such that we retain our worldspace position if parented below
-		parentnode"""
+			our transformation will be set such that we retain our worldspace position if parented below
+			parentnode"""
 		if not isinstance( self, Transform ):
 			return
 
@@ -1269,18 +1289,22 @@ class DagNode( Entity, iDagItem ):	# parent just for epydoc
 	@undoable
 	def reparent( self, parentnode, renameOnClash=True, raiseOnInstance=True, keepWorldSpace = False ):
 		""" Change the parent of all nodes ( also instances ) to be located below parentnode
+		
 		:param parentnode: Node instance of transform under which this node should be parented to
-		if None, node will be reparented under the root ( which only works for transforms )
+			if None, node will be reparented under the root ( which only works for transforms )
 		:param renameOnClash: resolve nameclashes by automatically renaming the node to make it unique
-		:param instanceCheck: if True, this method will raise if you try to reparent an instanced object.
-		If false, instanced objects will be merged into the newly created path under parentnode, effectively
-		eliminating all other paths , keeping the newly created one
+		:param raiseOnInstance: if True, this method will raise if you try to reparent an instanced object.
+			If false, instanced objects will be merged into the newly created path under parentnode, effectively
+			eliminating all other paths , keeping the newly created one
 		:param keepWorldSpace: if True and node to be reparented is a transform, the world space position
-		will be kept by adjusting the transformation accordingly.
-		WARNNG: Currently we reset pivots when doing so
+			will be kept by adjusting the transformation accordingly.
+			**WARNNG**: Currently we reset pivots when doing so
+			
 		:return : copy of self pointing to the new dag path self
+		
 		:note: will remove all instance of this object and leave this object at only one path -
-		if this is not what you want, use the addChild method instead as it can properly handle this case
+			if this is not what you want, use the addChild method instead as it can properly handle this case
+		
 		:note: this method handles namespaces properly """
 		if raiseOnInstance and self.instanceCount( False ) > 1:
 			raise RuntimeError( "%r is instanced - reparent operation would destroy direct instances" % self )
@@ -1340,6 +1364,7 @@ class DagNode( Entity, iDagItem ):	# parent just for epydoc
 	@undoable
 	def addInstancedChild( self, childNode, position=MFnDagNode.kNextPos ):
 		"""Add childnode as instanced child to this node
+		
 		:note: for more information, see `addChild`
 		:note: its a shortcut to addChild allowing to clearly indicate what is happening"""
 		return self.addChild( childNode, position = position, keepExistingParent=True )
@@ -1348,12 +1373,13 @@ class DagNode( Entity, iDagItem ):	# parent just for epydoc
 	def removeChild( self, childNode, allowZeroParents = False ):
 		"""remove the given childNode ( being a child of this node ) from our child list, effectively
 		parenting it under world !
+		
 		:param childNode: Node to unparent - if it is not one of our children, no change takes place
 		:param allowZeroParents: if True, it is possible to leave a node unparented, thus no valid
-		dag paths leads to it. If False, transforms will just be reparented under the world
+			dag paths leads to it. If False, transforms will just be reparented under the world
 		:return: copy of childnode pointing to the first valid dag path we find.
 		:note: to prevent the child ( if transform ) to dangle in unknown space if the last instance
-		is to be removed, it will instead be reparented to world.
+			is to be removed, it will instead be reparented to world.
 		:note: removing shapes from their last parent will result in an error"""
 		# reparent if we have a last-instance of something
 		if not allowZeroParents:
@@ -1384,27 +1410,28 @@ class DagNode( Entity, iDagItem ):	# parent just for epydoc
 	def addChild( self, childNode, position=MFnDagNode.kNextPos, keepExistingParent=False,
 				 renameOnClash=True, keepWorldSpace = False ):
 		"""Add the given childNode as child to this Node. Allows instancing !
+		
 		:param childNode: Node you wish to add
 		:param position: the index to which to add the new child, kNextPos will add it as last child.
-		It supports python style negative indices
+			It supports python style negative indices
 		:param keepExistingParent: if True, the childNode will be instanced as it will
-		have its previous parent and this one, if False, the previous parent will be removed
-		from the child's parent list
+			have its previous parent and this one, if False, the previous parent will be removed
+			from the child's parent list
 		:param renameOnClash: resolve nameclashes by automatically renaming the node to make it unique
 		:param keepWorldSpace: see `reparent`, only effective if the node is not instanced
 		:return: childNode whose path is pointing to the new child location
 		:raise ValueError: if keepWorldSpace is requested with directly instanced nodes
 		:note: the keepExistingParent flag is custom implemented as it would remove all existng parentS,
-		not just the one of the path behind the object ( it does not use a path, so it must remove all existing
-		parents unfortunatly ! )
+			not just the one of the path behind the object ( it does not use a path, so it must remove all existing
+			parents unfortunatly ! )
 		:note: as maya internally handles add/remove child as instancing operation, even though
-		keepExistingParent is False, it will mess up things and for a short period of time in fact
-		have two n + 1 instances, right before one is unlinked, This still fills a slot or something, and
-		isInstanced will be true, although the pathcount is 1.
-		Long story short: if the item to be added to us is not instanced, we use reparent instead. It
-		will not harm in direct instances, so its save to use.
+			keepExistingParent is False, it will mess up things and for a short period of time in fact
+			have two n + 1 instances, right before one is unlinked, This still fills a slot or something, and
+			isInstanced will be true, although the pathcount is 1.
+			Long story short: if the item to be added to us is not instanced, we use reparent instead. It
+			will not harm in direct instances, so its save to use.
 		:note: if the instance count of the item is 1 and keepExistingParent is False, the position
-		argument is being ignored"""
+			argument is being ignored"""
 		# should we use reparent to get around an instance bug ?
 		is_direct_instance = childNode.instanceCount( 0 ) > 1
 		if not keepExistingParent and not is_direct_instance:	# direct only
@@ -1509,7 +1536,8 @@ class DagNode( Entity, iDagItem ):	# parent just for epydoc
 	@undoable
 	def addParent( self, parentnode, **kwargs ):
 		"""Adds ourselves as instance to the given parentnode at position
-		:param **kwargs: see `addChild`
+		
+		:param kwargs: see `addChild`
 		:return: self with updated dag path"""
 		kwargs.pop( "keepExistingParent", None )
 		return parentnode.addChild( self, keepExistingParent = True, **kwargs )
@@ -1517,7 +1545,8 @@ class DagNode( Entity, iDagItem ):	# parent just for epydoc
 	@undoable
 	def setParent( self, parentnode, **kwargs ):
 		"""Change the parent of self to parentnode being placed at position
-		:param **kwargs: see `addChild`
+		
+		:param kwargs: see `addChild`
 		:return: self with updated dag path"""
 		kwargs.pop( "keepExistingParent", None )	# knock off our changed attr
 		return parentnode.addChild( self, keepExistingParent = False,  **kwargs )
@@ -1525,55 +1554,60 @@ class DagNode( Entity, iDagItem ):	# parent just for epydoc
 	@undoable
 	def removeParent( self, parentnode  ):
 		"""Remove ourselves from given parentnode
+		
 		:return: None"""
 		return parentnode.removeChild( self )
 
 
 	#} END DAG modification
 
-	#{ Edit
 	@undoable
 	def delete( self ):
 		"""Delete this node - this special version must be
+		
 		:note: if the undo queue is enabled, the object becomes invalid, but stays alive until it
-		drops off the queue
+			drops off the queue
 		:note: if you want to delete many nodes, its more efficient to delete them
-		using the global `delete` method"""
+			using the global `delete` method"""
 		mod = undo.DagModifier( )
 		mod.deleteNode( self.object() )
 		mod.doIt()
 
+	#{ Edit
 
 	@notundoable
 	def duplicate( self, newpath='', autocreateNamespace=True, renameOnClash=True,
 				   newTransform = False, **kwargs ):
 		"""Duplciate the given node to newpath
-		:param newpath: result depends on its format
-		   - '' - empty string, creates a unique name based on the actual node name by appending a copy number
-		   to it, if newTransform is True, the newly created shape/transform will keep its name, but receives a new parent
-		   - 'newname' - relative path, the node will be duplicated not changing its current parent if newTransform is False
-		   - '|parent|newname' - absolute path, the node will be duplicated and reparented under the given path
-		   if newTransform is True, a new transform name will be created based on your name by appending a unique copy number
+		
+		:param newpath: result depends on its format:
+		
+			 * '' - empty string, creates a unique name based on the actual node name by appending a copy number
+			   to it, if newTransform is True, the newly created shape/transform will keep its name, but receives a new parent
+			 * 'newname' - relative path, the node will be duplicated not changing its current parent if newTransform is False
+			 * ``|parent|newname`` - absolute path, the node will be duplicated and reparented under the given path
+				if newTransform is True, a new transform name will be created based on your name by appending a unique copy number
+			
 		:param autocreateNamespace: if true, namespaces given in newpath will be created automatically, otherwise
-		a RuntimeException will be thrown if a required namespace does not exist
+			a RuntimeException will be thrown if a required namespace does not exist
 		:param renameOnClash: if true, clashing names will automatically be resolved by adjusting the name
 		:param newTransform: if True, a new transform will be created based on the name of the parent transform
-		of this shape node, appending a unique copy number to it.
-		Only has an effect for shape nodes
+			of this shape node, appending a unique copy number to it.
+			Only has an effect for shape nodes
 		:return: newly create Node
 		:note: duplicate performance could be improved by checking more before doing work that does not
-		really change the scene, but adds undo operations
+			really change the scene, but adds undo operations
 		:note: inbetween parents are always required as needed
 		:todo: add example for each version of newpath
 		:note: instancing can be realized using the `addChild` function
 		:note: If meshes have tweaks applied, the duplicate will not have these tweaks and the meshes will look
-		mislocated.
-		Using MEL works in that case ... ( they fixed it there obviously ) , but creates invalid objects
+			mislocated.
+			Using MEL works in that case ... ( they fixed it there obviously ) , but creates invalid objects
 		:todo: Undo implementation - every undoable operation must in fact be based on strings to really work, all
-		this is far too much - dagNode.duplicate must be undoable by itself
+			this is far too much - dagNode.duplicate must be undoable by itself
 		:todo: duplicate should be completely reimplemented to support all mel options and actually work with
-		meshes and tweaks - the underlying api duplication would still be used of course, as well as
-		connections ( to sets ) and so on ... """
+			meshes and tweaks - the underlying api duplication would still be used of course, as well as
+			connections ( to sets ) and so on ... """
 		selfIsShape = isinstance( self, Shape )
 
 		# NAME HANDLING
@@ -1745,8 +1779,9 @@ class DagNode( Entity, iDagItem ):	# parent just for epydoc
 
 	#{ DAG Status Information
 	def _checkHierarchyVal( self, plugName, cmpval ):
-		""":return: cmpval if the plug value of one of the parents equals cmpval
-		as well as the current entity"""
+		"""
+		:return: cmpval if the plug value of one of the parents equals cmpval
+			as well as the current entity"""
 		if getattr( self, plugName ).asInt() == cmpval:
 			return cmpval
 
@@ -1757,8 +1792,9 @@ class DagNode( Entity, iDagItem ):	# parent just for epydoc
 		return 1 - cmpval
 
 	def _getDisplayOverrideValue( self, plugName ):
-		""":return: the given effective display override value or None if display
-		overrides are disabled"""
+		"""
+		:return: the given effective display override value or None if display
+			overrides are disabled"""
 		if self.do.mchildByName('ove').asInt():
 			return getattr( self.do, plugName ).asInt()
 
@@ -1769,31 +1805,32 @@ class DagNode( Entity, iDagItem ):	# parent just for epydoc
 		return None
 
 	def isVisible( self ):
-		""":return: True if this node is visible - its visible if itself and all parents are
-		visible"""
+		"""
+		:return: True if this node is visible - its visible if itself and all parents are
+			visible"""
 		return self._checkHierarchyVal( 'v', False )
 
 	def isTemplate( self ):
-		""":return: True if this node is templated - this is the case if itself or one of its
-		parents are templated """
+		"""
+		:return: True if this node is templated - this is the case if itself or one of its
+			parents are templated """
 		return self._checkHierarchyVal( 'tmp', True )
 
 	def displayOverrideValue( self, plugName ):
-		""":return: the override display value actually identified by plugName affecting
-		the given object ( that should be a leaf node for the result you see in the viewport.
-		The display type in effect is always the last one set in the hierarchy
-		returns None display overrides are disabled"""
+		"""
+		:return: the override display value actually identified by plugName affecting
+			the given object ( that should be a leaf node for the result you see in the viewport.
+			The display type in effect is always the last one set in the hierarchy
+			returns None display overrides are disabled"""
 		return self._getDisplayOverrideValue( plugName )
 	#} END dag status information
-
-	#{ Overridden from DependNode
 
 	def isValid( self ):
 		""":return: True if the object exists in the scene
 		:note: Handles DAG objects correctly that can be instanced, in which case
-		the MObject may be valid , but the respective dag path is not.
-		Additionally, if the object is not parented below any object, everything appears
-		to be valid, but the path name is empty """
+			the MObject may be valid , but the respective dag path is not.
+			Additionally, if the object is not parented below any object, everything appears
+			to be valid, but the path name is empty """
 		return self.dagPath().isValid() and self.dagPath().fullPathName() != '' and DependNode.isValid( self )
 
 	def name( self ):
@@ -1802,11 +1839,13 @@ class DagNode( Entity, iDagItem ):	# parent just for epydoc
 
 	# override dependnode implementation with the original one
 	basename = iDagItem.basename
+	
+	
 	#{ DAG Query
 
 	def parentAtIndex( self, index ):
 		""":return: Node of the parent at the given index - non-instanced nodes only have one parent
-		:note: if a node is instanced, it can have `getParentCount` parents
+		:note: if a node is instanced, it can have `parentCount` parents
 		:todo: Update dagpath afterwards ! Use dagpaths instead !"""
 		sutil = api.MScriptUtil()
 		sutil.createFromInt(index)
@@ -1835,7 +1874,7 @@ class DagNode( Entity, iDagItem ):	# parent just for epydoc
 	def children( self, predicate = lambda x: True, asNode=True ):
 		""":return: all child nodes below this dag node if predicate returns True for passed Node
 		:param asNode: if True, you will receive the children as wrapped Nodes, otherwise you 
-		get MDagPaths"""
+			get MDagPaths"""
 		out = list()
 		ownpath = self.dagPath()
 		for i in range( ownpath.childCount() ):
@@ -1854,13 +1893,13 @@ class DagNode( Entity, iDagItem ):	# parent just for epydoc
 
 	def childrenByType( self, nodeType, predicate = lambda x: True ):
 		""":return: all childnodes below this one matching the given nodeType and the predicate
-		:param nodetype: class of the nodeTyoe, like nt.Transform"""
+		:param nodeType: class of the nodeTyoe, like nt.Transform"""
 		return [ p for p in self.children() if isinstance( p, nodeType ) and predicate( p ) ]
 
 	def shapes( self, predicate = lambda x: True ):
 		""":return: all our Shape nodes
 		:note: you could use getChildren with a predicate, but this method is more
-		efficient as it uses dagpath functions to filter shapes"""
+			efficient as it uses dagpath functions to filter shapes"""
 		shapeNodes = map(NodeFromObj, MDagPathUtil.shapes(self.dagPath()))	# could use getChildrenByType, but this is faster
 		return [ s for s in shapeNodes if predicate( s ) ]
 
@@ -1895,15 +1934,14 @@ class DagNode( Entity, iDagItem ):	# parent just for epydoc
 	def child( self, index ):
 		""":return: child of self at index
 		:note: this method fixes the MFnDagNode.child method - it returns an MObject,
-		which doesnt work well with instanced nodes - a dag path is required, which is what
-		we use to aquire the object"""
+			which doesnt work well with instanced nodes - a dag path is required, which is what
+			we use to aquire the object"""
 		copy = MDagPath( self.dagPath() )
 		copy.push( MDagPath.child( self.dagPath(), index ) )
 		return NodeFromObj( copy )
 
 	#} END dag query
 
-	#{ General Query
 
 	def _dagPath_delayed( self ):
 		"""Handles the retrieval of a dagpath from an MObject if it is not known
@@ -1936,23 +1974,24 @@ class DagNode( Entity, iDagItem ):	# parent just for epydoc
 	object = _object_delayed
 	
 	def dagPath( self ):
-		""":return: the original DagPath attached to this Node - it's not wrapped
-		for performance"""
+		"""
+		:return: the original DagPath attached to this Node - it's not wrapped
+			for performance"""
 		return self._apidagpath
 
 	def apiObject( self ):
 		""":return: our dag path as this is our api object - the object defining this node best"""
 		return self.dagPath()
 
-	#}END general query
 
 	#{ Iterators
 	def iterInstances( self, excludeSelf = False ):
 		"""Get iterator over all ( direct and indirect )instances of this node
+		
 		:param excludeSelf: if True, self will not be returned, if False, it will be in
-		the list of items
+			the list of items
 		:note: Iterating instances is more efficient than querying all instances individually using
-		`getInstance`
+			`instance`
 		:todo: add flag to allow iteration of indirect instances as well """
 		# prevents crashes if this method is called within a dag instance added callback
 		if self.instanceCount( True ) == 1:
@@ -1986,9 +2025,10 @@ def _new_mixin( cls, *args, **kwargs ):
 	Requires _base_cls_ and _mfn_suffix_ to be set on the respective class
 	
 	return an attribute class of the respective type for given MObject
+	
 	:param args: arg[0] is attribute's MObject to be wrapped.
 	:note: Custom constructors are not possible as __init__ is automatically called
-	afterwards - MObject does not support anything but no args or another MObject."""
+		afterwards - MObject does not support anything but no args or another MObject."""
 	# may fail as we didn't check of len(args), but its okay, lets safe the if statement 
 	# here ! Python will bark nicely anyway
 	mobject = args[0]
@@ -2029,8 +2069,8 @@ class Attribute( MObject ):
 		""":return: A new Attribute 
 		:param full_name: the long name of the attribute
 		:param brief_name: the brief name of the attribute
-		@param *args, **kwargs: passed to the respective function set instance
-		:note: specialize this method in derived types !"""
+		:note: all args and kwargs are passed to the respective function set instance
+		:note: specialize this method in derived types if required"""
 		if cls == Attribute:
 			raise TypeError("Cannot create plain Attributes, choose a subclass of Attribute instead")
 		# END handle invalid type
@@ -2145,13 +2185,15 @@ class NumericAttribute( Attribute ):
 	@classmethod
 	def createColor(cls, full_name, brief_name ):
 		""":return: An attribute representing a RGB color
-		@param full_name, brief_name: see `create`"""
+		:param full_name: see `create`
+		:param brief_name: see `create`"""
 		return cls._create_using('createColor', full_name, brief_name)
 	
 	@classmethod
 	def createPoint(cls, full_name, brief_name ):
 		""":return: An attribute representing a point with XYZ coordinates
-		@param full_name, brief_name: see `create`"""
+		:param full_name: see `create`
+		:param brief_name: see `create`"""
 		return cls._create_using('createPoint', full_name, brief_name)
 		
 	
@@ -2246,9 +2288,9 @@ class PluginData( Data ):
 	def data( self ):
 		""":return: python data wrapped by this plugin data object
 		:note: the python data should be made such that it can be changed using
-		the reference we return - otherwise it will be read-only as it is just a copy !
+			the reference we return - otherwise it will be read-only as it is just a copy !
 		:note: the data retrieved by this method cannot be used in plug.msetMObject( data ) as it
-		is ordinary python data, not an mobject
+			is ordinary python data, not an mobject
 		:raise RuntimeError: if the data object's id is unknown to this class"""
 		import maya.OpenMayaMPx as mpx	# delayed import as it takes plenty of time
 		
@@ -2371,7 +2413,7 @@ class Component( MObject ):
 		""":return: A new component instance carrying data of the given component type
 		:param component_type: MFn:: component type to be created. 
 		:note: It is important that you call this function on the Component Class of 
-		a compatible type, or a RuntimeError will occour"""
+			a compatible type, or a RuntimeError will occour"""
 		if cls == Component:
 			raise TypeError("The base compnent type cannot be instantiated")
 		# END handle invalid type
@@ -2388,15 +2430,17 @@ class Component( MObject ):
 	def addElements( self, *args ):
 		"""Operates exactly as described in the MFn...IndexComponent documentation, 
 		but returns self to allow combined calls and on-the-fly component generation
+		
 		:return: self"""
 		self._mfncls(self).addElements(*args)
 		return self
 
 	def addElement( self, *args ):
 		"""see `addElements`
+		
 		:return: self
 		:note: do not use this function as it will be really slow when handling many
-		items, use addElements instead"""
+			items, use addElements instead"""
 		self._mfncls(self).addElement(*args)
 		return self
 
@@ -2420,8 +2464,9 @@ class DoubleIndexedComponent( Component ):	# derived just for epydoc
 	_mfnType = api.MFn.kDoubleIndexedComponent
 	
 	def getElements(self):
-		""":return: (uIntArray, vIntArray) tuple containing arrays with the u and v
-		indices this component represents"""
+		"""
+		:return: (uIntArray, vIntArray) tuple containing arrays with the u and v
+			indices this component represents"""
 		u = api.MIntArray()
 		v = api.MIntArray()
 		api.MFnDoubleIndexedComponent(self).getElements(u, v)
@@ -2436,8 +2481,9 @@ class TripleIndexedComponent( Component ):
 	_mfnType = api.MFn.kTripleIndexedComponent
 
 	def getElements(self):
-		""":return: (uIntArray, vIntArray, wIntArray) tuple containing arrays with 
-		the u, v and w indices this component represents"""
+		"""
+		:return: (uIntArray, vIntArray, wIntArray) tuple containing arrays with 
+			the u, v and w indices this component represents"""
 		u = api.MIntArray()
 		v = api.MIntArray()
 		w = api.MIntArray()
@@ -2453,15 +2499,17 @@ class TripleIndexedComponent( Component ):
 
 class MDagPathUtil( object ):
 	"""Performs operations on MDagPaths which are hard or inconvenient to do otherwise
+	
 	:note: We do NOT patch the actual api type as this would make it unusable to be passed in
-	as reference/pointer type unless its being created by maya itself."""
+		as reference/pointer type unless its being created by maya itself."""
 
 	#{ Query
 
 	@classmethod
 	def parentPath( cls, path ):
-		""":return: MDagPath to the parent of path or None if path is in the scene 
-		root."""
+		"""
+		:return: MDagPath to the parent of path or None if path is in the scene 
+			root."""
 		copy = MDagPath( path )
 		copy.pop( 1 )
 		if copy.length() == 0:		# ignore world !
@@ -2503,6 +2551,7 @@ class MDagPathUtil( object ):
 	@classmethod
 	def pop( cls, path, num ):
 		"""Pop the given number of items off the end of the path
+		
 		:return: path itself"""
 		path.pop( num )
 		return path
@@ -2510,6 +2559,7 @@ class MDagPathUtil( object ):
 	@classmethod
 	def extendToChild( cls, path, num ):
 		"""Extend path to the given child number - can be shape or transform
+		
 		:return: path itself"""
 		path.extendToShapeDirectlyBelow( num )
 		return self
@@ -2517,6 +2567,7 @@ class MDagPathUtil( object ):
 	@classmethod
 	def childPathsByFn( cls, path, fn, predicate = lambda x: True ):
 		"""Get all children below path supporting the given MFn.type
+		
 		:return: MDagPaths to all matched paths below this path
 		:param fn: member of MFn
 		:param predicate: returns True for each path which should be included in the result."""
@@ -2528,8 +2579,8 @@ class MDagPathUtil( object ):
 		""":return: MDagPaths to all shapes below path
 		:param predicate: returns True for each path which should be included in the result.
 		:note: have to explicitly assure we do not get transforms that are compatible to the shape function
-		set for some reason - this is just odd and shouldn't be, but it happens if a transform has an instanced
-		shape for example, perhaps even if it is not instanced"""
+			set for some reason - this is just odd and shouldn't be, but it happens if a transform has an instanced
+			shape for example, perhaps even if it is not instanced"""
 		return [ shape for shape in cls.childPathsByFn( path, api.MFn.kShape, predicate=predicate ) if shape.apiType() != api.MFn.kTransform ]
 
 	@classmethod
@@ -2548,8 +2599,9 @@ class Reference( DependNode ):
 	"""Implements additional utilities to work with references"""
 	
 	def fileReference(self):
-		""":return: `FileReference` instance initialized with the reference we 
-		represent"""
+		"""
+		:return: `FileReference` instance initialized with the reference we 
+			represent"""
 		import mrv.maya.ref as refmod
 		return refmod.FileReference(refnode=self)
 	
@@ -2557,9 +2609,10 @@ class Reference( DependNode ):
 class Transform( DagNode ):		# derived just for epydoc
 	"""Precreated class to allow isinstance checking against their types and
 	to add undo support to MFnTransform functions, as well as for usability
+	
 	:note: bases determined by metaclass
 	:note: to have undoable set* functions , get the ( improved ) transformation matrix
-	make your changes to it and use the `set` method """
+		make your changes to it and use the `set` method """
 	__metaclass__ = MetaClassCreatorNodes
 
 	#{ MFnTransform Overrides
@@ -2614,9 +2667,9 @@ class Shape( DagNode ):	 # base for epydoc !
 	They usually support per object and per component shader assignments
 
 	:note: as shadingEngines are derived from objectSet, this class deliberatly uses
-	them interchangably when it comes to set handling.
+		them interchangably when it comes to set handling.
 	:note: for convenience, this class implements the shader related methods
-	whereever possible
+		whereever possible
 	:note: bases determined by metaclass"""
 
 	__metaclass__ = MetaClassCreatorNodes
@@ -2630,8 +2683,9 @@ class Shape( DagNode ):	 # base for epydoc !
 
 	def _parseSetConnections( self, allow_compoents ):
 		"""Manually parses the set connections from self
+		
 		:return: tuple( MObjectArray( setapiobj ), MObjectArray( compapiobj ) ) if allow_compoents, otherwise
-		just a list( setapiobj )"""
+			just a list( setapiobj )"""
 		sets = api.MObjectArray()
 		iogplug = self._getSetPlug()			# from DagNode , usually iog plug
 
@@ -2669,28 +2723,30 @@ class Shape( DagNode ):	 # base for epydoc !
 
 
 	def componentAssignments( self, setFilter = fSetsRenderable, use_api = True, asComponent = True ):
-		""":return: list of tuples( ObjectSetNode, Component_or_MObject ) defininmg shader
-		assignments on per component basis.
-		If a shader is assigned to the whole object, the component would be a null object, otherwise
-		it is an instance of a wrapped IndexedComponent class
+		"""
+		:return: list of tuples( ObjectSetNode, Component_or_MObject ) defininmg shader
+			assignments on per component basis.
+			
+			If a shader is assigned to the whole object, the component would be a null object, otherwise
+			it is an instance of a wrapped IndexedComponent class
 		:note: The returned Component will be an MObject(kNullObject) only in case the component is 
-		not set. Hence you should check whether it isNull() before actually using it.
+			not set. Hence you should check whether it isNull() before actually using it.
 		:param setFilter: see `connectedSets`
 		:param use_api: if True, api methods will be used if possible which is usually faster.
-		If False, a custom non-api implementation will be used instead.
-		This can be required if the apiImplementation is not reliable which happens in
-		few cases of 'weird' component assignments
+			If False, a custom non-api implementation will be used instead.
+			This can be required if the apiImplementation is not reliable which happens in
+			few cases of 'weird' component assignments
 		:param asComponent: If True, the components will be wrapped into the matching MRV compontent type
-		to provide a nicer interface. This might slightly slow down the process, but this is usually 
-		neglectable.
+			to provide a nicer interface. This might slightly slow down the process, but this is usually 
+			neglectable.
 		:note: the sets order will be the order of connections of the respective component list
-		attributes at instObjGroups.objectGroups
+			attributes at instObjGroups.objectGroups
 		:note: currently only meshes and subdees support per component assignment, whereas only
-		meshes can have per component shader assignments
+			meshes can have per component shader assignments
 		:note: SubDivision Components cannot be supported as the component type kSubdivCVComponent
-		cannot be wrapped into any component function set - reevaluate that with new maya versions !
+			cannot be wrapped into any component function set - reevaluate that with new maya versions !
 		:note: deformer set component assignments are only returned for instance 0 ! They apply to all
-		output meshes though"""
+			output meshes though"""
 		global log
 
 		# SUBDEE SPECIAL CASE
@@ -2739,8 +2795,6 @@ class Shape( DagNode ):	 # base for epydoc !
 		return outlist
 
 	#} END set interface
-
-
 #} END default types
 
 

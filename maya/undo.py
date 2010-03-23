@@ -34,6 +34,13 @@ Additionally it will turn off the maya undo queue as a convenience.
 
 If the mrv undo queue is disabled, MPlugs will not store undo information anymore
 and do not incur any overhead.
+
+Implementing an undoable method
+-------------------------------
+   - decorate with @undoable
+   - minimize probability that your operation will fail before creating an operation ( for efficiency )
+   - only use operation's doIt() method to apply your changes
+   - if you raise, you should not have created an undo operation
 """
 __docformat__ = "restructuredtext"
 

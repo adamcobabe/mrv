@@ -1,9 +1,9 @@
 # -*- coding: utf-8 -*-
 """
 Deals with types of objects and mappings between them
-
-:todo: more documentation
 """
+__docformat__ = "restructuredtext"
+
 from mrv.maya.util import MetaClassCreator
 import mrv.maya as bmaya
 from mrv.path import Path
@@ -38,6 +38,7 @@ nodeTypeToMfnClsMap = dict()		# allows to see the most specialized compatible mf
 
 class MetaClassCreatorNodes( MetaClassCreator ):
 	"""Builds the base hierarchy for the given classname based on our typetree
+	
 	:todo: build classes with slots only as members are pretermined"""
 
 	# special name handling - we assume lower case names, these are capitalized though
@@ -52,9 +53,10 @@ class MetaClassCreatorNodes( MetaClassCreator ):
 
 	@classmethod
 	def _readMfnDB( cls, mfnclsname ):
-		""":return: mfn database describing how to handle the functions in the
-		function set described by mfnclsname
-		If no explicit information exists, the db will be empty"""
+		"""
+		:return: mfn database describing how to handle the functions in the
+			function set described by mfnclsname
+			If no explicit information exists, the db will be empty"""
 		try:
 			return MfnMemberMap( mfnDBPath( mfnclsname ) )
 		except IOError:
@@ -64,28 +66,33 @@ class MetaClassCreatorNodes( MetaClassCreator ):
 
 	@classmethod
 	def _wrapMfnFunc( cls, newcls, mfncls, funcname, funcMutatorDB = None ):
-		""" Create a function that makes a Node natively use its associated Maya
+		"""Create a function that makes a Node natively use its associated Maya
 		function set on calls.
 
 		The created function will use the api object of the cls instance to initialize
 		a function set of mfncls and execute the function in question
 
 		The method mutation database allows to adjust the way a method is being wrapped
+		
 		:param mfncls: Maya function set class from which to take the functions
 		:param funcname: name of the function set function to be wrapped
-		:param funcMutatorDB: datastructure:
-		{ "mfnfuncname": ( rvalMutatorFunction, newname ) [ , ... ] }
-			- mfnfuncname: name of the function in the mfn class
-			- rvalMutatorFunction: if not None, will be given the return value of the wrpaped
-			function and should return an altered and possibly wrapped value
-			- newname: if not None, a new name for the function mfnfuncname
+		:param funcMutatorDB: 
+			 * *datastructure*:
+				``"mfnfuncname": ( rvalMutatorFunction, newname ) [ , ... ]``
+				 - mfnfuncname: name of the function in the mfn class
+				 
+				 - rvalMutatorFunction:
+				 	if not None, will be given the return value of the wrpaped
+					function and should return an altered and possibly wrapped value
+					
+				 - newname: if not None, a new name for the function mfnfuncname
 
 		:raise KeyError: if the given function does not exist in mfncls
 		:note: if the called function starts with _api_*, a special accellerated method
-		will be returned and created allowing direct access to the mfn instance method.
-		This is unsafe of the same api object is being renamed. Also it will only be faster if
-		the same method is actually called multiple times. It can be great for speed sensitive code
-		where where the same method(s) are called repeatedly on the same set of objects
+			will be returned and created allowing direct access to the mfn instance method.
+			This is unsafe of the same api object is being renamed. Also it will only be faster if
+			the same method is actually called multiple times. It can be great for speed sensitive code
+			where where the same method(s) are called repeatedly on the same set of objects
 		:return:  wrapped function"""
 		# check the dict for method name - we do not want to see methods of
 		# base classes - will raise accordingly
@@ -385,7 +392,8 @@ def mfnDBPath( mfnclsname ):
 
 
 def cacheFilePath( filename, ext, use_version = False ):
-	"""@Return path to cache file from which you would initialize data structures
+	"""Return path to cache file from which you would initialize data structures
+	
 	:param use_version: if true, the maya version will be appended to the filename  """
 	mfile = Path( __file__ ).parent().parent()
 	version = ""
@@ -397,6 +405,7 @@ def cacheFilePath( filename, ext, use_version = False ):
 
 def initNodeHierarchy( ):
 	""" Parse the nodes hiearchy from the maya doc and create an Indexed tree from it
+	
 	:todo: cache the pickled tree and try to load it instead"""
 	mfile = cacheFilePath( "nodeHierarchy", "html", use_version = 1 )
 	lines = mfile.lines( retain=False )			# just read them in one burst
@@ -418,8 +427,9 @@ def initNodeHierarchy( ):
 	nodeTypeTree = bmaya.dag_tree_from_tuple_list( hierarchylist )
 
 def initWrappers( targetmodule ):
-	""" Create Standin Classes that will delay the creation of the actual class till
+	"""Create Standin Classes that will delay the creation of the actual class till
 	the first instance is requested
+	
 	:param targetmodule: the module to which to put the wrappers"""
 	global nodeTypeTree
 	bmaya.initWrappers( targetmodule, nodeTypeTree.nodes_iter(), MetaClassCreatorNodes )
@@ -449,16 +459,17 @@ def initNodeTypeToMfnClsMap( ):
 
 def _addCustomType( targetmodule, parentclsname, newclsname,
 				   	metaclass=MetaClassCreatorNodes, **kwargs ):
-	""" Add a custom type to the system such that a node with the given type will
+	"""Add a custom type to the system such that a node with the given type will
 	automatically be wrapped with the corresponding class name
+	
 	:param targetmodule: the module to which standin classes are supposed to be added
 	:param parentclsname: the name of the parent node type - if your new class
-	has several parents, you have to add the new types beginning at the first exsiting parent
-	as written in the maya/cache/nodeHierarchy.html file
+		has several parents, you have to add the new types beginning at the first exsiting parent
+		as written in the maya/cache/nodeHierarchy.html file
 	:param newclsname: the new name of your class - it must exist targetmodule
 	:param metaclass: meta class object to be called to modify your type upon creation
-	It will not be called if the class already exist in targetModule. Its recommended to derive it
-	from the metaclass given as default value.
+		It will not be called if the class already exist in targetModule. Its recommended to derive it
+		from the metaclass given as default value.
 	:raise KeyError: if the parentclsname does not exist"""
 	global nodeTypeTree
 
@@ -474,10 +485,11 @@ def _addCustomType( targetmodule, parentclsname, newclsname,
 def _addCustomTypeFromDagtree( targetModule, dagtree, metaclass=MetaClassCreatorNodes,
 							  	force_creation=False, **kwargs ):
 	"""As `_addCustomType`, but allows to enter the type relations using a
-	`DAGTree` instead of individual names. Thus multiple edges can be added at once
+	`mrv.util.DAGTree` instead of individual names. Thus multiple edges can be added at once
+	
 	:note: special care is being taken to make force_creation work - first all the standind classes
-	are needed, then we can create them - just iterating the nodes in undefined order will not work
-	as a parent node might not be created yet
+		are needed, then we can create them - just iterating the nodes in undefined order will not work
+		as a parent node might not be created yet
 	:note: node names in dagtree must be uncapitalized"""
 	global nodeTypeTree
 
@@ -537,7 +549,8 @@ class MfnMemberMap( UserDict.UserDict ):
 		return "MfnMemberMap(%s)" % self._filepath
 
 	def _initFromFile( self, filepath ):
-		""" Initialize the database with values from the given file
+		"""Initialize the database with values from the given file
+		
 		:note: the file must have been written using the `writeToFile` method"""
 		self.clear()
 		fobj = open( filepath, 'r' )
@@ -569,9 +582,10 @@ class MfnMemberMap( UserDict.UserDict ):
 		fobj.close()
 
 	def entry( self, funcname ):
-		""":return: Tuple( mfnfuncname, entry )
-		original mfnclass function name paired with the
-		db entry containing more information
+		"""
+		:return: Tuple( mfnfuncname, entry )
+			original mfnclass function name paired with the
+			db entry containing more information
 		:raise KeyError: if no such function exists"""
 		try:
 			return ( funcname, self[ funcname ] )
@@ -585,6 +599,7 @@ class MfnMemberMap( UserDict.UserDict ):
 
 	def createEntry( self, funcname ):
 		""" Create an entry for the given function, or return the existing one
+		
 		:return: Entry object for funcname"""
 		return self.setdefault( funcname, self.Entry() )
 
@@ -630,6 +645,4 @@ def writeMfnDBCacheFiles( ):
 			db.writeToFile( mfnfile )
 		# END for each api class
 	# END for each api module
-
-
 

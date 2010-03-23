@@ -14,7 +14,7 @@ __docformat__ = "restructuredtext"
 __all__ = ("decodeString", "decodeStringOrList", "capitalize", "uncapitalize", 
 	"pythonIndex", "copyClsMembers", "packageClasses", "iterNetworkxGraph", 
            "Call", "CallAdv", "WeakInstFunction", "Event", "EventSender", 
-           "InterfaceMaster", "Singleton", "IntKeyGenerator", "CallOnDeletion", 
+           "InterfaceMaster", "Singleton", "CallOnDeletion", 
            "DAGTree", "PipeSeparatedFile", "MetaCopyClsMembers", "And", "Or") 
            
 

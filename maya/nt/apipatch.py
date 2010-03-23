@@ -8,9 +8,11 @@ api classes.
 
 As they are usually derived from the class they patch , they could also be used directly
 
-:note: NEVER IMPORT CLASSES DIRECTLY IN HERE, keep at least one module , thus:
-NOT: thisImportedClass BUT: module.thisImportedClass !
+:note: **never import classes directly in here**, import the module instead, thus
+	**not**: thisImportedClass **but**: module.thisImportedClass !
 """
+__docformat__ = "restructuredtext"
+
 import base
 import mrv.maya.undo as undo
 import mrv.util as util
@@ -91,6 +93,7 @@ class Abstract:
 #{ Primitive Types
 class TimeDistanceAngleBase( Abstract ):
 	"""Base patch class for all indicated classes
+	
 	:note: idea for patches from pymel"""
 	def __str__( self ): return str(float(self))
 	def __int__( self ): return int(float(self))
@@ -122,6 +125,7 @@ class PatchIterablePrimitives( Abstract ):
 	def _applyPatch( cls ):
 		"""Read per-class values from self and create appropriate methods and
 		set them as well
+		
 		:note: idea from pymel"""
 		def __len__(self):
 			""" Number of components in Maya api iterable """
@@ -246,10 +250,11 @@ class MTransformationMatrix( api.MTransformationMatrix, PatchMatrix ):
 
 def _mplug_createUndoSetFunc( dataTypeId, getattroverride = None ):
 	"""Create a function setting a value with undo support
+	
 	:param dataTypeId: string naming the datatype, like "Bool" - capitalization is
-	important
+		important
 	:note: if undo is globally disabled, we will resolve to implementing a faster
-	function instead as we do not store the previous value.
+		function instead as we do not store the previous value.
 	:note: to use the orinal method without undo, use api.MPlug.setX(your_plug, value)"""
 	# this binds the original setattr and getattr, not the patched one
 	getattrfunc = getattroverride
@@ -310,7 +315,7 @@ class MPlug( api.MPlug ):
 	don't start with a 'get'.
 	
 	:note: Theoretically the MPlug would satisfy the 'iDagItem' interface, but due 
-	to the method prefixes, it could not work here as it calls un-prefixed methods only."""
+		to the method prefixes, it could not work here as it calls un-prefixed methods only."""
 
 	pa = api.MPlugArray( )		# the only way to get a null plug for use
 	pa.setLength( 1 )
@@ -318,8 +323,9 @@ class MPlug( api.MPlug ):
 	#{ Overridden Methods
 
 	def __len__( self ):
-		""":return: number of physical elements in the array, but only if they are 
-		not connected. If in doubt, run evaluateNumElements beforehand"""
+		"""
+		:return: number of physical elements in the array, but only if they are 
+			not connected. If in doubt, run evaluateNumElements beforehand"""
 		if not self.isArray( ): return 0
 		return self.numElements( )
 
@@ -382,7 +388,7 @@ class MPlug( api.MPlug ):
 	def mchildByName( self, childname ):
 		""":return: MPlug with the given childname
 		:raise AttributeError: if no child plug of the appropriate name could be found
-		:param TypeError: self is not a compound plug"""
+		:raise TypeError: self is not a compound plug"""
 		if not self.isCompound( ):
 			raise TypeError( "Plug %s is not a compound plug" % self )
 		# END if is compound
@@ -398,11 +404,12 @@ class MPlug( api.MPlug ):
 		raise AttributeError( "Plug %s has no child plug called %s" % ( self, childname ) )
 
 	def msubPlugs( self , predicate = lambda x: True):
-		""":return: list of intermediate sub-plugs that are either child plugs or element plugs.
-		Returned list will be empty for leaf-level plugs
+		"""
+		:return: list of intermediate sub-plugs that are either child plugs or element plugs.
+			Returned list will be empty for leaf-level plugs
 		:param predicate: return True to include x in result
 		:note: use this function recursively for easy deep traversal of all
-		combinations of array and compound plugs"""
+			combinations of array and compound plugs"""
 		if self.isCompound( ):
 			outchildren = []
 			nc = self.numChildren( )
@@ -459,15 +466,16 @@ class MPlug( api.MPlug ):
 	@undoable
 	def mconnectMultiToMulti(self, iter_source_destination, force=False):
 		"""Connect multiple source plugs to the same amount of detsination plugs.
+		
 		:note: This method provides the most efficient way to connect a large known 
-		amount of plugs to each other
+			amount of plugs to each other
 		:param iter_source_destination: Iterator yielding pairs of source and destination plugs to connect
 		:param force: If True, existing input connections on the destination side will 
-		be broken automatically. Otherwise the whole operation will fail if one 
-		connection could not be made.
+			be broken automatically. Otherwise the whole operation will fail if one 
+			connection could not be made.
 		:note: Both iterators need to yield the same total amount of plugs
 		:note: In the current implementation, performance will be hurt if force 
-		is specified as each destination has to be checked for a connection in advance"""
+			is specified as each destination has to be checked for a connection in advance"""
 		mod = undo.DGModifier( )
 		for source, dest in iter_source_destination:
 			if force:
@@ -488,10 +496,11 @@ class MPlug( api.MPlug ):
 	@undoable
 	def mconnectTo( self, destplug, force=True ):
 		"""Connect this plug to the right hand side plug
+		
 		:param destplug: the plug to which to connect this plug to.
 		:param force: if True, the connection will be created even if another connection
-		has to be broken to achieve that.
-		If False, the connection will fail if destplug is already connected to another plug
+			has to be broken to achieve that.
+			If False, the connection will fail if destplug is already connected to another plug
 		:return: destplug allowing chained connections a.connectTo(b).connectTo(c)
 		:raise RuntimeError: If destination is already connected and force = False"""
 		mod = undo.DGModifier( )
@@ -522,11 +531,12 @@ class MPlug( api.MPlug ):
 	@undoable
 	def mconnectToArray( self, arrayplug, force = True, exclusive_connection = False ):
 		"""Connect self an element of the given arrayplug.
+		
 		:param arrayplug: the array plug to which you want to connect to
 		:param force: if True, the connection will be created even if another connection
-		has to be broken to achieve that.
+			has to be broken to achieve that.
 		:param exclusive_connection: if True and destplug is an array, the plug will only be connected
-		to an array element if it is not yet connected
+			to an array element if it is not yet connected
 		:return: newly created element plug or the existing one"""
 		# ARRAY PLUG HANDLING
 		######################
@@ -545,11 +555,11 @@ class MPlug( api.MPlug ):
 		# END Array handling
 		raise AssertionError( "Given plug %r was not an array plug" % arrayplug )
 
-
 	@undoable
 	def mdisconnect( self ):
 		"""Completely disconnect all inputs and outputs of this plug. The plug will not 
 		be connected anymore.
+		
 		:return: self, allowing chained commands"""
 		self.mdisconnectInput()
 		self.mdisconnectOutputs()
@@ -558,6 +568,7 @@ class MPlug( api.MPlug ):
 	@undoable
 	def mdisconnectInput( self ):
 		"""Disconnect the input connection if one exists
+		
 		:return: self, allowing chained commands"""
 		inputplug = self.minput()
 		if inputplug.isNull():
@@ -571,6 +582,7 @@ class MPlug( api.MPlug ):
 	@undoable
 	def mdisconnectOutputs( self ):
 		"""Disconnect all outgoing connections if they exist
+		
 		:return: self, allowing chained commands"""
 		outputplugs = self.moutputs()
 		if not len( outputplugs ):
@@ -585,6 +597,7 @@ class MPlug( api.MPlug ):
 	@undoable
 	def mdisconnectFrom( self, other ):
 		"""Disconnect this plug from other plug if they are connected
+		
 		:param other: MPlug that will be disconnected from this plug
 		:return: other plug allowing to chain disconnections"""
 		try:
@@ -598,6 +611,7 @@ class MPlug( api.MPlug ):
 	@undoable
 	def mdisconnectNode( self, other ):
 		"""Disconnect this plug from the given node if they are connected
+		
 		:param other: Node that will be completely disconnected from this plug"""
 		for p in self.moutputs():
 			if p.mwrappedNode() == other:
@@ -618,7 +632,7 @@ class MPlug( api.MPlug ):
 		""":return: True if this plug is connected to destination plug ( in that order )
 		:note: return true for self.misConnectedTo(destplug) but false for destplug.misConnectedTo(self)
 		:note: use the mhaveConnection method whether both plugs have a connection no matter which direction
-		:note: use `isConnected` to find out whether this plug is connected at all"""
+		:note: use `misConnected` to find out whether this plug is connected at all"""
 		return destplug in self.moutputs()
 
 	def moutputs( self ):
@@ -629,8 +643,9 @@ class MPlug( api.MPlug ):
 		return outputs
 
 	def moutput( self ):
-		""":return: first plug that has this plug as source of a connection, or null plug 
-		if no such plug exists.
+		"""
+		:return: first plug that has this plug as source of a connection, or null plug 
+			if no such plug exists.
 		:note: convenience method"""
 		outputs = self.moutputs()
 		if len( outputs ) == 0:
@@ -638,8 +653,9 @@ class MPlug( api.MPlug ):
 		return outputs[0]
 
 	def minput( self ):
-		""":return: plug being the source of a connection to this plug or a null plug
-		if no such plug exists"""
+		"""
+		:return: plug being the source of a connection to this plug or a null plug
+			if no such plug exists"""
 		inputs = api.MPlugArray()
 		self.connectedTo( inputs, True, False )
 
@@ -655,6 +671,7 @@ class MPlug( api.MPlug ):
 
 	def minputs( self ):
 		"""Special handler returning the input plugs of array elements
+		
 		:return: list of plugs connected to the elements of this arrayplug
 		:note: if self is not an array, a list with 1 or 0 plugs will be returned"""
 		out = list()
@@ -674,24 +691,27 @@ class MPlug( api.MPlug ):
 		return out
 		
 	def miterGraph( self, *args, **kwargs ):
-		""":return: graph iterator with self as root, supporting all arguments.
-		Plugs are returned by default, but this can be specified explicitly using 
-		the plug=True kwarg"""
+		"""
+		:return: graph iterator with self as root, args and kwargs are passed to `it.iterGraph`.
+			Plugs are returned by default, but this can be specified explicitly using 
+			the plug=True kwarg"""
 		import it
 		kwargs['plug'] = kwargs.get('plug', True)
 		return it.iterGraph(self, *args, **kwargs)
 		
 	def miterInputGraph( self, *args, **kwargs ):
-		""":return: iterator over the graph starting at this plug in input(upstream) direction.
-		Plugs will be returned by default
-		@param *args, **kwargs: passed to `miterGraph`"""
+		"""
+		:return: iterator over the graph starting at this plug in input(upstream) direction.
+			Plugs will be returned by default
+		:note: see `it.iterGraph` for valid args and kwargs"""
 		kwargs['input'] = True
 		return self.miterGraph(*args, **kwargs)
 		
 	def miterOutputGraph( self, *args, **kwargs ):
-		""":return: iterator over the graph starting at this plug in output(downstream) direction.
-		Plugs will be returned by default
-		@param *args, **kwargs: passed to `miterGraph`"""
+		"""
+		:return: iterator over the graph starting at this plug in output(downstream) direction.
+			Plugs will be returned by default
+		:note: see `it.iterGraph` for valid args and kwargs"""
 		kwargs['input'] = False
 		return self.miterGraph(*args, **kwargs)
 
@@ -705,8 +725,8 @@ class MPlug( api.MPlug ):
 	def mdependencyInfo( self, by=False ):
 		""":return: list of plugs on this node that this plug affects or is being affected by
 		:param by: if false, affected attributplugs will be returned, otherwise the attributeplugs affecting this one
-		:note: you can also use the `mgetDependencyInfo` method on the node itself if plugs are not
-		required - this will also be faster
+		:note: you can also use the `base.DependNode.dependencyInfo` method on the node itself if plugs are not
+			required - this will also be faster
 		:note: have to use MEL :("""
 		ownnode = self.mwrappedNode()
 		attrs = cmds.affects( self.mwrappedAttribute().name() , ownnode.name(), by=by ) or list()
@@ -731,7 +751,7 @@ class MPlug( api.MPlug ):
 	def mnextLogicalIndex( self ):
 		""":return: index of logical indexed plug that does not yet exist
 		:note: as this method does a thorough search, it is relatively slow
-		compared to a simple numPlugs + 1 algorithm
+			compared to a simple numPlugs + 1 algorithm
 		:note: only makes sense for array plugs"""
 		indices = api.MIntArray()
 		self.getExistingArrayAttributeIndices( indices )
@@ -768,15 +788,16 @@ class MPlug( api.MPlug ):
 		return base.NodeFromObj(self.node())
 
 	def masData( self, *args, **kwargs ):
-		""":return: our data Mobject wrapped in `Data`
-		:note: *args and **kwagrs have to be provided as MDGContext.fsNormal
-		does not exist in maya 8.5, so we have to hide that fact."""
+		""":return: our data Mobject wrapped in `base.Data`
+		:note: args and kwagrs have to be provided as MDGContext.fsNormal
+			does not exist in maya 8.5, so we have to hide that fact."""
 		return base.Data(self.asMObject(*args, **kwargs))
 		
 	def mfullyQualifiedName( self ):
-		""":return: string returning the absolute and fully qualified name of the
-		plug. It might take longer to evaluate but is safe to use if you want to 
-		convert the resulting string back to the actual plug"""
+		"""
+		:return: string returning the absolute and fully qualified name of the
+			plug. It might take longer to evaluate but is safe to use if you want to 
+			convert the resulting string back to the actual plug"""
 		return self.partialName(1, 1, 1, 0, 1, 1)
 	#} END query
 
@@ -831,6 +852,7 @@ if int(os.environ.get('MRV_DEBUG_MPLUG_SETX', 0)):
 
 class ArrayBase( Abstract ):
 	""" Base class for all maya arrays to easily fix them
+	
 	:note: set _apicls class variable to your api base class """
 
 	def __len__( self ):
@@ -858,7 +880,7 @@ class ArrayBase( Abstract ):
 	def mfromIter(cls, iter):
 		""":return: Array created from elements yielded by iter
 		:note: this one is less efficient than `mfromList` as the final length 
-		of the array is not predetermined"""
+			of the array is not predetermined"""
 		ia = cls()
 		append = ia.append
 		for index in iter:
@@ -892,6 +914,7 @@ _floatvectorarray_getitem = api.MFloatVectorArray.__getitem__
 _vectorarray_getitem = api.MVectorArray.__getitem__
 class MPlugArray( api.MPlugArray, ArrayBase ):
 	""" Wrap MPlugArray to make it compatible to pythonic contructs
+	
 	:note: for performance reasons, we do not provide negative index support"""
 	_apicls = api.MPlugArray
 	
@@ -909,10 +932,11 @@ class MPlugArray( api.MPlugArray, ArrayBase ):
 
 class MObjectArray( api.MObjectArray, ArrayBase ):
 	""" Wrap MObject to make it compatible to pythonic contructs.
+	
 	:note: This array also fixes an inherent issue that comes into play when 
-	MObjects are returned using __getitem__, as the reference count does not natively
-	get incremented, and the MObjects will be obsolete once the parent-array goes out 
-	of scope
+		MObjects are returned using __getitem__, as the reference count does not natively
+		get incremented, and the MObjects will be obsolete once the parent-array goes out 
+		of scope
 	:note: for performance reasons, we do not provide negative index support"""
 	_apicls = api.MObjectArray
 	
@@ -930,6 +954,7 @@ class MObjectArray( api.MObjectArray, ArrayBase ):
 
 class MColorArray( api.MColorArray, ArrayBase ):
 	""" Wrap MColor to make it compatible to pythonic contructs.
+	
 	:note: for performance reasons, we do not provide negative index support"""
 	_apicls = api.MColorArray
 	
@@ -942,6 +967,7 @@ class MColorArray( api.MColorArray, ArrayBase ):
 
 class MPointArray( api.MPointArray, ArrayBase ):
 	""" Wrap MPoint to make it compatible to pythonic contructs.
+	
 	:note: for performance reasons, we do not provide negative index support"""
 	_apicls = api.MPointArray
 	
@@ -954,6 +980,7 @@ class MPointArray( api.MPointArray, ArrayBase ):
 
 class MFloatVectorArray( api.MFloatVectorArray, ArrayBase ):
 	""" Wrap MFloatVector to make it compatible to pythonic contructs.
+	
 	:note: for performance reasons, we do not provide negative index support"""
 	_apicls = api.MFloatVectorArray
 	
@@ -977,6 +1004,7 @@ class MVectorArray( api.MVectorArray, ArrayBase ):
 
 class MFloatPointArray( api.MFloatPointArray, ArrayBase ):
 	""" Wrap MFloatPoint to make it compatible to pythonic contructs.
+	
 	:note: for performance reasons, we do not provide negative index support"""
 	_apicls = api.MFloatPointArray
 	
@@ -1060,14 +1088,15 @@ class MSelectionList( api.MSelectionList, ArrayBase ):
 	@staticmethod
 	def mfromStrings( iter_strings, **kwargs ):
 		""":return: MSelectionList initialized from the given iterable of strings
-		:param **kwargs: passed to `base.toSelectionListFromNames`"""
+		:param kwargs: passed to `base.toSelectionListFromNames`"""
 		return base.toSelectionListFromNames(iter_strings, **kwargs)
 		
 	@staticmethod
 	def mfromList( iter_items, **kwargs ):
-		""":return: MSelectionList as initialized from the given iterable of Nodes, 
-		MObjects, MDagPaths or MPlugs
-		:param **kwargs: passed to `base.toSelectionList`"""
+		"""
+		:return: MSelectionList as initialized from the given iterable of Nodes, 
+			MObjects, MDagPaths or MPlugs
+		:param kwargs: passed to `base.toSelectionList`"""
 		return base.toSelectionList(iter_items, **kwargs)
 		
 	# We need to override the respective method on the base class as it wouldnt work
@@ -1075,31 +1104,31 @@ class MSelectionList( api.MSelectionList, ArrayBase ):
 	
 	@staticmethod
 	def mfromMultiple( *args, **kwargs ):
-		"""Alternative form of `mfromList` as *args can be passed in."""
+		"""Alternative form of `mfromList` as args can be passed in."""
 		return MSelectionList.mfromList(args, **kwargs)
 	
 	@staticmethod
 	def mfromComponentList( iter_components, **kwargs ):
-		""":return: MSelectionList as initialized from the given list of tuple( DagNode, Component ), 
-		Component can be a filled Component object or null MObject
-		:param **kwargs: passed to `base.toComponentSelectionList`"""
+		"""
+		:return: MSelectionList as initialized from the given list of tuple( DagNode, Component ), 
+			Component can be a filled Component object or null MObject
+		:param kwargs: passed to `base.toComponentSelectionList`"""
 		return base.toComponentSelectionList(iter_components, **kwargs)
 		
 	def mtoList( self, *args, **kwargs ):
 		""":return: list with the contents of this MSelectionList
-		:param *args: passed to `it.iterSelectionList`
-		:param **kwargs: passed to `it.iterSelectionList`"""
+		:note: all args and kwargs passed to `it.iterSelectionList`"""
 		return list(self.mtoIter(*args, **kwargs))
 		
 	def mtoIter( self, *args, **kwargs ):
 		""":return: iterator yielding of Nodes and MPlugs stored in this given selection list
-		:param *args: passed to `it.iterSelectionList`
-		:param **kwargs: passed to `it.iterSelectionList`"""
+		:note: all args and kwargs are passed to `it.iterSelectionList`"""
 		return it.iterSelectionList( self, *args, **kwargs )
 		
 	def miterComponents( self, **kwargs ):
-		""":return: Iterator yielding node, component pairs, component is guaranteed 
-		to carry a component, implying that this iterator applies a filter
+		"""
+		:return: Iterator yielding node, component pairs, component is guaranteed 
+			to carry a component, implying that this iterator applies a filter
 		:param kwargs: passed on to `it.iterSelectionList`"""
 		kwargs['handleComponents'] = True
 		pred = lambda pair: not pair[1].isNull()
