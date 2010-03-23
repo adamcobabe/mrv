@@ -1,8 +1,9 @@
 # -*- coding: utf-8 -*-
 """
 Allows convenient access and handling of namespaces in an object oriented manner
-:todo: more documentation
 """
+__docformat__ = "restructuredtext"
+
 import undo
 from mrv.maya.util import noneToList
 from mrv.interface import iDagItem
@@ -18,20 +19,24 @@ __all__ = ("Namespace", "createNamespace", "currentNamespace", "findUniqueNamesp
 def _isRootOf( root, other ):
 	""":return: True if other which may be a string, is rooted at 'root
 	:param other: '' = root namespace'
-	hello:world => :hello:world
+		hello:world => :hello:world
 	:param root: may be namespace or string. It must not have a ':' in front, 
-	hence it must be a relative naespace, and must end with a ':'.
+		hence it must be a relative naespace, and must end with a ':'.
 	:note: the arguments are very specific, but this allows the method 
-	to be faster than usual"""
+		to be faster than usual"""
 	return (other+':').startswith(root)
 #} END internal utilities
 
 class Namespace( unicode, iDagItem ):
 	""" Represents a Maya namespace
 	Namespaces follow the given nameing conventions:
-	   - Paths starting with a column are absolute
-	      - :absolute:path
-	   - Path separator is ':'"""
+	
+	 - Paths starting with a column are absolute
+	 
+	  - :absolute:path
+	  
+	 - Path separator is ':'
+	 """
 	re_find_duplicate_sep = re.compile( ":{2,}" )
 	_sep = ':'
 	rootpath = ':'
@@ -44,14 +49,16 @@ class Namespace( unicode, iDagItem ):
 	#{ Overridden Methods
 
 	def __new__( cls, namespacepath=rootpath, absolute = True ):
-		""" Initialize the namespace with the given namespace path
+		"""Initialize the namespace with the given namespace path
+		
 		:param namespacepath: the namespace to wrap - it should be absolut to assure
-		relative namespaces will not be interpreted in an unforseen manner ( as they
-		are relative to the currently set namespace
-		Set it ":" ( or "" ) to describe the root namespace
+			relative namespaces will not be interpreted in an unforseen manner ( as they
+			are relative to the currently set namespace
+			
+			Set it ":" ( or "" ) to describe the root namespace
 		:param absolute: if True, incoming namespace names will be made absolute if not yet the case
 		:note: the namespace does not need to exist, but many methods will not work if so.
-		NamespaceObjects returned by methods of this class are garantueed to exist"""
+			NamespaceObjects returned by methods of this class are garantueed to exist"""
 
 		if namespacepath != cls.rootpath:
 			if absolute:
@@ -66,7 +73,8 @@ class Namespace( unicode, iDagItem ):
 	def __add__( self, other ):
 		"""Properly catenate namespace objects - other must be relative namespace or
 		object name ( with or without namespace )
-		:return: new string objec """
+		
+		:return: new string object """
 		inbetween = self._sep
 		if self.endswith( self._sep ) or other.startswith( self._sep ):
 			inbetween = ''
@@ -82,9 +90,10 @@ class Namespace( unicode, iDagItem ):
 	@undo.undoable
 	def create( cls, namespaceName ):
 		"""Create a new namespace
+		
 		:param namespaceName: the name of the namespace, absolute or relative -
-		it may contain subspaces too, i.e. :foo:bar.
-		fred:subfred is a relative namespace, created in the currently active namespace
+			it may contain subspaces too, i.e. :foo:bar.
+			fred:subfred is a relative namespace, created in the currently active namespace
 		:note: if the target namespace already exists, it will be returned
 		:return: the create Namespace object"""
 		newns = cls( namespaceName )
@@ -118,8 +127,9 @@ class Namespace( unicode, iDagItem ):
 
 	def rename( self, newName ):
 		"""Rename this namespace to newName - the original namespace will cease to exist
+		
 		:note: if the namespace already exists, the existing one will be returned with
-		all objects from this one added accordingly
+			all objects from this one added accordingly
 		:param newName: the absolute name of the new namespace
 		:return: Namespace with the new name
 		:todo: Implement undo !"""
@@ -138,8 +148,9 @@ class Namespace( unicode, iDagItem ):
 
 	def moveNodes( self, targetNamespace, force = True, autocreate=True ):
 		"""Move objects from this to the targetNamespace
+		
 		:param force: if True, namespace clashes will be resolved by renaming, if false
-		possible clashes would result in an error
+			possible clashes would result in an error
 		:param autocreate: if True, targetNamespace will be created if it does not exist yet
 		:todo: Implement undo !"""
 		targetNamespace = self.__class__( targetNamespace )
@@ -150,9 +161,10 @@ class Namespace( unicode, iDagItem ):
 
 	def delete( self, move_to_namespace = rootpath, autocreate=True ):
 		"""Delete this namespace and move it's obejcts to the given move_to_namespace
+		
 		:param move_to_namespace: if None, the namespace to be deleted must be empty
-		If Namespace, objects in this namespace will be moved there prior to namespace deletion
-		move_to_namespace must exist
+			If Namespace, objects in this namespace will be moved there prior to namespace deletion
+			move_to_namespace must exist
 		:param autocreate: if True, move_to_namespace will be created if it does not exist yet
 		:note: can handle sub-namespaces properly
 		:raise RuntimeError:
@@ -192,6 +204,7 @@ class Namespace( unicode, iDagItem ):
 	def setCurrent( self ):
 		"""Set this namespace to be the current one - new objects will be put in it
 		by default
+		
 		:return: self"""
 		# THIS IS FASTER !
 		melop = undo.GenericOperation( )
@@ -202,45 +215,6 @@ class Namespace( unicode, iDagItem ):
 		return self
 
 	#} END edit methods
-
-	#{Query Methods
-
-	@classmethod
-	def current( cls ):
-		""":return: the currently set absolute namespace """
-		# will return namespace relative to the root - thus is absolute in some sense
-		nsname = cmds.namespaceInfo( cur = 1 )
-		if not nsname.startswith( ':' ):		# assure we return an absoslute namespace
-			nsname = ":" + nsname
-		return cls( nsname )
-
-	@classmethod
-	def findUnique( cls, basename, incrementFunc = defaultIncrFunc ):
-		"""Find a unique namespace based on basename which does not yet exist
-		in the scene and can be created.
-		:param basename: basename of the namespace, like ":mynamespace" or "mynamespace:subspace"
-		:param incrementFunc: func( basename, index ), returns a unique name generated
-		from the basename and the index representing the current iteration
-		:return: unique namespace that is guaranteed not to exist below the current
-		namespace"""
-		i = 0
-		while True:
-			testns = cls( incrementFunc( basename, i ) )
-			i += 1
-
-			if not testns.exists():
-				return testns
-		# END while loop
-		raise AssertionError("Should never get here")
-
-	def exists( self ):
-		""":return: True if this namespace exists"""
-		return cmds.namespace( ex=self )
-
-	def isAbsolute( self ):
-		""":return: True if this namespace is an absolut one, defining a namespace
-		from the root namespace like ":foo:bar"""
-		return self.startswith( self._sep )
 
 	def parent( self ):
 		""":return: parent namespace of this instance"""
@@ -267,22 +241,64 @@ class Namespace( unicode, iDagItem ):
 
 		return out
 
+	#{Query Methods
+
+	@classmethod
+	def current( cls ):
+		""":return: the currently set absolute namespace """
+		# will return namespace relative to the root - thus is absolute in some sense
+		nsname = cmds.namespaceInfo( cur = 1 )
+		if not nsname.startswith( ':' ):		# assure we return an absoslute namespace
+			nsname = ":" + nsname
+		return cls( nsname )
+
+	@classmethod
+	def findUnique( cls, basename, incrementFunc = defaultIncrFunc ):
+		"""Find a unique namespace based on basename which does not yet exist
+		in the scene and can be created.
+		
+		:param basename: basename of the namespace, like ":mynamespace" or "mynamespace:subspace"
+		:param incrementFunc: func( basename, index ), returns a unique name generated
+			from the basename and the index representing the current iteration
+		:return: unique namespace that is guaranteed not to exist below the current
+			namespace"""
+		i = 0
+		while True:
+			testns = cls( incrementFunc( basename, i ) )
+			i += 1
+
+			if not testns.exists():
+				return testns
+		# END while loop
+		raise AssertionError("Should never get here")
+
+	def exists( self ):
+		""":return: True if this namespace exists"""
+		return cmds.namespace( ex=self )
+
+	def isAbsolute( self ):
+		"""
+		:return: True if this namespace is an absolut one, defining a namespace
+			from the root namespace like ":foo:bar"""
+		return self.startswith( self._sep )
+
 	def toRelative( self ):
 		""":return: a relative version of self, thus it does not start with a colon
 		:note: the root namespace cannot be relative - if this is of interest for you,
-		you have to check for it. This method gracefully ignores that fact to make
-		it more convenient to use as one does not have to be afraid of exceptions"""
+			you have to check for it. This method gracefully ignores that fact to make
+			it more convenient to use as one does not have to be afraid of exceptions"""
 		if not self.startswith( ":" ):
 			return self.__class__( self )	# create a copy
 
 		return self.__class__( self[1:], absolute=False )
 
 	def relativeTo( self, basenamespace ):
-		""":return: this namespace relative to the given basenamespace
+		"""returns this namespace relative to the given basenamespace
+		
 		:param basenamespace: the namespace to which the returned one should be
-		relative too
+			relative too
 		:raise ValueError: If this or basenamespace is not absolute or if no relative
-		namespace exists
+			namespace exists
 		:return: relative namespace"""
 		if not self.isAbsolute() or not basenamespace.isAbsolute( ):
 			raise ValueError( "All involved namespaces need to be absolute: " + self + " , " + basenamespace )
@@ -299,6 +315,7 @@ class Namespace( unicode, iDagItem ):
 	@classmethod
 	def splitNamespace( cls, objectname ):
 		"""Cut the namespace from the given  name and return a tuple( namespacename, objectname )
+		
 		:note: method assumes that the namespace starts at the beginning of the object"""
 		if objectname.find( '|' ) > -1:
 			raise AssertionError( "Dagpath given where object name is required" )
@@ -315,13 +332,14 @@ class Namespace( unicode, iDagItem ):
 		return self.re_find_duplicate_sep.sub( self._sep, name )
 
 	def substitute( self, find_in, replacement ):
-		""":return: string with our namespace properly substituted with replacement such
-		that the result is a properly formatted object name ( with or without namespace
-		depending of the value of replacement )
-		As this method is based on string replacement, self might as well match sub-namespaces
-		if it is relative
+		"""
+		:return: string with our namespace properly substituted with replacement such
+			that the result is a properly formatted object name ( with or without namespace
+			depending of the value of replacement )
+			As this method is based on string replacement, self might as well match sub-namespaces
+			if it is relative
 		:note: if replacement is an empty string, it will effectively cut the matched namespace
-		off the object name
+			off the object name
 		:note: handles replacement of subnamespaces correctly as well
 		:note: as it operates on strings, the actual namespaces do not need to exist"""
 		# special case : we are root
@@ -343,20 +361,30 @@ class Namespace( unicode, iDagItem ):
 
 	def iterNodes( self, *args, **kwargs ):
 		"""Return an iterator on all objects in the namespace
-		:param *args: MFn.kType filter types to be used to pre-filter the nodes 
-		in the namespace. This can greatly improve performance !
-		:param asNode: if true, default True, Nodes will be yielded. If False, 
-		you will receive MDagPaths or MObjects depending on the 'dag' kwarg
-		:param dag: if True, default False, only dag nodes will be returned, otherwise you will 
-		receive dag nodes and dg nodes. Instance information will be lost on the way
-		though.
-		:param depth: if 0, default 0, only objects in this namespace will be returned
-		if -1, all subnamespaces will be included as well, the depth is unlimited
-		if 0<depth<x include all objects up to the 'depth' subnamespace
-		:param **kwargs: given to `iterDagNodes` or `iterDgNodes`, which includes the 
-		option to provide a predicate function
+		
+		:param args: MFn.kType filter types to be used to pre-filter the nodes 
+			in the namespace. This can greatly improve performance !
+		:param kwargs: given to `iterDagNodes` or `iterDgNodes`, which includes the 
+			option to provide a predicate function. Additionally, the following ones 
+			may be defined:
+			
+			 * asNode: 
+			 	if true, default True, Nodes will be yielded. If False, 
+			 	you will receive MDagPaths or MObjects depending on the 'dag' kwarg
+			 	
+			 * dag: 
+			 	if True, default False, only dag nodes will be returned, otherwise you will 
+				receive dag nodes and dg nodes. Instance information will be lost on the way
+				though.
+				
+			 * depth: 
+			 	if 0, default 0, only objects in this namespace will be returned
+		
+				if -1, all subnamespaces will be included as well, the depth is unlimited
+				
+				if 0<depth<x include all objects up to the 'depth' subnamespace
 		:note: this method is quite similar to `FileReference.iterNodes`, but 
-		has a different feature set and needs this code here for maximum performance"""
+			has a different feature set and needs this code here for maximum performance"""
 		import nt
 		dag = kwargs.pop('dag', False)
 		asNode = kwargs.get('asNode', True)

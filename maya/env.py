@@ -2,10 +2,9 @@
 """
 Allows to query the maya environment, like variables, version numbers and system
 paths.
-
-:todo: more documentation
-:todo: logger !
 """
+__docformat__ = "restructuredtext"
+
 from maya import cmds
 
 __all__ = ("appVersion", )
@@ -13,7 +12,7 @@ __all__ = ("appVersion", )
 def appVersion( ):
 	"""
 	:return: tuple( float( version ), int( bits ), string( versionString ) ), the
-	version will be truncated to *not* include sub-versions
+		version will be truncated to *not* include sub-versions
 	:note: maya.cmds.about() will crash if called with an external interpreter
 	"""
 	bits = 32
