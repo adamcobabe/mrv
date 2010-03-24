@@ -25,6 +25,8 @@ class TestMDB( unittest.TestCase ):
 		assert isinstance(hnodes, DAGTree)
 		assert isinstance(ttmfnmap, dict)
 		
+		cgen = PythonMFnCodeGenerator(globals())
+		
 		# test member map - all files should be readable
 		for apimod in getApiModules():
 			for mfnclsname in ( n for n in dir(apimod) if n.startswith('MFn') ):
@@ -39,9 +41,19 @@ class TestMDB( unittest.TestCase ):
 				for fname, entry in mmap.iteritems():
 					assert isinstance(fname, basestring)
 					assert isinstance(entry, MFnMethodDescriptor)
+					
+					# test code generator
+					
 				# END for functionname, entry pair
+				
+				# we know that MFnMesh needs MObject iniitalization
+				if mfnclsname == "MFnMesh":
+					assert mmap.flags & PythonMFnCodeGenerator.kMFnNeedsMObject
+				# END special global flags check
 			# END for each mfn cls 
 		# END for each apimod
+		
+		
 		
 		
 	def _DISABLED_test_mfncachebuilder( self ):

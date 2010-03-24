@@ -18,11 +18,14 @@ import maya.cmds as cmds
 
 import UserDict
 import inspect
+from cStringIO import StringIO
 
 import logging
 log = logging.getLogger("mrv.maya.mdb")
 
-
+__all__ = ("createDagNodeHierarchy", "createTypeNameToMfnClsMap", "getApiModules", 
+           "getApiModules", "mfnDBPath", "cacheFilePath", "writeMfnDBCacheFiles", 
+           "PythonMFnCodeGenerator", "MFnMemberMap", "MFnMethodDescriptor" )
 
 #{ Initialization 
 
@@ -152,37 +155,14 @@ class MFnCodeGeneratorBase(object):
 	code for a given MFnMethod according to the meta data provided by an `MFnMethodDescriptor`.
 	
 	Once instantiated, it can create any number of methods"""
-	__slots__ = tuple()
-	
-	#{ Interface 
-	def generateMFnClsMethodWrapper(self, method_name, mfn_method, method_descriptor, flags=0):
-		"""
-		:return: string containing the code for the wrapper method as configured by the 
-			method descriptor
-		:param method_name: Name of the method in the returned code string
-		:param method_descriptor: instance of `MFnMethodDescriptor`
-		:param flags: bit flags providing additional information, depending on the actual 
-		implementation. Unsupported flags are ignored."""
-		raise NotImplementedError("To be implemented in SubClass")
-	#} END interfacec
-	
-
-class PythonMFnCodeGenerator(MFnCodeGeneratorBase):
-	"""Specialization to generate python code"""
 	__slots__ = 'module_dict'
 	def __init__(self, module_dict):
 		"""Intialize this instance"""
 		self.module_dict = module_dict
 	
-	def generateMFnClsMethodWrapper(self, method_name, mfn_method, method_descriptor, flags=0):
-		"""
-		Currently supports the following meta data:
-		 * todo
-		"""
-		pass
-	
 	#{ Utilities
 	def _toRvalFunc( self, funcname ):
+		""":return: None or a function which receives the return value of our actual mfn function"""
 		if not isinstance( funcname, basestring ):
 			return funcname
 		if funcname == 'None': return None
@@ -193,12 +173,153 @@ class PythonMFnCodeGenerator(MFnCodeGeneratorBase):
 			raise ValueError("'%s' is unknown to nodes module - it must be implemented there" % funcname )
 	#} END utilities
 	
+	
+	#{ Interface 
+	def generateMFnClsMethodWrapper(self, source_method_name, target_method_name, mfncls, mfn_fun, method_descriptor, flags=0):
+		"""
+		:return: string containing the code for the wrapper method as configured by the 
+			method descriptor
+		:param source_method_name: Original name of the method - this is the name under which 
+			it was requested.
+		:param target_method_name: Name of the method in the returned code string
+		:param method_descriptor: instance of `MFnMethodDescriptor`
+		:param mfncls: MFnFunction set class from which the method was retrieved.
+		:param mfn_fun: function as retrieved from the function set's dict. Its a bare function.
+		:param flags: bit flags providing additional information, depending on the actual 
+		implementation. Unsupported flags are ignored."""
+		raise NotImplementedError("To be implemented in SubClass")
+	#} END interfacec
+	
+
+class PythonMFnCodeGenerator(MFnCodeGeneratorBase):
+	"""Specialization to generate python code
+	
+	**Flags**:
+	
+	 * kDirectCall:
+	 	If set, the call return the actual mfn method in the best case, which is 
+	 	a call as direct as it gets. A possibly negative side-effect would be that
+	 	it the MFnMethod caches the function set and actual MObject/MDagPath, which 
+	 	can be dangerous if held too long
+	 	
+	 * kMFnNeedsMObject:
+	 	See `MFnMemberMap` and its InitWithMObject description
+	 	
+	 * kIsMObject:
+	 	If set, the type we create the method for is not derived from Node, but 
+	 	from MObject. This hint is required in order to generate correct calling code.
+	 
+	"""
+	kDirectCall, \
+	kMFnNeedsMObject, \
+	kIsMObject, \
+	kIsDagNode = [ 1<<i for i in range(4) ] 
+	
+	def generateMFnClsMethodWrapper(self, source_method_name, target_method_name, mfncls, mfn_fun, method_descriptor, flags=0):
+		"""
+		Currently supports the following meta data:
+		 * todo
+		"""
+		pass
+	
 	#{ Interface
 	
-	def generateMFnClsMethodWrapperMethod(self, *args, **kwargs):
+	def generateMFnClsMethodWrapperMethod(self, source_method_name, target_method_name, mfncls, mfn_fun, method_descriptor, flags=0):
 		""":return: python function suitable to be installed on a class
 		:param args: All arguments supported by `generateMFnClsMethodWrapper`"""
-		pass
+		needs_MObject = flags & self.kMFnNeedsMObject
+		rvalfunc = self._toRvalFunc(method_descriptor.rvalfunc)
+		mfnfuncname = mfn_fun.__name__
+		
+		# handle MFnName_function
+		if mfnfuncname.startswith(mfncls.__name__):
+			mfnfuncname = mfnfuncname[len(mfncls.__name__)+1:]
+			
+		newfunc = None
+		# bound to class, self will be attached on class instantiation
+		if flags & self.kDirectCall:
+			# bound to class, self will be attached on class instantiation
+			if rvalfunc:	# wrap rval function around
+				# INITIALIZED DAG NODES WITH DAG PATH !
+				if flags & self.kIsDagNode and not needs_MObject:			# yes, we duplicate code here to keep it fast !!
+					def wrapMfnFunc( self, *args, **kwargs ):
+						rvallambda = lambda *args, **kwargs: rvalfunc(mfn_fun(mfncls(self.dagPath()), *args, **kwargs))
+						object.__setattr__( self, source_method_name, rvallambda ) # cache it in our object
+						return rvallambda( *args, **kwargs )
+					newfunc = wrapMfnFunc
+				else:
+					if flags & self.kIsMObject:
+						def wrapMfnFunc( self, *args, **kwargs ):
+							rvallambda = lambda *args, **kwargs: rvalfunc(mfn_fun(mfncls(self), *args, **kwargs))
+							object.__setattr__( self, source_method_name, rvallambda )
+							return rvallambda( *args, **kwargs )
+						newfunc = wrapMfnFunc
+					else:
+						def wrapMfnFunc( self, *args, **kwargs ):
+							rvallambda = lambda *args, **kwargs: rvalfunc(mfn_fun(mfncls(self.object()), *args, **kwargs))
+							object.__setattr__( self, source_method_name, rvallambda )
+							return rvallambda( *args, **kwargs )
+						newfunc = wrapMfnFunc
+					# END handle MObject inheritance
+			else:
+				if flags & self.kIsDagNode and not needs_MObject:			# yes, we duplicate code here to keep it fast !!
+					def wrapMfnFunc( self, *args, **kwargs ):
+						mfnfunc = getattr(mfncls(self.dagPath()), mfnfuncname)
+						object.__setattr__( self, source_method_name, mfnfunc )
+						return mfnfunc( *args, **kwargs )
+					newfunc = wrapMfnFunc
+				else:
+					if flags & self.kIsMObject:
+						def wrapMfnFunc( self, *args, **kwargs ):
+							mfnfunc = getattr(mfncls(self), mfnfuncname)
+							object.__setattr__( self, source_method_name, mfnfunc )
+							return mfnfunc( *args, **kwargs )
+						newfunc = wrapMfnFunc
+					else:
+						def wrapMfnFunc( self, *args, **kwargs ):
+							mfnfunc = getattr(mfncls(self.object()), mfnfuncname)
+							object.__setattr__( self, source_method_name, mfnfunc )
+							return mfnfunc( *args, **kwargs )
+						newfunc = wrapMfnFunc
+					# END handle MObject inheritance
+			# END not rvalfunc
+		else:
+			if rvalfunc:	# wrap rval function around
+				# INITIALIZED DAG NODES WITH DAG PATH !
+				if flags & self.kIsDagNode and not needs_MObject:			# yes, we duplicate code here to keep it fast !!
+					def wrapMfnFunc( self, *args, **kwargs ):
+						return rvalfunc(mfn_fun(mfncls(self.dagPath()), *args, **kwargs))
+					newfunc = wrapMfnFunc
+				else:
+					if flags & self.kIsMObject:
+						def wrapMfnFunc( self, *args, **kwargs ):
+							return rvalfunc(mfn_fun(mfncls(self), *args, **kwargs))
+						newfunc = wrapMfnFunc
+					else:
+						def wrapMfnFunc( self, *args, **kwargs ):
+							return rvalfunc(mfn_fun(mfncls(self.object()), *args, **kwargs))
+						newfunc = wrapMfnFunc
+					# END handle MObject inheritance
+			else:
+				if flags & self.kIsDagNode and not needs_MObject:			# yes, we duplicate code here to keep it fast !!
+					def wrapMfnFunc( self, *args, **kwargs ):
+						return mfn_fun(mfncls(self.dagPath()), *args, **kwargs)
+					newfunc = wrapMfnFunc
+				else:
+					if flags & self.kIsMObject:
+						def wrapMfnFunc( self, *args, **kwargs ):
+							return mfn_fun(mfncls(self), *args, **kwargs)
+						newfunc = wrapMfnFunc
+					else:
+						def wrapMfnFunc( self, *args, **kwargs ):
+							return mfn_fun(mfncls(self.object()), *args, **kwargs)
+						newfunc = wrapMfnFunc
+					# END handle MObject inheritance
+			# END not rvalfunc
+		# END api accellerated method
+		
+		newfunc.__name__ = target_method_name
+		return newfunc
 	
 	#} END interface 
 	
@@ -220,8 +341,19 @@ class MFnMethodDescriptor(object):
 
 class MFnMemberMap( UserDict.UserDict ):
 	"""Simple accessor for MFnDatabase access
-	Direct access like db[funcname] returns an entry object with all values"""
+	Direct access like db[funcname] returns an entry object with all values
+	
+	**Globals**:
+	The __globals__ entry in MFn db files allows to pass additional options.
+	Currently supported ones are:
+	 * 'InitWithMObject':
+	 	If set, the function set's instance will be initialized with an MObject
+	 	even though an MDagPath would be available.
+	 	Default False"""
+	__slots__ = "flags"
 	kDelete = 'x'
+	kInitWithMObjectFlagName = "InitWithMObject"
+	
 
 	def __init__( self, filepath = None ):
 		"""intiialize self from a file if not None"""
@@ -230,6 +362,15 @@ class MFnMemberMap( UserDict.UserDict ):
 		self._filepath = filepath
 		if filepath:
 			self._initFromFile( filepath )
+			
+		# initialize globals
+		self.flags = 0
+		ge = self.get('__global__', None)
+		if ge is not None:
+			# currently we only know this one
+			if ge.flag == self.kInitWithMObjectFlagName:
+				self.flags |= PythonMFnCodeGenerator.kMFnNeedsMObject
+		# END fetch info
 
 	def __str__( self ):
 		return "MFnMemberMap(%s)" % self._filepath

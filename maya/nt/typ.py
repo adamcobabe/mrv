@@ -9,6 +9,8 @@ import mrv.maya as mrvmaya
 import mrv.maya.mdb as mdb
 from mrv.util import uncapitalize
 
+import maya.OpenMaya as api
+
 from new import instancemethod
 
 __all__ = ("MetaClassCreatorNodes", "initNodeHierarchy", "initWrappers", 
@@ -35,7 +37,6 @@ class MetaClassCreatorNodes( MetaClassCreator ):
 
 	# special name handling - we assume lower case names, these are capitalized though
 	nameToTreeMap = set( [ 'FurAttractors', 'FurCurveAttractors', 'FurGlobals', 'FurDescription','FurFeedback' ] )
-	forceInitWithMObject = ( api.MFnMesh , )	# need initialization with MObject although dag path is available
 	targetModule = None				# must be set in intialization to tell this class where to put newly created classes
 	mfnclsattr = '_mfncls'
 	mfndbattr = '_mfndb'
@@ -98,21 +99,25 @@ class MetaClassCreatorNodes( MetaClassCreator ):
 		# END is special api function is requested
 		mfnfuncname = funcname		# method could be remapped - if so we need to lookup the real name
 
-
-		rvalfunc = None
+		
+		method_descriptor = None
 		# adjust function according to DB
 		if funcMutatorDB:
 			try:
-				mfnfuncname, entry = funcMutatorDB.entry( funcname )
+				mfnfuncname, method_descriptor = funcMutatorDB.entry( funcname )
 				# delete function ?
-				if entry.flag == mdb.MFnMemberMap.kDelete:
+				if method_descriptor.flag == mdb.MFnMemberMap.kDelete:
 					return None
 
-				rvalfunc = entry.rvalfunc
+				rvalfunc = method_descriptor.rvalfunc
 			except KeyError:
 				pass # could just be working
 			# END if entry available
 		# END if db available
+		
+		if method_descriptor is None:
+			method_descriptor = mdb.MFnMethodDescriptor()
+		# END assure method descriptor is set
 		
 		# access it directly from the class, ignoring inheritance. If the class
 		# would have overridden the function, we would get it. If it does not do that, 
@@ -122,94 +127,23 @@ class MetaClassCreatorNodes( MetaClassCreator ):
 		# is a real bitch with empty shapes on which it does not want to operate at all
 		# as opposed to behaviour of the API.
 		mfnfunc = mfncls.__dict__[ mfnfuncname ]			# will just raise on error
-		mfnmro = mfncls.mro()
-		newclsmro = newcls.mro()
-		newfunc = None
-
-		needs_MObject = mfncls in cls.forceInitWithMObject
-
-		# bound to class, self will be attached on class instantiation
+		
+		
+		# assemble compile flags
+		flags = 0
+		if funcMutatorDB:
+			flags = funcMutatorDB.flags
+		if api.MFnDagNode in mfncls.mro():
+			flags |= mdb.PythonMFnCodeGenerator.kIsDagNode
 		if direct_api_func:
-			# bound to class, self will be attached on class instantiation
-			if rvalfunc:	# wrap rval function around
-				# INITIALIZED DAG NODES WITH DAG PATH !
-				if api.MFnDagNode in mfnmro and not needs_MObject:			# yes, we duplicate code here to keep it fast !!
-					def wrapMfnFunc( self, *args, **kwargs ):
-						rvallambda = lambda *args, **kwargs: rvalfunc(getattr(mfncls(self.dagPath()), mfnfuncname)(*args, **kwargs))
-						object.__setattr__( self, funcname_orig, rvallambda ) # cache it in our object
-						return rvallambda( *args, **kwargs )
-					newfunc = wrapMfnFunc
-				else:
-					if api.MObject in newclsmro:
-						def wrapMfnFunc( self, *args, **kwargs ):
-							rvallambda = lambda *args, **kwargs: rvalfunc(getattr(mfncls(self), mfnfuncname)(*args, **kwargs))
-							object.__setattr__( self, funcname_orig, rvallambda )
-							return rvallambda( *args, **kwargs )
-						newfunc = wrapMfnFunc
-					else:
-						def wrapMfnFunc( self, *args, **kwargs ):
-							rvallambda = lambda *args, **kwargs: rvalfunc(getattr(mfncls(self.object()), mfnfuncname)(*args, **kwargs))
-							object.__setattr__( self, funcname_orig, rvallambda )
-							return rvallambda( *args, **kwargs )
-						newfunc = wrapMfnFunc
-					# END handle MObject inheritance
-			else:
-				if api.MFnDagNode in mfnmro and not needs_MObject:			# yes, we duplicate code here to keep it fast !!
-					def wrapMfnFunc( self, *args, **kwargs ):
-						mfnfunc = getattr(mfncls(self.dagPath()), mfnfuncname)
-						object.__setattr__( self, funcname_orig, mfnfunc )
-						return mfnfunc( *args, **kwargs )
-					newfunc = wrapMfnFunc
-				else:
-					if api.MObject in newclsmro:
-						def wrapMfnFunc( self, *args, **kwargs ):
-							mfnfunc = getattr(mfncls(self), mfnfuncname)
-							object.__setattr__( self, funcname_orig, mfnfunc )
-							return mfnfunc( *args, **kwargs )
-						newfunc = wrapMfnFunc
-					else:
-						def wrapMfnFunc( self, *args, **kwargs ):
-							mfnfunc = getattr(mfncls(self.object()), mfnfuncname)
-							object.__setattr__( self, funcname_orig, mfnfunc )
-							return mfnfunc( *args, **kwargs )
-						newfunc = wrapMfnFunc
-					# END handle MObject inheritance
-			# END not rvalfunc
-		else:
-			if rvalfunc:	# wrap rval function around
-				# INITIALIZED DAG NODES WITH DAG PATH !
-				if api.MFnDagNode in mfnmro and not needs_MObject:			# yes, we duplicate code here to keep it fast !!
-					def wrapMfnFunc( self, *args, **kwargs ):
-						return rvalfunc(getattr(mfncls(self.dagPath()), mfnfuncname)(*args, **kwargs))
-					newfunc = wrapMfnFunc
-				else:
-					if api.MObject in newclsmro:
-						def wrapMfnFunc( self, *args, **kwargs ):
-							return rvalfunc(getattr(mfncls(self), mfnfuncname)(*args, **kwargs))
-						newfunc = wrapMfnFunc
-					else:
-						def wrapMfnFunc( self, *args, **kwargs ):
-							return rvalfunc(getattr(mfncls(self.object()), mfnfuncname)(*args, **kwargs))
-						newfunc = wrapMfnFunc
-					# END handle MObject inheritance
-			else:
-				if api.MFnDagNode in mfnmro and not needs_MObject:			# yes, we duplicate code here to keep it fast !!
-					def wrapMfnFunc( self, *args, **kwargs ):
-						return getattr(mfncls(self.dagPath()), mfnfuncname)(*args, **kwargs)
-					newfunc = wrapMfnFunc
-				else:
-					if api.MObject in newclsmro:
-						def wrapMfnFunc( self, *args, **kwargs ):
-							return getattr(mfncls(self), mfnfuncname)(*args, **kwargs)
-						newfunc = wrapMfnFunc
-					else:
-						def wrapMfnFunc( self, *args, **kwargs ):
-							return getattr(mfncls(self.object()), mfnfuncname)(*args, **kwargs)
-						newfunc = wrapMfnFunc
-					# END handle MObject inheritance
-			# END not rvalfunc
-		# END api accellerated method
-
+			flags |= mdb.PythonMFnCodeGenerator.kDirectCall
+		if api.MObject in newcls.mro():
+			flags |= mdb.PythonMFnCodeGenerator.kIsMObject
+		
+		# could be cached, but we need to wait until the dict is initialized, 
+		# TODO: To be done in __init__ together with the nodedict
+		codegen = mdb.PythonMFnCodeGenerator(_nodesdict)
+		newfunc = codegen.generateMFnClsMethodWrapperMethod(funcname_orig, funcname, mfncls, mfnfunc, method_descriptor, flags) 
 		newfunc.__name__ = funcname			# rename the method
 		return newfunc
 
