@@ -4,7 +4,7 @@
     | boundaryType                            | None                |                                         
     | clearUVs                                | None                |                                         
     | closestPoint                            | None                |                                         
-    | copy                                    | None                |                                         
+    | copy                                    | None		          |                                         
     | create                                  | None                |                                         
     | cv                                      | None                |                                         
     | cvsInU                                  | None                |                                         
@@ -18,7 +18,7 @@
     | getAssignedUVs                          | None                |                                         
     | getCV                                   | None                |                                         
     | getCVs                                  | None                |                                         
-    | getDataObject                           | None                |                                         
+    | getDataObject                           | Data                |                                         
     | getDerivativesAtParm                    | None                |                                         
     | getKnotDomain                           | None                |                                         
     | getKnotsInU                             | None                |                                         
@@ -48,8 +48,8 @@
     | knotInV                                 | None                |                                         
     | normal                                  | None                |                                         
     | numBoundaries                           | None                |                                         
-    | numCVsInU                               | None                |                                         
-    | numCVsInV                               | None                |                                         
+    | numCVsInU                               | DoubleIndexedComponent                |                                         
+    | numCVsInV                               | DoubleIndexedComponent                |                                         
     | numEdges                                | None                |                                         
     | numKnotsInU                             | None                |                                         
     | numKnotsInV                             | None                |                                         

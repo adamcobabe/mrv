@@ -11,7 +11,7 @@
     | setStartJointAndEffector                | None                |                                         
     | setStickiness                           | None                |                                         
     | setWeight                               | None                |                                         
-    | solver                                  | None                |                                         
+    | solver                                  | NodeFromObj         |                                         
     | stickiness                              | None                |                                         
     | type                                    | None                |                                         
     | weight                                  | None                |                                         

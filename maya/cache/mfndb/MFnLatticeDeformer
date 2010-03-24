@@ -1,7 +1,7 @@
     | addGeometry                             | None                |                                         
-    | baseLattice                             | None                |                                         
+    | baseLattice                             | NodeFromObj         |                                         
     | create                                  | None                |                                         
-    | deformLattice                           | None                |                                         
+    | deformLattice                           | NodeFromObj         |                                         
     | getAffectedGeometry                     | None                |                                         
     | getDivisions                            | None                |                                         
     | removeGeometry                          | None                |                                         

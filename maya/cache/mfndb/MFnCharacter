@@ -2,16 +2,16 @@
     | attachInstanceToCharacter               | None                |                                         
     | attachSourceToCharacter                 | None                |                                         
     | blendExists                             | None                |                                         
-    | createBlend                             | None                |                                         
-    | getBlend                                | None                |                                         
+    | createBlend                             | NodeFromObj         |                                         
+    | getBlend                                | NodeFromObj         |                                         
     | getBlendClips                           | None                |                                         
     | getBlendCount                           | None                |                                         
     | getCharacterThatOwnsPlug                | None                |                                         
-    | getClipScheduler                        | None                |                                         
+    | getClipScheduler                        | NodeFromObj         |                                         
     | getMemberPlugs                          | None                |                                         
-    | getScheduledClip                        | None                |                                         
+    | getScheduledClip                        | NodeFromObj         |                                         
     | getScheduledClipCount                   | None                |                                         
-    | getSourceClip                           | None                |                                         
+    | getSourceClip                           | NodeFromObj         |                                         
     | getSourceClipCount                      | None                |                                         
     | getSubCharacters                        | None                |                                         
     | removeBlend                             | None                |                                         

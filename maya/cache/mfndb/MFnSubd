@@ -1,4 +1,4 @@
-    | collapse                                | None                |                                         
+    | collapse                                | Data                |                                         
     | convertToNurbs                          | None                |                                         
     | copy                                    | None                |                                         
     | creasesClearAll                         | None                |                                         
