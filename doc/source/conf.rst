@@ -1,7 +1,11 @@
-==================
+###############
 Configuring MRV
-==================
+###############
 The framework can be configured using environment variables which have sensible defaults. A full listing can be found here, but specialized articles will reference them as well where they see it fit.
+
+*********************
+Environment Variables
+*********************
 
 The notation used is: NAME_OF_VARIABLE (=default value).
 
@@ -22,7 +26,7 @@ The notation used is: NAME_OF_VARIABLE (=default value).
   
 .. note:: Environment variables are only effective if they are set before the respective mrv modules are imported, hence it is not possible to alter the behaviour after the import.
 
-=======
+*******
 Logging
-=======
+*******
 TODO: Primer about how to configure the logging of mrv - it is the default logging module. Change the test system to use a file config instead of the basicConfig method

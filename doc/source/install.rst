@@ -1,3 +1,4 @@
-Installation Notes
-==================
+############
+Installation
+############
 ''TODO''

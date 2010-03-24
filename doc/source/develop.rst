@@ -1,6 +1,10 @@
-=======================
+###################
+Developing with MRV
+###################
+
+***********************
 Development Environment
-=======================
+***********************
 *NOTE*: This article is still under development
 
 This article describes the required setup and configuration of your system to develop MRV.
@@ -36,7 +40,7 @@ Install nose in maya's python site-libararies.
 '''TODO: Detail this'''
 
 OSX
-==== 
+===
 '''TODO: Detail this, it uses the default system interpreter, any of its sitelibraries will work.'''
 
 Maya2011 and onward
@@ -47,40 +51,13 @@ To allow the mrv startup script to find a python interpreter compiled for 64 bit
 
 ``mayapy`` in your maya installation directory will work in case you don't want to build your own one, using macports for instance. In that case you need to put a symbolic link named ``python2.6`` into your ``/Applications/Autodesk/maya2010/Maya.app/Contents/bin`` directory which needs to be inserted to the first position of your PATH. To run the unit tests, you might have to install ``nose`` into maya's site-packages directory.
 
-
-.. _runtestsdoc-label:
-=============
-Running Tests
-=============
-
-=============
-Building Docs
-=============
-
-====================
-Development Workflow
-====================
-suggest TDD, BTD
-
-====================
-Debugging Utilitites
-====================
-pdb
-utiltiies
-imrv
-
-===============
-Common Mistakes
-===============
-Lifetime of MObjects/reference count
-mat == p.wm.getByLogicalIndex(0).asData().matrix()	# matrix is ref, parent goes out of scope
-
-
-=====================
+*********************
 MRV Naming Convention
-=====================
+*********************
 MRV's primary intention regarding its naming conventions is to fit into the ones already setup by the MayaAPI.
 
+Method Names
+============
 MRV uses methods named ``setProperty`` to set the given property on an instance, and ``property`` to retrieve that property. ``property`` may take arguments as well to possibly configure the way the property is retrieved.
 
 To indicate non-property values, which are values that have to be generated or retrieved in some way, the method is prefixed to give a hint on the underlying operation, such as in ``findValue`` or ``createValue``.
@@ -96,21 +73,56 @@ If an overridden MFnMethod uses X, no alias is provided for getX.
 
 isSomething, but issometh	# abbreviations lower case
 
-=====
-Types
-=====
-Return values of overridden methods return the wrapped type. ( DagNode.child )
+Variable Names
+==============
+TODO: var names, actually its quite free, is it ?
 
-At the current time, MFn methods which receive MObjects or MDagPaths will only 
+
+MFnMethod Calling Conventions
+=============================
+Return values of overridden MFNMethods return the wrapped type. ( i.e. DagNode.child ).
+
+At the current time, MFn methods which receive MObjects or MDagPaths will only
 allow MObjects or MDagPaths, wrapped nodes must be converted explicitly. At some 
 point this should change to allow wrapped nodes as well.
 
 
+********************
+Development Workflow
+********************
+suggest TDD, BTD
+
+
+.. _runtestsdoc-label:
+
+Running Tests
+=============
+
+Debugging
+=========
+-> Utilities
+pdb
+utiltiies
+imrv
+
+Common Mistakes
+===============
+Lifetime of MObjects/reference count
+mat == p.wm.getByLogicalIndex(0).asData().matrix()	# matrix is ref, parent goes out of scope
+
+***************
+Making Releases
+***************
+
+Building Docs
+=============
+
+
 .. _performance-docs-label:
 
-=====================================
+*************************************
 Performance and Memory Considerations
-=====================================
+*************************************
 MRV has been created with performance in mind. Core code as gone through several iteration in order to be as fast as it can possibly be within python. This is beneficial to the developer as he can be sure that conveniently written code will run at a high pace. 
 Usually this kind of code is the most readable and the most maintainable which is why it is preferred. Nonetheless there are situations when performance outweights code convenience, this article explains what to look out for and how to improve the performance of your programs.
 

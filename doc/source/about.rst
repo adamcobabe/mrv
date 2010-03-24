@@ -1,6 +1,10 @@
-==============
+#########
+About MRV
+#########
+
+***********
 What is MRV
-==============
+***********
 Maya ReVised is a multi-platform python development environment consisting of many packages and modules to ease rapid development of high-performance code to be used in and around Autodesk Maya.
 
 Maya ReVised adds a lightweight convenience layer on top of the Maya API exposed to python, correcting inconveniences and sources for common programming errors on the way. It essentially enables a more convenient way of using the Maya API by allowing more intuitive access to maya's nodes, the DAG and the dependency graph. In effect, this greatly improves the programmers efficiency. 
@@ -15,9 +19,9 @@ Reliablity is a major concern, hence everything within MRV is backed by unittest
 
 In future, MRV will add more convenience to Maya's builtin facilities to interact with the scene, possibly replacing parts of the outdated MEL interface with extensible python scripts which eases integration into production pipelines.
 
-====================
+******************
 What MRV is *not*
-====================
+******************
 MRV does not try to improve anything related to using MEL commands from within python as its focus rests on performance and the MayaAPI.
 
 It is not simple to develop using MRV as you need to be familiar to some extend with the MayaAPI, and with Python of course. The learning curve is relatively steep instead of simple, but ... there is a reward at the other end for sure !
