@@ -35,12 +35,6 @@ class TestDAGTree( unittest.TestCase ):
 		sequence = [ 0, 0, 1 ]
 		self.failUnless( len( filter( Or( bool, lambda x: not bool(x) ), sequence ) ) == 3 )
 
-
-	def test_intGenerator( self ):
-		for i in IntKeyGenerator( [ 1,2,3 ] ):
-			self.failUnless( isinstance( i, int ) )
-
-
 	def test_interfaceBase( self ):
 		class IMasterTest( InterfaceMaster ):
 			im_provide_on_instance = True

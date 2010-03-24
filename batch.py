@@ -16,7 +16,7 @@ __all__ = None
 def superviseJobs( jobs, returnIfLessThan, cmdinput, errorstream, donestream ):
 	"""Check on the jobs we have and wait for finished ones. Write information
 	about them into the respective streams
-	@param returnIfLessThan: return once we have less than the given amount of running jobs"""
+	:param returnIfLessThan: return once we have less than the given amount of running jobs"""
 	sleeptime = 1.0		 # wait one second in the main loop before checking the processes
 
 	if not jobs:
@@ -54,7 +54,7 @@ def superviseJobs( jobs, returnIfLessThan, cmdinput, errorstream, donestream ):
 
 def killProcess( process ):
 	"""Kill the given process
-	@note: raises if kill is not supported by the os module"""
+	:note: raises if kill is not supported by the os module"""
 	if not hasattr( os, "kill" ):
 		raise NotImplementedError( "os module does not support 'kill'ing of processes on your platform" )
 
@@ -65,15 +65,15 @@ def killProcess( process ):
 def process( cmd, args, inputList, errorstream = None, donestream = None, inputsPerProcess = 1,
 			 numJobs=1):
 	"""Launch process at cmd with args and a list of input objects from inputList appended to args
-	@param cmd: full path to tool you wish to start, like /bin/bash
-	@param args: List of all argument strings to be passed to cmd
-	@param inputList: list of input files to be passed as input to cmd
-	@param errorstream: stream to which errors will be written to as they occour if not None
-	@param donestream: stream to which items from input list will be passed once they
+	:param cmd: full path to tool you wish to start, like /bin/bash
+	:param args: List of all argument strings to be passed to cmd
+	:param inputList: list of input files to be passed as input to cmd
+	:param errorstream: stream to which errors will be written to as they occour if not None
+	:param donestream: stream to which items from input list will be passed once they
 	have been processed if not None. Items are newline terminated
-	@param inputsPerProcess: pass the given number of inputs to the cmd, or less if there
+	:param inputsPerProcess: pass the given number of inputs to the cmd, or less if there
 	are not enough items on the input list
-	@param numJobs: number of processes we may run in parallel
+	:param numJobs: number of processes we may run in parallel
 	"""
 	# very simple for now - just get the input together and call the cmd
 	jobs = list()
@@ -111,7 +111,7 @@ def process( cmd, args, inputList, errorstream = None, donestream = None, inputs
 			for process in jobs:
 				killProcess( process )
 			jobs = list()
-			print "Aborted all running processes - continueing"
+			sys.stdout.write("Aborted all running processes - continuing\n")
 	# END for each chunk of inputs
 
 	# queue is empty, finalize our pending jobs
@@ -122,7 +122,7 @@ def process( cmd, args, inputList, errorstream = None, donestream = None, inputs
 
 def _usageAndExit( msg = None ):
 	"""Print usage"""
-	print """python batch.py inputarg [inputarg ...] [-E fileForErrors|-] [-D fileForFinishedOutput|-] [-s numInputsPerProcess] -e cmd [cmdArg ...]
+	sys.stdout.write("""python batch.py inputarg [inputarg ...] [-E fileForErrors|-] [-D fileForFinishedOutput|-] [-s numInputsPerProcess] -e cmd [cmdArg ...]
 -E|D - 	means to use the default stream, either stderr or stdout
 -I	if specified, arguments will also be read from stdin until it is depleted as
 	newline separated list of names
@@ -134,16 +134,16 @@ def _usageAndExit( msg = None ):
 -j	the number of processes to keep running in parallel, default 1
 
 	The given inputargs will be passed as arguments to the commands or into
-	the standardinput of the process"""
+	the standardinput of the process""")
 	if msg:
-		print msg
+		sys.stdout.write(msg+"\n")
 
-	sys.exit( 1 )
+	sys.exit(1)
 
 
 def _toStream( arg, stream ):
-	"""@return: stream according to arg
-	@param stream: stream to return if arg sais so """
+	""":return: stream according to arg
+	:param stream: stream to return if arg sais so """
 	if arg == "-":
 		return stream
 	# stream handling

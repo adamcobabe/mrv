@@ -1,8 +1,8 @@
 # -*- coding: utf-8 -*-
 """
 Contains implementations of maya editors
-@todo: more documentation
 """
+__docformat__ = "restructuredtext"
 import base as uibase
 import util as uiutil
 

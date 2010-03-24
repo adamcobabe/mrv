@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 """Test path methods
-@todo: actual implementation of path tests - currently it is just a placeholder assuring
+:todo: actual implementation of path tests - currently it is just a placeholder assuring
 that the module can at least be imported
 """
 import os

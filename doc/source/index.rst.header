@@ -8,19 +8,20 @@ Welcome to the MRV documentation!
 Contents:
 
 .. toctree::
-   :maxdepth: 1
+   :maxdepth: 2
    
-   install
+   Installation <install>
    gettingstarted
-   usage
-   gui
-   develop
+   Usage <usage>
+   Graphical User Interfaces <gui>
    conf
+   develop
    extend
-   indepth
    tools
    history
+   roadmap
    changes
+   license
    
 Module Summary
 ==============

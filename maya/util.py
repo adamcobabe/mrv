@@ -1,5 +1,7 @@
 # -*- coding: utf-8 -*-
 """All kinds of utility methods and classes that are used in more than one modules """
+__docformat__ = "restructuredtext"
+
 import maya.mel as mm
 import maya.cmds as cmds
 import maya.OpenMaya as api
@@ -15,7 +17,7 @@ __all__ = ("noneToList", "isIterable", "pythonToMel", "makeEditOrQueryMethod",
 
 #{ Utility Functions
 def noneToList( res ):
-	"""@return: list instead of None"""
+	""":return: list instead of None"""
 	if res is None:
 		return []
 	return res
@@ -36,11 +38,12 @@ def pythonToMel(arg):
 
 def makeEditOrQueryMethod( inCmd, flag, isEdit=False, methodName=None ):
 	"""Create a function calling inFunc with an edit or query flag set.
-	@note: THIS CODE HAS BEEN DUPLICATED TO MAYA.UI.UTIL !
-	@param inCmd: maya command to call
-	@param flag: name of the query or edit flag
-	@param isEdit: If not False, the method returned will be an edit function
-	@param methodName: the name of the method returned, defaults to inCmd name  """
+	
+	:note: THIS CODE HAS BEEN DUPLICATED TO `mrv.maya.ui.util` !
+	:param inCmd: maya command to call
+	:param flag: name of the query or edit flag
+	:param isEdit: If not False, the method returned will be an edit function
+	:param methodName: the name of the method returned, defaults to inCmd name  """
 
 	func = None
 	if isEdit:
@@ -88,10 +91,9 @@ def propertyQE( inCmd, flag, methodName = None ):
 class Mel(util.Singleton):
 	"""This class is a necessity for calling mel scripts from python. It allows scripts to be called
 	in a cleaner fashion, by automatically formatting python arguments into a string
-	which is executed via maya.mel.eval().	An instance of this class is already created for you
-	when importing pymel and is called mel.
+	which is executed via maya.mel.eval().
 
-	@note: originated from pymel, added customizations  """
+	:note: originated from pymel, added customizations  """
 
 	def __getattr__(self, command):
 		"""Only for instances of this class - call methods directly as if they where
@@ -116,7 +118,8 @@ class Mel(util.Singleton):
 	@staticmethod
 	def call( command, *args ):
 		""" Call a mel script , very simpilar to Mel.myscript( args )
-		@todo: more docs """
+		
+		:todo: more docs """
 		strArgs = map( pythonToMel, args)
 
 		cmd = '%s(%s)' % ( command, ','.join( strArgs ) )
@@ -151,7 +154,8 @@ class Mel(util.Singleton):
 
 class OptionVarDict( util.Singleton ):
 	"""	 A singleton dictionary-like class for accessing and modifying optionVars.
-	@note: Idea and base Implementation from PyMel, modified to adapt to mrv """
+	
+	:note: Idea and base Implementation from PyMel, modified to adapt to mrv """
 	class OptionVarList(tuple):
 		def __new__( cls, key, val ):
 			"""modify constructor to work with tuple"""
@@ -219,16 +223,16 @@ class OptionVarDict( util.Singleton ):
 		return cmds.optionVar( list=True )
 
 	def iterkeys( self ):
-		"""@return: iterator to option var names"""
+		""":return: iterator to option var names"""
 		return iter( self.keys() )
 
 	def itervalues( self ):
-		"""@return: iterator to optionvar values"""
+		""":return: iterator to optionvar values"""
 		for key in self.iterkeys():
 			yield self[ key ]
 
 	def iteritems( self ):
-		"""@return: iterators to tuple of key,value pairs"""
+		""":return: iterators to tuple of key,value pairs"""
 		for key in self.iterkeys():
 			yield ( key, self[ key ] )
 
@@ -257,8 +261,9 @@ class StandinClass( object ):
 	""" Simple Function Object allowing to embed the name of the type as well as
 	the metaclass object supposed to create the actual class. It mus be able to completely
 	create the given class.
-	@note: Use it at placeholder for classes that are to be created on first call, without
-	vasting large amounts of memory if one wants to precreate them."""
+	
+	:note: Use it at placeholder for classes that are to be created on first call, without
+		vasting large amounts of memory if one wants to precreate them."""
 	__slots__ = ( "clsname", "classcreator", "_createdClass" )
 	
 	def __init__( self, classname, classcreator=type ):
@@ -268,7 +273,8 @@ class StandinClass( object ):
 
 	def createCls( self ):
 		""" Create the class of type self.clsname using our classcreator - can only be called once !
-		@return : the newly created class"""
+		
+		:return : the newly created class"""
 		if self._createdClass is None:
 			self._createdClass = self.classcreator( self.clsname, tuple(), {} )
 
@@ -287,10 +293,11 @@ class MetaClassCreator( type ):
 					nameToTreeFunc=uncapitalize, treeToNameFunc=capitalize ):
 		"""Create a new class from hierarchy information found in dagtree and
 		put it into the module if it not yet exists
-		@param dagtree: L{mrv.util.DAGTree} instance with hierarchy information
-		@param module: the module instance to which to add the new classes to
-		@param nameToTreeFunc: convert the class name to a name suitable for dagTree look-up
-		@param treeToNameFunc: convert a value from the dag tree into a valid class name ( used for parent lookup )"""
+		
+		:param dagtree: `mrv.util.DAGTree` instance with hierarchy information
+		:param module: the module instance to which to add the new classes to
+		:param nameToTreeFunc: convert the class name to a name suitable for dagTree look-up
+		:param treeToNameFunc: convert a value from the dag tree into a valid class name ( used for parent lookup )"""
 		# recreate the hierarchy of classes leading to the current type
 		nameForTree = nameToTreeFunc( name )
 		parentname = None
@@ -340,10 +347,11 @@ class CallbackEventBase( util.Event ):
 	itself. Once the last event receiver deregisters, the message will be deregistered in 
 	maya as well.
 	
-	Derived types have to implement the L{_getRegisterFunction}
-	@note: Its important that you care about deregistering your event to make sure the maya event can 
-	be deregistered. Its worth knowing that the eventSender in question is strongly 
-	bound to his callback event, so it cannot be deleted while the event is active."""
+	Derived types have to implement the `_getRegisterFunction`
+	
+	:note: Its important that you care about deregistering your event to make sure the maya event can 
+		be deregistered. Its worth knowing that the eventSender in question is strongly 
+		bound to his callback event, so it cannot be deleted while the event is active."""
 
 	#{ Utility Classes
 	class CBStorageFunction(object):
@@ -374,8 +382,9 @@ class CallbackEventBase( util.Event ):
 		
 	#{ Subclass Implementation Needed
 	def _getRegisterFunction(self, eventID):
-		"""@return: MMessage::register* compatible callback function which can be 
-		used to register the given eventID"""
+		"""
+		:return: MMessage::register* compatible callback function which can be 
+			used to register the given eventID"""
 		raise NotImplementedError("To be implemented in subclass")
 
 	#} END subclass implementation needed
@@ -383,15 +392,17 @@ class CallbackEventBase( util.Event ):
 	#{ CallbackID handling
 	def _storeCallbackID(self, inst, callbackID):
 		"""Store the given callbackID in the event sender instance. 
-		We do that by registering it as function for the given instance which 
-		returns the callback ID on call"""
+		We do that by registering it as function for the given instance which
+		
+		:return: the callback ID on call"""
 		storage = self._getCallbackIDStorage(inst, create=True)
 		storage.setCallbackID(callbackID)
 		
 	def _getCallbackIDStorage(self, inst, create=False):
-		"""@return: Callback storage function if it exists or None
-		@param create: if True, the storage will be created if needed, hence 
-		you will always receive a valid storage"""
+		"""
+		:return: Callback storage function if it exists or None
+		:param create: if True, the storage will be created if needed, hence 
+			you will always receive a valid storage"""
 		functions = self._getFunctionSet(inst)
 		storage_functions = [ cb for cb in functions if isinstance(cb, self.CBStorageFunction) ]
 		if not storage_functions:
@@ -407,7 +418,7 @@ class CallbackEventBase( util.Event ):
 		return storage_functions[0]
 		
 	def _getCallbackID(self, inst):
-		"""@return: stored callback ID or None"""
+		""":return: stored callback ID or None"""
 		storage = self._getCallbackIDStorage(inst)
 		if storage is None:
 			return None
@@ -418,7 +429,8 @@ class CallbackEventBase( util.Event ):
 	
 	def send( self, inst, *args, **kwargs ):
 		"""Sets our instance prior to calling the super class
-		@note: must not be called manually"""
+		
+		:note: must not be called manually"""
 		# fake the instance
 		self._last_inst_ref = weakref.ref(inst)
 		super(CallbackEventBase, self).send(*args, **kwargs)

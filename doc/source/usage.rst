@@ -1,8 +1,8 @@
 .. _usage-label:
 
-=========
+#########
 Using MRV
-=========
+#########
 This document gives an overview of the facilities within the Maya portion of the development framework, which contains modules that require maya to be initialized.
 
 The examples given here can be viewed as one consecutive script which should work of all the code is pasted into a mrv testcase for instance. The latter one can be found in ``mrv.test.maya.nt.test_general`` (test_usage_examples). If you want to be more explorative, adjust the test's code yourself and run it to see the results. For more information on how to run tests, see :ref:`runtestsdoc-label`.
@@ -11,9 +11,9 @@ It is advised to start a mrv enabled ipython shell allowing you to try the examp
 
 To understand some of the terms used here, its a plus if you are familiar with the MayaAPI. If not, it shouldn't be a problem either as knowledge of the MayaAPI is not strictly required.
 
-=====
+*****
 Nodes
-=====
+*****
 The term *Node* means any Dependency Node or DagNode which has been wrapped for convenient use. It is derived from ``mrv.maya.nt.base.Node``.
 
 A Node wraps an underlying *MObject* or an *MDagPath*, and it can be retrieved either by iteration, by using one of the various methods of the MRV library or by manually wrapping a maya node whose name is known::
@@ -54,6 +54,7 @@ Method Lookup
 =============
 Nodes represent their respective maya api object, and make all matching MFnFunctionSet methods available directly.
 Calling these methods involves nothing special, you just make the call on your node. Its important to know which methods are available and the order in which they are looked up. Lets study the method resolution by checking the first case, a non-existing method::
+	
 	>>> # this will raise an AttributeError
 	>>> p.doesnt_exist()
 	
@@ -296,9 +297,9 @@ To query component assignments, use the ``mrv.maya.nt.base.Shape.componentAssign
 	>>> e = comp.elements()
 	>>> assert len(e) == 6					# we have added all 6 faces
 	
-====================
+********************
 Plugs and Attributes 
-====================
+********************
 People coming from MEL might be confused at first as MEL always uses the term ``attr`` when dealing with plugs and attributes. The MayaAPI, as well as MRV differentiate these.
 
  * Attributes define the type of data to be stored, its name and a suitable default value. They do not hold any other data themselves.
@@ -451,9 +452,9 @@ Now the only thing left to do is to add the newly created attribute to a node::
 Finally, remove the attribute - either using the attribute we kept, ``cattr`` or by finding the attribute::
 	>>> n.removeAttribute(n.compound.attribute())
 
-========================
+************************
 Mesh Component Iteration
-========================
+************************
 Meshes can be handled nicely through their wrapped ``MFnMesh`` methods, but in addition it is possible to quickly iterate its components using very pythonic syntax::
 	>>> m = Mesh()
 	>>> PolyCube().output.mconnectTo(m.inMesh)
@@ -479,9 +480,9 @@ Meshes can be handled nicely through their wrapped ``MFnMesh`` methods, but in a
 	
 As it has only been hinted at in the example, it should be clarified that all shortcuts supported by Components, i.e. ``m.cf[1,3,5]`` will work with iterators as well.
 
-==========
+**********
 Selections
-==========
+**********
 There are several utility methods to aid in handling selections. They are mostly used during interactive sessions, although general utilities like ``select`` and ``activeSelectionList`` may also prove practical in scripts. 
 
 The following examples show some of the most common functions::
@@ -522,9 +523,9 @@ Plugs are can be selected exactly the same way as nodes::
 	>>> select(sl)
 	>>> assert len(selection()) == 2
 
-==========
+**********
 Namespaces
-==========
+**********
 Namespaces provide a separate room for Nodes to exist in, hence they help to reduce the probability of name clashes when handling references or when importing files. Namespaces may be nested, hence they are forming a hierarchy that you may traverse freely using the ``mrv.interface.iDagItem`` interface.
 
 Handling namespaces is straightforward, you may retrieve the namespace of a node, create and rename namespaces as well as query their objects.
@@ -557,9 +558,9 @@ Renaming of namespaces as well as their deletion is supported as well.::
 
 .. note:: Its worth noting that namespace objects are immutable, and renaming a namespace will not alter the original instance.
 
-==========
+**********
 References
-==========
+**********
 References within maya can be referred to by Path or by Reference Node. The latter one is a stable entity in your scene, whereas the first one is dependent on the amount of references as well as the actual reference file.
 
 Dealing with references correctly can be complex in times, but the ``FileReference`` type in MRV greatly facilitates this.
@@ -591,9 +592,9 @@ The example uses files from the test system and respective utilities::
 	>>> assert len(FileReference.ls()) == 0
 
 
-==============
+**************
 Scene Handling
-==============
+**************
 The 'Scene' is a singleton class which may be used to interact with maya's currently opened scene and to manage scene messages. It is a mix of functionality from the ``file`` MEL command and the ``MSceneMessage`` API class. The following example uses utilities and scenes from the test system::
 	>>> import mrv.maya as mrv
 	>>> empty_scene = get_maya_file('empty.ma')
@@ -617,9 +618,9 @@ It is important to remove callbacks once you are done with them to allow the cor
 	>>> mrv.Scene.beforeNew.remove(beforeAndAfterNewCB)
 	>>> mrv.Scene.afterNew.remove(beforeAndAfterNewCB)
 	
-====
+****
 Undo
-====
+****
 The MayaAPI, the very basis of MRV, has limited support for undo as it clearly focuses on performance. Changes to the dependency graph can only be made through a utility which supports undo, but changes to values through plugs for instance  are not covered by that. To allow MRV to be used within user scripts, full undo was implemented wherever needed. This is indicated by the ``undoable`` decorator. Whenever a method which changes the state cannot be undone for whichever reason, it is decorated with ``notundoable``.
 
 As you are unlikely going to need undo support when running in batch mode or standalone, you can disable the undo system by setting MRV_UNDO_ENABLED to 0, which causes the undo implementation to completely disappear in many cases, which reduces the overhead considerably as well as the memory usage.
@@ -670,9 +671,9 @@ This allows for interesting uses considering that you can, at any time undo, you
 	>>> assert not p.tx.misConnectedTo(p.tz)
 	>>> assert p.t.misConnectedTo(t.t)
 
-===========
+***********
 Persistence
-===========
+***********
 Being able to use python data natively within your program is a great plus - unfortunately there is no default way to store that data in a native format within the maya scene. Everyone who desires to store python data would need to implement marshaling functions to convert python data to maya compatible data to be stored in nodes, and vice versa, which is time consuming and a possible source of bugs.
 
 MRV tackles the problem by providing a generic storage node which comes as part of the ``nt`` package. It is implemented as a plugin node which allows to store data and connections flexibly, allowing access by a convenient python interface::
@@ -706,8 +707,18 @@ Additionally you may organize objects in sets, and these sets in partitions::
 The ``mrv.maya.nt.storage`` module is built to make it easy to create own node types that are compatible to the storage interface, which also enables you to write your own and more convenient interface to access data.
 
 
-==================
-A Word about Types
-==================
-Talks about wrapped nodes, MObjects, MDagPaths, MObject derived types and how they can be used.
-Type Awareness
+***********************
+About Methods and Types
+***********************
+Wrapped Nodes make their function set methods available directly. If they have a  wrappable return value, like an MObject resembling an Attribute or a DepdendencyNode, it will be wrapped automatically into the respectve MRV Type::
+	>>> p = Node("persp")
+	>>> ps = p.child(0)			# method originally on MFnDagNode
+	>>> assert isinstance(ps, DagNode)
+
+At the current time, input values of function set methods that resemble Objects as MObject or MDagPath will not allow a wrapped Node, but require the manual extraction of the object or dagpath::
+	>>> ps.hasSamePerspective(ps)	# will raise a TypeError
+	>>> assert ps.hasSamePerspective(ps.dagPath())		# method on MFnCamera, needs MDagPath
+	
+If a function has not been explicitly wrapped by MRV, it will not support undo.
+
+In future, automatic type conversions as well undo support are planned to be provided for all MFnFunctions, see :ref:`roadmap-label`.

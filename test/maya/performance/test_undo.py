@@ -14,7 +14,7 @@ class TestUndoPerformance( unittest.TestCase ):
 	@undoable
 	def _recurseUndoDeco( numOps, curDepth, maxDepth ):
 		"""Recurse and create operations according to args
-		@note: decorator used !"""
+		:note: decorator used !"""
 		if curDepth == maxDepth:
 			return 0
 		numops = 0
@@ -29,7 +29,7 @@ class TestUndoPerformance( unittest.TestCase ):
 	@staticmethod
 	def _recurseUndo( numOps, curDepth, maxDepth ):
 		"""Recurse and create operations according to args
-		@note: decorator used !"""
+		:note: decorator used !"""
 		if curDepth == maxDepth:
 			return 0
 		undo.startUndo()

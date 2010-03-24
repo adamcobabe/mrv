@@ -73,7 +73,7 @@ class TestSets( unittest.TestCase ):
 		
 		
 	def _getMemberList( self ):
-		"""@return: object list with all types"""
+		""":return: object list with all types"""
 		persp = nt.Node( "persp" )
 		front = nt.Node( "front" )
 		rg = nt.Node( "defaultRenderGlobals" )
@@ -211,7 +211,7 @@ class TestSets( unittest.TestCase ):
 		assert iter(s).next() in s
 
 	def test_setOperations( self ):
-		"""byroniom.maya.nodes.sets: unions, intersections, difference, overloaded ops"""
+		"""byroniom.maya.nt.sets: unions, intersections, difference, overloaded ops"""
 		memberlist = self._getMemberList( )
 		s3 = nt.createNode( "anotherObjectSet", "objectSet" )
 		s = nt.Node( "memberSet" )

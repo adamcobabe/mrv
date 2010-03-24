@@ -14,10 +14,10 @@ fi
 # prepare the environment to use a minimal UI - put mayarv into the script path
 # as well as our helper script
 MAYA_SCRIPT_PATH=$MAYA_SCRIPT_PATH:$base:$(cd $base/../../..; echo $PWD)
-MAYARV_PYTHON_PATH=$(cd $base/../../..; echo $PWD)
+MRV_PYTHON_PATH=$(cd $base/../../..; echo $PWD)
 MAYA_OVERRIDE_UI=initialLayout_minimal.mel
 
-export MAYA_SCRIPT_PATH MAYA_OVERRIDE_UI MAYARV_PYTHON_PATH
+export MAYA_SCRIPT_PATH MAYA_OVERRIDE_UI MRV_PYTHON_PATH
 
 # assure we have no additional environment set
 MAYA_APP_DIR=/tmp/maya_test_home

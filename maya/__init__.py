@@ -6,6 +6,9 @@ from mrv.util import capitalize, DAGTree
 from mrv.exc import MRVError
 from mrv.path import Path
 
+from itertools import chain
+import logging
+log = logging.getLogger("mrv.maya")
 
 # initialize globals
 if not hasattr( sys,"_dataTypeIdToTrackingDictMap" ):
@@ -32,10 +35,10 @@ def registerPluginDataTrackingDict( dataTypeID, trackingDict ):
 
 #{ Internal Utilities
 def dag_tree_from_tuple_list( tuplelist ):
-	"""@return: DagTree from list of tuples [ (level,name),...], where level specifies
+	""":return: DagTree from list of tuples [ (level,name),...], where level specifies
 	the level of items in the dag.
-	@note: there needs to be only one root node which should be first in the list
-	@return: L{DagTree} item allowing to easily query the hierarchy """
+	:note: there needs to be only one root node which should be first in the list
+	:return: `DagTree` item allowing to easily query the hierarchy """
 	tree = None
 	lastparent = None
 	lastchild = None
@@ -76,7 +79,7 @@ def dag_tree_from_tuple_list( tuplelist ):
 
 def tuple_list_from_file( filepath ):
 	"""Create a tuple hierarchy list from the file at the given path
-	@return: tuple list suitable for dag_tree_from_tuple_list"""
+	:return: tuple list suitable for dag_tree_from_tuple_list"""
 	lines = Path( filepath ).lines( retain = False )
 
 	hierarchytuples = []
@@ -90,8 +93,8 @@ def tuple_list_from_file( filepath ):
 def initWrappers( module, types, metacreatorcls, force_creation = False ):
 	""" Create standin classes that will create the actual class once creation is
 	requested.
-	@param module: module object from which the latter classes will be imported from
-	@param types: iterable containing the names of classnames ( they will be capitalized
+	:param module: module object from which the latter classes will be imported from
+	:param types: iterable containing the names of classnames ( they will be capitalized
 	as classes must begin with a capital letter )"""
 	from mrv.maya.util import StandinClass
 
@@ -122,8 +125,8 @@ def parse_maya_env( envFilePath ):
 	"""
 	Parse the key-value pairs out of the maya environment file given in
 	envFilePath
-	@todo: remove this obsolete method
-	@return: dict( "Variable":"Value" )
+	:todo: remove this obsolete method
+	:return: dict( "Variable":"Value" )
 	"""
 	out = dict()
 
@@ -188,6 +191,8 @@ def init_system( ):
 	If running within maya or whith maya py, this is true, otherwise we have to
 	use the MAYA_LOCATION to get this to work.
 	"""
+	global log
+	
 	# RUNNING WITHIN MAYA ? Then we have everything
 	# if being launched in mayapy, we need initialization though !
 	binBaseName = os.path.split( sys.executable )[1].split( '.' )[0]
@@ -265,8 +270,9 @@ def init_system( ):
 		import maya.standalone
 		maya.standalone.initialize()
 	except:
-		print "ERROR: Failed initialize maya"
+		log.error("ERROR: Failed initialize maya")
 		raise
+	# END handle maya standalone initialization
 
 
 	# COPY ENV VARS
@@ -298,6 +304,49 @@ def init_singletons( ):
 	Mel = util.Mel()
 
 
+def init_standard_output( ):
+	"""Assure that logging can print to stdout and stderr which get overwritten
+	by special maya versions which lack the 'flush' method"""
+	
+	class PassOnOrDummy(object):
+		def __init__(self, obj):
+			self.obj = obj
+		
+		def does_nothing(self, *args, **kwargs):
+			return
+		
+		def __getattr__(self, attr):
+			try:
+				return getattr(self.obj, attr)
+			except AttributeError:
+				return self.does_nothing
+			# END handle object retrieval
+	# END utility class
+	
+	for channame in ('stdout', 'stderr'):
+		chan = getattr(sys, channame)
+		if hasattr(chan, 'flush'):
+			continue
+		# END skip channels that would work
+		
+		# patch the curently established channel
+		fixedchan = PassOnOrDummy(chan)
+		setattr(sys, channame, fixedchan)
+		
+		# find all loggers so far and patch up their logging objects
+		for l in chain((logging.root, ), logging.root.manager.loggerDict.values()):
+			if not isinstance(l, logging.Logger):
+				continue
+			# END skip placeholders
+			for handler in l.handlers:
+				if isinstance(handler, logging.StreamHandler) and handler.stream is chan:
+					handler.stream = fixedchan
+				# END if stream needs fixing
+			# END for each handler
+		# END for each logger
+	# END for each channel
+	
+
 #} Initialization
 
 if 'init_done' not in locals():
@@ -308,6 +357,7 @@ if 'init_done' not in locals():
 if not init_done:
 	# assure we do not run several times
 	init_system( )
+	init_standard_output( )
 	init_modules( __file__, "mrv.maya" )
 	init_singletons( )
 

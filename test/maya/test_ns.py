@@ -18,8 +18,7 @@ class TestReferenceRunner( unittest.TestCase ):
 		for ns in childns:
 			assert ns.parent( ) == rootns 
 			assert ns.isAbsolute()
-			assert ns.p_isabsolute == ns.isAbsolute()
-			assert ns.exists() == ns.p_exists
+			assert ns.exists()
 			allChildren = ns.childrenDeep( )
 			assert len( allChildren ) == 2 
 

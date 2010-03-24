@@ -295,7 +295,7 @@ class TestNodeBase( unittest.TestCase ):
 		# NOTE: needed actual plugin type for proper test
 
 	def test_hashfunc( self ):
-		"""byroimo.maya.nodes: should be possible to use objects as keys in hashes"""
+		"""byroimo.maya.nt: should be possible to use objects as keys in hashes"""
 		# they must compare their objects for equality, not their own instance
 		ddg = dict()
 		for i in range( 10 ):		# dg nodes
@@ -1099,10 +1099,10 @@ class TestNodeBase( unittest.TestCase ):
 		attr = nt.CompoundAttribute.create(l, s)
 	
 	def test_mfncachebuilder( self ):
-		"""byroniom.maya.nodes.base: write a generated cache using the builder function
+		"""byroniom.maya.nt.base: write a generated cache using the builder function
 		should be redone for maya 8.5 perhaps ... or in fact its enough to have one for all maya versions
 		and just merge them
-		@todo: do it """
+		:todo: do it """
 		# nt.typ.writeMfnDBCacheFiles( )
 
 

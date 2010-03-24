@@ -7,6 +7,7 @@ import mrv.maya.ns as ns
 from mrv.maya.ref import *
 from mrv.maya.nt import Node, NodeFromObj
 import mrv.maya.nt.it as it
+import mrv.maya.undo as undo
 
 import maya.cmds as cmds
 import maya.OpenMaya as api
@@ -25,7 +26,7 @@ class TestGeneralPerformance( unittest.TestCase ):
 	dagtypes =[ "nurbsCurve", "nurbsSurface", "subdiv", "transform" ]
 
 	def _createNodeFromName( self, name ):
-		"""@return: newly created maya node named 'name', using the respective
+		""":return: newly created maya node named 'name', using the respective
 		type depending on its path ( with pipe or without"""
 		nodetype = None
 		if '|' in name:			# name decides whether dag or dep node is created
@@ -395,15 +396,57 @@ class TestGeneralPerformance( unittest.TestCase ):
 		# try namespace iteration
 		self._iterate_namespace(ref.namespace(), unlimited_depth=True)
 		
+	@with_scene('empty.ma')
+	def test_typeconversion_overhead(self):
+		# this method will be extended once we actually do typeconversions automatically 
+		ps = nt.Node("perspShape")
+		n = 10000
+		
+		# if this check fails, the test needs to be updated, as we now obviously
+		# implement typeconversions
+		self.failUnlessRaises(TypeError, ps.hasSamePerspective, ps)
+		
+		# use api method here to get the pure marshalling overhead
+		hasSamePerspective = ps._api_hasSamePerspective
+		
+		# OPTIMAL CONVERSION
+		# we know that we have to convert
+		st = time.time()
+		for i in xrange(n):
+			hasSamePerspective(ps.dagPath())
+		# END for each iteration
+		elapsedotc = time.time() - st
+		
+		# NORMAL CONVERSION
+		# the type has to be checked
+		st = time.time()
+		for i in xrange(n):
+			if type(ps) is not api.MDagPath:
+				hasSamePerspective(ps.dagPath())
+			else:
+				hasSamePerspective(ps)	# never gets called
+		# END for each iteration
+		elapseddtc = time.time() - st
+		
+		# WITHOUT CONVERSION
+		# the proper type is passed in right away
+		st = time.time()
+		psdp = ps.dagPath()
+		for i in xrange(n):
+			hasSamePerspective(psdp)
+		# END for each iteration
+		elapsedntc = time.time() - st
+		
+		print >>sys.stderr, "Called MFnMethod %i times without (%f s, %f calls / s), with optimal (%f s) and with normal type conversion(%f s), overhead is 1.0~%f~%f" % (n, elapsedntc, n/elapsedntc, elapsedotc, elapseddtc, elapsedotc/elapsedntc, elapseddtc/elapsedntc)
 		
 
 
 #{ Name Generators
 def genRandomNames( numNames, wordLength ):
 	"""Generate random names from characters allowed by maya
-	@param wordLength: length of the generated word
-	@return: list of names
-	@note: currently we do not use numbers"""
+	:param wordLength: length of the generated word
+	:return: list of names
+	:note: currently we do not use numbers"""
 	outlist = []
 	for n in xrange( numNames ):
 		name = ''
@@ -416,11 +459,11 @@ def genRandomNames( numNames, wordLength ):
 def genNestedNamesList( numNames, nestingRange, wordList, sep ):
 	"""Create a random list of nested names where each subname is separated by sep, like
 	[ 'asdf:efwsf','asdfic:oeafsdf:asdfas' ]
-	@param numNames: number of names to generate
-	@param maxNestingLevel: tuple( min,max ) 0 for single names, other for names combined using sep
-	@param wordList: words we may choose from to create nested names
-	@param sep: separator between name tokens
-	@return: list of nested words"""
+	:param numNames: number of names to generate
+	:param maxNestingLevel: tuple( min,max ) 0 for single names, other for names combined using sep
+	:param wordList: words we may choose from to create nested names
+	:param sep: separator between name tokens
+	:return: list of nested words"""
 	outnames = []
 	for n in xrange( numNames ):
 		nlist = []
@@ -431,11 +474,11 @@ def genNestedNamesList( numNames, nestingRange, wordList, sep ):
 
 def genNodeNames( numNames, dagLevelRange, wordRange, nslist ):
 	"""Create  random nodenames with a dag path as depe as maxDagLevel using
-	@param numNames: number of names to generate
-	@param dagLevelRange: tuple( min, max ), defining how deept the nesting may be
-	@param wordRange: tuple ( min,max ), defining the minimum and maximum word length
-	@note: subnamespaces can repeat in name
-	@return: the generated name """
+	:param numNames: number of names to generate
+	:param dagLevelRange: tuple( min, max ), defining how deept the nesting may be
+	:param wordRange: tuple ( min,max ), defining the minimum and maximum word length
+	:note: subnamespaces can repeat in name
+	:return: the generated name """
 	# gen names
 	nodenames = genRandomNames( numNames, wordRange )
 	dagpaths = genNestedNamesList( numNames, dagLevelRange, nodenames, '|' )

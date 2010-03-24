@@ -1,9 +1,9 @@
 # -*- coding: utf-8 -*-
 """Contains an implementation for the Persistence plugin for easy access within 
 mrv and derived nodes.
-
-@todo: more documentation, how to use the system
 """
+__docformat__ = "restructuredtext"
+
 import os
 from persistence import PyPickleData
 import maya.OpenMaya as api
@@ -25,31 +25,29 @@ class StorageBase( iDuplicatable ):
 	python data and objects being stored in a pickled format upon file save.
 	Additionally you can store connections.
 	Nodes used with this interface must be compatible to the following attribute scheme.
-	To create that scheme, use L{addStorageAttributes}
+	To create that scheme, use `addStorageAttributes`
 
-
-
-	Attribute Setup
+	**Attribute Setup**::
 	
-	-- shortname ( description ) [ data type ] --
-	dta ( data )[ multi compound ]
-		id ( data id )[ string ]
-		type ( data type ) [ int ]	# for your own use, store bitflags to specify attribute
-		dval ( data value ) [ python pickle ]
-		dmsg ( data message )[ multi message ]
+		( shortname ( description ) [ data type ] )
+		dta ( data )[ multi compound ]
+			id ( data id )[ string ]
+			type ( data type ) [ int ]	# for your own use, store bitflags to specify attribute
+			dval ( data value ) [ python pickle ]
+			dmsg ( data message )[ multi message ]
 
-	Configuration
+	**Configuration**::
 	
-	attrprefix: will prefix every attribute during attr set and get - this allows
-		several clients to access the same storage base ( on the same node for example )
-		It acts like a namespace
-	mayaNode: the maya node holding the actual attributes
+		attrprefix: will prefix every attribute during attr set and get - this allows
+			several clients to access the same storage base ( on the same node for example )
+			It acts like a namespace
+		mayaNode: the maya node holding the actual attributes
 
-	@note: A mrv node should derive from this class to allow easy attribute access of its
-	own compatible attributes - its designed for flexiblity
-	@note: attribute accepts on the generic attribute should be set by a plugin node when it
-	creates its attributes
-	@todo: should self._node be stored as weakref ?"""
+	:note: A mrv node should derive from this class to allow easy attribute access of its
+		own compatible attributes - its designed for flexiblity
+	:note: attribute accepts on the generic attribute should be set by a plugin node when it
+		creates its attributes
+	:todo: should self._node be stored as weakref ?"""
 	kValue, kMessage, kStorage = range( 3 )
 	_partitionIdAttr = "bda_storagePartition"
 
@@ -92,10 +90,11 @@ class StorageBase( iDuplicatable ):
 		def valueChanged( self ):
 			"""Will be called automatically if the underlying value changed if
 			the node of the underlying plug is referenced
-			@note: this method will only be called once during the lifetime of this object if it changes,
-			as its enough to trigger reference to write the value if it changes once.
-			Getting and setting data is expensive as there is a tracking dict in the background
-			being spawned with internally created copies."""
+			
+			:note: this method will only be called once during the lifetime of this object if it changes,
+				as its enough to trigger reference to write the value if it changes once.
+				Getting and setting data is expensive as there is a tracking dict in the background
+				being spawned with internally created copies."""
 			if self._updateCalled:
 				return
 			self._plug.msetMObject( self._plug.asMObject() )
@@ -107,7 +106,8 @@ class StorageBase( iDuplicatable ):
 	#{ Overridden Methods
 	def __init__( self, attrprefix = "", mayaNode = None ):
 		"""Allows customization of this base to modify its behaviour
-		@note: see more information on the input attributes in the class description"""
+		
+		:note: see more information on the input attributes in the class description"""
 		# now one can derive from us and override __setattr__
 		object.__init__( self )
 		self._attrprefix = attrprefix
@@ -127,13 +127,16 @@ class StorageBase( iDuplicatable ):
 
 	def copyFrom( self, other, *args, **kwargs ):
 		"""Copy all values from other to ourselves
-		@param shallow: kwargument, if True, default False, only a shallow copy will
-		be made. If False, a deep copy will be made
-		@note: only does so if the attribute prefixes actually match ( which should be
-		the case if we get here, checking for it anyway
-		@note: as pickle data always copies by reference to be efficient, we have to explicitly
-		create new data to assure we really copy it
-		@todo: copy connections to our messages as well, make it an option at least"""
+		
+		:param kwargs:
+			 * shallow:
+			 	if True, default False, only a shallow copy will
+				be made. If False, a deep copy will be made
+		:note: only does so if the attribute prefixes actually match ( which should be
+			the case if we get here, checking for it anyway
+		:note: as pickle data always copies by reference to be efficient, we have to explicitly
+			create new data to assure we really copy it
+		:todo: copy connections to our messages as well, make it an option at least"""
 		if self.attributePrefix() != other.attributePrefix():
 			raise AssertionError( "Attribute prefixes between self and other did not match" )
 
@@ -168,7 +171,6 @@ class StorageBase( iDuplicatable ):
 
 	#) END iDuplicatable
 
-	#{ Edit
 	def __makePlug( self, dataID ):
 		"""Find an empty logical plug index and return the newly created
 		logical plug with given dataID"""
@@ -176,11 +178,14 @@ class StorageBase( iDuplicatable ):
 		elementPlug.mchildByName('id').msetString( dataID )
 		return elementPlug
 
+	#{ Edit
+	
 	def makePlug( self, dataID ):
 		"""Create a plug that can be retrieved using the given dataID
-		@param dataID: string identifier
-		@return: the created master plug, containing subplugs dval and dmsg
-		for generic data and  message connections respectively """
+		
+		:param dataID: string identifier
+		:return: the created master plug, containing subplugs dval and dmsg
+			for generic data and  message connections respectively """
 		actualID = self._attrprefix + dataID
 		existingPlug = self.findStoragePlug( dataID )
 		if existingPlug is not None:
@@ -200,9 +205,10 @@ class StorageBase( iDuplicatable ):
 	def clearAllData( self ):
 		"""empty the whole storage, creating new python storage data to assure
 		nothing is still referenced
-		@note: use this method if you want to make sure your node
-		is empty after it has been duplicated ( would usually be done in the
-		postContructor"""
+		
+		:note: use this method if you want to make sure your node
+			is empty after it has been duplicated ( would usually be done in the
+			postContructor"""
 		for compoundplug in self._node.dta:
 			self._clearData( compoundplug.mchildByName('dval') )
 		# END for each element in data compound
@@ -223,7 +229,7 @@ class StorageBase( iDuplicatable ):
 
 	#{ Query Plugs
 	def findStoragePlug( self, dataID ):
-		"""@return: compond plug with given dataID or None"""
+		""":return: compound plug with given dataID or None"""
 		actualID = self._attrprefix + dataID
 		for compoundplug in self._node.dta:
 			if compoundplug.mchildByName('id').asString( ) == actualID:
@@ -232,9 +238,9 @@ class StorageBase( iDuplicatable ):
 		return None
 
 	def dataIDs( self ):
-		"""@return: list of all dataids available in the storage node
-		@note: respects attribute prefix, and will only see ids with matching prefix.
-		The prefix itself is transparent and will not bre returned"""
+		""":return: list of all dataids available in the storage node
+		:note: respects attribute prefix, and will only see ids with matching prefix.
+			The prefix itself is transparent and will not bre returned"""
 		outids = list()
 		for compoundplug in self._node.dta:
 			did = compoundplug.mchildByName('id').asString( )
@@ -245,18 +251,19 @@ class StorageBase( iDuplicatable ):
 		return outids
 
 	def storagePlug( self, dataID, plugType = None, autoCreate=False ):
-		"""@return: plug of the given type, either as tuple of two plugs or the plug
-		specified by plugType
-		@param dataID: the name of the plug to be returned
-		@param plugType:
-		StorageBase.kMessage: return message array plug only
-		StorageBase.kValue: return python pickle array plug only
-		StorageBase.kStorage: return the storage plug itself containing message and the value plug
-		None: return ( picklePlug , messagePlug )
-		@param autoCreate: if True, a plug with the given dataID will be created if it does not
-		yet exist
-		@raise AttributeError: if a plug with dataID does not exist and default value is None
-		@raise TypeError: if  plugtype unknown """
+		"""
+		:return: plug of the given type, either as tuple of two plugs or the plug
+			specified by plugType
+		:param dataID: the name of the plug to be returned
+		:param plugType:
+			StorageBase.kMessage: return message array plug only
+			StorageBase.kValue: return python pickle array plug only
+			StorageBase.kStorage: return the storage plug itself containing message and the value plug
+			None: return ( picklePlug , messagePlug )
+		:param autoCreate: if True, a plug with the given dataID will be created if it does not
+			yet exist
+		:raise AttributeError: if a plug with dataID does not exist and default value is None
+		:raise TypeError: if  plugtype unknown """
 		matchedplug = self.findStoragePlug( dataID )
 		if matchedplug is None:
 			if autoCreate:
@@ -283,11 +290,14 @@ class StorageBase( iDuplicatable ):
 
 	#{ Query Data
 	def pythonData( self, dataID, **kwargs ):
-		"""@return: PyPickleVal object at the given index ( it can be modified natively )
-		@param dataID: id of of the data to retrieve
-		@param index: element number of the plug to retrieve, or -1 to get a new plug.
-		Plugs will always be created, the given index specifies a logical plug index
-		@param **kwargs: all arguments supported by L{getStoragePlug}"""
+		""":return: PyPickleVal object at the given index ( it can be modified natively )
+		:param dataID: id of of the data to retrieve
+		:param kwargs:
+			 * index: 
+			 	element number of the plug to retrieve, or -1 to get a new plug.
+				Plugs will always be created, the given index specifies a logical plug index
+			 * Additionally all arguments supported by `storagePlug`
+		""" 
 		storagePlug = self.storagePlug( dataID, plugType = StorageBase.kStorage, **kwargs )
 		valplug = storagePlug.mchildByName('dval')
 		return self.pythonDataFromPlug( valplug )
@@ -296,8 +306,9 @@ class StorageBase( iDuplicatable ):
 	@classmethod
 	def pythonDataFromPlug( cls, valplug ):
 		"""Exract the python data using the given plug directly
-		@param valplug: data value plug containing the plugin data
-		@return: PyPickleData object allowing data access"""
+		
+		:param valplug: data value plug containing the plugin data
+		:return: PyPickleData object allowing data access"""
 
 		# initialize data if required
 		# if the data is null, we do not get a kNullObject, but an exception - fair enough ...
@@ -320,14 +331,15 @@ class StorageBase( iDuplicatable ):
 	#{ Set Handling
 	def objectSet( self, dataID, setIndex, autoCreate = True ):
 		"""Get an object set identified with setIndex at the given dataId
-		@param dataID: id identifying the storage plug on this node
-		@param setIndex: logical index at which the set will be connected to our message plug array
-		@param autoCreate: if True, a set will be created if it does not yet exist
-		@raises ValueError: if a set does not exist at setIndex and autoCreate is False
-		@raises: AttributeError: if the plug did not exist ( and autocreate is False )
-		@note: method is implicitly undoable if autoCreate is True, this also means that you cannot
-		explicitly undo this operation as you do not know if undo has been queued or not
-		@note: newly created sets will automatically use partitions if one of the sets does"""
+		
+		:param dataID: id identifying the storage plug on this node
+		:param setIndex: logical index at which the set will be connected to our message plug array
+		:param autoCreate: if True, a set will be created if it does not yet exist
+		:raises ValueError: if a set does not exist at setIndex and autoCreate is False
+		:raises AttributeError: if the plug did not exist ( and autocreate is False )
+		:note: method is implicitly undoable if autoCreate is True, this also means that you cannot
+			explicitly undo this operation as you do not know if undo has been queued or not
+		:note: newly created sets will automatically use partitions if one of the sets does"""
 		mp = self.storagePlug( dataID, self.kMessage, autoCreate = autoCreate )
 		# array plug having our sets
 		setplug = mp.elementByLogicalIndex( setIndex )
@@ -352,9 +364,10 @@ class StorageBase( iDuplicatable ):
 	@undoable
 	def deleteObjectSet( self, dataID, setIndex ):
 		"""Delete the object set identified by setIndex
-		@note: the method is implicitly undoable
-		@note: use this method to delete your sets instead of manual deletion as it will automatically
-		remove the managed partition in case the last set is being deleted"""
+		
+		:note: the method is implicitly undoable
+		:note: use this method to delete your sets instead of manual deletion as it will automatically
+			remove the managed partition in case the last set is being deleted"""
 		try:
 			objset = self.objectSet( dataID, setIndex, autoCreate = False )
 		except ( ValueError, AttributeError ):
@@ -369,7 +382,7 @@ class StorageBase( iDuplicatable ):
 		# END obj set handling
 
 	def setsByID( self, dataID ):
-		"""@return: all object sets stored under the given dataID"""
+		""":return: all object sets stored under the given dataID"""
 		mp = self.storagePlug( dataID, self.kMessage, autoCreate = False )
 		allnodes = [ p.mwrappedNode() for p in mp.minputs() ]
 		return [ n for n in allnodes if isinstance( n, ObjectSet ) ]
@@ -378,12 +391,13 @@ class StorageBase( iDuplicatable ):
 	@undoable
 	def setPartition( self, dataID, state ):
 		"""Make all sets in dataID use a partition or not
-		@param dataID: id identifying the storage plug
-		@param state: if True, a partition will be used, if False, it will be disabled
-		@note: this method makes sure that all sets are hooked up to the partition
-		@raise ValueError: If we did not have a single set to which to add to the partition
-		@raise AttributeError: If the dataID has never had sets
-		@return: if state is True, the name of the possibly created ( or existing ) partition"""
+		
+		:param dataID: id identifying the storage plug
+		:param state: if True, a partition will be used, if False, it will be disabled
+		:note: this method makes sure that all sets are hooked up to the partition
+		:raise ValueError: If we did not have a single set to which to add to the partition
+		:raise AttributeError: If the dataID has never had sets
+		:return: if state is True, the name of the possibly created ( or existing ) partition"""
 		sets = self.setsByID( dataID )
 		partition = self.partition( dataID )
 
@@ -413,8 +427,9 @@ class StorageBase( iDuplicatable ):
 
 
 	def partition( self, dataID ):
-		"""@return: partition Node attached to the sets at dataID or None if state
-		is disabled"""
+		"""
+		:return: partition Node attached to the sets at dataID or None if state
+			is disabled"""
 		sets = self.setsByID( dataID )
 
 		# get the dominant partition
@@ -435,18 +450,19 @@ class StorageBase( iDuplicatable ):
 	# Query General
 
 	def storageNode( self ):
-		"""@return: Node actually being used as storage"""
+		""":return: Node actually being used as storage"""
 		return self._node
 
 	def setStorageNode( self, node ):
 		"""Set ourselves to use the given storage compatible node
-		@note: use this if the path of our instance has changed - otherwise
-		trying to access functions will fail as the path of our node might be invalid"""
+		
+		:note: use this if the path of our instance has changed - otherwise
+			trying to access functions will fail as the path of our node might be invalid"""
 		self._node = node
 
 	def attributePrefix( self ):
-		"""@return: our attribute prefix
-		@note: it is read-only to assure we will never 'forget' about our data"""
+		""":return: our attribute prefix
+		:note: it is read-only to assure we will never 'forget' about our data"""
 		return self._attrprefix
 
 	# END query general
@@ -456,11 +472,12 @@ class StorageNode( DependNode, StorageBase ):
 	"""This node can be used as pythonic and easy-to-access value container - it could
 	be connected to your node, and queried for values actually being queried on your node.
 	As value container, it can easily be replaced by another one, or keep different sets of information
-	@note: the storage node can only use generic attributes and recover them properly during scene reload
-	if the configuration of the generic attributes have been setup properly - they are unique only per
-	node type, not per instance of the node type.
-	Thus it is recommened to use the storage node attribute base on your own custom type that setsup the
-	generic attributes as it requires during plugin load"""
+	
+	:note: the storage node can only use generic attributes and recover them properly during scene reload
+		if the configuration of the generic attributes have been setup properly - they are unique only per
+		node type, not per instance of the node type.
+		Thus it is recommened to use the storage node attribute base on your own custom type that setsup the
+		generic attributes as it requires during plugin load"""
 
 	#{ Overrriden Methods
 	def __init__( self, *args ):

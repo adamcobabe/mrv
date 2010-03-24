@@ -34,11 +34,11 @@ class TestAnim( unittest.TestCase ):
 		
 		for index in range(anim_curve.numKeyframes()):
 			for isInTangent in range(2):
-				rval = anim_curve.tangent(index, isInTangent)
+				rval = anim_curve.getTangent(index, isInTangent)
 				assert isinstance(rval, tuple) and len(rval) == 2
 				assert rval[0] != 0.0 and rval[1] != 0.0
 				
-				rval = anim_curve.tangentAsAngle(index, isInTangent)
+				rval = anim_curve.getTangentAsAngle(index, isInTangent)
 				assert len(rval) == 2
 				assert isinstance(rval[0], api.MAngle)
 				assert rval[0].value() != 0.0 and rval[1] != 0.0

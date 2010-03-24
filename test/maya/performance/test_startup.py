@@ -4,7 +4,7 @@ import time
 import sys
 
 class TestStartupPerformance( unittest.TestCase ):
-	"""@note: this test must run alone"""
+	""":note: this test must run alone"""
 	
 	def test_startup(self):
 		st = time.time()
@@ -15,5 +15,5 @@ class TestStartupPerformance( unittest.TestCase ):
 		if elapsed < 0.1:
 			return
 		
-		print >> sys.stderr, "Initialized mrv and maya-standalone (import mrv.maya.nodes) in %f" % elapsed
+		print >> sys.stderr, "Initialized mrv and maya-standalone (import mrv.maya.nt) in %f" % elapsed
 		

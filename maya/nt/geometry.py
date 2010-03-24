@@ -1,8 +1,12 @@
 # -*- coding: utf-8 -*-
 """ Contains implementations ( or improvements ) to mayas geometric shapes """
+__docformat__ = "restructuredtext"
+
 import base
 from mrv.enum import (create as enum, Element as elm)
 import maya.OpenMaya as api
+import logging
+log = logging.getLogger("mrv.maya.nt.geometry")
 
 __all__ = ("GeometryShape", "DeformableShape", "ControlPoint", "SurfaceShape", 
 	       "Mesh")
@@ -12,13 +16,16 @@ class GeometryShape( base.Shape ):	# base for epydoc !
 	@undoable
 	def copyLightLinks( self, other, **kwargs ):
 		"""Copy lightlinks from one meshShape to another
-		@param substitute: if True, default False, the other shape will be put
-		in place of self, effectively receiving it's light-links whereas self losses
-		them. This is practical in case you create a new shape below a transform that
-		had a previously visible and manipulated shape whose external connections you
-		wouuld like to keep"""
+		
+		:param kwargs:
+			 * substitute: 
+			 	if True, default False, the other shape will be put
+				in place of self, effectively receiving it's light-links whereas self losses
+				them. This is practical in case you create a new shape below a transform that
+				had a previously visible and manipulated shape whose external connections you
+				wouuld like to keep"""
 		def freeLogicalIndex( parent_plug ):
-			"""@return: a free parent compound index"""
+			""":return: a free parent compound index"""
 			ilogical = parent_plug.logicalIndex()
 			array_plug = parent_plug.array()
 			num_elments = array_plug.numElements()
@@ -87,14 +94,8 @@ class SurfaceShape( ControlPoint ):	# base for epydoc !
 #{ Helpers 
 
 class _SingleIndexedComponentGenerator(object):
-	"""Utility producing components, initialized with the given indices, i.e.::
-		m.cvtx[:]                   # a complete set of components
-		m.cvtx[1:4]                 # initialized with 3 indices
-		m.cvtx[1]                   # initialized with a single index
-		m.cvtx[1,2,3]               # initialized with multiple indices
-		m.cf[(1,2,3)]               # initialized with list or tuple
-		m.ce[iter(1,2,3)]           # initialized from iterator
-		m.ce[api.MIntArray()]       # initialized from MIntArray"""
+	"""Utility producing components, initialized with the given indices. See `Mesh`
+	for more info. """
 	__slots__ = ('_mesh', '_component')
 	# to detect slices, funny thing to remark: Maya passes 1 << 31 - 1 for some reason
 	# we want to be smaller, hence -2
@@ -138,7 +139,7 @@ class _SingleIndexedComponentGenerator(object):
 		return comp.addElements(ia)
 		
 	def empty(self):
-		"""@return: empty component of our type"""
+		""":return: empty component of our type"""
 		return self._mesh.component(self._component)
 		
 
@@ -155,8 +156,9 @@ class _SingleIndexedComponentIterator(_SingleIndexedComponentGenerator):
 		return self._mesh.iterComponents(self._component)
 
 	def _check_component(self):
-		"""@raise NotImplementedError: if comp needs double-index component, our interface
-		cannot support anything else than SingleIndex components"""
+		"""
+		:raise NotImplementedError: if comp needs double-index component, our interface
+			cannot support anything else than SingleIndex components"""
 		if self._component == Mesh.eComponentType.uv:
 			raise NotImplementedError("This Utility does not support iteration using \
 				component-constrained iterators as it can only reproduce \
@@ -180,7 +182,7 @@ class _SingleIndexedComponentIterator(_SingleIndexedComponentGenerator):
 		
 		
 	def iterator(self):
-		"""@return: Iterator for all components in the mesh"""
+		""":return: Iterator for all components in the mesh"""
 		return self._get_complete_iterator()
 		
 	# shortcut alias
@@ -193,7 +195,17 @@ class Mesh( SurfaceShape ):		# base for epydoc !
 	"""Implemnetation of mesh related methods to make its handling more
 	convenient
 	
-	.. todo:: Write a litte more here, restructuredText, e[x:y], e[1,5,7], e[iter], e[list], e[ia], ce, cvtx ..."""
+	**Component Access**:
+	
+		>>> m.cvtx[:]                   # a complete set of components
+		>>> m.cvtx[1:4]                 # initialized with 3 indices
+		>>> m.cvtx[1]                   # initialized with a single index
+		>>> m.cvtx[1,2,3]               # initialized with multiple indices
+		>>> m.cf[(1,2,3)]               # initialized with list or tuple
+		>>> m.ce[iter(1,2,3)]           # initialized from iterator
+		>>> m.ce[api.MIntArray()]       # initialized from MIntArray
+		
+	"""
 	# component types that make up a mesh
 	eComponentType = enum( elm("vertex", api.MFn.kMeshVertComponent), 
 							elm("edge", api.MFn.kMeshEdgeComponent ), 
@@ -222,7 +234,8 @@ class Mesh( SurfaceShape ):		# base for epydoc !
 
 	def copyTweaksTo( self, other ):
 		"""Copy our tweaks onto another mesh
-		@note: we do not check topology for maximum flexibility"""
+		
+		:note: we do not check topology for maximum flexibility"""
 		opnts = other.pnts
 		pnts = self.pnts
 		for splug in pnts:
@@ -230,8 +243,9 @@ class Mesh( SurfaceShape ):		# base for epydoc !
 		# END for each source plug in pnts
 
 	def isValidMesh( self ):
-		"""@return: True if we are nonempty and valid - emptry meshes do not work with the mfnmesh
-		although it should ! Have to catch that case ourselves"""
+		"""
+		:return: True if we are nonempty and valid - emptry meshes do not work with the mfnmesh
+			although it should ! Have to catch that case ourselves"""
 		try:
 			self.numVertices()
 			return True
@@ -241,8 +255,9 @@ class Mesh( SurfaceShape ):		# base for epydoc !
 	@undoable
 	def copyAssignmentsTo( self, other, **kwargs ):
 		"""Copy set assignments including component assignments to other
-		@param setFilter: default is fSetsRenderable
-		@param **kwargs: passed to set.addMember"""
+		
+		:param kwargs: passed to set.addMember, additional kwargs are:
+			 * setFilter: default is fSetsRenderable"""
 		setFilter = kwargs.pop( "setFilter", base.Shape.fSetsRenderable )
 		for sg, comp in self.componentAssignments( setFilter = setFilter ):
 			sg.addMember( other, comp, **kwargs )
@@ -251,19 +266,24 @@ class Mesh( SurfaceShape ):		# base for epydoc !
 	@undoable
 	def resetTweaks( self, tweak_type = eComponentType.vertex, keep_tweak_result = False ):
 		"""Reset the tweaks on the given mesh shape
-		@param eComponentType: the component type(s) whose tweaks are to be removed,
-		valid values are 'vertex' and 'uv' enum members. Pass in a scalar value or a list
-		of tweak types
-		@param keep_tweak_result: if True, the effect of the tweak will be kept. If False,
-		it will be removed. What actually happens depends on the context:
-		* [ referenced ] mesh without history:
-			* copy outMesh to inMesh, resetTweaks
-			* if referenced, plenty of reference edits are generated, ideally one operates
-			  on non-referenced geomtry
-		* [ referenced ] mesh with history
-			* put tweakNode into mesh history, copy tweaks onto tweak node
-		@note: currently vertex and uv tweaks will be removed if keep is enabled, thus they must
-		both be specified"""
+		
+		:param tweak_type: the component type(s) whose tweaks are to be removed,
+			valid values are 'vertex' and 'uv' members of the eComponentType enumeration. 
+			Pass in a scalar value or a list of tweak types
+		:param keep_tweak_result: if True, the effect of the tweak will be kept. If False,
+			it will be removed. What actually happens depends on the context
+			
+			* [referenced] mesh *without* history:
+				copy outMesh to inMesh, resetTweaks
+				
+				if referenced, plenty of reference edits are generated, ideally one operates
+				on non-referenced geomtry
+			   
+			* [referenced] mesh *with* history:
+			 	put tweakNode into mesh history, copy tweaks onto tweak node
+		:note: currently vertex and uv tweaks will be removed if keep is enabled, thus they must
+			both be specified"""
+		global log
 		check_types = ( isinstance( tweak_type, ( list, tuple ) ) and tweak_type ) or [ tweak_type ]
 		type_map = {
 							self.eComponentType.vertex : ( "pnts", api.MFnNumericData.k3Float, "polyTweak", api.MFn.kPolyTweak, "tweak" ),
@@ -287,7 +307,8 @@ class Mesh( SurfaceShape ):		# base for epydoc !
 					# assert as we had to make the handling much more complex to allow this to work right as we copy the whole mesh here
 					# containing all tweaks , not only one type
 					if not ( self.eComponentType.vertex in check_types and self.eComponentType.uv in check_types ):
-						print "WARNING: Currently vertex AND uv tweaks will be removed if a mesh has no history and a reset is requested"
+						log.warn("Currently vertex AND uv tweaks will be removed if a mesh has no history and a reset is requested")
+					# END print warning
 
 					# take the output mesh, and stuff it into the input, then proceed
 					# with the reset. This implies that all tweaks have to be removed
@@ -360,8 +381,8 @@ class Mesh( SurfaceShape ):		# base for epydoc !
 		# END for tweak type to reset
 		
 	def component(self, component_type):
-		"""@return: A component object able to hold the given component type
-		@param component_type: a member of the L{eComponentType} enumeration"""
+		""":return: A component object able to hold the given component type
+		:param component_type: a member of the `eComponentType` enumeration"""
 		if component_type not in self.eComponentType:
 			raise ValueError("Invalid component type")
 		return base.SingleIndexedComponent.create(component_type.value())
@@ -371,16 +392,17 @@ class Mesh( SurfaceShape ):		# base for epydoc !
 		
 	#{ Iterators 
 	def iterComponents(self, component_type, component=api.MObject()):
-		"""@return: MItIterator matching your component_type to iteartor over items
-		on this mesh
-		@param component_type: 
-			vertex -> MItMeshVertex
-			edge -> MItMeshEdge
-			face -> MItMeshPolygon
-			uv -> MItMeshFaceVertex
-		@param component: if not kNullObject, the iterator returned will be constrained
-		to the given indices as described by the Component. Use L{getComponent} to retrieve 
-		a matching component type's instance"""
+		"""
+		:return: MItIterator matching your component_type to iteartor over items
+			on this mesh
+		:param component_type: 
+		 * vertex -> MItMeshVertex
+		 * edge -> MItMeshEdge
+		 * face -> MItMeshPolygon
+		 * uv -> MItMeshFaceVertex
+		:param component: if not kNullObject, the iterator returned will be constrained
+			to the given indices as described by the Component. Use `component` to retrieve 
+			a matching component type's instance"""
 		if component_type not in self.eComponentType:
 			raise ValueError("Invalid component type")
 			
@@ -397,8 +419,10 @@ class Mesh( SurfaceShape ):		# base for epydoc !
 	#( iDuplicatable
 	def copyFrom( self, other, *args, **kwargs ):
 		"""Copy tweaks and sets from other onto self
-		@param setFilter: if given, default is fSets, you may specify the types of sets to copy
-		if None, no set conenctions will be copied """
+		
+		:param kwargs:
+			 * setFilter: if given, default is fSets, you may specify the types of sets to copy
+						if None, no set conenctions will be copied """
 		other.copyTweaksTo( self )
 
 		setfilter = kwargs.pop( "setFilter", Mesh.fSets )		# copy all sets by default

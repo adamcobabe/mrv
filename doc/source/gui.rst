@@ -1,8 +1,6 @@
-
-
-=========================
+#########################
 Graphical User Interfaces
-=========================
+#########################
 MRV wraps all ( maybe most ) user interface commands into python classes and places these into a hierarchy to allow polymorphic behaviour through inheritance. Even though inheritance relationships within the set of Maya User Interface commands was boiled down to flat commands, there is such a relation ship.
 
 The ``ColumnLayout`` for example, is a ``Layout``, a ``UIContainer``, a ``SizedControl`` and a ``NamedUI``, inheriting functionality from all its bases. 
@@ -10,8 +8,9 @@ The ``ColumnLayout`` for example, is a ``Layout``, a ``UIContainer``, a ``SizedC
 
 All user interface classes live in the ``mrv.maya.ui`` package, and are implemented in descriptive subpackages such as ``ui.layout``, ``ui.control``, ``ui.panel`` and ``ui.editor``.
 
+*************
 Instantiation
-==============
+*************
 Creating new interface elements is straightforward, and the fact that all user interface elements call MEL in the background becomes obvious when looking at the way they are created::
 	>>> from mrv.maya.ui import *
 	
@@ -20,19 +19,22 @@ Creating new interface elements is straightforward, and the fact that all user i
 All keyword arguments passed to the ``Window`` class are exactly the same as if they would have been passed to window MEL command, in that case ``window -title "demo"``. The returned instance though will be an instance of type ``Window`` which is also a string::
 	>>> assert isinstance(win, basestring)
 	
+**********
 Properties
-==========
+**********
 In this example, we have set the title of the Window to 'demo'. In MEL it would be quite easy to query or to change this, just call ``window -q -title $win`` or ``window -e -title "property demo" $win`` respectively. 
 
 In MRV, everything that is *at least* queryable is a property. Properties are prefixed with *p_* and hence live in their own namespace. The name of the properties follow the capitalization of the MEL flag which they represent. 
 Some properties can only be queried, and you will get an AttributeError if you try to query them::
+	
 	>>> assert "demo" == win.p_title
 	>>> win.p_title = "property demo"
 	>>> assert "property demo" == win.p_title
 	>>> # win.p_numberOfMenus = 3 # raises AttributeError
 	
+*******
 Layouts
-=======
+*******
 Layouts behave like containers as they will keep other user interface element. Additionally they define their spatial arrangement.
 
 They will only receive newly created controls if they are set to be the current, newly created Layouts and Windows will automatically set the parent to be themselves. 
@@ -57,8 +59,9 @@ As it is practical to indicate the hierachical level using indentations, you may
 	>>>		b1 = Button()
 	>>>	col.setParentActive()
 	
+******
 Events
-======
+******
 To make interface elements respond to user interaction like mouse clicks and keyboard inputs in a specific way, one must assure that the own code gets called when these events happen.
 
 The Maya UI System provides simple string or python callbacks which will be executed when the event occours. This has the inherent disadvantage that there may be only listener for each event - workaround have to be implemented manually.
@@ -74,8 +77,15 @@ With MRV, events are properties of the class prefixed with *e_*. You can assign 
 Show the window to see a simple UI with two vertically arranged buttons, if 'one' is pressed, 'two' will be affected::
 	>>> win.show()
 
+	
+*******
+Signals
+*******
+TODO: Talk about custom signals, refer to modular user interface section for a complete example.
+	
+**************************
 Managing Instance Lifetime
-==========================
+**************************
 The user interface elements created from within python are only wrappers, hence they are not linked to the lifetime of the actual UI element by default.
 
 This implies that they will be destroyed once they go out of scope ( and the pyhton reference count reaches zero ).
@@ -89,8 +99,9 @@ Nonetheless, your own instance is unlikely to ever be deleted as the callback re
 
 This means you should refrain from storing large amounts of data on an instance which also registers events using ``e_eventName``, and if so, to implemented the ``uiDeleted`` method to release all your memory yourself as good as possible, by deleting your respective member variables.
 
+********************************
 Building Modular User Interfaces
-=================================
+********************************
 With these basics, you are already able to define user interfaces and make them functional. Quickly you will realize that you will always end up with first defining the UI and events, and secondly you define individual controls are supposed to behave on user interaction. 
 
 More complex user interface easily have several layouts in complex hierarchical relationships, updating the user interface properly and efficiently becomes a daunting task.

@@ -1,4 +1,8 @@
-========================
-CHANGES in Version 1.0.1
-========================
-- dummy, changelog will be started once 1.0.0 has been released
+#########
+Changelog
+#########
+
+******
+v1.0.0
+******
+ * TODO: Fill in changes if there are any

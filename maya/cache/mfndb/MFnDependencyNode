@@ -14,7 +14,7 @@ x   | MFnDependencyNode_create                | None                |
     | MFnDependencyNode_findAlias             | None                |                                         
     | MFnDependencyNode_findPlug              | None                |                                         
     | MFnDependencyNode_getAffectedAttributes | None                |                                         
-    | MFnDependencyNode_getAffectedByAttributes| None                |                                         
+    | MFnDependencyNode_getAffectedByAttributes| None               |                                         
     | MFnDependencyNode_getAliasAttr          | None                |                                         
     | MFnDependencyNode_getAliasList          | None                |                                         
     | MFnDependencyNode_getConnections        | None                |                                         

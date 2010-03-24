@@ -1,12 +1,14 @@
 # -*- coding: utf-8 -*-
 """
 Contains the most controls like buttons and sliders for more convenient use
-
-@todo: more documentation
 """
+__docformat__ = "restructuredtext"
+
 import base as uibase
 import util as uiutil
 
+import logging
+log = logging.getLogger("mrv.maya.ui.control")
 
 #{ Bases
 
@@ -44,7 +46,8 @@ class RadioButtonBase( BooleanBase ):
 
 class GroupBase( uibase.SizedControl ):
 	"""Base allowing access to all grouped controls
-	@note: using short property names to ... keep it sane """
+	
+	:note: using short property names to ... keep it sane """
 
 	_properties_ = [ 	"cw", "columnWidth",
 						"cat", "columnAttach",
@@ -191,8 +194,9 @@ class CheckBoxGrp( BooleanGroupBase, CheckBoxBase ):
 
 class Button( LabelBase ):
 	""" Simple button interface
-	@note: you can only use either the onpress or the onrelease event, both
-	together apparently do not work"""
+	
+	:note: you can only use either the onpress or the onrelease event, both
+		together apparently do not work"""
 	_properties_ = ( "actionIsSubstitute" )
 	_events_ = ( "c", "command" )
 
@@ -220,7 +224,7 @@ class TextField( FieldBase, TextFieldBase ):
 	pass
 
 class ScrollField( uibase.SizedControl ):
-	"""@note: although the class shares some properties of the textfield, it does not share all of them"""
+	""":note: although the class shares some properties of the textfield, it does not share all of them"""
 	_properties_ = ( 	"wordWrap", "ww",
 					  	"font", 	"fn",
 						"text", "tx",
@@ -282,7 +286,8 @@ class Separator( uibase.SizedControl ):
 class OptionMenu( OptionMenuBase, uibase.SizedControl ):
 	"""Class just for multiple inheritance - this cannot be expressed in the hierarchy
 	file
-	@note: Order of inheritance matters due to method resolution order !"""
+	
+	:note: Order of inheritance matters due to method resolution order !"""
 	#( Configuration
 	_is_menu = True
 	#) END configuration
@@ -291,7 +296,8 @@ class OptionMenu( OptionMenuBase, uibase.SizedControl ):
 class OptionMenuGrp( OptionMenuBase, GroupBase ):
 	"""Class just for multiple inheritance - this cannot be expressed in the hierarchy
 	file
-	@note: Order of inheritance matters due to method resolution order !"""
+	
+	:note: Order of inheritance matters due to method resolution order !"""
 	#( Configuration
 	_is_menu = True
 	#) END configuration
@@ -302,12 +308,14 @@ class OptionMenuGrp( OptionMenuBase, GroupBase ):
 		"""The optionMenuGrp cannot be set as a parent as it is classified as control layout.
 		A problem arises if you actually try to add new menuItems to it after it's creation which
 		does not work as it is not a menu"""
-		print "setActive: OptionMenuGrp's instances cannot be setActive after creation due to a Maya API logic error - you will set the layout active, not the contained option menu"
+		global log
+		log.warn("setActive: OptionMenuGrp's instances cannot be setActive after creation due to a Maya API logic error - you will set the layout active, not the contained option menu")
 		return super( OptionMenuGrp, self ).setActive()
 
 	def setParentActive( self ):
-		"""See L{setActive}"""
-		print "setParentActive: OptionMenuGrp instances will change the parent of their control layout only, not the menu parent of the optionMenu"
+		"""See `setActive`"""
+		global log
+		log.warn("setParentActive: OptionMenuGrp instances will change the parent of their control layout only, not the menu parent of the optionMenu")
 		super( OptionMenuGrp, self ).setParentActive()
 	#} special handling overrides
 

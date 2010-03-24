@@ -1,6 +1,10 @@
 # -*- coding: utf-8 -*-
 """general methods and classes """
+__docformat__ = "restructuredtext"
+
 from mrv.dge import PlugAlreadyConnected
+import logging
+log = logging.getLogger("mrv.automation.base")
 
 #{ Edit
 
@@ -14,7 +18,7 @@ def _toSimpleType( stringtype ):
 	raise ValueError( "Could not convert %r to any simple type" % stringtype )
 
 def _getNodeInfo( node ):
-	"""@return: ( nodename, args, kwargs ) - all arguments have been parsed"""
+	""":return: ( nodename, args, kwargs ) - all arguments have been parsed"""
 	args = [ node.get_name().strip('"') ]
 	nodeattrs = node.get_attributes()
 	tl = nodeattrs.get('toplabel', '').strip('"')
@@ -44,10 +48,12 @@ def loadWorkflowFromDotFile( dotfile, workflowcls = None ):
 	The workflow will be fully intiialized with connected process instances.
 	The all compatible plugs will automatically be connected for all processes
 	connected in the dot file
-	@param workflowcls: if not None, a dgengine.Graph compatible class to be used
-	for workflow creation. Defaults to automation.workflow.Workflow.
-	@return: List of initialized workflow classes - as they can be nested, the
-	creation of one workflow can actually create several of them"""
+	
+	:param workflowcls: if not None, a dgengine.Graph compatible class to be used
+		for workflow creation. Defaults to automation.workflow.Workflow.
+	:return: List of initialized workflow classes - as they can be nested, the
+		creation of one workflow can actually create several of them"""
+	global log
 	import pydot
 	import processes
 	from workflow import Workflow
@@ -63,7 +69,6 @@ def loadWorkflowFromDotFile( dotfile, workflowcls = None ):
 	wfl = wflclass( name=dotfile.namebase() )
 
 
-	#print "LOADING %s FROM FILE %s" % (wfl,dotfile)
 	for node in dotgraph.get_node_list():
 		# can have initializers
 		nodeid = node.get_name().strip( '"' )
@@ -87,7 +92,7 @@ def loadWorkflowFromDotFile( dotfile, workflowcls = None ):
 		try:
 			processinst = processcls( *args, **kwargs )
 		except TypeError:
-			print "Process %r could not be created as it required a different init call" % processcls
+			log.error( "Process %r could not be created as it required a different init call" % processcls )
 			raise
 		else:
 			edge_lut[ nodeid ] = processinst
@@ -108,8 +113,8 @@ def loadWorkflowFromDotFile( dotfile, workflowcls = None ):
 			try:
 				# first is best
 				targetcandidates = snode.filterCompatiblePlugs( destplugs, sourceplug.attr, raise_on_ambiguity = 0, attr_affinity = False, attr_as_source = True )
-			except ( TypeError,IndexError ),e:	# could have no compatible or is ambigous
-				print e.args		# debug
+			except ( TypeError,IndexError ),e:	# could have no compatible plugs or is ambigous
+				log.debug(str(e.args))		# debug
 				continue
 			else:
 				# if a plug is already connected, try another one
@@ -167,8 +172,9 @@ def loadWorkflowFromDotFile( dotfile, workflowcls = None ):
 
 def addWorkflowsFromDotFiles( module, dotfiles, workflowcls = None ):
 	"""Create workflows from a list of dot-files and add them to the module
-	@param workflowcls: see L{loadWorkflowFromDotFile}
-	@return: list of workflow instances created from the given files"""
+	
+	:param workflowcls: see `loadWorkflowFromDotFile`
+	:return: list of workflow instances created from the given files"""
 	outwfls = list()
 	for dotfile in dotfiles:
 		wflname = dotfile.namebase()
