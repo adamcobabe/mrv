@@ -1,21 +1,6 @@
-    | MFnDistanceManip_connectToDistancePlug  | None                |                                         
-    | MFnDistanceManip_create                 | None                |                                         
-    | MFnDistanceManip_currentPointIndex      | None                |                                         
-    | MFnDistanceManip_directionIndex         | None                |                                         
-    | MFnDistanceManip_distanceIndex          | None                |                                         
-    | MFnDistanceManip_isDrawLineOn           | None                |                                         
-    | MFnDistanceManip_isDrawStartOn          | None                |                                         
-    | MFnDistanceManip_scalingFactor          | None                |                                         
-    | MFnDistanceManip_setDirection           | None                |                                         
-    | MFnDistanceManip_setDrawLine            | None                |                                         
-    | MFnDistanceManip_setDrawStart           | None                |                                         
-    | MFnDistanceManip_setScalingFactor       | None                |                                         
-    | MFnDistanceManip_setStartPoint          | None                |                                         
-    | MFnDistanceManip_startPointIndex        | None                |                                         
     | connectToDistancePlug                   | None                |                                         
     | create                                  | None                |                                         
     | currentPointIndex                       | None                |                                         
-    | delete_MFnDistanceManip                 | None                |                                         
     | directionIndex                          | None                |                                         
     | distanceIndex                           | None                |                                         
     | isDrawLineOn                            | None                |                                         

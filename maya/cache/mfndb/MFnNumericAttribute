@@ -1,29 +1,8 @@
-    | MFnNumericAttribute_child               | None                |                                         
-    | MFnNumericAttribute_create              | None                |                                         
-    | MFnNumericAttribute_createAddr          | None                |                                         
-    | MFnNumericAttribute_createColor         | None                |                                         
-    | MFnNumericAttribute_createPoint         | None                |                                         
-    | MFnNumericAttribute_getDefault          | None                |                                         
-    | MFnNumericAttribute_getMax              | None                |                                         
-    | MFnNumericAttribute_getMin              | None                |                                         
-    | MFnNumericAttribute_getSoftMax          | None                |                                         
-    | MFnNumericAttribute_getSoftMin          | None                |                                         
-    | MFnNumericAttribute_hasMax              | None                |                                         
-    | MFnNumericAttribute_hasMin              | None                |                                         
-    | MFnNumericAttribute_hasSoftMax          | None                |                                         
-    | MFnNumericAttribute_hasSoftMin          | None                |                                         
-    | MFnNumericAttribute_setDefault          | None                |                                         
-    | MFnNumericAttribute_setMax              | None                |                                         
-    | MFnNumericAttribute_setMin              | None                |                                         
-    | MFnNumericAttribute_setSoftMax          | None                |                                         
-    | MFnNumericAttribute_setSoftMin          | None                |                                         
-    | MFnNumericAttribute_unitType            | None                |                                         
     | child                                   | Attribute           | getChild                                
     | create                                  | Attribute           |                                         
     | createAddr                              | Attribute           |                                         
     | createColor                             | Attribute           |                                         
     | createPoint                             | Attribute           |                                         
-    | delete_MFnNumericAttribute              | None                |                                         
     | getDefault                              | None                |                                         
     | getMax                                  | None                |                                         
     | getMin                                  | None                |                                         

@@ -1,10 +1,4 @@
-    | MFnLattice_create                       | None                |                                         
-    | MFnLattice_getDivisions                 | None                |                                         
-    | MFnLattice_point                        | None                |                                         
-    | MFnLattice_reset                        | None                |                                         
-    | MFnLattice_setDivisions                 | None                |                                         
     | create                                  | None                |                                         
-    | delete_MFnLattice                       | None                |                                         
     | getDivisions                            | None                |                                         
     | point                                   | None                |                                         
     | reset                                   | None                |                                         

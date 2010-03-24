@@ -1,10 +1,5 @@
-    | MFnLightDataAttribute_child             | None                |                                         
-    | MFnLightDataAttribute_create            | None                |                                         
-    | MFnLightDataAttribute_getDefault        | None                |                                         
-    | MFnLightDataAttribute_setDefault        | None                |                                         
     | child                                   | Attribute           | getChild                                
     | create                                  | Attribute           |                                         
-    | delete_MFnLightDataAttribute            | None                |                                         
     | getDefault                              | None                |                                         
     | setDefault                              | None                |                                         
     | type                                    | None                |                                         

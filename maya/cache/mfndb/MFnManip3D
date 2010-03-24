@@ -1,11 +1,3 @@
-    | MFnManip3D_isOptimizePlaybackOn         | None                |                                         
-    | MFnManip3D_isVisible                    | None                |                                         
-    | MFnManip3D_manipScale                   | None                |                                         
-    | MFnManip3D_rotateXYZValue               | None                |                                         
-    | MFnManip3D_setManipScale                | None                |                                         
-    | MFnManip3D_setOptimizePlayback          | None                |                                         
-    | MFnManip3D_setVisible                   | None                |                                         
-    | delete_MFnManip3D                       | None                |                                         
     | isOptimizePlaybackOn                    | None                |                                         
     | isVisible                               | None                |                                         
     | manipScale                              | None                |                                         

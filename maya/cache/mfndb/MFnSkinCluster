@@ -1,9 +1,3 @@
-    | MFnSkinCluster_getPointsAffectedByInfluence| None                |                                         
-    | MFnSkinCluster_getWeights               | None                |                                         
-    | MFnSkinCluster_indexForInfluenceObject  | None                |                                         
-    | MFnSkinCluster_influenceObjects         | None                |                                         
-    | MFnSkinCluster_setWeights               | None                |                                         
-    | delete_MFnSkinCluster                   | None                |                                         
     | getPointsAffectedByInfluence            | None                |                                         
     | getWeights                              | None                |                                         
     | indexForInfluenceObject                 | None                | getIndexForInfluenceObject              

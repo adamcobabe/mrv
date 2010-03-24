@@ -1,18 +1,4 @@
-    | MFnGeometryFilter_deformerSet           | None                |                                         
-    | MFnGeometryFilter_envelope              | None                |                                         
-    | MFnGeometryFilter_getInputGeometry      | None                |                                         
-    | MFnGeometryFilter_getOutputGeometry     | None                |                                         
-    | MFnGeometryFilter_getPathAtIndex        | None                |                                         
-    | MFnGeometryFilter_groupIdAtIndex        | None                |                                         
-    | MFnGeometryFilter_indexForGroupId       | None                |                                         
-    | MFnGeometryFilter_indexForOutputConnection| None                |                                         
-    | MFnGeometryFilter_indexForOutputShape   | None                |                                         
-    | MFnGeometryFilter_inputShapeAtIndex     | None                |                                         
-    | MFnGeometryFilter_numOutputConnections  | None                |                                         
-    | MFnGeometryFilter_outputShapeAtIndex    | None                |                                         
-    | MFnGeometryFilter_setEnvelope           | None                |                                         
     | deformerSet                             | Node                | getDeformerSet                          
-    | delete_MFnGeometryFilter                | None                |                                         
     | envelope                                | None                | getEnvelope                             
     | getInputGeometry                        | None                |                                         
     | getOutputGeometry                       | None                |                                         

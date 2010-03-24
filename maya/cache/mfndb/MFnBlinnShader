@@ -1,10 +1,4 @@
-    | MFnBlinnShader_create                   | None                |                                         
-    | MFnBlinnShader_eccentricity             | None                |                                         
-    | MFnBlinnShader_setEccentricity          | None                |                                         
-    | MFnBlinnShader_setSpecularRollOff       | None                |                                         
-    | MFnBlinnShader_specularRollOff          | None                |                                         
     | create                                  | None                |                                         
-    | delete_MFnBlinnShader                   | None                |                                         
     | eccentricity                            | None                |                                         
     | setEccentricity                         | None                |                                         
     | setSpecularRollOff                      | None                |                                         

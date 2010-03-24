@@ -1,6 +1,3 @@
-    | MFnKeyframeDelta_keyIndex               | None                |                                         
-    | MFnKeyframeDelta_paramCurve             | None                |                                         
-    | delete_MFnKeyframeDelta                 | None                |                                         
     | keyIndex                                | None                |                                         
     | paramCurve                              | None                |                                         
     | type                                    | None                |                                         

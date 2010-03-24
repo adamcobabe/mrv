@@ -1,54 +1,20 @@
-    | MFnDependencyNode_addAttribute          | None                |                                         
-    | MFnDependencyNode_attribute             | None                |                                         
-    | MFnDependencyNode_attributeClass        | None                |                                         
-    | MFnDependencyNode_attributeCount        | None                |                                         
-    | MFnDependencyNode_canBeWritten          | None                |                                         
 x   | MFnDependencyNode_create                | None                |                                         
-    | MFnDependencyNode_dgCallbackIds         | None                |                                         
-    | MFnDependencyNode_dgCallbacks           | None                |                                         
-    | MFnDependencyNode_dgTimer               | None                |                                         
-    | MFnDependencyNode_dgTimerOff            | None                |                                         
-    | MFnDependencyNode_dgTimerOn             | None                |                                         
-    | MFnDependencyNode_dgTimerQueryState     | None                |                                         
-    | MFnDependencyNode_dgTimerReset          | None                |                                         
-    | MFnDependencyNode_findAlias             | None                |                                         
-    | MFnDependencyNode_findPlug              | None                |                                         
-    | MFnDependencyNode_getAffectedAttributes | None                |                                         
-    | MFnDependencyNode_getAffectedByAttributes| None               |                                         
-    | MFnDependencyNode_getAliasAttr          | None                |                                         
-    | MFnDependencyNode_getAliasList          | None                |                                         
-    | MFnDependencyNode_getConnections        | None                |                                         
-    | MFnDependencyNode_hasAttribute          | None                |                                         
-    | MFnDependencyNode_hasUniqueName         | None                |                                         
-    | MFnDependencyNode_isDefaultNode         | None                |                                         
-    | MFnDependencyNode_isFlagSet             | None                |                                         
-    | MFnDependencyNode_isFromReferencedFile  | None                |                                         
-    | MFnDependencyNode_isLocked              | None                |                                         
-    | MFnDependencyNode_isNewAttribute        | None                |                                         
-    | MFnDependencyNode_isShared              | None                |                                         
-    | MFnDependencyNode_name                  | None                |                                         
-    | MFnDependencyNode_parentNamespace       | None                |                                         
-    | MFnDependencyNode_pluginName            | None                |                                         
-    | MFnDependencyNode_plugsAlias            | None                |                                         
-    | MFnDependencyNode_removeAttribute       | None                |                                         
-    | MFnDependencyNode_reorderedAttribute    | None                |                                         
-    | MFnDependencyNode_setAlias              | None                |                                         
-    | MFnDependencyNode_setDoNotWrite         | None                |                                         
-    | MFnDependencyNode_setFlag               | None                |                                         
-    | MFnDependencyNode_setLocked             | None                |                                         
 x   | MFnDependencyNode_setName               | None                |                                         
-    | MFnDependencyNode_typeId                | None                |                                         
-    | MFnDependencyNode_typeName              | None                |                                         
-    | MFnDependencyNode_userNode              | None                |                                         
     | addAttribute                            | None                |                                         
-    | attribute                               | Attribute           |                             
-    | attributeClass                          | None                |                        
-    | attributeCount                          | None                |                        
+    | attribute                               | Attribute           |                                         
+    | attributeClass                          | None                |                                         
+    | attributeCount                          | None                |                                         
     | canBeWritten                            | None                |                                         
 x   | create                                  | None                |                                         
-    | delete_MFnDependencyNode                | None                |                                         
+    | dgCallbackIds                           | None                |                                         
+    | dgCallbacks                             | None                |                                         
+    | dgTimer                                 | None                |                                         
+    | dgTimerOff                              | None                |                                         
+    | dgTimerOn                               | None                |                                         
+    | dgTimerQueryState                       | None                |                                         
+    | dgTimerReset                            | None                |                                         
     | findAlias                               | None                |                                         
-    | findPlug                                | None                |                                  
+    | findPlug                                | None                |                                         
     | getAffectedAttributes                   | None                |                                         
     | getAffectedByAttributes                 | None                |                                         
     | getAliasAttr                            | None                |                                         
@@ -62,17 +28,18 @@ x   | create                                  | None                |
     | isLocked                                | None                |                                         
     | isNewAttribute                          | None                |                                         
     | isShared                                | None                |                                         
-    | name                                    | None                |                                  
-    | parentNamespace                         | Namespace           | namespace                            
-    | plugsAlias                              | None                |                             
-    | removeAttribute                         | None                |                    
+    | name                                    | None                |                                         
+    | parentNamespace                         | Namespace           | namespace                               
+    | pluginName                              | None                |                                         
+    | plugsAlias                              | None                |                                         
+    | removeAttribute                         | None                |                                         
     | reorderedAttribute                      | Attribute           |                                         
     | setAlias                                | None                |                                         
     | setDoNotWrite                           | None                |                                         
     | setFlag                                 | None                |                                         
     | setLocked                               | None                |                                         
 x   | setName                                 | None                |                                         
-    | type                                    | None                |                                  
-    | typeId                                  | None                |                                
-    | typeName                                | None                |                              
-    | userNode                                | None                |                              
+    | type                                    | None                |                                         
+    | typeId                                  | None                |                                         
+    | typeName                                | None                |                                         
+    | userNode                                | None                |                                         

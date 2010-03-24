@@ -1,42 +1,8 @@
-    | MFnMotionPath_addAnimatedObject         | None                |                                         
-    | MFnMotionPath_bank                      | None                |                                         
-    | MFnMotionPath_bankScale                 | None                |                                         
-    | MFnMotionPath_bankThreshold             | None                |                                         
-    | MFnMotionPath_create                    | None                |                                         
-    | MFnMotionPath_follow                    | None                |                                         
-    | MFnMotionPath_followAxis                | None                |                                         
-    | MFnMotionPath_getAnimatedObjects        | None                |                                         
-    | MFnMotionPath_getOrientationMarker      | None                |                                         
-    | MFnMotionPath_getPositionMarker         | None                |                                         
-    | MFnMotionPath_inverseNormal             | None                |                                         
-    | MFnMotionPath_numOrientationMarkers     | None                |                                         
-    | MFnMotionPath_numPositionMarkers        | None                |                                         
-    | MFnMotionPath_pathObject                | None                |                                         
-    | MFnMotionPath_setBank                   | None                |                                         
-    | MFnMotionPath_setBankScale              | None                |                                         
-    | MFnMotionPath_setBankThreshold          | None                |                                         
-    | MFnMotionPath_setFollow                 | None                |                                         
-    | MFnMotionPath_setFollowAxis             | None                |                                         
-    | MFnMotionPath_setInverseNormal          | None                |                                         
-    | MFnMotionPath_setPathObject             | None                |                                         
-    | MFnMotionPath_setUEnd                   | None                |                                         
-    | MFnMotionPath_setUStart                 | None                |                                         
-    | MFnMotionPath_setUTimeEnd               | None                |                                         
-    | MFnMotionPath_setUTimeStart             | None                |                                         
-    | MFnMotionPath_setUpAxis                 | None                |                                         
-    | MFnMotionPath_setUseNormal              | None                |                                         
-    | MFnMotionPath_uEnd                      | None                |                                         
-    | MFnMotionPath_uStart                    | None                |                                         
-    | MFnMotionPath_uTimeEnd                  | None                |                                         
-    | MFnMotionPath_uTimeStart                | None                |                                         
-    | MFnMotionPath_upAxis                    | None                |                                         
-    | MFnMotionPath_useNormal                 | None                |                                         
     | addAnimatedObject                       | None                |                                         
     | bank                                    | None                |                                         
     | bankScale                               | None                |                                         
     | bankThreshold                           | None                |                                         
     | create                                  | None                |                                         
-    | delete_MFnMotionPath                    | None                |                                         
     | follow                                  | None                |                                         
     | followAxis                              | None                |                                         
     | getAnimatedObjects                      | None                |                                         

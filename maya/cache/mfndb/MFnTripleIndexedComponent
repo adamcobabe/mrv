@@ -1,14 +1,6 @@
-    | MFnTripleIndexedComponent_addElement    | None                |                                         
-    | MFnTripleIndexedComponent_addElements   | None                |                                         
-    | MFnTripleIndexedComponent_create        | None                |                                         
-    | MFnTripleIndexedComponent_getCompleteData| None                |                                         
-    | MFnTripleIndexedComponent_getElement    | None                |                                         
-    | MFnTripleIndexedComponent_getElements   | None                |                                         
-    | MFnTripleIndexedComponent_setCompleteData| None                |                                         
     | addElement                              | None                |                                         
     | addElements                             | None                |                                         
     | create                                  | Component           |                                         
-    | delete_MFnTripleIndexedComponent        | None                |                                         
     | getCompleteData                         | None                |                                         
     | getElement                              | None                |                                         
     | getElements                             | None                |                                         

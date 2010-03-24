@@ -1,24 +1,7 @@
-    | MFnGeometryData_addObjectGroup          | None                |                                         
-    | MFnGeometryData_addObjectGroupComponent | None                |                                         
-    | MFnGeometryData_changeObjectGroupId     | None                |                                         
-    | MFnGeometryData_copyObjectGroups        | None                |                                         
-    | MFnGeometryData_getMatrix               | None                |                                         
-    | MFnGeometryData_hasObjectGroup          | None                |                                         
-    | MFnGeometryData_matrixIsIdentity        | None                |                                         
-    | MFnGeometryData_matrixIsNotIdentity     | None                |                                         
-    | MFnGeometryData_objectGroup             | None                |                                         
-    | MFnGeometryData_objectGroupComponent    | None                |                                         
-    | MFnGeometryData_objectGroupCount        | None                |                                         
-    | MFnGeometryData_objectGroupType         | None                |                                         
-    | MFnGeometryData_removeObjectGroup       | None                |                                         
-    | MFnGeometryData_removeObjectGroupComponent| None                |                                         
-    | MFnGeometryData_setMatrix               | None                |                                         
-    | MFnGeometryData_setObjectGroupComponent | None                |                                         
     | addObjectGroup                          | None                |                                         
     | addObjectGroupComponent                 | None                |                                         
     | changeObjectGroupId                     | None                |                                         
     | copyObjectGroups                        | None                |                                         
-    | delete_MFnGeometryData                  | None                |                                         
     | getMatrix                               | None                |                                         
     | hasObjectGroup                          | None                |                                         
     | matrixIsIdentity                        | None                |                                         

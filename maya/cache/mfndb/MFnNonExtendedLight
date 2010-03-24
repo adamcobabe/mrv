@@ -1,17 +1,4 @@
-    | MFnNonExtendedLight_castSoftShadows     | None                |                                         
-    | MFnNonExtendedLight_depthMapBias        | None                |                                         
-    | MFnNonExtendedLight_depthMapFilterSize  | None                |                                         
-    | MFnNonExtendedLight_depthMapResolution  | None                |                                         
-    | MFnNonExtendedLight_setCastSoftShadows  | None                |                                         
-    | MFnNonExtendedLight_setDepthMapBias     | None                |                                         
-    | MFnNonExtendedLight_setDepthMapFilterSize| None                |                                         
-    | MFnNonExtendedLight_setDepthMapResolution| None                |                                         
-    | MFnNonExtendedLight_setShadowRadius     | None                |                                         
-    | MFnNonExtendedLight_setUseDepthMapShadows| None                |                                         
-    | MFnNonExtendedLight_shadowRadius        | None                |                                         
-    | MFnNonExtendedLight_useDepthMapShadows  | None                |                                         
     | castSoftShadows                         | None                |                                         
-    | delete_MFnNonExtendedLight              | None                |                                         
     | depthMapBias                            | None                |                                         
     | depthMapFilterSize                      | None                |                                         
     | depthMapResolution                      | None                |                                         

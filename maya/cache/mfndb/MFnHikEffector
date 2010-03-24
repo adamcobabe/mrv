@@ -1,11 +1,4 @@
-    | MFnHikEffector_create                   | None                |                                         
-    | MFnHikEffector_getAuxiliaryEffectors    | None                |                                         
-    | MFnHikEffector_getEffColor              | None                |                                         
-    | MFnHikEffector_getPivotOffset           | None                |                                         
-    | MFnHikEffector_setEffColor              | None                |                                         
-    | MFnHikEffector_setPivotOffset           | None                |                                         
     | create                                  | None                |                                         
-    | delete_MFnHikEffector                   | None                |                                         
     | getAuxiliaryEffectors                   | None                |                                         
     | getEffColor                             | None                |                                         
     | getPivotOffset                          | None                |                                         

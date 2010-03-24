@@ -1,25 +1,4 @@
-    | MFnNumericData_create                   | None                |                                         
-    | MFnNumericData_getData2Double           | None                |                                         
-    | MFnNumericData_getData2Float            | None                |                                         
-    | MFnNumericData_getData2Int              | None                |                                         
-    | MFnNumericData_getData2Short            | None                |                                         
-    | MFnNumericData_getData3Double           | None                |                                         
-    | MFnNumericData_getData3Float            | None                |                                         
-    | MFnNumericData_getData3Int              | None                |                                         
-    | MFnNumericData_getData3Short            | None                |                                         
-    | MFnNumericData_getData4Double           | None                |                                         
-    | MFnNumericData_numericType              | None                |                                         
-    | MFnNumericData_setData2Double           | None                |                                         
-    | MFnNumericData_setData2Float            | None                |                                         
-    | MFnNumericData_setData2Int              | None                |                                         
-    | MFnNumericData_setData2Short            | None                |                                         
-    | MFnNumericData_setData3Double           | None                |                                         
-    | MFnNumericData_setData3Float            | None                |                                         
-    | MFnNumericData_setData3Int              | None                |                                         
-    | MFnNumericData_setData3Short            | None                |                                         
-    | MFnNumericData_setData4Double           | None                |                                         
     | create                                  | None                |                                         
-    | delete_MFnNumericData                   | None                |                                         
     | getData2Double                          | None                |                                         
     | getData2Float                           | None                |                                         
     | getData2Int                             | None                |                                         

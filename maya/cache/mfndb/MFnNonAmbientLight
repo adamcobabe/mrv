@@ -1,6 +1,3 @@
-    | MFnNonAmbientLight_decayRate            | None                |                                         
-    | MFnNonAmbientLight_setDecayRate         | None                |                                         
     | decayRate                               | None                |                                         
-    | delete_MFnNonAmbientLight               | None                |                                         
     | setDecayRate                            | None                |                                         
     | type                                    | None                |                                         

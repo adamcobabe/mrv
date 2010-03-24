@@ -1,15 +1,4 @@
-    | MFnExpression_create                    | None                |                                         
-    | MFnExpression_evaluate                  | None                |                                         
-    | MFnExpression_expression                | None                |                                         
-    | MFnExpression_getDefaultObject          | None                |                                         
-    | MFnExpression_isAnimated                | None                |                                         
-    | MFnExpression_setAnimated               | None                |                                         
-    | MFnExpression_setDefaultObject          | None                |                                         
-    | MFnExpression_setExpression             | None                |                                         
-    | MFnExpression_setUnitConversion         | None                |                                         
-    | MFnExpression_unitConversion            | None                |                                         
     | create                                  | None                |                                         
-    | delete_MFnExpression                    | None                |                                         
     | evaluate                                | None                |                                         
     | expression                              | None                |                                         
     | getDefaultObject                        | None                |                                         

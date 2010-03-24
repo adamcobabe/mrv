@@ -1,6 +1,3 @@
-    | MFnLatticeData_create                   | None                |                                         
-    | MFnLatticeData_lattice                  | None                |                                         
     | create                                  | None                |                                         
-    | delete_MFnLatticeData                   | None                |                                         
     | lattice                                 | None                |                                         
     | type                                    | None                |                                         

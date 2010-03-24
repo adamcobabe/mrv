@@ -1,10 +1,5 @@
-    | MFnPartition_addMember                  | None                |                                         
-    | MFnPartition_create                     | None                |                                         
-    | MFnPartition_isRenderPartition          | None                |                                         
-    | MFnPartition_removeMember               | None                |                                         
     | addMember                               | None                |                                         
 x   | create                                  | None                |                                         
-    | delete_MFnPartition                     | None                |                                         
     | isRenderPartition                       | None                |                                         
     | removeMember                            | None                |                                         
     | type                                    | None                | getType                                 

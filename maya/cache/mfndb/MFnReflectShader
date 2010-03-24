@@ -1,12 +1,3 @@
-    | MFnReflectShader_reflectedColor         | None                |                                         
-    | MFnReflectShader_reflectedRayDepthLimit | None                |                                         
-    | MFnReflectShader_reflectivity           | None                |                                         
-    | MFnReflectShader_setReflectedColor      | None                |                                         
-    | MFnReflectShader_setReflectedRayDepthLimit| None                |                                         
-    | MFnReflectShader_setReflectivity        | None                |                                         
-    | MFnReflectShader_setSpecularColor       | None                |                                         
-    | MFnReflectShader_specularColor          | None                |                                         
-    | delete_MFnReflectShader                 | None                |                                         
     | reflectedColor                          | None                |                                         
     | reflectedRayDepthLimit                  | None                |                                         
     | reflectivity                            | None                |                                         

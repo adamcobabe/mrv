@@ -1,183 +1,3 @@
-    | MFnMesh_addPolygon                      | None                |                                         
-    | MFnMesh_allIntersections                | None                |                                         
-    | MFnMesh_anyIntersection                 | None                |                                         
-    | MFnMesh_assignColor                     | None                |                                         
-    | MFnMesh_assignColors                    | None                |                                         
-    | MFnMesh_assignUV                        | None                |                                         
-    | MFnMesh_assignUVs                       | None                |                                         
-    | MFnMesh_binaryBlindDataComponentId      | None                |                                         
-    | MFnMesh_booleanOp                       | None                |                                         
-    | MFnMesh_cachedIntersectionAcceleratorInfo| None                |                                         
-    | MFnMesh_cleanupEdgeSmoothing            | None                |                                         
-    | MFnMesh_clearBlindData                  | None                |                                         
-    | MFnMesh_clearColors                     | None                |                                         
-    | MFnMesh_clearUVs                        | None                |                                         
-    | MFnMesh_closestIntersection             | None                |                                         
-    | MFnMesh_collapseEdges                   | None                |                                         
-    | MFnMesh_collapseFaces                   | None                |                                         
-    | MFnMesh_copy                            | None                |                                         
-    | MFnMesh_copyInPlace                     | None                |                                         
-    | MFnMesh_copyUVSetWithName               | None                |                                         
-    | MFnMesh_create                          | None                |                                         
-    | MFnMesh_createBlindDataType             | None                |                                         
-    | MFnMesh_createColorSetDataMesh          | None                |                                         
-    | MFnMesh_createColorSetWithName          | None                |                                         
-    | MFnMesh_createInPlace                   | None                |                                         
-    | MFnMesh_createUVSetDataMeshWithName     | None                |                                         
-    | MFnMesh_createUVSetWithName             | None                |                                         
-    | MFnMesh_currentColorSetName             | None                |                                         
-    | MFnMesh_currentUVSetName                | None                |                                         
-    | MFnMesh_deleteColorSet                  | None                |                                         
-    | MFnMesh_deleteEdge                      | None                |                                         
-    | MFnMesh_deleteFace                      | None                |                                         
-    | MFnMesh_deleteUVSet                     | None                |                                         
-    | MFnMesh_deleteVertex                    | None                |                                         
-    | MFnMesh_duplicateFaces                  | None                |                                         
-    | MFnMesh_extractFaces                    | None                |                                         
-    | MFnMesh_extrudeEdges                    | None                |                                         
-    | MFnMesh_extrudeFaces                    | None                |                                         
-    | MFnMesh_freeCachedIntersectionAccelerator| None                |                                         
-    | MFnMesh_generateSmoothMesh              | None                |                                         
-    | MFnMesh_getAssignedUVs                  | None                |                                         
-    | MFnMesh_getAssociatedColorSetInstances  | None                |                                         
-    | MFnMesh_getAssociatedUVSetInstances     | None                |                                         
-    | MFnMesh_getAssociatedUVSetTextures      | None                |                                         
-    | MFnMesh_getBinaryBlindData              | None                |                                         
-    | MFnMesh_getBinormals                    | None                |                                         
-    | MFnMesh_getBlindDataAttrNames           | None                |                                         
-    | MFnMesh_getBlindDataFaceVertexIndices   | None                |                                         
-    | MFnMesh_getBlindDataTypes               | None                |                                         
-    | MFnMesh_getBoolBlindData                | None                |                                         
-    | MFnMesh_getCheckSamePointTwice          | None                |                                         
-    | MFnMesh_getClosestNormal                | None                |                                         
-    | MFnMesh_getClosestPoint                 | None                |                                         
-    | MFnMesh_getClosestPointAndNormal        | None                |                                         
-    | MFnMesh_getColor                        | None                |                                         
-    | MFnMesh_getColorIndex                   | None                |                                         
-    | MFnMesh_getColorRepresentation          | None                |                                         
-    | MFnMesh_getColorSetFamilyNames          | None                |                                         
-    | MFnMesh_getColorSetNames                | None                |                                         
-    | MFnMesh_getColorSetsInFamily            | None                |                                         
-    | MFnMesh_getColors                       | None                |                                         
-    | MFnMesh_getConnectedSetsAndMembers      | None                |                                         
-    | MFnMesh_getConnectedShaders             | None                |                                         
-    | MFnMesh_getCreaseEdges                  | None                |                                         
-    | MFnMesh_getCreaseVertices               | None                |                                         
-    | MFnMesh_getDoubleBlindData              | None                |                                         
-    | MFnMesh_getEdgeVertices                 | None                |                                         
-    | MFnMesh_getFaceNormalIds                | None                |                                         
-    | MFnMesh_getFaceUVSetNames               | None                |                                         
-    | MFnMesh_getFaceVertexBinormal           | None                |                                         
-    | MFnMesh_getFaceVertexBinormals          | None                |                                         
-    | MFnMesh_getFaceVertexBlindDataIndex     | None                |                                         
-    | MFnMesh_getFaceVertexColorIndex         | None                |                                         
-    | MFnMesh_getFaceVertexColors             | None                |                                         
-    | MFnMesh_getFaceVertexNormal             | None                |                                         
-    | MFnMesh_getFaceVertexNormals            | None                |                                         
-    | MFnMesh_getFaceVertexTangent            | None                |                                         
-    | MFnMesh_getFaceVertexTangents           | None                |                                         
-    | MFnMesh_getFloatBlindData               | None                |                                         
-    | MFnMesh_getHoles                        | None                |                                         
-    | MFnMesh_getIntBlindData                 | None                |                                         
-    | MFnMesh_getNormalIds                    | None                |                                         
-    | MFnMesh_getNormals                      | None                |                                         
-    | MFnMesh_getPoint                        | None                |                                         
-    | MFnMesh_getPointAtUV                    | None                |                                         
-    | MFnMesh_getPoints                       | None                |                                         
-    | MFnMesh_getPolygonNormal                | None                |                                         
-    | MFnMesh_getPolygonTriangleVertices      | None                |                                         
-    | MFnMesh_getPolygonUV                    | None                |                                         
-    | MFnMesh_getPolygonUVid                  | None                |                                         
-    | MFnMesh_getPolygonVertices              | None                |                                         
-    | MFnMesh_getRawNormals                   | None                |                                         
-    | MFnMesh_getRawPoints                    | None                |                                         
-    | MFnMesh_getSmoothMeshDisplayOptions     | None                |                                         
-    | MFnMesh_getStringBlindData              | None                |                                         
-    | MFnMesh_getTangentId                    | None                |                                         
-    | MFnMesh_getTangents                     | None                |                                         
-    | MFnMesh_getTriangles                    | None                |                                         
-    | MFnMesh_getUV                           | None                |                                         
-    | MFnMesh_getUVAtPoint                    | None                |                                         
-    | MFnMesh_getUVSetFamilyNames             | None                |                                         
-    | MFnMesh_getUVSetNames                   | None                |                                         
-    | MFnMesh_getUVSetsInFamily               | None                |                                         
-    | MFnMesh_getUVs                          | None                |                                         
-    | MFnMesh_getUvShellsIds                  | None                |                                         
-    | MFnMesh_getVertexColors                 | None                |                                         
-    | MFnMesh_getVertexNormal                 | None                |                                         
-    | MFnMesh_getVertexNormals                | None                |                                         
-    | MFnMesh_getVertices                     | None                |                                         
-    | MFnMesh_hasAlphaChannels                | None                |                                         
-    | MFnMesh_hasBlindData                    | None                |                                         
-    | MFnMesh_hasBlindDataComponentId         | None                |                                         
-    | MFnMesh_hasColorChannels                | None                |                                         
-    | MFnMesh_intersect                       | None                |                                         
-    | MFnMesh_isBlindDataTypeUsed             | None                |                                         
-    | MFnMesh_isColorClamped                  | None                |                                         
-    | MFnMesh_isColorSetPerInstance           | None                |                                         
-    | MFnMesh_isEdgeSmooth                    | None                |                                         
-    | MFnMesh_isNormalLocked                  | None                |                                         
-    | MFnMesh_isPolygonConvex                 | None                |                                         
-    | MFnMesh_isUVSetPerInstance              | None                |                                         
-    | MFnMesh_lockFaceVertexNormals           | None                |                                         
-    | MFnMesh_lockVertexNormals               | None                |                                         
-    | MFnMesh_numColorSets                    | None                |                                         
-    | MFnMesh_numColors                       | None                |                                         
-    | MFnMesh_numEdges                        | None                |                                         
-    | MFnMesh_numFaceVertices                 | None                |                                         
-    | MFnMesh_numNormals                      | None                |                                         
-    | MFnMesh_numPolygons                     | None                |                                         
-    | MFnMesh_numUVSets                       | None                |                                         
-    | MFnMesh_numUVs                          | None                |                                         
-    | MFnMesh_numVertices                     | None                |                                         
-    | MFnMesh_onBoundary                      | None                |                                         
-    | MFnMesh_polygonVertexCount              | None                |                                         
-    | MFnMesh_removeFaceColors                | None                |                                         
-    | MFnMesh_removeFaceVertexColors          | None                |                                         
-    | MFnMesh_removeVertexColors              | None                |                                         
-    | MFnMesh_renameUVSet                     | None                |                                         
-    | MFnMesh_setBinaryBlindData              | None                |                                         
-    | MFnMesh_setBoolBlindData                | None                |                                         
-    | MFnMesh_setCheckSamePointTwice          | None                |                                         
-    | MFnMesh_setColor                        | None                |                                         
-    | MFnMesh_setColors                       | None                |                                         
-    | MFnMesh_setCreaseEdges                  | None                |                                         
-    | MFnMesh_setCreaseVertices               | None                |                                         
-    | MFnMesh_setCurrentColorSetName          | None                |                                         
-    | MFnMesh_setCurrentUVSetName             | None                |                                         
-    | MFnMesh_setDoubleBlindData              | None                |                                         
-    | MFnMesh_setEdgeSmoothing                | None                |                                         
-    | MFnMesh_setFaceColor                    | None                |                                         
-    | MFnMesh_setFaceColors                   | None                |                                         
-    | MFnMesh_setFaceVertexColor              | None                |                                         
-    | MFnMesh_setFaceVertexColors             | None                |                                         
-    | MFnMesh_setFaceVertexNormal             | None                |                                         
-    | MFnMesh_setFaceVertexNormals            | None                |                                         
-    | MFnMesh_setFloatBlindData               | None                |                                         
-    | MFnMesh_setIntBlindData                 | None                |                                         
-    | MFnMesh_setIsColorClamped               | None                |                                         
-    | MFnMesh_setNormals                      | None                |                                         
-    | MFnMesh_setPoint                        | None                |                                         
-    | MFnMesh_setPoints                       | None                |                                         
-    | MFnMesh_setSmoothMeshDisplayOptions     | None                |                                         
-    | MFnMesh_setSomeColors                   | None                |                                         
-    | MFnMesh_setSomeUVs                      | None                |                                         
-    | MFnMesh_setStringBlindData              | None                |                                         
-    | MFnMesh_setUV                           | None                |                                         
-    | MFnMesh_setUVs                          | None                |                                         
-    | MFnMesh_setVertexColor                  | None                |                                         
-    | MFnMesh_setVertexColors                 | None                |                                         
-    | MFnMesh_setVertexNormal                 | None                |                                         
-    | MFnMesh_setVertexNormals                | None                |                                         
-    | MFnMesh_sortIntersectionFaceTriIds      | None                |                                         
-    | MFnMesh_split                           | None                |                                         
-    | MFnMesh_stringBlindDataComponentId      | None                |                                         
-    | MFnMesh_subdivideEdges                  | None                |                                         
-    | MFnMesh_subdivideFaces                  | None                |                                         
-    | MFnMesh_syncObject                      | None                |                                         
-    | MFnMesh_unlockFaceVertexNormals         | None                |                                         
-    | MFnMesh_unlockVertexNormals             | None                |                                         
-    | MFnMesh_updateSurface                   | None                |                                         
     | addPolygon                              | None                |                                         
     | allIntersections                        | None                |                                         
     | anyIntersection                         | None                |                                         
@@ -186,6 +6,7 @@
     | assignUV                                | None                |                                         
     | assignUVs                               | None                |                                         
     | binaryBlindDataComponentId              | None                |                                         
+    | booleanOp                               | None                |                                         
     | cachedIntersectionAcceleratorInfo       | None                |                                         
     | cleanupEdgeSmoothing                    | None                |                                         
     | clearBlindData                          | None                |                                         
@@ -199,6 +20,7 @@
     | copyUVSetWithName                       | None                |                                         
     | create                                  | None                |                                         
     | createBlindDataType                     | None                |                                         
+    | createColorSetDataMesh                  | None                |                                         
     | createColorSetWithName                  | None                |                                         
     | createInPlace                           | None                |                                         
     | createUVSetDataMeshWithName             | None                |                                         
@@ -210,13 +32,15 @@
     | deleteFace                              | None                |                                         
     | deleteUVSet                             | None                |                                         
     | deleteVertex                            | None                |                                         
-    | delete_MFnMesh                          | None                |                                         
     | duplicateFaces                          | None                |                                         
     | extractFaces                            | None                |                                         
     | extrudeEdges                            | None                |                                         
     | extrudeFaces                            | None                |                                         
     | freeCachedIntersectionAccelerator       | None                |                                         
+    | generateSmoothMesh                      | None                |                                         
     | getAssignedUVs                          | None                |                                         
+    | getAssociatedColorSetInstances          | None                |                                         
+    | getAssociatedUVSetInstances             | None                |                                         
     | getAssociatedUVSetTextures              | None                |                                         
     | getBinaryBlindData                      | None                |                                         
     | getBinormals                            | None                |                                         
@@ -230,11 +54,15 @@
     | getClosestPointAndNormal                | None                |                                         
     | getColor                                | None                |                                         
     | getColorIndex                           | None                |                                         
+    | getColorRepresentation                  | None                |                                         
+    | getColorSetFamilyNames                  | None                |                                         
     | getColorSetNames                        | None                |                                         
+    | getColorSetsInFamily                    | None                |                                         
     | getColors                               | None                |                                         
     | getConnectedSetsAndMembers              | None                |                                         
     | getConnectedShaders                     | None                |                                         
     | getCreaseEdges                          | None                |                                         
+    | getCreaseVertices                       | None                |                                         
     | getDoubleBlindData                      | None                |                                         
     | getEdgeVertices                         | None                |                                         
     | getFaceNormalIds                        | None                |                                         
@@ -261,25 +89,36 @@
     | getPolygonUV                            | None                |                                         
     | getPolygonUVid                          | None                |                                         
     | getPolygonVertices                      | None                |                                         
+    | getRawNormals                           | None                |                                         
+    | getRawPoints                            | None                |                                         
+    | getSmoothMeshDisplayOptions             | None                |                                         
     | getStringBlindData                      | None                |                                         
     | getTangentId                            | None                |                                         
     | getTangents                             | None                |                                         
     | getTriangles                            | None                |                                         
     | getUV                                   | None                |                                         
     | getUVAtPoint                            | None                |                                         
+    | getUVSetFamilyNames                     | None                |                                         
     | getUVSetNames                           | None                |                                         
+    | getUVSetsInFamily                       | None                |                                         
     | getUVs                                  | None                |                                         
     | getUvShellsIds                          | None                |                                         
     | getVertexColors                         | None                |                                         
     | getVertexNormal                         | None                |                                         
+    | getVertexNormals                        | None                |                                         
     | getVertices                             | None                |                                         
+    | hasAlphaChannels                        | None                |                                         
     | hasBlindData                            | None                |                                         
     | hasBlindDataComponentId                 | None                |                                         
+    | hasColorChannels                        | None                |                                         
     | intersect                               | None                |                                         
     | isBlindDataTypeUsed                     | None                |                                         
+    | isColorClamped                          | None                |                                         
+    | isColorSetPerInstance                   | None                |                                         
     | isEdgeSmooth                            | None                |                                         
     | isNormalLocked                          | None                |                                         
     | isPolygonConvex                         | None                |                                         
+    | isUVSetPerInstance                      | None                |                                         
     | lockFaceVertexNormals                   | None                |                                         
     | lockVertexNormals                       | None                |                                         
     | numColorSets                            | None                |                                         
@@ -303,6 +142,7 @@
     | setColor                                | None                |                                         
     | setColors                               | None                |                                         
     | setCreaseEdges                          | None                |                                         
+    | setCreaseVertices                       | None                |                                         
     | setCurrentColorSetName                  | None                |                                         
     | setCurrentUVSetName                     | None                |                                         
     | setDoubleBlindData                      | None                |                                         
@@ -315,9 +155,11 @@
     | setFaceVertexNormals                    | None                |                                         
     | setFloatBlindData                       | None                |                                         
     | setIntBlindData                         | None                |                                         
+    | setIsColorClamped                       | None                |                                         
     | setNormals                              | None                |                                         
     | setPoint                                | None                |                                         
     | setPoints                               | None                |                                         
+    | setSmoothMeshDisplayOptions             | None                |                                         
     | setSomeColors                           | None                |                                         
     | setSomeUVs                              | None                |                                         
     | setStringBlindData                      | None                |                                         

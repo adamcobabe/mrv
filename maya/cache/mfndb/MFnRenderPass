@@ -1,8 +1,8 @@
-    | MFnRenderPass_customTokenString         | None                | getCustomTokenString                                         
-    | MFnRenderPass_frameBufferChannels       | None                | getFrameBufferChannels                                        
-    | MFnRenderPass_frameBufferType           | None                | getFrameBufferType                                        
-    | MFnRenderPass_getImplementation         | None                |                                         
-    | MFnRenderPass_passID                    | None                | getPassID                                        
-    | MFnRenderPass_setImplementation         | None                |                                         
-    | MFnRenderPass_usesFiltering             | None                |                                         
+    | customTokenString                       | None                |                                         
 x   | delete_MFnRenderPass                    | None                |                                         
+    | frameBufferChannels                     | None                |                                         
+    | frameBufferType                         | None                |                                         
+    | getImplementation                       | None                |                                         
+    | passID                                  | None                |                                         
+    | setImplementation                       | None                |                                         
+    | usesFiltering                           | None                |                                         

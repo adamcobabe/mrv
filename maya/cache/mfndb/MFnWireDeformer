@@ -1,32 +1,7 @@
-    | MFnWireDeformer_addGeometry             | None                |                                         
-    | MFnWireDeformer_addWire                 | None                |                                         
-    | MFnWireDeformer_create                  | None                |                                         
-    | MFnWireDeformer_crossingEffect          | None                |                                         
-    | MFnWireDeformer_envelope                | None                |                                         
-    | MFnWireDeformer_getAffectedGeometry     | None                |                                         
-    | MFnWireDeformer_getDropoffLocator       | None                |                                         
-    | MFnWireDeformer_holdingShape            | None                |                                         
-    | MFnWireDeformer_localIntensity          | None                |                                         
-    | MFnWireDeformer_numDropoffLocators      | None                |                                         
-    | MFnWireDeformer_numWires                | None                |                                         
-    | MFnWireDeformer_removeGeometry          | None                |                                         
-    | MFnWireDeformer_rotation                | None                |                                         
-    | MFnWireDeformer_setCrossingEffect       | None                |                                         
-    | MFnWireDeformer_setDropoffLocator       | None                |                                         
-    | MFnWireDeformer_setEnvelope             | None                |                                         
-    | MFnWireDeformer_setHoldingShape         | None                |                                         
-    | MFnWireDeformer_setLocalIntensity       | None                |                                         
-    | MFnWireDeformer_setRotation             | None                |                                         
-    | MFnWireDeformer_setWireDropOffDistance  | None                |                                         
-    | MFnWireDeformer_setWireScale            | None                |                                         
-    | MFnWireDeformer_wire                    | None                |                                         
-    | MFnWireDeformer_wireDropOffDistance     | None                |                                         
-    | MFnWireDeformer_wireScale               | None                |                                         
     | addGeometry                             | None                |                                         
     | addWire                                 | None                |                                         
     | create                                  | None                |                                         
     | crossingEffect                          | None                |                                         
-    | delete_MFnWireDeformer                  | None                |                                         
     | envelope                                | None                |                                         
     | getAffectedGeometry                     | None                |                                         
     | getDropoffLocator                       | None                |                                         

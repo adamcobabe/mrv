@@ -1,15 +1,7 @@
-    | MFnGenericAttribute_addAccept           | None                |                                         
-    | MFnGenericAttribute_addDataAccept       | None                |                                         
-    | MFnGenericAttribute_addNumericDataAccept| None                |                                         
-    | MFnGenericAttribute_create              | None                |                                         
-    | MFnGenericAttribute_removeAccept        | None                |                                         
-    | MFnGenericAttribute_removeDataAccept    | None                |                                         
-    | MFnGenericAttribute_removeNumericDataAccept| None                |                                         
     | addAccept                               | None                |                                         
     | addDataAccept                           | None                |                                         
     | addNumericDataAccept                    | None                |                                         
     | create                                  | Attribute           |                                         
-    | delete_MFnGenericAttribute              | None                |                                         
     | removeAccept                            | None                |                                         
     | removeDataAccept                        | None                |                                         
     | removeNumericDataAccept                 | None                |                                         

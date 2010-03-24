@@ -1,13 +1,7 @@
-    | MFnStringArrayData___getitem__          | None                |                                         
-    | MFnStringArrayData_array                | None                |                                         
-    | MFnStringArrayData_copyTo               | None                |                                         
-    | MFnStringArrayData_create               | None                |                                         
-    | MFnStringArrayData_length               | None                |                                         
-    | MFnStringArrayData_set                  | None                |                                         
+    | __getitem__                             | None                |                                         
     | array                                   | None                |                                         
     | copyTo                                  | None                |                                         
     | create                                  | None                |                                         
-    | delete_MFnStringArrayData               | None                |                                         
     | length                                  | None                |                                         
     | set                                     | None                |                                         
     | type                                    | None                |                                         

@@ -1,8 +1,4 @@
-    | MFnDirectionalLight_create              | None                |                                         
-    | MFnDirectionalLight_setShadowAngle      | None                |                                         
-    | MFnDirectionalLight_shadowAngle         | None                |                                         
     | create                                  | None                |                                         
-    | delete_MFnDirectionalLight              | None                |                                         
     | setShadowAngle                          | None                |                                         
     | shadowAngle                             | None                |                                         
     | type                                    | None                |                                         

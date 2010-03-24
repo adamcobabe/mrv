@@ -1,14 +1,5 @@
-    | MFnStateManip_connectToStatePlug        | None                |                                         
-    | MFnStateManip_create                    | None                |                                         
-    | MFnStateManip_maxStates                 | None                |                                         
-    | MFnStateManip_positionIndex             | None                |                                         
-    | MFnStateManip_setInitialState           | None                |                                         
-    | MFnStateManip_setMaxStates              | None                |                                         
-    | MFnStateManip_state                     | None                |                                         
-    | MFnStateManip_stateIndex                | None                |                                         
     | connectToStatePlug                      | None                |                                         
     | create                                  | None                |                                         
-    | delete_MFnStateManip                    | None                |                                         
     | maxStates                               | None                |                                         
     | positionIndex                           | None                |                                         
     | setInitialState                         | None                |                                         

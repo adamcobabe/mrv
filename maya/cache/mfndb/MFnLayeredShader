@@ -1,20 +1,6 @@
-    | MFnLayeredShader_color                  | None                |                                         
-    | MFnLayeredShader_compositingFlag        | None                |                                         
-    | MFnLayeredShader_create                 | None                |                                         
-    | MFnLayeredShader_glowColor              | None                |                                         
-    | MFnLayeredShader_hardwareColor          | None                |                                         
-    | MFnLayeredShader_hardwareShader         | None                |                                         
-    | MFnLayeredShader_setColor               | None                |                                         
-    | MFnLayeredShader_setCompositingFlag     | None                |                                         
-    | MFnLayeredShader_setGlowColor           | None                |                                         
-    | MFnLayeredShader_setHardwareColor       | None                |                                         
-    | MFnLayeredShader_setHardwareShader      | None                |                                         
-    | MFnLayeredShader_setTransparency        | None                |                                         
-    | MFnLayeredShader_transparency           | None                |                                         
     | color                                   | None                |                                         
     | compositingFlag                         | None                |                                         
     | create                                  | None                |                                         
-    | delete_MFnLayeredShader                 | None                |                                         
     | glowColor                               | None                |                                         
     | hardwareColor                           | None                |                                         
     | hardwareShader                          | None                |                                         

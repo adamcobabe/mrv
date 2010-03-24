@@ -1,13 +1,6 @@
-    | MFnCompoundAttribute_addChild           | None                |                                         
-    | MFnCompoundAttribute_child              | None                |                                         
-    | MFnCompoundAttribute_create             | None                |                                         
-    | MFnCompoundAttribute_getAddAttrCmds     | None                |                                         
-    | MFnCompoundAttribute_numChildren        | None                |                                         
-    | MFnCompoundAttribute_removeChild        | None                |                                         
     | addChild                                | None                |                                         
     | child                                   | Attribute           | getChild                                
     | create                                  | Attribute           |                                         
-    | delete_MFnCompoundAttribute             | None                |                                         
     | getAddAttrCmds                          | None                |                                         
     | numChildren                             | None                | getNumChildren                          
     | removeChild                             | None                |                                         

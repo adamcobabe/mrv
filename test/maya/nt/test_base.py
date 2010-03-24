@@ -25,10 +25,7 @@ class TestGeneral( unittest.TestCase ):
 		assert not hasattr(p.t, 'connectTo') # but not global namespace
 		
 	
-	def test_testWrappers( self ):
-		print >> sys.stderr, "NodeTypeDB and wrapping test disabled - use it to check for new types"
-		return 
-		
+	def _DISABLED_test_testWrappers( self ):
 		filename = get_maya_file( "allnodetypes_%s.mb" % env.appVersion( )[0] )
 		if not Path( filename ).isfile():
 			raise AssertionError( "File %s not found for loading" % filename )
@@ -1098,11 +1095,8 @@ class TestNodeBase( unittest.TestCase ):
 		# COMPOUND ATTRIBUTE #
 		attr = nt.CompoundAttribute.create(l, s)
 	
-	def test_mfncachebuilder( self ):
-		"""byroniom.maya.nt.base: write a generated cache using the builder function
-		should be redone for maya 8.5 perhaps ... or in fact its enough to have one for all maya versions
-		and just merge them
-		:todo: do it """
-		# nt.typ.writeMfnDBCacheFiles( )
+	def _DISABLED_test_mfncachebuilder( self ):
+		"""Rewrite the mfn db cache files - should be done with each new maya version"""
+		nt.typ.writeMfnDBCacheFiles( )
 
 

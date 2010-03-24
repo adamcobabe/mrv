@@ -1,8 +1,4 @@
-    | MFnKeyframeDeltaInfType_currentInfinityType| None                |                                         
-    | MFnKeyframeDeltaInfType_isPreInfinity   | None                |                                         
-    | MFnKeyframeDeltaInfType_previousInfinityType| None                |                                         
     | currentInfinityType                     | None                |                                         
-    | delete_MFnKeyframeDeltaInfType          | None                |                                         
     | isPreInfinity                           | None                |                                         
     | previousInfinityType                    | None                |                                         
     | type                                    | None                |                                         

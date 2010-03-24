@@ -1,15 +1,9 @@
-    | MFnRenderLayer_externalRenderPasses     | None                | getExternalRenderPasses                                         
-    | MFnRenderLayer_inCurrentRenderLayer     | None                |                                         
-    | MFnRenderLayer_inLayer                  | None                |                                         
-    | MFnRenderLayer_isPlugAdjusted           | None                |                                         
-    | MFnRenderLayer_layerChildren            | None                |                                         
-    | MFnRenderLayer_listMembers              | None                |                                         
-    | MFnRenderLayer_passHasLight             | None                |                                         
-    | MFnRenderLayer_passHasObject            | None                |                                         
-    | delete_MFnRenderLayer                   | None                |                                         
+    | externalRenderPasses                    | None                |                                         
     | inCurrentRenderLayer                    | None                |                                         
     | inLayer                                 | None                |                                         
     | isPlugAdjusted                          | None                |                                         
     | layerChildren                           | None                |                                         
     | listMembers                             | None                |                                         
+    | passHasLight                            | None                |                                         
+    | passHasObject                           | None                |                                         
     | type                                    | None                |                                         

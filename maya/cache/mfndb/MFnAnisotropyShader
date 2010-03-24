@@ -1,25 +1,7 @@
-    | MFnAnisotropyShader_anisotropicReflectivity| None                |                                         
-    | MFnAnisotropyShader_correlationX        | None                |                                         
-    | MFnAnisotropyShader_correlationY        | None                |                                         
-    | MFnAnisotropyShader_create              | None                |                                         
-    | MFnAnisotropyShader_refractiveIndex     | None                |                                         
-    | MFnAnisotropyShader_rotateAngle         | None                |                                         
-    | MFnAnisotropyShader_roughness           | None                |                                         
-    | MFnAnisotropyShader_setAnisotropicReflectivity| None                |                                         
-    | MFnAnisotropyShader_setCorrelationX     | None                |                                         
-    | MFnAnisotropyShader_setCorrelationY     | None                |                                         
-    | MFnAnisotropyShader_setRefractiveIndex  | None                |                                         
-    | MFnAnisotropyShader_setRotateAngle      | None                |                                         
-    | MFnAnisotropyShader_setRoughness        | None                |                                         
-    | MFnAnisotropyShader_setTangentUCamera   | None                |                                         
-    | MFnAnisotropyShader_setTangentVCamera   | None                |                                         
-    | MFnAnisotropyShader_tangentUCamera      | None                |                                         
-    | MFnAnisotropyShader_tangentVCamera      | None                |                                         
     | anisotropicReflectivity                 | None                |                                         
     | correlationX                            | None                |                                         
     | correlationY                            | None                |                                         
     | create                                  | None                |                                         
-    | delete_MFnAnisotropyShader              | None                |                                         
     | refractiveIndex                         | None                |                                         
     | rotateAngle                             | None                |                                         
     | roughness                               | None                |                                         

@@ -1,13 +1,7 @@
-    | MFnDoubleArrayData___getitem__          | None                |                                         
-    | MFnDoubleArrayData_array                | None                |                                         
-    | MFnDoubleArrayData_copyTo               | None                |                                         
-    | MFnDoubleArrayData_create               | None                |                                         
-    | MFnDoubleArrayData_length               | None                |                                         
-    | MFnDoubleArrayData_set                  | None                |                                         
+    | __getitem__                             | None                |                                         
     | array                                   | None                |                                         
     | copyTo                                  | None                |                                         
     | create                                  | None                |                                         
-    | delete_MFnDoubleArrayData               | None                |                                         
     | length                                  | None                |                                         
     | set                                     | None                |                                         
     | type                                    | None                |                                         

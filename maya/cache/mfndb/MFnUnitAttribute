@@ -1,21 +1,4 @@
-    | MFnUnitAttribute_create                 | None                |                                         
-    | MFnUnitAttribute_getDefault             | None                |                                         
-    | MFnUnitAttribute_getMax                 | None                |                                         
-    | MFnUnitAttribute_getMin                 | None                |                                         
-    | MFnUnitAttribute_getSoftMax             | None                |                                         
-    | MFnUnitAttribute_getSoftMin             | None                |                                         
-    | MFnUnitAttribute_hasMax                 | None                |                                         
-    | MFnUnitAttribute_hasMin                 | None                |                                         
-    | MFnUnitAttribute_hasSoftMax             | None                |                                         
-    | MFnUnitAttribute_hasSoftMin             | None                |                                         
-    | MFnUnitAttribute_setDefault             | None                |                                         
-    | MFnUnitAttribute_setMax                 | None                |                                         
-    | MFnUnitAttribute_setMin                 | None                |                                         
-    | MFnUnitAttribute_setSoftMax             | None                |                                         
-    | MFnUnitAttribute_setSoftMin             | None                |                                         
-    | MFnUnitAttribute_unitType               | None                |                                         
     | create                                  | Attribute           |                                         
-    | delete_MFnUnitAttribute                 | None                |                                         
     | getDefault                              | None                |                                         
     | getMax                                  | None                |                                         
     | getMin                                  | None                |                                         

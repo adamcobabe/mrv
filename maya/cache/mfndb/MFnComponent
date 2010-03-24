@@ -1,16 +1,9 @@
-    | MFnComponent_componentType              | None                |                                         
-    | MFnComponent_elementCount               | None                |                                         
-    | MFnComponent_hasWeights                 | None                |                                         
-    | MFnComponent_isComplete                 | None                |                                         
-    | MFnComponent_isEmpty                    | None                |                                         
-    | MFnComponent_isEqual                    | None                |                                         
-    | MFnComponent_setComplete                | None                |                                         
-    | MFnComponent_weight                     | None                | getWeight                                         
     | componentType                           | None                | getComponentType                        
-    | delete_MFnComponent                     | None                |                                         
     | elementCount                            | None                | getElementCount                         
+    | hasWeights                              | None                |                                         
     | isComplete                              | None                |                                         
     | isEmpty                                 | None                |                                         
     | isEqual                                 | None                |                                         
     | setComplete                             | None                |                                         
 x   | type                                    | None                |                                         
+    | weight                                  | None                |                                         

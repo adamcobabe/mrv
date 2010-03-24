@@ -1,25 +1,8 @@
-    | MFnCircleSweepManip_angleIndex          | None                |                                         
-    | MFnCircleSweepManip_axisIndex           | None                |                                         
-    | MFnCircleSweepManip_centerIndex         | None                |                                         
-    | MFnCircleSweepManip_connectToAnglePlug  | None                |                                         
-    | MFnCircleSweepManip_create              | None                |                                         
-    | MFnCircleSweepManip_endCircleIndex      | None                |                                         
-    | MFnCircleSweepManip_endPoint            | None                |                                         
-    | MFnCircleSweepManip_setAngle            | None                |                                         
-    | MFnCircleSweepManip_setCenterPoint      | None                |                                         
-    | MFnCircleSweepManip_setDrawAsArc        | None                |                                         
-    | MFnCircleSweepManip_setEndPoint         | None                |                                         
-    | MFnCircleSweepManip_setNormal           | None                |                                         
-    | MFnCircleSweepManip_setRadius           | None                |                                         
-    | MFnCircleSweepManip_setStartPoint       | None                |                                         
-    | MFnCircleSweepManip_startCircleIndex    | None                |                                         
-    | MFnCircleSweepManip_startPoint          | None                |                                         
     | angleIndex                              | None                |                                         
     | axisIndex                               | None                |                                         
     | centerIndex                             | None                |                                         
     | connectToAnglePlug                      | None                |                                         
     | create                                  | None                |                                         
-    | delete_MFnCircleSweepManip              | None                |                                         
     | endCircleIndex                          | None                |                                         
     | endPoint                                | None                |                                         
     | setAngle                                | None                |                                         

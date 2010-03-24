@@ -1,10 +1,4 @@
-    | MFnMatrixData_create                    | None                |                                         
-    | MFnMatrixData_isTransformation          | None                |                                         
-    | MFnMatrixData_matrix                    | None                |                                         
-    | MFnMatrixData_set                       | None                |                                         
-    | MFnMatrixData_transformation            | None                |                                         
     | create                                  | None                |                                         
-    | delete_MFnMatrixData                    | None                |                                         
     | isTransformation                        | None                |                                         
     | matrix                                  | None                |                                         
     | set                                     | None                |                                         

@@ -1,10 +1,4 @@
-    | MFnKeyframeDeltaTangent_currentTangentType| None                |                                         
-    | MFnKeyframeDeltaTangent_getCurrentPosition| None                |                                         
-    | MFnKeyframeDeltaTangent_getPreviousPosition| None                |                                         
-    | MFnKeyframeDeltaTangent_isInTangent     | None                |                                         
-    | MFnKeyframeDeltaTangent_previousTangentType| None                |                                         
     | currentTangentType                      | None                |                                         
-    | delete_MFnKeyframeDeltaTangent          | None                |                                         
     | getCurrentPosition                      | None                |                                         
     | getPreviousPosition                     | None                |                                         
     | isInTangent                             | None                |                                         

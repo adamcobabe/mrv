@@ -1,12 +1,6 @@
-    | MFnVectorArrayData_array                | None                |                                         
-    | MFnVectorArrayData_copyTo               | None                |                                         
-    | MFnVectorArrayData_create               | None                |                                         
-    | MFnVectorArrayData_length               | None                |                                         
-    | MFnVectorArrayData_set                  | None                |                                         
     | array                                   | None                |                                         
     | copyTo                                  | None                |                                         
     | create                                  | None                |                                         
-    | delete_MFnVectorArrayData               | None                |                                         
     | length                                  | None                |                                         
     | set                                     | None                |                                         
     | type                                    | None                |                                         

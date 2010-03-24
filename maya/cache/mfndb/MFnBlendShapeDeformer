@@ -1,22 +1,6 @@
-    | MFnBlendShapeDeformer_addBaseObject     | None                |                                         
-    | MFnBlendShapeDeformer_addTarget         | None                |                                         
-    | MFnBlendShapeDeformer_create            | None                |                                         
-    | MFnBlendShapeDeformer_envelope          | None                |                                         
-    | MFnBlendShapeDeformer_getBaseObjects    | None                |                                         
-    | MFnBlendShapeDeformer_getTargets        | None                |                                         
-    | MFnBlendShapeDeformer_numWeights        | None                |                                         
-    | MFnBlendShapeDeformer_origin            | None                |                                         
-    | MFnBlendShapeDeformer_removeTarget      | None                |                                         
-    | MFnBlendShapeDeformer_setEnvelope       | None                |                                         
-    | MFnBlendShapeDeformer_setOrigin         | None                |                                         
-    | MFnBlendShapeDeformer_setWeight         | None                |                                         
-    | MFnBlendShapeDeformer_targetItemIndexList| None                |                                         
-    | MFnBlendShapeDeformer_weight            | None                |                                         
-    | MFnBlendShapeDeformer_weightIndexList   | None                |                                         
     | addBaseObject                           | None                |                                         
     | addTarget                               | None                |                                         
 x   | create                                  | None                |                                         
-    | delete_MFnBlendShapeDeformer            | None                |                                         
     | envelope                                | None                | getEnvelope                             
     | getBaseObjects                          | None                |                                         
     | getTargets                              | None                |                                         

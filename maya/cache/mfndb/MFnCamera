@@ -1,117 +1,3 @@
-    | MFnCamera_aspectRatio                   | None                |                                         
-    | MFnCamera_cameraScale                   | None                |                                         
-    | MFnCamera_centerOfInterest              | None                |                                         
-    | MFnCamera_centerOfInterestPoint         | None                |                                         
-    | MFnCamera_computeDepthOfField           | None                |                                         
-    | MFnCamera_copyViewFrom                  | None                |                                         
-    | MFnCamera_create                        | None                |                                         
-    | MFnCamera_eyePoint                      | None                |                                         
-    | MFnCamera_fStop                         | None                |                                         
-    | MFnCamera_farClippingPlane              | None                |                                         
-    | MFnCamera_farFocusDistance              | None                |                                         
-    | MFnCamera_filmFit                       | None                |                                         
-    | MFnCamera_filmFitOffset                 | None                |                                         
-    | MFnCamera_filmRollOrder                 | None                |                                         
-    | MFnCamera_filmRollValue                 | None                |                                         
-    | MFnCamera_filmTranslateH                | None                |                                         
-    | MFnCamera_filmTranslateV                | None                |                                         
-    | MFnCamera_focalLength                   | None                |                                         
-    | MFnCamera_focusDistance                 | None                |                                         
-    | MFnCamera_getAspectRatioLimits          | None                |                                         
-    | MFnCamera_getFilmApertureLimits         | None                |                                         
-    | MFnCamera_getFilmFrustum                | None                |                                         
-    | MFnCamera_getFocalLengthLimits          | None                |                                         
-    | MFnCamera_getPortFieldOfView            | None                |                                         
-    | MFnCamera_getRenderingFrustum           | None                |                                         
-    | MFnCamera_getViewParameters             | None                |                                         
-    | MFnCamera_getViewingFrustum             | None                |                                         
-    | MFnCamera_hasSamePerspective            | None                |                                         
-    | MFnCamera_horizontalFieldOfView         | None                |                                         
-    | MFnCamera_horizontalFilmAperture        | None                |                                         
-    | MFnCamera_horizontalFilmOffset          | None                |                                         
-    | MFnCamera_horizontalRollPivot           | None                |                                         
-    | MFnCamera_horizontalShake               | None                |                                         
-    | MFnCamera_isClippingPlanes              | None                |                                         
-    | MFnCamera_isDepthOfField                | None                |                                         
-    | MFnCamera_isDisplayFilmGate             | None                |                                         
-    | MFnCamera_isMotionBlur                  | None                |                                         
-    | MFnCamera_isOrtho                       | None                |                                         
-    | MFnCamera_isVerticalLock                | None                |                                         
-    | MFnCamera_lensSqueezeRatio              | None                |                                         
-    | MFnCamera_nearClippingPlane             | None                |                                         
-    | MFnCamera_nearFocusDistance             | None                |                                         
-    | MFnCamera_orthoWidth                    | None                |                                         
-    | MFnCamera_overscan                      | None                |                                         
-    | MFnCamera_postProjectionMatrix          | None                |                                         
-    | MFnCamera_postScale                     | None                |                                         
-    | MFnCamera_preScale                      | None                |                                         
-    | MFnCamera_projectionMatrix              | None                |                                         
-    | MFnCamera_rightDirection                | None                |                                         
-    | MFnCamera_set                           | None                |                                         
-    | MFnCamera_setAspectRatio                | None                |                                         
-    | MFnCamera_setCameraScale                | None                |                                         
-    | MFnCamera_setCenterOfInterest           | None                |                                         
-    | MFnCamera_setCenterOfInterestPoint      | None                |                                         
-    | MFnCamera_setClippingPlanes             | None                |                                         
-    | MFnCamera_setDepthOfField               | None                |                                         
-    | MFnCamera_setDisplayFilmGate            | None                |                                         
-    | MFnCamera_setDisplayGateMask            | None                |                                         
-    | MFnCamera_setEyePoint                   | None                |                                         
-    | MFnCamera_setFStop                      | None                |                                         
-    | MFnCamera_setFarClippingPlane           | None                |                                         
-    | MFnCamera_setFarFocusDistance           | None                |                                         
-    | MFnCamera_setFilmFit                    | None                |                                         
-    | MFnCamera_setFilmFitOffset              | None                |                                         
-    | MFnCamera_setFilmRollOrder              | None                |                                         
-    | MFnCamera_setFilmRollValue              | None                |                                         
-    | MFnCamera_setFilmTranslateH             | None                |                                         
-    | MFnCamera_setFilmTranslateV             | None                |                                         
-    | MFnCamera_setFocalLength                | None                |                                         
-    | MFnCamera_setFocusDistance              | None                |                                         
-    | MFnCamera_setHorizontalFieldOfView      | None                |                                         
-    | MFnCamera_setHorizontalFilmAperture     | None                |                                         
-    | MFnCamera_setHorizontalFilmOffset       | None                |                                         
-    | MFnCamera_setHorizontalRollPivot        | None                |                                         
-    | MFnCamera_setHorizontalShake            | None                |                                         
-    | MFnCamera_setIsOrtho                    | None                |                                         
-    | MFnCamera_setLensSqueezeRatio           | None                |                                         
-    | MFnCamera_setMotionBlur                 | None                |                                         
-    | MFnCamera_setNearClippingPlane          | None                |                                         
-    | MFnCamera_setNearFarClippingPlanes      | None                |                                         
-    | MFnCamera_setNearFocusDistance          | None                |                                         
-    | MFnCamera_setOrthoWidth                 | None                |                                         
-    | MFnCamera_setOverscan                   | None                |                                         
-    | MFnCamera_setPostScale                  | None                |                                         
-    | MFnCamera_setPreScale                   | None                |                                         
-    | MFnCamera_setShakeEnabled               | None                |                                         
-    | MFnCamera_setShakeOverscan              | None                |                                         
-    | MFnCamera_setShakeOverscanEnabled       | None                |                                         
-    | MFnCamera_setShutterAngle               | None                |                                         
-    | MFnCamera_setStereoHIT                  | None                |                                         
-    | MFnCamera_setStereoHITEnabled           | None                |                                         
-    | MFnCamera_setTumblePivot                | None                |                                         
-    | MFnCamera_setUsePivotAsLocalSpace       | None                |                                         
-    | MFnCamera_setVerticalFieldOfView        | None                |                                         
-    | MFnCamera_setVerticalFilmAperture       | None                |                                         
-    | MFnCamera_setVerticalFilmOffset         | None                |                                         
-    | MFnCamera_setVerticalLock               | None                |                                         
-    | MFnCamera_setVerticalRollPivot          | None                |                                         
-    | MFnCamera_setVerticalShake              | None                |                                         
-    | MFnCamera_shakeEnabled                  | None                |                                         
-    | MFnCamera_shakeOverscan                 | None                |                                         
-    | MFnCamera_shakeOverscanEnabled          | None                |                                         
-    | MFnCamera_shutterAngle                  | None                |                                         
-    | MFnCamera_stereoHIT                     | None                |                                         
-    | MFnCamera_stereoHITEnabled              | None                |                                         
-    | MFnCamera_tumblePivot                   | None                |                                         
-    | MFnCamera_upDirection                   | None                |                                         
-    | MFnCamera_usePivotAsLocalSpace          | None                |                                         
-    | MFnCamera_verticalFieldOfView           | None                |                                         
-    | MFnCamera_verticalFilmAperture          | None                |                                         
-    | MFnCamera_verticalFilmOffset            | None                |                                         
-    | MFnCamera_verticalRollPivot             | None                |                                         
-    | MFnCamera_verticalShake                 | None                |                                         
-    | MFnCamera_viewDirection                 | None                |                                         
     | aspectRatio                             | None                |                                         
     | cameraScale                             | None                |                                         
     | centerOfInterest                        | None                |                                         
@@ -119,7 +5,6 @@
     | computeDepthOfField                     | None                |                                         
     | copyViewFrom                            | None                |                                         
     | create                                  | None                |                                         
-    | delete_MFnCamera                        | None                |                                         
     | eyePoint                                | None                |                                         
     | fStop                                   | None                |                                         
     | farClippingPlane                        | None                |                                         
@@ -138,12 +23,14 @@
     | getFocalLengthLimits                    | None                |                                         
     | getPortFieldOfView                      | None                |                                         
     | getRenderingFrustum                     | None                |                                         
+    | getViewParameters                       | None                |                                         
     | getViewingFrustum                       | None                |                                         
     | hasSamePerspective                      | None                |                                         
     | horizontalFieldOfView                   | None                |                                         
     | horizontalFilmAperture                  | None                |                                         
     | horizontalFilmOffset                    | None                |                                         
     | horizontalRollPivot                     | None                |                                         
+    | horizontalShake                         | None                |                                         
     | isClippingPlanes                        | None                |                                         
     | isDepthOfField                          | None                |                                         
     | isDisplayFilmGate                       | None                |                                         
@@ -168,6 +55,7 @@
     | setClippingPlanes                       | None                |                                         
     | setDepthOfField                         | None                |                                         
     | setDisplayFilmGate                      | None                |                                         
+    | setDisplayGateMask                      | None                |                                         
     | setEyePoint                             | None                |                                         
     | setFStop                                | None                |                                         
     | setFarClippingPlane                     | None                |                                         
@@ -184,6 +72,7 @@
     | setHorizontalFilmAperture               | None                |                                         
     | setHorizontalFilmOffset                 | None                |                                         
     | setHorizontalRollPivot                  | None                |                                         
+    | setHorizontalShake                      | None                |                                         
     | setIsOrtho                              | None                |                                         
     | setLensSqueezeRatio                     | None                |                                         
     | setMotionBlur                           | None                |                                         
@@ -194,19 +83,33 @@
     | setOverscan                             | None                |                                         
     | setPostScale                            | None                |                                         
     | setPreScale                             | None                |                                         
+    | setShakeEnabled                         | None                |                                         
+    | setShakeOverscan                        | None                |                                         
+    | setShakeOverscanEnabled                 | None                |                                         
     | setShutterAngle                         | None                |                                         
+    | setStereoHIT                            | None                |                                         
+    | setStereoHITEnabled                     | None                |                                         
     | setTumblePivot                          | None                |                                         
+    | setUsePivotAsLocalSpace                 | None                |                                         
     | setVerticalFieldOfView                  | None                |                                         
     | setVerticalFilmAperture                 | None                |                                         
     | setVerticalFilmOffset                   | None                |                                         
     | setVerticalLock                         | None                |                                         
     | setVerticalRollPivot                    | None                |                                         
+    | setVerticalShake                        | None                |                                         
+    | shakeEnabled                            | None                |                                         
+    | shakeOverscan                           | None                |                                         
+    | shakeOverscanEnabled                    | None                |                                         
     | shutterAngle                            | None                |                                         
+    | stereoHIT                               | None                |                                         
+    | stereoHITEnabled                        | None                |                                         
     | tumblePivot                             | None                |                                         
     | type                                    | None                |                                         
     | upDirection                             | None                |                                         
+    | usePivotAsLocalSpace                    | None                |                                         
     | verticalFieldOfView                     | None                |                                         
     | verticalFilmAperture                    | None                |                                         
     | verticalFilmOffset                      | None                |                                         
     | verticalRollPivot                       | None                |                                         
+    | verticalShake                           | None                |                                         
     | viewDirection                           | None                |                                         

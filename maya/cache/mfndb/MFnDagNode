@@ -1,57 +1,19 @@
-    | MFnDagNode_addChild                     | None                |                                         
-    | MFnDagNode_boundingBox                  | None                |                                         
-    | MFnDagNode_child                        | None                |                                         
-    | MFnDagNode_childCount                   | None                |                                         
-    | MFnDagNode_create                       | None                |                                         
-    | MFnDagNode_dagPath                      | None                |                                         
-    | MFnDagNode_dagRoot                      | None                |                                         
-    | MFnDagNode_duplicate                    | None                |                                         
-    | MFnDagNode_fullPathName                 | None                |                                         
-    | MFnDagNode_getAllPaths                  | None                |                                         
-    | MFnDagNode_getPath                      | None                |                                         
-    | MFnDagNode_hasChild                     | None                |                                         
-    | MFnDagNode_hasParent                    | None                |                                         
-    | MFnDagNode_inModel                      | None                |                                         
-    | MFnDagNode_inUnderWorld                 | None                |                                         
-    | MFnDagNode_instanceCount                | None                |                                         
-    | MFnDagNode_isChildOf                    | None                |                                         
-    | MFnDagNode_isInstanceable               | None                |                                         
-    | MFnDagNode_isInstanced                  | None                |                                         
-    | MFnDagNode_isInstancedAttribute         | None                |                                         
-    | MFnDagNode_isIntermediateObject         | None                |                                         
-    | MFnDagNode_isParentOf                   | None                |                                         
-    | MFnDagNode_model                        | None                |                                         
-    | MFnDagNode_objectColor                  | None                |                                         
-    | MFnDagNode_objectGroupComponent         | None                |                                         
-    | MFnDagNode_parent                       | None                |                                         
-    | MFnDagNode_parentCount                  | None                |                                         
-    | MFnDagNode_partialPathName              | None                |                                         
-    | MFnDagNode_removeChild                  | None                |                                         
-    | MFnDagNode_removeChildAt                | None                |                                         
-    | MFnDagNode_setInstanceable              | None                |                                         
-    | MFnDagNode_setIntermediateObject        | None                |                                         
-    | MFnDagNode_setObject                    | None                |                                         
-    | MFnDagNode_setObjectColor               | None                |                                         
-    | MFnDagNode_setUseObjectColor            | None                |                                         
-    | MFnDagNode_transformationMatrix         | None                |                                         
-    | MFnDagNode_usingObjectColor             | None                |                                         
 x   | addChild                                | None                |                                         
-    | boundingBox                             | None                |                           
-    | child                                   | Node                |                                 
-    | childCount                              | None                |                            
+    | boundingBox                             | None                |                                         
+    | child                                   | Node                |                                         
+    | childCount                              | None                |                                         
 x   | create                                  | None                |                                         
-    | dagPath                                 | None	              |                               
-    | dagRoot                                 | Node                |                               
-    | delete_MFnDagNode                       | None                |                                         
+    | dagPath                                 | None                |                                         
+    | dagRoot                                 | Node                |                                         
     | duplicate                               | Node                |                                         
-    | fullPathName                            | None                |                          
-    | getAllPaths                             | None                | allPaths                                         
+    | fullPathName                            | None                |                                         
+    | getAllPaths                             | None                | allPaths                                
 x   | getPath                                 | None                |                                         
     | hasChild                                | None                |                                         
     | hasParent                               | None                |                                         
     | inModel                                 | None                |                                         
     | inUnderWorld                            | None                |                                         
-    | instanceCount                           | None                |                         
+    | instanceCount                           | None                |                                         
     | isChildOf                               | None                |                                         
     | isInstanceable                          | None                |                                         
     | isInstanced                             | None                |                                         
@@ -59,11 +21,11 @@ x   | getPath                                 | None                |
     | isIntermediateObject                    | None                |                                         
     | isParentOf                              | None                |                                         
 x   | model                                   | None                |                                         
-    | objectColor                             | None                |                           
-    | objectGroupComponent                    | None                |                  
-    | parent                                  | Node                |                                
-    | parentCount                             | None                |                           
-    | partialPathName                         | None                |                           
+    | objectColor                             | None                |                                         
+    | objectGroupComponent                    | None                |                                         
+    | parent                                  | Node                |                                         
+    | parentCount                             | None                |                                         
+    | partialPathName                         | None                |                                         
 x   | removeChild                             | None                |                                         
 x   | removeChildAt                           | None                |                                         
     | setInstanceable                         | None                |                                         
@@ -71,6 +33,6 @@ x   | removeChildAt                           | None                |
 x   | setObject                               | None                |                                         
     | setObjectColor                          | None                |                                         
     | setUseObjectColor                       | None                |                                         
-    | transformationMatrix                    | None                |                  
-    | type                                    | None                |                                  
+    | transformationMatrix                    | None                |                                         
+    | type                                    | None                |                                         
     | usingObjectColor                        | None                | isUsingObjectColor                      

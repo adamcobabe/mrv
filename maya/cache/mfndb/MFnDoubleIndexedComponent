@@ -1,14 +1,6 @@
-    | MFnDoubleIndexedComponent_addElement    | None                |                                         
-    | MFnDoubleIndexedComponent_addElements   | None                |                                         
-    | MFnDoubleIndexedComponent_create        | None                |                                         
-    | MFnDoubleIndexedComponent_getCompleteData| None                |                                         
-    | MFnDoubleIndexedComponent_getElement    | None                |                                         
-    | MFnDoubleIndexedComponent_getElements   | None                |                                         
-    | MFnDoubleIndexedComponent_setCompleteData| None                |                                         
     | addElement                              | None                |                                         
     | addElements                             | None                |                                         
     | create                                  | Component           |                                         
-    | delete_MFnDoubleIndexedComponent        | None                |                                         
     | getCompleteData                         | None                |                                         
     | getElement                              | None                |                                         
     | getElements                             | None                |                                         

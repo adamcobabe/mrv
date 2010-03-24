@@ -1,24 +1,8 @@
-    | MFnSet_addMember                        | None                |                                         
-    | MFnSet_addMembers                       | None                |                                         
-    | MFnSet_annotation                       | None                |                                         
-    | MFnSet_clear                            | None                |                                         
-    | MFnSet_create                           | None                |                                         
-    | MFnSet_getIntersection                  | None                |                                         
-    | MFnSet_getMembers                       | None                |                                         
-    | MFnSet_getUnion                         | None                |                                         
-    | MFnSet_hasRestrictions                  | None                |                                         
-    | MFnSet_intersectsWith                   | None                |                                         
-    | MFnSet_isMember                         | None                |                                         
-    | MFnSet_removeMember                     | None                |                                         
-    | MFnSet_removeMembers                    | None                |                                         
-    | MFnSet_restriction                      | None                |                                         
-    | MFnSet_setAnnotation                    | None                |                                         
     | addMember                               | None                |                                         
     | addMembers                              | None                |                                         
     | annotation                              | None                | getAnnotation                           
     | clear                                   | None                |                                         
 x   | create                                  | None                |                                         
-    | delete_MFnSet                           | None                |                                         
     | getIntersection                         | None                |                                         
     | getMembers                              | None                |                                         
     | getUnion                                | None                |                                         

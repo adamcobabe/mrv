@@ -1,20 +1,8 @@
-    | MFnCurveSegmentManip_connectToCurvePlug | None                |                                         
-    | MFnCurveSegmentManip_connectToEndParamPlug| None                |                                         
-    | MFnCurveSegmentManip_connectToStartParamPlug| None                |                                         
-    | MFnCurveSegmentManip_create             | None                |                                         
-    | MFnCurveSegmentManip_curveIndex         | None                |                                         
-    | MFnCurveSegmentManip_endParamIndex      | None                |                                         
-    | MFnCurveSegmentManip_endParameter       | None                |                                         
-    | MFnCurveSegmentManip_setEndParameter    | None                |                                         
-    | MFnCurveSegmentManip_setStartParameter  | None                |                                         
-    | MFnCurveSegmentManip_startParamIndex    | None                |                                         
-    | MFnCurveSegmentManip_startParameter     | None                |                                         
     | connectToCurvePlug                      | None                |                                         
     | connectToEndParamPlug                   | None                |                                         
     | connectToStartParamPlug                 | None                |                                         
     | create                                  | None                |                                         
     | curveIndex                              | None                |                                         
-    | delete_MFnCurveSegmentManip             | None                |                                         
     | endParamIndex                           | None                |                                         
     | endParameter                            | None                |                                         
     | setEndParameter                         | None                |                                         

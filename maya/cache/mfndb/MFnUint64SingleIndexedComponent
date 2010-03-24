@@ -1,8 +1,7 @@
-    | MFnUint64SingleIndexedComponent_addElement| None                |                                         
-    | MFnUint64SingleIndexedComponent_addElements| None                |                                         
-    | MFnUint64SingleIndexedComponent_create  | None                |                                         
-    | MFnUint64SingleIndexedComponent_element | None                |                                         
-    | MFnUint64SingleIndexedComponent_getCompleteData| None                |                                         
-    | MFnUint64SingleIndexedComponent_getElements| None                |                                         
-    | MFnUint64SingleIndexedComponent_setCompleteData| None                |                                         
-    | delete_MFnUint64SingleIndexedComponent  | None                |                                         
+    | addElement                              | None                |                                         
+    | addElements                             | None                |                                         
+    | create                                  | None                |                                         
+    | element                                 | None                |                                         
+    | getCompleteData                         | None                |                                         
+    | getElements                             | None                |                                         
+    | setCompleteData                         | None                |                                         

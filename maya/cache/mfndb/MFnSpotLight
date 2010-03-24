@@ -1,25 +1,7 @@
-    | MFnSpotLight_barnDoorAngle              | None                |                                         
-    | MFnSpotLight_barnDoors                  | None                |                                         
-    | MFnSpotLight_coneAngle                  | None                |                                         
-    | MFnSpotLight_create                     | None                |                                         
-    | MFnSpotLight_dropOff                    | None                |                                         
-    | MFnSpotLight_endDistance                | None                |                                         
-    | MFnSpotLight_penumbraAngle              | None                |                                         
-    | MFnSpotLight_setBarnDoorAngle           | None                |                                         
-    | MFnSpotLight_setBarnDoors               | None                |                                         
-    | MFnSpotLight_setConeAngle               | None                |                                         
-    | MFnSpotLight_setDropOff                 | None                |                                         
-    | MFnSpotLight_setEndDistance             | None                |                                         
-    | MFnSpotLight_setPenumbraAngle           | None                |                                         
-    | MFnSpotLight_setStartDistance           | None                |                                         
-    | MFnSpotLight_setUseDecayRegions         | None                |                                         
-    | MFnSpotLight_startDistance              | None                |                                         
-    | MFnSpotLight_useDecayRegions            | None                |                                         
     | barnDoorAngle                           | None                |                                         
     | barnDoors                               | None                |                                         
     | coneAngle                               | None                |                                         
     | create                                  | None                |                                         
-    | delete_MFnSpotLight                     | None                |                                         
     | dropOff                                 | None                |                                         
     | endDistance                             | None                |                                         
     | penumbraAngle                           | None                |                                         

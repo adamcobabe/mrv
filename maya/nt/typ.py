@@ -602,9 +602,11 @@ def writeMfnDBCacheFiles( ):
 			mfncls = getattr( apimod, mfnname )
 
 			try:
-				mfnfuncs =  [ f  for f  in mfncls.__dict__.itervalues()
+				mfnfuncs =  [ f  for f  in mfncls.__dict__.itervalues( )
 								if callable( f  ) and not f .__name__.startswith( '_' )
-								and not f .__name__.startswith( '<' ) and not inspect.isclass( f  ) ]
+								and not f .__name__.startswith( '<' )
+								and not f .__name__.endswith( mfnfile )	# i.e. delete_MFnName
+								and not inspect.isclass( f  ) ]
 			except AttributeError:
 				continue		# it was a function, not a class
 
@@ -622,7 +624,15 @@ def writeMfnDBCacheFiles( ):
 
 			# write data - simple set the keys, use default flags
 			for func in mfnfuncs:
-				db.createEntry( func.__name__)
+				# it could be prefixed with the function set name - remove the prefix
+				# This happens in maya2008 + and may introduce plenty of new methods
+				fname = func.__name__
+				if fname.startswith(mfnname):
+					fname = fname[len(mfnname)+1:]	# cut MFnName_(function)
+				# END handle prefix
+				
+				db.createEntry(fname)
+			# END for each function to add
 
 
 			# finally write the change db

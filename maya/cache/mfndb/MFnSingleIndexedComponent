@@ -1,14 +1,6 @@
-    | MFnSingleIndexedComponent_addElement    | None                |                                         
-    | MFnSingleIndexedComponent_addElements   | None                |                                         
-    | MFnSingleIndexedComponent_create        | None                |                                         
-    | MFnSingleIndexedComponent_element       | None                |                                         
-    | MFnSingleIndexedComponent_getCompleteData| None                |                                         
-    | MFnSingleIndexedComponent_getElements   | None                |                                         
-    | MFnSingleIndexedComponent_setCompleteData| None                |                                         
     | addElement                              | None                |                                         
     | addElements                             | None                |                                         
     | create                                  | Component           |                                         
-    | delete_MFnSingleIndexedComponent        | None                |                                         
     | element                                 | None                | getElement                              
     | getCompleteData                         | None                |                                         
     | getElements                             | None                |                                         

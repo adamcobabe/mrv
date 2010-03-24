@@ -1,11 +1,5 @@
-    | MFnKeyframeDeltaScale_currentEndTime    | None                |                                         
-    | MFnKeyframeDeltaScale_currentStartTime  | None                |                                         
-    | MFnKeyframeDeltaScale_endTime           | None                |                                         
-    | MFnKeyframeDeltaScale_pivotTime         | None                |                                         
-    | MFnKeyframeDeltaScale_startTime         | None                |                                         
     | currentEndTime                          | None                |                                         
     | currentStartTime                        | None                |                                         
-    | delete_MFnKeyframeDeltaScale            | None                |                                         
     | endTime                                 | None                |                                         
     | pivotTime                               | None                |                                         
     | startTime                               | None                |                                         
