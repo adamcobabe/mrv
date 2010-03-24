@@ -111,7 +111,6 @@ def toApiobj( nodename ):
 	:note: even dag objects will end up as MObject
 	:note: code repeats partly in toApiobjOrDagPath as its supposed to be as fast
 		as possible - this method gets called quite a few times in benchmarks"""
-	global _nameToApiSelList, log
 	_nameToApiSelList.clear()
 
 	nodename = _makeAbsolutePath( nodename )
@@ -147,7 +146,6 @@ def toApiobjOrDagPath( nodename ):
 		same namespace - one time a dep node is meant, the other time a dag node.
 		If querying a dag node, the dep node with the same name is not found, although it is in
 		the same freaking namespace ! IMHO this is a big bug !"""
-	global _nameToApiSelList, log
 	_nameToApiSelList.clear()
 
 	nodename = _makeAbsolutePath( nodename )
@@ -286,7 +284,6 @@ def delete( *args, **kwargs ):
 	:note: in general , no matter which options have been chosen , api deletion does not work well
 		as the used algorithm is totally different and inferior to the mel implementaiton
 	:note: will not raise in case of an error, but print a notification message"""
-	global log
 	presort = kwargs.get( "presort", False )
 
 	# presort - this allows objects high up in the hierarchy to be deleted first
@@ -409,8 +406,6 @@ def createNode( nodename, nodetype, autocreateNamespace=True, renameOnClash = Tr
 	:raise NameError: If name of desired node clashes as existing node has different type
 	:note: As this method is checking a lot and tries to be smart, its relatively slow ( creates ~1200 nodes / s )
 	:return: the newly create Node"""
-	global _mfndep_setobject, _mfndep_name
-
 	if nodename in ( '|', '' ):
 		raise RuntimeError( "Cannot create '|' or ''" )
 
@@ -604,7 +599,6 @@ def _createInstByPredicate( apiobj, cls, basecls, predicate ):
 	# All attribute instances end with attribute
 	# NOTE: the capital case 'A' assure we do not get this base class as option - this would
 	# be bad as it is compatible with all classes
-	global nodeTypeToMfnClsMap
 	attrtypekeys = [ a for a in nodeTypeToMfnClsMap.keys() if predicate( a ) ]
 
 	for attrtype in attrtypekeys:
@@ -785,11 +779,9 @@ class Node( object ):
 
 def _lookup_type( mobject_or_mdagpath ):
 	""":return: node type name of the given MObject or MDagPath"""
-	global _apitype_to_name
 	try:
 		return _apitype_to_name[mobject_or_mdagpath.apiType()]
 	except KeyError:
-		global _mfndep_setobject, _mfndag_setObject, _mfndep_typename, _mfndag_typename
 		# cache miss - fill in the type
 		if isinstance(mobject_or_mdagpath, MDagPath):
 			_mfndag_setObject(mobject_or_mdagpath)
@@ -817,8 +809,6 @@ class NodeFromObj( object ):
 	:note: Do not derive from this class, derive from `Node` instead
 	:note: We will always create the node type as determined by the type hierarchy"""
 	def __new__ ( cls, mobject_or_mdagpath ):
-		global _apitype_to_name
-		
 		apiobj = mobject_or_mdagpath
 		dagpath = None
 		if isinstance( mobject_or_mdagpath, MDagPath ):
@@ -1946,7 +1936,6 @@ class DagNode( Entity, iDagItem ):	# parent just for epydoc
 	def _dagPath_delayed( self ):
 		"""Handles the retrieval of a dagpath from an MObject if it is not known
 		at first."""
-		global _mfndag_setObject, _mfndag
 		self._apidagpath = MDagPath( )
 		_mfndag_setObject(self._apiobj)
 		_mfndag.getPath( self._apidagpath )
@@ -2747,8 +2736,6 @@ class Shape( DagNode ):	 # base for epydoc !
 			cannot be wrapped into any component function set - reevaluate that with new maya versions !
 		:note: deformer set component assignments are only returned for instance 0 ! They apply to all
 			output meshes though"""
-		global log
-
 		# SUBDEE SPECIAL CASE
 		#########################
 		# cannot handle components for subdees - return them empty

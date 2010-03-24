@@ -33,7 +33,6 @@ def init_modules( filepath, moduleprefix, recurse=False, self_module = None):
 	module is not yet possible as it is in the course of being intialized itself.
 	The module will be given only to intermediate submodules in case recurse is True.
 	:note: in this moment, all submodules will be 'pulled' in"""
-	global log
 	moduledir = Path( filepath  ).parent()
 	moduleitems = moduledir.listdir( )
 	moduleitems.sort()					# assure we have the same order on every system

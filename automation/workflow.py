@@ -224,7 +224,6 @@ class Workflow( Graph ):
 			during operation
 		:param donestream: if list, targets successfully done will be appended to it, if
 			it is a stream, the string representation will be wrtten to it"""
-		global log
 		def to_stream(msg, stream):
 			"""print msg to stream or use the logger instead"""
 			if stream:
@@ -340,8 +339,6 @@ class Workflow( Graph ):
 		:param globalmode: mode with which all other processes will be handling
 			their input calls
 		"""
-		global log
-		
 		# find suitable process
 		inputshell = self.targetRating( target )[1]
 		if inputshell is None:

@@ -191,8 +191,6 @@ def init_system( ):
 	If running within maya or whith maya py, this is true, otherwise we have to
 	use the MAYA_LOCATION to get this to work.
 	"""
-	global log
-	
 	# RUNNING WITHIN MAYA ? Then we have everything
 	# if being launched in mayapy, we need initialization though !
 	binBaseName = os.path.split( sys.executable )[1].split( '.' )[0]

@@ -83,7 +83,6 @@ class MayaFileGraph( DiGraph ):
 		""":return: list of filepath as parsed from the given mafile.
 		:param allPaths: if True, the whole file will be parsed, if False, only
 			the reference section will be parsed"""
-		global log
 		outdepends = list()
 		log.info("Parsing %s" % ( mafile ))
 

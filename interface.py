@@ -341,7 +341,6 @@ class iChoiceDialog( Interface ):
 		:return: name of the choice made by the user, the type shall equal the type given
 			as button names
 		:note: this implementation always returns the default choice"""
-		global log
 		log.info(self.title)
 		log.info("-"*len( self.title ))
 		log.info(self.message)
@@ -377,7 +376,6 @@ class iPrompt( Interface ):
 		"""activate our prompt
 		:return: the prompted value
 		:note: base implementation just prints a sample text and returns the default"""
-		global log
 		log.info("%s [ %s ]:" % ( self.msg, self.confirmDefault ))
 		log.info("Hit %s to confirm or %s to cancel" % ( self.confirmToken, self.cancelToken ))
 		return self.confirmDefault
@@ -424,7 +422,6 @@ class iProgressIndicator( Interface ):
 		"""Refresh the progress indicator so that it represents its values on screen.
 		
 		:param message: message passed along by the user"""
-		global log
 		p = self.get( )
 
 		if not message:

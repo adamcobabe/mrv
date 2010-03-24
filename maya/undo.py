@@ -60,8 +60,6 @@ def __initialize():
 	""" Assure our plugin is loaded - called during module intialization
 	
 	:note: will only load the plugin if the undo system is not disabled"""
-	global _should_initialize_plugin
-	
 	pluginpath = os.path.splitext( __file__ )[0] + ".py"
 	if _should_initialize_plugin and not cmds.pluginInfo( pluginpath, q=1, loaded=1 ):
 		cmds.loadPlugin( pluginpath )
@@ -220,7 +218,6 @@ def undoable( func ):
 	:note: if you use undoable functions, you should mark yourself undoable too - otherwise the
 		functions you call will create individual undo steps
 	:note: if the undo queue is disabled, the decorator does nothing"""
-	global _maya_undo_enabled
 	if not _maya_undo_enabled:
 		return func
 
@@ -251,7 +248,6 @@ def forceundoable( func ):
 		rendering attempts to undo impossible"""
 	undoable_func = undoable( func )
 	def forcedUndo( *args, **kwargs ):
-		global undoInfo
 		disable = False
 		if not undoInfo( q=1, st=1 ):
 			disable = True
@@ -273,14 +269,12 @@ def notundoable( func ):
 	:note: use it if your method cannot support undo, butcalls undoable operations itself
 	:note: all functions using a notundoable should be notundoable themselves
 	:note: does nothing if the undo queue is globally disabled"""
-	global _maya_undo_enabled
 	if not _maya_undo_enabled:
 		return func
 	
 	def notundoableDecoratorWrapFunc( *args, **kwargs ):
 		"""This is the long version of the method as it is slightly faster than
 		simply using the StartUndo helper"""
-		global undoInfo
 		prevstate = undoInfo( q=1, st=1 )
 		undoInfo( swf = 0 )
 		try:
@@ -532,9 +526,6 @@ class Operation( object ):
 		This happens automatically upon creation
 		
 		:note: assure subclasses call the superclass init !"""
-		global _maya_undo_enabled
-		global isUndoing
-		global undoInfo
 		if _maya_undo_enabled and not isUndoing() and undoInfo( q=1, st=1 ):
 			# sanity check !
 			if sys._maya_stack_depth < 1:
@@ -632,7 +623,6 @@ class GenericOperationStack( Operation ):
 
 	def doIt( self ):
 		"""Call all doIt commands stored in our instance after temporarily disabling the undo queue"""
-		global undoInfo
 		prevstate = undoInfo( q=1, st=1 )
 		undoInfo( swf=False )
 
@@ -663,7 +653,6 @@ class GenericOperationStack( Operation ):
 	def undoIt( self ):
 		"""Call all undoIt commands stored in our instance after temporarily disabling the undo queue"""
 		# NOTE: the undo list is already reversed !
-		global undoInfo
 		prevstate = undoInfo( q=1, st=1 )
 		undoInfo( swf=False )
 
@@ -693,7 +682,6 @@ class GenericOperationStack( Operation ):
 		
 		:return: return value of the doCall
 		:note: use this method if you need the return value of the doCall right away"""
-		global undoInfo
 		prevstate = undoInfo( q=1, st=1 )
 		undoInfo( swf=False )
 

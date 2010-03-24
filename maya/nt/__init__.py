@@ -114,7 +114,6 @@ def enforcePersistence( ):
 	"""Call this method to ensure that the persistance plugin is loaded and available.
 	This should by used by plugins which require persitence features but want to 
 	be sure it is not disabled on the target system"""
-	global _thismodule
 	import mrv.maya.nt.storage as storage
 	import mrv.maya.nt.persistence as persistence
 	
@@ -129,7 +128,6 @@ def enforcePersistence( ):
 
 def _init_package( ):
 	"""Do the main initialization of this package"""
-	global _thismodule
 	typ.MetaClassCreatorNodes.targetModule = _thismodule			# init metaclass with our module
 	typ._nodesdict = globals()
 	typ.initNodeHierarchy( )
@@ -151,7 +149,6 @@ def _init_package( ):
 def _force_type_creation():
 	"""Enforce the creation of all types - must be called once all custom types 
 	were imported"""
-	global _thismodule
 	standincls = bmayautil.StandinClass
 	for cls in _thismodule.__dict__.itervalues():
 		if isinstance( cls, standincls ):

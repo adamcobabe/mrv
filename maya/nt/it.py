@@ -100,7 +100,6 @@ def graphIterator( nodeOrPlug, *args, **kwargs ):
 		This is a bug in that sense as it should just return nothing. It also shows that
 		maya pre-parses the result and then just iterates over a list with the iterator in
 		question"""
-	global nullplugarray
 	startObj = startPlug = None
 
 	if isinstance( nodeOrPlug, api.MPlug ):
@@ -367,7 +366,6 @@ def iterSelectionList( sellist, filterType = api.MFn.kInvalid, predicate = lambd
 		component is NullObject ( MObject ) if the whole object is on the list.
 		If the original object was a plug, it will be in the tuples first slot, whereas the component 
 		will be a NullObject"""
-	global nullplugarray
 	kNullObj = MObject()
 	if handlePlugs:
 		# version compatibility - maya 8.5 still defines a plug ptr class that maya 2005 lacks

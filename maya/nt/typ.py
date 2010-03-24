@@ -328,9 +328,6 @@ class MetaClassCreatorNodes( MetaClassCreator ):
 
 	def __new__( metacls, name, bases, clsdict ):
 		""" Called to create the class with name """
-		global nodeTypeTree
-		global nodeTypeToMfnClsMap
-
 		# will be used later
 		def func_nameToTree( name ):
 			if name in metacls.nameToTreeMap:
@@ -425,7 +422,6 @@ def initNodeTypeToMfnClsMap( ):
 	cfile = cacheFilePath( "nodeTypeToMfnCls", "map" )
 	fobj = open( cfile, 'r' )
 	pf = PipeSeparatedFile( fobj )
-	global nodeTypeToMfnClsMap, log
 
 	version = pf.beginReading( )	 # don't care about version
 	for nodeTypeName, mfnTypeName in pf.readColumnLine( ):
@@ -455,8 +451,6 @@ def _addCustomType( targetmodule, parentclsname, newclsname,
 		It will not be called if the class already exist in targetModule. Its recommended to derive it
 		from the metaclass given as default value.
 	:raise KeyError: if the parentclsname does not exist"""
-	global nodeTypeTree
-
 	# add new type into the type hierarchy #
 	parentclsname = uncapitalize( parentclsname )
 	newclsname = uncapitalize( newclsname )
@@ -475,8 +469,6 @@ def _addCustomTypeFromDagtree( targetModule, dagtree, metaclass=MetaClassCreator
 		are needed, then we can create them - just iterating the nodes in undefined order will not work
 		as a parent node might not be created yet
 	:note: node names in dagtree must be uncapitalized"""
-	global nodeTypeTree
-
 	# add edges - have to start at root
 	rootnode = dagtree.get_root()
 	def recurseOutEdges( node ):		# postorder
@@ -500,13 +492,15 @@ class MfnMemberMap( UserDict.UserDict ):
 
 	class Entry:
 		"""Simple entry struct keeping the actual values """
+		__slots__ = ("flag", "rvalfunc", "newname")
+		
 		def __init__( self, flag='', rvalfunc = None, newname="" ):
 			self.flag = flag
 			self.rvalfunc = self.toRvalFunc( rvalfunc )
 			self.newname = newname
 
-		@staticmethod
-		def toRvalFunc( funcname ):
+		@classmethod
+		def toRvalFunc( cls, funcname ):
 			if not isinstance( funcname, basestring ):
 				return funcname
 			if funcname == 'None': return None

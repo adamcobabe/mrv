@@ -31,8 +31,6 @@ def init_classhierarchy( ):
 def initWrappers( ):
 	""" Create Standin Classes that will delay the creation of the actual class till
 	the first instance is requested"""
-	global _typetree
-	global _thismodule
 	bmaya.initWrappers( _thismodule, _typetree.nodes_iter(), MetaClassCreatorUI )
 
 #} END initialization
@@ -74,9 +72,6 @@ class MetaClassCreatorUI( mutil.MetaClassCreator ):
 
 	def __new__( metacls, name, bases, clsdict ):
 		""" Called to create the class with name """
-		global _typetree
-		global _thismodule
-
 		# HANDLE MEL COMMAND
 		#######################
 		cmdname = uncapitalize( name )

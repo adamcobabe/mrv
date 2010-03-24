@@ -210,7 +210,6 @@ class QACheckLayout( layout.RowLayout ):
 		
 		:param exception: exception object that was thrown by our check
 		:param workflow: workflow that ran the check"""
-		global log
 		text = self.listChildren()[0]
 		text.p_label = str( self._toNiceName( self.check().plug.name() ) + " ( ERROR )" )
 		log.error(str( exception ))
@@ -499,7 +498,6 @@ class QALayout( layout.FormLayout, uiutil.iItemSet ):
 			do not sort them by workflow
 		:note: currently we only run in query mode as sort of safety measure - check and fix
 			on all might be too much and lead to unexpected results"""
-		global log
 		checks = self.checks()
 		if not checks:
 			log.error("No checks found to run")

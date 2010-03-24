@@ -155,7 +155,6 @@ class Path( _base, iDagItem ):
 		if '$' not in self:
 			return self
 		
-		global _varprog
 		i = 0
 		while True:
 			m = _varprog.search(self, i)
@@ -449,7 +448,6 @@ class Path( _base, iDagItem ):
 			reports the error via log.warn(), and 'ignore'.
 		:param predicate: returns True for each Path p to be yielded by iterator
 		"""
-		global log
 		if errors not in ('strict', 'warn', 'ignore'):
 			raise ValueError("invalid errors parameter")
 

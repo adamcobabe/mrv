@@ -110,7 +110,6 @@ class ProgressWindow( iProgressIndicator ):
 
 	def refresh( self, message = None ):
 		"""Finally show the progress window"""
-		global log
 		mn,mx = ( self.isRelative() and ( 0,100) ) or self.range()
 		p = self.get()
 
