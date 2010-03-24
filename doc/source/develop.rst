@@ -12,8 +12,11 @@ This article describes the required setup and configuration of your system to de
 Prerequesites
 =============
 * Test Framework
+
  * Nose 0.11 or higher
+ 
 * Documentation Generation
+
  * Epydoc 3.x or higher
  * Sphinx 0.62 or higher
 
@@ -28,9 +31,12 @@ Windows
 =======
 On Windows, make sure that the maya revised repository has at least one folder between itself and the drive letter. Otherwise you are not able to run tests properly due to some issue with nose on windows. 
 
-* This is wrong: 
+* This is wrong:
+
  * c:\\mrv\\[.git]
+ 
 * This would work:
+
  * c:\\projects\\mrv\\[.git]
 
 Set your '''MAYA_LOCATION''' environment variable to the location of the maya version to use. MRV will be run using ''mayapy'' of the specified version.

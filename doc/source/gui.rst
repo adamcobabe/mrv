@@ -26,6 +26,7 @@ In this example, we have set the title of the Window to 'demo'. In MEL it would 
 
 In MRV, everything that is *at least* queryable is a property. Properties are prefixed with *p_* and hence live in their own namespace. The name of the properties follow the capitalization of the MEL flag which they represent. 
 Some properties can only be queried, and you will get an AttributeError if you try to query them::
+	
 	>>> assert "demo" == win.p_title
 	>>> win.p_title = "property demo"
 	>>> assert "property demo" == win.p_title

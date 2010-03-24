@@ -1,4 +1,5 @@
 .. _usage-label:
+
 #########
 Using MRV
 #########
@@ -53,6 +54,7 @@ Method Lookup
 =============
 Nodes represent their respective maya api object, and make all matching MFnFunctionSet methods available directly.
 Calling these methods involves nothing special, you just make the call on your node. Its important to know which methods are available and the order in which they are looked up. Lets study the method resolution by checking the first case, a non-existing method::
+	
 	>>> # this will raise an AttributeError
 	>>> p.doesnt_exist()
 	

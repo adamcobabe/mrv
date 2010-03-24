@@ -91,8 +91,7 @@ def propertyQE( inCmd, flag, methodName = None ):
 class Mel(util.Singleton):
 	"""This class is a necessity for calling mel scripts from python. It allows scripts to be called
 	in a cleaner fashion, by automatically formatting python arguments into a string
-	which is executed via maya.mel.eval().	An instance of this class is already created for you
-	when importing pymel and is called mel.
+	which is executed via maya.mel.eval().
 
 	:note: originated from pymel, added customizations  """
 
