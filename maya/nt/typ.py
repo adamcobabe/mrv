@@ -595,7 +595,7 @@ def writeMfnDBCacheFiles( ):
 	"""Create a simple Memberlist of available mfn classes and their members
 	to allow a simple human-editable way of adjusting which methods will be added
 	to the Nodes"""
-	for apimod in ( api, apianim, apirender, apiui ):
+	for apimod in ( api, apianim, apirender, apiui, apifx ):
 		mfnclsnames = [ clsname for clsname in dir( apimod ) if clsname.startswith( "MFn" ) ]
 		for mfnname in mfnclsnames:
 			mfnfile = mfnDBPath( mfnname )
@@ -605,7 +605,7 @@ def writeMfnDBCacheFiles( ):
 				mfnfuncs =  [ f  for f  in mfncls.__dict__.itervalues( )
 								if callable( f  ) and not f .__name__.startswith( '_' )
 								and not f .__name__.startswith( '<' )
-								and not f .__name__.endswith( mfnfile )	# i.e. delete_MFnName
+								and not f .__name__.endswith( mfnname )	# i.e. delete_MFnName
 								and not inspect.isclass( f  ) ]
 			except AttributeError:
 				continue		# it was a function, not a class
