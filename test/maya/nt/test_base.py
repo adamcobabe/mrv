@@ -34,8 +34,8 @@ class TestGeneral( unittest.TestCase ):
 			raise AssertionError( "File %s not found for loading" % filename )
 		bmaya.Scene.open( filename, force=True )
 		
-		missingTypesList = []
-		invalidInheritanceList = []
+		missingTypesList = list()
+		invalidInheritanceList = list()
 		seen_types = set()		# keeps class names that we have seen already 
 		for nodename in cmds.ls( ):
 			try:
@@ -62,7 +62,7 @@ class TestGeneral( unittest.TestCase ):
 			for pn in parentClsNames:
 				token = ( node, parentClsNames )
 				try:
-					pcls = getattr( nodes, pn )
+					pcls = getattr( nt, pn )
 				except AttributeError:
 					invalidInheritanceList.append( token )
 					break
@@ -82,13 +82,13 @@ class TestGeneral( unittest.TestCase ):
 		# END for each type in file
 
 		if len( missingTypesList ):
-			nodecachefile = "nodeHierarchy%s.html" % env.appVersion( )[0]
+			nodecachefile = "nodeHierarchy%s.hf" % env.appVersion( )[0]
 			for fn in missingTypesList:
 				print fn
 			
-			print "Add these lines to the hierarchy file" 
+			print "Add these lines to the hierarchy file, using the parent information shown above" 
 			for fn in missingTypesList:
-				print '<tt> >  >  > </tt><a href="%s.html" target="subFrame">%s</a><br />' % ( uncapitalize( fn[1] ), uncapitalize( fn[1] ))
+				print uncapitalize( fn[1] )
 			raise TypeError( "Add the following node types to the %r cache file at the respective post in the hierarchy:" % ( nodecachefile ) )
 		# END missing types handling 
 		

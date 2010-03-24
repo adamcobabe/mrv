@@ -20,9 +20,8 @@ _typemap = { "floatingWindow" : "window" }
 
 #{ Initialization
 def init_classhierarchy( ):
-	""" Read a simple hiearchy file and create an Indexed tree from it
-	:todo: cache the pickled tree and try to load it instead  """
-	mfile = Path( __file__ ).parent().parent() / "cache/UICommandsHierachy"
+	""" Read a simple hiearchy file and create an Indexed tree from it"""
+	mfile = Path( __file__ ).parent().parent() / "cache/UICommandsHierachy.hf"
 
 	# STORE THE TYPE TREE
 	global _typetree

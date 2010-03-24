@@ -406,27 +406,10 @@ def cacheFilePath( filename, ext, use_version = False ):
 	return mfile / ( "cache/%s%s.%s" % ( filename, version, ext ) )
 
 def initNodeHierarchy( ):
-	""" Parse the nodes hiearchy from the maya doc and create an Indexed tree from it
-	
-	:todo: cache the pickled tree and try to load it instead"""
-	mfile = cacheFilePath( "nodeHierarchy", "html", use_version = 1 )
-	lines = mfile.lines( retain=False )			# just read them in one burst
-
-	hierarchylist = []
-	regex = re.compile( "<tt>([ >]*)</tt><.*?>(\w+)" )	# matches level and name
-
-
-	for line in lines:
-		m = regex.match( line )
-		if not m: continue
-
-		levelstr, name = m.groups()
-		level = levelstr.count( '>' )
-
-		hierarchylist.append( ( level, name ) )
-	# END for each line
+	""" Parse the nodes hiearchy from the maya doc and create an Indexed tree from it"""
 	global nodeTypeTree
-	nodeTypeTree = bmaya.dag_tree_from_tuple_list( hierarchylist )
+	mfile = cacheFilePath( "nodeHierarchy", "hf", use_version = 1 )
+	nodeTypeTree = bmaya.dag_tree_from_tuple_list( bmaya.tuple_list_from_file( mfile ) )
 
 def initWrappers( targetmodule ):
 	"""Create Standin Classes that will delay the creation of the actual class till
