@@ -212,7 +212,7 @@ class TestDataBase( unittest.TestCase ):
 		for plug in plugs: plug.mwrappedAttribute()
 
 		# CHECK ATTRIBUTES and NODES
-		for plug,attrtype in zip( plugs, [ nt.TypedAttribute, nt.NumericAttribute ] ):
+		for plug,attrtype in zip( plugs, [ nt.TypedAttribute, nt.CompoundAttribute ] ):
 			attr = plug.mwrappedAttribute( )
 
 			assert isinstance( attr, nt.Attribute ) 
