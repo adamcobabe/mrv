@@ -6,6 +6,8 @@ from mrv.automation.qa import QACheck, QACheckAttribute, QACheckResult
 from mrv.maya.util import Mel
 from mrv.dge import _NodeBaseCheckMeta
 import sys
+import logging
+log = logging.getLogger("mrv.maya.automation.qa")
 
 __all__ = ("QAMELCheckAttribute", "QAMELCheck", "QAMetaMel", "QAMELMixin")
 
@@ -32,11 +34,12 @@ class QAMetaMel( _NodeBaseCheckMeta ):
 			mel based checkes
 		:param index_proc: method returning the index declaring the tests
 		:param check_cls: class used to instance new checks"""
+		global log
 		output = list()
 		try:
 			index = Mel.call( index_proc )
 		except RuntimeError, e:
-			sys.stdout.write( str( e ) )
+			log.warn( str( e ) )
 		else:
 			# assure its working , never fail here
 			if len( index ) % 3 == 0:
@@ -44,7 +47,7 @@ class QAMetaMel( _NodeBaseCheckMeta ):
 				for checkname, description, can_fix in zip( iindex, iindex, iindex ):
 					# check name - it may not contain spaces for now
 					if " " in checkname:
-						sys.stdout.write( "Invalid name: %s - it may not contain spaces, use CamelCase or underscores" % checkname )
+						log.warn( "Invalid name: %s - it may not contain spaces, use CamelCase or underscores" % checkname )
 						continue
 					# END name check
 
@@ -54,7 +57,7 @@ class QAMetaMel( _NodeBaseCheckMeta ):
 				# END for each information tuple
 			# END if index is valid
 			else:
-				sys.stdout.write( "Invalid proc index returned by %s" % index_proc )
+				log.warn( "Invalid proc index returned by %s" % index_proc )
 			# END index has valid format
 		# END index could be retrieved
 

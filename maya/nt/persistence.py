@@ -10,6 +10,8 @@ import sys
 import cPickle
 import cStringIO
 import binascii
+import logging
+log = logging.getLogger('mrv.maya.nt.persistence')
 
 import maya.OpenMaya as api
 import maya.OpenMayaMPx as mpx
@@ -144,11 +146,12 @@ class PyPickleData( mpx.MPxData ):
 
 	def _writeToStream( self, ostream, asBinary ):
 		"""Write our data binary or ascii respectively"""
+		global log
 		sout = cStringIO.StringIO()
 		try:
 			cPickle.dump( self.__data, sout, protocol=2 )
 		except cPickle.PicklingError, e:
-			sys.stdout.write( str( e ) )
+			log.error( str( e ) )
 			return
 		# END pickle error handling
 

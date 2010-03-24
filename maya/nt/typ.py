@@ -23,6 +23,9 @@ import maya.cmds as cmds
 __all__ = ("MetaClassCreatorNodes", "mfnDBPath", "cacheFilePath", "initNodeHierarchy", "initWrappers", 
            "initNodeTypeToMfnClsMap", "MfnMemberMap", "writeMfnDBCacheFiles")
 
+import logging
+log = logging.getLogger("mrv.maya.nt.typ")
+
 ####################
 ### CACHES ########
 ##################
@@ -402,7 +405,6 @@ def cacheFilePath( filename, ext, use_version = False ):
 	# END use version
 	return mfile / ( "cache/%s%s.%s" % ( filename, version, ext ) )
 
-
 def initNodeHierarchy( ):
 	""" Parse the nodes hiearchy from the maya doc and create an Indexed tree from it
 	
@@ -434,14 +436,13 @@ def initWrappers( targetmodule ):
 	global nodeTypeTree
 	bmaya.initWrappers( targetmodule, nodeTypeTree.nodes_iter(), MetaClassCreatorNodes )
 
-
 def initNodeTypeToMfnClsMap( ):
 	"""Fill the cache map supplying additional information about the MFNClass to use
 	when creating the classes"""
 	cfile = cacheFilePath( "nodeTypeToMfnCls", "map" )
 	fobj = open( cfile, 'r' )
 	pf = PipeSeparatedFile( fobj )
-	global nodeTypeToMfnClsMap
+	global nodeTypeToMfnClsMap, log
 
 	version = pf.beginReading( )	 # don't care about version
 	for nodeTypeName, mfnTypeName in pf.readColumnLine( ):
@@ -450,7 +451,7 @@ def initNodeTypeToMfnClsMap( ):
 				nodeTypeToMfnClsMap[ nodeTypeName ] = getattr( apimod, mfnTypeName )
 				break				# it worked, there is only one matching class
 			except AttributeError:
-				pass
+				log.debug("Couldn't find mfn class named %s" % mfnTypeName)
 		# END for each api module
 	# END for each type/mfnclass pair
 
@@ -535,6 +536,7 @@ class MfnMemberMap( UserDict.UserDict ):
 		def rvalFuncToStr( self ):
 			if self.rvalfunc is None: return 'None'
 			return self.rvalfunc.__name__
+	# END entry class
 
 	def __init__( self, filepath = None ):
 		"""intiialize self from a file if not None"""
@@ -543,7 +545,6 @@ class MfnMemberMap( UserDict.UserDict ):
 		self._filepath = filepath
 		if filepath:
 			self._initFromFile( filepath )
-
 
 	def __str__( self ):
 		return "MfnMemberMap(%s)" % self._filepath
@@ -562,8 +563,7 @@ class MfnMemberMap( UserDict.UserDict ):
 		for tokens in pf.readColumnLine( ):
 			key = tokens[ 1 ]
 			self[ key ] = self.Entry( flag=tokens[0], rvalfunc=tokens[2], newname=tokens[3] )
-
-
+		# END for each token in read column line
 
 	def writeToFile( self, filepath ):
 		"""Write our database contents to the given file"""
@@ -606,6 +606,7 @@ class MfnMemberMap( UserDict.UserDict ):
 	def mfnFunc( self, funcname ):
 		""":return: mfn functionname corresponding to the ( possibly renamed ) funcname """
 		return self.entry( funcname )[0]
+
 
 def writeMfnDBCacheFiles( ):
 	"""Create a simple Memberlist of available mfn classes and their members

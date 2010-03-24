@@ -23,7 +23,6 @@ TODO
    - Make sure everything has a good docstringc.
    - Add methods for regex find and replace.
    - guess_content_type() method?
-   - Perhaps support arguments to touch().
    - Could add split() and join() methods that generate warnings.
 """
 from __future__ import generators
@@ -32,7 +31,7 @@ __docformat__ = "restructuredtext"
 __license__='Freeware'
 
 import sys
-import warnings
+import logging
 import os
 import fnmatch
 import glob
@@ -40,6 +39,7 @@ import shutil
 import codecs
 import re
 from interface import iDagItem
+log = logging.getLogger("mrv.path")
 
 __version__ = '3.0'
 __all__ = ['Path']
@@ -446,9 +446,10 @@ class Path( _base, iDagItem ):
 		:param errors: controls behavior when an
 			error occurs.  The default is 'strict', which causes an
 			exception.	The other allowed values are 'warn', which
-			reports the error via warnings.warn(), and 'ignore'.
+			reports the error via log.warn(), and 'ignore'.
 		:param predicate: returns True for each Path p to be yielded by iterator
 		"""
+		global log
 		if errors not in ('strict', 'warn', 'ignore'):
 			raise ValueError("invalid errors parameter")
 
@@ -458,7 +459,7 @@ class Path( _base, iDagItem ):
 			if errors == 'ignore':
 				return
 			elif errors == 'warn':
-				warnings.warn(
+				log.warn(
 					"Unable to list directory '%s': %s"
 					% (self, sys.exc_info()[1]),
 					TreeWalkWarning)
@@ -479,7 +480,7 @@ class Path( _base, iDagItem ):
 				if errors == 'ignore':
 					pass
 				elif errors == 'warn':
-					warnings.warn(
+					log.warn(
 						"Unable to access '%s': %s"
 						% (child, sys.exc_info()[1]),
 						TreeWalkWarning)

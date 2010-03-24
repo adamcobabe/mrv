@@ -92,7 +92,7 @@ class MayaFileGraph( DiGraph ):
 		except IOError,e:
 			# store as invalid
 			self._addInvalid( mafile )
-			sys.stderr.write( "Parsing Failed: %s\n" % str( e ) )
+			log.warn("Parsing Failed: %s" % str( e ))
 		# END exception handlign
 		return outdepends
 
@@ -127,7 +127,7 @@ class MayaFileGraph( DiGraph ):
 
 				# ASSURE MA FILE
 				if os.path.splitext( curfile )[1] != ".ma":
-					sys.stderr.write( "Skipped non-ma file: %s\n" % curfile )
+					log.info( "Skipped non-ma file: %s" % curfile )
 					continue
 				# END assure ma file
 
@@ -202,7 +202,7 @@ class MayaFileGraph( DiGraph ):
 				outlist.append( f )
 			# END for each file in dependencies
 		except NetworkXError:
-			sys.stderr.write( "Path %s ( %s ) unknown to dependency graph\n" % ( filePath, keypath ) )
+			log.debug( "Skipped Path %s ( %s ): unknown to dependency graph" % ( filePath, keypath ) )
 
 		return outlist
 
