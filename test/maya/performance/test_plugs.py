@@ -3,7 +3,7 @@
 Test general MPlug performance
 """
 from mrv.test.lib import *
-import mrv.maya as bmaya
+import mrv.maya as mrvmaya
 import mrv.maya.undo as undo
 import mrv.maya.nt as nt
 import maya.cmds as cmds
@@ -57,7 +57,7 @@ class TestPlugPerformance( unittest.TestCase ):
 	
 	def test_general( self ):
 		nt.enforcePersistence()
-		bmaya.Scene.new( force = True )
+		mrvmaya.Scene.new( force = True )
 
 		s1 = nt.createNode( "storage1", "storageNode" )
 		s2 = nt.createNode( "storage2", "storageNode" )

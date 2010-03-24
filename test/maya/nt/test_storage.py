@@ -2,7 +2,7 @@
 """ Test storage system and storage node """
 from mrv.test.maya import *
 import mrv.maya.nt as nt
-import mrv.maya as bmaya
+import mrv.maya as mrvmaya
 from mrv.path import Path
 import maya.cmds as cmds
 import tempfile
@@ -32,7 +32,7 @@ class TestStorage( unittest.TestCase ):
 
 		did = "test"
 		for filetype in [ ".ma", ".mb" ]:
-			bmaya.Scene.new( force = True )
+			mrvmaya.Scene.new( force = True )
 
 			# BASIC DATA CREATION AND EDITING
 			####################################
@@ -48,10 +48,10 @@ class TestStorage( unittest.TestCase ):
 			#################
 			# ascii and binary ( including reference test )
 			filepath = tmpdir / ( "storagetest" + filetype )
-			bmaya.Scene.save( filepath )
+			mrvmaya.Scene.save( filepath )
 
 			# reload
-			bmaya.Scene.open( filepath, force=True )
+			mrvmaya.Scene.open( filepath, force=True )
 
 			# get and test data
 			storagenode = nt.Node( "storage" )
@@ -72,8 +72,8 @@ class TestStorage( unittest.TestCase ):
 
 			# CREATE REFERENCE
 			##################
-			bmaya.Scene.new( force = True )
-			bmaya.ref.createReference( filepath, namespace="referenced" )
+			mrvmaya.Scene.new( force = True )
+			mrvmaya.ref.createReference( filepath, namespace="referenced" )
 
 			refstoragenode = nt.Node( "referenced:storage" )
 			refcomparator = nt.Node( "referenced:trans" )
@@ -85,8 +85,8 @@ class TestStorage( unittest.TestCase ):
 
 			# save reference
 			filewithrefpath = tmpdir / ( "refstoragetest" + filetype )
-			bmaya.Scene.save( filewithrefpath )
-			bmaya.Scene.open( filewithrefpath, force = True )
+			mrvmaya.Scene.save( filewithrefpath )
+			mrvmaya.Scene.open( filewithrefpath, force = True )
 
 			# check test value and the newly written one
 			refstoragenode = nt.Node( "referenced:storage" )
@@ -115,7 +115,7 @@ class TestStorage( unittest.TestCase ):
 
 
 	def test_storageAttributeHanlding( self ):
-		bmaya.Scene.new( force = True )
+		mrvmaya.Scene.new( force = True )
 		snode = nt.createNode( "storage",  "storageNode" )
 
 		# autocreate off
@@ -162,7 +162,7 @@ class TestStorage( unittest.TestCase ):
 		assert len( persp.message.moutputs() ) == 10 
 
 	def test_storageSetHandling( self ):
-		bmaya.Scene.new( force = True )
+		mrvmaya.Scene.new( force = True )
 		snode = nt.createNode( "storage",  "storageNode" )
 
 		# SIMPLE SET

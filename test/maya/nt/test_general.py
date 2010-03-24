@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 """Test basic node features """
 from mrv.test.maya import *
-import mrv.maya as bmaya
+import mrv.maya as mrvmaya
 import mrv.maya.nt as nt
 import maya.OpenMaya as api
 import maya.cmds as cmds
@@ -55,7 +55,7 @@ class TestTransform( unittest.TestCase ):
 		# END for each name
 		
 	def test_usage_examples(self):
-		bmaya.Scene.new(force=True)
+		mrvmaya.Scene.new(force=True)
 		mrvnt.enforcePersistence()
 		
 		# NOTE: If this test fails ( because of name changes for instance ), the 

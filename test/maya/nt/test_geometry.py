@@ -4,14 +4,14 @@ from mrv.test.maya import *
 import mrv.maya.nt as nt
 import mrv.maya.nt.geometry as modgeo
 import maya.OpenMaya as api
-import mrv.maya as bmaya
+import mrv.maya as mrvmaya
 
 class TestGeometry( unittest.TestCase ):
 	""" Test general maya framework """
 
 
 	def test_setHandling( self ):
-		bmaya.Scene.open( get_maya_file( "shadertest.ma" ), force = 1 )
+		mrvmaya.Scene.open( get_maya_file( "shadertest.ma" ), force = 1 )
 
 		# these are all shapes
 		p1 = nt.Node( "|p1trans|p1" )		# one shader
@@ -168,7 +168,7 @@ class TestGeometry( unittest.TestCase ):
 		# is not verified at all
 		# although tweaks have been removed, from the shape , their effect needs to stay
 		for comptype in nt.Mesh.eComponentType.vertex, nt.Mesh.eComponentType.uv :
-			bmaya.Scene.open( get_maya_file( "meshtweaks.ma" ), force = 1 )
+			mrvmaya.Scene.open( get_maya_file( "meshtweaks.ma" ), force = 1 )
 
 			for mname in ( "mesh_without_history", "mesh_with_history" ):
 				mesh = nt.Node( mname )

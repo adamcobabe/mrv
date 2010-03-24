@@ -5,26 +5,15 @@ Deals with types of objects and mappings between them
 __docformat__ = "restructuredtext"
 
 from mrv.maya.util import MetaClassCreator
-import mrv.maya as bmaya
-from mrv.path import Path
-import mrv.maya.env as env
-from mrv.util import uncapitalize, PipeSeparatedFile
-import maya.OpenMaya as api
-import maya.OpenMayaAnim as apianim
-import maya.OpenMayaUI	as apiui
-import maya.OpenMayaRender	as apirender
-import maya.OpenMayaFX as apifx
-import re
-import inspect
+import mrv.maya as mrvmaya
+import mrv.maya.mdb as mdb
+from mrv.util import uncapitalize
+
 from new import instancemethod
-import UserDict
-import maya.cmds as cmds
 
-__all__ = ("MetaClassCreatorNodes", "mfnDBPath", "cacheFilePath", "initNodeHierarchy", "initWrappers", 
-           "initNodeTypeToMfnClsMap", "MfnMemberMap", "writeMfnDBCacheFiles")
+__all__ = ("MetaClassCreatorNodes", "initNodeHierarchy", "initWrappers", 
+           "initTypeNameToMfnClsMap")
 
-import logging
-log = logging.getLogger("mrv.maya.nt.typ")
 
 ####################
 ### CACHES ########
@@ -61,10 +50,10 @@ class MetaClassCreatorNodes( MetaClassCreator ):
 			function set described by mfnclsname
 			If no explicit information exists, the db will be empty"""
 		try:
-			return MfnMemberMap( mfnDBPath( mfnclsname ) )
+			return mdb.MFnMemberMap( mdb.mfnDBPath( mfnclsname ) )
 		except IOError:
 			pass
-		return MfnMemberMap()
+		return mdb.MFnMemberMap()
 
 
 	@classmethod
@@ -99,7 +88,6 @@ class MetaClassCreatorNodes( MetaClassCreator ):
 		:return:  wrapped function"""
 		# check the dict for method name - we do not want to see methods of
 		# base classes - will raise accordingly
-		mfndb = funcMutatorDB
 		direct_api_func = False
 		funcname_orig = funcname	# store the original for later use
 
@@ -117,7 +105,7 @@ class MetaClassCreatorNodes( MetaClassCreator ):
 			try:
 				mfnfuncname, entry = funcMutatorDB.entry( funcname )
 				# delete function ?
-				if entry.flag == MfnMemberMap.kDelete:
+				if entry.flag == mdb.MFnMemberMap.kDelete:
 					return None
 
 				rvalfunc = entry.rvalfunc
@@ -385,56 +373,6 @@ class MetaClassCreatorNodes( MetaClassCreator ):
 #### Initialization Methods   ####
 #################################
 
-def mfnDBPath( mfnclsname ):
-	"""Generate a path to a database file containing mfn wrapping information"""
-	appversion = str( env.appVersion( )[0] )
-	return Path( __file__ ).parent().parent() / ( "cache/mfndb/"+ mfnclsname )
-
-
-def cacheFilePath( filename, ext, use_version = False ):
-	"""Return path to cache file from which you would initialize data structures
-	
-	:param use_version: if true, the maya version will be appended to the filename  """
-	mfile = Path( __file__ ).parent().parent()
-	version = ""
-	if use_version:
-		version = cmds.about( version=1 ).split( " " )[0]
-	# END use version
-	return mfile / ( "cache/%s%s.%s" % ( filename, version, ext ) )
-
-def initNodeHierarchy( ):
-	""" Parse the nodes hiearchy from the maya doc and create an Indexed tree from it"""
-	global nodeTypeTree
-	mfile = cacheFilePath( "nodeHierarchy", "hf", use_version = 1 )
-	nodeTypeTree = bmaya.dag_tree_from_tuple_list( bmaya.tuple_list_from_file( mfile ) )
-
-def initWrappers( targetmodule ):
-	"""Create Standin Classes that will delay the creation of the actual class till
-	the first instance is requested
-	
-	:param targetmodule: the module to which to put the wrappers"""
-	global nodeTypeTree
-	bmaya.initWrappers( targetmodule, nodeTypeTree.nodes_iter(), MetaClassCreatorNodes )
-
-def initNodeTypeToMfnClsMap( ):
-	"""Fill the cache map supplying additional information about the MFNClass to use
-	when creating the classes"""
-	cfile = cacheFilePath( "nodeTypeToMfnCls", "map" )
-	fobj = open( cfile, 'r' )
-	pf = PipeSeparatedFile( fobj )
-
-	version = pf.beginReading( )	 # don't care about version
-	for nodeTypeName, mfnTypeName in pf.readColumnLine( ):
-		for apimod in ( api, apianim, apirender, apiui, apifx ):
-			try:
-				nodeTypeToMfnClsMap[ nodeTypeName ] = getattr( apimod, mfnTypeName )
-				break				# it worked, there is only one matching class
-			except AttributeError:
-				log.debug("Couldn't find mfn class named %s" % mfnTypeName)
-		# END for each api module
-	# END for each type/mfnclass pair
-
-	fobj.close()
 
 
 def _addCustomType( targetmodule, parentclsname, newclsname,
@@ -457,8 +395,7 @@ def _addCustomType( targetmodule, parentclsname, newclsname,
 	nodeTypeTree.add_edge( parentclsname, newclsname )
 
 	# create wrapper ( in case newclsname does not yet exist in target module )
-	bmaya.initWrappers( targetmodule, [ newclsname ], metaclass, **kwargs )
-
+	mrvmaya.initWrappers( targetmodule, [ newclsname ], metaclass, **kwargs )
 
 def _addCustomTypeFromDagtree( targetModule, dagtree, metaclass=MetaClassCreatorNodes,
 							  	force_creation=False, **kwargs ):
@@ -478,159 +415,25 @@ def _addCustomTypeFromDagtree( targetModule, dagtree, metaclass=MetaClassCreator
 				yield edge
 
 	nodeTypeTree.add_edges_from( recurseOutEdges( rootnode ) )
-	bmaya.initWrappers( targetModule, dagtree.nodes_iter(), metaclass, force_creation = force_creation, **kwargs )
+	mrvmaya.initWrappers( targetModule, dagtree.nodes_iter(), metaclass, force_creation = force_creation, **kwargs )
 
+def initTypeNameToMfnClsMap( ):
+	"""Fill the cache map supplying additional information about the MFNClass to use
+	when creating the classes"""
+	global nodeTypeToMfnClsMap
+	nodeTypeToMfnClsMap = mdb.createTypeNameToMfnClsMap()
 
-################################
-#### Cache Initialization ####
-############################
+def initNodeHierarchy( ):
+	"""Initialize the global tree of types, providing a hierarchical relationship between 
+	the node typename strings"""
+	global nodeTypeTree
+	nodeTypeTree = mdb.createDagNodeHierarchy()
 
-class MfnMemberMap( UserDict.UserDict ):
-	"""Simple accessor for MFnDatabase access
-	Direct access like db[funcname] returns an entry object with all values"""
-	kDelete = 'x'
-
-	class Entry:
-		"""Simple entry struct keeping the actual values """
-		__slots__ = ("flag", "rvalfunc", "newname")
-		
-		def __init__( self, flag='', rvalfunc = None, newname="" ):
-			self.flag = flag
-			self.rvalfunc = self.toRvalFunc( rvalfunc )
-			self.newname = newname
-
-		@classmethod
-		def toRvalFunc( cls, funcname ):
-			if not isinstance( funcname, basestring ):
-				return funcname
-			if funcname == 'None': return None
-			
-			try:
-				return _nodesdict[funcname]
-			except KeyError:
-				raise ValueError("'%s' is unknown to nodes module - it must be implemented there" % funcname )
-
-		def rvalFuncToStr( self ):
-			if self.rvalfunc is None: return 'None'
-			return self.rvalfunc.__name__
-	# END entry class
-
-	def __init__( self, filepath = None ):
-		"""intiialize self from a file if not None"""
-		UserDict.UserDict.__init__( self )
-
-		self._filepath = filepath
-		if filepath:
-			self._initFromFile( filepath )
-
-	def __str__( self ):
-		return "MfnMemberMap(%s)" % self._filepath
-
-	def _initFromFile( self, filepath ):
-		"""Initialize the database with values from the given file
-		
-		:note: the file must have been written using the `writeToFile` method"""
-		self.clear()
-		fobj = open( filepath, 'r' )
-
-		pf = PipeSeparatedFile( fobj )
-		pf.beginReading( )
-		
-		# get the entries
-		for tokens in pf.readColumnLine( ):
-			key = tokens[ 1 ]
-			self[ key ] = self.Entry( flag=tokens[0], rvalfunc=tokens[2], newname=tokens[3] )
-		# END for each token in read column line
-
-	def writeToFile( self, filepath ):
-		"""Write our database contents to the given file"""
-		klist = self.keys()
-		klist.sort()
-
-		fobj = open( filepath, 'w' )
-		pf = PipeSeparatedFile( fobj )
-		pf.beginWriting( [ 4,40,20,40 ] )
-
-		for key in klist:							# write entries
-			e = self[ key ]
-			pf.writeTokens( ( e.flag, key,e.rvalFuncToStr(), e.newname ) )
-		# end for each key
-
-		fobj.close()
-
-	def entry( self, funcname ):
-		"""
-		:return: Tuple( mfnfuncname, entry )
-			original mfnclass function name paired with the
-			db entry containing more information
-		:raise KeyError: if no such function exists"""
-		try:
-			return ( funcname, self[ funcname ] )
-		except KeyError:
-			for mfnfuncname,entry in self.iteritems():
-				if entry.newname == funcname:
-					return ( mfnfuncname, entry )
-			# END for each item
-
-		raise KeyError( "Function named '%s' did not exist in db" % funcname )
-
-	def createEntry( self, funcname ):
-		""" Create an entry for the given function, or return the existing one
-		
-		:return: Entry object for funcname"""
-		return self.setdefault( funcname, self.Entry() )
-
-	def mfnFunc( self, funcname ):
-		""":return: mfn functionname corresponding to the ( possibly renamed ) funcname """
-		return self.entry( funcname )[0]
-
-
-def writeMfnDBCacheFiles( ):
-	"""Create a simple Memberlist of available mfn classes and their members
-	to allow a simple human-editable way of adjusting which methods will be added
-	to the Nodes"""
-	for apimod in ( api, apianim, apirender, apiui, apifx ):
-		mfnclsnames = [ clsname for clsname in dir( apimod ) if clsname.startswith( "MFn" ) ]
-		for mfnname in mfnclsnames:
-			mfnfile = mfnDBPath( mfnname )
-			mfncls = getattr( apimod, mfnname )
-
-			try:
-				mfnfuncs =  [ f  for f  in mfncls.__dict__.itervalues( )
-								if callable( f  ) and not f .__name__.startswith( '_' )
-								and not f .__name__.startswith( '<' )
-								and not f .__name__.endswith( mfnname )	# i.e. delete_MFnName
-								and not inspect.isclass( f  ) ]
-			except AttributeError:
-				continue		# it was a function, not a class
-
-			if not len( mfnfuncs ):
-				continue
-
-			db = MfnMemberMap()
-			if mfnfile.exists():
-				db = MfnMemberMap( mfnfile )
-
-			# assure folder exists
-			folder = mfnfile.dirname()
-			if not folder.isdir(): folder.makedirs()
-
-
-			# write data - simple set the keys, use default flags
-			for func in mfnfuncs:
-				# it could be prefixed with the function set name - remove the prefix
-				# This happens in maya2008 + and may introduce plenty of new methods
-				fname = func.__name__
-				if fname.startswith(mfnname):
-					fname = fname[len(mfnname)+1:]	# cut MFnName_(function)
-				# END handle prefix
-				
-				db.createEntry(fname)
-			# END for each function to add
-
-
-			# finally write the change db
-			db.writeToFile( mfnfile )
-		# END for each api class
-	# END for each api module
-
+def initWrappers( targetmodule ):
+	"""Create Standin Classes that will delay the creation of the actual class till
+	the first instance is requested
+	
+	:param targetmodule: the module to which to put the wrappers"""
+	global nodeTypeTree
+	mrvmaya.initWrappers( targetmodule, nodeTypeTree.nodes_iter(), MetaClassCreatorNodes )
+	

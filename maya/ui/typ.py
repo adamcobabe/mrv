@@ -4,7 +4,7 @@ Module containing helpers to create the UI types at runtime.
 """
 __docformat__ = "restructuredtext"
 
-import mrv.maya as bmaya
+import mrv.maya as mrvmaya
 from mrv.util import uncapitalize
 import mrv.maya.util as mutil
 from mrv.path import Path
@@ -25,13 +25,13 @@ def init_classhierarchy( ):
 
 	# STORE THE TYPE TREE
 	global _typetree
-	_typetree = bmaya.dag_tree_from_tuple_list( bmaya.tuple_list_from_file( mfile ) )
+	_typetree = mrvmaya.dag_tree_from_tuple_list( mrvmaya.tuple_list_from_file( mfile ) )
 
 
 def initWrappers( ):
 	""" Create Standin Classes that will delay the creation of the actual class till
 	the first instance is requested"""
-	bmaya.initWrappers( _thismodule, _typetree.nodes_iter(), MetaClassCreatorUI )
+	mrvmaya.initWrappers( _thismodule, _typetree.nodes_iter(), MetaClassCreatorUI )
 
 #} END initialization
 
