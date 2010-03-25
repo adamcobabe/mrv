@@ -30,6 +30,7 @@
     | setVelocityMode                         | None                |                                         
     | temperature                             | None                |                                         
     | toGridIndex                             | None                |                                         
+    | type                                    | None                |                                         
     | updateGrid                              | None                |                                         
     | velocityGridSizes                       | None                |                                         
     | voxelCenterPosition                     | None                |                                         

@@ -10,4 +10,5 @@
     | setMaxDistance                          | None                |                                         
     | setPerVertex                            | None                |                                         
     | setUseMaxDistance                       | None                |                                         
+    | type                                    | None                |                                         
     | useMaxDistance                          | None                |                                         

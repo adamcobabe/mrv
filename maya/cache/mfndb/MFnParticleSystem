@@ -40,6 +40,7 @@
     | surfaceShading                          | None                |                                         
     | tailSize                                | None                |                                         
     | threshold                               | None                |                                         
+    | type                                    | None                |                                         
     | velocity                                | None                |                                         
     | visibleInReflections                    | None                |                                         
     | visibleInRefractions                    | None                |                                         

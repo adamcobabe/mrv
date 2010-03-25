@@ -4,7 +4,7 @@
     | boundaryType                            | None                |                                         
     | clearUVs                                | None                |                                         
     | closestPoint                            | None                |                                         
-    | copy                                    | None		          |                                         
+    | copy                                    | None                |                                         
     | create                                  | None                |                                         
     | cv                                      | None                |                                         
     | cvsInU                                  | None                |                                         
@@ -48,8 +48,8 @@
     | knotInV                                 | None                |                                         
     | normal                                  | None                |                                         
     | numBoundaries                           | None                |                                         
-    | numCVsInU                               | DoubleIndexedComponent                |                                         
-    | numCVsInV                               | DoubleIndexedComponent                |                                         
+    | numCVsInU                               | DoubleIndexedComponent|                                         
+    | numCVsInV                               | DoubleIndexedComponent|                                         
     | numEdges                                | None                |                                         
     | numKnotsInU                             | None                |                                         
     | numKnotsInV                             | None                |                                         

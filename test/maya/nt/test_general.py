@@ -4,6 +4,7 @@ from mrv.test.maya import *
 import mrv.maya as mrvmaya
 import mrv.maya.nt as nt
 import maya.OpenMaya as api
+import maya.OpenMayaRender as apirender
 import maya.cmds as cmds
 
 import mrv.maya.nt as mrvnt
@@ -97,6 +98,15 @@ class TestTransform( unittest.TestCase ):
 		assert p.isFromReferencedFile() == p.isReferenced()
 		
 		assert isinstance(p.getMFnClasses(), list)
+		
+		# static methods #
+		assert DependNode.classification('lambert') == api.MFnDependencyNode.classification('lambert')
+		rnl = RenderLayer.currentLayer()
+		assert isinstance(rnl, Node)
+		rnlobj = apirender.MFnRenderLayer.currentLayer()
+		assert rnl == rnlobj
+		assert isinstance(rnlobj, api.MObject)
+		
 		
 		# DAG NAVIGATION
 		################

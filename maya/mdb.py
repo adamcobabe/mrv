@@ -129,8 +129,12 @@ def writeMfnDBCacheFiles(  ):
 	for apimod in getApiModules():
 		mfnclsnames = [ clsname for clsname in dir( apimod ) if clsname.startswith( "MFn" ) ]
 		for mfnname in mfnclsnames:
-			mfnfile = mfnDBPath( mfnname )
 			mfncls = getattr( apimod, mfnname )
+			if not inspect.isclass(mfncls):
+				continue
+			# END assure we don't get methods, like MFnName_deallocateFlag
+			mfnfile = mfnDBPath( mfnname )
+			
 
 			mfnfuncs = list()
 			fstatic, finst = extractMFnFunctions(mfncls)
@@ -345,10 +349,6 @@ class MFnMethodDescriptor(object):
 		self.rvalfunc = rvalfunc
 		self.newname = newname
 
-	def rvalFuncToStr( self ):
-		if self.rvalfunc is None: return 'None'
-		return self.rvalfunc.__name__
-
 
 class MFnMemberMap( UserDict.UserDict ):
 	"""Simple accessor for MFnDatabase access
@@ -415,7 +415,7 @@ class MFnMemberMap( UserDict.UserDict ):
 
 		for key in klist:							# write entries
 			e = self[ key ]
-			pf.writeTokens( ( e.flag, key,e.rvalFuncToStr(), e.newname ) )
+			pf.writeTokens( ( e.flag, key,e.rvalfunc, e.newname ) )
 		# end for each key
 
 		fobj.close()

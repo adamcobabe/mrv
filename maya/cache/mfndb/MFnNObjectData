@@ -4,3 +4,4 @@
     | getObjectPtr                            | None                |                                         
     | setCached                               | None                |                                         
     | setObjectPtr                            | None                |                                         
+    | type                                    | None                |                                         

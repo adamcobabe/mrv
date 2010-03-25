@@ -84,7 +84,20 @@ If you are interested in knowing which MFnFunction sets your node supports, call
 	 <class 'maya.OpenMaya.MFnDependencyNode'>]
 	 
 If you want to learn more about the MFnFunctionSet method aliases, see :ref:`mfnmethodmutator-label`
-	 
+
+Static MFn Functions
+====================
+Static functions on function sets may be accessed through the actual node type natively::
+	>>> assert DependNode.classification('lambert') == api.MFnDependencyNode.classification('lambert')
+	
+Return values of static methods are wrapped as well if possible::
+	>>> import maya.OpenMayaRender as apirender
+	>>> rnl = RenderLayer.currentLayer()
+	>>> assert isinstance(rnl, Node)
+	>>> rnlobj = apirender.MFnRenderLayer.currentLayer()
+	>>> assert rnl == rnlobj
+	>>> assert isinstance(rnlobj, api.MObject)
+	
 DAG-Navigation
 ==============
 DAG objects are organized in a hierarchy which can be walked and traversed at will. The following example also uses a very handy shortcut, allowing you to access the children and parent nodes by index::

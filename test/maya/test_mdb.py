@@ -89,9 +89,6 @@ class TestMDB( unittest.TestCase ):
 			# END for each needsMObject state
 		# END for each direct call state
 		
-		
-		
-		
 	def _DISABLED_test_mfncachebuilder( self ):
 		"""Rewrite the mfn db cache files - should be done with each new maya version"""
 		import mrv.maya.mdb as mdb
