@@ -1,3 +1,4 @@
+node				|	MFn
 dependNode			|	MFnDependencyNode
 dagNode				| 	MFnDagNode
 transform			| 	MFnTransform

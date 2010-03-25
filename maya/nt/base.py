@@ -2074,97 +2074,14 @@ class Attribute( MObject ):
 Attribute._base_cls_ = Attribute
 		
 class UnitAttribute( Attribute ):
-	#{ Constants
-	types = ( api.MFnUnitAttribute.kAngle, api.MFnUnitAttribute.kDistance, api.MFnUnitAttribute.kTime )
-	kAngle, \
-	kDistance, \
-	kTime, = types
-	#} END constants
+	pass
 
 
 class TypedAttribute( Attribute ):
-	#{ Constants 
-	types = (  	api.MFnData.kString, 
-				api.MFnData.kMatrix, 
-				api.MFnData.kStringArray, 
-				api.MFnData.kDoubleArray, 
-				api.MFnData.kIntArray, 
-				api.MFnData.kPointArray, 
-				api.MFnData.kVectorArray, 
-				api.MFnData.kComponentList, 
-				api.MFnData.kMesh, 
-				api.MFnData.kLattice, 
-				api.MFnData.kNurbsCurve, 
-				api.MFnData.kNurbsSurface, 
-				api.MFnData.kSphere, 
-				api.MFnData.kDynArrayAttrs, 
-				api.MFnData.kDynSweptGeometry, 
-				api.MFnData.kSubdSurface, 
-				api.MFnData.kNObject )
-	
-	kString, \
-	kMatrix, \
-	kStringArray, \
-	kDoubleArray, \
-	kIntArray, \
-	kPointArray, \
-	kVectorArray, \
-	kComponentList, \
-	kMesh, \
-	kLattice, \
-	kNurbsCurve, \
-	kNurbsSurface, \
-	kSphere, \
-	kDynArrayAttrs, \
-	kDynSweptGeometry, \
-	kSubdSurface, \
-	kNObject = types
-	#} END constants
-	
+	pass
+
 
 class NumericAttribute( Attribute ):
-	#{ Constants
-	types = (	api.MFnNumericData.kBoolean,
-				api.MFnNumericData.kByte, 
-				api.MFnNumericData.kChar, 
-				api.MFnNumericData.kShort, 
-				api.MFnNumericData.k2Short,
-				api.MFnNumericData.k3Short,
-				api.MFnNumericData.kLong,
-				api.MFnNumericData.kInt, 
-				api.MFnNumericData.k2Long,
-				api.MFnNumericData.k2Int,
-				api.MFnNumericData.k3Long,
-				api.MFnNumericData.k3Int,
-				api.MFnNumericData.kFloat,
-				api.MFnNumericData.k2Float, 
-				api.MFnNumericData.k3Float,
-				api.MFnNumericData.kDouble,
-				api.MFnNumericData.k2Double,
-				api.MFnNumericData.k3Double,
-				api.MFnNumericData.kAddr	)
-	
-	kBoolean, \
-	kByte, \
-	kChar, \
-	kShort, \
-	k2Short, \
-	k3Short, \
-	kLong, \
-	kInt, \
-	k2Long, \
-	k2Int, \
-	k3Long, \
-	k3Int, \
-	kFloat, \
-	k2Float, \
-	k3Float, \
-	kDouble, \
-	k2Double, \
-	k3Double, \
-	kAddr = types
-	#} END constants
-	
 	@classmethod
 	def _create_using(cls, method_name, *args):
 		mfninst = cls._mfncls()
@@ -2191,10 +2108,7 @@ class MessageAttribute( Attribute ):
 	
 	
 class MatrixAttribute( Attribute ):
-	#{ Constants
-	types = ( 	api.MFnMatrixAttribute.kFloat, api.MFnMatrixAttribute.kDouble )
-	kFloat, kDouble = types
-	#} END constants
+	pass
 	
 	
 class LightDataAttribute( Attribute ):

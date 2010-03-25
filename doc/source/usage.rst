@@ -98,6 +98,15 @@ Return values of static methods are wrapped as well if possible::
 	>>> assert rnl == rnlobj
 	>>> assert isinstance(rnlobj, api.MObject)
 	
+Enumerations
+============
+If a MFnFunctionSet associated with a ``NodeType``, ``DataType`` or ``AttributeType`` has enumerations, these are statically available on the type by the name used in the MayaAPI documentation. A utility function allows to map enumeration values back to their name::
+	>>> assert Node.Type.kMesh == api.MFn.kMesh
+	>>> assert Attribute.DisconnectBehavior.kReset == api.MFnAttribute.kReset
+	>>> assert Data.Type.kPlugin == api.MFnData.kPlugin
+		
+	>>> assert Node.Type.nameByValue(api.MFn.kMesh) == 'kMesh'
+	
 DAG-Navigation
 ==============
 DAG objects are organized in a hierarchy which can be walked and traversed at will. The following example also uses a very handy shortcut, allowing you to access the children and parent nodes by index::
@@ -444,7 +453,7 @@ The code looks like this::
 	>>> cattr = CompoundAttribute.create("compound", "co")
 	>>> cattr.setArray(True)
 	>>> if cattr:
-	>>> 	sattr = TypedAttribute.create("string", "str", TypedAttribute.kString)
+	>>> 	sattr = TypedAttribute.create("string", "str", Data.Type.kString)
 	>>> 	pattr = NumericAttribute.createPoint("point", "p")
 	>>> 	mattr = MessageAttribute.create("message", "msg")
 	>>> 	mattr.setArray(True)

@@ -18,15 +18,17 @@ import maya.cmds as cmds
 
 import UserDict
 import inspect
+import re
 from cStringIO import StringIO
+import string
 
 import logging
 log = logging.getLogger("mrv.maya.mdb")
 
 __all__ = ("createDagNodeHierarchy", "createTypeNameToMfnClsMap", "getApiModules", 
            "getApiModules", "mfnDBPath", "cacheFilePath", "writeMfnDBCacheFiles", 
-           "extractMFnFunctions", "PythonMFnCodeGenerator", "MFnMemberMap", 
-           "MFnMethodDescriptor" )
+           "extractMFnFunctions", "PythonMFnCodeGenerator", "MMemberMap", 
+           "MMethodDescriptor" )
 
 #{ Initialization 
 
@@ -86,6 +88,16 @@ def getApiModules():
 def mfnDBPath( mfnclsname ):
 	"""Generate a path to a database file containing mfn wrapping information"""
 	return Path(cacheFilePath("mfndb/"+ mfnclsname, '', use_version=False)[:-1])	# cut the '.'
+	
+def headerPath( apiname ):
+	"""
+	:return: Path to file containing the c++ header of the given apiclass' name.
+		The file will not be verified, hence it may be inaccessible
+	:param apiname: string name, like 'MFnBase'
+	:raise ValueError: if MAYA_LOCATION is not set"""
+	p = Path("$MAYA_LOCATION/include/maya/%s.h" % apiname)
+	return p.expand_or_raise()
+	
 
 def cacheFilePath( filename, ext, use_version = False ):
 	"""Return path to cache file from which you would initialize data structures
@@ -119,6 +131,13 @@ def extractMFnFunctions(mfncls):
 	
 	return (staticmfnfuncs, mfnfuncs)
 
+def hasMEnumeration(mfncls):
+	""":return: True if the given mfncls has at least one enumeration"""
+	for n in mfncls.__dict__.keys():
+		if n.startswith('k') and n[1] in string.ascii_uppercase:	# a single k would kill us ... 
+			return True
+	# END for each dict name
+	return False
 
 def writeMfnDBCacheFiles(  ):
 	"""Create a simple Memberlist of available mfn classes and their members
@@ -144,9 +163,9 @@ def writeMfnDBCacheFiles(  ):
 			if not mfnfuncs:
 				continue
 			
-			db = MFnMemberMap()
+			db = MMemberMap()
 			if mfnfile.exists():
-				db = MFnMemberMap( mfnfile )
+				db = MMemberMap( mfnfile )
 
 			# assure folder exists
 			folder = mfnfile.dirname()
@@ -173,9 +192,12 @@ def writeMfnDBCacheFiles(  ):
 
 #} END functions 
 
+
+#{ Code Generators 
+
 class MFnCodeGeneratorBase(object):
 	"""Define the interface and common utility methods to generate a string defining 
-	code for a given MFnMethod according to the meta data provided by an `MFnMethodDescriptor`.
+	code for a given MFnMethod according to the meta data provided by an `MMethodDescriptor`.
 	
 	Once instantiated, it can create any number of methods"""
 	__slots__ = 'module_dict'
@@ -206,7 +228,7 @@ class MFnCodeGeneratorBase(object):
 			it was requested.
 		:param target_method_name: Name of the method in the returned code string
 		:param mfn_fun_name: original name of the MFn function
-		:param method_descriptor: instance of `MFnMethodDescriptor`
+		:param method_descriptor: instance of `MMethodDescriptor`
 		:param flags: bit flags providing additional information, depending on the actual 
 			implementation. Unsupported flags are ignored."""
 		raise NotImplementedError("To be implemented in SubClass")
@@ -225,7 +247,7 @@ class PythonMFnCodeGenerator(MFnCodeGeneratorBase):
 	 	can be dangerous if held too long
 	 	
 	 * kMFnNeedsMObject:
-	 	See `MFnMemberMap` and its InitWithMObject description
+	 	See `MMemberMap` and its InitWithMObject description
 	 	
 	 * kIsMObject:
 	 	If set, the type we create the method for is not derived from Node, but 
@@ -352,10 +374,65 @@ class PythonMFnCodeGenerator(MFnCodeGeneratorBase):
 		
 		return new_method
 	
-	#} END interface 
+	#} END interface
+	
+#} END code generators
+
+#{ Parsers
+
+class CppHeaderParser(object):
+	"""Simplistic regex based parser which will extract information from the file
+	it was initialized with.
+	
+	For now its so simple that there is no more than one method"""
+	reEnums = re.compile( r"""^\s+ enum \s+ (?P<name>\w+) \s* \{                 # enum EnumName
+                               (?P<members>[\(\)/\w\s,\-+="'\.\#!<\*\\]+)     # match whitespace or newlines
+                               \}[ \t]*;[ \t]*$                                 # closing brace""", 
+							  re.MULTILINE|re.VERBOSE)
+	
+	reEnumMembers = re.compile( """
+	                           [\t ]{2,}                                        # assure we don't get something within the comment
+								(k\w+)[ ]*                                       # find kSomething
+								(?:=[ ]*[\w]+[ ]*)?                              # optionally find initializer = int|other_enum_member
+								""", re.VERBOSE)
+	
+	@classmethod
+	def parseAndExtract(cls, header_filepath):
+		"""Parse the given header file and return the parsed information
+		:param header_filepath: Path pointing to the given header file. Its currently
+			assumed to be 7 bit ascii
+		:return: tuple(tuple(MEnumDescriptor, ...), )"""
+		enum_list = list()
+		
+		# ENUMERATIONS
+		##############
+		# read everything, but skip the license text when matching
+		header = header_filepath.bytes()
+		for enummatch in cls.reEnums.finditer(header, 2188):
+			ed = MEnumDescriptor(enummatch.group('name'))
+			
+			# parse all occurrences of kSomething, including the initializer
+			members = enummatch.group('members')
+			assert members
+			for memmatch in cls.reEnumMembers.finditer(members):
+				ed.append(memmatch.group(1))
+			# END for each member to add
+			
+			enum_list.append(ed)
+		# END for each match
+		
+		# METHODS 
+		#########
+		# TODO:
+		
+		return (tuple(enum_list), )
+	
+#} END parsers 
 	
 	
-class MFnMethodDescriptor(object):
+#{ Database
+	
+class MMethodDescriptor(object):
 	"""Contains meta-information about a given method according to data read from 
 	the MFnDatabase"""
 	__slots__ = ("flag", "rvalfunc", "newname")
@@ -366,7 +443,15 @@ class MFnMethodDescriptor(object):
 		self.newname = newname
 
 
-class MFnMemberMap( UserDict.UserDict ):
+class MEnumDescriptor(list):
+	"""Is an ordered list of enumeration names without its values, together
+	with the name of the enumeration type"""
+	__slots__ = "name"
+	def __init__(self, name):
+		self.name = name
+		
+
+class MMemberMap( UserDict.UserDict ):
 	"""Simple accessor for MFnDatabase access
 	Direct access like db[funcname] returns an entry object with all values
 	
@@ -381,7 +466,7 @@ class MFnMemberMap( UserDict.UserDict ):
 	 	NOTE: This might want to become special handling in the code itself as 
 	 	for now MFnMesh is the only one using the globals at all. Having globals 
 	 	is a good thing only if its used by a few more."""
-	__slots__ = "flags"
+	__slots__ = ("flags", "enums")
 	kDelete = 'x'
 	kInitWithMObjectFlagName = "InitWithMObject"
 
@@ -401,9 +486,13 @@ class MFnMemberMap( UserDict.UserDict ):
 			if ge.flag == self.kInitWithMObjectFlagName:
 				self.flags |= PythonMFnCodeGenerator.kMFnNeedsMObject
 		# END fetch info
+		
+		# INITIALIZE PARSED DATA
+		self.enums, = CppHeaderParser.parseAndExtract(headerPath(filepath.namebase()))
 
 	def __str__( self ):
-		return "MFnMemberMap(%s)" % self._filepath
+		return "MMemberMap(%s)" % self._filepath
+
 
 	def _initFromFile( self, filepath ):
 		"""Initialize the database with values from the given file
@@ -418,7 +507,7 @@ class MFnMemberMap( UserDict.UserDict ):
 		# get the entries
 		for tokens in pf.readColumnLine( ):
 			key = tokens[ 1 ]
-			self[ key ] = MFnMethodDescriptor( flag=tokens[0], rvalfunc=tokens[2], newname=tokens[3] )
+			self[ key ] = MMethodDescriptor( flag=tokens[0], rvalfunc=tokens[2], newname=tokens[3] )
 		# END for each token in read column line
 
 	def writeToFile( self, filepath ):
@@ -437,7 +526,7 @@ class MFnMemberMap( UserDict.UserDict ):
 
 		fobj.close()
 
-	def entry( self, funcname ):
+	def methodByName( self, funcname ):
 		"""
 		:return: Tuple( mfnfuncname, entry )
 			original mfnclass function name paired with the
@@ -457,9 +546,11 @@ class MFnMemberMap( UserDict.UserDict ):
 		""" Create an entry for the given function, or return the existing one
 		
 		:return: Entry object for funcname"""
-		return self.setdefault( funcname, MFnMethodDescriptor() )
+		return self.setdefault( funcname, MMethodDescriptor() )
 
 	def mfnFunc( self, funcname ):
 		""":return: mfn functionname corresponding to the ( possibly renamed ) funcname """
-		return self.entry( funcname )[0]
+		return self.methodByName( funcname )[0]
+		
+#} END database
 

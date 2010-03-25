@@ -7,9 +7,11 @@ the implementation in the `base` module.
 __docformat__ = "restructuredtext"
 
 from mrv.maya.util import MetaClassCreator
+from mrv.maya.util import MEnumeration
 import mrv.maya as mrvmaya
 import mrv.maya.mdb as mdb
 from mrv.util import uncapitalize, capitalize
+
 
 import maya.OpenMaya as api
 
@@ -49,10 +51,10 @@ class MetaClassCreatorNodes( MetaClassCreator ):
 			function set described by mfnclsname
 			If no explicit information exists, the db will be empty"""
 		try:
-			return mdb.MFnMemberMap( mdb.mfnDBPath( mfnclsname ) )
+			return mdb.MMemberMap( mdb.mfnDBPath( mfnclsname ) )
 		except IOError:
 			pass
-		return mdb.MFnMemberMap()
+		return mdb.MMemberMap()
 		
 	@classmethod
 	def _fetchMfnDB( cls, newcls, mfncls ):
@@ -67,14 +69,12 @@ class MetaClassCreatorNodes( MetaClassCreator ):
 		# END mfndb handling
 
 	@classmethod
-	def _wrapStaticMFnMethods( cls, newcls, mfncls ):
+	def _wrapStaticMembers( cls, newcls, mfncls ):
 		"""Find static mfnmethods - if these are available, initialize the 
 		mfn database for the given function set ( ``mfncls`` ) and create properly 
 		wrapped methods. 
-		Currently supported adjustments:
-		
-			rval wrapping
-			
+		Additionally check for enumerations, and generate the respective enumeration
+		instances
 		:note: As all types are initialized on startup, the staticmethods check 
 			will load in quite a few function sets databases as many will have static 
 			methods. There is no real way around it, but one could introduce 'packs'
@@ -82,20 +82,31 @@ class MetaClassCreatorNodes( MetaClassCreator ):
 			hit is not noticeable, but lets just say that I am aware of it
 		:note: Currently method aliases are not implemented for statics !"""
 		fstatic, finst = mdb.extractMFnFunctions(mfncls)
-		if not fstatic:
+		hasEnum = mdb.hasMEnumeration(mfncls)
+		if not fstatic and not hasEnum:
 			return
-		
-		mfndb = cls._fetchMfnDB(newcls, mfncls)
-		mfnname = mfncls.__name__
-		for fs in fstatic:
-			fn = fs.__name__
-			if fn.startswith(mfnname):
-				fn = fn[len(mfnname)+1:]	# cut MFnName_methodName
-			# END handle name prefix
 			
-			static_function = cls._wrapMfnFunc(newcls, mfncls, fn, mfndb)
-			type.__setattr__(newcls, fn, staticmethod(static_function))
-		# END for each static method
+		mfndb = cls._fetchMfnDB(newcls, mfncls)
+		if fstatic:
+			mfnname = mfncls.__name__
+			for fs in fstatic:
+				fn = fs.__name__
+				if fn.startswith(mfnname):
+					fn = fn[len(mfnname)+1:]	# cut MFnName_methodName
+				# END handle name prefix
+				
+				static_function = cls._wrapMfnFunc(newcls, mfncls, fn, mfndb)
+				type.__setattr__(newcls, fn, staticmethod(static_function))
+			# END for each static method
+		# END handle static functions
+		
+		
+		if hasEnum:
+			for ed in mfndb.enums:
+				type.__setattr__(newcls, ed.name, MEnumeration.create(ed, mfncls))
+			# END for each enum desriptor
+		# END handle enumerations
+		
 		
 	@classmethod
 	def _wrapMfnFunc( cls, newcls, mfncls, funcname, mfndb, addFlags=0 ):
@@ -109,7 +120,7 @@ class MetaClassCreatorNodes( MetaClassCreator ):
 		
 		:param mfncls: Maya function set class from which to take the functions
 		:param funcname: name of the function set function to be wrapped.
-		:param mfndb: `mdb.MFnMemberMap` 
+		:param mfndb: `mdb.MMemberMap` 
 		:param addFlags: If set, these flags define how the method will be generated.
 		:raise KeyError: if the given function does not exist in mfncls
 		:note: if the called function starts with _api_*, a special accellerated method
@@ -132,16 +143,16 @@ class MetaClassCreatorNodes( MetaClassCreator ):
 		method_descriptor = None
 		# adjust function according to DB
 		try:
-			mfnfuncname, method_descriptor = mfndb.entry( funcname )
+			mfnfuncname, method_descriptor = mfndb.methodByName( funcname )
 			# delete function ?
-			if method_descriptor.flag == mdb.MFnMemberMap.kDelete:
+			if method_descriptor.flag == mdb.MMemberMap.kDelete:
 				return None
 		except KeyError:
 			pass # could just be working
 		# END if entry available
 	
 		if method_descriptor is None:
-			method_descriptor = mdb.MFnMethodDescriptor()
+			method_descriptor = mdb.MMethodDescriptor()
 		# END assure method descriptor is set
 		
 		# access it directly from the class, ignoring inheritance. If the class
@@ -319,7 +330,7 @@ class MetaClassCreatorNodes( MetaClassCreator ):
 			metacls._wrapLazyGetAttr( newcls )
 			
 			if needs_static_method_initialization:
-				metacls._wrapStaticMFnMethods(newcls, mfncls)
+				metacls._wrapStaticMembers(newcls, mfncls)
 		# END if mfncls defined
 
 
@@ -368,7 +379,7 @@ def prefetchMFnMethods():
 			
 			fna = fn		# alias for method 
 			try:
-				origname, entry = mfndb.entry(fn)
+				origname, entry = mfndb.methodByName(fn)
 				fna = entry.newname
 			except KeyError:
 				pass
