@@ -1,9 +1,9 @@
 [submodule "ext/networkx"]
 	path = ext/networkx
-	url = git://gitorious.org/~byron/networkx/mayarv-networkx.git
+	url = git://gitorious.org/~byron/networkx/mrv-networkx.git
 [submodule "ext/pydot"]
 	path = ext/pydot
-	url = git://gitorious.org/~byron/pydot/mayarv-mainline.git
+	url = git://gitorious.org/~byron/pydot/mrv-mainline.git
 [submodule "ext/pyparsing"]
 	path = ext/pyparsing
-	url = git://gitorious.org/~byron/pyparsing/mayarv-mainline.git
+	url = git://gitorious.org/~byron/pyparsing/mrv-mainline.git
