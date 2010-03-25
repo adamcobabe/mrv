@@ -1,9 +1,12 @@
 # -*- coding: utf-8 -*-
 """ Test maya node database """
 from mrv.test.maya import *
+from mrv.maya.util import MEnumeration
 import mrv.maya.mdb as mdb
 from mrv.path import *
 from mrv.util import DAGTree
+
+import maya.OpenMayaUI as apiui 
 
 import inspect
 
@@ -114,7 +117,18 @@ class TestMDB( unittest.TestCase ):
 			assert len(ed)
 			assert isinstance(ed.name, basestring)
 			
-			# convert to MFnEnumeration
+			# convert to MEnumeration
+			enum = MEnumeration.create(ed, apiui.M3dView)
+			assert isinstance(enum, MEnumeration)
+			assert enum.name == ed.name
+			assert len(enum) == len(ed)
+			for em in ed:
+				ev = getattr(enum, em)
+				assert isinstance(ev, int)
+				assert enum.nameByValue(ev) == em
+			# END check each instance
+			self.failUnlessRaises(ValueError, enum.nameByValue, -1)
+			
 		# END for each enum descriptor
 		
 		

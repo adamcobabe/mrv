@@ -20,6 +20,7 @@ import UserDict
 import inspect
 import re
 from cStringIO import StringIO
+import string
 
 import logging
 log = logging.getLogger("mrv.maya.mdb")
@@ -130,6 +131,13 @@ def extractMFnFunctions(mfncls):
 	
 	return (staticmfnfuncs, mfnfuncs)
 
+def hasMEnumeration(mfncls):
+	""":return: True if the given mfncls has at least one enumeration"""
+	for n in mfncls.__dict__.keys():
+		if n.startswith('k') and n[1] in string.ascii_uppercase:	# a single k would kill us ... 
+			return True
+	# END for each dict name
+	return False
 
 def writeMfnDBCacheFiles(  ):
 	"""Create a simple Memberlist of available mfn classes and their members
@@ -378,7 +386,7 @@ class CppHeaderParser(object):
 	
 	For now its so simple that there is no more than one method"""
 	reEnums = re.compile( """^\s+ enum \s+ (?P<name>\w+) \s* \{                 # enum EnumName
-                               (?P<members>[\(\)/\w\s,="'\.]+)                  # match whitespace or newlines
+                               (?P<members>[\(\)/\w\s,\-+="'\.]+)                  # match whitespace or newlines
                                \}[ \t]*;[ \t]*$                                 # closing brace""", 
 							  re.MULTILINE|re.VERBOSE)
 	

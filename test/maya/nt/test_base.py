@@ -5,6 +5,7 @@ import mrv.maya as mrvmaya
 import mrv.maya.env as env
 import mrv.maya.ns as nsm
 import mrv.maya.nt as nt
+from mrv.maya.util import MEnumeration
 from mrv.maya.nt.persistence import PyPickleData
 from mrv.test.maya import get_maya_file
 from mrv.util import capitalize, uncapitalize
@@ -1039,6 +1040,16 @@ class TestNodeBase( unittest.TestCase ):
 		# access a static method directly
 		rnl = nt.RenderLayer.currentLayer()
 		assert isinstance(rnl, nt.Node)
+		
+	def test_enumerations(self):
+		# should exist for nodes, data, components and attributes - we just 
+		# take samples
+		for enum in (	nt.Node.Type,
+						nt.DependNode.MAttrClass, 
+						nt.Attribute.DisconnectBehavior,
+						nt.Data.Type ):
+			assert isinstance(enum, MEnumeration)
+		# END for each enumration sample
 
 	def test_attributes( self ):
 		# CREATION 

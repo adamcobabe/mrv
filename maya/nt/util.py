@@ -60,38 +60,3 @@ def undoable_in_double3_as_vector(function, vec_old_value, vec_new_value):
 	
 
 #}END conversion methods
-
-
-#{ Utility Classes
-class MFnEnumeration(list):
-	"""Simple enumeration class which allows access to its enumeration using 
-	getattr access. 
-	As it is a list as well, one can access the enumeration values in the right sequencial
-	order as well"""
-	def __init__(self, name):
-		self.name = name
-		
-	def __str__(self):
-		return self.name
-	
-	def __repr__(self):
-		return "MFnEnumeration(%s)" % self.name
-	
-	#{ Interface
-	
-	def nameByValue(self, value):
-		""":return: name string with the given integer value
-		:param value: integer value of this enumeration
-		:raise ValueError: if value is not in the enumeration"""
-		for n,v in self.__dict__.items():
-			if n.startswith('k') or not isinstance(v, int):
-				continue
-				
-			if v == value:
-				return n
-			# END if value matches
-		# END for each item in our dict
-		raise ValueError("Value %i not in enumeration" % value)
-		
-	#} END interface
-#} END utility classes

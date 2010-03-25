@@ -13,7 +13,8 @@ import weakref
 
 __all__ = ("noneToList", "isIterable", "pythonToMel", "makeEditOrQueryMethod", 
            "queryMethod", "editMethod", "propertyQE", "Mel", "OptionVarDict", 
-           "optionvars", "StandinClass", "MetaClassCreator", "CallbackEventBase")
+           "optionvars", "StandinClass", "MetaClassCreator", "CallbackEventBase", 
+           "MEnumeration")
 
 #{ Utility Functions
 def noneToList( res ):
@@ -257,6 +258,8 @@ optionvars = OptionVarDict()
 #} END utility classes
 
 
+#{ API Utilities Classes
+
 class StandinClass( object ):
 	""" Simple Function Object allowing to embed the name of the type as well as
 	the metaclass object supposed to create the actual class. It mus be able to completely
@@ -339,7 +342,6 @@ class MetaClassCreator( type ):
 
 
 		return newcls
-
 
 class CallbackEventBase( util.Event ):
 	"""Allows the mapping of MMessage callbacks to mrv's event sender system.
@@ -464,3 +466,53 @@ class CallbackEventBase( util.Event ):
 			functions.remove(cbstorage)
 		# END dergister event
 		
+		
+class MEnumeration(list):
+	"""Simple enumeration class which allows access to its enumeration using 
+	getattr access. 
+	As it is a list as well, one can access the enumeration values in the right sequencial
+	order as well"""
+	def __init__(self, name):
+		self.name = name
+		
+	def __str__(self):
+		return self.name
+	
+	def __repr__(self):
+		return "MEnumeration(%s)" % self.name
+	
+	#{ Interface
+	
+	def nameByValue(self, value):
+		""":return: name string with the given integer value
+		:param value: integer value of this enumeration
+		:raise ValueError: if value is not in the enumeration"""
+		for n,v in self.__dict__.items():
+			if not n.startswith('k') or not isinstance(v, int):
+				continue
+				
+			if v == value:
+				return n
+			# END if value matches
+		# END for each item in our dict
+		raise ValueError("Value %i not in enumeration" % value)
+		
+	#} END interface
+	
+	@classmethod
+	def create( cls, ed, mfncls ):
+		"""
+		:return: new instance of this type as initialized from the EnumDescriptor ed and 
+			the mfncls
+		"""
+		enum = cls(ed.name)
+				
+		# fill names and look them up
+		for em in ed:
+			ev = getattr(mfncls, em)
+			setattr(enum, em, ev)
+			enum.append(ev)
+		# END for each enumeration member
+		return enum
+	
+#} END api utility classes
