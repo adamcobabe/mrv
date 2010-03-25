@@ -34,17 +34,17 @@ class TestMDB( unittest.TestCase ):
 				if not dbpath.isfile():
 					continue
 				
-				mmap = MFnMemberMap(dbpath)
+				mfndb = MFnMemberMap(dbpath)
 				
-				assert len(mmap)
-				for fname, entry in mmap.iteritems():
+				assert len(mfndb)
+				for fname, entry in mfndb.iteritems():
 					assert isinstance(fname, basestring)
 					assert isinstance(entry, MFnMethodDescriptor)
 				# END for functionname, entry pair
 				
 				# we know that MFnMesh needs MObject iniitalization
 				if mfnclsname == "MFnMesh":
-					assert mmap.flags & PythonMFnCodeGenerator.kMFnNeedsMObject
+					assert mfndb.flags & PythonMFnCodeGenerator.kMFnNeedsMObject
 				# END special global flags check
 			# END for each mfn cls 
 		# END for each apimod
@@ -53,11 +53,11 @@ class TestMDB( unittest.TestCase ):
 		# test code generator - generate code in all possible variants - 
 		# function doesn't matter as its not actually called.
 		import maya.OpenMaya as api
-		mmap = MFnMemberMap(mfnDBPath("MFnBase"))
+		mfndb = MFnMemberMap(mfnDBPath("MFnBase"))
 		mfncls = api.MFnBase
 		mfn_fun_name = 'setObject'
 		mfn_fun = mfncls.__dict__[mfn_fun_name]
-		_discard, mdescr = mmap.entry(mfn_fun_name)
+		_discard, mdescr = mfndb.entry(mfn_fun_name)
 		rvalwrapper = lambda x: x
 		
 		cgen = PythonMFnCodeGenerator(locals())
@@ -72,12 +72,17 @@ class TestMDB( unittest.TestCase ):
 								if directCall:
 									source_fun_name = "_api_"+source_fun_name
 								# END create source function name
+								prevval = mdescr.rvalfunc
 								mdescr.rvalfunc = rvalwrapname
 								try:
-									fun_code_string = cgen.generateMFnClsMethodWrapper(source_fun_name, mfn_fun_name, mfn_fun_name, mdescr, flags)
-								except ValueError:
-									continue
-								# END ignore incorrect value flags
+									try:
+										fun_code_string = cgen.generateMFnClsMethodWrapper(source_fun_name, mfn_fun_name, mfn_fun_name, mdescr, flags)
+									except ValueError:
+										continue
+									# END ignore incorrect value flags
+								finally:
+									mdescr.rvalfunc = prevval
+								# END assure not to alter mfndb entries
 								
 								assert isinstance(fun_code_string, basestring)
 								

@@ -193,7 +193,7 @@ class MFnCodeGeneratorBase(object):
 		try:
 			return self.module_dict[funcname]
 		except KeyError:
-			raise ValueError("'%s' is unknown to nodes module - it must be implemented there" % funcname )
+			raise ValueError("'%s' does not exist in code generator's dictionary" % funcname )
 	#} END utilities
 	
 	
@@ -246,6 +246,7 @@ class PythonMFnCodeGenerator(MFnCodeGeneratorBase):
 	 	in interactive modes, otherwise its a waste of memory.
 	 
 	"""
+	# IMPORTANT: If these change, update docs above, and test.maya.test_mdb and test.maya.performance.test_mdb !
 	kDirectCall, \
 	kMFnNeedsMObject, \
 	kIsMObject, \
@@ -336,7 +337,7 @@ class PythonMFnCodeGenerator(MFnCodeGeneratorBase):
 		else:
 			# get the compiled code
 			codestr = self.generateMFnClsMethodWrapper(source_method_name, target_method_name, mfnfuncname, method_descriptor, flags)
-			code = compile(codestr, "mrv/%s" % (mfncls.__name__+".py"), "exec")
+			code = compile(codestr, "mrv/%s" % (mfncls.__name__+".py"), "exec")	# this operation is expensive !
 			
 			# get the function into our local dict, globals are our locals
 			eval(code, locals())
