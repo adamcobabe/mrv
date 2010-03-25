@@ -4,6 +4,7 @@ from mrv.test.maya import *
 import mrv.maya.mdb as mdb
 from mrv.path import *
 from mrv.util import DAGTree
+
 import inspect
 
 # test import all
@@ -34,12 +35,12 @@ class TestMDB( unittest.TestCase ):
 				if not dbpath.isfile():
 					continue
 				
-				mfndb = MFnMemberMap(dbpath)
+				mfndb = MMemberMap(dbpath)
 				
 				assert len(mfndb)
 				for fname, entry in mfndb.iteritems():
 					assert isinstance(fname, basestring)
-					assert isinstance(entry, MFnMethodDescriptor)
+					assert isinstance(entry, MMethodDescriptor)
 				# END for functionname, entry pair
 				
 				# we know that MFnMesh needs MObject iniitalization
@@ -53,11 +54,11 @@ class TestMDB( unittest.TestCase ):
 		# test code generator - generate code in all possible variants - 
 		# function doesn't matter as its not actually called.
 		import maya.OpenMaya as api
-		mfndb = MFnMemberMap(mfnDBPath("MFnBase"))
+		mfndb = MMemberMap(mfnDBPath("MFnBase"))
 		mfncls = api.MFnBase
 		mfn_fun_name = 'setObject'
 		mfn_fun = mfncls.__dict__[mfn_fun_name]
-		_discard, mdescr = mfndb.entry(mfn_fun_name)
+		_discard, mdescr = mfndb.methodByName(mfn_fun_name)
 		rvalwrapper = lambda x: x
 		
 		cgen = PythonMFnCodeGenerator(locals())
@@ -95,6 +96,27 @@ class TestMDB( unittest.TestCase ):
 				# END for each isMObject state
 			# END for each needsMObject state
 		# END for each direct call state
+		
+	def test_header_parser(self):
+		
+		# test enumeration parsing
+		# has multiple enums, and multiple variants:
+		# enum Type 
+		# { 
+		#	kInvalid = 0,  ... }
+		# and without intitialization
+		viewheader= mdb.headerPath('M3dView')
+		enums, = mdb.CppHeaderParser.parseAndExtract(viewheader)
+		assert len(enums) > 7		# could change with maya versions, 7 should be minimum
+		
+		for ed in enums:
+			assert isinstance(ed, mdb.MEnumDescriptor)
+			assert len(ed)
+			assert isinstance(ed.name, basestring)
+			
+			# convert to MFnEnumeration
+		# END for each enum descriptor
+		
 		
 	def _DISABLED_test_mfncachebuilder( self ):
 		"""Rewrite the mfn db cache files - should be done with each new maya version"""

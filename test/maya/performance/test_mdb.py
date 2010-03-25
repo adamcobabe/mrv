@@ -3,6 +3,7 @@
 from mrv.test.maya import *
 # test import all
 from mrv.maya.mdb import *
+import mrv.maya.mdb as mdb
 import mrv.maya.nt.typ as typ
 
 import time
@@ -47,7 +48,7 @@ class TestMDB( unittest.TestCase ):
 				# END handle name prefix
 				
 				# we expect an entry actually, database should be complete
-				_discard, mdescr = mfndb.entry(fname)
+				_discard, mdescr = mfndb.methodByName(fname)
 				
 				for directCall in (0, cgen.kDirectCall):
 					for needsMObject in (0, cgen.kMFnNeedsMObject):
@@ -109,7 +110,19 @@ class TestMDB( unittest.TestCase ):
 		vals = (nm, elapsed, nm/elapsed, elapsed-baseelapsed, 100 - ((elapsed-baseelapsed) / elapsed)*100, baseelapsed)
 		print >> sys.stderr, "Compiled %i methods in %f s ( %f methods/s ), pure compilation time is %f, equaling a non-compilation overhead of %f %% (%f s)" % vals
 		
+	def test_header_parser(self):
+		# brutally work through all headers - we shouldn't fail at least
+		base = mdb.headerPath('MFn').parent()
+		headers = sorted(base.files(pattern="*.h"))
+		nh = len(headers)
+		parser = mdb.CppHeaderParser()
+		
+		st = time.time()
+		for hfile in headers:
+			parser.parseAndExtract(hfile)
+		# END for each file
+		elapsed = time.time() - st
+		
+		print >> sys.stderr, "Parsed %i header files in %f s ( %f headers / s)" % ( nh, elapsed, nh/elapsed )
 		
 		
-
-			

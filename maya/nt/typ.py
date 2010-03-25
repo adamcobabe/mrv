@@ -49,10 +49,10 @@ class MetaClassCreatorNodes( MetaClassCreator ):
 			function set described by mfnclsname
 			If no explicit information exists, the db will be empty"""
 		try:
-			return mdb.MFnMemberMap( mdb.mfnDBPath( mfnclsname ) )
+			return mdb.MMemberMap( mdb.mfnDBPath( mfnclsname ) )
 		except IOError:
 			pass
-		return mdb.MFnMemberMap()
+		return mdb.MMemberMap()
 		
 	@classmethod
 	def _fetchMfnDB( cls, newcls, mfncls ):
@@ -109,7 +109,7 @@ class MetaClassCreatorNodes( MetaClassCreator ):
 		
 		:param mfncls: Maya function set class from which to take the functions
 		:param funcname: name of the function set function to be wrapped.
-		:param mfndb: `mdb.MFnMemberMap` 
+		:param mfndb: `mdb.MMemberMap` 
 		:param addFlags: If set, these flags define how the method will be generated.
 		:raise KeyError: if the given function does not exist in mfncls
 		:note: if the called function starts with _api_*, a special accellerated method
@@ -132,16 +132,16 @@ class MetaClassCreatorNodes( MetaClassCreator ):
 		method_descriptor = None
 		# adjust function according to DB
 		try:
-			mfnfuncname, method_descriptor = mfndb.entry( funcname )
+			mfnfuncname, method_descriptor = mfndb.methodByName( funcname )
 			# delete function ?
-			if method_descriptor.flag == mdb.MFnMemberMap.kDelete:
+			if method_descriptor.flag == mdb.MMemberMap.kDelete:
 				return None
 		except KeyError:
 			pass # could just be working
 		# END if entry available
 	
 		if method_descriptor is None:
-			method_descriptor = mdb.MFnMethodDescriptor()
+			method_descriptor = mdb.MMethodDescriptor()
 		# END assure method descriptor is set
 		
 		# access it directly from the class, ignoring inheritance. If the class
@@ -368,7 +368,7 @@ def prefetchMFnMethods():
 			
 			fna = fn		# alias for method 
 			try:
-				origname, entry = mfndb.entry(fn)
+				origname, entry = mfndb.methodByName(fn)
 				fna = entry.newname
 			except KeyError:
 				pass
