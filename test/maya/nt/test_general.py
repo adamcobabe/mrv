@@ -107,6 +107,12 @@ class TestTransform( unittest.TestCase ):
 		assert rnl == rnlobj
 		assert isinstance(rnlobj, api.MObject)
 		
+		# enumerations #
+		assert Node.Type.kMesh == api.MFn.kMesh
+		assert Attribute.DisconnectBehavior.kReset == api.MFnAttribute.kReset
+		assert Data.Type.kPlugin == api.MFnData.kPlugin
+		
+		assert Node.Type.nameByValue(api.MFn.kMesh) == 'kMesh'
 		
 		# DAG NAVIGATION
 		################
@@ -120,7 +126,7 @@ class TestTransform( unittest.TestCase ):
 		# filtering
 		assert len(p.childrenByType(Transform)) == 0
 		assert p.childrenByType(Camera) == p.childrenByType(Shape)
-		assert p.children(lambda n: n.apiType()==api.MFn.kCamera)[0] == ps
+		assert p.children(lambda n: n.apiType()==Node.Type.kCamera)[0] == ps
 		
 		# deep and iteration
 		assert ps.iterParents().next() == p == ps.root()
@@ -413,7 +419,7 @@ class TestTransform( unittest.TestCase ):
 		
 		# simple filtering
 		assert activeSelectionList().miterPlugs().next() == p.t
-		assert selection(api.MFn.kTransform)[-1] == p
+		assert selection(Node.Type.kTransform)[-1] == p
 		
 		# adjustments
 		sl = activeSelectionList()
@@ -486,7 +492,7 @@ class TestTransform( unittest.TestCase ):
 		assert not refa.isLoaded()
 		assert refa.setLoaded(True).isLoaded()
 		
-		assert len(list(refa.iterNodes(api.MFn.kMesh))) == 8
+		assert len(list(refa.iterNodes(Node.Type.kMesh))) == 8
 		
 		refa.remove(); refb.remove()
 		assert not refa.exists() and not refb.exists()
