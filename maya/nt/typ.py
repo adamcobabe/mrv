@@ -9,11 +9,13 @@ __docformat__ = "restructuredtext"
 from mrv.maya.util import MetaClassCreator
 import mrv.maya as mrvmaya
 import mrv.maya.mdb as mdb
-from mrv.util import uncapitalize
+from mrv.util import uncapitalize, capitalize
 
 import maya.OpenMaya as api
 
 from new import instancemethod
+import logging
+log = logging.getLogger("mrv.maya.nt.typ")
 
 __all__ = ("MetaClassCreatorNodes", )
 
@@ -326,6 +328,67 @@ class MetaClassCreatorNodes( MetaClassCreator ):
 
 #} END metaclasses
 
+
+#{ Utilities
+
+def prefetchMFnMethods():
+	"""Fetch and install all mfn methods on all types supporting a function set.
+	This should only be done to help interactive mode, but makes absolutely no 
+	sense in the default mode of operation when everything is produced on demand.
+	
+	:return: integer representing the number of generated methods"""
+	log.info("Prefetching all MFnMethods")
+	
+	num_fetched = 0
+	for typename, mfncls in nodeTypeToMfnClsMap.iteritems():
+		try:
+			nodetype = _nodesdict[capitalize(typename)]
+		except KeyError:
+			log.debug("MFn methods for %s exists, but type was not found in nt" % typename)
+			continue
+		# END handle type exceptions
+		
+		mfnname = mfncls.__name__
+		mfndb = MetaClassCreatorNodes._fetchMfnDB(nodetype, mfncls)
+		fstatic, finst = mdb.extractMFnFunctions(mfncls)
+		
+		def set_method_if_possible(cls, fn, f):
+			if not hasattr(cls, fn):
+				type.__setattr__(cls, fn, f)
+			# END overwrite protection
+		# END utility 
+		
+		for f in finst:
+			fn = f.__name__
+			if fn.startswith(mfnname):
+				fn = fn[len(mfnname)+1:]
+			# END handle prefixed names
+			
+			fna = fn		# alias for method 
+			try:
+				origname, entry = mfndb.entry(fn)
+				fna = entry.newname
+			except KeyError:
+				pass
+			# END get alias metadata
+			
+			fwrapped = MetaClassCreatorNodes._wrapMfnFunc(nodetype, mfncls, fn, mfndb)
+			
+			
+			set_method_if_possible(nodetype, fn, fwrapped)
+			if fna != fn:
+				set_method_if_possible(nodetype, fna, fwrapped)
+			# END handle aliases
+			
+			num_fetched += 1
+		# END for each instance function
+	# END for each type/mfncls pair
+	
+	return num_fetched
+	
+	
+
+#} END utilities
 
 #{ Initialization
 

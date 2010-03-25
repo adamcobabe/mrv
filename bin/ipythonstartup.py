@@ -3,6 +3,7 @@
 import sys
 import os
 import site
+import logging
 
 #{ Initialization 
 # assure all sitelibs are available, important for OSX
@@ -35,6 +36,14 @@ def setup_ipython():
 	# make default imports
 	ip = IPython.ipapi.get()
 	ip.ex("from mrv.maya.all import *")
+	
+	# init logging
+	logging.basicConfig(level=logging.INFO)
+	
+	# prefetch methods for convenience
+	import mrv.maya.nt.typ as typ
+	typ.prefetchMFnMethods()
+	
 
 def init_ipython():
 	"""Get the main ipython system up and running"""
