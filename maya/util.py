@@ -467,13 +467,15 @@ class CallbackEventBase( util.Event ):
 		# END dergister event
 		
 		
-class MEnumeration(list):
+class MEnumeration(tuple):
 	"""Simple enumeration class which allows access to its enumeration using 
 	getattr access. 
-	As it is a list as well, one can access the enumeration values in the right sequencial
-	order as well"""
-	def __init__(self, name):
-		self.name = name
+	As it is a tuple as well, one can access the enumeration values in the right sequencial
+	order"""
+	def __new__(cls, sequence, name=''):
+		inst = super(MEnumeration, cls).__new__(cls, sequence)
+		inst.name = name
+		return inst
 		
 	def __str__(self):
 		return self.name
@@ -505,14 +507,32 @@ class MEnumeration(list):
 		:return: new instance of this type as initialized from the EnumDescriptor ed and 
 			the mfncls
 		"""
-		enum = cls(ed.name)
-				
-		# fill names and look them up
-		for em in ed:
-			ev = getattr(mfncls, em)
-			setattr(enum, em, ev)
-			enum.append(ev)
-		# END for each enumeration member
+		emembers = list()		# temporary
+		
+		# get the values in the right sequence
+		try:
+			for em in ed:
+				ev = getattr(mfncls, em)
+				emembers.append(ev)
+			# END for each enumeration member
+		except AttributeError:
+			# happens in 2008+ as they have ifdeffed items that we pick up, 
+			# but which are somewhat inoffical
+			pass
+		# END exception handling
+		
+		enum = cls(emembers, name=ed.name)
+		
+		# assign each member by name
+		try:
+			for em in ed:
+				ev = getattr(mfncls, em)
+				setattr(enum, em, ev)
+			# END for each enumeration member
+		except AttributeError:
+			pass
+		# END exception handlign
+		
 		return enum
 	
 #} END api utility classes

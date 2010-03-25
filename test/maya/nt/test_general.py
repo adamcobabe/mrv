@@ -364,7 +364,7 @@ class TestTransform( unittest.TestCase ):
 		cattr = CompoundAttribute.create("compound", "co")
 		cattr.setArray(True)
 		if cattr:
-			sattr = TypedAttribute.create("string", "str", TypedAttribute.kString)
+			sattr = TypedAttribute.create("string", "str", Data.Type.kString)
 			pattr = NumericAttribute.createPoint("point", "p")
 			mattr = MessageAttribute.create("mymessage", "mmsg")
 			mattr.setArray(True)

@@ -385,8 +385,8 @@ class CppHeaderParser(object):
 	it was initialized with.
 	
 	For now its so simple that there is no more than one method"""
-	reEnums = re.compile( """^\s+ enum \s+ (?P<name>\w+) \s* \{                 # enum EnumName
-                               (?P<members>[\(\)/\w\s,\-+="'\.]+)                  # match whitespace or newlines
+	reEnums = re.compile( r"""^\s+ enum \s+ (?P<name>\w+) \s* \{                 # enum EnumName
+                               (?P<members>[\(\)/\w\s,\-+="'\.\#!<\*\\]+)     # match whitespace or newlines
                                \}[ \t]*;[ \t]*$                                 # closing brace""", 
 							  re.MULTILINE|re.VERBOSE)
 	
