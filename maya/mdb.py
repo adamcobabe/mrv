@@ -175,16 +175,15 @@ class MFnCodeGeneratorBase(object):
 	
 	
 	#{ Interface 
-	def generateMFnClsMethodWrapper(self, source_method_name, target_method_name, mfncls, mfn_fun, method_descriptor, flags=0):
+	def generateMFnClsMethodWrapper(self, source_method_name, target_method_name, mfn_fun_name, method_descriptor, flags=0):
 		"""
 		:return: string containing the code for the wrapper method as configured by the 
 			method descriptor
 		:param source_method_name: Original name of the method - this is the name under which 
 			it was requested.
 		:param target_method_name: Name of the method in the returned code string
+		:param mfn_fun_name: original name of the MFn function
 		:param method_descriptor: instance of `MFnMethodDescriptor`
-		:param mfncls: MFnFunction set class from which the method was retrieved.
-		:param mfn_fun: function as retrieved from the function set's dict. Its a bare function.
 		:param flags: bit flags providing additional information, depending on the actual 
 		implementation. Unsupported flags are ignored."""
 		raise NotImplementedError("To be implemented in SubClass")
@@ -208,6 +207,9 @@ class PythonMFnCodeGenerator(MFnCodeGeneratorBase):
 	 * kIsMObject:
 	 	If set, the type we create the method for is not derived from Node, but 
 	 	from MObject. This hint is required in order to generate correct calling code.
+	 	
+	 * kIsDagNode:
+	 	If set, the type we create the method for is derived from DagNode
 	 
 	"""
 	kDirectCall, \
@@ -215,18 +217,66 @@ class PythonMFnCodeGenerator(MFnCodeGeneratorBase):
 	kIsMObject, \
 	kIsDagNode = [ 1<<i for i in range(4) ] 
 	
-	def generateMFnClsMethodWrapper(self, source_method_name, target_method_name, mfncls, mfn_fun, method_descriptor, flags=0):
-		"""
+	def generateMFnClsMethodWrapper(self, source_method_name, target_method_name, mfn_fun_name, method_descriptor, flags=0):
+		"""Generates code as python string which can be used to compile a function. It assumes the following 
+		globals ( or locals ) to be existing: mfncls, mfn_fun, [rvalfunc], source_method_name
 		Currently supports the following meta data:
-		 * todo
+		 * method_descriptor.rvalfunc
+		 
+		:raise ValueError: if flags are incompatible with each other
 		"""
-		pass
+			# if an mobject is required, we disable the isDagPath flag
+		if flags & self.kIsDagNode and flags & self.kMFnNeedsMObject:
+			flags ^= self.kIsDagNode
+		# END handle needs MObject
+		
+		if flags & self.kIsMObject and flags & self.kIsDagNode:
+			raise ValueError("kIsMObject and kIsDagNode are mutually exclusive")
+		# END handle flags
+		
+		
+		sio = StringIO()
+		
+		rvalfunname = ''
+		if method_descriptor.rvalfunc != 'None':
+			rvalfunname = method_descriptor.rvalfunc
+		
+		sio.write("def %s(self, *args, **kwargs):\n" % target_method_name)
+		
+	
+		# mfn function call
+		mfnset = "mfncls(self"
+		if flags & self.kIsDagNode:
+			mfnset += ".dagPath()"
+		elif not flags & self.kIsMObject:
+			mfnset += ".object()"
+		mfnset += ")"
+		
+		if flags & self.kDirectCall:
+			curline = "\tmfninstfunc = %s.%s\n" % (mfnset, mfn_fun_name)
+			sio.write(curline)
+			
+			if rvalfunname:
+				sio.write("\tmfninstfunc = lambda *args, **kwargs: rvalfun(mfninstfunc(*args, **kwargs))\n")
+			# END handle rvalfunc name
+			sio.write("\tobject.__setattr__(self, %s, mfninstfunc)\n" % source_method_name)
+			sio.write("\treturn mfninstfunc(*args, **kwargs)")
+		else:
+			curline = "mfn_fun(%s, *args, **kwargs)" % mfnset
+			if rvalfunname:
+				curline = "rvalfunc(%s)" % curline
+			sio.write("\treturn %s" % curline)
+		# END handle direct call
+		
+		return sio.getvalue()
 	
 	#{ Interface
 	
 	def generateMFnClsMethodWrapperMethod(self, source_method_name, target_method_name, mfncls, mfn_fun, method_descriptor, flags=0):
 		""":return: python function suitable to be installed on a class
-		:param args: All arguments supported by `generateMFnClsMethodWrapper`"""
+		:param mfncls: MFnFunction set class from which the method was retrieved.
+		:param mfn_fun: function as retrieved from the function set's dict. Its a bare function.
+		:note: For all other args, see `MFnCodeGeneratorBase.generateMFnClsMethodWrapper`"""
 		needs_MObject = flags & self.kMFnNeedsMObject
 		rvalfunc = self._toRvalFunc(method_descriptor.rvalfunc)
 		mfnfuncname = mfn_fun.__name__

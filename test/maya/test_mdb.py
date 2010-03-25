@@ -25,8 +25,6 @@ class TestMDB( unittest.TestCase ):
 		assert isinstance(hnodes, DAGTree)
 		assert isinstance(ttmfnmap, dict)
 		
-		cgen = PythonMFnCodeGenerator(globals())
-		
 		# test member map - all files should be readable
 		for apimod in getApiModules():
 			for mfnclsname in ( n for n in dir(apimod) if n.startswith('MFn') ):
@@ -41,9 +39,6 @@ class TestMDB( unittest.TestCase ):
 				for fname, entry in mmap.iteritems():
 					assert isinstance(fname, basestring)
 					assert isinstance(entry, MFnMethodDescriptor)
-					
-					# test code generator
-					
 				# END for functionname, entry pair
 				
 				# we know that MFnMesh needs MObject iniitalization
@@ -52,6 +47,44 @@ class TestMDB( unittest.TestCase ):
 				# END special global flags check
 			# END for each mfn cls 
 		# END for each apimod
+		
+		
+		# test code generator - generate code in all possible variants - 
+		# function doesn't matter as its not actually called.
+		import maya.OpenMaya as api
+		mmap = MFnMemberMap(mfnDBPath("MFnBase"))
+		mfncls = api.MFnBase
+		mfn_fun_name = 'setObject'
+		mfn_fun = mfncls.__dict__[mfn_fun_name]
+		_discard, mdescr = mmap.entry(mfn_fun_name)
+		rvalwrapper = lambda x: x
+		
+		cgen = PythonMFnCodeGenerator(locals())
+		for directCall in (0, cgen.kDirectCall):
+			for needsMObject in (0, cgen.kMFnNeedsMObject):
+				for isMObject in (0, cgen.kIsMObject):
+					for isDagNode in (0, cgen.kIsDagNode):
+						for rvalwrapname in ('None', 'rvalwrapper'):
+							flags = directCall|needsMObject|isMObject|isDagNode
+							source_fun_name = mfn_fun_name
+							if directCall:
+								source_fun_name = "_api_"+source_fun_name
+							# END create source function name
+							mdescr.rvalfunc = rvalwrapname
+							try:
+								fun_code_string = cgen.generateMFnClsMethodWrapper(source_fun_name, mfn_fun_name, mfn_fun_name, mdescr, flags)
+							except ValueError:
+								continue
+							# END ignore incorrect value flags
+							
+							assert isinstance(fun_code_string, basestring)
+							
+							# generate the actual method 
+						# END for each rvalwrapper type
+					# END for each isDagNode state
+				# END for each isMObject state
+			# END for each needsMObject state
+		# END for each direct call state
 		
 		
 		
