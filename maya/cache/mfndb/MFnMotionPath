@@ -6,12 +6,12 @@
     | follow                                  | None                |                                         
     | followAxis                              | None                |                                         
     | getAnimatedObjects                      | None                |                                         
-    | getOrientationMarker                    | None                |                                         
-    | getPositionMarker                       | None                |                                         
+    | getOrientationMarker                    | NodeFromObj         |                                         
+    | getPositionMarker                       | NodeFromObj         |                                         
     | inverseNormal                           | None                |                                         
     | numOrientationMarkers                   | None                |                                         
     | numPositionMarkers                      | None                |                                         
-    | pathObject                              | None                |                                         
+    | pathObject                              | NodeFromObj         |                                         
     | setBank                                 | None                |                                         
     | setBankScale                            | None                |                                         
     | setBankThreshold                        | None                |                                         

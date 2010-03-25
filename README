@@ -11,3 +11,13 @@ http://wiki.byronimo.de/mrv
 Developers can obtain the source code from github or gitorious, which also enable collaboration:
 http://gitorious.org/mrv     ( main )
 http://github.com/Byron/mrv  ( secondary )
+
+
+License
+-------
+This software is licensed under the *New BSD License*. A version for human beings 
+with translations into many languages can be found here:
+	
+	http://creativecommons.org/licenses/BSD:
+		
+Additional license information can be found in the docs.

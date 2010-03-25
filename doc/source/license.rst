@@ -30,7 +30,7 @@ The following parts of the software are derived or taken from other software pac
 
 PyMel
 -----
-``PyMel`` is released under the ``New BSD License`` ( http://creativecommons.org/licenses/BSD )
+``PyMel`` is licensed under the ``New BSD License`` ( http://creativecommons.org/licenses/BSD )
  * mrv.util.uncapitalize ``( code copy )``
  * mrv.maya.util.Mel ``( copy + customizations )``
  * mrv.maya.util.OptionVarDict ``( copy +  modifications )``

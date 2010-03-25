@@ -1,5 +1,5 @@
-    | createInstancedClip                     | None                |                                         
-    | createSourceClip                        | None                |                                         
+    | createInstancedClip                     | NodeFromObj         |                                         
+    | createSourceClip                        | NodeFromObj         |                                         
     | getAbsolute                             | None                |                                         
     | getAbsoluteChannelSettings              | None                |                                         
     | getCycle                                | None                |                                         
@@ -27,5 +27,5 @@
     | setStartFrame                           | None                |                                         
     | setTrack                                | None                |                                         
     | setWeight                               | None                |                                         
-    | sourceClip                              | None                |                                         
+    | sourceClip                              | NodeFromObj         |                                         
     | type                                    | None                |                                         

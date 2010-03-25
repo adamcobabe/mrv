@@ -117,7 +117,7 @@ class MetaClassCreatorNodes( MetaClassCreator ):
 			This is unsafe if the same api object is being renamed. Also it will only be faster if
 			the same method is actually called multiple times. It can be great for speed sensitive code
 			where where the same method(s) are called repeatedly on the same set of objects
-		:return:  wrapped function"""
+		:return:  wrapped function or None if it was deleted"""
 		flags = mfndb.flags|addFlags
 		funcname_orig = funcname	# store the original for later use
 
@@ -376,6 +376,9 @@ def prefetchMFnMethods():
 			
 			fwrapped = MetaClassCreatorNodes._wrapMfnFunc(nodetype, mfncls, fn, mfndb, mdb.PythonMFnCodeGenerator.kWithDocs)
 			
+			# could have been deleted
+			if fwrapped is None:
+				continue
 			
 			set_method_if_possible(nodetype, fn, fwrapped)
 			if fna != fn:
