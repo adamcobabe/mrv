@@ -1035,6 +1035,10 @@ class TestNodeBase( unittest.TestCase ):
 		cd.remove(mvc)
 		assert len(cd) == 0
 		
+	def test_staticmethods(self):
+		# access a static method directly
+		rnl = nt.RenderLayer.currentLayer()
+		assert isinstance(rnl, nt.Node)
 
 	def test_attributes( self ):
 		# CREATION 

@@ -25,7 +25,8 @@ log = logging.getLogger("mrv.maya.mdb")
 
 __all__ = ("createDagNodeHierarchy", "createTypeNameToMfnClsMap", "getApiModules", 
            "getApiModules", "mfnDBPath", "cacheFilePath", "writeMfnDBCacheFiles", 
-           "PythonMFnCodeGenerator", "MFnMemberMap", "MFnMethodDescriptor" )
+           "extractMFnFunctions", "PythonMFnCodeGenerator", "MFnMemberMap", 
+           "MFnMethodDescriptor" )
 
 #{ Initialization 
 
@@ -97,6 +98,28 @@ def cacheFilePath( filename, ext, use_version = False ):
 	# END use version
 	return mfile / ( "cache/%s%s.%s" % ( filename, version, ext ) )
 
+def extractMFnFunctions(mfncls):
+	"""Extract callables from mfncls, sorted into static methods and instance methods
+	:return: tuple(list(callable_staticmethod, ...), list(callable_instancemethod, ...))"""
+	mfnfuncs = list()
+	staticmfnfuncs = list()
+	mfnname = mfncls.__name__
+	for fn, f in mfncls.__dict__.iteritems():
+		if fn.startswith('_') or fn.endswith(mfnname) or not inspect.isroutine(f):
+			continue
+		# END skip non-routines
+		
+		if isinstance(f, staticmethod):
+			# convert static methods into callable methods by fetching them officially
+			staticmfnfuncs.append(getattr(mfncls, fn))
+		else:
+			mfnfuncs.append(f)
+		# END handle static methods 
+	# END for each function in mfncls dict
+	
+	return (staticmfnfuncs, mfnfuncs)
+
+
 def writeMfnDBCacheFiles(  ):
 	"""Create a simple Memberlist of available mfn classes and their members
 	to allow a simple human-editable way of adjusting which methods will be added
@@ -109,18 +132,14 @@ def writeMfnDBCacheFiles(  ):
 			mfnfile = mfnDBPath( mfnname )
 			mfncls = getattr( apimod, mfnname )
 
-			try:
-				mfnfuncs =  [ f  for f  in mfncls.__dict__.itervalues( )
-								if callable( f  ) and not f .__name__.startswith( '_' )
-								and not f .__name__.startswith( '<' )
-								and not f .__name__.endswith( mfnname )	# i.e. delete_MFnName
-								and not inspect.isclass( f  ) ]
-			except AttributeError:
-				continue		# it was a function, not a class
-
-			if not len( mfnfuncs ):
+			mfnfuncs = list()
+			fstatic, finst = extractMFnFunctions(mfncls)
+			mfnfuncs.extend(fstatic)
+			mfnfuncs.extend(finst)
+			
+			if not mfnfuncs:
 				continue
-
+			
 			db = MFnMemberMap()
 			if mfnfile.exists():
 				db = MFnMemberMap( mfnfile )
@@ -210,19 +229,27 @@ class PythonMFnCodeGenerator(MFnCodeGeneratorBase):
 	 	
 	 * kIsDagNode:
 	 	If set, the type we create the method for is derived from DagNode
+	 	
+	 * kIsStatic:
+	 	If set, the method to be wrapped is considered static, no self is needed, nor
+	 	any object.
+	 	NOTE: This flag is likely to be removed as it should be part of the method_descriptor, 
+	 	for now though it does not provide that information so we pass it in.
 	 
 	"""
 	kDirectCall, \
 	kMFnNeedsMObject, \
 	kIsMObject, \
-	kIsDagNode = [ 1<<i for i in range(4) ] 
+	kIsDagNode, \
+	kIsStatic= [ 1<<i for i in range(5) ] 
 	
 	def generateMFnClsMethodWrapper(self, source_method_name, target_method_name, mfn_fun_name, method_descriptor, flags=0):
 		"""Generates code as python string which can be used to compile a function. It assumes the following 
-		globals ( or locals ) to be existing: mfncls, mfn_fun, [rvalfunc]
-		Currently supports the following meta data:
+		globals to be existing once evaluated: mfncls, mfn_fun, [rvalfunc]
+		Currently supports the following data within method_descriptor:
 		 * method_descriptor.rvalfunc
 		 
+		as well as all flags except kIsStatic.
 		:raise ValueError: if flags are incompatible with each other
 		"""
 			# if an mobject is required, we disable the isDagPath flag
@@ -284,14 +311,26 @@ class PythonMFnCodeGenerator(MFnCodeGeneratorBase):
 		if mfnfuncname.startswith(mfncls.__name__):
 			mfnfuncname = mfnfuncname[len(mfncls.__name__)+1:]
 			
-		# get the compiled code
-		codestr = self.generateMFnClsMethodWrapper(source_method_name, target_method_name, mfnfuncname, method_descriptor, flags)
-		code = compile(codestr, mfncls.__name__+".py", "exec")
-		
-		# get the function into our local dict, globals are our locals
-		eval(code, locals())
-		
-		return locals()[target_method_name]
+		if flags & self.kIsStatic:
+			# use the function directly
+			rvalfun = self._toRvalFunc(method_descriptor.rvalfunc)
+			if rvalfun is None:
+				return mfn_fun
+			else:
+				fun = lambda *args, **kwargs: rvalfun(mfn_fun(*args, **kwargs))
+				fun.__name__ = target_method_name
+				return fun
+			# END 
+		else:
+			# get the compiled code
+			codestr = self.generateMFnClsMethodWrapper(source_method_name, target_method_name, mfnfuncname, method_descriptor, flags)
+			code = compile(codestr, "mrv/%s" % (mfncls.__name__+".py"), "exec")
+			
+			# get the function into our local dict, globals are our locals
+			eval(code, locals())
+			
+			return locals()[target_method_name]
+		# END handle static methods 
 	
 	#} END interface 
 	
@@ -321,11 +360,13 @@ class MFnMemberMap( UserDict.UserDict ):
 	 * 'InitWithMObject':
 	 	If set, the function set's instance will be initialized with an MObject
 	 	even though an MDagPath would be available.
-	 	Default False"""
+	 	Default False.
+	 	NOTE: This might want to become special handling in the code itself as 
+	 	for now MFnMesh is the only one using the globals at all. Having globals 
+	 	is a good thing only if its used by a few more."""
 	__slots__ = "flags"
 	kDelete = 'x'
 	kInitWithMObjectFlagName = "InitWithMObject"
-	
 
 	def __init__( self, filepath = None ):
 		"""intiialize self from a file if not None"""
