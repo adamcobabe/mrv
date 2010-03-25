@@ -25,6 +25,10 @@ class TestGeneral( unittest.TestCase ):
 		assert hasattr(p.t, 'mconnectTo')	  # has our namespace
 		assert not hasattr(p.t, 'connectTo') # but not global namespace
 		
+	def test_Node_type_has_no_metaclass_members(self):
+		# this happens if the metaclass has any members - the typ itself will
+		# be of type MetaClas, instead of type, which makes it inherit all attriutes
+		assert not hasattr(nt.Node, 'nameToTreeMap')
 	
 	def _DISABLED_test_testWrappers( self ):
 		filename = get_maya_file( "allnodetypes_%s.mb" % env.appVersion( )[0] )

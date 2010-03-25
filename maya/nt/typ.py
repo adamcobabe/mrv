@@ -27,22 +27,23 @@ nodeTypeTree = None
 nodeTypeToMfnClsMap = dict()		# allows to see the most specialized compatible mfn cls for a given node type
 #} END caches
 
+#{Globals
+# special name handling - we assume lower case names, these are capitalized though
+nameToTreeMap = set( [ 'FurAttractors', 'FurCurveAttractors', 'FurGlobals', 'FurDescription','FurFeedback' ] )
+targetModule = None				# must be set in intialization to tell this class where to put newly created classes
+mfnclsattr = '_mfncls'
+mfndbattr = '_mfndb'
+apiobjattr = '_apiobj'
+getattrorigname = '__getattr_orig'
+codegen = None		# python code generator, to be set during initialization
+#} END globals
+
 
 #{ Metaclasses
 class MetaClassCreatorNodes( MetaClassCreator ):
 	"""Builds the base hierarchy for the given classname based on our typetree
-	
 	:todo: build classes with slots only as members are pretermined"""
-
-	# special name handling - we assume lower case names, these are capitalized though
-	nameToTreeMap = set( [ 'FurAttractors', 'FurCurveAttractors', 'FurGlobals', 'FurDescription','FurFeedback' ] )
-	targetModule = None				# must be set in intialization to tell this class where to put newly created classes
-	mfnclsattr = '_mfncls'
-	mfndbattr = '_mfndb'
-	apiobjattr = '_apiobj'
-	apipathattr = '_apidagpath'
-	getattrorigname = '__getattr_orig'
-	_codegen = None		# python code generator, to be set during initialization
+	
 
 	@classmethod
 	def _readMfnDB( cls, mfnclsname ):
@@ -61,10 +62,10 @@ class MetaClassCreatorNodes( MetaClassCreator ):
 		"""Return the mfndb for the given mfncls as existing on newcls. 
 		If it does not yet exist, it will be created and attached first"""
 		try:
-			return newcls.__dict__[ cls.mfndbattr ]
+			return newcls.__dict__[ mfndbattr ]
 		except KeyError:
 			mfndb = cls._readMfnDB( mfncls.__name__ )
-			type.__setattr__( newcls, cls.mfndbattr, mfndb )
+			type.__setattr__( newcls, mfndbattr, mfndb )
 			return mfndb
 		# END mfndb handling
 
@@ -178,7 +179,7 @@ class MetaClassCreatorNodes( MetaClassCreator ):
 		
 		# could be cached, but we need to wait until the dict is initialized, 
 		# TODO: To be done in __init__ together with the nodedict
-		newfunc = cls._codegen.generateMFnClsMethodWrapperMethod(funcname_orig, funcname, mfncls, mfnfunc, method_descriptor, flags)
+		newfunc = codegen.generateMFnClsMethodWrapperMethod(funcname_orig, funcname, mfncls, mfnfunc, method_descriptor, flags)
 		
 		if not flags & mdb.PythonMFnCodeGenerator.kIsStatic: 
 			newfunc.__name__ = funcname			# rename the method
@@ -193,8 +194,8 @@ class MetaClassCreatorNodes( MetaClassCreator ):
 		if hasattr( newcls, '__getattr__' ):
 			getattrorig =  newcls.__dict__.get( '__getattr__', None )
 			if getattrorig:
-				getattrorig.__name__ = thiscls.getattrorigname
-				setattr( newcls, thiscls.getattrorigname, getattrorig )
+				getattrorig.__name__ = getattrorigname
+				setattr( newcls, getattrorigname, getattrorig )
 
 		# CREATE GET ATTR CUSTOM FUNC
 		# called if the given attribute is not available in class
@@ -206,10 +207,10 @@ class MetaClassCreatorNodes( MetaClassCreator ):
 			# check all bases for and their mfncls for a suitable function
 			newclsfunc = newinstfunc = None							# try to fill these
 			for basecls in newcls.mro():
-				if not hasattr( basecls, thiscls.mfnclsattr ):			# could be object too or user defined cls
+				if not hasattr( basecls, mfnclsattr ):			# could be object too or user defined cls
 					continue
 
-				mfncls = getattr( basecls, thiscls.mfnclsattr )
+				mfncls = getattr( basecls, mfnclsattr )
 				if not mfncls:
 					continue
 
@@ -245,8 +246,8 @@ class MetaClassCreatorNodes( MetaClassCreator ):
 			# base class
 			getattrorigfunc = None
 			for basecls in newcls.mro():
-				if hasattr( basecls, thiscls.getattrorigname ):
-					getattrorigfunc = getattr( basecls, thiscls.getattrorigname )
+				if hasattr( basecls, getattrorigname ):
+					getattrorigfunc = getattr( basecls, getattrorigname )
 					break
 				# END orig getattr method check
 
@@ -281,7 +282,7 @@ class MetaClassCreatorNodes( MetaClassCreator ):
 		""" Called to create the class with name """
 		# will be used later
 		def func_nameToTree( name ):
-			if name in metacls.nameToTreeMap:
+			if name in nameToTreeMap:
 				return name
 			return uncapitalize( name )
 
@@ -291,23 +292,23 @@ class MetaClassCreatorNodes( MetaClassCreator ):
 		# ( if not yet there ). By convention, there is only one mfn per class
 		mfncls = None
 		needs_static_method_initialization = False
-		if not clsdict.has_key( metacls.mfnclsattr ):
+		if not clsdict.has_key( mfnclsattr ):
 			treeNodeTypeName = func_nameToTree( name )
 			if nodeTypeToMfnClsMap.has_key( treeNodeTypeName ):
 				mfncls = nodeTypeToMfnClsMap[ treeNodeTypeName ]
-				clsdict[ metacls.mfnclsattr ] = mfncls
+				clsdict[ mfnclsattr ] = mfncls
 				
 				# attach static mfn methods directly.
 				needs_static_method_initialization = True
 			# END attach mfncls to type
 		else:
-			mfncls = clsdict[ metacls.mfnclsattr ]
+			mfncls = clsdict[ mfnclsattr ]
 
 		# do not store any mfn if there is none set - this would override mfns of
 		# base classes although the super class is compatible to it
 		if mfncls:
-			clsdict[ metacls.mfnclsattr ] = mfncls			# we have at least a None mfn
-		clsdict[ metacls.apiobjattr ] = None			# always have an api obj
+			clsdict[ mfnclsattr ] = mfncls			# we have at least a None mfn
+		clsdict[ apiobjattr ] = None			# always have an api obj
 
 
 		# SETUP slots - add common members
@@ -315,7 +316,7 @@ class MetaClassCreatorNodes( MetaClassCreator ):
 
 		# CREATE CLS
 		#################
-		newcls = super( MetaClassCreatorNodes, metacls ).__new__( nodeTypeTree, metacls.targetModule,
+		newcls = super( MetaClassCreatorNodes, metacls ).__new__( nodeTypeTree, targetModule,
 																metacls, name, bases, clsdict,
 																nameToTreeFunc = func_nameToTree )
 

@@ -129,14 +129,14 @@ def enforcePersistence( ):
 def _init_package( ):
 	"""Do the main initialization of this package"""
 	import mrv.maya.mdb as mdb
-	typ.MetaClassCreatorNodes.targetModule = _thismodule			# init metaclass with our module
+	typ.targetModule = _thismodule			# init metaclass with our module
 	typ._nodesdict = globals()
 	typ.initNodeHierarchy( )
 	typ.initTypeNameToMfnClsMap( )
 	typ.initWrappers( _thismodule )
 	
 	# code generator needs an initialized nodes dict to work
-	typ.MetaClassCreatorNodes._codegen = mdb.PythonMFnCodeGenerator(typ._nodesdict)
+	typ.codegen = mdb.PythonMFnCodeGenerator(typ._nodesdict)
 
 	# initialize base module with our global namespace dict
 	import base
