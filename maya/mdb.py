@@ -3,9 +3,9 @@
 Provides classes and functions operating on the MayaAPI class database
 
 :note: This module must not be auto-initialized as it assumes its parent package to 
-be present already
+	be present already
 :note: The implementation is considered internal and may change any time unless stated
-otherwise.
+	otherwise.
 """
 __docformat__ = "restructuredtext"
 
@@ -41,7 +41,7 @@ def createTypeNameToMfnClsMap( ):
 	set and return a dictionary with the data
 	
 	:return: dict(((nodeTypeNameStr : api.MFnCls), ...)) dictionary with nodetypeName
-	MFn class mapping"""
+		MFn class mapping"""
 	typenameToClsMap = dict()
 	
 	cfile = cacheFilePath( "nodeTypeToMfnCls", "map" )
@@ -74,7 +74,7 @@ def createTypeNameToMfnClsMap( ):
 def getApiModules():
 	""":return: tuple of api modules containing MayaAPI classes
 	:note: This takes a moment to load as it will import many api modules. Delay 
-	the call as much as possible"""
+		the call as much as possible"""
 	import maya.OpenMaya as api
 	import maya.OpenMayaAnim as apianim
 	import maya.OpenMayaUI	as apiui
@@ -208,7 +208,7 @@ class MFnCodeGeneratorBase(object):
 		:param mfn_fun_name: original name of the MFn function
 		:param method_descriptor: instance of `MFnMethodDescriptor`
 		:param flags: bit flags providing additional information, depending on the actual 
-		implementation. Unsupported flags are ignored."""
+			implementation. Unsupported flags are ignored."""
 		raise NotImplementedError("To be implemented in SubClass")
 	#} END interfacec
 	
@@ -251,6 +251,7 @@ class PythonMFnCodeGenerator(MFnCodeGeneratorBase):
 		"""Generates code as python string which can be used to compile a function. It assumes the following 
 		globals to be existing once evaluated: mfncls, mfn_fun, [rvalfunc]
 		Currently supports the following data within method_descriptor:
+		
 		 * method_descriptor.rvalfunc
 		 
 		as well as all flags except kIsStatic.
@@ -357,7 +358,8 @@ class MFnMemberMap( UserDict.UserDict ):
 	**Globals**:
 	The __globals__ entry in MFn db files allows to pass additional options.
 	Currently supported ones are:
-	 * 'InitWithMObject':
+	
+	 * **InitWithMObject**:
 	 	If set, the function set's instance will be initialized with an MObject
 	 	even though an MDagPath would be available.
 	 	Default False.

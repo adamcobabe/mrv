@@ -15,7 +15,7 @@ import maya.OpenMaya as api
 
 from new import instancemethod
 
-__all__ = ("MetaClassCreatorNodes")
+__all__ = ("MetaClassCreatorNodes", )
 
 #{ Caches
 _nodesdict = None					# to be set during initialization
@@ -70,13 +70,14 @@ class MetaClassCreatorNodes( MetaClassCreator ):
 		mfn database for the given function set ( ``mfncls`` ) and create properly 
 		wrapped methods. 
 		Currently supported adjustments:
+		
 			rval wrapping
 			
 		:note: As all types are initialized on startup, the staticmethods check 
-		will load in quite a few function sets databases as many will have static 
-		methods. There is no real way around it, but one could introduce 'packs'
-		to bundle these together and load them only once. Probably the performance
-		hit is not noticeable, but lets just say that I am aware of it
+			will load in quite a few function sets databases as many will have static 
+			methods. There is no real way around it, but one could introduce 'packs'
+			to bundle these together and load them only once. Probably the performance
+			hit is not noticeable, but lets just say that I am aware of it
 		:note: Currently method aliases are not implemented for statics !"""
 		fstatic, finst = mdb.extractMFnFunctions(mfncls)
 		if not fstatic:
