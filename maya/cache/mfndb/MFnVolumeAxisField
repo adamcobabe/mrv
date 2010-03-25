@@ -21,3 +21,4 @@
     | turbulenceFrequency                     | None                |                                         
     | turbulenceOffset                        | None                |                                         
     | turbulenceSpeed                         | None                |                                         
+    | type                                    | None                |                                         

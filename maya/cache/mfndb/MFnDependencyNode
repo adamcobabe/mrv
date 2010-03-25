@@ -1,11 +1,13 @@
-x   | MFnDependencyNode_create                | None                |                                         
-x   | MFnDependencyNode_setName               | None                |                                         
     | addAttribute                            | None                |                                         
+    | allocateFlag                            | None                |                                         
     | attribute                               | Attribute           |                                         
     | attributeClass                          | None                |                                         
     | attributeCount                          | None                |                                         
     | canBeWritten                            | None                |                                         
+    | classification                          | None                |                                         
 x   | create                                  | None                |                                         
+    | deallocateAllFlags                      | None                |                                         
+    | deallocateFlag                          | None                |                                         
     | dgCallbackIds                           | None                |                                         
     | dgCallbacks                             | None                |                                         
     | dgTimer                                 | None                |                                         

@@ -28,7 +28,6 @@ def __initialize( nodes_module ):
 	"""Assure our plugin is loaded - called during module intialization.
 	Its a tough time to run, it feels more like bootstrapping as we initialize
 	ourselves although the system is not quite there yet."""
-	global _should_initialize_plugin
 	import maya.cmds as cmds	# late import
 	pluginpath = os.path.splitext( __file__ )[0] + ".py"
 	
@@ -146,7 +145,6 @@ class PyPickleData( mpx.MPxData ):
 
 	def _writeToStream( self, ostream, asBinary ):
 		"""Write our data binary or ascii respectively"""
-		global log
 		sout = cStringIO.StringIO()
 		try:
 			cPickle.dump( self.__data, sout, protocol=2 )

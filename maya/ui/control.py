@@ -308,13 +308,11 @@ class OptionMenuGrp( OptionMenuBase, GroupBase ):
 		"""The optionMenuGrp cannot be set as a parent as it is classified as control layout.
 		A problem arises if you actually try to add new menuItems to it after it's creation which
 		does not work as it is not a menu"""
-		global log
 		log.warn("setActive: OptionMenuGrp's instances cannot be setActive after creation due to a Maya API logic error - you will set the layout active, not the contained option menu")
 		return super( OptionMenuGrp, self ).setActive()
 
 	def setParentActive( self ):
 		"""See `setActive`"""
-		global log
 		log.warn("setParentActive: OptionMenuGrp instances will change the parent of their control layout only, not the menu parent of the optionMenu")
 		super( OptionMenuGrp, self ).setParentActive()
 	#} special handling overrides

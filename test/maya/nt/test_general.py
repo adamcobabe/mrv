@@ -1,9 +1,10 @@
 # -*- coding: utf-8 -*-
 """Test basic node features """
 from mrv.test.maya import *
-import mrv.maya as bmaya
+import mrv.maya as mrvmaya
 import mrv.maya.nt as nt
 import maya.OpenMaya as api
+import maya.OpenMayaRender as apirender
 import maya.cmds as cmds
 
 import mrv.maya.nt as mrvnt
@@ -55,7 +56,7 @@ class TestTransform( unittest.TestCase ):
 		# END for each name
 		
 	def test_usage_examples(self):
-		bmaya.Scene.new(force=True)
+		mrvmaya.Scene.new(force=True)
 		mrvnt.enforcePersistence()
 		
 		# NOTE: If this test fails ( because of name changes for instance ), the 
@@ -97,6 +98,15 @@ class TestTransform( unittest.TestCase ):
 		assert p.isFromReferencedFile() == p.isReferenced()
 		
 		assert isinstance(p.getMFnClasses(), list)
+		
+		# static methods #
+		assert DependNode.classification('lambert') == api.MFnDependencyNode.classification('lambert')
+		rnl = RenderLayer.currentLayer()
+		assert isinstance(rnl, Node)
+		rnlobj = apirender.MFnRenderLayer.currentLayer()
+		assert rnl == rnlobj
+		assert isinstance(rnlobj, api.MObject)
+		
 		
 		# DAG NAVIGATION
 		################

@@ -1,7 +1,7 @@
     | accepts                                 | None                |                                         
-    | disconnectBehavior                      | None                | getDisconnectBehavior                   
+    | disconnectBehavior                      | None                |                                         
     | getAddAttrCmd                           | None                |                                         
-    | indexMatters                            | None                | getIndexMatters                         
+    | indexMatters                            | None                |                                         
     | internal                                | None                | isInternal                              
     | isAffectsWorldSpace                     | None                |                                         
     | isArray                                 | None                |                                         
@@ -19,8 +19,8 @@
     | isUsedAsFilename                        | None                |                                         
     | isWorldSpace                            | None                |                                         
     | isWritable                              | None                |                                         
-    | name                                    | None                | getName                                 
-    | parent                                  | Attribute           | getParent                               
+    | name                                    | None                |                                         
+    | parent                                  | Attribute           |                                         
     | setAffectsWorldSpace                    | None                |                                         
     | setArray                                | None                |                                         
     | setCached                               | None                |                                         
@@ -41,6 +41,6 @@
     | setUsesArrayDataBuilder                 | None                |                                         
     | setWorldSpace                           | None                |                                         
     | setWritable                             | None                |                                         
-    | shortName                               | None                | getShortName                            
-    | type                                    | None                | getType                                 
+    | shortName                               | None                |                                         
+    | type                                    | None                |                                         
     | usesArrayDataBuilder                    | None                |                                         

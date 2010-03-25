@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 """ Test ALL features of the undo queue """
 from mrv.test.maya import *
-import mrv.maya as bmaya
+import mrv.maya as mrvmaya
 import maya.cmds as cmds
 import mrv.maya.undo as undo
 from mrv.maya.nt import *
@@ -61,7 +61,7 @@ class TestUndoQueue( unittest.TestCase ):
 		self.failUnlessRaises( AssertionError, TestUndoQueue.TestOperation )
 
 
-		bmaya.Mel.flushUndo()
+		mrvmaya.Mel.flushUndo()
 
 		# handle undo ourselves
 		persp = Node( "persp" )
@@ -89,7 +89,7 @@ class TestUndoQueue( unittest.TestCase ):
 		undo.startUndo()
 		trans.tx.msetFloat( 10.0 )
 		assert len( sys._maya_stack ) == 1
-		bmaya.Scene.new( force = 1 )
+		mrvmaya.Scene.new( force = 1 )
 		# DO NOT FAIL - allow releases to be done which would fail otherwise
 		# Print a reminder though
 		# TODO: Try to fix this
@@ -99,7 +99,7 @@ class TestUndoQueue( unittest.TestCase ):
 		undo.endUndo()
 
 	def test_undo_stack(self):
-		bmaya.Scene.new(force=1)
+		mrvmaya.Scene.new(force=1)
 		ur = undo.UndoRecorder()
 		
 		# works inside of another undo level as well

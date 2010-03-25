@@ -2,7 +2,7 @@
 """ Test the namespace methods """
 from mrv.test.maya import *
 from mrv.maya.ns import *
-import mrv.maya as bmaya
+import mrv.maya as mrvmaya
 import maya.cmds as cmds
 
 class TestReferenceRunner( unittest.TestCase ):

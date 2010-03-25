@@ -4,7 +4,7 @@
     | castsShadows                            | None                |                                         
     | count                                   | None                |                                         
     | create                                  | None                |                                         
-    | deformedParticleShape                   | None                |                                         
+    | deformedParticleShape                   | Node                |                                         
     | disableCloudAxis                        | None                |                                         
     | emission                                | None                |                                         
     | emit                                    | None                |                                         
@@ -22,7 +22,7 @@
     | lifespan                                | None                |                                         
     | mass                                    | None                |                                         
     | opacity                                 | None                |                                         
-    | originalParticleShape                   | None                |                                         
+    | originalParticleShape                   | Node                |                                         
     | particleIds                             | None                |                                         
     | particleName                            | None                |                                         
     | position                                | None                |                                         
@@ -40,6 +40,7 @@
     | surfaceShading                          | None                |                                         
     | tailSize                                | None                |                                         
     | threshold                               | None                |                                         
+    | type                                    | None                |                                         
     | velocity                                | None                |                                         
     | visibleInReflections                    | None                |                                         
     | visibleInRefractions                    | None                |                                         

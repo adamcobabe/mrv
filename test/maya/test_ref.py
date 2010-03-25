@@ -4,7 +4,7 @@ from mrv.test.maya import *
 import maya.cmds as cmds
 from mrv.maya.ref import *
 from mrv.maya.ns import *
-import mrv.maya as bmaya
+import mrv.maya as mrvmaya
 import mrv.maya.nt as nt
 
 import maya.OpenMaya as api

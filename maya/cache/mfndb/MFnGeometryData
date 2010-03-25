@@ -7,7 +7,7 @@
     | matrixIsIdentity                        | None                |                                         
     | matrixIsNotIdentity                     | None                |                                         
     | objectGroup                             | None                |                                         
-    | objectGroupComponent                    | None                |                                         
+    | objectGroupComponent                    | Component           |                                         
     | objectGroupCount                        | None                |                                         
     | objectGroupType                         | None                |                                         
     | removeObjectGroup                       | None                |                                         

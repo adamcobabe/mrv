@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 """ Test undo queue performance """
 from mrv.test.maya import *
-import mrv.maya as bmaya
+import mrv.maya as mrvmaya
 import maya.cmds as cmds
 import mrv.maya.undo as undo
 from mrv.test.maya.test_undo import TestUndoQueue

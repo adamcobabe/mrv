@@ -1,44 +1,30 @@
 # -*- coding: utf-8 -*-
 """
-Deals with types of objects and mappings between them
+Houses the MetaClass able to setup new types to work within the system. This can 
+be considered the heart of the node wrapping engine, but it plays together with 
+the implementation in the `base` module.
 """
 __docformat__ = "restructuredtext"
 
 from mrv.maya.util import MetaClassCreator
-import mrv.maya as bmaya
-from mrv.path import Path
-import mrv.maya.env as env
-from mrv.util import uncapitalize, PipeSeparatedFile
+import mrv.maya as mrvmaya
+import mrv.maya.mdb as mdb
+from mrv.util import uncapitalize
+
 import maya.OpenMaya as api
-import maya.OpenMayaAnim as apianim
-import maya.OpenMayaUI	as apiui
-import maya.OpenMayaRender	as apirender
-import maya.OpenMayaFX as apifx
-import re
-import inspect
+
 from new import instancemethod
-import UserDict
-import maya.cmds as cmds
 
-__all__ = ("MetaClassCreatorNodes", "mfnDBPath", "cacheFilePath", "initNodeHierarchy", "initWrappers", 
-           "initNodeTypeToMfnClsMap", "MfnMemberMap", "writeMfnDBCacheFiles")
+__all__ = ("MetaClassCreatorNodes", )
 
-import logging
-log = logging.getLogger("mrv.maya.nt.typ")
-
-####################
-### CACHES ########
-##################
+#{ Caches
 _nodesdict = None					# to be set during initialization
 nodeTypeTree = None
 nodeTypeToMfnClsMap = dict()		# allows to see the most specialized compatible mfn cls for a given node type
+#} END caches
 
 
-
-#####################
-#### META 		####
-##################
-
+#{ Metaclasses
 class MetaClassCreatorNodes( MetaClassCreator ):
 	"""Builds the base hierarchy for the given classname based on our typetree
 	
@@ -46,13 +32,13 @@ class MetaClassCreatorNodes( MetaClassCreator ):
 
 	# special name handling - we assume lower case names, these are capitalized though
 	nameToTreeMap = set( [ 'FurAttractors', 'FurCurveAttractors', 'FurGlobals', 'FurDescription','FurFeedback' ] )
-	forceInitWithMObject = ( api.MFnMesh , )	# need initialization with MObject although dag path is available
 	targetModule = None				# must be set in intialization to tell this class where to put newly created classes
 	mfnclsattr = '_mfncls'
 	mfndbattr = '_mfndb'
 	apiobjattr = '_apiobj'
 	apipathattr = '_apidagpath'
 	getattrorigname = '__getattr_orig'
+	_codegen = None		# python code generator, to be set during initialization
 
 	@classmethod
 	def _readMfnDB( cls, mfnclsname ):
@@ -61,70 +47,99 @@ class MetaClassCreatorNodes( MetaClassCreator ):
 			function set described by mfnclsname
 			If no explicit information exists, the db will be empty"""
 		try:
-			return MfnMemberMap( mfnDBPath( mfnclsname ) )
+			return mdb.MFnMemberMap( mdb.mfnDBPath( mfnclsname ) )
 		except IOError:
 			pass
-		return MfnMemberMap()
-
+		return mdb.MFnMemberMap()
+		
+	@classmethod
+	def _fetchMfnDB( cls, newcls, mfncls ):
+		"""Return the mfndb for the given mfncls as existing on newcls. 
+		If it does not yet exist, it will be created and attached first"""
+		try:
+			return newcls.__dict__[ cls.mfndbattr ]
+		except KeyError:
+			mfndb = cls._readMfnDB( mfncls.__name__ )
+			type.__setattr__( newcls, cls.mfndbattr, mfndb )
+			return mfndb
+		# END mfndb handling
 
 	@classmethod
-	def _wrapMfnFunc( cls, newcls, mfncls, funcname, funcMutatorDB = None ):
+	def _wrapStaticMFnMethods( cls, newcls, mfncls ):
+		"""Find static mfnmethods - if these are available, initialize the 
+		mfn database for the given function set ( ``mfncls`` ) and create properly 
+		wrapped methods. 
+		Currently supported adjustments:
+		
+			rval wrapping
+			
+		:note: As all types are initialized on startup, the staticmethods check 
+			will load in quite a few function sets databases as many will have static 
+			methods. There is no real way around it, but one could introduce 'packs'
+			to bundle these together and load them only once. Probably the performance
+			hit is not noticeable, but lets just say that I am aware of it
+		:note: Currently method aliases are not implemented for statics !"""
+		fstatic, finst = mdb.extractMFnFunctions(mfncls)
+		if not fstatic:
+			return
+		
+		mfndb = cls._fetchMfnDB(newcls, mfncls)
+		mfnname = mfncls.__name__
+		for fs in fstatic:
+			fn = fs.__name__
+			if fn.startswith(mfnname):
+				fn = fn[len(mfnname)+1:]	# cut MFnName_methodName
+			# END handle name prefix
+			
+			static_function = cls._wrapMfnFunc(newcls, mfncls, fn, mfndb)
+			type.__setattr__(newcls, fn, staticmethod(static_function))
+		# END for each static method
+		
+	@classmethod
+	def _wrapMfnFunc( cls, newcls, mfncls, funcname, mfndb ):
 		"""Create a function that makes a Node natively use its associated Maya
 		function set on calls.
 
-		The created function will use the api object of the cls instance to initialize
-		a function set of mfncls and execute the function in question
+		The created function will use the api object of the instance of the call to initialize
+		a function set of type mfncls and execute the function in question.
 
 		The method mutation database allows to adjust the way a method is being wrapped
 		
 		:param mfncls: Maya function set class from which to take the functions
-		:param funcname: name of the function set function to be wrapped
-		:param funcMutatorDB: 
-			 * *datastructure*:
-				``"mfnfuncname": ( rvalMutatorFunction, newname ) [ , ... ]``
-				 - mfnfuncname: name of the function in the mfn class
-				 
-				 - rvalMutatorFunction:
-				 	if not None, will be given the return value of the wrpaped
-					function and should return an altered and possibly wrapped value
-					
-				 - newname: if not None, a new name for the function mfnfuncname
-
+		:param funcname: name of the function set function to be wrapped.
+		:param mfndb: `mdb.MFnMemberMap` 
 		:raise KeyError: if the given function does not exist in mfncls
 		:note: if the called function starts with _api_*, a special accellerated method
 			will be returned and created allowing direct access to the mfn instance method.
-			This is unsafe of the same api object is being renamed. Also it will only be faster if
+			This is unsafe if the same api object is being renamed. Also it will only be faster if
 			the same method is actually called multiple times. It can be great for speed sensitive code
 			where where the same method(s) are called repeatedly on the same set of objects
 		:return:  wrapped function"""
-		# check the dict for method name - we do not want to see methods of
-		# base classes - will raise accordingly
-		mfndb = funcMutatorDB
-		direct_api_func = False
+		flags = mfndb.flags
 		funcname_orig = funcname	# store the original for later use
 
 		# rewrite the function name to use the actual one
 		if funcname.startswith( "_api_" ):
-			direct_api_func = True
+			flags |= mdb.PythonMFnCodeGenerator.kDirectCall
 			funcname = funcname[ len( "_api_" ) : ]
 		# END is special api function is requested
 		mfnfuncname = funcname		# method could be remapped - if so we need to lookup the real name
 
-
-		rvalfunc = None
+		
+		method_descriptor = None
 		# adjust function according to DB
-		if funcMutatorDB:
-			try:
-				mfnfuncname, entry = funcMutatorDB.entry( funcname )
-				# delete function ?
-				if entry.flag == MfnMemberMap.kDelete:
-					return None
-
-				rvalfunc = entry.rvalfunc
-			except KeyError:
-				pass # could just be working
-			# END if entry available
-		# END if db available
+		try:
+			mfnfuncname, method_descriptor = mfndb.entry( funcname )
+			# delete function ?
+			if method_descriptor.flag == mdb.MFnMemberMap.kDelete:
+				return None
+		except KeyError:
+			pass # could just be working
+		# END if entry available
+	
+		if method_descriptor is None:
+			method_descriptor = mdb.MFnMethodDescriptor()
+		# END assure method descriptor is set
 		
 		# access it directly from the class, ignoring inheritance. If the class
 		# would have overridden the function, we would get it. If it does not do that, 
@@ -134,95 +149,26 @@ class MetaClassCreatorNodes( MetaClassCreator ):
 		# is a real bitch with empty shapes on which it does not want to operate at all
 		# as opposed to behaviour of the API.
 		mfnfunc = mfncls.__dict__[ mfnfuncname ]			# will just raise on error
-		mfnmro = mfncls.mro()
-		newclsmro = newcls.mro()
-		newfunc = None
-
-		needs_MObject = mfncls in cls.forceInitWithMObject
-
-		# bound to class, self will be attached on class instantiation
-		if direct_api_func:
-			# bound to class, self will be attached on class instantiation
-			if rvalfunc:	# wrap rval function around
-				# INITIALIZED DAG NODES WITH DAG PATH !
-				if api.MFnDagNode in mfnmro and not needs_MObject:			# yes, we duplicate code here to keep it fast !!
-					def wrapMfnFunc( self, *args, **kwargs ):
-						rvallambda = lambda *args, **kwargs: rvalfunc(getattr(mfncls(self.dagPath()), mfnfuncname)(*args, **kwargs))
-						object.__setattr__( self, funcname_orig, rvallambda ) # cache it in our object
-						return rvallambda( *args, **kwargs )
-					newfunc = wrapMfnFunc
-				else:
-					if api.MObject in newclsmro:
-						def wrapMfnFunc( self, *args, **kwargs ):
-							rvallambda = lambda *args, **kwargs: rvalfunc(getattr(mfncls(self), mfnfuncname)(*args, **kwargs))
-							object.__setattr__( self, funcname_orig, rvallambda )
-							return rvallambda( *args, **kwargs )
-						newfunc = wrapMfnFunc
-					else:
-						def wrapMfnFunc( self, *args, **kwargs ):
-							rvallambda = lambda *args, **kwargs: rvalfunc(getattr(mfncls(self.object()), mfnfuncname)(*args, **kwargs))
-							object.__setattr__( self, funcname_orig, rvallambda )
-							return rvallambda( *args, **kwargs )
-						newfunc = wrapMfnFunc
-					# END handle MObject inheritance
-			else:
-				if api.MFnDagNode in mfnmro and not needs_MObject:			# yes, we duplicate code here to keep it fast !!
-					def wrapMfnFunc( self, *args, **kwargs ):
-						mfnfunc = getattr(mfncls(self.dagPath()), mfnfuncname)
-						object.__setattr__( self, funcname_orig, mfnfunc )
-						return mfnfunc( *args, **kwargs )
-					newfunc = wrapMfnFunc
-				else:
-					if api.MObject in newclsmro:
-						def wrapMfnFunc( self, *args, **kwargs ):
-							mfnfunc = getattr(mfncls(self), mfnfuncname)
-							object.__setattr__( self, funcname_orig, mfnfunc )
-							return mfnfunc( *args, **kwargs )
-						newfunc = wrapMfnFunc
-					else:
-						def wrapMfnFunc( self, *args, **kwargs ):
-							mfnfunc = getattr(mfncls(self.object()), mfnfuncname)
-							object.__setattr__( self, funcname_orig, mfnfunc )
-							return mfnfunc( *args, **kwargs )
-						newfunc = wrapMfnFunc
-					# END handle MObject inheritance
-			# END not rvalfunc
-		else:
-			if rvalfunc:	# wrap rval function around
-				# INITIALIZED DAG NODES WITH DAG PATH !
-				if api.MFnDagNode in mfnmro and not needs_MObject:			# yes, we duplicate code here to keep it fast !!
-					def wrapMfnFunc( self, *args, **kwargs ):
-						return rvalfunc(getattr(mfncls(self.dagPath()), mfnfuncname)(*args, **kwargs))
-					newfunc = wrapMfnFunc
-				else:
-					if api.MObject in newclsmro:
-						def wrapMfnFunc( self, *args, **kwargs ):
-							return rvalfunc(getattr(mfncls(self), mfnfuncname)(*args, **kwargs))
-						newfunc = wrapMfnFunc
-					else:
-						def wrapMfnFunc( self, *args, **kwargs ):
-							return rvalfunc(getattr(mfncls(self.object()), mfnfuncname)(*args, **kwargs))
-						newfunc = wrapMfnFunc
-					# END handle MObject inheritance
-			else:
-				if api.MFnDagNode in mfnmro and not needs_MObject:			# yes, we duplicate code here to keep it fast !!
-					def wrapMfnFunc( self, *args, **kwargs ):
-						return getattr(mfncls(self.dagPath()), mfnfuncname)(*args, **kwargs)
-					newfunc = wrapMfnFunc
-				else:
-					if api.MObject in newclsmro:
-						def wrapMfnFunc( self, *args, **kwargs ):
-							return getattr(mfncls(self), mfnfuncname)(*args, **kwargs)
-						newfunc = wrapMfnFunc
-					else:
-						def wrapMfnFunc( self, *args, **kwargs ):
-							return getattr(mfncls(self.object()), mfnfuncname)(*args, **kwargs)
-						newfunc = wrapMfnFunc
-					# END handle MObject inheritance
-			# END not rvalfunc
-		# END api accellerated method
-
-		newfunc.__name__ = funcname			# rename the method
+		if isinstance(mfnfunc, staticmethod):
+			flags |= mdb.PythonMFnCodeGenerator.kIsStatic
+			
+			# convert static method to real method
+			mfnfunc = type.__getattribute__(mfncls, mfnfuncname)
+		# END handle 
+		
+		# finish compile flags
+		if api.MFnDagNode in mfncls.mro():
+			flags |= mdb.PythonMFnCodeGenerator.kIsDagNode
+		if api.MObject in newcls.mro():
+			flags |= mdb.PythonMFnCodeGenerator.kIsMObject
+		
+		# could be cached, but we need to wait until the dict is initialized, 
+		# TODO: To be done in __init__ together with the nodedict
+		newfunc = cls._codegen.generateMFnClsMethodWrapperMethod(funcname_orig, funcname, mfncls, mfnfunc, method_descriptor, flags)
+		
+		if not flags & mdb.PythonMFnCodeGenerator.kIsStatic: 
+			newfunc.__name__ = funcname			# rename the method
+		# END handle renames
 		return newfunc
 
 
@@ -253,19 +199,10 @@ class MetaClassCreatorNodes( MetaClassCreator ):
 				if not mfncls:
 					continue
 
-				# GET MFNDB allowing automated method mutations
-				# TO BE WRITTEN ON CLASS LEVEL !
-				mfndb = None
-				try:
-					mfndb = basecls.__dict__[ thiscls.mfndbattr ]
-				except KeyError:
-					mfndb = thiscls._readMfnDB( mfncls.__name__ )
-					type.__setattr__( basecls, thiscls.mfndbattr, mfndb )
-				# END mfndb handling
-
 				# get function as well as its possibly changed name
 				try:
-					newclsfunc = thiscls._wrapMfnFunc( newcls, mfncls, attr, funcMutatorDB=mfndb )
+					mfndb = thiscls._fetchMfnDB(basecls, mfncls)
+					newclsfunc = thiscls._wrapMfnFunc( newcls, mfncls, attr, mfndb )
 					if not newclsfunc: # Function %s has been deleted - ignore
 						continue
 				except KeyError:  		# function not available in this mfn - ignore
@@ -328,9 +265,6 @@ class MetaClassCreatorNodes( MetaClassCreator ):
 
 	def __new__( metacls, name, bases, clsdict ):
 		""" Called to create the class with name """
-		global nodeTypeTree
-		global nodeTypeToMfnClsMap
-
 		# will be used later
 		def func_nameToTree( name ):
 			if name in metacls.nameToTreeMap:
@@ -342,11 +276,16 @@ class MetaClassCreatorNodes( MetaClassCreator ):
 		# ask our NodeType to MfnSet database and attach it to the cls dict
 		# ( if not yet there ). By convention, there is only one mfn per class
 		mfncls = None
+		needs_static_method_initialization = False
 		if not clsdict.has_key( metacls.mfnclsattr ):
 			treeNodeTypeName = func_nameToTree( name )
 			if nodeTypeToMfnClsMap.has_key( treeNodeTypeName ):
 				mfncls = nodeTypeToMfnClsMap[ treeNodeTypeName ]
 				clsdict[ metacls.mfnclsattr ] = mfncls
+				
+				# attach static mfn methods directly.
+				needs_static_method_initialization = True
+			# END attach mfncls to type
 		else:
 			mfncls = clsdict[ metacls.mfnclsattr ]
 
@@ -372,9 +311,12 @@ class MetaClassCreatorNodes( MetaClassCreator ):
 		# Functions from mfn should be wrapped on demand to the respective classes as they
 		# should be generated only when used
 		# Wrap the existing __getattr__ method in an own one linking mfn methods if possible
-		mfncls = newcls.__dict__.get( metacls.mfnclsattr, None )
+		# Additionally, precreate static methods
 		if mfncls:
 			metacls._wrapLazyGetAttr( newcls )
+			
+			if needs_static_method_initialization:
+				metacls._wrapStaticMFnMethods(newcls, mfncls)
 		# END if mfncls defined
 
 
@@ -382,64 +324,10 @@ class MetaClassCreatorNodes( MetaClassCreator ):
 
 	# END __new__
 
+#} END metaclasses
 
 
-###################################
-#### Initialization Methods   ####
-#################################
-
-def mfnDBPath( mfnclsname ):
-	"""Generate a path to a database file containing mfn wrapping information"""
-	appversion = str( env.appVersion( )[0] )
-	return Path( __file__ ).parent().parent() / ( "cache/mfndb/"+ mfnclsname )
-
-
-def cacheFilePath( filename, ext, use_version = False ):
-	"""Return path to cache file from which you would initialize data structures
-	
-	:param use_version: if true, the maya version will be appended to the filename  """
-	mfile = Path( __file__ ).parent().parent()
-	version = ""
-	if use_version:
-		version = cmds.about( version=1 ).split( " " )[0]
-	# END use version
-	return mfile / ( "cache/%s%s.%s" % ( filename, version, ext ) )
-
-def initNodeHierarchy( ):
-	""" Parse the nodes hiearchy from the maya doc and create an Indexed tree from it"""
-	global nodeTypeTree
-	mfile = cacheFilePath( "nodeHierarchy", "hf", use_version = 1 )
-	nodeTypeTree = bmaya.dag_tree_from_tuple_list( bmaya.tuple_list_from_file( mfile ) )
-
-def initWrappers( targetmodule ):
-	"""Create Standin Classes that will delay the creation of the actual class till
-	the first instance is requested
-	
-	:param targetmodule: the module to which to put the wrappers"""
-	global nodeTypeTree
-	bmaya.initWrappers( targetmodule, nodeTypeTree.nodes_iter(), MetaClassCreatorNodes )
-
-def initNodeTypeToMfnClsMap( ):
-	"""Fill the cache map supplying additional information about the MFNClass to use
-	when creating the classes"""
-	cfile = cacheFilePath( "nodeTypeToMfnCls", "map" )
-	fobj = open( cfile, 'r' )
-	pf = PipeSeparatedFile( fobj )
-	global nodeTypeToMfnClsMap, log
-
-	version = pf.beginReading( )	 # don't care about version
-	for nodeTypeName, mfnTypeName in pf.readColumnLine( ):
-		for apimod in ( api, apianim, apirender, apiui, apifx ):
-			try:
-				nodeTypeToMfnClsMap[ nodeTypeName ] = getattr( apimod, mfnTypeName )
-				break				# it worked, there is only one matching class
-			except AttributeError:
-				log.debug("Couldn't find mfn class named %s" % mfnTypeName)
-		# END for each api module
-	# END for each type/mfnclass pair
-
-	fobj.close()
-
+#{ Initialization
 
 def _addCustomType( targetmodule, parentclsname, newclsname,
 				   	metaclass=MetaClassCreatorNodes, **kwargs ):
@@ -455,16 +343,13 @@ def _addCustomType( targetmodule, parentclsname, newclsname,
 		It will not be called if the class already exist in targetModule. Its recommended to derive it
 		from the metaclass given as default value.
 	:raise KeyError: if the parentclsname does not exist"""
-	global nodeTypeTree
-
 	# add new type into the type hierarchy #
 	parentclsname = uncapitalize( parentclsname )
 	newclsname = uncapitalize( newclsname )
 	nodeTypeTree.add_edge( parentclsname, newclsname )
 
 	# create wrapper ( in case newclsname does not yet exist in target module )
-	bmaya.initWrappers( targetmodule, [ newclsname ], metaclass, **kwargs )
-
+	mrvmaya.initWrappers( targetmodule, [ newclsname ], metaclass, **kwargs )
 
 def _addCustomTypeFromDagtree( targetModule, dagtree, metaclass=MetaClassCreatorNodes,
 							  	force_creation=False, **kwargs ):
@@ -475,8 +360,6 @@ def _addCustomTypeFromDagtree( targetModule, dagtree, metaclass=MetaClassCreator
 		are needed, then we can create them - just iterating the nodes in undefined order will not work
 		as a parent node might not be created yet
 	:note: node names in dagtree must be uncapitalized"""
-	global nodeTypeTree
-
 	# add edges - have to start at root
 	rootnode = dagtree.get_root()
 	def recurseOutEdges( node ):		# postorder
@@ -486,157 +369,26 @@ def _addCustomTypeFromDagtree( targetModule, dagtree, metaclass=MetaClassCreator
 				yield edge
 
 	nodeTypeTree.add_edges_from( recurseOutEdges( rootnode ) )
-	bmaya.initWrappers( targetModule, dagtree.nodes_iter(), metaclass, force_creation = force_creation, **kwargs )
+	mrvmaya.initWrappers( targetModule, dagtree.nodes_iter(), metaclass, force_creation = force_creation, **kwargs )
 
+def initTypeNameToMfnClsMap( ):
+	"""Fill the cache map supplying additional information about the MFNClass to use
+	when creating the classes"""
+	global nodeTypeToMfnClsMap
+	nodeTypeToMfnClsMap = mdb.createTypeNameToMfnClsMap()
 
-################################
-#### Cache Initialization ####
-############################
+def initNodeHierarchy( ):
+	"""Initialize the global tree of types, providing a hierarchical relationship between 
+	the node typename strings"""
+	global nodeTypeTree
+	nodeTypeTree = mdb.createDagNodeHierarchy()
 
-class MfnMemberMap( UserDict.UserDict ):
-	"""Simple accessor for MFnDatabase access
-	Direct access like db[funcname] returns an entry object with all values"""
-	kDelete = 'x'
+def initWrappers( targetmodule ):
+	"""Create Standin Classes that will delay the creation of the actual class till
+	the first instance is requested
+	
+	:param targetmodule: the module to which to put the wrappers"""
+	global nodeTypeTree
+	mrvmaya.initWrappers( targetmodule, nodeTypeTree.nodes_iter(), MetaClassCreatorNodes )
 
-	class Entry:
-		"""Simple entry struct keeping the actual values """
-		def __init__( self, flag='', rvalfunc = None, newname="" ):
-			self.flag = flag
-			self.rvalfunc = self.toRvalFunc( rvalfunc )
-			self.newname = newname
-
-		@staticmethod
-		def toRvalFunc( funcname ):
-			if not isinstance( funcname, basestring ):
-				return funcname
-			if funcname == 'None': return None
-			
-			try:
-				return _nodesdict[funcname]
-			except KeyError:
-				raise ValueError("'%s' is unknown to nodes module - it must be implemented there" % funcname )
-
-		def rvalFuncToStr( self ):
-			if self.rvalfunc is None: return 'None'
-			return self.rvalfunc.__name__
-	# END entry class
-
-	def __init__( self, filepath = None ):
-		"""intiialize self from a file if not None"""
-		UserDict.UserDict.__init__( self )
-
-		self._filepath = filepath
-		if filepath:
-			self._initFromFile( filepath )
-
-	def __str__( self ):
-		return "MfnMemberMap(%s)" % self._filepath
-
-	def _initFromFile( self, filepath ):
-		"""Initialize the database with values from the given file
-		
-		:note: the file must have been written using the `writeToFile` method"""
-		self.clear()
-		fobj = open( filepath, 'r' )
-
-		pf = PipeSeparatedFile( fobj )
-		pf.beginReading( )
-		
-		# get the entries
-		for tokens in pf.readColumnLine( ):
-			key = tokens[ 1 ]
-			self[ key ] = self.Entry( flag=tokens[0], rvalfunc=tokens[2], newname=tokens[3] )
-		# END for each token in read column line
-
-	def writeToFile( self, filepath ):
-		"""Write our database contents to the given file"""
-		klist = self.keys()
-		klist.sort()
-
-		fobj = open( filepath, 'w' )
-		pf = PipeSeparatedFile( fobj )
-		pf.beginWriting( [ 4,40,20,40 ] )
-
-		for key in klist:							# write entries
-			e = self[ key ]
-			pf.writeTokens( ( e.flag, key,e.rvalFuncToStr(), e.newname ) )
-		# end for each key
-
-		fobj.close()
-
-	def entry( self, funcname ):
-		"""
-		:return: Tuple( mfnfuncname, entry )
-			original mfnclass function name paired with the
-			db entry containing more information
-		:raise KeyError: if no such function exists"""
-		try:
-			return ( funcname, self[ funcname ] )
-		except KeyError:
-			for mfnfuncname,entry in self.iteritems():
-				if entry.newname == funcname:
-					return ( mfnfuncname, entry )
-			# END for each item
-
-		raise KeyError( "Function named '%s' did not exist in db" % funcname )
-
-	def createEntry( self, funcname ):
-		""" Create an entry for the given function, or return the existing one
-		
-		:return: Entry object for funcname"""
-		return self.setdefault( funcname, self.Entry() )
-
-	def mfnFunc( self, funcname ):
-		""":return: mfn functionname corresponding to the ( possibly renamed ) funcname """
-		return self.entry( funcname )[0]
-
-
-def writeMfnDBCacheFiles( ):
-	"""Create a simple Memberlist of available mfn classes and their members
-	to allow a simple human-editable way of adjusting which methods will be added
-	to the Nodes"""
-	for apimod in ( api, apianim, apirender, apiui, apifx ):
-		mfnclsnames = [ clsname for clsname in dir( apimod ) if clsname.startswith( "MFn" ) ]
-		for mfnname in mfnclsnames:
-			mfnfile = mfnDBPath( mfnname )
-			mfncls = getattr( apimod, mfnname )
-
-			try:
-				mfnfuncs =  [ f  for f  in mfncls.__dict__.itervalues( )
-								if callable( f  ) and not f .__name__.startswith( '_' )
-								and not f .__name__.startswith( '<' )
-								and not f .__name__.endswith( mfnname )	# i.e. delete_MFnName
-								and not inspect.isclass( f  ) ]
-			except AttributeError:
-				continue		# it was a function, not a class
-
-			if not len( mfnfuncs ):
-				continue
-
-			db = MfnMemberMap()
-			if mfnfile.exists():
-				db = MfnMemberMap( mfnfile )
-
-			# assure folder exists
-			folder = mfnfile.dirname()
-			if not folder.isdir(): folder.makedirs()
-
-
-			# write data - simple set the keys, use default flags
-			for func in mfnfuncs:
-				# it could be prefixed with the function set name - remove the prefix
-				# This happens in maya2008 + and may introduce plenty of new methods
-				fname = func.__name__
-				if fname.startswith(mfnname):
-					fname = fname[len(mfnname)+1:]	# cut MFnName_(function)
-				# END handle prefix
-				
-				db.createEntry(fname)
-			# END for each function to add
-
-
-			# finally write the change db
-			db.writeToFile( mfnfile )
-		# END for each api class
-	# END for each api module
-
+#} END initialization

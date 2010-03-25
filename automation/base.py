@@ -53,7 +53,6 @@ def loadWorkflowFromDotFile( dotfile, workflowcls = None ):
 		for workflow creation. Defaults to automation.workflow.Workflow.
 	:return: List of initialized workflow classes - as they can be nested, the
 		creation of one workflow can actually create several of them"""
-	global log
 	import pydot
 	import processes
 	from workflow import Workflow

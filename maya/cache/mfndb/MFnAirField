@@ -12,3 +12,4 @@
     | setSpread                               | None                |                                         
     | speed                                   | None                |                                         
     | spread                                  | None                |                                         
+    | type                                    | None                |                                         

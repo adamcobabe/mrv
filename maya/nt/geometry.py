@@ -283,7 +283,6 @@ class Mesh( SurfaceShape ):		# base for epydoc !
 			 	put tweakNode into mesh history, copy tweaks onto tweak node
 		:note: currently vertex and uv tweaks will be removed if keep is enabled, thus they must
 			both be specified"""
-		global log
 		check_types = ( isinstance( tweak_type, ( list, tuple ) ) and tweak_type ) or [ tweak_type ]
 		type_map = {
 							self.eComponentType.vertex : ( "pnts", api.MFnNumericData.k3Float, "polyTweak", api.MFn.kPolyTweak, "tweak" ),

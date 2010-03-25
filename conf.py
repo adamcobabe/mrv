@@ -581,7 +581,6 @@ class ConfigManager( object ):
 			the changes could not be accomodated.
 		
 		:return: the names of the files that have been written as string list"""
-		global log
 		if self.config is None:
 			raise ValueError( "Internal configuration does not exist" )
 

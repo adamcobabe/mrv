@@ -34,7 +34,6 @@ class QAMetaMel( _NodeBaseCheckMeta ):
 			mel based checkes
 		:param index_proc: method returning the index declaring the tests
 		:param check_cls: class used to instance new checks"""
-		global log
 		output = list()
 		try:
 			index = Mel.call( index_proc )

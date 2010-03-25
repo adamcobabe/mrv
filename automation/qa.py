@@ -193,8 +193,6 @@ class QAWorkflow( Workflow, EventSender ):
 		:note: Sends the following events: ``e_preCheck`` , ``e_postCheck``, ``e_checkError``
 			e_checkError may set the abort_on_error variable to True to cause the operation
 			not to proceed with other checks"""
-		global log
-		
 		# reset abort on error to class default
 		self.abort_on_error = self.__class__.abort_on_error
 		self._clearState( mode )	# assure we get a new callgraph

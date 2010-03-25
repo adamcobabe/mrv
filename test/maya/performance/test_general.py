@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 """ Test general performance """
 from mrv.test.maya import *
-import mrv.maya as bmaya
+import mrv.maya as mrvmaya
 import mrv.maya.nt as nt
 import mrv.maya.ns as ns
 from mrv.maya.ref import *
@@ -41,7 +41,7 @@ class TestGeneralPerformance( unittest.TestCase ):
 		numNodes = 100000
 		cmds.undoInfo( st=0 )
 		targetFile = get_maya_file( "large_scene_%i.mb" % numNodes )
-		bmaya.Scene.new( force = True )
+		mrvmaya.Scene.new( force = True )
 
 		print 'Creating benchmark scene at "%s"' % targetFile
 
@@ -59,7 +59,7 @@ class TestGeneralPerformance( unittest.TestCase ):
 		# END for each nodename
 
 		cmds.undoInfo( st=1 )
-		bmaya.Scene.save( targetFile )
+		mrvmaya.Scene.save( targetFile )
 
 
 	def test_dagwalking( self ):
@@ -68,7 +68,7 @@ class TestGeneralPerformance( unittest.TestCase ):
 		numnodes = [ 2500 ]
 		for nodecount in numnodes:
 			benchfile = get_maya_file( "large_scene_%i.mb" % nodecount )
-			bmaya.Scene.open( benchfile, force = 1 )
+			mrvmaya.Scene.open( benchfile, force = 1 )
 
 			# DIRECT ITERATOR USE
 			st = time.time( )

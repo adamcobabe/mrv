@@ -920,13 +920,11 @@ class MPlugArray( api.MPlugArray, ArrayBase ):
 	
 	def __iter__( self ):
 		""":return: iterator object"""
-		global _plugarray_getitem
 		for i in xrange(len(self)):
 			yield api.MPlug(_plugarray_getitem( self,  i ))
 	
 	def __getitem__ ( self, index ):
 		"""Copy the MPlugs we return to assure their ref count gets incremented"""
-		global _plugarray_getitem
 		return api.MPlug(_plugarray_getitem( self,  index ))
 	
 
@@ -942,13 +940,11 @@ class MObjectArray( api.MObjectArray, ArrayBase ):
 	
 	def __iter__( self ):
 		""":return: iterator object"""
-		global _objectarray_getitem
 		for i in xrange(len(self)):
 			yield api.MObject(_objectarray_getitem( self,  i ))
 	
 	def __getitem__ ( self, index ):
 		"""Copy the MObjects we return to assure their ref count gets incremented"""
-		global _objectarray_getitem
 		return api.MObject(_objectarray_getitem( self,  index ))
 
 
@@ -960,7 +956,6 @@ class MColorArray( api.MColorArray, ArrayBase ):
 	
 	def __iter__( self ):
 		""":return: iterator object"""
-		global _colorarray_getitem
 		for i in xrange(len(self)):
 			yield _colorarray_getitem( self,  i )
 	
@@ -973,7 +968,6 @@ class MPointArray( api.MPointArray, ArrayBase ):
 	
 	def __iter__( self ):
 		""":return: iterator object"""
-		global _pointarray_getitem
 		for i in xrange(len(self)):
 			yield _pointarray_getitem( self,  i )
 
@@ -986,7 +980,6 @@ class MFloatVectorArray( api.MFloatVectorArray, ArrayBase ):
 	
 	def __iter__( self ):
 		""":return: iterator object"""
-		global _floatvectorarray_getitem
 		for i in xrange(len(self)):
 			yield _floatvectorarray_getitem( self,  i )
 			
@@ -997,7 +990,6 @@ class MVectorArray( api.MVectorArray, ArrayBase ):
 	
 	def __iter__( self ):
 		""":return: iterator object"""
-		global _vectorarray_getitem
 		for i in xrange(len(self)):
 			yield _vectorarray_getitem( self,  i )
 
@@ -1010,7 +1002,6 @@ class MFloatPointArray( api.MFloatPointArray, ArrayBase ):
 	
 	def __iter__( self ):
 		""":return: iterator object"""
-		global _floatpointarray_getitem
 		for i in xrange(len(self)):
 			yield _floatpointarray_getitem( self,  i )
 
@@ -1021,7 +1012,6 @@ class MDoubleArray( api.MDoubleArray, ArrayBase ):
 	
 	def __iter__( self ):
 		""":return: iterator object"""
-		global _doublearray_getitem
 		for i in xrange(len(self)):
 			yield _doublearray_getitem( self,  i )
 			
@@ -1032,7 +1022,6 @@ class MFloatArray( api.MFloatArray, ArrayBase ):
 	
 	def __iter__( self ):
 		""":return: iterator object"""
-		global _floatarray_getitem
 		for i in xrange(len(self)):
 			yield _floatarray_getitem( self,  i )
 			

@@ -19,12 +19,12 @@ Default maya commands will require them to be used as strings instead.
 """
 __docformat__ = "restructuredtext"
 
-import mrv.maya as bmaya
+import mrv.maya as mrvmaya
 import typ
 _thismodule = __import__( "mrv.maya.nt", globals(), locals(), ['nt'] )
 from mrv.path import Path
 import mrv.maya.env as env
-import mrv.maya.util as bmayautil
+import mrv.maya.util as mrvmayautil
 from mrv import init_modules
 
 import sys
@@ -79,7 +79,7 @@ def addCustomTypeFromFile( hierarchyfile, **kwargs ):
 	:note: all attributes of `addCustomType` are supported
 	:note: there must be exactly one root type
 	:return: iterator providing all class names that have been added"""
-	dagtree = bmaya._dagTreeFromTupleList( bmaya._tupleListFromFile( hierarchyfile ) )
+	dagtree = mrvmaya._dagTreeFromTupleList( mrvmaya._tupleListFromFile( hierarchyfile ) )
 	typ._addCustomTypeFromDagtree( _thismodule, dagtree, **kwargs )
 	return ( capitalize( nodetype ) for nodetype in dagtree.nodes_iter() )
 
@@ -102,7 +102,7 @@ def forceClassCreation( typeNameList ):
 	
 	:return: List of type instances ( the classes ) that have been created"""
 	outclslist = list()
-	standincls = bmayautil.StandinClass
+	standincls = mrvmayautil.StandinClass
 	for typename in typeNameList:
 		typeCls = getattr( _thismodule, typename )
 		if isinstance( typeCls, standincls ):
@@ -114,7 +114,6 @@ def enforcePersistence( ):
 	"""Call this method to ensure that the persistance plugin is loaded and available.
 	This should by used by plugins which require persitence features but want to 
 	be sure it is not disabled on the target system"""
-	global _thismodule
 	import mrv.maya.nt.storage as storage
 	import mrv.maya.nt.persistence as persistence
 	
@@ -129,12 +128,15 @@ def enforcePersistence( ):
 
 def _init_package( ):
 	"""Do the main initialization of this package"""
-	global _thismodule
+	import mrv.maya.mdb as mdb
 	typ.MetaClassCreatorNodes.targetModule = _thismodule			# init metaclass with our module
 	typ._nodesdict = globals()
 	typ.initNodeHierarchy( )
-	typ.initNodeTypeToMfnClsMap( )
+	typ.initTypeNameToMfnClsMap( )
 	typ.initWrappers( _thismodule )
+	
+	# code generator needs an initialized nodes dict to work
+	typ.MetaClassCreatorNodes._codegen = mdb.PythonMFnCodeGenerator(typ._nodesdict)
 
 	# initialize base module with our global namespace dict
 	import base
@@ -151,8 +153,7 @@ def _init_package( ):
 def _force_type_creation():
 	"""Enforce the creation of all types - must be called once all custom types 
 	were imported"""
-	global _thismodule
-	standincls = bmayautil.StandinClass
+	standincls = mrvmayautil.StandinClass
 	for cls in _thismodule.__dict__.itervalues():
 		if isinstance( cls, standincls ):
 			cls.createCls()

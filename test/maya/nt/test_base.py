@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 """ Test general nodes features """
 from mrv.test.maya import *
-import mrv.maya as bmaya
+import mrv.maya as mrvmaya
 import mrv.maya.env as env
 import mrv.maya.ns as nsm
 import mrv.maya.nt as nt
@@ -29,7 +29,7 @@ class TestGeneral( unittest.TestCase ):
 		filename = get_maya_file( "allnodetypes_%s.mb" % env.appVersion( )[0] )
 		if not Path( filename ).isfile():
 			raise AssertionError( "File %s not found for loading" % filename )
-		bmaya.Scene.open( filename, force=True )
+		mrvmaya.Scene.open( filename, force=True )
 		
 		missingTypesList = list()
 		invalidInheritanceList = list()
@@ -748,7 +748,7 @@ class TestNodeBase( unittest.TestCase ):
 		cmds.redo()
 
 	def test_instancesAndParenting( self ):
-		bmaya.Scene.open( get_maya_file( "instancetest.ma" ), force=True )
+		mrvmaya.Scene.open( get_maya_file( "instancetest.ma" ), force=True )
 		m = nt.Node( "m" )			# mesh, two direct and two indirect instances
 		c1 = nt.createNode( "|c1", "transform" )
 
@@ -828,7 +828,7 @@ class TestNodeBase( unittest.TestCase ):
 
 
 	def test_displaySettings( self ):
-		bmaya.Scene.new( force = 1 )
+		mrvmaya.Scene.new( force = 1 )
 		mesh = nt.createNode( "a1|b1|c1|d1|mesh", "mesh" )
 		mesh.tmp.msetInt( 1 )
 
@@ -1035,6 +1035,10 @@ class TestNodeBase( unittest.TestCase ):
 		cd.remove(mvc)
 		assert len(cd) == 0
 		
+	def test_staticmethods(self):
+		# access a static method directly
+		rnl = nt.RenderLayer.currentLayer()
+		assert isinstance(rnl, nt.Node)
 
 	def test_attributes( self ):
 		# CREATION 
@@ -1095,8 +1099,3 @@ class TestNodeBase( unittest.TestCase ):
 		# COMPOUND ATTRIBUTE #
 		attr = nt.CompoundAttribute.create(l, s)
 	
-	def _DISABLED_test_mfncachebuilder( self ):
-		"""Rewrite the mfn db cache files - should be done with each new maya version"""
-		nt.typ.writeMfnDBCacheFiles( )
-
-

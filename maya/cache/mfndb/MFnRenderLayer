@@ -1,8 +1,12 @@
+    | currentLayer                            | NodeFromObj         |                                         
+    | defaultRenderLayer                      | NodeFromObj         |                                         
     | externalRenderPasses                    | None                |                                         
+    | findLayerByName                         | NodeFromObj         |                                         
     | inCurrentRenderLayer                    | None                |                                         
     | inLayer                                 | None                |                                         
     | isPlugAdjusted                          | None                |                                         
     | layerChildren                           | None                |                                         
+    | listAllRenderLayers                     | None                |                                         
     | listMembers                             | None                |                                         
     | passHasLight                            | None                |                                         
     | passHasObject                           | None                |                                         

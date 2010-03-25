@@ -374,7 +374,6 @@ class Event( object ):
 		:note: if an event listener is weak referenced and goes out of scope
 		:note: will catch all event exceptions trown by the methods called
 		:return: False if at least one event call threw an exception, true otherwise"""
-		global log
 		inst = self._get_last_instance()
 		callbackset = self._getFunctionSet( inst )
 		success = True
