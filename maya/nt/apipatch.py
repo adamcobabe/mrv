@@ -825,8 +825,8 @@ class MPlug( api.MPlug ):
 	mict = misConnectedTo
 	mhc = lambda lhs,rhs: MPlug.mhaveConnection( lhs, rhs )
 	mdc = mdisconnectFrom
-	mnode = mwrappedNode
-	mattribute = mwrappedAttribute
+	mwn = mwrappedNode
+	mwa = mwrappedAttribute
 	#} END name remapping
 
 
