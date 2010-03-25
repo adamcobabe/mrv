@@ -219,7 +219,7 @@ class PythonMFnCodeGenerator(MFnCodeGeneratorBase):
 	
 	def generateMFnClsMethodWrapper(self, source_method_name, target_method_name, mfn_fun_name, method_descriptor, flags=0):
 		"""Generates code as python string which can be used to compile a function. It assumes the following 
-		globals ( or locals ) to be existing: mfncls, mfn_fun, [rvalfunc], source_method_name
+		globals ( or locals ) to be existing: mfncls, mfn_fun, [rvalfunc]
 		Currently supports the following meta data:
 		 * method_descriptor.rvalfunc
 		 
@@ -259,7 +259,7 @@ class PythonMFnCodeGenerator(MFnCodeGeneratorBase):
 			if rvalfunname:
 				sio.write("\tmfninstfunc = lambda *args, **kwargs: rvalfun(mfninstfunc(*args, **kwargs))\n")
 			# END handle rvalfunc name
-			sio.write("\tobject.__setattr__(self, %s, mfninstfunc)\n" % source_method_name)
+			sio.write("\tself.%s = mfninstfunc\n" % source_method_name)
 			sio.write("\treturn mfninstfunc(*args, **kwargs)")
 		else:
 			curline = "mfn_fun(%s, *args, **kwargs)" % mfnset
@@ -277,7 +277,6 @@ class PythonMFnCodeGenerator(MFnCodeGeneratorBase):
 		:param mfncls: MFnFunction set class from which the method was retrieved.
 		:param mfn_fun: function as retrieved from the function set's dict. Its a bare function.
 		:note: For all other args, see `MFnCodeGeneratorBase.generateMFnClsMethodWrapper`"""
-		needs_MObject = flags & self.kMFnNeedsMObject
 		rvalfunc = self._toRvalFunc(method_descriptor.rvalfunc)
 		mfnfuncname = mfn_fun.__name__
 		
@@ -285,91 +284,14 @@ class PythonMFnCodeGenerator(MFnCodeGeneratorBase):
 		if mfnfuncname.startswith(mfncls.__name__):
 			mfnfuncname = mfnfuncname[len(mfncls.__name__)+1:]
 			
-		newfunc = None
-		# bound to class, self will be attached on class instantiation
-		if flags & self.kDirectCall:
-			# bound to class, self will be attached on class instantiation
-			if rvalfunc:	# wrap rval function around
-				# INITIALIZED DAG NODES WITH DAG PATH !
-				if flags & self.kIsDagNode and not needs_MObject:			# yes, we duplicate code here to keep it fast !!
-					def wrapMfnFunc( self, *args, **kwargs ):
-						rvallambda = lambda *args, **kwargs: rvalfunc(mfn_fun(mfncls(self.dagPath()), *args, **kwargs))
-						object.__setattr__( self, source_method_name, rvallambda ) # cache it in our object
-						return rvallambda( *args, **kwargs )
-					newfunc = wrapMfnFunc
-				else:
-					if flags & self.kIsMObject:
-						def wrapMfnFunc( self, *args, **kwargs ):
-							rvallambda = lambda *args, **kwargs: rvalfunc(mfn_fun(mfncls(self), *args, **kwargs))
-							object.__setattr__( self, source_method_name, rvallambda )
-							return rvallambda( *args, **kwargs )
-						newfunc = wrapMfnFunc
-					else:
-						def wrapMfnFunc( self, *args, **kwargs ):
-							rvallambda = lambda *args, **kwargs: rvalfunc(mfn_fun(mfncls(self.object()), *args, **kwargs))
-							object.__setattr__( self, source_method_name, rvallambda )
-							return rvallambda( *args, **kwargs )
-						newfunc = wrapMfnFunc
-					# END handle MObject inheritance
-			else:
-				if flags & self.kIsDagNode and not needs_MObject:			# yes, we duplicate code here to keep it fast !!
-					def wrapMfnFunc( self, *args, **kwargs ):
-						mfnfunc = getattr(mfncls(self.dagPath()), mfnfuncname)
-						object.__setattr__( self, source_method_name, mfnfunc )
-						return mfnfunc( *args, **kwargs )
-					newfunc = wrapMfnFunc
-				else:
-					if flags & self.kIsMObject:
-						def wrapMfnFunc( self, *args, **kwargs ):
-							mfnfunc = getattr(mfncls(self), mfnfuncname)
-							object.__setattr__( self, source_method_name, mfnfunc )
-							return mfnfunc( *args, **kwargs )
-						newfunc = wrapMfnFunc
-					else:
-						def wrapMfnFunc( self, *args, **kwargs ):
-							mfnfunc = getattr(mfncls(self.object()), mfnfuncname)
-							object.__setattr__( self, source_method_name, mfnfunc )
-							return mfnfunc( *args, **kwargs )
-						newfunc = wrapMfnFunc
-					# END handle MObject inheritance
-			# END not rvalfunc
-		else:
-			if rvalfunc:	# wrap rval function around
-				# INITIALIZED DAG NODES WITH DAG PATH !
-				if flags & self.kIsDagNode and not needs_MObject:			# yes, we duplicate code here to keep it fast !!
-					def wrapMfnFunc( self, *args, **kwargs ):
-						return rvalfunc(mfn_fun(mfncls(self.dagPath()), *args, **kwargs))
-					newfunc = wrapMfnFunc
-				else:
-					if flags & self.kIsMObject:
-						def wrapMfnFunc( self, *args, **kwargs ):
-							return rvalfunc(mfn_fun(mfncls(self), *args, **kwargs))
-						newfunc = wrapMfnFunc
-					else:
-						def wrapMfnFunc( self, *args, **kwargs ):
-							return rvalfunc(mfn_fun(mfncls(self.object()), *args, **kwargs))
-						newfunc = wrapMfnFunc
-					# END handle MObject inheritance
-			else:
-				if flags & self.kIsDagNode and not needs_MObject:			# yes, we duplicate code here to keep it fast !!
-					def wrapMfnFunc( self, *args, **kwargs ):
-						return mfn_fun(mfncls(self.dagPath()), *args, **kwargs)
-					newfunc = wrapMfnFunc
-				else:
-					if flags & self.kIsMObject:
-						def wrapMfnFunc( self, *args, **kwargs ):
-							return mfn_fun(mfncls(self), *args, **kwargs)
-						newfunc = wrapMfnFunc
-					else:
-						def wrapMfnFunc( self, *args, **kwargs ):
-							return mfn_fun(mfncls(self.object()), *args, **kwargs)
-						newfunc = wrapMfnFunc
-					# END handle MObject inheritance
-			# END not rvalfunc
-		# END api accellerated method
+		# get the compiled code
+		codestr = self.generateMFnClsMethodWrapper(source_method_name, target_method_name, mfnfuncname, method_descriptor, flags)
+		code = compile(codestr, mfncls.__name__+".py", "exec")
 		
-		newfunc.__name__ = target_method_name
-		return newfunc
+		# get the function into our local dict, globals are our locals
+		eval(code, locals())
+		
+		return locals()[target_method_name]
 	
 	#} END interface 
 	

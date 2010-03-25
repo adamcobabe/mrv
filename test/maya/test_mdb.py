@@ -4,6 +4,7 @@ from mrv.test.maya import *
 import mrv.maya.mdb as mdb
 from mrv.path import *
 from mrv.util import DAGTree
+import inspect
 
 # test import all
 from mrv.maya.mdb import *
@@ -80,6 +81,8 @@ class TestMDB( unittest.TestCase ):
 							assert isinstance(fun_code_string, basestring)
 							
 							# generate the actual method 
+							fun = cgen.generateMFnClsMethodWrapperMethod(source_fun_name, mfn_fun_name, mfncls, mfn_fun, mdescr, flags)
+							assert inspect.isfunction(fun)
 						# END for each rvalwrapper type
 					# END for each isDagNode state
 				# END for each isMObject state
