@@ -239,13 +239,19 @@ class PythonMFnCodeGenerator(MFnCodeGeneratorBase):
 	 	any object.
 	 	NOTE: This flag is likely to be removed as it should be part of the method_descriptor, 
 	 	for now though it does not provide that information so we pass it in.
+	 	
+	 * kWithDocs:
+	 	If set, a doc string will be generated the method. In future, this information
+	 	will come from the method descriptor. Please note that docs should only be attaced
+	 	in interactive modes, otherwise its a waste of memory.
 	 
 	"""
 	kDirectCall, \
 	kMFnNeedsMObject, \
 	kIsMObject, \
 	kIsDagNode, \
-	kIsStatic= [ 1<<i for i in range(5) ] 
+	kIsStatic, \
+	kWithDocs = [ 1<<i for i in range(6) ] 
 	
 	def generateMFnClsMethodWrapper(self, source_method_name, target_method_name, mfn_fun_name, method_descriptor, flags=0):
 		"""Generates code as python string which can be used to compile a function. It assumes the following 
@@ -316,15 +322,16 @@ class PythonMFnCodeGenerator(MFnCodeGeneratorBase):
 		if mfnfuncname.startswith(mfncls.__name__):
 			mfnfuncname = mfnfuncname[len(mfncls.__name__)+1:]
 			
+		new_method = None
 		if flags & self.kIsStatic:
 			# use the function directly
 			rvalfun = self._toRvalFunc(method_descriptor.rvalfunc)
 			if rvalfun is None:
-				return mfn_fun
+				new_method = mfn_fun
 			else:
 				fun = lambda *args, **kwargs: rvalfun(mfn_fun(*args, **kwargs))
 				fun.__name__ = target_method_name
-				return fun
+				new_method = fun
 			# END 
 		else:
 			# get the compiled code
@@ -334,8 +341,15 @@ class PythonMFnCodeGenerator(MFnCodeGeneratorBase):
 			# get the function into our local dict, globals are our locals
 			eval(code, locals())
 			
-			return locals()[target_method_name]
-		# END handle static methods 
+			new_method = locals()[target_method_name]
+		# END handle static methods
+		
+		if flags & self.kWithDocs:
+			if hasattr(new_method, 'func_doc'):
+				new_method.func_doc = "%s.%s" % (mfncls.__name__, mfnfuncname)
+		# END attach generated doc string
+		
+		return new_method
 	
 	#} END interface 
 	

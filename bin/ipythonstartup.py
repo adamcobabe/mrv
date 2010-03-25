@@ -43,7 +43,6 @@ def setup_ipython():
 	# prefetch methods for convenience
 	import mrv.maya.nt.typ as typ
 	typ.prefetchMFnMethods()
-	
 
 def init_ipython():
 	"""Get the main ipython system up and running"""

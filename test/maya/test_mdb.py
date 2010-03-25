@@ -65,25 +65,27 @@ class TestMDB( unittest.TestCase ):
 			for needsMObject in (0, cgen.kMFnNeedsMObject):
 				for isMObject in (0, cgen.kIsMObject):
 					for isDagNode in (0, cgen.kIsDagNode):
-						for rvalwrapname in ('None', 'rvalwrapper'):
-							flags = directCall|needsMObject|isMObject|isDagNode
-							source_fun_name = mfn_fun_name
-							if directCall:
-								source_fun_name = "_api_"+source_fun_name
-							# END create source function name
-							mdescr.rvalfunc = rvalwrapname
-							try:
-								fun_code_string = cgen.generateMFnClsMethodWrapper(source_fun_name, mfn_fun_name, mfn_fun_name, mdescr, flags)
-							except ValueError:
-								continue
-							# END ignore incorrect value flags
-							
-							assert isinstance(fun_code_string, basestring)
-							
-							# generate the actual method 
-							fun = cgen.generateMFnClsMethodWrapperMethod(source_fun_name, mfn_fun_name, mfncls, mfn_fun, mdescr, flags)
-							assert inspect.isfunction(fun)
-						# END for each rvalwrapper type
+						for withDocs in (0, cgen.kWithDocs):
+							for rvalwrapname in ('None', 'rvalwrapper'):
+								flags = directCall|needsMObject|isMObject|isDagNode|withDocs
+								source_fun_name = mfn_fun_name
+								if directCall:
+									source_fun_name = "_api_"+source_fun_name
+								# END create source function name
+								mdescr.rvalfunc = rvalwrapname
+								try:
+									fun_code_string = cgen.generateMFnClsMethodWrapper(source_fun_name, mfn_fun_name, mfn_fun_name, mdescr, flags)
+								except ValueError:
+									continue
+								# END ignore incorrect value flags
+								
+								assert isinstance(fun_code_string, basestring)
+								
+								# generate the actual method 
+								fun = cgen.generateMFnClsMethodWrapperMethod(source_fun_name, mfn_fun_name, mfncls, mfn_fun, mdescr, flags)
+								assert inspect.isfunction(fun)
+							# END for each rvalwrapper type
+						# END for each withDocs state
 					# END for each isDagNode state
 				# END for each isMObject state
 			# END for each needsMObject state

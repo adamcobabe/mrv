@@ -98,7 +98,7 @@ class MetaClassCreatorNodes( MetaClassCreator ):
 		# END for each static method
 		
 	@classmethod
-	def _wrapMfnFunc( cls, newcls, mfncls, funcname, mfndb ):
+	def _wrapMfnFunc( cls, newcls, mfncls, funcname, mfndb, addFlags=0 ):
 		"""Create a function that makes a Node natively use its associated Maya
 		function set on calls.
 
@@ -110,6 +110,7 @@ class MetaClassCreatorNodes( MetaClassCreator ):
 		:param mfncls: Maya function set class from which to take the functions
 		:param funcname: name of the function set function to be wrapped.
 		:param mfndb: `mdb.MFnMemberMap` 
+		:param addFlags: If set, these flags define how the method will be generated.
 		:raise KeyError: if the given function does not exist in mfncls
 		:note: if the called function starts with _api_*, a special accellerated method
 			will be returned and created allowing direct access to the mfn instance method.
@@ -117,7 +118,7 @@ class MetaClassCreatorNodes( MetaClassCreator ):
 			the same method is actually called multiple times. It can be great for speed sensitive code
 			where where the same method(s) are called repeatedly on the same set of objects
 		:return:  wrapped function"""
-		flags = mfndb.flags
+		flags = mfndb.flags|addFlags
 		funcname_orig = funcname	# store the original for later use
 
 		# rewrite the function name to use the actual one
@@ -336,6 +337,7 @@ def prefetchMFnMethods():
 	This should only be done to help interactive mode, but makes absolutely no 
 	sense in the default mode of operation when everything is produced on demand.
 	
+	:note: Attaches docstrings as well
 	:return: integer representing the number of generated methods"""
 	log.info("Prefetching all MFnMethods")
 	
@@ -372,7 +374,7 @@ def prefetchMFnMethods():
 				pass
 			# END get alias metadata
 			
-			fwrapped = MetaClassCreatorNodes._wrapMfnFunc(nodetype, mfncls, fn, mfndb)
+			fwrapped = MetaClassCreatorNodes._wrapMfnFunc(nodetype, mfncls, fn, mfndb, mdb.PythonMFnCodeGenerator.kWithDocs)
 			
 			
 			set_method_if_possible(nodetype, fn, fwrapped)
