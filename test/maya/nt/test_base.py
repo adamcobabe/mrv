@@ -95,6 +95,10 @@ class TestGeneral( unittest.TestCase ):
 		pe = nt.PointEmitter()
 		assert pe.parent() is None
 		
+		# a shape with just a shortname works as well
+		m = nt.createNode("myMesh", "mesh")
+		assert isinstance(m.parent(), nt.Transform)
+		
 	
 	def _DISABLED_test_testWrappers( self ):
 		filename = get_maya_file( "allnodetypes_%s.mb" % env.appVersion( )[0] )

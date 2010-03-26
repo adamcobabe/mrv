@@ -464,21 +464,27 @@ def createNode( nodename, nodetype, autocreateNamespace=True, renameOnClash = Tr
 	
 	added_operation = False
 	is_transform_type = nodetype == 'transform'
+	is_dagnode = is_transform_type		# otherwise it could be a shape as well
 	if not is_transform_type and nodeTypeTree.has_node(nodetype):
-		is_transform_type = 'transform' in list(nodeTypeTree.parent_iter(nodetype))
+		parents = list(nodeTypeTree.parent_iter(nodetype))
+		is_transform_type = 'transform' in parents
+		is_dagnode = 'dagNode' in parents
 	# END do more intense inheritance query
 	
 	for i in xrange( start_index, lenSubpaths ):						# first token always pipe, need absolute paths
 		nodepartialname = '|'.join( subpaths[ 0 : i+1 ] )				# full path to the node so far
+		is_last_iteration = i == lenSubpaths - 1
 
 		# DAG ITEM EXISTS ?
 		######################
-		if objExists( nodepartialname ):
+		nodeapiobj = toApiobj( nodepartialname )
+		if nodeapiobj is not None:
 			# could be that the node already existed, but with an incorrect type
-			if i == lenSubpaths - 1:				# in the last iteration
+			if is_last_iteration:				# in the last iteration
 				if not forceNewLeaf:
-					parentnode = createdNode = toApiobj( nodepartialname )
-					existing_node_type = uncapitalize( api.MFnDependencyNode( createdNode ).typeName() )
+					parentnode = createdNode = nodeapiobj
+					_mfndep_setobject(createdNode)
+					existing_node_type = uncapitalize( _mfndep_typename() )
 					nodetypecmp = uncapitalize( nodetype )
 					if nodetypecmp != existing_node_type:
 						# allow more specialized types, but not less specialized ones
@@ -495,7 +501,7 @@ def createNode( nodename, nodetype, autocreateNamespace=True, renameOnClash = Tr
 			# END leaf path handling
 			else:
 				# remember what we have done so far and continue
-				parentnode = createdNode = toApiobj( nodepartialname )
+				parentnode = createdNode = nodeapiobj
 				continue
 		# END node item exists
 
@@ -508,14 +514,14 @@ def createNode( nodename, nodetype, autocreateNamespace=True, renameOnClash = Tr
 
 		# see whether we have to create a transform or the actual nodetype
 		actualtype = "transform"
-		if i + 1 == lenSubpaths:
+		if is_last_iteration:
 			actualtype = nodetype
 
 		# create the node - either with or without parent
 		# The actual node needs to be created with a matching modifier, dag nodes
 		# with the DagMofier, dg nodes with the dg modifier
 		# The user currently has to specify a proper path.
-		if parentnode or actualtype == "transform" or (i + 1 == lenSubpaths and is_transform_type):
+		if parentnode or actualtype == "transform" or (is_last_iteration and is_transform_type):
 
 			# create dag node
 			mod = undo.DagModifier( )
@@ -531,8 +537,17 @@ def createNode( nodename, nodetype, autocreateNamespace=True, renameOnClash = Tr
 			parentnode = createdNode = newapiobj				# update parent
 		else:
 			# create dg node - really have to check for clashes afterwards
+			# It may also be that the user passed in a name which didn't 
+			# show that we want a dag node - hence we have to check for failure
+			# and recover
 			mod = undo.DGModifier( )
-			newapiobj = mod.createNode( actualtype )								# create
+			try:
+				newapiobj = mod.createNode( actualtype )								# create
+			except RuntimeError:
+				mod = undo.DagModifier()
+				trans = mod.createNode("transform")
+				newapiobj = mod.createNode(actualtype, trans)
+			# END handle dag node
 			mod.renameNode( newapiobj, dagtoken )									# rename
 			mod.doIt()
 			createdNode = newapiobj
