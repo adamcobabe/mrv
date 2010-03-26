@@ -464,8 +464,11 @@ def createNode( nodename, nodetype, autocreateNamespace=True, renameOnClash = Tr
 	
 	added_operation = False
 	is_transform_type = nodetype == 'transform'
+	is_shape = False
 	if not is_transform_type and nodeTypeTree.has_node(nodetype):
-		is_transform_type = 'transform' in nodeTypeTree.parent_iter(nodetype)
+		parents = list(nodeTypeTree.parent_iter(nodetype))
+		is_transform_type = 'transform' in parents
+		is_shape = 'shape' in parents
 	# END do more intense inheritance query
 	
 	do_existence_checks = True
@@ -568,8 +571,12 @@ def createNode( nodename, nodetype, autocreateNamespace=True, renameOnClash = Tr
 				# under our control. This will put even a transform derived type
 				# under an extra transform, which in that case would not be required.
 				# But here we are, and it cannot be helped.
-				trans = dagmod.createNode("transform")
-				newapiobj = dagmod.createNode(actualtype, trans)
+				if is_shape:
+					trans = dagmod.createNode("transform")
+					newapiobj = dagmod.createNode(actualtype, trans)
+				else:
+					newapiobj = dagmod.createNode(actualtype)
+				# END shape handling
 			# END handle dag node
 			mod.renameNode( newapiobj, dagtoken )									# rename
 			createdNode = newapiobj
