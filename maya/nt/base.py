@@ -460,7 +460,9 @@ def createNode( nodename, nodetype, autocreateNamespace=True, renameOnClash = Tr
 		nodename = "|" + nodename				# update with pipe
 		subpaths.insert( 0, '' )
 		lenSubpaths += 1
+	# END special handling
 
+	added_operation = False
 	for i in xrange( start_index, lenSubpaths ):						# first token always pipe, need absolute paths
 		nodepartialname = '|'.join( subpaths[ 0 : i+1 ] )				# full path to the node so far
 
@@ -505,8 +507,8 @@ def createNode( nodename, nodetype, autocreateNamespace=True, renameOnClash = Tr
 			actualtype = nodetype
 
 		# create the node - either with or without parent
-		# NOTE: usually one could just use a dagModifier for everything, but I do not
-		# trust wrapped inherited methods with default attributes
+		# The actual node needs to be created with a matching modifier, dag nodes
+		# with the DagMofier, dg nodes with the dg modifier
 		if parentnode or actualtype == "transform":
 
 			# create dag node

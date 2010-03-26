@@ -37,7 +37,7 @@ def wrapUI( uinameOrList, ignore_errors = False ):
 	if not islisttype:
 		if uinameOrList is None:
 			islisttype = True
-			uinames = []
+			uinames = list()
 		else:
 			uinames = [ uinameOrList ]
 	# END input list handling
