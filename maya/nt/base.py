@@ -469,6 +469,8 @@ def createNode( nodename, nodetype, autocreateNamespace=True, renameOnClash = Tr
 	# END do more intense inheritance query
 	
 	do_existence_checks = True
+	dgmod = None
+	dagmod = None
 	for i in xrange( start_index, lenSubpaths ):						# first token always pipe, need absolute paths
 		nodepartialname = '|'.join( subpaths[ 0 : i+1 ] )				# full path to the node so far
 		is_last_iteration = i == lenSubpaths - 1
@@ -527,34 +529,49 @@ def createNode( nodename, nodetype, autocreateNamespace=True, renameOnClash = Tr
 		# with the DagMofier, dg nodes with the dg modifier
 		# The user currently has to specify a proper path.
 		if parentnode or actualtype == "transform" or (is_last_iteration and is_transform_type):
-
+			if dagmod is None:
+				dagmod = api.MDagModifier()
+				
 			# create dag node
-			mod = undo.DagModifier( )
 			newapiobj = None
 			if parentnode:		# use parent
-				newapiobj = mod.createNode( actualtype, parentnode )		# create with parent
+				newapiobj = dagmod.createNode( actualtype, parentnode )		# create with parent
 			else:
-				newapiobj = mod.createNode( actualtype )							# create
+				newapiobj = dagmod.createNode( actualtype )							# create
 
-			mod.renameNode( newapiobj, dagtoken )									# rename
-			mod.doIt()																# apply op
+			dagmod.renameNode( newapiobj, dagtoken )									# rename
 
 			parentnode = createdNode = newapiobj				# update parent
 		else:
+			if dgmod is None:
+				dgmod = api.MDGModifier()
+			
 			# create dg node - really have to check for clashes afterwards
 			# It may also be that the user passed in a name which didn't 
 			# show that we want a dag node - hence we have to check for failure
 			# and recover
-			mod = undo.DGModifier( )
+			mod = dgmod
 			try:
-				newapiobj = mod.createNode( actualtype )								# create
+				newapiobj = dgmod.createNode( actualtype )								# create
 			except RuntimeError:
-				mod = undo.DagModifier()
-				trans = mod.createNode("transform")
-				newapiobj = mod.createNode(actualtype, trans)
+				if dagmod is None:
+					dagmod = api.MDagModifier()
+				mod = dagmod
+				# even though it could be a transform derived type which can be 
+				# created right away without an explicit parent, we don't know that, 
+				# if we would know, we wouldn't be here.
+				# In case its not transform derived, a parent node would be created
+				# automatically. Problem is that this node is returned instead of 
+				# the node we requested ( logic bug if you ask me ! ), and we don't 
+				# want to return a node type the caller didn't order.
+				# This is why we explicitly create a transform, to have the parent 
+				# under our control. This will put even a transform derived type
+				# under an extra transform, which in that case would not be required.
+				# But here we are, and it cannot be helped.
+				trans = dagmod.createNode("transform")
+				newapiobj = dagmod.createNode(actualtype, trans)
 			# END handle dag node
 			mod.renameNode( newapiobj, dagtoken )									# rename
-			mod.doIt()
 			createdNode = newapiobj
 		# END (partial) node creation
 
@@ -574,9 +591,16 @@ def createNode( nodename, nodetype, autocreateNamespace=True, renameOnClash = Tr
 				subpaths[ i ] =  actualname
 				nodepartialname = '|'.join( subpaths[ 0 : i+1 ] )
 		# END dag token renamed
-
 	# END for each partial path
-
+	
+	# add the modifiers to the undo stack
+	op = undo.GenericOperationStack()
+	if dgmod is not None:
+		op.addCmd(dgmod.doIt, dgmod.undoIt)
+	if dagmod is not None:
+		op.addCmd(dagmod.doIt, dagmod.undoIt)
+	op.doIt()
+	
 	if createdNode is None:
 		raise RuntimeError( "Failed to create %s ( %s )" % ( nodename, nodetype ) )
 

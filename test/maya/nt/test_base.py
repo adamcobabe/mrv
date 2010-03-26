@@ -97,7 +97,22 @@ class TestGeneral( unittest.TestCase ):
 		
 		# a shape with just a shortname works as well
 		m = nt.createNode("myMesh", "mesh")
-		assert isinstance(m.parent(), nt.Transform)
+		mp = m.parent()
+		assert isinstance(mp, nt.Transform)
+		
+		cmds.undo()
+		cmds.undo()
+		
+		assert pe.isAlive() and not pe.isValid()
+		assert mp.isAlive() and not mp.isValid()
+		assert m.isAlive() and not m.isValid()
+		
+		cmds.redo()
+		assert pe.isValid()
+		
+		cmds.redo()
+		assert m.isValid() and mp.isValid()
+		
 		
 	
 	def _DISABLED_test_testWrappers( self ):
