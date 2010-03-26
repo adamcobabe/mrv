@@ -265,8 +265,6 @@ base
 									lattice
 									surfaceShape
 										tHsurfaceShape
-											mentalrayCCMeshProxy
-											mentalrayIblShape
 											mapVizShape
 										fluidShape
 											fluidTexture2D
@@ -293,7 +291,6 @@ base
 								cylindricalLightLocator
 								sphericalLightLocator
 								tHlocatorShape
-									mentalrayTessellation
 									FurFeedback
 								dropoffLocator
 								hikFloorContactMarker
@@ -402,47 +399,6 @@ base
 			frameCache
 			tHdependNode
 				AISEnvFacade
-				mentalrayColorProfile
-				mentalrayCurveApprox
-				mentalrayDisplaceApprox
-				mentalrayFramebuffer
-				mentalrayGlobals
-				mentalrayItemsList
-				mentalrayLightProfile
-				mentalrayOptions
-				mentalrayOutputPass
-				mentalrayPhenomenon
-				mentalrayRenderPass
-				mentalrayShader
-				mentalraySubdivApprox
-				mentalraySurfaceApprox
-				mentalrayText
-				mentalrayUserBuffer
-				mentalrayUserData
-				mentalrayVertexColors
-				mib_bump_map2
-				mib_lookup_cube1
-				mib_lookup_cube6
-				mib_texture_lookup2
-				mip_binaryproxy
-				mip_cameramap
-				mip_card_opacity
-				mip_gamma_gain
-				mip_grayball
-				mip_matteshadow
-				mip_matteshadow_mtl
-				mip_mirrorball
-				mip_motion_vector
-				mip_motionblur
-				mip_rayswitch
-				mip_rayswitch_advanced
-				mip_rayswitch_environment
-				mip_render_subset
-				misss_fast_lmap_maya
-				misss_fast_simple_maya
-				misss_fast_skin_maya
-				misss_physical
-				misss_set_normal
 				oldGeometryConstraint
 				rotateHelper
 				surfaceSampler
@@ -505,128 +461,7 @@ base
 				FurCurveAttractors
 				FurDescription
 				FurGlobals
-				contour_composite
-				contour_contrast_function_levels
-				contour_contrast_function_simple
-				contour_only
-				contour_ps
-				contour_shader_combi
-				contour_shader_curvature
-				contour_shader_depthfade
-				contour_shader_factorcolor
-				contour_shader_framefade
-				contour_shader_layerthinner
-				contour_shader_maxcolor
-				contour_shader_silhouette
-				contour_shader_simple
-				contour_shader_widthfromcolor
-				contour_shader_widthfromlight
-				contour_shader_widthfromlightdir
-				contour_store_function
-				contour_store_function_simple
-				dgs_material
-				dgs_material_photon
-				dielectric_material
-				dielectric_material_photon
 				lightlists
-				mi_bump_flakes
-				mi_car_paint_phen
-				mi_metallic_paint
-				mia_envblur
-				mia_exposure_photographic
-				mia_exposure_simple
-				mia_lens_bokeh
-				mia_light_surface
-				mia_material
-				mia_material_x
-				mia_physicalsky
-				mia_physicalsun
-				mia_portal_light
-				mia_roundcorners
-				mib_amb_occlusion
-				mib_bent_normal_env
-				mib_blackbody
-				mib_bump_basis
-				mib_bump_map
-				mib_cie_d
-				mib_color_alpha
-				mib_color_average
-				mib_color_intensity
-				mib_color_interpolate
-				mib_color_mix
-				mib_color_spread
-				mib_continue
-				mib_dielectric
-				mib_fast_occlusion
-				mib_fg_occlusion
-				mib_geo_add_uv_texsurf
-				mib_geo_cone
-				mib_geo_cube
-				mib_geo_cylinder
-				mib_geo_instance
-				mib_geo_instance_mlist
-				mib_geo_sphere
-				mib_geo_square
-				mib_geo_torus
-				mib_glossy_reflection
-				mib_glossy_refraction
-				mib_illum_blinn
-				mib_illum_cooktorr
-				mib_illum_hair
-				mib_illum_lambert
-				mib_illum_phong
-				mib_illum_ward
-				mib_illum_ward_deriv
-				mib_lens_clamp
-				mib_lens_stencil
-				mib_light_infinite
-				mib_light_photometric
-				mib_light_point
-				mib_light_spot
-				mib_lightmap_sample
-				mib_lightmap_write
-				mib_lookup_background
-				mib_lookup_cylindrical
-				mib_lookup_spherical
-				mib_opacity
-				mib_passthrough_bump_map
-				mib_photon_basic
-				mib_ray_marcher
-				mib_reflect
-				mib_refract
-				mib_refraction_index
-				mib_shadow_transparency
-				mib_texture_checkerboard
-				mib_texture_filter_lookup
-				mib_texture_lookup
-				mib_texture_polkadot
-				mib_texture_polkasphere
-				mib_texture_remap
-				mib_texture_rotate
-				mib_texture_turbulence
-				mib_texture_vector
-				mib_texture_wave
-				mib_transparency
-				mib_twosided
-				mib_volume
-				misss_call_shader
-				misss_fast_shader
-				misss_fast_simple_phen
-				misss_fast_skin_phen
-				misss_fast_skin_phen_d
-				misss_lambert_gamma
-				misss_lightmap_write
-				misss_physical_phen
-				misss_physical_shader
-				misss_skin_specular
-				oversampling_lens
-				parti_volume
-				parti_volume_photon
-				path_material
-				physical_lens_dof
-				physical_light
-				transmat
-				transmat_photon
 				furPointOnMeshInfo
 				furPointOnSubd
 			gammaCorrect
@@ -691,7 +526,6 @@ base
 			makeGroup
 			materialInfo
 			membrane
-			mentalrayTexture
 			motionPath
 			multDoubleLinear
 			multilisterLight
