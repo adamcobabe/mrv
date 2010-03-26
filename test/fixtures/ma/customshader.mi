@@ -1,0 +1,22 @@
+min version "3.4.0.524"
+max version "3.5.99"
+
+declare shader
+	struct {
+		color		"outColor",
+		color		"outGlowColor",
+		color		"outMatteOpacity",
+		color		"outTransparency"
+	} "testCustomShader" (
+		color		"color",
+		color		"shadingMapColor",
+		color		"glowColor",
+		color		"transparency",
+		integer		"matteOpacityMode",
+		scalar		"matteOpacity",
+		integer 	"mapFunctionU",
+		integer 	"mapFunctionV"
+		)
+	apply material
+	version	1
+end declare

@@ -8,7 +8,7 @@ import mrv.maya as mrvmaya
 from mrv.util import uncapitalize
 import mrv.maya.util as mutil
 from mrv.path import Path
-_thismodule = __import__( "mrv.maya.ui", globals(), locals(), ['ui'] )
+_uipackage = __import__( "mrv.maya.ui", globals(), locals(), ['ui'] )
 import maya.cmds as mcmds
 from util import propertyQE, EventSenderUI
 
@@ -31,7 +31,7 @@ def init_classhierarchy( ):
 def initWrappers( ):
 	""" Create Standin Classes that will delay the creation of the actual class till
 	the first instance is requested"""
-	mrvmaya.initWrappers( _thismodule, _typetree.nodes_iter(), MetaClassCreatorUI )
+	mrvmaya.initWrappers( _uipackage.__dict__, _typetree.nodes_iter(), MetaClassCreatorUI )
 
 #} END initialization
 
@@ -111,7 +111,7 @@ class MetaClassCreatorUI( mutil.MetaClassCreator ):
 				clsdict[ attrname ] = EventSenderUI._UIEvent( ename, **event_kwargs )
 		# END for each event name
 
-		newcls = super( MetaClassCreatorUI, metacls ).__new__( _typetree, _thismodule,
+		newcls = super( MetaClassCreatorUI, metacls ).__new__( _typetree, _uipackage,
 																metacls, name, bases, clsdict )
 
 		return newcls

@@ -4,7 +4,6 @@ from mrv.test.maya import *
 import mrv.maya.nt as nt
 import maya.cmds as cmds
 import maya.OpenMaya as api
-import mrv.maya.nt.set as set
 
 class TestSets( unittest.TestCase ):
 	""" Test set and partition handling """
@@ -309,7 +308,7 @@ class TestSets( unittest.TestCase ):
 			###############
 			multiobj = [ o1, o2 ]
 			s1.addMember( o1 )
-			self.failUnlessRaises( set.ConstraintError, s2.addMember, o1 )	# failure, as errors are not ignored
+			self.failUnlessRaises( nt.ConstraintError, s2.addMember, o1 )	# failure, as errors are not ignored
 			s2.addMember( o1, ignore_failure = 1 )		# ignore failure
 
 			# FORCE
@@ -318,7 +317,7 @@ class TestSets( unittest.TestCase ):
 
 			# MULTIPLE OBJECTS
 			###################
-			self.failUnlessRaises( set.ConstraintError, s1.addMembers, multiobj )			# fails as t is in s2
+			self.failUnlessRaises( nt.ConstraintError, s1.addMembers, multiobj )			# fails as t is in s2
 			s1.addMembers( [ o2 ] )			# works as t2 is not in any set yet
 			assert s1.isMember( o2 ) 
 
@@ -336,7 +335,7 @@ class TestSets( unittest.TestCase ):
 
 
 			s1.addMembers( multiobj )
-			self.failUnlessRaises( set.ConstraintError, s2.addMembers, multiobj, force = False, ignore_failure = False )
+			self.failUnlessRaises( nt.ConstraintError, s2.addMembers, multiobj, force = False, ignore_failure = False )
 			assert s2.members().length() == 0
 
 			s2.addMembers( multiobj, force = False, ignore_failure = 1 )
@@ -362,8 +361,8 @@ class TestSets( unittest.TestCase ):
 		snode = nt.createNode( "mysg", "shadingEngine" )
 		snode.setPartition( rp, 1 )
 
-		self.failUnlessRaises( set.ConstraintError, snode.addMember, sphere )
-		self.failUnlessRaises( set.ConstraintError, snode.addMembers, multi )
+		self.failUnlessRaises( nt.ConstraintError, snode.addMember, sphere )
+		self.failUnlessRaises( nt.ConstraintError, snode.addMembers, multi )
 
 		# now force it in
 		snode.addMembers( multi, force = 1, ignore_failure = 0 )

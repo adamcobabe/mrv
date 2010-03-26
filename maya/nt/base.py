@@ -7,7 +7,7 @@ matches. This allows to create hand-implemented types.
 """
 __docformat__ = "restructuredtext"
 
-from typ import nodeTypeToMfnClsMap, nodeTypeTree, MetaClassCreatorNodes
+from typ import nodeTypeToMfnClsMap, nodeTypeTree, MetaClassCreatorNodes, _addCustomType
 from mrv.util import uncapitalize, capitalize, pythonIndex, Call 
 from mrv.interface import iDuplicatable, iDagItem
 from mrv.maya.util import StandinClass
@@ -60,8 +60,40 @@ _mfndep_typename = _mfndep.typeName
 _mfndag_typename = _mfndag.typeName
 _mfndep_name = _mfndep.name
 
-api_mdagpath_node = MDagPath.node
+_api_mdagpath_node = MDagPath.node
 _apitype_to_name = dict()			# [int] - > type name string
+
+_plugin_type_ids = (	api.MFn.kPluginDeformerNode, 
+							api.MFn.kPluginDependNode,
+							api.MFn.kPluginEmitterNode, 
+							api.MFn.kPluginFieldNode,
+							api.MFn.kPluginHwShaderNode,
+							api.MFn.kPluginIkSolver,
+							api.MFn.kPluginImagePlaneNode,
+							api.MFn.kPluginLocatorNode,
+							api.MFn.kPluginManipContainer,
+							api.MFn.kPluginObjectSet, 
+							api.MFn.kPluginParticleAttributeMapperNode, 
+							api.MFn.kPluginShape,
+							api.MFn.kPluginSpringNode,
+							api.MFn.kPluginTransformNode )
+
+_plugin_type_ids_lut = set(_plugin_type_ids)
+
+_plugin_type_to_node_type_name = dict(zip((_plugin_type_ids), ("UnknownPluginDeformerNode", 
+																"UnknownPluginDependNode",
+																"UnknownPluginEmitterNode", 
+																"UnknownPluginFieldNode",
+																"UnknownPluginHwShaderNode",
+																"UnknownPluginIkSolver",
+																"UnknownPluginImagePlaneNode",
+																"UnknownPluginLocatorNode",
+																"UnknownPluginManipContainer",
+																"UnknownPluginObjectSet", 
+																"UnknownPluginParticleAttributeMapperNode", 
+																"UnknownPluginShape",
+																"UnknownPluginSpringNode",
+																"UnknownPluginTransformNode" )))
 
 
 
@@ -71,14 +103,21 @@ _apitype_to_name = dict()			# [int] - > type name string
 
 #{ Conversions
 
-def nodeTypeToNodeTypeCls( nodeTypeName ):
+def nodeTypeToNodeTypeCls( nodeTypeName, apiobj ):
 	""" Convert the given  node type (str) to the respective python node type class
 	
-	:param nodeTypeName: the type name you which to have the actual class for  """
+	:param nodeTypeName: the type name you which to have the actual class for
+	:param apiobj: source api object, its apiType is used as fallback in case we 
+	don't know the node"""
 	try:
 		nodeTypeCls = _nodesdict[capitalize( nodeTypeName )]
 	except KeyError:
-		raise TypeError( "NodeType %s unknown - it cannot be wrapped" % nodeTypeName )
+		# assume its a plugin node - in that case the parent will be nicely defined
+		# and helps us to figure out that its a default dummy
+		parentclsname = _plugin_type_to_node_type_name.get(apiobj.apiType(), 'Unknown')
+		_addCustomType(_nodesdict, parentclsname, nodeTypeName)
+		nodeTypeCls = _nodesdict[capitalize(nodeTypeName)]
+	# END exception handling
 
 	if isinstance( nodeTypeCls, StandinClass ):
 		nodeTypeCls = nodeTypeCls.createCls( )
@@ -421,7 +460,9 @@ def createNode( nodename, nodetype, autocreateNamespace=True, renameOnClash = Tr
 		nodename = "|" + nodename				# update with pipe
 		subpaths.insert( 0, '' )
 		lenSubpaths += 1
+	# END special handling
 
+	added_operation = False
 	for i in xrange( start_index, lenSubpaths ):						# first token always pipe, need absolute paths
 		nodepartialname = '|'.join( subpaths[ 0 : i+1 ] )				# full path to the node so far
 
@@ -466,8 +507,8 @@ def createNode( nodename, nodetype, autocreateNamespace=True, renameOnClash = Tr
 			actualtype = nodetype
 
 		# create the node - either with or without parent
-		# NOTE: usually one could just use a dagModifier for everything, but I do not
-		# trust wrapped inherited methods with default attributes
+		# The actual node needs to be created with a matching modifier, dag nodes
+		# with the DagMofier, dg nodes with the dg modifier
 		if parentnode or actualtype == "transform":
 
 			# create dag node
@@ -544,7 +585,7 @@ def _checkedInstanceCreation( apiobj, typeName, clsToBeCreated, basecls ):
 	:return: create clsinstance if the proper type ( according to nodeTypeTree )"""
 	# get the node type class for the api type object
 
-	nodeTypeCls = nodeTypeToNodeTypeCls( typeName )
+	nodeTypeCls = nodeTypeToNodeTypeCls( typeName, apiobj )
 
 	# NON-MAYA NODE Type
 	# if an explicit type was requested, assure we are at least compatible with
@@ -778,9 +819,15 @@ class Node( object ):
 	#} END interface
 
 def _lookup_type( mobject_or_mdagpath ):
-	""":return: node type name of the given MObject or MDagPath"""
+	""":return: node type name of the given MObject or MDagPath
+	:note: if we have a plugin type, we must use the 'slow' way
+	as the type is the same for all plugin nodes"""
+	apitype = mobject_or_mdagpath.apiType() 
 	try:
-		return _apitype_to_name[mobject_or_mdagpath.apiType()]
+		if apitype in _plugin_type_ids_lut:
+			raise KeyError
+		# END force byName type check for plugin types
+		return _apitype_to_name[apitype]
 	except KeyError:
 		# cache miss - fill in the type
 		if isinstance(mobject_or_mdagpath, MDagPath):
@@ -815,7 +862,7 @@ class NodeFromObj( object ):
 			dagpath = mobject_or_mdagpath
 		# END if we have a dag path
 	
-		clsinstance = object.__new__(nodeTypeToNodeTypeCls(_lookup_type(mobject_or_mdagpath)))
+		clsinstance = object.__new__(nodeTypeToNodeTypeCls(_lookup_type(mobject_or_mdagpath), apiobj))
 		
 		# apiobj is None, or MObject, or MDagPath, but will be set to the proper type 
 		# later

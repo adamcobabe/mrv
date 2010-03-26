@@ -5,13 +5,16 @@ import mrv.maya as mrvmaya
 import mrv.maya.env as env
 import mrv.maya.ns as nsm
 import mrv.maya.nt as nt
+import mrv.maya.nt.storage as mstorage
 from mrv.maya.util import MEnumeration
 from mrv.maya.nt.persistence import PyPickleData
 from mrv.test.maya import get_maya_file
 from mrv.util import capitalize, uncapitalize
+from mrv.path import Path
+
 import maya.cmds as cmds
 import maya.OpenMaya as api
-from mrv.path import Path
+
 import sys
 
 # require persistence
@@ -28,7 +31,69 @@ class TestGeneral( unittest.TestCase ):
 	def test_Node_type_has_no_metaclass_members(self):
 		# this happens if the metaclass has any members - the typ itself will
 		# be of type MetaClas, instead of type, which makes it inherit all attriutes
-		assert not hasattr(nt.Node, 'nameToTreeMap')
+		assert not hasattr(nt.Node, 'nameToTreeMap')	# has dg and dag nodes
+		
+	def test_plugin_handling(self):
+		mrp = "Mayatomr"
+		pp = 'persistence'
+		assert not cmds.pluginInfo(mrp, q=1, loaded=1)
+		
+		assert not hasattr(nt, 'Transmat')
+		cmds.loadPlugin(mrp)
+		
+		# loading a plugin will add the node types
+		assert hasattr(nt, 'Transmat')
+		assert nt.typ.nodeTypeTree.has_node('transmat')
+		tmat = nt.Transmat()	# mr dep node
+		tmat.delete()
+		
+		dll = nt.MapVizShape()	# mr dag node
+		assert isinstance(dll, nt.DagNode)
+		dll.delete()
+		cmds.flushUndo()	# make sure we get rid of the custom data
+		
+		# unloading a plugin will remove the nodetypes as well as the hierarchy 
+		# entries
+		cmds.unloadPlugin(mrp, force=1)
+		
+		assert not hasattr(nt, 'Transmat')
+		assert not hasattr(nt, 'MapVizShape')
+		assert not nt.typ.nodeTypeTree.has_node('transmat')
+		assert not nt.typ.nodeTypeTree.has_node('mapVizShape')
+		
+		
+		# custom node types are favored and not overwritten by dummies when 
+		# loading
+		nt.enforcePersistence()
+		assert nt.StorageNode is mstorage.StorageNode
+		
+		# custom node types will remain when unloaded
+		cmds.unloadPlugin(pp)
+		assert not cmds.pluginInfo(pp, q=1, loaded=1) 
+		assert hasattr(nt, 'StorageNode')
+		
+		# plugins required by a scene trigger the database to update as well
+		assert not cmds.pluginInfo(mrp, q=1, loaded=1)
+		mrvmaya.Scene.open(get_maya_file('needsMayatomr.ma'), force=True)
+		assert hasattr(nt, 'Transmat')
+		
+		# dynamically added types ( which will not trigger a plugin changed event )
+		# can be wrapped as well
+		customMI = get_maya_file('customshader.mi')
+		csn = "testCustomShader"
+		csnc = "TestCustomShader"
+		mrvmaya.Mel.mrFactory('-load',customMI)
+		
+		# it doesnt exist, but can be wrapped nontheless, then it exists
+		assert not hasattr(nt, csnc)
+		cs = nt.Node(cmds.createNode(csn))
+		assert hasattr(nt, csnc)
+		
+	def test_create_nodes(self):
+		# create all types of nodes, just individual samples, assure createNode
+		# gets it right
+		nt.PointEmitter()
+		
 	
 	def _DISABLED_test_testWrappers( self ):
 		filename = get_maya_file( "allnodetypes_%s.mb" % env.appVersion( )[0] )
@@ -977,6 +1042,8 @@ class TestNodeBase( unittest.TestCase ):
 		self.failUnlessRaises(TypeError, nt.Component.create, api.MFn.kMeshEdgeComponent) # invalid type
 
 	def test_data(self):
+		nt.enforcePersistence()
+		
 		# DATA CREATION
 		###############
 		# create all implemented data types
@@ -1056,6 +1123,8 @@ class TestNodeBase( unittest.TestCase ):
 		# END for each enumration sample
 
 	def test_attributes( self ):
+		nt.enforcePersistence()
+		
 		# CREATION 
 		##########
 		# UNIT ATTRIBUTE # 

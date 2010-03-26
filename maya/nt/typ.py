@@ -402,12 +402,12 @@ def prefetchMFnMethods():
 
 #{ Initialization
 
-def _addCustomType( targetmodule, parentclsname, newclsname,
+def _addCustomType( targetmoduledict, parentclsname, newclsname,
 				   	metaclass=MetaClassCreatorNodes, **kwargs ):
 	"""Add a custom type to the system such that a node with the given type will
 	automatically be wrapped with the corresponding class name
 	
-	:param targetmodule: the module to which standin classes are supposed to be added
+	:param targetmoduledict: the module's dict to which standin classes are supposed to be added
 	:param parentclsname: the name of the parent node type - if your new class
 		has several parents, you have to add the new types beginning at the first exsiting parent
 		as written in the maya/cache/nodeHierarchy.html file
@@ -422,9 +422,29 @@ def _addCustomType( targetmodule, parentclsname, newclsname,
 	nodeTypeTree.add_edge( parentclsname, newclsname )
 
 	# create wrapper ( in case newclsname does not yet exist in target module )
-	mrvmaya.initWrappers( targetmodule, [ newclsname ], metaclass, **kwargs )
+	mrvmaya.initWrappers( targetmoduledict, [ newclsname ], metaclass, **kwargs )
+	
+	
+def _removeCustomType( targetmoduledict, customTypeName ):
+	"""Remove the given typename from the given target module's dictionary as 
+	well as from internal caches
+	
+	:note: does nothing if the type does not exist
+	:param targetmoduledict: dict of your module to remove the type from
+	:param customTypeName: name of the type to be removed, its expected
+		to be capitalized"""
+	try:
+		del(targetmoduledict[customTypeName])
+	except KeyError:
+		pass
+	# END remove from dictionary
+	
+	customTypeName = uncapitalize(customTypeName)
+	if nodeTypeTree.has_node(customTypeName):
+		nodeTypeTree.remove_node(customTypeName)
+	# END remove from type tree
 
-def _addCustomTypeFromDagtree( targetModule, dagtree, metaclass=MetaClassCreatorNodes,
+def _addCustomTypeFromDagtree( targetmoduledict, dagtree, metaclass=MetaClassCreatorNodes,
 							  	force_creation=False, **kwargs ):
 	"""As `_addCustomType`, but allows to enter the type relations using a
 	`mrv.util.DAGTree` instead of individual names. Thus multiple edges can be added at once
@@ -442,7 +462,7 @@ def _addCustomTypeFromDagtree( targetModule, dagtree, metaclass=MetaClassCreator
 				yield edge
 
 	nodeTypeTree.add_edges_from( recurseOutEdges( rootnode ) )
-	mrvmaya.initWrappers( targetModule, dagtree.nodes_iter(), metaclass, force_creation = force_creation, **kwargs )
+	mrvmaya.initWrappers( targetmoduledict, dagtree.nodes_iter(), metaclass, force_creation = force_creation, **kwargs )
 
 def initTypeNameToMfnClsMap( ):
 	"""Fill the cache map supplying additional information about the MFNClass to use
@@ -456,12 +476,12 @@ def initNodeHierarchy( ):
 	global nodeTypeTree
 	nodeTypeTree = mdb.createDagNodeHierarchy()
 
-def initWrappers( targetmodule ):
+def initWrappers( targetmoduledict ):
 	"""Create Standin Classes that will delay the creation of the actual class till
 	the first instance is requested
 	
-	:param targetmodule: the module to which to put the wrappers"""
+	:param targetmoduledict: the module's dictionary (globals()) to which to put the wrappers"""
 	global nodeTypeTree
-	mrvmaya.initWrappers( targetmodule, nodeTypeTree.nodes_iter(), MetaClassCreatorNodes )
+	mrvmaya.initWrappers( targetmoduledict, nodeTypeTree.nodes_iter(), MetaClassCreatorNodes )
 
 #} END initialization

@@ -370,6 +370,9 @@ class CallbackEventBase( util.Event ):
 		def removeCallback(self):
 			if self._callbackID:
 				api.MMessage.removeCallback(self._callbackID)
+				# prevent memory leak message if possible
+				if hasattr(self._callbackID, 'disown'):
+					self._callbackID.disown()
 				self._callbackID = None
 			# END 
 		
