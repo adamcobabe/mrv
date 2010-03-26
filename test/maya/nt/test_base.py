@@ -92,7 +92,8 @@ class TestGeneral( unittest.TestCase ):
 	def test_create_nodes(self):
 		# create all types of nodes, just individual samples, assure createNode
 		# gets it right
-		nt.PointEmitter()
+		pe = nt.PointEmitter()
+		assert pe.parent() is None
 		
 	
 	def _DISABLED_test_testWrappers( self ):

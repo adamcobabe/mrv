@@ -461,8 +461,13 @@ def createNode( nodename, nodetype, autocreateNamespace=True, renameOnClash = Tr
 		subpaths.insert( 0, '' )
 		lenSubpaths += 1
 	# END special handling
-
+	
 	added_operation = False
+	is_transform_type = nodetype == 'transform'
+	if not is_transform_type and nodeTypeTree.has_node(nodetype):
+		is_transform_type = 'transform' in list(nodeTypeTree.parent_iter(nodetype))
+	# END do more intense inheritance query
+	
 	for i in xrange( start_index, lenSubpaths ):						# first token always pipe, need absolute paths
 		nodepartialname = '|'.join( subpaths[ 0 : i+1 ] )				# full path to the node so far
 
@@ -509,7 +514,8 @@ def createNode( nodename, nodetype, autocreateNamespace=True, renameOnClash = Tr
 		# create the node - either with or without parent
 		# The actual node needs to be created with a matching modifier, dag nodes
 		# with the DagMofier, dg nodes with the dg modifier
-		if parentnode or actualtype == "transform":
+		# The user currently has to specify a proper path.
+		if parentnode or actualtype == "transform" or (i + 1 == lenSubpaths and is_transform_type):
 
 			# create dag node
 			mod = undo.DagModifier( )
