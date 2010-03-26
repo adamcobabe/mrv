@@ -90,17 +90,17 @@ def tuple_list_from_file( filepath ):
 
 	return hierarchytuples
 
-def initWrappers( module, types, metacreatorcls, force_creation = False ):
+def initWrappers( mdict, types, metacreatorcls, force_creation = False ):
 	""" Create standin classes that will create the actual class once creation is
 	requested.
-	:param module: module object from which the latter classes will be imported from
+	:param mdict: module dictionary object from which the latter classes will be imported from, 
+	can be obtained using ``globals()`` in the module
 	:param types: iterable containing the names of classnames ( they will be capitalized
 	as classes must begin with a capital letter )"""
 	from mrv.maya.util import StandinClass
 
 	# create dummy class that will generate the class once it is first being instatiated
 	standin_instances = list()
-	mdict = module.__dict__
 	for uitype in types:
 		clsname = capitalize( uitype )
 

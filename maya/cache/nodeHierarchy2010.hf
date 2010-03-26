@@ -37,6 +37,7 @@ base
 		compoundAttribute
 	node
 		dependNode
+			unknownPluginDependNode
 			wtAddMatrix
 			attrHierarchyTest
 			texLattice
@@ -233,6 +234,7 @@ base
 			entity
 				dagNode
 					shape
+						unknownPluginShape
 						flexorShape
 							clusterFlexorShape
 						baseLattice
@@ -264,8 +266,6 @@ base
 										nurbsCurve
 									lattice
 									surfaceShape
-										tHsurfaceShape
-											mapVizShape
 										fluidShape
 											fluidTexture2D
 											fluidTexture3D
@@ -287,10 +287,7 @@ base
 							implicitSphere
 								renderSphere
 							locator
-								rectangularLightLocator
-								discLightLocator
-								cylindricalLightLocator
-								sphericalLightLocator
+								unknownPluginLocatorNode
 								tHlocatorShape
 									FurFeedback
 								dropoffLocator
@@ -321,9 +318,12 @@ base
 						rigidBody
 						softModHandle
 						spring
+							unknownPluginSpringNode
 					transform
+						unknownPluginTransformNode
 						manip3D
 							manipContainer
+								unknownPluginManipContainer
 								buttonManip
 						groundPlane
 						groundPlane
@@ -352,7 +352,9 @@ base
 							scaleConstraint
 							tangentConstraint
 						dynBase
+							unknownPluginEmitterNode
 							field
+								unknownPluginFieldNode
 								airField
 								dragField
 								gravityField
@@ -377,6 +379,7 @@ base
 						unknownTransform
 					unknownDag
 				objectSet
+					unknownPluginObjectSet
 					storyboard
 					animLayer
 					bakeSet
@@ -402,7 +405,6 @@ base
 				AISEnvFacade
 				oldGeometryConstraint
 				rotateHelper
-				surfaceSampler
 				surfaceShader
 				texture2d
 					bulge
@@ -468,6 +470,7 @@ base
 			gammaCorrect
 			geoConnector
 			geometryFilter
+				unknownPluginDeformerNode
 				blendShape
 				boneLattice
 				ffd
@@ -496,10 +499,12 @@ base
 			hwReflectionMap
 			hwRenderGlobals
 			hwShader
+			unknownPluginHwShaderNode
 			hyperGraphInfo
 			hyperLayout
 			hyperView
 			ikSolver
+				unknownPluginIkSolver
 				hikSolver
 				ikMCsolver
 				ikPASolver
@@ -508,6 +513,7 @@ base
 				ikSplineSolver
 			ikSystem
 			imagePlane
+			unknownPluginImagePlaneNode
 			lambert
 				reflect
 					anisotropic
@@ -554,6 +560,7 @@ base
 			particleIncandMapper
 			particleSamplerInfo
 			particleTranspMapper
+			unknownPluginParticleAttributeMapperNode
 			passContributionMap
 			passMatrix
 			place2dTexture

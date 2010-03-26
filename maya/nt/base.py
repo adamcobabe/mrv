@@ -7,7 +7,7 @@ matches. This allows to create hand-implemented types.
 """
 __docformat__ = "restructuredtext"
 
-from typ import nodeTypeToMfnClsMap, nodeTypeTree, MetaClassCreatorNodes
+from typ import nodeTypeToMfnClsMap, nodeTypeTree, MetaClassCreatorNodes, _addCustomType
 from mrv.util import uncapitalize, capitalize, pythonIndex, Call 
 from mrv.interface import iDuplicatable, iDagItem
 from mrv.maya.util import StandinClass
@@ -60,9 +60,10 @@ _mfndep_typename = _mfndep.typeName
 _mfndag_typename = _mfndag.typeName
 _mfndep_name = _mfndep.name
 
-api_mdagpath_node = MDagPath.node
+_api_mdagpath_node = MDagPath.node
 _apitype_to_name = dict()			# [int] - > type name string
-_plugin_type_ids = set((	api.MFn.kPluginDeformerNode, 
+
+_plugin_type_ids = (	api.MFn.kPluginDeformerNode, 
 							api.MFn.kPluginDependNode,
 							api.MFn.kPluginEmitterNode, 
 							api.MFn.kPluginFieldNode,
@@ -75,7 +76,24 @@ _plugin_type_ids = set((	api.MFn.kPluginDeformerNode,
 							api.MFn.kPluginParticleAttributeMapperNode, 
 							api.MFn.kPluginShape,
 							api.MFn.kPluginSpringNode,
-							api.MFn.kPluginTransformNode))
+							api.MFn.kPluginTransformNode )
+
+_plugin_type_ids_lut = set(_plugin_type_ids)
+
+_plugin_type_to_node_type_name = dict(zip((_plugin_type_ids), ("UnknownPluginDeformerNode", 
+																"UnknownPluginDependNode",
+																"UnknownPluginEmitterNode", 
+																"UnknownPluginFieldNode",
+																"UnknownPluginHwShaderNode",
+																"UnknownPluginIkSolver",
+																"UnknownPluginImagePlaneNode",
+																"UnknownPluginLocatorNode",
+																"UnknownPluginManipContainer",
+																"UnknownPluginObjectSet", 
+																"UnknownPluginParticleAttributeMapperNode", 
+																"UnknownPluginShape",
+																"UnknownPluginSpringNode",
+																"UnknownPluginTransformNode" )))
 
 
 
@@ -85,14 +103,21 @@ _plugin_type_ids = set((	api.MFn.kPluginDeformerNode,
 
 #{ Conversions
 
-def nodeTypeToNodeTypeCls( nodeTypeName ):
+def nodeTypeToNodeTypeCls( nodeTypeName, apiobj ):
 	""" Convert the given  node type (str) to the respective python node type class
 	
-	:param nodeTypeName: the type name you which to have the actual class for  """
+	:param nodeTypeName: the type name you which to have the actual class for
+	:param apiobj: source api object, its apiType is used as fallback in case we 
+	don't know the node"""
 	try:
 		nodeTypeCls = _nodesdict[capitalize( nodeTypeName )]
 	except KeyError:
-		raise TypeError( "NodeType %s unknown - it cannot be wrapped" % nodeTypeName )
+		# assume its a plugin node - in that case the parent will be nicely defined
+		# and helps us to figure out that its a default dummy
+		parentclsname = _plugin_type_to_node_type_name.get(apiobj.apiType(), 'Unknown')
+		_addCustomType(_nodesdict, parentclsname, nodeTypeName)
+		nodeTypeCls = _nodesdict[capitalize(nodeTypeName)]
+	# END exception handling
 
 	if isinstance( nodeTypeCls, StandinClass ):
 		nodeTypeCls = nodeTypeCls.createCls( )
@@ -558,7 +583,7 @@ def _checkedInstanceCreation( apiobj, typeName, clsToBeCreated, basecls ):
 	:return: create clsinstance if the proper type ( according to nodeTypeTree )"""
 	# get the node type class for the api type object
 
-	nodeTypeCls = nodeTypeToNodeTypeCls( typeName )
+	nodeTypeCls = nodeTypeToNodeTypeCls( typeName, apiobj )
 
 	# NON-MAYA NODE Type
 	# if an explicit type was requested, assure we are at least compatible with
@@ -797,7 +822,7 @@ def _lookup_type( mobject_or_mdagpath ):
 	as the type is the same for all plugin nodes"""
 	apitype = mobject_or_mdagpath.apiType() 
 	try:
-		if apitype in _plugin_type_ids:
+		if apitype in _plugin_type_ids_lut:
 			raise KeyError
 		# END force byName type check for plugin types
 		return _apitype_to_name[apitype]
@@ -835,7 +860,7 @@ class NodeFromObj( object ):
 			dagpath = mobject_or_mdagpath
 		# END if we have a dag path
 	
-		clsinstance = object.__new__(nodeTypeToNodeTypeCls(_lookup_type(mobject_or_mdagpath)))
+		clsinstance = object.__new__(nodeTypeToNodeTypeCls(_lookup_type(mobject_or_mdagpath), apiobj))
 		
 		# apiobj is None, or MObject, or MDagPath, but will be set to the proper type 
 		# later

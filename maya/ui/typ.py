@@ -31,7 +31,7 @@ def init_classhierarchy( ):
 def initWrappers( ):
 	""" Create Standin Classes that will delay the creation of the actual class till
 	the first instance is requested"""
-	mrvmaya.initWrappers( _thismodule, _typetree.nodes_iter(), MetaClassCreatorUI )
+	mrvmaya.initWrappers( globals(), _typetree.nodes_iter(), MetaClassCreatorUI )
 
 #} END initialization
 

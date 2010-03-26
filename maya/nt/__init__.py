@@ -23,11 +23,13 @@ import mrv.maya as mrvmaya
 import typ
 _thismodule = __import__( "mrv.maya.nt", globals(), locals(), ['nt'] )
 from mrv.path import Path
+from mrv.util import capitalize
 import mrv.maya.env as env
 import mrv.maya.util as mrvmayautil
 from mrv import init_modules
 
 import maya.cmds as cmds
+import maya.OpenMaya as api
 
 import sys
 import os
@@ -68,11 +70,22 @@ def addCustomType( newcls, parentClsName=None, **kwargs ):
 			parentname = newcls.__bases__[0].__name__
 
 	# add to hierarchy tree
-	typ._addCustomType( _thismodule, parentname, newclsname, **kwargs )
+	typ._addCustomType( globals(), parentname, newclsname, **kwargs )
 
 	# add the class to our module if required
 	if newclsobj:
 		setattr( _thismodule, newclsname, newclsobj )
+		
+def removeCustomType( customType ):
+	"""Removes the given type from this module as well as from the type hierarchy.
+	This makes it unavailble to MRV
+	
+	:param customType: either string identifying the type's name or the type itself
+	:note: does nothing if the type does not exist"""
+	if not isinstance(customType, basestring):
+		customType = customType.__name__
+	typ._removeCustomType(globals(), customType)
+	
 
 def addCustomTypeFromFile( hierarchyfile, **kwargs ):
 	"""Add a custom classes as defined by the given tab separated file.
@@ -89,7 +102,7 @@ def addCustomTypeFromFile( hierarchyfile, **kwargs ):
 	:note: there must be exactly one root type
 	:return: iterator providing all class names that have been added"""
 	dagtree = mrvmaya._dagTreeFromTupleList( mrvmaya._tupleListFromFile( hierarchyfile ) )
-	typ._addCustomTypeFromDagtree( _thismodule, dagtree, **kwargs )
+	typ._addCustomTypeFromDagtree( globals(), dagtree, **kwargs )
 	return ( capitalize( nodetype ) for nodetype in dagtree.nodes_iter() )
 
 def addCustomClasses( clsobjlist ):
@@ -142,7 +155,7 @@ def _init_package( ):
 	typ._nodesdict = globals()
 	typ.initNodeHierarchy( )
 	typ.initTypeNameToMfnClsMap( )
-	typ.initWrappers( _thismodule )
+	typ.initWrappers( globals() )
 	
 	# code generator needs an initialized nodes dict to work
 	typ.codegen = mdb.PythonMFnCodeGenerator(typ._nodesdict)
@@ -226,13 +239,55 @@ class PluginDB(dict):
 		The plugin author is free to add specialized types to the tree afterwards, overwriting 
 		the default ones.
 		
-		We loosely determine the inheritance by differentiating them into DependNodes and DagNodes"""
-		self.log.debug("plugin %r loaded" % pluginName)
+		We loosely determine the inheritance by differentiating them into types suggested
+		by MFn::kPlugin<Name>Node"""
+		import base		# needs late import, TODO: reorganize modules
 		
-		installed_type_names = list()
-		self[pluginName] = installed_type_names
+		self.log.debug("plugin '%s' loaded" % pluginName)
+		
+		type_names = cmds.pluginInfo(pluginName, q=1, dependNode=1) or list()
+		self[pluginName] = type_names
 		
 		# register types in the system if possible
+		dgmod = api.MDGModifier()
+		dagmod = api.MDagModifier()
+		transobj = None
+		
+		nt = globals()
+		for tn in type_names:
+			tnc = capitalize(tn)
+			if tnc in nt:
+				self.log.debug("Skipped type %s as it did already exist in module" % tnc)
+				continue
+			# END skip existing node types ( probably user created )
+			
+			# get the type id- first try depend node, then dag node. Never actually
+			# create the nodes in the scene, created MObjects will be discarded
+			# once the modifiers go out of scope
+			apitype = None
+			try:
+				apitype = dgmod.createNode(tn).apiType()
+			except RuntimeError:
+				try:
+					# most plugin dag nodes require a transform to be created
+					# We create a dummy for the dagmod, otherwise it would create
+					# it for us and return the parent transform instead, which 
+					# has no child officially yet as its not part of the dag
+					# ( so we cannot query the child from there ).
+					if transobj is None:
+						transobj = dagmod.createNode("transform")
+					# END assure we have parent 
+					
+					apitype = dagmod.createNode(tn, transobj).apiType()
+				except RuntimeError:
+					self.log.error("Failed to retrieve apitype of node type %s - skipped" % tnc)
+					continue
+				# END dag exception handling
+			# END dg exception handling 
+			
+			parentclsname = base._plugin_type_to_node_type_name.get(apitype, 'Unknown')
+			typ._addCustomType( nt, parentclsname, tnc, force_creation=True )
+		# END for each type to handle
 
 	def plugin_unloaded(self, pluginName):
 		"""Remove all node types registered by pluginName unless they have been 
@@ -240,13 +295,33 @@ class PluginDB(dict):
 		hence we just keep the record as it will not harm.
 		
 		In any way, we will remove any record of the plugin from our db"""
-		self.log.debug("plugin %r unloaded" % pluginName)
+		self.log.debug("plugin '%s' unloaded" % pluginName)
 		
 		# clear our record
 		installed_type_names = self[pluginName]
 		del(self[pluginName])
 		
 		# deregister types if possible
+		nt = globals()
+		for tn in installed_type_names:
+			tnc = capitalize(tn)
+			
+			try:
+				node_type = nt[tnc]
+			except KeyError:
+				# wasnt registered anymore ? 
+				self.log.warn("Type %s of unloaded plugin %s was already de-registered in mrv type system - skipped" % (tnc, pluginName)) 
+				continue
+			# END handle exception
+			
+			# remove the type only if it was one of our unknown default types
+			parentclsname = node_type.__base__.__name__
+			if not parentclsname.startswith('Unknown'):
+				continue
+			# END skip custom nodes
+			
+			typ._removeCustomType(nt, tnc)
+		# END for each typename
 		
 		
 
