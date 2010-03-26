@@ -666,7 +666,6 @@ class GenericOperationStack( Operation ):
 		finally:
 			undoInfo( swf=prevstate )
 
-
 	def addCmd( self, doCall, undoCall ):
 		"""Add a command to the queue for later application
 		

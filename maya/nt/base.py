@@ -464,46 +464,51 @@ def createNode( nodename, nodetype, autocreateNamespace=True, renameOnClash = Tr
 	
 	added_operation = False
 	is_transform_type = nodetype == 'transform'
-	is_dagnode = is_transform_type		# otherwise it could be a shape as well
 	if not is_transform_type and nodeTypeTree.has_node(nodetype):
-		parents = list(nodeTypeTree.parent_iter(nodetype))
-		is_transform_type = 'transform' in parents
-		is_dagnode = 'dagNode' in parents
+		is_transform_type = 'transform' in nodeTypeTree.parent_iter(nodetype)
 	# END do more intense inheritance query
 	
+	do_existence_checks = True
 	for i in xrange( start_index, lenSubpaths ):						# first token always pipe, need absolute paths
 		nodepartialname = '|'.join( subpaths[ 0 : i+1 ] )				# full path to the node so far
 		is_last_iteration = i == lenSubpaths - 1
 
 		# DAG ITEM EXISTS ?
 		######################
-		nodeapiobj = toApiobj( nodepartialname )
-		if nodeapiobj is not None:
-			# could be that the node already existed, but with an incorrect type
-			if is_last_iteration:				# in the last iteration
-				if not forceNewLeaf:
-					parentnode = createdNode = nodeapiobj
-					_mfndep_setobject(createdNode)
-					existing_node_type = uncapitalize( _mfndep_typename() )
-					nodetypecmp = uncapitalize( nodetype )
-					if nodetypecmp != existing_node_type:
-						# allow more specialized types, but not less specialized ones
-						if nodetypecmp not in nodeTypeTree.parent_iter( existing_node_type ):
-							msg = "node %s did already exist, its type %s is incompatible with the requested type %s" % ( nodepartialname, existing_node_type, nodetype )
-							raise NameError( msg )
-					# END nodetypes different
-
-					continue
-				# END force new leaf handling
+		# if it doesn't exist the first time, we can save all other checks as we 
+		# will start creating it from now on
+		if do_existence_checks:
+			nodeapiobj = toApiobj( nodepartialname )
+			if nodeapiobj is not None:
+				# could be that the node already existed, but with an incorrect type
+				if is_last_iteration:				# in the last iteration
+					if not forceNewLeaf:
+						parentnode = createdNode = nodeapiobj
+						_mfndep_setobject(createdNode)
+						existing_node_type = uncapitalize( _mfndep_typename() )
+						nodetypecmp = uncapitalize( nodetype )
+						if nodetypecmp != existing_node_type:
+							# allow more specialized types, but not less specialized ones
+							if nodetypecmp not in nodeTypeTree.parent_iter( existing_node_type ):
+								msg = "node %s did already exist, its type %s is incompatible with the requested type %s" % ( nodepartialname, existing_node_type, nodetype )
+								raise NameError( msg )
+						# END nodetypes different
+	
+						continue
+					# END force new leaf handling
+					else:
+						# just go ahead, but create a new node
+						renameOnClash = True		# allow clashes and rename
+				# END leaf path handling
 				else:
-					# just go ahead, but create a new node
-					renameOnClash = True		# allow clashes and rename
-			# END leaf path handling
+					# remember what we have done so far and continue
+					parentnode = createdNode = nodeapiobj
+					continue
 			else:
-				# remember what we have done so far and continue
-				parentnode = createdNode = nodeapiobj
-				continue
-		# END node item exists
+				do_existence_checks = False
+			# END node item exists handling
+		# END do existence checks
+			
 
 
 		# it does not exist, check the namespace
