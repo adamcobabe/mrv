@@ -44,27 +44,20 @@ class MetaClassCreatorNodes( MetaClassCreator ):
 	"""Builds the base hierarchy for the given classname based on our typetree
 	:todo: build classes with slots only as members are pretermined"""
 	
-
 	@classmethod
-	def _readMfnDB( cls, mfnclsname ):
-		"""
-		:return: mfn database describing how to handle the functions in the
-			function set described by mfnclsname
-			If no explicit information exists, the db will be empty"""
-		try:
-			return mdb.MMemberMap( mdb.mfnDBPath( mfnclsname ) )
-		except IOError:
-			pass
-		return mdb.MMemberMap()
-		
-	@classmethod
-	def _fetchMfnDB( cls, newcls, mfncls ):
+	def _fetchMfnDB( cls, newcls, mfncls, **kwargs ):
 		"""Return the mfndb for the given mfncls as existing on newcls. 
-		If it does not yet exist, it will be created and attached first"""
+		If it does not yet exist, it will be created and attached first
+		
+		:param kwargs: passed to MMemberMap initializer"""
 		try:
 			return newcls.__dict__[ mfndbattr ]
 		except KeyError:
-			mfndb = cls._readMfnDB( mfncls.__name__ )
+			try:
+				mfndb = mdb.MMemberMap(mdb.mfnDBPath(mfncls.__name__), **kwargs)
+			except IOError:
+				mfndb = mdb.MMemberMap(**kwargs)
+			# END handle mmap reading
 			type.__setattr__( newcls, mfndbattr, mfndb )
 			return mfndb
 		# END mfndb handling
@@ -87,7 +80,7 @@ class MetaClassCreatorNodes( MetaClassCreator ):
 		if not fstatic and not hasEnum:
 			return
 			
-		mfndb = cls._fetchMfnDB(newcls, mfncls)
+		mfndb = cls._fetchMfnDB(newcls, mfncls, parse_enums=hasEnum)
 		if fstatic:
 			mfnname = mfncls.__name__
 			for fs in fstatic:

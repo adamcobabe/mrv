@@ -397,29 +397,33 @@ class CppHeaderParser(object):
 								""", re.VERBOSE)
 	
 	@classmethod
-	def parseAndExtract(cls, header_filepath):
+	def parseAndExtract(cls, header_filepath, parse_enums=True):
 		"""Parse the given header file and return the parsed information
 		:param header_filepath: Path pointing to the given header file. Its currently
 			assumed to be 7 bit ascii
+		:param parse_enums: If True, enumerations will be parsed from the file. If 
+			False, the enumeration tuple in the return value will be empty.
 		:return: tuple(tuple(MEnumDescriptor, ...), )"""
 		enum_list = list()
 		
 		# ENUMERATIONS
 		##############
 		# read everything, but skip the license text when matching
-		header = header_filepath.bytes()
-		for enummatch in cls.reEnums.finditer(header, 2188):
-			ed = MEnumDescriptor(enummatch.group('name'))
-			
-			# parse all occurrences of kSomething, including the initializer
-			members = enummatch.group('members')
-			assert members
-			for memmatch in cls.reEnumMembers.finditer(members):
-				ed.append(memmatch.group(1))
-			# END for each member to add
-			
-			enum_list.append(ed)
-		# END for each match
+		if parse_enums:
+			header = header_filepath.bytes()
+			for enummatch in cls.reEnums.finditer(header, 2188):
+				ed = MEnumDescriptor(enummatch.group('name'))
+				
+				# parse all occurrences of kSomething, including the initializer
+				members = enummatch.group('members')
+				assert members
+				for memmatch in cls.reEnumMembers.finditer(members):
+					ed.append(memmatch.group(1))
+				# END for each member to add
+				
+				enum_list.append(ed)
+			# END for each match
+		# END if enums should be parsed
 		
 		# METHODS 
 		#########
@@ -470,8 +474,11 @@ class MMemberMap( UserDict.UserDict ):
 	kDelete = 'x'
 	kInitWithMObjectFlagName = "InitWithMObject"
 
-	def __init__( self, filepath = None ):
-		"""intiialize self from a file if not None"""
+	def __init__( self, filepath = None, parse_enums=False ):
+		"""intiialize self from a file if not None
+		
+		:param parse_enums: if True, enumerations will be parsed. Save time by specifying
+			False in case you know that there are no enumerations"""
 		UserDict.UserDict.__init__( self )
 
 		self._filepath = filepath
@@ -488,7 +495,10 @@ class MMemberMap( UserDict.UserDict ):
 		# END fetch info
 		
 		# INITIALIZE PARSED DATA
-		self.enums, = CppHeaderParser.parseAndExtract(headerPath(filepath.namebase()))
+		self.enums = tuple()
+		if parse_enums:
+			self.enums, = CppHeaderParser.parseAndExtract(headerPath(filepath.namebase()))
+		# END if enumerations should be parsed
 
 	def __str__( self ):
 		return "MMemberMap(%s)" % self._filepath

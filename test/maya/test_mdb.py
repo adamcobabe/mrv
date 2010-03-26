@@ -40,7 +40,8 @@ class TestMDB( unittest.TestCase ):
 				
 				mfndb = MMemberMap(dbpath)
 				
-				assert len(mfndb)
+				if mfnclsname != 'MFn':	# its just an enum basically
+					assert len(mfndb)
 				for fname, entry in mfndb.iteritems():
 					assert isinstance(fname, basestring)
 					assert isinstance(entry, MMethodDescriptor)
