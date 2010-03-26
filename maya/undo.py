@@ -616,9 +616,9 @@ class GenericOperationStack( Operation ):
 	def __init__( self ):
 		"""intiialize our variables"""
 		Operation.__init__( self )
-		self._docmds = []				# list of Calls
-		self._undocmds = []				# will store reversed list !
-		self._undocmds_tmp = []			# keeps undo until their do was verified !
+		self._docmds = list()				# list of Calls
+		self._undocmds = list()				# will store reversed list !
+		self._undocmds_tmp = list()			# keeps undo until their do was verified !
 
 
 	def doIt( self ):
@@ -665,7 +665,6 @@ class GenericOperationStack( Operation ):
 				call()
 		finally:
 			undoInfo( swf=prevstate )
-
 
 	def addCmd( self, doCall, undoCall ):
 		"""Add a command to the queue for later application

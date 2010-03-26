@@ -92,7 +92,27 @@ class TestGeneral( unittest.TestCase ):
 	def test_create_nodes(self):
 		# create all types of nodes, just individual samples, assure createNode
 		# gets it right
-		nt.PointEmitter()
+		pe = nt.PointEmitter()
+		assert pe.parent() is None
+		
+		# a shape with just a shortname works as well
+		m = nt.createNode("myMesh", "mesh")
+		mp = m.parent()
+		assert isinstance(mp, nt.Transform)
+		
+		cmds.undo()
+		cmds.undo()
+		
+		assert pe.isAlive() and not pe.isValid()
+		assert mp.isAlive() and not mp.isValid()
+		assert m.isAlive() and not m.isValid()
+		
+		cmds.redo()
+		assert pe.isValid()
+		
+		cmds.redo()
+		assert m.isValid() and mp.isValid()
+		
 		
 	
 	def _DISABLED_test_testWrappers( self ):
