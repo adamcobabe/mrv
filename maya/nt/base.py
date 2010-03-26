@@ -62,6 +62,20 @@ _mfndep_name = _mfndep.name
 
 api_mdagpath_node = MDagPath.node
 _apitype_to_name = dict()			# [int] - > type name string
+_plugin_type_ids = set((	api.MFn.kPluginDeformerNode, 
+							api.MFn.kPluginDependNode,
+							api.MFn.kPluginEmitterNode, 
+							api.MFn.kPluginFieldNode,
+							api.MFn.kPluginHwShaderNode,
+							api.MFn.kPluginIkSolver,
+							api.MFn.kPluginImagePlaneNode,
+							api.MFn.kPluginLocatorNode,
+							api.MFn.kPluginManipContainer,
+							api.MFn.kPluginObjectSet, 
+							api.MFn.kPluginParticleAttributeMapperNode, 
+							api.MFn.kPluginShape,
+							api.MFn.kPluginSpringNode,
+							api.MFn.kPluginTransformNode))
 
 
 
@@ -778,9 +792,15 @@ class Node( object ):
 	#} END interface
 
 def _lookup_type( mobject_or_mdagpath ):
-	""":return: node type name of the given MObject or MDagPath"""
+	""":return: node type name of the given MObject or MDagPath
+	:note: if we have a plugin type, we must use the 'slow' way
+	as the type is the same for all plugin nodes"""
+	apitype = mobject_or_mdagpath.apiType() 
 	try:
-		return _apitype_to_name[mobject_or_mdagpath.apiType()]
+		if apitype in _plugin_type_ids:
+			raise KeyError
+		# END force byName type check for plugin types
+		return _apitype_to_name[apitype]
 	except KeyError:
 		# cache miss - fill in the type
 		if isinstance(mobject_or_mdagpath, MDagPath):
