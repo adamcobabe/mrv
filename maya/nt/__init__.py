@@ -27,11 +27,20 @@ import mrv.maya.env as env
 import mrv.maya.util as mrvmayautil
 from mrv import init_modules
 
+import maya.cmds as cmds
+
 import sys
 import os
+import logging
 
 # May not use all as it will receive all submodules 
 # __all__
+
+#{ Globals
+
+pluginDB = None
+
+#} END globals
 
 #{ Common
 
@@ -160,7 +169,89 @@ def _force_type_creation():
 		# END create type 
 	# END for each stored type
 	
+	
+def _init_plugin_db():
+	"""Find loaded plugins and provide dummies for their types - this assures iteration 
+	will not stop on these types for instance"""
+	global pluginDB
+	pluginDB = PluginDB()
+	
 #} END initialization
+
+#{ Utility Classes
+
+class PluginDB(dict):
+	"""Simple container keeping information about the loaded plugins, namely the node
+	types they register.
+	
+	As PyMel code has shown, we cannot rely on pluginLoaded and unloaded callbacks, which 
+	is why we just listen to plugin changed events, and figure out the differences ourselves.
+	
+	Currently we are only interested in the registered node types, which is why we 
+	are on ``mrv.maya.nt`` level, not on ``mrv.maya`` level
+	"""
+	__slots__ = 'log'
+	
+	def __init__(self):
+		"""Upon initialization, we will parse the currently loaded plugins and 
+		register them. Additionally we register our event to stay in the loop 
+		if anything changes."""
+		self.log = logging.getLogger('mrv.maya.nt.%s' % type(self).__name__)
+		# yes, we need a string here, yes, its mel
+		cmds.pluginInfo(changedCommand='python("import mrv.maya.nt; mrv.maya.nt.pluginDB.plugin_registry_changed()")')
+		self.plugin_registry_changed()
+
+	def plugin_registry_changed(self):
+		"""Called by maya to indicate something has changed. 
+		We will diff the returned plugin information with our own database 
+		to determine which plugin was added or removed, to make the appropriate 
+		calls"""
+		self.log.debug("registry changed")
+		
+		loaded_plugins = set(cmds.pluginInfo(q=1, listPlugins=1) or list())
+		our_plugins = set(self.keys())
+		
+		# plugins loaded 
+		for pn in loaded_plugins - our_plugins:
+			self.plugin_loaded(pn)
+			
+		# plugins unloded
+		for pn in our_plugins - loaded_plugins:
+			self.plugin_unloaded(pn)
+		
+	def plugin_loaded(self, pluginName):
+		"""Retrieve plugin information from a plugin named ``pluginName``, which is 
+		assumed to be loaded.
+		Currently the nodetypes found are added to the node-type tree to make them available.
+		The plugin author is free to add specialized types to the tree afterwards, overwriting 
+		the default ones.
+		
+		We loosely determine the inheritance by differentiating them into DependNodes and DagNodes"""
+		self.log.debug("plugin %r loaded" % pluginName)
+		
+		installed_type_names = list()
+		self[pluginName] = installed_type_names
+		
+		# register types in the system if possible
+
+	def plugin_unloaded(self, pluginName):
+		"""Remove all node types registered by pluginName unless they have been 
+		registered by a third party. We cannot assume that they listen to these events, 
+		hence we just keep the record as it will not harm.
+		
+		In any way, we will remove any record of the plugin from our db"""
+		self.log.debug("plugin %r unloaded" % pluginName)
+		
+		# clear our record
+		installed_type_names = self[pluginName]
+		del(self[pluginName])
+		
+		# deregister types if possible
+		
+		
+
+#} END utilty classes
+
 
 
 if 'init_done' not in locals():
@@ -179,11 +270,15 @@ if not init_done:
 	from it import *
 	from storage import *
 	
+	# fix set
+	import __builtin__
+	set = __builtin__.set
+	
 	# import additional classes required in this module
 	from mrv.maya.ns import Namespace
 	
 	# Setup all actual types - this makes the use much easier
 	_force_type_creation()
-
+	_init_plugin_db()
 
 init_done = True

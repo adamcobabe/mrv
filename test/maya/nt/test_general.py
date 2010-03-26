@@ -14,8 +14,6 @@ from mrv.maya.ref import FileReference
 import mrv.maya as mrv
 import mrv.maya.undo as undo
 import tempfile
-import __builtin__
-set = __builtin__.set		# fix set, it was overwritten by the set module when importing nodes *
 
 class TestTransform( unittest.TestCase ):
 	

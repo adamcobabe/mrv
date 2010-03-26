@@ -403,6 +403,7 @@ class CppHeaderParser(object):
 			assumed to be 7 bit ascii
 		:param parse_enums: If True, enumerations will be parsed from the file. If 
 			False, the enumeration tuple in the return value will be empty.
+		:note: Currently we can only parse non-anonymous enumerations !
 		:return: tuple(tuple(MEnumDescriptor, ...), )"""
 		enum_list = list()
 		

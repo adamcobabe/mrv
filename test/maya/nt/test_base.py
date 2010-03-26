@@ -20,15 +20,29 @@ nt.enforcePersistence()
 class TestGeneral( unittest.TestCase ):
 	""" Test general maya framework """
 	
-	def test_apipatch_not_globally_applied(self):
+	def _test_apipatch_not_globally_applied(self):
 		p = nt.Node("persp")
 		assert hasattr(p.t, 'mconnectTo')	  # has our namespace
 		assert not hasattr(p.t, 'connectTo') # but not global namespace
 		
-	def test_Node_type_has_no_metaclass_members(self):
+	def _test_Node_type_has_no_metaclass_members(self):
 		# this happens if the metaclass has any members - the typ itself will
 		# be of type MetaClas, instead of type, which makes it inherit all attriutes
 		assert not hasattr(nt.Node, 'nameToTreeMap')
+		
+	def test_plugin_handling(self):
+		self.fail("todo")
+		# loading a plugin will add the node types
+		
+		# unloading a plugin will remove the nodetypes
+		
+		# custom node types are favored and not overwritten by dummies when 
+		# loading
+		
+		# custom node types will remain when unloaded
+		
+		# plugins required by a scene trigger the database to update as well
+		
 	
 	def _DISABLED_test_testWrappers( self ):
 		filename = get_maya_file( "allnodetypes_%s.mb" % env.appVersion( )[0] )
@@ -107,7 +121,7 @@ class TestGeneral( unittest.TestCase ):
 			assert hasattr( node, "__dict__" ) 
 
 
-	def test_createNodes( self ):
+	def _test_createNodes( self ):
 		names = ["hello","bla|world","this|world|here","that|this|world|here" ]
 		nsnames = ["a:hello","blab|b:world","c:this|b:world","d:that|c:this|b:world|a:b:c:d:here"]
 		types = [ "facade", "nurbsCurve", "nurbsSurface", "subdiv" ]
@@ -185,7 +199,7 @@ class TestGeneral( unittest.TestCase ):
 
 
 
-	def test_objectExistance( self ):
+	def _test_objectExistance( self ):
 		depnode = nt.createNode( "node", "facade" )
 		assert nt.objExists( str( depnode ) ) 
 
@@ -208,7 +222,7 @@ class TestGeneral( unittest.TestCase ):
 		self.failUnlessRaises( NameError, nt.createNode, "othernode", "facade", renameOnClash=False )
 
 
-	def test_dagPathVSMobjects( self ):
+	def _test_dagPathVSMobjects( self ):
 		node = nt.createNode( "parent|middle|child", "transform" )
 		nodem = nt.Node( "parent|middle" )
 
@@ -239,7 +253,7 @@ class TestGeneral( unittest.TestCase ):
 		assert node == instnode.wm.mwrappedNode()
 
 
-	def test_convenienceFunctions( self ):
+	def _test_convenienceFunctions( self ):
 		# SELECTION
 		############
 		nt.select( "persp" )
@@ -289,14 +303,14 @@ class TestNodeBase( unittest.TestCase ):
 		"""Create a new scene to assure we do not resue nodes or configuration"""
 		cmds.file( new=1,force=1 )
 
-	def test_customTypes( self ):
+	def _test_customTypes( self ):
 		nt.addCustomType( "MyNewCls",parentClsName = "dependNode" )
 		# standin class should be there
 		cls = nt.MyNewCls
 		self.failUnlessRaises( TypeError, cls, "persp" )	# class has incorrect type for persp
 		# NOTE: needed actual plugin type for proper test
 
-	def test_hashfunc( self ):
+	def _test_hashfunc( self ):
 		"""byroimo.maya.nt: should be possible to use objects as keys in hashes"""
 		# they must compare their objects for equality, not their own instance
 		ddg = dict()
@@ -318,7 +332,7 @@ class TestNodeBase( unittest.TestCase ):
 		assert len( dall ) == 2 
 
 
-	def test_wrapDepNode( self ):
+	def _test_wrapDepNode( self ):
 		node = nt.Node( "defaultRenderGlobals" )
 
 		# SKIP CHECKS TEST
@@ -431,7 +445,7 @@ class TestNodeBase( unittest.TestCase ):
 		# works if rename enabeld though
 		node.rename( "othernode" )
 		
-	def test_namespace_adjustment(self):
+	def _test_namespace_adjustment(self):
 		dag = nt.Transform()
 		dg = nt.Network()
 		
@@ -447,7 +461,7 @@ class TestNodeBase( unittest.TestCase ):
 		# END for each node
 		
 
-	def test_reparentAndInstances( self ):
+	def _test_reparentAndInstances( self ):
 		mesh = nt.createNode( "trans|mesh", "mesh" )
 		base = nt.createNode( "base|subbase", "transform" )
 		obase = nt.createNode( "obase|subbase2", "transform" )
@@ -484,7 +498,7 @@ class TestNodeBase( unittest.TestCase ):
 		meshtrans.unparent()
 		assert meshtrans.parent() is None
 
-	def test_duplicateInstances( self ):
+	def _test_duplicateInstances( self ):
 		base = nt.createNode( "base", "transform" )
 		obase = nt.createNode( "obase", "transform" )
 		basemesh = nt.createNode( "base|mesh", "mesh" )
@@ -498,7 +512,7 @@ class TestNodeBase( unittest.TestCase ):
 		baseduplmesh = dupltrans.childrenByType( nt.Mesh )[0]
 		assert baseduplmesh != basemesh 		# its a separate copy
 
-	def test_wrapping(self):
+	def _test_wrapping(self):
 		# from string
 		p = nt.Node("persp")
 		
@@ -515,7 +529,7 @@ class TestNodeBase( unittest.TestCase ):
 			expected_type = TypeError
 		self.failUnlessRaises(expected_type, pfail.findPlug, 'wm')
 
-	def test_wrapDagNode( self ):
+	def _test_wrapDagNode( self ):
 		mesh = nt.createNode( "parent|mesh", "mesh" )
 		parent = mesh.parent( )
 
@@ -659,7 +673,7 @@ class TestNodeBase( unittest.TestCase ):
 		meshinstname = mesh.transform().fullChildName( "newns:meshinst" )
 		assert isinstance( meshinst, nt.Mesh ) 
 
-	def test_removeChild( self ):
+	def _test_removeChild( self ):
 		base = nt.createNode( "base" , "transform" )
 		trans = nt.createNode( "base|trans", "transform" )
 		mesh = nt.createNode( "base|mesh", "mesh" )
@@ -675,7 +689,7 @@ class TestNodeBase( unittest.TestCase ):
 		# END for each removeChild item
 
 
-	def test_dependnode_getitem( self ):
+	def _test_dependnode_getitem( self ):
 		mesh = nt.createNode( "p1|p2|mesh", "mesh" )
 		assert len( list( mesh.iterParents() ) ) == 2 
 		p2 = mesh.parent()
@@ -684,7 +698,7 @@ class TestNodeBase( unittest.TestCase ):
 		assert mesh[-2] == p1 
 		self.failUnlessRaises( IndexError, mesh.__getitem__, -3 )
 
-	def test_childEditing( self ):
+	def _test_childEditing( self ):
 		base = nt.createNode( "basenode", "transform" )
 		obase = nt.createNode( "otherbasenode", "transform" )
 
@@ -752,7 +766,7 @@ class TestNodeBase( unittest.TestCase ):
 
 		cmds.redo()
 
-	def test_instancesAndParenting( self ):
+	def _test_instancesAndParenting( self ):
 		mrvmaya.Scene.open( get_maya_file( "instancetest.ma" ), force=True )
 		m = nt.Node( "m" )			# mesh, two direct and two indirect instances
 		c1 = nt.createNode( "|c1", "transform" )
@@ -786,7 +800,7 @@ class TestNodeBase( unittest.TestCase ):
 		assert m.instanceCount( 1 ) == 2 
 
 
-	def test_instanceTraversal( self ):
+	def _test_instanceTraversal( self ):
 		base = nt.createNode( "base", "transform" )
 		obase = nt.createNode( "obase", "transform" )
 		abase = nt.createNode( "abase", "transform" )
@@ -832,7 +846,7 @@ class TestNodeBase( unittest.TestCase ):
 		assert len( list( ( trans.iterInstances(excludeSelf=False))) ) == trans.instanceCount( True ) 
 
 
-	def test_displaySettings( self ):
+	def _test_displaySettings( self ):
 		mrvmaya.Scene.new( force = 1 )
 		mesh = nt.createNode( "a1|b1|c1|d1|mesh", "mesh" )
 		mesh.tmp.msetInt( 1 )
@@ -862,7 +876,7 @@ class TestNodeBase( unittest.TestCase ):
 		assert mesh.displayOverrideValue( 'ovdt' ) == None 
 
 
-	def test_addremoveAttr( self ):
+	def _test_addremoveAttr( self ):
 		trans = nt.createNode( "trans", "transform" )
 		trans2 = nt.createNode( "trans2", "transform" )
 
@@ -897,7 +911,7 @@ class TestNodeBase( unittest.TestCase ):
 			# END for each subattr
 		# END for each main attr
 
-	def test_keepWorldSpace( self ):
+	def _test_keepWorldSpace( self ):
 		g = nt.createNode( "g", "transform" )
 		t = nt.createNode( "t", "transform" )
 		t.setParent( g )
@@ -937,7 +951,7 @@ class TestNodeBase( unittest.TestCase ):
 
 		self._checkIdentity( t )
 
-	def test_simplified_node_creation( self ):
+	def _test_simplified_node_creation( self ):
 		# dg node
 		os = nt.ObjectSet()
 		assert isinstance(os, nt.ObjectSet)
@@ -971,12 +985,12 @@ class TestNodeBase( unittest.TestCase ):
 		# cannot create anything below dependnode
 		self.failUnlessRaises(TypeError, nt.Node)
 
-	def test_single_indexed_components( self ):
+	def _test_single_indexed_components( self ):
 		# check exceptions
 		self.failUnlessRaises(IndexError, nt.SingleIndexedComponent)	# no arg
 		self.failUnlessRaises(TypeError, nt.Component.create, api.MFn.kMeshEdgeComponent) # invalid type
 
-	def test_data(self):
+	def _test_data(self):
 		# DATA CREATION
 		###############
 		# create all implemented data types
@@ -1040,12 +1054,12 @@ class TestNodeBase( unittest.TestCase ):
 		cd.remove(mvc)
 		assert len(cd) == 0
 		
-	def test_staticmethods(self):
+	def _test_staticmethods(self):
 		# access a static method directly
 		rnl = nt.RenderLayer.currentLayer()
 		assert isinstance(rnl, nt.Node)
 		
-	def test_enumerations(self):
+	def _test_enumerations(self):
 		# should exist for nodes, data, components and attributes - we just 
 		# take samples
 		for enum in (	nt.Node.Type,
@@ -1055,7 +1069,7 @@ class TestNodeBase( unittest.TestCase ):
 			assert isinstance(enum, MEnumeration)
 		# END for each enumration sample
 
-	def test_attributes( self ):
+	def _test_attributes( self ):
 		# CREATION 
 		##########
 		# UNIT ATTRIBUTE # 
