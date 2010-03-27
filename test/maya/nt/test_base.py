@@ -52,15 +52,6 @@ class TestGeneral( unittest.TestCase ):
 		dll.delete()
 		cmds.flushUndo()	# make sure we get rid of the custom data
 		
-		# unloading a plugin will remove the nodetypes as well as the hierarchy 
-		# entries
-		cmds.unloadPlugin(mrp, force=1)
-		
-		assert not hasattr(nt, 'Transmat')
-		assert not hasattr(nt, 'MapVizShape')
-		assert not nt.typ.nodeTypeTree.has_node('transmat')
-		assert not nt.typ.nodeTypeTree.has_node('mapVizShape')
-		
 		
 		# custom node types are favored and not overwritten by dummies when 
 		# loading
@@ -72,10 +63,27 @@ class TestGeneral( unittest.TestCase ):
 		assert not cmds.pluginInfo(pp, q=1, loaded=1) 
 		assert hasattr(nt, 'StorageNode')
 		
-		# plugins required by a scene trigger the database to update as well
-		assert not cmds.pluginInfo(mrp, q=1, loaded=1)
-		mrvmaya.Scene.open(get_maya_file('needsMayatomr.ma'), force=True)
-		assert hasattr(nt, 'Transmat')
+		# unloading a plugin will remove the nodetypes as well as the hierarchy 
+		# entries
+		# NOTE: on OSX unloading the plugin beautifully crashes maya, probably
+		# a memory exception as MR claims to have had a peak memory of 136 GB
+		# As a final goal, this test should be fixed to run here, there 
+		# probably is some kind of workaround.
+		# http://tracking.byronimo.de/view.php?id=144
+		if sys.platform != 'darwin':
+			cmds.unloadPlugin(mrp, force=1)
+			
+			assert not hasattr(nt, 'Transmat')
+			assert not hasattr(nt, 'MapVizShape')
+			assert not nt.typ.nodeTypeTree.has_node('transmat')
+			assert not nt.typ.nodeTypeTree.has_node('mapVizShape')
+		
+	
+			# plugins required by a scene trigger the database to update as well
+			assert not cmds.pluginInfo(mrp, q=1, loaded=1)
+			mrvmaya.Scene.open(get_maya_file('needsMayatomr.ma'), force=True)
+			assert hasattr(nt, 'Transmat')
+		# END skip this on osx 
 		
 		# dynamically added types ( which will not trigger a plugin changed event )
 		# can be wrapped as well
