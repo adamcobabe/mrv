@@ -30,6 +30,14 @@ def setup_ipython():
 	"""Perform additional ipython initialization"""
 	import IPython
 	
+	# configure MRV
+	# as IPython is some sort of interactive mode, we load the user preferences
+	for var in ( 	'MRV_STANDALONE_AUTOLOAD_PLUGINS', 
+					'MRV_STANDALONE_INIT_OPTIONVARS', 
+					'MRV_STANDALONE_RUN_USER_SETUP' ): 
+		os.environ[var] = "1"
+	# END env var loop
+	
 	# init maya
 	import mrv.maya
 	

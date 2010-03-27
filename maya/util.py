@@ -178,7 +178,11 @@ class OptionVarDict( util.Singleton ):
 	def __contains__(self, key):
 		return cmds.optionVar( exists=key )
 
-	def __getitem__(self,key):
+	def __getitem__(self, key):
+		if key not in self:
+			raise KeyError("OptionVar named %s did not exist" % key)
+		# END raise if k not in d
+		
 		val = cmds.optionVar( q=key )
 		if isinstance(val, list):
 			val = self.OptionVarList( key, val )

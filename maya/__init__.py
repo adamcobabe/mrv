@@ -82,7 +82,7 @@ def tuple_list_from_file( filepath ):
 	:return: tuple list suitable for dag_tree_from_tuple_list"""
 	lines = Path( filepath ).lines( retain = False )
 
-	hierarchytuples = []
+	hierarchytuples = list()
 	# PARSE THE FILE INTO A TUPLE LIST
 	for no,line in enumerate( lines ):
 		item = ( line.count( '\t' ), line.lstrip( '\t' ) )
@@ -120,41 +120,6 @@ def initWrappers( mdict, types, metacreatorcls, force_creation = False ):
 	for standin in standin_instances:
 		standin.createCls( )
 
-
-def parse_maya_env( envFilePath ):
-	"""
-	Parse the key-value pairs out of the maya environment file given in
-	envFilePath
-	:todo: remove this obsolete method
-	:return: dict( "Variable":"Value" )
-	"""
-	out = dict()
-
-	# parse key-value pairs
-	for line in open( envFilePath,'r' ).readlines():
-		line = line.strip()
-		if line.startswith( "//" ):
-			continue
-
-		# assume a key-value pair
-		tokens = line.split( '=' )
-		if len( tokens ) != 2:
-			continue
-
-		out[ tokens[0].strip() ] = tokens[1].strip()
-
-	# end for each line
-
-	# expand the variables
-	environ_bak = os.environ
-	os.environ = out
-
-	for var,value in out.iteritems():
-		out[var] = os.path.expandvars( value )
-
-	os.environ = environ_bak
-	return out
-
 def move_vars_to_environ( ):
 	"""Move the maya vars as set in the shell into the os.environ to make them available to python"""
 	import maya.cmds as cmds
@@ -168,7 +133,7 @@ def move_vars_to_environ( ):
 
 	for line in p.stdout:
 		try:
-			var,value = line.split("=")
+			var,value = line.split("=", 1)
 		except:
 			continue
 		else:
@@ -221,6 +186,7 @@ def init_system( ):
 
 	mayabasename = mayabasename.replace( "-x64", "" )	# could be mayaxxxx-x64
 	mayaversion = mayabasename[4:]				# could be without version, like "maya"
+	fmayaversion = float(mayaversion)
 
 
 	# PYTHON COMPATABILITY CHECK
@@ -277,18 +243,73 @@ def init_system( ):
 	###############
 	# NOTE: this might have to be redone in your own package dependent on when
 	# we are called - might be too early here
-	move_vars_to_environ( )
-
-	# RUN USER SETUP
-	###################
-	# TODO: This should be an option in the configuration !
-	# TODO: write the code that runs it once it can be disbled
+	# This also handles the Maya.env variables
+	if fmayaversion < 2009:
+		move_vars_to_environ( )
 
 	# FINISHED
 	return
 
 # END INIT SYSTEM
 
+def init_user_prefs( ):
+	"""intiialize the user preferences according to the set configuration variables"""
+	try:
+		init_mel = int(os.environ.get('MRV_STANDALONE_INIT_OPTIONVARS', 0))
+		run_user_setup = int(os.environ.get('MRV_STANDALONE_RUN_USER_SETUP', 0))
+		autoload_plugins = int(os.environ.get('MRV_STANDALONE_AUTOLOAD_PLUGINS', 0))
+	except ValueError, e:
+		log.warn("Invalid value for MRV configuration variable: %s" % str(e).split(':', 1)[-1])
+	# END safe access to variables
+	
+	def source_file_safely(script):
+		try:
+			maya.mel.eval('source "%s"' % script)  
+		except RuntimeError, e:
+			log.error(str(e) + "- ignored")
+		# END exception handling
+	# END utility 
+	
+	if not (init_mel|run_user_setup|autoload_plugins):
+		return
+	
+	import maya.cmds as cmds
+	prefsdir = Path(cmds.internalVar(userPrefDir=1))
+	
+	if not prefsdir.isdir():
+		log.warn("User Preferences directory did not exist: %s" % prefsdir)
+		return
+	# END check for existence
+	
+	# source actual MEL scripts
+	sources = list()
+	if init_mel:
+		sources.append("createPreferencesOptVars.mel")
+		sources.append("createGlobalOptVars.mel")
+		sources.append(prefsdir + "/userPrefs.mel")
+	# END option vars 
+	
+	if autoload_plugins:
+		sources.append(prefsdir + "/pluginPrefs.mel")
+	# END autoload plugins
+	
+	# run scripts we collected
+	import maya.mel
+	for scriptpath in sources:
+		if os.path.isabs(scriptpath) and not os.path.isfile(scriptpath):
+			log.warn("Couldn't source %s as it did not exist" % scriptpath)
+		# END check whether absolute paths are available
+		
+		source_file_safely(scriptpath)
+	# END for each script path 
+	
+	if run_user_setup:
+		# mel
+		source_file_safely("userSetup.mel")
+		
+		# userSetup.py gets executed by maya
+	# END run user setup
+	
 
 def init_singletons( ):
 	""" Initialize singleton classes and attach them direclty to our module"""
@@ -351,13 +372,15 @@ if 'init_done' not in locals():
 	init_done = False
 
 
-
 if not init_done:
 	# assure we do not run several times
-	init_system( )
-	init_standard_output( )
-	init_modules( __file__, "mrv.maya" )
-	init_singletons( )
+	init_system()
+	init_standard_output()
+	init_modules(__file__, "mrv.maya")
+	init_singletons()
+	
+	# this serves as a reentrance check in case userSetup is importing us again
+	init_done = True
+	init_user_prefs()
 
 
-init_done = True

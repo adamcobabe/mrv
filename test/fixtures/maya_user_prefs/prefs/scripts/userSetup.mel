@@ -1,0 +1,7 @@
+
+
+global int $gTestVar;
+$gTestVar = 5;
+
+// reentrance check 
+python("import mrv.maya");

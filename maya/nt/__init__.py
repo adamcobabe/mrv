@@ -86,7 +86,6 @@ def removeCustomType( customType ):
 		customType = customType.__name__
 	typ._removeCustomType(globals(), customType)
 	
-
 def addCustomTypeFromFile( hierarchyfile, **kwargs ):
 	"""Add a custom classes as defined by the given tab separated file.
 	Call addCustomClasses afterwards to register your own base classes to the system

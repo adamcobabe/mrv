@@ -1,6 +1,5 @@
 #!/bin/bash
-if [[ $1 == *help* || $1 == "-h" ]] ;
-then
+if [[ $1 == *help* || $1 == "-h" ]]; then
 cat <<HELP
 bpython [mayaversion]
 starts a python interpreter using the optionally given maya version
@@ -90,6 +89,9 @@ base=`/usr/bin/dirname $0`
 mayarvbase=$(cd $base/../.. && echo $PWD)
 PYTHONPATH=${PYTHONPATH:+$PYTHONPATH:}$MAYA_LOCATION/$pylibdir/python$python_version/site-packages:$mayarvbase
 export PYTHONPATH MAYA_LOCATION
+
+# export the actual maya version to allow scripts to pick it up even before maya is launched
+export MRV_MAYA_VERSION=$mayaversion
 
 # execute the interpreter
 # TODO: parse an optional option to specify the python version or just the maya version

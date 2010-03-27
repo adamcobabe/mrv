@@ -1,0 +1,35 @@
+//Maya Preference 8.50 (Release 1)
+//
+//
+windowPref -topLeftCorner 225 150 -widthHeight 250 400 outlinerPanel1Window;
+windowPref -topLeftCorner 279 160 -widthHeight 968 609 hyperGraphPanel1Window;
+windowPref -topLeftCorner 250 200 -widthHeight 660 400 graphEditor1Window;
+windowPref -topLeftCorner 250 200 -widthHeight 660 400 dopeSheetPanel1Window;
+windowPref -topLeftCorner 250 200 -widthHeight 660 400 clipEditorPanel1Window;
+windowPref -topLeftCorner 250 200 -widthHeight 560 430 multiListerPanel1Window;
+windowPref -topLeftCorner 250 200 -widthHeight 524 470 devicePanel1Window;
+windowPref -topLeftCorner 401 685 -widthHeight 1011 723 hyperShadePanel1Window;
+windowPref -topLeftCorner 250 200 -widthHeight 700 400 dynPaintScriptedPanelWindow;
+windowPref -topLeftCorner 250 200 -widthHeight 550 562 blindDataEditor1Window;
+windowPref -topLeftCorner 357 526 -widthHeight 1320 840 renderViewWindow;
+windowPref -topLeftCorner 740 742 -widthHeight 530 276 CommandWindow;
+windowPref -topLeftCorner 195 305 -widthHeight 1213 905 MayaWindow;
+windowPref -topLeftCorner 297 629 -widthHeight 422 670 unifiedRenderGlobalsWindow;
+windowPref -topLeftCorner 208 579 -widthHeight 460 697 pluginManagerWindow;
+windowPref -topLeftCorner 343 732 -widthHeight 976 788 scriptEditorPanel1Window;
+windowPref -topLeftCorner 344 81 -widthHeight 857 582 hyperGraphPanel2Window;
+windowPref -topLeftCorner 310 543 -widthHeight 600 553 projectViewerWindow;
+windowPref -topLeftCorner 427 140 -widthHeight 766 482 hyperGraphPanel3Window;
+windowPref -topLeftCorner 454 446 -widthHeight 633 605 PreferencesWindow;
+windowPref -topLeftCorner 425 209 -widthHeight 520 620 connectWindow;
+windowPref -topLeftCorner 499 541 -widthHeight 340 455 PluginInfoWin;
+windowPref -topLeftCorner 100 100 -widthHeight 435 250 menuSearchWindow;
+windowPref -topLeftCorner 624 1155 -widthHeight 525 350 OptionBoxWindow;
+windowPref -topLeftCorner 100 100 -widthHeight 510 600 PaintEffectsBrushWindow;
+windowPref -topLeftCorner 100 100 -widthHeight 300 276 firstStartWindow;
+windowPref -topLeftCorner 178 245 -widthHeight 765 813 expressionEditorWin;
+windowPref -topLeftCorner 200 187 -widthHeight 315 730 createRenderNodeWindow;
+windowPref -topLeftCorner 229 128 -widthHeight 404 306 PipeGenWin;
+windowPref -topLeftCorner 310 279 -widthHeight 430 444 mfAnimIOUI;
+windowPref -topLeftCorner 451 695 -widthHeight 400 364 window1;
+windowPref -topLeftCorner 100 100 -widthHeight 278 435 ColorEditor;
