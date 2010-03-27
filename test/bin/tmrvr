@@ -11,7 +11,10 @@ fi
 # this is obviously as simple as it gets, I could imaging some commandline args
 # to limit the tests to run as well as the maya versions. If that should happen, 
 # the command should be rewritten in python to have a windows version as well.
-for maya_version in 8.5 2008 2009 2010; do
+for maya_version in 8.5 2008 2009 2010 2011; do
+	# try to start the version - on failure skip it
+	echo | $base/tmrv $maya_version || echo "Skipped $maya_version as it is not installed" && continue
+	
 	for test in "" `find $base/.. -name "test_single_*.py"`; do
 		echo "tmrv $maya_version ${test##$base/../}"
 		
