@@ -267,6 +267,9 @@ class TestGeneralPerformance( unittest.TestCase ):
 							ic += 1
 						# END for each item
 						elapsed = time.time() - st
+						if elapsed == 0.0:
+							elapsed = 0.001
+						# END handle very small values ( or unprecise timers on windows )
 						print >>sys.stderr, "iterGraph: Traversed %i items from %s (asNode=%i, plug=%i, breadth=%i) in %f s ( %f / s )" % ( ic, rootitem, asNode, plug, breadth, elapsed, ic / elapsed )
 					# END for each asNode value
 				# END for each asPlug value
@@ -279,10 +282,11 @@ class TestGeneralPerformance( unittest.TestCase ):
 
 		# method access
 		a = time.time()
-		na = 10000
+		na = 50000	# need more iterations as some OSs have imprecise timers
 		for i in xrange( na ):
 			p.focalLength  # this wraps the API
 		b = time.time()
+		
 		print >>sys.stderr, "%f s (%f/s) : node.focalLength" % ( b - a, na/(b-a) )
 
 		# node wrapped
