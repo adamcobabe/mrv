@@ -120,41 +120,6 @@ def initWrappers( mdict, types, metacreatorcls, force_creation = False ):
 	for standin in standin_instances:
 		standin.createCls( )
 
-
-def parse_maya_env( envFilePath ):
-	"""
-	Parse the key-value pairs out of the maya environment file given in
-	envFilePath
-	:todo: remove this obsolete method
-	:return: dict( "Variable":"Value" )
-	"""
-	out = dict()
-
-	# parse key-value pairs
-	for line in open( envFilePath,'r' ).readlines():
-		line = line.strip()
-		if line.startswith( "//" ):
-			continue
-
-		# assume a key-value pair
-		tokens = line.split( '=' )
-		if len( tokens ) != 2:
-			continue
-
-		out[ tokens[0].strip() ] = tokens[1].strip()
-
-	# end for each line
-
-	# expand the variables
-	environ_bak = os.environ
-	os.environ = out
-
-	for var,value in out.iteritems():
-		out[var] = os.path.expandvars( value )
-
-	os.environ = environ_bak
-	return out
-
 def move_vars_to_environ( ):
 	"""Move the maya vars as set in the shell into the os.environ to make them available to python"""
 	import maya.cmds as cmds
@@ -168,7 +133,7 @@ def move_vars_to_environ( ):
 
 	for line in p.stdout:
 		try:
-			var,value = line.split("=")
+			var,value = line.split("=", 1)
 		except:
 			continue
 		else:
@@ -221,6 +186,7 @@ def init_system( ):
 
 	mayabasename = mayabasename.replace( "-x64", "" )	# could be mayaxxxx-x64
 	mayaversion = mayabasename[4:]				# could be without version, like "maya"
+	fmayaversion  =float(mayaversion)
 
 
 	# PYTHON COMPATABILITY CHECK
@@ -277,10 +243,12 @@ def init_system( ):
 	###############
 	# NOTE: this might have to be redone in your own package dependent on when
 	# we are called - might be too early here
-	move_vars_to_environ( )
+	# This also handles the Maya.env variables
+	if fmayaversion < 2009:
+		move_vars_to_environ( )
 
 	# RUN USER SETUP
-	###################
+	#################
 	# TODO: This should be an option in the configuration !
 	# TODO: write the code that runs it once it can be disbled
 

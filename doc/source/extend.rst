@@ -5,6 +5,7 @@ Extending MRV
 *****************
 Custom Node Types
 *****************
+TODO: remove default node type, then add new one
 
 ******************
 Virtual Subclasses
