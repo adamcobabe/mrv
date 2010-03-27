@@ -21,6 +21,7 @@ import inspect
 import re
 from cStringIO import StringIO
 import string
+import sys
 
 import logging
 log = logging.getLogger("mrv.maya.mdb")
@@ -95,9 +96,11 @@ def headerPath( apiname ):
 		The file will not be verified, hence it may be inaccessible
 	:param apiname: string name, like 'MFnBase'
 	:raise ValueError: if MAYA_LOCATION is not set"""
-	p = Path("$MAYA_LOCATION/include/maya/%s.h" % apiname)
-	return p.expand_or_raise()
-	
+	p = Path("$MAYA_LOCATION").expand_or_raise()
+	if sys.platform == 'darwin':
+		p = p.parent().parent() / "devkit"
+	# END handle platform dependency
+	return p / ("include/maya/%s.h" % apiname)
 
 def cacheFilePath( filename, ext, use_version = False ):
 	"""Return path to cache file from which you would initialize data structures
