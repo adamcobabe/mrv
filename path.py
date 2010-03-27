@@ -459,8 +459,7 @@ class Path( _base, iDagItem ):
 			elif errors == 'warn':
 				log.warn(
 					"Unable to list directory '%s': %s"
-					% (self, sys.exc_info()[1]),
-					TreeWalkWarning)
+					% (self, sys.exc_info()[1]))
 				childList = list()
 			else:
 				raise
@@ -480,8 +479,7 @@ class Path( _base, iDagItem ):
 				elif errors == 'warn':
 					log.warn(
 						"Unable to access '%s': %s"
-						% (child, sys.exc_info()[1]),
-						TreeWalkWarning)
+						% (child, sys.exc_info()[1]))
 				else:
 					raise
 				# END handle errors value
