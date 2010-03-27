@@ -373,8 +373,17 @@ class TestPath( unittest.TestCase ):
 		assert afile.stat()
 		assert adir.stat()
 		
-		assert afile.owner()
-		assert adir.owner()
+		try:
+			assert afile.owner()
+			assert adir.owner()
+		except Exception:
+			# on win32, this can fail if a special python module is not installed.
+			# On all other platforms, we'd expect it to work though and pass on 
+			# the failure
+			if os.name != 'nt':
+				raise
+			# END ignore errors on win32
+		# END special exception handling
 		
 		if hasattr(afile, 'statvfs'):
 			assert afile.statvfs()
