@@ -1,0 +1,5 @@
+//Maya Preference 8.50 (Release 1)
+//
+//
+evalDeferred("autoLoadPlugin(\"\", \"ge2Export\", \"ge2Export\")");
+evalDeferred("autoLoadPlugin(\"\", \"decomposeMatrix\", \"decomposeMatrix\")");

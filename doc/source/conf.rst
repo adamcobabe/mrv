@@ -28,17 +28,16 @@ The notation used is: NAME_OF_VARIABLE (=default value). Variables with *_STANDA
  
   * If enabled, all calls to MPlug.setX will raise an AssertionError. This helps to assure that you do not accidentally put in bugs related to incorrect undo by using the non-mrv, non-undoable MPlug.setX methods directly ( instead of using the msetX methods instead ). Its adivsed to only turn on this mode for individual runs or if a bug of that kind is suspected, as the performance loss will be tremendous !
   
- * *MRV_STANDALONE_INIT_MEL* (=0)
+ * *MRV_STANDALONE_INIT_OPTIONVARS* (=0)
  
-  * If enabled, MRV will source some default mel scripts to assure the optionVar database is intialized and filled with previously stored values. Named commands and runtime commands are initialized as well.
-  * If you rely on optionVars, you should enable this configuration flag.
-  
- * *MRV_STANDALONE_RUN_USER_SETUP* (=0)
-  * If enabled, MRV runs the userSetup.(mel|py) during at the very end of its initialization routine
+  * If enabled, MRV will  optionVar database is intialized and filled with previously saved values.
   
  * *MRV_STANDALONE_AUTOLOAD_PLUGINS* (=0)
   * If enabled, plugins setup for automatic loading at startup will be loaded by MRV.
   * Unless you can assure the computer you run on will auto-load the plugins you require, its good practice not to rely on any plugin to be autoloaded.
+  
+ * *MRV_STANDALONE_RUN_USER_SETUP* (=0)
+  * If enabled, MRV runs the userSetup.(mel|py) during at the very end of its initialization routine
   
 .. note:: Environment variables are only effective if they are set before the respective mrv modules are imported, hence it is not possible to alter the behaviour after the import.
 

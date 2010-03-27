@@ -1,0 +1,5 @@
+//Maya Preference 8.50 (Release 1)
+//
+//
+
+hotkey -keyShortcut "0" -releaseName ("HfAttrSelect_Menu_revert");

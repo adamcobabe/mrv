@@ -1,0 +1,10 @@
+//Maya Preference 8.50 (Release 1)
+//
+//
+
+runTimeCommand
+	-annotation "test annotation"
+	-category ""
+	-command ("print \"Hello world\\n\"")
+	MyTestRuntimeCommand;
+
