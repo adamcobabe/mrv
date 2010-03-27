@@ -501,7 +501,7 @@ class TestTransform( unittest.TestCase ):
 		#######
 		empty_scene = get_maya_file('empty.ma')
 		mrv.Scene.open(empty_scene, force=1)
-		assert mrv.Scene.name() == empty_scene
+		assert mrv.Scene.name().tonative() == empty_scene
 		
 		files = list()
 		def beforeAndAfterNewCB( data ):
@@ -514,7 +514,7 @@ class TestTransform( unittest.TestCase ):
 		assert len(files) == 0
 		mrv.Scene.new()
 		assert len(files) == 2
-		assert files[0] == empty_scene
+		assert files[0].tonative() == empty_scene
 		
 		mrv.Scene.beforeNew.remove(beforeAndAfterNewCB)
 		mrv.Scene.afterNew.remove(beforeAndAfterNewCB)
