@@ -22,6 +22,7 @@ import re
 from cStringIO import StringIO
 import string
 import sys
+import os
 
 import logging
 log = logging.getLogger("mrv.maya.mdb")
@@ -414,7 +415,15 @@ class CppHeaderParser(object):
 		##############
 		# read everything, but skip the license text when matching
 		if parse_enums:
-			header = header_filepath.bytes()
+			read_method = header_filepath.bytes
+			# on windows, we have \r\n newlines, which are automatically 
+			# converted to \n by the .text method. This might be a bit slower, 
+			# so we only do it on windows
+			if os.name == 'nt':
+				read_method = header_filepath.text
+			# END handle newline sequence
+			
+			header = read_method()
 			for enummatch in cls.reEnums.finditer(header, 2188):
 				ed = MEnumDescriptor(enummatch.group('name'))
 				
