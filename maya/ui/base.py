@@ -328,14 +328,14 @@ class SizedControl( NamedUI ):
 					  	"ut", "useTemplate",
 						"w","width",
 						"h", "height",
-						"v", "visible",
+						"vis", "visible",
 						"m", "manage",
 						"en", "enable",
 						"io", "isObscured",
 						"npm", "numberOfPopupMenus",
 						"po", "preventOverride",
 						"bgc", "backgroundColor",
-						"dt", "doctTag" )
+						"dtg", "doctTag" )
 
 	_events_ = ( 	"dgc", "dragCallback" ,
 					"dpc", "dropCallback" )

@@ -129,4 +129,27 @@ class ScrollLayout( Layout ):
 						"scrollByPixel", "sbp"	)
 
 	_event_ = ( "resizeCommand", "rc" )
+	
+class TabLayout( Layout ):
+	"""Simple wrapper for a tab layout"""
+	_properties_ = (	"tv", "tabsVisible",
+					   	"st",  "selectTab",
+						"sti", "selectTabIndex",
+						"tl", "tabLabel",
+						"tli", "tabLabelIndex",
+						"scr", "scrollable",
+						"hst", "horizontalScrollBarThickness",
+						"vst", "verticalScrollBarThickness",
+						"imw", "innerMarginWidth",
+						"imh", "innerMarginHeight",
+						"i", "image",
+						"iv", "imageVisible",
+						"cr", "childResizable",
+						"mcw", "minChildWidth",
+						"mt", "moveTab" )
+
+	_events_ = ( 	"cc", "changeCommand",
+					"sc", "selectCommand",
+					"psc", "preSelectCommand",
+					"dcc", "doubleClickCommand" )
 
