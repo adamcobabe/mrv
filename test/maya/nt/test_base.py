@@ -528,9 +528,13 @@ class TestNodeBase( unittest.TestCase ):
 		
 		# works, but first mfn access fails !
 		pfail = nt.NodeFromObj(p)
+		
+		# oh look, how inconsistent the wrap is :) ... 
 		expected_type = RuntimeError
 		if env.appVersion()[0] > 8.5:
 			expected_type = TypeError
+		if os.name == 'nt':
+			expected_type = NotImplementedError
 		self.failUnlessRaises(expected_type, pfail.findPlug, 'wm')
 
 	@with_undo
