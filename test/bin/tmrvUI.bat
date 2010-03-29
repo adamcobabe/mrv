@@ -4,9 +4,6 @@ REM call maya and use nose as test runner
 
 set BASE=%~dp0
 set COLLECTED_ARGS=;
-set MAYA_BIN=%1%
-
-SHIFT
 
 REM collect command line arguments and convert files into fully qualified path names
 REM non filename arguments pass unchanged
@@ -33,7 +30,7 @@ IF NOT EXIST %MAYA_APP_TMP% mkdir %MAYA_APP_TMP%
 REM creating an empty Maya.env file
 echo. 2>%MAYA_APP_DIR%\Maya.env
 
-set COMMAND=%COMMAND%"&&set MAYA_APP_DIR=%MAYA_APP_TMP%&&%MAYA_BIN%"
+set COMMAND=%COMMAND%"&&set MAYA_APP_DIR=%MAYA_APP_TMP%&&maya"
 
 REM cleaning %COMMAND% from unnecessary quotes we needed to create the command
 set COMMAND="%COMMAND:"=%"
