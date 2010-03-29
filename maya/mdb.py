@@ -34,10 +34,14 @@ __all__ = ("createDagNodeHierarchy", "createTypeNameToMfnClsMap", "getApiModules
 
 #{ Initialization 
 
+def nodeHierarchyFile():
+	""":return: Path to the node hierarchy file of the currently active maya version"""
+	return cacheFilePath( "nodeHierarchy", "hf", use_version = 1 )
+
 def createDagNodeHierarchy( ):
 	""" Parse the nodes hierarchy file and return a `DAGTree` with its data
 	:return: `DAGTree`"""
-	mfile = cacheFilePath( "nodeHierarchy", "hf", use_version = 1 )
+	mfile = nodeHierarchyFile()
 	return mrvmaya.dag_tree_from_tuple_list( mrvmaya.tuple_list_from_file( mfile ) )
 
 def createTypeNameToMfnClsMap( ):

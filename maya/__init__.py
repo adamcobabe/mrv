@@ -33,6 +33,58 @@ def registerPluginDataTrackingDict( dataTypeID, trackingDict ):
 #} End Common
 
 
+#{ Init new maya version
+def initializeNewMayaRelease( ):
+	"""This method should be called once a new maya release is encountered. It will
+	initialize and update the database as well as possible, and give instructions 
+	on what to do next.
+	
+	:note: Will not run if any user setup is performed as we need a clean maya 
+	without any plugins loaded.
+	:raise EnvironmentError: if the current maya version has already been initialized
+	or if the user setup was executed"""
+	if int(os.environ.get('MRV_STANDALONE_AUTOLOAD_PLUGINS', 0)) or \
+		int(os.environ.get('MRV_STANDALONE_RUN_USER_SETUP', 0)):
+		raise EnvironmentError("Cannot operate if custom user setup was performed")
+	# END check environments
+	
+	import env
+	import mdb
+
+	nodeshf = mdb.nodeHierarchyFile()
+	app_version = env.appVersion()[0]
+	if nodeshf.isfile():
+		raise EnvironmentError("Maya version %f already initialized as hierarchy file at %s does already exist" % (app_version, nodeshf))
+	# END assure we are not already initialized
+	
+	# UPDATE MFN DB FILES
+	#####################
+	# Get all MFn function sets and put in their new versions as well as files
+	mdb.writeMfnDBCacheFiles()
+	
+	# UPDATE NODE HIERARCHY FILE
+	############################
+	# create all node types, one by one, and query their hierarchy relationship.
+	# From that info, generate a dagtree which is written to the hierarchy file.
+	# NOTE: for now we just copy the old one
+	prev_version = app_version - 1.0	# works for now
+	prevnodeshf = Path(nodeshf.replace(str(app_version), str(prev_version)))
+	prevnodeshf.copyfile(nodeshf)
+	
+	
+	# PROVIDE INFO	TO THE USER
+	############################
+	print "update the bin/mrv command to know about maya %f" % app_version
+	print "git status reveals new MFnFunction sets - check them and assign them to their compatible node type in 'nodeTypeToMfnCls.map'"
+	print "Check the 'whats new' part of the maya docs for important API changes and possibly incorporate them into the code"
+	print "run 'tmrv %f' and fix breaking tests" % app_version
+	print "run 'tmrvr' to assure all maya versions are still working"
+	print "run the UI tests and check that they don't fail"
+	print "Commit and push your changes - you are done"
+
+#} END init new maya version
+
+
 #{ Internal Utilities
 def dag_tree_from_tuple_list( tuplelist ):
 	""":return: DagTree from list of tuples [ (level,name),...], where level specifies

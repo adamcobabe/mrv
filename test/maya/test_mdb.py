@@ -2,6 +2,7 @@
 """ Test maya node database """
 from mrv.test.maya import *
 from mrv.maya.util import MEnumeration
+import mrv.maya as mrvmaya
 import mrv.maya.mdb as mdb
 from mrv.path import *
 from mrv.util import DAGTree
@@ -9,6 +10,7 @@ from mrv.util import DAGTree
 import maya.OpenMayaUI as apiui 
 
 import inspect
+import os
 
 # test import all
 from mrv.maya.mdb import *
@@ -133,9 +135,22 @@ class TestMDB( unittest.TestCase ):
 		# END for each enum descriptor
 		
 		
-	def _DISABLED_test_mfncachebuilder( self ):
-		"""Rewrite the mfn db cache files - should be done with each new maya version"""
-		import mrv.maya.mdb as mdb
-		mdb.writeMfnDBCacheFiles( )
+	def test_new_release( self ):
+		# for now, only test the failures
+		
+		# fails if at least one user setup variable is set - just one sample for now
+		alpev = 'MRV_STANDALONE_AUTOLOAD_PLUGINS'
+		prev_value = os.environ.get(alpev, None)
+		os.environ[alpev] = "1"
+		
+		try:
+			self.failUnlessRaises(EnvironmentError, mrvmaya.initializeNewMayaRelease)
+		finally:
+			if prev_value:
+				os.environ[alpev] = prev_value
+		# END assure os stays unharmed
+		
+		# fail in current version ( as it exists )
+		self.failUnlessRaises(EnvironmentError, mrvmaya.initializeNewMayaRelease)
 
 
