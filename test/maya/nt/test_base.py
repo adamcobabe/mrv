@@ -33,6 +33,7 @@ class TestGeneral( unittest.TestCase ):
 		# be of type MetaClas, instead of type, which makes it inherit all attriutes
 		assert not hasattr(nt.Node, 'nameToTreeMap')	# has dg and dag nodes
 		
+	@with_persistence
 	def test_plugin_handling(self):
 		mrp = "Mayatomr"
 		pp = 'persistence'
@@ -55,7 +56,6 @@ class TestGeneral( unittest.TestCase ):
 		
 		# custom node types are favored and not overwritten by dummies when 
 		# loading
-		nt.enforcePersistence()
 		assert nt.StorageNode is mstorage.StorageNode
 		
 		# custom node types will remain when unloaded
@@ -97,6 +97,7 @@ class TestGeneral( unittest.TestCase ):
 		cs = nt.Node(cmds.createNode(csn))
 		assert hasattr(nt, csnc)
 		
+	@with_undo
 	def test_create_nodes(self):
 		# create all types of nodes, just individual samples, assure createNode
 		# gets it right
@@ -200,6 +201,7 @@ class TestGeneral( unittest.TestCase ):
 			assert hasattr( node, "__dict__" ) 
 
 
+	@with_undo
 	def test_createNodes( self ):
 		names = ["hello","bla|world","this|world|here","that|this|world|here" ]
 		nsnames = ["a:hello","blab|b:world","c:this|b:world","d:that|c:this|b:world|a:b:c:d:here"]
@@ -332,6 +334,7 @@ class TestGeneral( unittest.TestCase ):
 		assert node == instnode.wm.mwrappedNode()
 
 
+	@with_undo
 	def test_convenienceFunctions( self ):
 		# SELECTION
 		############
@@ -411,6 +414,7 @@ class TestNodeBase( unittest.TestCase ):
 		assert len( dall ) == 2 
 
 
+	@with_undo
 	def test_wrapDepNode( self ):
 		node = nt.Node( "defaultRenderGlobals" )
 
@@ -608,6 +612,7 @@ class TestNodeBase( unittest.TestCase ):
 			expected_type = TypeError
 		self.failUnlessRaises(expected_type, pfail.findPlug, 'wm')
 
+	@with_undo
 	def test_wrapDagNode( self ):
 		mesh = nt.createNode( "parent|mesh", "mesh" )
 		parent = mesh.parent( )
@@ -752,6 +757,7 @@ class TestNodeBase( unittest.TestCase ):
 		meshinstname = mesh.transform().fullChildName( "newns:meshinst" )
 		assert isinstance( meshinst, nt.Mesh ) 
 
+	@with_undo
 	def test_removeChild( self ):
 		base = nt.createNode( "base" , "transform" )
 		trans = nt.createNode( "base|trans", "transform" )
@@ -777,6 +783,7 @@ class TestNodeBase( unittest.TestCase ):
 		assert mesh[-2] == p1 
 		self.failUnlessRaises( IndexError, mesh.__getitem__, -3 )
 
+	@with_undo
 	def test_childEditing( self ):
 		base = nt.createNode( "basenode", "transform" )
 		obase = nt.createNode( "otherbasenode", "transform" )
@@ -925,6 +932,7 @@ class TestNodeBase( unittest.TestCase ):
 		assert len( list( ( trans.iterInstances(excludeSelf=False))) ) == trans.instanceCount( True ) 
 
 
+	@with_undo
 	def test_displaySettings( self ):
 		mrvmaya.Scene.new( force = 1 )
 		mesh = nt.createNode( "a1|b1|c1|d1|mesh", "mesh" )
@@ -990,6 +998,7 @@ class TestNodeBase( unittest.TestCase ):
 			# END for each subattr
 		# END for each main attr
 
+	@with_undo
 	def test_keepWorldSpace( self ):
 		g = nt.createNode( "g", "transform" )
 		t = nt.createNode( "t", "transform" )
@@ -1069,8 +1078,8 @@ class TestNodeBase( unittest.TestCase ):
 		self.failUnlessRaises(IndexError, nt.SingleIndexedComponent)	# no arg
 		self.failUnlessRaises(TypeError, nt.Component.create, api.MFn.kMeshEdgeComponent) # invalid type
 
+	@with_persistence
 	def test_data(self):
-		nt.enforcePersistence()
 		
 		# DATA CREATION
 		###############
@@ -1150,8 +1159,8 @@ class TestNodeBase( unittest.TestCase ):
 			assert isinstance(enum, MEnumeration)
 		# END for each enumration sample
 
+	@with_persistence
 	def test_attributes( self ):
-		nt.enforcePersistence()
 		
 		# CREATION 
 		##########

@@ -26,7 +26,7 @@ for maya_version in 8.5 2008 2009 2010 2011; do
 		# in test mode - this happens for example if we run maya post 2010 which 
 		# changes the except hook. Could use a custom hook though, but this 
 		# appears to be the simplest solution
-		echo | $base/tmrv $maya_version $test
+		echo | $base/tmrv $maya_version $test -v
 		if [[ $? != 0 ]]; then
 			rval=$?
 			echo "tmrv $maya_version ${test##$base/../} failed"

@@ -8,7 +8,6 @@ import time
 from mrv.test.maya import *
 import mrv.maya.nt as nt
 import maya.cmds as cmds
-import mrv.maya.undo as undo
 import maya.OpenMaya as api
 import mrv.maya.nt.it as it
 

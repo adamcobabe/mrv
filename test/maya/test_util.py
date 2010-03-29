@@ -14,6 +14,8 @@ class TestUtil( unittest.TestCase ):
 			nvalue = optionvars[ key ]
 			assert value == nvalue 		# its tuples
 		# END for each key in option vars dict
+		
+		self.failUnlessRaises(KeyError, optionvars.__getitem__, 'doesntExist')
 
 		assert len( list( optionvars.iterkeys() ) ) == len( optionvars.keys() ) 
 

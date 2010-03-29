@@ -32,6 +32,7 @@ class TestUndoQueue( unittest.TestCase ):
 		sys._maya_stack = list()
 		# assert( sys._maya_stack_depth == 0 ) # would throw
 	
+	@with_undo
 	def test_undoBasics( self ):
 		undo.startUndo()
 
@@ -98,6 +99,7 @@ class TestUndoQueue( unittest.TestCase ):
 		print "FIX KNOWN UNDO LIMITATION WHICH HAS BEEN SKIPPED TO ALLOW RELEASES"
 		undo.endUndo()
 
+	@with_undo
 	def test_undo_stack(self):
 		mrvmaya.Scene.new(force=1)
 		ur = undo.UndoRecorder()
@@ -200,8 +202,7 @@ class TestUndoQueue( unittest.TestCase ):
 		cmds.redo()
 		assert p.ty.misConnectedTo(t.ty)
 		
-		
-		
+	@with_undo
 	def test_dgmod( self ):
 		persp = Node( "persp" )
 		front = Node( "front" )
@@ -256,7 +257,7 @@ class TestUndoQueue( unittest.TestCase ):
 
 		cmds.undo()
 
-
+	@with_undo
 	def test_dagmod( self ):
 		undo.startUndo()
 		dagmod = undo.DagModifier()

@@ -160,6 +160,7 @@ class TestGeneralPerformance( unittest.TestCase ):
 			# END for each dag value
 		# END for each asNode value
 
+	@with_undo
 	@with_scene('empty.ma')
 	def test_createNodes( self ):
 		runs = [ 100,2500 ]

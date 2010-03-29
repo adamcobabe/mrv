@@ -80,6 +80,7 @@ class TestSets( unittest.TestCase ):
 		s2 = nt.Node( "defaultObjectSet" )
 		return [ ik, persp, persp.translate, rg.object(), front.dagPath(), s2 ]
 
+	@with_undo
 	def test_memberHandling( self ):
 		s = nt.createNode( "memberSet", "objectSet" )
 
@@ -213,7 +214,7 @@ class TestSets( unittest.TestCase ):
 		"""byroniom.maya.nt.sets: unions, intersections, difference, overloaded ops"""
 		memberlist = self._getMemberList( )
 		s3 = nt.createNode( "anotherObjectSet", "objectSet" )
-		s = nt.Node( "memberSet" )
+		s = nt.ObjectSet()
 		s.clear()
 		s.addMembers( memberlist )
 
@@ -243,7 +244,7 @@ class TestSets( unittest.TestCase ):
 		s2.addMembers( fewmembers )
 
 		# add 0 members
-		s2.addMembers( [] )
+		s2.addMembers( list() )
 
 		# with set
 		sellist = s.intersection( s2 )

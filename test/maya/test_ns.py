@@ -8,6 +8,7 @@ import maya.cmds as cmds
 class TestReferenceRunner( unittest.TestCase ):
 	""" Test the database """
 
+	@with_undo
 	@with_scene('namespace.ma')
 	def test_checkNamespaces( self ):
 		rootns = Namespace( Namespace.rootpath )

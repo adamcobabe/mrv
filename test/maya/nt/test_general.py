@@ -17,6 +17,7 @@ import tempfile
 
 class TestTransform( unittest.TestCase ):
 	
+	@with_undo
 	def test_tranformation_overrides(self):
 		p = nt.Node('persp')
 		getters = ('getScale', 'getShear')
@@ -53,9 +54,10 @@ class TestTransform( unittest.TestCase ):
 			assert_values(fgetname, fsetname, loose=True)
 		# END for each name
 		
+	@with_undo
+	@with_persistence
 	def test_usage_examples(self):
 		mrvmaya.Scene.new(force=True)
-		mrvnt.enforcePersistence()
 		
 		# NOTE: If this test fails ( because of name changes for instance ), the 
 		# documentation needs to be fixed as well, usage.rst.

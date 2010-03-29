@@ -2,8 +2,10 @@ from mrv.test.lib import *
 import tempfile
 import time
 import os
+import sys
 
-__all__ = ('save_temp_file', 'save_for_debugging', 'get_maya_file', 'with_scene')
+__all__ = ('save_temp_file', 'save_for_debugging', 'get_maya_file', 'with_scene', 
+			'with_undo', 'with_persistence')
 
 
 def save_temp_file( filename ):
@@ -49,6 +51,45 @@ def with_scene( basename ):
 		scene_loader.__name__ = func.__name__
 		return scene_loader
 	# END wrapper	
+	return wrapper
+
+def with_undo( func ):
+	"""All tests that require the undo system to be enabled must be decorated that 
+	way as we will assure two things: 
+	 * If undo is globally disabled, we state that issue to stderr and exit the test
+	 * If undo is just disabled within maya, we will enable it and run the test"""
+	import maya.cmds as cmds
+	def wrapper(*args, **kwargs):
+		if not int(os.environ.get('MRV_UNDO_ENABLED', "1")):
+			print >> sys.stderr, "Skipped execution of test '%s' as undo was globally disabled" % func.__name__
+			return 
+		# END check for globally disabled
+		
+		# assure undo is enabled
+		prev_state = cmds.undoInfo(q=1, st=1)
+		if not prev_state:
+			cmds.undoInfo(swf=1)
+		# END force undo enabled
+		
+		try:
+			return func(*args, **kwargs)
+		finally:
+			cmds.undoInfo(swf=prev_state)
+		# END handle previous state
+	# END wrapper
+	wrapper.__name__ = func.__name__
+	return wrapper
+	
+def with_persistence( func ):
+	"""Simple utility decorator which enforces the persitence system to be loaded
+	before the test runs"""
+	import mrv.maya.nt
+	def wrapper(*args, **kwargs):
+		mrv.maya.nt.enforcePersistence()
+		return func(*args, **kwargs)
+	# END wrapper
+	
+	wrapper.__name__ = func.__name__
 	return wrapper
 
 #} END decorator

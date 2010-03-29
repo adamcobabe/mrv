@@ -45,13 +45,14 @@ class TestUndoPerformance( unittest.TestCase ):
 		undo.endUndo()
 		return numops
 
+	@with_undo
 	def test_undoPerformance( self ):
 		import time
 		iterations = 35
 		maxdepth = 3
 		totalops = 0
 
-		all_elapsed = [[],[]]
+		all_elapsed = [list(),list()]
 
 		for undoEnabled in range( 2 ):
 

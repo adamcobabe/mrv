@@ -7,10 +7,11 @@ from mrv.path import Path
 import maya.cmds as cmds
 import tempfile
 
-# require persistence
-nt.enforcePersistence()
 
 class TestStorage( unittest.TestCase ):
+	
+	@with_undo
+	@with_persistence
 	def test_storagePickleData( self ):
 		tmpdir = Path( tempfile.gettempdir() )
 
@@ -114,6 +115,7 @@ class TestStorage( unittest.TestCase ):
 		# END for each filetype
 
 
+	@with_persistence
 	def test_storageAttributeHanlding( self ):
 		mrvmaya.Scene.new( force = True )
 		snode = nt.createNode( "storage",  "storageNode" )
@@ -161,6 +163,8 @@ class TestStorage( unittest.TestCase ):
 		assert len( conarray ) == 10 
 		assert len( persp.message.moutputs() ) == 10 
 
+	@with_undo
+	@with_persistence
 	def test_storageSetHandling( self ):
 		mrvmaya.Scene.new( force = True )
 		snode = nt.createNode( "storage",  "storageNode" )

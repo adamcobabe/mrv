@@ -26,6 +26,7 @@ class TestDataBase( unittest.TestCase ):
 			
 			str(inst) != repr(inst)
 
+	@with_undo
 	def test_MPlug( self ):
 		persp = nt.Node( "persp" )
 		front	 = nt.Node( "front" )
@@ -224,7 +225,6 @@ class TestDataBase( unittest.TestCase ):
 
 		# UNDO / REDO
 		##############
-		cmds.undoInfo( swf = 1 )
 		cam = nt.createNode( "myTrans", "transform" )
 		testdb = [ ( cam.visibility, "Bool", True, False ),
 					( cam.tx, "Double", 0.0, 2.0 ) ]
