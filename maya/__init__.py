@@ -54,7 +54,7 @@ def initializeNewMayaRelease( ):
 	nodeshf = mdb.nodeHierarchyFile()
 	app_version = env.appVersion()[0]
 	if nodeshf.isfile():
-		raise EnvironmentError("Maya version %f already initialized as hierarchy file at %s does already exist" % (app_version, nodeshf))
+		raise EnvironmentError("Maya version %g already initialized as hierarchy file at %s does already exist" % (app_version, nodeshf))
 	# END assure we are not already initialized
 	
 	# UPDATE MFN DB FILES
@@ -67,20 +67,18 @@ def initializeNewMayaRelease( ):
 	# create all node types, one by one, and query their hierarchy relationship.
 	# From that info, generate a dagtree which is written to the hierarchy file.
 	# NOTE: for now we just copy the old one
-	prev_version = app_version - 1.0	# works for now
-	prevnodeshf = Path(nodeshf.replace(str(app_version), str(prev_version)))
-	prevnodeshf.copyfile(nodeshf)
+	dagTree = mdb.generateNodeHierarchy()
+	dagTree.to_hierarchy_file('_root_', mdb.nodeHierarchyFile())
 	
 	
 	# PROVIDE INFO	TO THE USER
 	############################
-	print "update the bin/mrv command to know about maya %f" % app_version
-	print "git status reveals new MFnFunction sets - check them and assign them to their compatible node type in 'nodeTypeToMfnCls.map'"
-	print "Check the 'whats new' part of the maya docs for important API changes and possibly incorporate them into the code"
-	print "run 'tmrv %f' and fix breaking tests" % app_version
-	print "run 'tmrvr' to assure all maya versions are still working"
-	print "run the UI tests and check that they don't fail"
-	print "Commit and push your changes - you are done"
+	print "1. git status reveals new MFnFunction sets - check them and assign them to their compatible node type in 'nodeTypeToMfnCls.map'"
+	print "2. Check the 'whats new' part of the maya docs for important API changes and possibly incorporate them into the code"
+	print "3. run 'tmrv %g' and fix breaking tests" % app_version
+	print "4. run 'tmrvr' to assure all maya versions are still working"
+	print "5. run the UI tests and check that they don't fail"
+	print "6. Commit and push your changes - you are done"
 
 #} END init new maya version
 
@@ -101,7 +99,7 @@ def dag_tree_from_tuple_list( tuplelist ):
 
 		if level == 0:
 			if tree != None:
-				raise MRVError( "Ui tree must currently be rooted - thus there must only be one root node, found another: " + name )
+				raise MRVError( "DAG tree must currently be rooted - thus there must only be one root node, found another: " + name )
 			else:
 				tree = DAGTree(  )		# create root
 				tree.add_node( name )

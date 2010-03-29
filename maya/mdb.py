@@ -197,6 +197,98 @@ def writeMfnDBCacheFiles(  ):
 		# END for each api class
 	# END for each api module
 
+def generateNodeHierarchy( ):
+	"""Generate the node-hierarchy for the current version based on all node types 
+	which can be created in maya.
+	
+	:return: DAGTree representing the type hierarchy
+	:note: should only be run as part of the upgrade process to prepare MRV for  a
+	new maya release. Otherwise the nodetype tree will be read from a cache"""
+	import maya.OpenMaya as api
+	from mrv.util import DAGTree
+	from mrv.util import uncapitalize, capitalize
+	
+	dgmod = api.MDGModifier()
+	dagmod = api.MDagModifier()
+	tmpparent = dagmod.createNode("transform")
+	
+	apiDagTree = DAGTree()		# dag tree of api types
+	apiTypeNameToNodeTypeName = dict()
+	sl = list()
+	
+	# CREATE ALL NODE TYPES
+	#######################
+	noderoot = 'kInvalid'
+	root_node_list = [noderoot]
+	apiTypeNameToNodeTypeName[noderoot] = "node"
+	for nodetype in cmds.ls(nodeTypes=1):
+		# evil crashers
+		if nodetype.endswith('Manip'):
+			continue
+		# END skip manipulators
+		
+		try:
+			obj = dgmod.createNode(nodetype)
+		except RuntimeError:
+			try:
+				obj = dagmod.createNode(nodetype, tmpparent)
+			except RuntimeError:
+				log.warn("Could not create '%s'" % nodetype)
+				continue
+			# END create dag node exception handling 
+		# END create dg/dag node
+		
+		apiTypeNameToNodeTypeName[obj.apiTypeStr()] = nodetype
+		
+		# get type hierarchy and add it to our api dag tree 
+		# we will remap it later once our map is complete
+		api.MGlobal.getFunctionSetList(obj, sl)
+		for parent, child in zip(root_node_list + sl[:-1], sl):
+			apiDagTree.add_edge(parent, child)
+		# END for each edge to add
+		
+	# END for each node type
+	
+	# finalize the dag tree
+	# add remapped entries of or apiDagTree
+	root = "_root_" 
+	dagTree = DAGTree()
+	dagTree.add_edge(root, 'node')
+	
+	for apiParent, apiChild in apiDagTree.edges():
+		# if there is no parent|child type name, its an abstract node base. 
+		# We simply remove the k and there we go. This means, we have the normal
+		# MEL hierarchy, but incorporate special api types as well. This means
+		# the general hierarchy will work just fine, but in case people want 
+		# customizations, they have more spots to put them in now
+		parent = apiTypeNameToNodeTypeName.get(apiParent, uncapitalize(apiParent[1:]))
+		child = apiTypeNameToNodeTypeName.get(apiChild, uncapitalize(apiChild[1:]))
+		dagTree.add_edge(parent, child)
+	# END for each edge to add ( remapped )
+	
+	# DATA, COMPONENTS, ATTRIBUTES
+	##################################
+	# git inheritance of Data, Component and Attribute types
+	for mfnsuffix in ("data", "component", "attribute"):
+		mfnsuffixcap = capitalize(mfnsuffix)
+		mfnnames = [ n for n in dir(api) if n.endswith(mfnsuffixcap) ]
+		
+		dagTree.add_edge(root, mfnsuffix)
+		
+		mfnsuffix_root = [ mfnsuffix ]
+		for mfnname in mfnnames:
+			mfncls = getattr(api, mfnname)
+			
+			# cut object and MFnBase
+			# from the names, cut the MFn and uncaptialize it: MFnData -> data
+			pclsnames = [ uncapitalize(p.__name__[3:]) for p in mfncls.mro()[:-2] ]
+			for parent, child in zip(mfnsuffix_root + pclsnames[:-1], pclsnames):
+				dagTree.add_edge(parent, child)
+			# END for each mfn child to add
+		# END for each name
+	# END for each mfnsuffix
+	
+	return dagTree
 
 #} END functions 
 

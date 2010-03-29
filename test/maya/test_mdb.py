@@ -135,7 +135,7 @@ class TestMDB( unittest.TestCase ):
 		# END for each enum descriptor
 		
 		
-	def test_new_release( self ):
+	def test_init_new_maya_release_errchecking( self ):
 		# for now, only test the failures
 		
 		# fails if at least one user setup variable is set - just one sample for now
@@ -152,5 +152,101 @@ class TestMDB( unittest.TestCase ):
 		
 		# fail in current version ( as it exists )
 		self.failUnlessRaises(EnvironmentError, mrvmaya.initializeNewMayaRelease)
+
+
+	def test_init_new_maya_release(self):
+		# NOTE: this test should only be run manually if you want to check 
+		# the initializeNewMayaRelease method - it will change your local database
+		# files which in turn might affect other tests !
+		
+		# rename original file
+		nhf = mdb.nodeHierarchyFile()
+		nhfr = nhf.rename(nhf + ".tmp")
+		try:
+			mrvmaya.initializeNewMayaRelease()
+		finally:
+			if not nhf.isfile():
+				nhfr.rename(nhf)
+			# END rename original file back if it wasnt affected
+		# END cleanup state
+		
+		
+	
+	def _DISABLED_test_testWrappers( self ):
+		# NOTE: This method needs not to run, but is part of the version initiailization process.
+		filename = get_maya_file( "allnodetypes_%s.mb" % env.appVersion( )[0] )
+		if not Path( filename ).isfile():
+			raise AssertionError( "File %s not found for loading" % filename )
+		mrvmaya.Scene.open( filename, force=True )
+		
+		missingTypesList = list()
+		invalidInheritanceList = list()
+		seen_types = set()		# keeps class names that we have seen already 
+		for nodename in cmds.ls( ):
+			try:
+				node = nt.Node( nodename )
+				node.getMFnClasses()
+			except (TypeError,AttributeError):
+				missingTypesList.append( ( nodename, cmds.nodeType( nodename ) ) )
+				continue
+			except:
+				raise
+
+			assert not node.object().isNull() 
+			
+			# skip duplicate types - it truly happens that there is the same typename
+			# with a different parent class - we cannot handle this 
+			nodetypename = node.typeName()
+			if nodetypename in seen_types:
+				continue
+			seen_types.add( nodetypename )
+
+			# assure we have all the parents we need
+			parentClsNames = [ capitalize( typename ) for typename in cmds.nodeType( nodename, i=1 ) ]
+			
+			for pn in parentClsNames:
+				token = ( node, parentClsNames )
+				try:
+					pcls = getattr( nt, pn )
+				except AttributeError:
+					invalidInheritanceList.append( token )
+					break
+				# END AttributeError
+				
+				# if its a standin class, try to create it 
+				try:
+					pcls = pcls.createCls()
+				except AttributeError:
+					pass 
+					
+				if not isinstance( node, pcls ):
+					invalidInheritanceList.append( token )
+					break
+				# END if a parent class is missing
+			# END for each parent class name 
+		# END for each type in file
+
+		if len( missingTypesList ):
+			nodecachefile = "nodeHierarchy%s.hf" % env.appVersion( )[0]
+			for fn in missingTypesList:
+				print fn
+			
+			print "Add these lines to the hierarchy file, using the parent information shown above" 
+			for fn in missingTypesList:
+				print uncapitalize( fn[1] )
+			raise TypeError( "Add the following node types to the %r cache file at the respective post in the hierarchy:" % ( nodecachefile ) )
+		# END missing types handling 
+		
+		if len( invalidInheritanceList ):
+			for ( node, parentClsNames ) in invalidInheritanceList:
+				print "Invalid inheritance of type %s, must be %s" % ( node.typeName(), parentClsNames )
+			# END for each item tuple 
+			raise AssertionError( "Class(es) with invalid inheritance found - see stdout" )
+		# END invalid inheritance handling 
+
+		# try to just use a suberclass directly
+		for transname in cmds.ls( type="transform" ):
+			node = nt.DagNode( transname )
+			assert hasattr( node, "__dict__" ) 
 
 

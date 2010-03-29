@@ -143,12 +143,13 @@ def packageClasses( importBase, packageFile, predicate = lambda x: True ):
 def iterNetworkxGraph( graph, startItem, direction = 0, prune = lambda i,g: False,
 					   stop = lambda i,g: False, depth = -1, branch_first=True,
 					   visit_once = True, ignore_startitem=1 ):
-	""":return: list of items that are related to the given startItem
+	""":return: iterator yielding pairs of depth, item 
 	:param direction: specifies search direction, either :
 		0 = items being successors of startItem
 		1 = items being predecessors of startItem
-	:param prune: return True if item i in graph g should be pruned from result
-	:param stop: return True if item i in graph g
+	:param prune: return True if item d,i in graph g should be pruned from result.
+		d is the depth of item i
+	:param stop: return True if item d,i in graph g, d is the depth of item i
 		stop the search in that direction. It will not be returned.
 	:param depth: define at which level the iteration should not go deeper
 		if -1, there is no limit
@@ -186,12 +187,13 @@ def iterNetworkxGraph( graph, startItem, direction = 0, prune = lambda i,g: Fals
 		if visit_once:
 			visited.add( item )
 
-		if stop( item, graph ):
+		oitem = (d, item)
+		if stop( oitem, graph ):
 			continue
 
 		skipStartItem = ignore_startitem and ( item == startItem )
-		if not skipStartItem and not prune( item, graph ):
-			yield item
+		if not skipStartItem and not prune( oitem, graph ):
+			yield oitem
 
 		# only continue to next level if this is appropriate !
 		nd = d + 1
@@ -723,6 +725,24 @@ class DAGTree( nx.DiGraph ):
 			root = parent
 
 		return root
+		
+	def to_hierarchy_file(self, root, output_path):
+		"""Write ourselves in hierarchy file format to the given output_path.
+		:param root: The root of the written file, nodes above it will not be serialized.
+		:note: Directories are expected to exist
+		:raise ValueError: If an node's string representation contains a newline or 
+			starts with a tab
+		:note: works best with strings as nodes, which may not contain newlines"""
+		#fp = open(output_path, "wb")
+		import sys
+		for depth, item in iterNetworkxGraph(self, root, branch_first=False, ignore_startitem=False):
+			itemstr = str(item)
+			if itemstr.startswith("\t") or "\n" in itemstr:
+				raise ValueError("Item %r contained characters unsupported by the hierarchy file format")
+			print "\t"*depth + itemstr
+		#	fp.write("\t"*depth + itemstr)
+		# END for each item
+		#fp.close()
 
 
 class PipeSeparatedFile( object ):
