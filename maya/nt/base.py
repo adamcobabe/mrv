@@ -635,7 +635,7 @@ def _checkedInstanceCreation( apiobj, typeName, clsToBeCreated, basecls ):
 	"""Utiliy method creating a new class instance according to additional type information
 	Its used by __new__ constructors to finalize class creation
 	
-	:param apiobj: the MObject of object to wrap
+	:param apiobj: the MObject or MDagPath of object to wrap
 	:param typeName: the name of the node type to be created
 	:param clsToBeCreated: the cls object as passed in to __new__
 	:param basecls: the class of the caller containing the __new__ method

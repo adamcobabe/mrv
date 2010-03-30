@@ -59,20 +59,36 @@ You can automate the process of registering your implementation by putting the M
 
 Although it is technically not required, you could consider it good style to unregister your own types once your plugin unloads. It should naturally be done once the ``uninitializePlugin`` method of your plugin is executed.  
 
-.. note:: The add|removeCustomType workflow also allows to remove existing **leaf** level types completely, which enables you to provide a very custom implementation for node types without monkey-patching MRV or altering its source code.
-	
 ******************
-Virtual Subclasses
+Virtual Subtypes
 ******************
 *Virtual Subclassing* is a technique allowing to bring custom implementations into MRV without the need to write a plugin in order to get a custom node type. 
 
-In the case of the simple ``StorageNode`` maya type, the plugin does (nearly) nothing more than defining a set of attributes that the ``StorageNode`` type implementation can operate on. There is no objection against dynamically adding these attributes to any maya node at runtime, and using the ``StorageBase`` interface to operate on it. A **Virtual Subclass** can be used to operate on the attributes.
+In the case of the simple ``StorageNode`` maya type, the plugin does (nearly) nothing more than defining a set of attributes that the ``StorageNode`` type implementation can operate on. There is no objection against dynamically adding these attributes to any maya node at runtime, and using the ``StorageBase`` interface to operate on it. A **Virtual Subtype** can be used to operate on the attributes.
 
-The most significant difference between using a custom Plugin and Virtual Subclasses is that MRV will not automatically create these for you when they are encountered, instead you have to use your own methods to wrap the Virtual Subclasses around existing nodes.
+The most significant difference between using a custom Plugin and Virtual Subtypes is that MRV will not automatically create these for you when they are encountered, instead you have to use your own methods to wrap the Virtual Subtypes around existing nodes.
 
-The process of doing so is outlined here, for a fully working example, see ``mrv.test.maya.nt.test_storage``::
-	>>> todo
+The process of doing so is outlined here, for a fully working example, see ``mrv.test.maya.nt.test_storage.StorageNetworkNode`` and ``mrv.test.maya.nt.test_storage.test_virtual_subtype``:
+	#. Derive your Virtual Subtype from an existing MRV node type, it is *not* required to be a leaf-leve type.
+	#. Define the ``__mrv_virtual_subtype__`` class member and set it to a True value.
+	#. Create a new instance of your Virtual Subtype by wrapping an existing node of the correct maya type - your constructor (``__new__``) by default supports everything that ``mrv.maya.nt.base.Node`` supports, i.e. ``MyVirtualType(node.object())`` is just fine.
+	
+Using Virtual Subtypes is a very convenient way to non-intrusively extend maya types.
 
+In case you find yourself adding convenience to basic maya types that way, you might consider putting your code directly onto the respective MRV node type and contribute it to the project, so everyone will benefit from your improvements.
+
+
+****************************
+Replacing Default Node Types
+****************************
+
+
+	
+Permanent Virtual Subtypes
+==========================
+pass
+
+	
 ******************
 Adding Convenience
 ******************

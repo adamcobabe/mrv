@@ -63,15 +63,17 @@ def createStorageAttribute( dataType ):
 	cAttr = api.MFnCompoundAttribute()
 	nAttr = api.MFnNumericAttribute()
 
-	aData = cAttr.create( "ba_data", "dta" )					# connect to instance transforms
+	aData = cAttr.create( "data", "dta" )					# connect to instance transforms
 	if True:
-		dataID = tAttr.create( "ba_data_id", "id", api.MFnData.kString )
+		dataID = tAttr.create( "dataId", "id", api.MFnData.kString )
 
-		typeInfo = nAttr.create( "ba_data_type", "type", api.MFnNumericData.kInt )	# can be used for additional type info
+		typeInfo = nAttr.create( "dataType", "type", api.MFnNumericData.kInt )	# can be used for additional type info
 
-		typedData = tAttr.create( "ba_value", "dval", dataType )
+		typedData = tAttr.create( "value", "dval", dataType )
 
-		messageData = mAttr.create( "ba_message", "dmsg" )
+		# even though its a child attribute, we cannot use 'message' as it is already
+		# taken on the DependNode
+		messageData = mAttr.create( "mmessage", "dmsg" )
 		mAttr.setArray( True )
 
 
@@ -83,8 +85,9 @@ def createStorageAttribute( dataType ):
 	# END COMPOUND ATTRIBUTE
 	cAttr.setArray( True )
 
-	# add attr
-	return aData
+	# copy attribute, just to be sure we don't loose the object when cAttr goes out
+	# of scope
+	return api.MObject(aData)
 
 class StoragePluginNode( mpx.MPxNode ):
 	""" Base Class defining the storage node data interfaces  """
