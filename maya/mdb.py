@@ -219,9 +219,10 @@ def generateNodeHierarchy( ):
 	# CREATE ALL NODE TYPES
 	#######################
 	noderoot = 'kInvalid'
+	noderootname = 'node'
 	root_node_list = [noderoot]
-	apiTypeNameToNodeTypeName[noderoot] = "node"
-	for nodetype in cmds.ls(nodeTypes=1):
+	apiTypeNameToNodeTypeName[noderoot] = noderootname
+	for nodetype in sorted(cmds.ls(nodeTypes=1)):
 		# evil crashers
 		if nodetype.endswith('Manip'):
 			continue
@@ -252,8 +253,10 @@ def generateNodeHierarchy( ):
 	# finalize the dag tree
 	# add remapped entries of or apiDagTree
 	root = "_root_" 
+	depnode = 'dependNode'
 	dagTree = DAGTree()
-	dagTree.add_edge(root, 'node')
+	dagTree.add_edge(root, noderootname)
+	dagTree.add_edge(noderootname, depnode)
 	
 	for apiParent, apiChild in apiDagTree.edges():
 		# if there is no parent|child type name, its an abstract node base. 
@@ -262,12 +265,44 @@ def generateNodeHierarchy( ):
 		# the general hierarchy will work just fine, but in case people want 
 		# customizations, they have more spots to put them in now
 		parent = apiTypeNameToNodeTypeName.get(apiParent, uncapitalize(apiParent[1:]))
+		
+		# replace the namedObject with our own node - as everything derives from it, 
+		# we don't actually need it ( as everything derives from Node in our case
+		if parent == 'namedObject':
+			parent = noderootname
+		if parent == 'textureToGeom':
+			parent = depnode
+		
 		child = apiTypeNameToNodeTypeName.get(apiChild, uncapitalize(apiChild[1:]))
+		
+		# drop textureToGeom itself
+		if child in ('textureToGeom', 'namedObject'):
+			continue
+		
 		dagTree.add_edge(parent, child)
 	# END for each edge to add ( remapped )
 	
+	# INSERT PLUGIN TYPES
+	######################
+	for edge in (	(depnode, 'DependNode'),
+					('shape', 'Shape'), 
+					('locator', 'LocatorNode'), 
+					('spring', 'SpringNode'), 
+					('transform', 'TransformNode'), 
+					('manipContainer', 'ManipContainer'), 
+					('dynBase', 'EmitterNode'), 
+					('field', 'FieldNode'), 
+					('objectSet', 'ObjectSet'), 
+					('geometryFilter', 'DeformerNode'), 
+					(depnode, 'HwShaderNode'), 
+					('ikSolver', 'IkSolver'), 
+					(depnode, 'ImagePlaneNode'), 
+					(depnode, 'ParticleAttributeMapperNode')	):
+		dagTree.add_edge(edge[0], 'unspecifiedPlugin'+edge[1])
+	# END for each plugin edge to add
+	
 	# DATA, COMPONENTS, ATTRIBUTES
-	##################################
+	###############################
 	# git inheritance of Data, Component and Attribute types
 	for mfnsuffix in ("data", "component", "attribute"):
 		mfnsuffixcap = capitalize(mfnsuffix)
