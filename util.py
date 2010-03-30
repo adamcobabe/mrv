@@ -733,16 +733,15 @@ class DAGTree( nx.DiGraph ):
 		:raise ValueError: If an node's string representation contains a newline or 
 			starts with a tab
 		:note: works best with strings as nodes, which may not contain newlines"""
-		#fp = open(output_path, "wb")
-		import sys
+		fp = open(output_path, "wb")
 		for depth, item in iterNetworkxGraph(self, root, branch_first=False, ignore_startitem=False):
 			itemstr = str(item)
 			if itemstr.startswith("\t") or "\n" in itemstr:
 				raise ValueError("Item %r contained characters unsupported by the hierarchy file format")
-			print "\t"*depth + itemstr
-		#	fp.write("\t"*depth + itemstr)
+			# END handle serialization
+			fp.write("%s%s\n" % ("\t"*depth, itemstr))
 		# END for each item
-		#fp.close()
+		fp.close()
 
 
 class PipeSeparatedFile( object ):

@@ -208,79 +208,64 @@ def generateNodeHierarchy( ):
 	from mrv.util import DAGTree
 	from mrv.util import uncapitalize, capitalize
 	
-	dgmod = api.MDGModifier()
-	dagmod = api.MDagModifier()
-	tmpparent = dagmod.createNode("transform")
-	
-	apiDagTree = DAGTree()		# dag tree of api types
-	apiTypeNameToNodeTypeName = dict()
-	sl = list()
+	# init DagTree
+	root = "_root_" 
+	depnode = 'dependNode'
+	depnode_list = [depnode]
+	noderoottype = 'node'
+	dagTree = DAGTree()
+	dagTree.add_edge(root, noderoottype)
+	dagTree.add_edge(noderoottype, depnode)
 	
 	# CREATE ALL NODE TYPES
 	#######################
-	noderoot = 'kInvalid'
-	noderootname = 'node'
-	root_node_list = [noderoot]
-	apiTypeNameToNodeTypeName[noderoot] = noderootname
+	# query the inheritance afterwards
+	mfndep = api.MFnDependencyNode()
+	
+	
+	def getInheritanceAndUndo(obj, modifier):
+		"""Takes a prepared modifier ( doIt not yet called ) and the previously created object, 
+		returning the inheritance of the obj which was retrieved before undoing
+		its creation"""
+		modifier.doIt()
+		mfndep.setObject(obj)
+		inheritance = cmds.nodeType(mfndep.name(), i=1)
+		modifier.undoIt()
+		return inheritance
+	# END utility
+	
 	for nodetype in sorted(cmds.ls(nodeTypes=1)):
 		# evil crashers
-		if nodetype.endswith('Manip'):
+		if nodetype.endswith('Manip') or nodetype.startswith('manip'):
 			continue
 		# END skip manipulators
 		
 		try:
+			dgmod = api.MDGModifier()
 			obj = dgmod.createNode(nodetype)
+			inheritance = getInheritanceAndUndo(obj, dgmod)
 		except RuntimeError:
 			try:
+				dagmod = api.MDagModifier()
+				tmpparent = dagmod.createNode("transform")
 				obj = dagmod.createNode(nodetype, tmpparent)
+				inheritance = getInheritanceAndUndo(obj, dagmod)
 			except RuntimeError:
 				log.warn("Could not create '%s'" % nodetype)
 				continue
 			# END create dag node exception handling 
 		# END create dg/dag node
 		
-		apiTypeNameToNodeTypeName[obj.apiTypeStr()] = nodetype
-		
-		# get type hierarchy and add it to our api dag tree 
-		# we will remap it later once our map is complete
-		api.MGlobal.getFunctionSetList(obj, sl)
-		for parent, child in zip(root_node_list + sl[:-1], sl):
-			apiDagTree.add_edge(parent, child)
-		# END for each edge to add
-		
-	# END for each node type
-	
-	# finalize the dag tree
-	# add remapped entries of or apiDagTree
-	root = "_root_" 
-	depnode = 'dependNode'
-	dagTree = DAGTree()
-	dagTree.add_edge(root, noderootname)
-	dagTree.add_edge(noderootname, depnode)
-	
-	for apiParent, apiChild in apiDagTree.edges():
-		# if there is no parent|child type name, its an abstract node base. 
-		# We simply remove the k and there we go. This means, we have the normal
-		# MEL hierarchy, but incorporate special api types as well. This means
-		# the general hierarchy will work just fine, but in case people want 
-		# customizations, they have more spots to put them in now
-		parent = apiTypeNameToNodeTypeName.get(apiParent, uncapitalize(apiParent[1:]))
-		
-		# replace the namedObject with our own node - as everything derives from it, 
-		# we don't actually need it ( as everything derives from Node in our case
-		if parent == 'namedObject':
-			parent = noderootname
-		if parent == 'textureToGeom':
-			parent = depnode
-		
-		child = apiTypeNameToNodeTypeName.get(apiChild, uncapitalize(apiChild[1:]))
-		
-		# drop textureToGeom itself
-		if child in ('textureToGeom', 'namedObject'):
+		if not inheritance:
+			log.error("Failed on type %s" % nodetype)
 			continue
+		# END handle unusual case
 		
-		dagTree.add_edge(parent, child)
-	# END for each edge to add ( remapped )
+		# filter bases
+		for parent, child in zip(depnode_list + inheritance[:-1], inheritance):
+			dagTree.add_edge(parent, child)
+		# END for each edge to add
+	# END for each node type
 	
 	# INSERT PLUGIN TYPES
 	######################
