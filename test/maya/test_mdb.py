@@ -154,7 +154,7 @@ class TestMDB( unittest.TestCase ):
 		self.failUnlessRaises(EnvironmentError, mrvmaya.initializeNewMayaRelease)
 
 
-	def test_init_new_maya_release(self):
+	def _DISABLED_test_init_new_maya_release(self):
 		# NOTE: this test should only be run manually if you want to check 
 		# the initializeNewMayaRelease method - it will change your local database
 		# files which in turn might affect other tests !
