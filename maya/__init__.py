@@ -2,7 +2,7 @@
 """ Inialize the mrv.maya sub-system and startup maya as completely as possible or configured """
 import os, sys                                                                         
 from mrv import init_modules
-from mrv.util import capitalize, DAGTree
+from mrv.util import capitalize, DAGTree, PipeSeparatedFile
 from mrv.exc import MRVError
 from mrv.path import Path
 
@@ -33,6 +33,69 @@ def registerPluginDataTrackingDict( dataTypeID, trackingDict ):
 #} End Common
 
 
+#{ Init new maya version
+def initializeNewMayaRelease( ):
+	"""This method should be called once a new maya release is encountered. It will
+	initialize and update the database as well as possible, and give instructions 
+	on what to do next.
+	
+	:note: Will not run if any user setup is performed as we need a clean maya 
+	without any plugins loaded.
+	:raise EnvironmentError: if the current maya version has already been initialized
+	or if the user setup was executed"""
+	if int(os.environ.get('MRV_STANDALONE_AUTOLOAD_PLUGINS', 0)) or \
+		int(os.environ.get('MRV_STANDALONE_RUN_USER_SETUP', 0)):
+		raise EnvironmentError("Cannot operate if custom user setup was performed")
+	# END check environments
+	
+	import env
+	import mdb
+
+	nodeshf = mdb.nodeHierarchyFile()
+	app_version = env.appVersion()[0]
+	if nodeshf.isfile():
+		raise EnvironmentError("Maya version %g already initialized as hierarchy file at %s does already exist" % (app_version, nodeshf))
+	# END assure we are not already initialized
+	
+	# UPDATE MFN DB FILES
+	#####################
+	# Get all MFn function sets and put in their new versions as well as files
+	mdb.writeMfnDBCacheFiles()
+	
+	# UPDATE NODE HIERARCHY FILE
+	############################
+	# create all node types, one by one, and query their hierarchy relationship.
+	# From that info, generate a dagtree which is written to the hierarchy file.
+	# NOTE: for now we just copy the old one
+	dagTree, typeToMFnList = mdb.generateNodeHierarchy()
+	dagTree.to_hierarchy_file('_root_', mdb.nodeHierarchyFile())
+	
+	# UPDATE MFN ASSOCIATIONS
+	#########################
+	fp = open(mdb.cacheFilePath('nodeTypeToMfnCls', 'map'), 'wb')
+	mla = reduce(max, (len(t[0]) for t in typeToMFnList))
+	mlb = reduce(max, (len(t[1]) for t in typeToMFnList))
+	
+	psf = PipeSeparatedFile(fp)
+	psf.beginWriting((mla, mlb))
+	for token in typeToMFnList:
+		psf.writeTokens(token)
+	# END for each line to write
+	fp.close()
+	
+	
+	# PROVIDE INFO	TO THE USER
+	############################
+	print "1. git status reveals new MFnFunction sets - check them and assign them to their compatible node type in 'nodeTypeToMfnCls.map'"
+	print "2. Check the 'whats new' part of the maya docs for important API changes and possibly incorporate them into the code"
+	print "3. run 'tmrv %g' and fix breaking tests" % app_version
+	print "4. run 'tmrvr' to assure all maya versions are still working"
+	print "5. run the UI tests and check that they don't fail"
+	print "6. Commit and push your changes - you are done"
+
+#} END init new maya version
+
+
 #{ Internal Utilities
 def dag_tree_from_tuple_list( tuplelist ):
 	""":return: DagTree from list of tuples [ (level,name),...], where level specifies
@@ -49,7 +112,7 @@ def dag_tree_from_tuple_list( tuplelist ):
 
 		if level == 0:
 			if tree != None:
-				raise MRVError( "Ui tree must currently be rooted - thus there must only be one root node, found another: " + name )
+				raise MRVError( "DAG tree must currently be rooted - thus there must only be one root node, found another: " + name )
 			else:
 				tree = DAGTree(  )		# create root
 				tree.add_node( name )

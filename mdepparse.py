@@ -191,7 +191,7 @@ class MayaFileGraph( DiGraph ):
 		outlist = list()
 
 		try:
-			for f in iterNetworkxGraph( self, keypath, **kwargs ):
+			for d, f in iterNetworkxGraph( self, keypath, **kwargs ):
 				is_valid = f not in invalid
 				f = to_os_path( f )		# remap only valid paths
 

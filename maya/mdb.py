@@ -27,17 +27,21 @@ import os
 import logging
 log = logging.getLogger("mrv.maya.mdb")
 
-__all__ = ("createDagNodeHierarchy", "createTypeNameToMfnClsMap", "getApiModules", 
-           "getApiModules", "mfnDBPath", "cacheFilePath", "writeMfnDBCacheFiles", 
+__all__ = ("createDagNodeHierarchy", "createTypeNameToMfnClsMap", "apiModules", 
+           "mfnDBPath", "cacheFilePath", "writeMfnDBCacheFiles", 
            "extractMFnFunctions", "PythonMFnCodeGenerator", "MMemberMap", 
            "MMethodDescriptor" )
 
 #{ Initialization 
 
+def nodeHierarchyFile():
+	""":return: Path to the node hierarchy file of the currently active maya version"""
+	return cacheFilePath( "nodeHierarchy", "hf", use_version = 1 )
+
 def createDagNodeHierarchy( ):
 	""" Parse the nodes hierarchy file and return a `DAGTree` with its data
 	:return: `DAGTree`"""
-	mfile = cacheFilePath( "nodeHierarchy", "hf", use_version = 1 )
+	mfile = nodeHierarchyFile()
 	return mrvmaya.dag_tree_from_tuple_list( mrvmaya.tuple_list_from_file( mfile ) )
 
 def createTypeNameToMfnClsMap( ):
@@ -55,7 +59,7 @@ def createTypeNameToMfnClsMap( ):
 	version = pf.beginReading( )	 # don't care about version
 	for nodeTypeName, mfnTypeName in pf.readColumnLine( ):
 		found = False
-		for apimod in getApiModules():
+		for apimod in apiModules():
 			try:
 				typenameToClsMap[ nodeTypeName ] = getattr( apimod, mfnTypeName )
 				found = True
@@ -75,7 +79,7 @@ def createTypeNameToMfnClsMap( ):
 
 #{ Utilities 
 
-def getApiModules():
+def apiModules():
 	""":return: tuple of api modules containing MayaAPI classes
 	:note: This takes a moment to load as it will import many api modules. Delay 
 		the call as much as possible"""
@@ -149,7 +153,7 @@ def writeMfnDBCacheFiles(  ):
 	to the Nodes.
 	
 	:note: currently writes information about all known api modules"""
-	for apimod in getApiModules():
+	for apimod in apiModules():
 		mfnclsnames = [ clsname for clsname in dir( apimod ) if clsname.startswith( "MFn" ) ]
 		for mfnname in mfnclsnames:
 			mfncls = getattr( apimod, mfnname )
@@ -193,6 +197,365 @@ def writeMfnDBCacheFiles(  ):
 		# END for each api class
 	# END for each api module
 
+def generateNodeHierarchy( ):
+	"""Generate the node-hierarchy for the current version based on all node types 
+	which can be created in maya.
+	
+	:return: tuple(DAGTree, typeToMFnClsNameList) 
+		 * DAGTree representing the type hierarchy
+		 * list represents typeName to MFnClassName associations
+	:note: should only be run as part of the upgrade process to prepare MRV for  a
+	new maya release. Otherwise the nodetype tree will be read from a cache"""
+	import maya.OpenMaya as api
+	from mrv.util import DAGTree
+	from mrv.util import uncapitalize, capitalize
+	from mrv.maya.util import MEnumeration
+	
+	# init DagTree
+	root = "_root_" 
+	depnode = 'dependNode'
+	depnode_list = [depnode]
+	noderoottype = 'node'
+	dagTree = DAGTree()
+	dagTree.add_edge(root, noderoottype)
+	dagTree.add_edge(noderoottype, depnode)
+	
+	apiTypeToNodeTypeMap = dict()		# apiTypeStr -> nodeTypeName
+	mfnTypes = set()					# apiTypeStr of mfns used by NodeTypes
+	sl = list()							# string list
+	
+	
+	def getInheritanceAndUndo(obj, modifier):
+		"""Takes a prepared modifier ( doIt not yet called ) and the previously created object, 
+		returning the inheritance of the obj which was retrieved before undoing
+		its creation"""
+		modifier.doIt()
+		mfndep.setObject(obj)
+		inheritance = cmds.nodeType(mfndep.name(), i=1)
+		modifier.undoIt()
+		return inheritance
+	# END utility
+	
+	def createTmpNode(nodetype):
+		"""Return tuple(mobject, modifier) for the nodetype or raise RuntimeError
+		doIt has not yet been called on the modifier, hence the mobject is temporary"""
+		try:
+			mod = api.MDGModifier()
+			obj = mod.createNode(nodetype)
+			return (obj, mod)
+		except RuntimeError:
+			mod = api.MDagModifier()
+			tmpparent = mod.createNode("transform")
+			obj = mod.createNode(nodetype, tmpparent)
+			return (obj, mod)
+		# END exception handling
+	# END utility
+	
+	
+	# CREATE ALL NODE TYPES
+	#######################
+	# query the inheritance afterwards
+	mfndep = api.MFnDependencyNode()
+	
+	for nodetype in sorted(cmds.ls(nodeTypes=1)):
+		# evil crashers
+		if 'Manip' in nodetype or nodetype.startswith('manip'):
+			continue
+		# END skip manipulators
+		
+		try:
+			obj, mod = createTmpNode(nodetype)
+			inheritance = getInheritanceAndUndo(obj, mod)
+		except RuntimeError:
+			log.warn("Could not create '%s'" % nodetype)
+			continue
+		# END create dg/dag node exception handling
+		
+		if not inheritance:
+			log.error("Failed on type %s" % nodetype)
+			continue
+		# END handle unusual case
+		
+		# filter bases
+		for parent, child in zip(depnode_list + inheritance[:-1], inheritance):
+			dagTree.add_edge(parent, child)
+		# END for each edge to add
+		
+		# retrieve all compatible MFnTypes - these refer to apiTypes which are 
+		# also used by Nodes. Currently we have only the type of the node, fortunately, 
+		# it will match very well with the MFnType, by just prepending MFn.
+		# As some MFn are in other modules, we will search em all ... later
+		apiTypeToNodeTypeMap[obj.apiTypeStr()] = nodetype
+		
+		api.MGlobal.getFunctionSetList(obj, sl)
+		for mfnType in sl:
+			mfnTypes.add(mfnType)
+		
+	# END for each node type
+	
+	# INSERT SPECIAL TYPES
+	######################
+	# used by the type system if it cannot classify a node at all
+	dagTree.add_edge(depnode, 'unknown')
+	
+	# can be iterated using the DagIterator, and it should at least be a dag node, 
+	# not unknown. The groundPlane is actually a special object that users shouldn't
+	# touch directly
+	dagTree.add_edge('transform', 'groundPlane')
+	
+	# INSERT PLUGIN TYPES
+	######################
+	for edge in (	(depnode, 'DependNode'),
+					('shape', 'Shape'), 
+					('locator', 'LocatorNode'), 
+					('spring', 'SpringNode'), 
+					('transform', 'TransformNode'), 
+					('manipContainer', 'ManipContainer'), 
+					('dynBase', 'EmitterNode'), 
+					('field', 'FieldNode'), 
+					('objectSet', 'ObjectSet'), 
+					('geometryFilter', 'DeformerNode'), 
+					(depnode, 'HwShaderNode'), 
+					('ikSolver', 'IkSolver'), 
+					(depnode, 'ImagePlaneNode'), 
+					(depnode, 'ParticleAttributeMapperNode')	):
+		dagTree.add_edge(edge[0], 'unknownPlugin'+edge[1])
+	# END for each plugin edge to add
+	
+	
+	
+	# BULD TYPE-TO-MFN MAP
+	######################
+	# Prepare data to be put into a type separated file, it associates 
+	# a nodeType or nodeApiType with the respecitve MFnClass name
+	typeToMFn = set()		# list((typeName, MFnClsName), ...)
+	
+	# add default associations - some are not picked up due to name mismatches
+	typeToMFn.add((noderoottype, 'MFn'))
+	typeToMFn.add((depnode, 'MFnDependencyNode'))
+	
+	abstractMFns = ('MFnBase', )		# MFns which cannot be instantiated ans should be ignored
+	failedMFnTypes = list()			# list of types we could not yet associate
+	
+	modsapi = apiModules()
+	for mfnApiType in mfnTypes:
+		mfnNodePseudoType = uncapitalize(mfnApiType[1:])	# # kSomething -> something
+		nodeType = apiTypeToNodeTypeMap.get(mfnApiType, mfnNodePseudoType)
+		
+		# MFnSets follow their kMFnType names, but when we try to associate it with 
+		# the actual nodeType . Sometimes, they follow the actual nodeType, so we 
+		# have to use this one as well
+		found = False
+		for nt, mfnNameCandidate in ( (mfnNodePseudoType, "MFn%s" % capitalize(mfnApiType[1:])), 
+									   (nodeType, "MFn%s" % capitalize(nodeType)) ):
+			# ignore abstract ones
+			if mfnNameCandidate in abstractMFns:
+				continue
+			
+			for modapi in modsapi:
+				if hasattr(modapi, mfnNameCandidate):
+					found = True
+					
+					# prefer a real nodetype if we have one - it will default
+					# to the pseudotype
+					typeToMFn.add((nodeType, mfnNameCandidate))
+					break
+				# END module with given name exists
+			# END for each api module
+			
+			if found:
+				break
+		# END for each nodeType/mfnNamecandidate
+		
+		# still not found ? Keep it, but only if there is a nodetype 
+		# associated with it
+		if not found and mfnApiType in apiTypeToNodeTypeMap:
+			failedMFnTypes.append(mfnApiType)
+		# END keep a record
+	# END for each mfnType
+	
+	
+	
+	# DATA, COMPONENTS, ATTRIBUTES
+	###############################
+	# get inheritance of Data, Component and Attribute types
+	def unMFn(name):
+		return uncapitalize(name[3:])
+	# END remove MFn in front of MFnSomething strings
+	
+	for mfnsuffix in ("data", "component", "attribute"):
+		mfnsuffixcap = capitalize(mfnsuffix)
+		mfnnames = list()
+		for modapi in modsapi:
+			mfnnames.extend( n for n in dir(modapi) if n.endswith(mfnsuffixcap) )
+		# END for each api module to get information from
+		
+		dagTree.add_edge(root, mfnsuffix)
+		
+		mfnsuffix_root = [ mfnsuffix ]
+		for mfnname in mfnnames:
+			for modapi in modsapi:
+				try:
+					mfncls = getattr(modapi, mfnname)
+				except AttributeError:
+					continue
+				# END handle multi-modules
+				
+				# skip classes which are just named like the super type, but 
+				# don't actually inherit it
+				if "MFn%s" % mfnsuffixcap not in ( p.__name__ for p in mfncls.mro() ):
+					continue
+				
+				# add type->MFn association
+				typeToMFn.add((unMFn(mfnname), mfnname))
+				
+				# cut object and MFnBase
+				# from the names, cut the MFn and uncaptialize it: MFnData -> data
+				pclsnames = [ unMFn(p.__name__) for p in list(reversed(mfncls.mro()))[2:] ]
+				for parent, child in zip(pclsnames[:-1], pclsnames[1:]):
+					dagTree.add_edge(parent, child)
+				# END for each mfn child to add
+				
+				break
+			# END for each api module
+		# END for each name
+	# END for each mfnsuffix
+	
+	
+	# HANDLE FAILED MFN-ASSOCITAIONS
+	################################
+	# lets take some very special care !
+	if failedMFnTypes:
+		# Here we handle cases which don't follow any naming conventions really
+		# Hence we have to instantiate an object of the failed type, then 
+		# we instantiate all the remaining functions sets to see which one fits.
+		# If the required one has the requested type, we have a match. 
+		# If we have no type match, its still a valid MFn - If we haven't seen it 
+		# yet, its probably a base MFn whose kType string allows deduction of the 
+		# actual abtract node type which we will use instead.
+		associatedMFns = ( t[1] for t in typeToMFn )
+		allMFnSetNames = list()
+		for modapi in modsapi:
+			allMFnSetNames.extend( n for n in dir(modapi) if n.startswith('MFn') and 
+															not n.endswith('Ptr') and 
+															not '_' in n and 		# skip 'special' ones
+															not 'Manip' in n )		# skip everything about Manipulators
+		# END get all MFn names
+		
+		# find MFnClasses for each candidate name
+		candidateMFnNames = (set(allMFnSetNames) - set(associatedMFns)) - set(abstractMFns)
+		candidateMFns = list()
+		for cn in list(candidateMFnNames):
+			for modapi in modsapi:
+				try:
+					mfncls = getattr(modapi, cn)
+					# ignore them if they don't derive from MFnBase
+					if not hasattr(mfncls, "type"):
+						log.debug("Skipped MFn %s as it didn't derive from MFnBase" % mfncls)
+						candidateMFnNames.discard(cn)
+						continue
+					# END skip mfn
+					candidateMFns.append(mfncls)
+					break
+				except AttributeError:
+					continue
+			# END for each api module
+		# END for each candidate name
+		
+		succeededMFnNames = set()
+		
+		
+		# PRUNE REMAINING MFNs
+		# prune out all MFnClasses that can be constructed without an actual object
+		enumMembers = MEnumDescriptor('Type')
+		enumMembers.extend( m for m in dir(api.MFn) if m.startswith('k') )
+		mfntypes = MEnumeration.create(enumMembers, api.MFn)
+		
+		for mfncls in candidateMFns[:]:
+			try:
+				mfninst = mfncls()
+				if mfntypes.nameByValue(mfninst.type()) in failedMFnTypes:
+					continue
+				# END keep actually missing MFns
+				candidateMFns.remove(mfncls)
+				candidateMFnNames.remove(mfncls.__name__)
+			except RuntimeError:
+				continue
+		# END for each possible MFn to prune
+		
+		# at this point, we have about 500 api types with no MFn, but only 
+		# about 10 function sets, 
+		# Now ... we  brute-force test our way through all of these to find 
+		# matching ones ... argh
+		derivedMatches = list()		# keeps tuple(kTypeStr, mfnname) of matches of derived types
+		perfectMatches = list()		# keeps mfnnames of perfect matches
+		for failedApiTypeStr in failedMFnTypes:
+			nodeType = apiTypeToNodeTypeMap[failedApiTypeStr]
+			obj, mod = createTmpNode(nodeType)
+			
+			removeThisMFn = None
+			for mfncls in candidateMFns:
+				try:
+					mfninst = mfncls(obj)
+				except RuntimeError:
+					continue
+				# END handle incompatability
+				
+				apiTypeStr = mfntypes.nameByValue(mfninst.type())
+				
+				if apiTypeStr not in failedMFnTypes:
+					removeThisMFn = mfncls
+					break
+				# END remove MFns that no one wants
+				
+				if apiTypeStr == failedApiTypeStr:
+					mfnname = mfncls.__name__
+					typeToMFn.add((nodeType, mfnname))
+					perfectMatches.append(mfnname)
+					removeThisMFn = mfncls
+					break
+				# END perfect match 
+				
+				# its matching, but its not perfectly suited for our node type
+				# We keep it, and will map it later if we don't find a better match
+				derivedMatches.append((apiTypeStr, mfncls.__name__))
+			# END for each mfncls
+			
+			if removeThisMFn is not None:
+				succeededMFnNames.add(removeThisMFn.__name__)
+				candidateMFns.remove(removeThisMFn)
+			# END remove matched MFn
+			
+			if not candidateMFns:
+				break
+			# END abort search if there is nothing left 
+		# END for each failed type
+		
+		# HANDLE DERIVED MFns
+		# prune out all derived mfs which have found a perfect match in the meanwhile
+		# the rest will be added to the list
+		for apiTypeStr, mfnname in filter(lambda t: t not in perfectMatches, derivedMatches):
+			typeToMFn.add((apiTypeToNodeTypeMap[apiTypeStr], mfnname))
+			succeededMFnNames.add(mfnname)
+		# END for each apiTypeStr left ot add
+		
+		
+		# LAST MANUAL WORK
+		##################
+		# SubDees, if created empty, cannot be attached to their function set
+		# Hence we don't see the match, but ... we know its there, so we add it
+		# ourselves
+		for nodeType, mfnname in (('subdiv', 'MFnSubd'), ):
+			typeToMFn.add((nodeType, mfnname))
+			succeededMFnNames.add(mfnname)
+		# END for each manually added type
+		
+		
+		for mfnname in candidateMFnNames - succeededMFnNames:
+			log.warn("Could not associate MFn: %s" % mfnname)
+		# END provide some info
+	# END special treatment
+	return (dagTree, sorted(typeToMFn, key=lambda t: t[0]))
 
 #} END functions 
 

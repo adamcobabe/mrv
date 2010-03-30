@@ -3,6 +3,7 @@
 import os
 import lib
 import logging
+import atexit
 
 
 #{ Initialization 
@@ -13,6 +14,9 @@ def setup_mayafilebase():
 def init_logging():
 	"""Assure there is a basic logging so we see all messages"""
 	logging.basicConfig(level=logging.DEBUG)
+	
+	# make sure it flushes once we are done
+	atexit.register(logging.shutdown)
 	
 setup_mayafilebase()
 init_logging()
