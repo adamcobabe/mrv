@@ -20,7 +20,7 @@ persistence_enabled_envvar = "MRV_PERSISTENCE_ENABLED"
 _should_initialize_plugin = int(os.environ.get(persistence_enabled_envvar, False))
 
 
-__all__ = ('persistence_enabled_envvar', 'PyPickleData', 'addStorageAttributes')
+__all__ = ('persistence_enabled_envvar', 'PyPickleData', 'createStorageAttribute')
 
 #{ Initialization
 
@@ -49,21 +49,21 @@ if not hasattr( sys, "_maya_pyPickleData_trackingDict" ):
 # at this point, openMayaAnim has been initialized already which in fact 
 # loads OpenMayaMPx that we would try to delay. 
 
-def addStorageAttributes( cls, dataType ):
-	""" Call this method with your MPxNode derived class to add attributes
-	which can be used by the StorageClass
+def createStorageAttribute( dataType ):
+	""" This method creates an Attribute in a configuration suitable to be used
+	with the ``StorageBase`` interface. 
 	
-	:note: this allows your own plugin node to receive storage compatability
+	:note: this allows your own plugin node to receive storage compatibility
 	:param dataType: the type of the typed attribute - either MTypeID or MFnData enumeration
 		An MTypeID must point to a valid and already registered plugin data.
-	:return: attribute api object of its master compound attribute ( it corresponds
-		to the class's aData attribute )"""
+		In order for the ``StorageBase`` interface to work, it must by ``PyPickleData.kPluginDataId``. 
+	:return: attribute api object of its master compound attribute"""
 	tAttr = api.MFnTypedAttribute()
 	mAttr = api.MFnMessageAttribute()
 	cAttr = api.MFnCompoundAttribute()
 	nAttr = api.MFnNumericAttribute()
 
-	cls.aData = cAttr.create( "ba_data", "dta" )					# connect to instance transforms
+	aData = cAttr.create( "ba_data", "dta" )					# connect to instance transforms
 	if True:
 		dataID = tAttr.create( "ba_data_id", "id", api.MFnData.kString )
 
@@ -84,12 +84,12 @@ def addStorageAttributes( cls, dataType ):
 	cAttr.setArray( True )
 
 	# add attr
-	cls.addAttribute( cls.aData )
-	return cls.aData
+	return aData
 
 class StoragePluginNode( mpx.MPxNode ):
 	""" Base Class defining the storage node data interfaces  """
 
+	# The ID used here has been assigned by the autodesk support and is globally unique !
 	kPluginNodeTypeName = "storageNode"
 	kPluginNodeId = api.MTypeId( 0x0010D134 )
 
@@ -104,7 +104,8 @@ class StoragePluginNode( mpx.MPxNode ):
 
 def initStoragePluginNodeAttrs( ):
 	"""Called to initialize the attributes of the storage node"""
-	addStorageAttributes( StoragePluginNode, PyPickleData.kPluginDataId )
+	StoragePluginNode.aData = createStorageAttribute( PyPickleData.kPluginDataId )
+	StoragePluginNode.addAttribute( StoragePluginNode.aData )
 
 class PyPickleData( mpx.MPxData ):
 	"""Allows to access a pickled data object natively within a maya file.
@@ -120,6 +121,7 @@ class PyPickleData( mpx.MPxData ):
 	:note: as the datatype is reference based, undo is currently not supported ( or does not
 		work as it is expected to do"""
 
+	# The ID used here has been assigned by the autodesk support and is globally unique !
 	kPluginDataId = api.MTypeId( 0x0010D135 )
 	kDataName = "PickleData"
 

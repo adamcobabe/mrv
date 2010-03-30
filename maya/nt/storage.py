@@ -25,7 +25,7 @@ class StorageBase( iDuplicatable ):
 	python data and objects being stored in a pickled format upon file save.
 	Additionally you can store connections.
 	Nodes used with this interface must be compatible to the following attribute scheme.
-	To create that scheme, use `addStorageAttributes`
+	To create that scheme, use `createStorageAttribute`
 
 	**Attribute Setup**::
 	
