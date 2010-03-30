@@ -27,8 +27,8 @@ import os
 import logging
 log = logging.getLogger("mrv.maya.mdb")
 
-__all__ = ("createDagNodeHierarchy", "createTypeNameToMfnClsMap", "getApiModules", 
-           "getApiModules", "mfnDBPath", "cacheFilePath", "writeMfnDBCacheFiles", 
+__all__ = ("createDagNodeHierarchy", "createTypeNameToMfnClsMap", "apiModules", 
+           "mfnDBPath", "cacheFilePath", "writeMfnDBCacheFiles", 
            "extractMFnFunctions", "PythonMFnCodeGenerator", "MMemberMap", 
            "MMethodDescriptor" )
 
@@ -59,7 +59,7 @@ def createTypeNameToMfnClsMap( ):
 	version = pf.beginReading( )	 # don't care about version
 	for nodeTypeName, mfnTypeName in pf.readColumnLine( ):
 		found = False
-		for apimod in getApiModules():
+		for apimod in apiModules():
 			try:
 				typenameToClsMap[ nodeTypeName ] = getattr( apimod, mfnTypeName )
 				found = True
@@ -79,7 +79,7 @@ def createTypeNameToMfnClsMap( ):
 
 #{ Utilities 
 
-def getApiModules():
+def apiModules():
 	""":return: tuple of api modules containing MayaAPI classes
 	:note: This takes a moment to load as it will import many api modules. Delay 
 		the call as much as possible"""
@@ -153,7 +153,7 @@ def writeMfnDBCacheFiles(  ):
 	to the Nodes.
 	
 	:note: currently writes information about all known api modules"""
-	for apimod in getApiModules():
+	for apimod in apiModules():
 		mfnclsnames = [ clsname for clsname in dir( apimod ) if clsname.startswith( "MFn" ) ]
 		for mfnname in mfnclsnames:
 			mfncls = getattr( apimod, mfnname )
@@ -201,7 +201,9 @@ def generateNodeHierarchy( ):
 	"""Generate the node-hierarchy for the current version based on all node types 
 	which can be created in maya.
 	
-	:return: DAGTree representing the type hierarchy
+	:return: tuple(DAGTree, typeToMFnClsNameList) 
+		 * DAGTree representing the type hierarchy
+		 * list represents typeName to MFnClassName associations
 	:note: should only be run as part of the upgrade process to prepare MRV for  a
 	new maya release. Otherwise the nodetype tree will be read from a cache"""
 	import maya.OpenMaya as api
@@ -216,6 +218,10 @@ def generateNodeHierarchy( ):
 	dagTree = DAGTree()
 	dagTree.add_edge(root, noderoottype)
 	dagTree.add_edge(noderoottype, depnode)
+	
+	apiTypeToNodeTypeMap = dict()		# apiTypeStr -> nodeTypeName
+	mfnTypes = set()					# apiTypeStr of mfns used by NodeTypes
+	sl = list()							# string list
 	
 	# CREATE ALL NODE TYPES
 	#######################
@@ -236,7 +242,7 @@ def generateNodeHierarchy( ):
 	
 	for nodetype in sorted(cmds.ls(nodeTypes=1)):
 		# evil crashers
-		if nodetype.endswith('Manip') or nodetype.startswith('manip'):
+		if 'Manip' in nodetype or nodetype.startswith('manip'):
 			continue
 		# END skip manipulators
 		
@@ -265,7 +271,28 @@ def generateNodeHierarchy( ):
 		for parent, child in zip(depnode_list + inheritance[:-1], inheritance):
 			dagTree.add_edge(parent, child)
 		# END for each edge to add
+		
+		# retrieve all compatible MFnTypes - these refer to apiTypes which are 
+		# also used by Nodes. Currently we have only the type of the node, fortunately, 
+		# it will match very well with the MFnType, by just prepending MFn.
+		# As some MFn are in other modules, we will search em all ... later
+		apiTypeToNodeTypeMap[obj.apiTypeStr()] = nodetype
+		
+		api.MGlobal.getFunctionSetList(obj, sl)
+		for mfnType in sl:
+			mfnTypes.add(mfnType)
+		
 	# END for each node type
+	
+	# INSERT SPECIAL TYPES
+	######################
+	# used by the type system if it cannot classify a node at all
+	dagTree.add_edge(depnode, 'unknown')
+	
+	# can be iterated using the DagIterator, and it should at least be a dag node, 
+	# not unknown. The groundPlane is actually a special object that users shouldn't
+	# touch directly
+	dagTree.add_edge('transform', 'groundPlane')
 	
 	# INSERT PLUGIN TYPES
 	######################
@@ -283,32 +310,83 @@ def generateNodeHierarchy( ):
 					('ikSolver', 'IkSolver'), 
 					(depnode, 'ImagePlaneNode'), 
 					(depnode, 'ParticleAttributeMapperNode')	):
-		dagTree.add_edge(edge[0], 'unspecifiedPlugin'+edge[1])
+		dagTree.add_edge(edge[0], 'unknownPlugin'+edge[1])
 	# END for each plugin edge to add
+	
+	# BULD TYPE-TO-MFN MAP
+	######################
+	# Prepare data to be put into a type separated file, it associates 
+	# a nodeType or nodeApiType with the respecitve MFnClass name
+	typeToMFn = list()		# list((typeName, MFnClsName), ...)
+	
+	# add default associations - some are not picked up due to name mismatches	
+	typeToMFn.append((noderoottype, 'MFn'))
+	typeToMFn.append((depnode, 'MFnDependencyNode'))
+	typeToMFn.append(('dagNode', 'MFnDagNode'))
+	
+	modsapi = apiModules()
+	for mfnApiType in mfnTypes:
+		mfnNodePseudoType = uncapitalize(mfnApiType[1:])	# # kSomething -> something
+		
+		# MFnSets follow their kMFnType names, but when we try to associate it with 
+		# the actual nodeType 
+		mfnNameCandidate = "MFn%s" % capitalize(mfnApiType[1:])	# kSomething -> MFnSomething
+		for modapi in modsapi:
+			if hasattr(modapi, mfnNameCandidate):
+				nodeType = apiTypeToNodeTypeMap.get(mfnApiType, mfnNodePseudoType)
+				typeToMFn.append((nodeType, mfnNameCandidate))
+				break
+			# END module with given name exists
+		# END for each api module
+	# END for each mfnType
+	
 	
 	# DATA, COMPONENTS, ATTRIBUTES
 	###############################
 	# git inheritance of Data, Component and Attribute types
+	def unMFn(name):
+		return uncapitalize(name[3:])
+	# END remove MFn in front of MFnSomething strings
+	
 	for mfnsuffix in ("data", "component", "attribute"):
 		mfnsuffixcap = capitalize(mfnsuffix)
-		mfnnames = [ n for n in dir(api) if n.endswith(mfnsuffixcap) ]
+		mfnnames = list()
+		for modapi in modsapi:
+			mfnnames.extend( n for n in dir(modapi) if n.endswith(mfnsuffixcap) )
+		# END for each api module to get information from
 		
 		dagTree.add_edge(root, mfnsuffix)
 		
 		mfnsuffix_root = [ mfnsuffix ]
 		for mfnname in mfnnames:
-			mfncls = getattr(api, mfnname)
-			
-			# cut object and MFnBase
-			# from the names, cut the MFn and uncaptialize it: MFnData -> data
-			pclsnames = [ uncapitalize(p.__name__[3:]) for p in mfncls.mro()[:-2] ]
-			for parent, child in zip(mfnsuffix_root + pclsnames[:-1], pclsnames):
-				dagTree.add_edge(parent, child)
-			# END for each mfn child to add
+			for modapi in modsapi:
+				try:
+					mfncls = getattr(modapi, mfnname)
+				except AttributeError:
+					continue
+				# END handle multi-modules
+				
+				# skip classes which are just named like the super type, but 
+				# don't actually inherit it
+				if "MFn%s" % mfnsuffixcap not in ( p.__name__ for p in mfncls.mro() ):
+					continue
+				
+				# add type->MFn association
+				typeToMFn.append((unMFn(mfnname), mfnname))
+				
+				# cut object and MFnBase
+				# from the names, cut the MFn and uncaptialize it: MFnData -> data
+				pclsnames = [ unMFn(p.__name__) for p in list(reversed(mfncls.mro()))[2:] ]
+				for parent, child in zip(pclsnames[:-1], pclsnames[1:]):
+					dagTree.add_edge(parent, child)
+				# END for each mfn child to add
+				
+				break
+			# END for each api module
 		# END for each name
 	# END for each mfnsuffix
 	
-	return dagTree
+	return (dagTree, sorted(typeToMFn, key=lambda t: t[0]))
 
 #} END functions 
 

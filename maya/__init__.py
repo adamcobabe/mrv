@@ -2,7 +2,7 @@
 """ Inialize the mrv.maya sub-system and startup maya as completely as possible or configured """
 import os, sys                                                                         
 from mrv import init_modules
-from mrv.util import capitalize, DAGTree
+from mrv.util import capitalize, DAGTree, PipeSeparatedFile
 from mrv.exc import MRVError
 from mrv.path import Path
 
@@ -67,8 +67,21 @@ def initializeNewMayaRelease( ):
 	# create all node types, one by one, and query their hierarchy relationship.
 	# From that info, generate a dagtree which is written to the hierarchy file.
 	# NOTE: for now we just copy the old one
-	dagTree = mdb.generateNodeHierarchy()
+	dagTree, typeToMFnList = mdb.generateNodeHierarchy()
 	dagTree.to_hierarchy_file('_root_', mdb.nodeHierarchyFile())
+	
+	# UPDATE MFN ASSOCIATIONS
+	#########################
+	fp = open(mdb.cacheFilePath('nodeTypeToMfnCls', 'map'), 'wb')
+	mla = reduce(max, (len(t[0]) for t in typeToMFnList))
+	mlb = reduce(max, (len(t[1]) for t in typeToMFnList))
+	
+	psf = PipeSeparatedFile(fp)
+	psf.beginWriting((mla, mlb))
+	for token in typeToMFnList:
+		psf.writeTokens(token)
+	# END for each line to write
+	fp.close()
 	
 	
 	# PROVIDE INFO	TO THE USER

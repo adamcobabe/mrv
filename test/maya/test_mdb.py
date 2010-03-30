@@ -17,7 +17,7 @@ from mrv.maya.mdb import *
 
 class TestMDB( unittest.TestCase ):
 	def test_base(self):
-		assert len(getApiModules())
+		assert len(apiModules())
 		
 		# simple method testing
 		assert mfnDBPath('MFnBase').isfile()
@@ -33,7 +33,7 @@ class TestMDB( unittest.TestCase ):
 		assert isinstance(ttmfnmap, dict)
 		
 		# test member map - all files should be readable
-		for apimod in getApiModules():
+		for apimod in apiModules():
 			for mfnclsname in ( n for n in dir(apimod) if n.startswith('MFn') ):
 				mfncls = getattr(apimod, mfnclsname)
 				dbpath = mfnDBPath(mfnclsname)
@@ -167,6 +167,8 @@ class TestMDB( unittest.TestCase ):
 		finally:
 			if not nhf.isfile():
 				nhfr.rename(nhf)
+			else:
+				nhfr.remove()
 			# END rename original file back if it wasnt affected
 		# END cleanup state
 		
