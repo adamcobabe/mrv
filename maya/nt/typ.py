@@ -260,13 +260,9 @@ class MetaClassCreatorNodes( MetaClassCreator ):
 			# it in the instance dict
 			return getattrorigfunc( self, attr )
 			# EMD orig getattr handling
-
-
-
 		# END getattr_lazy func definition
 
 		# STORE LAZY GETATTR
-		#meta_getattr_lazy.__name__ = "__getattr__"	# lets keep the original method, we us it for
 		# identification !
 		setattr( newcls, "__getattr__", meta_getattr_lazy )
 

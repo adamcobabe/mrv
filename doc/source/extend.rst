@@ -15,7 +15,7 @@ Whenever a plugin is loaded, MRV will query the registered node types and assign
 	--> UnknownPluginDependNode
 	---> YourPluginType
 	
-Registering own node types is simple, and a perfect example of the required techniques are given with the *Persistence* implementation of MRV. For completeness, we outline this case. Please note that the example given here is somewhat constructed, as the persistence system in fact does not need any special registration as it is natively a part of ``mrv.maya.nt``.
+Registering own node types is simple, and an example of the required techniques are given with the *Persistence* implementation of MRV. For completeness, we outline this case. Please note that the example given here is somewhat constructed, as the persistence system in fact does not need any special registration as it is natively a part of ``mrv.maya.nt``.
 
 The persistence plugin implements a simple Dependency Node which performs no computations, but hosts a set of attributes to store actual data an connections. Its implementation can be found in ``mrv.maya.nt.persistence``. Once the plugin is loaded, MRV will be notified about the event and add a dummy node type called ``storageNode`` to its internal type hierarchy - the inheritance follows the previous example. This allows the nodes to be created and wrapped, but access to the actual data storage capabilities is not yet available on such a node::
 	>>> # load the plugin
@@ -57,7 +57,7 @@ As a summary:
 	
 You can automate the process of registering your implementation by putting the MRV type registration into your ``initializePlugin`` method.
 
-Although it is technically not required, you could consider it good style to unregister your own types once your plugin unloads. It should naturally be done once the ``uninitializePlugin`` method of your plugin is executed.  
+Although it is technically not required, you could consider it good style to unregister your own types once your plugin unloads. It should naturally be done once the ``uninitializePlugin`` method of your plugin is executed.
 
 ******************
 Virtual Subtypes
@@ -68,7 +68,7 @@ In the case of the simple ``StorageNode`` maya type, the plugin does (nearly) no
 
 The most significant difference between using a custom Plugin and Virtual Subtypes is that MRV will not automatically create these for you when they are encountered, instead you have to use your own methods to wrap the Virtual Subtypes around existing nodes.
 
-The process of doing so is outlined here, for a fully working example, see ``mrv.test.maya.nt.test_storage.StorageNetworkNode`` and ``mrv.test.maya.nt.test_storage.test_virtual_subtype``:
+The process of doing so is outlined here, for a fully working example, see ``mrv.test.maya.nt.test_general.StorageNetworkNode`` and ``mrv.test.maya.nt.test_general.test_virtual_subtype``:
 	#. Derive your Virtual Subtype from an existing MRV node type, it is *not* required to be a leaf-leve type.
 	#. Define the ``__mrv_virtual_subtype__`` class member and set it to a True value.
 	#. Create a new instance of your Virtual Subtype by wrapping an existing node of the correct maya type - your constructor (``__new__``) by default supports everything that ``mrv.maya.nt.base.Node`` supports, i.e. ``MyVirtualType(node.object())`` is just fine.
@@ -81,13 +81,32 @@ In case you find yourself adding convenience to basic maya types that way, you m
 ****************************
 Replacing Default Node Types
 ****************************
+In case Virtual Subtypes and you wish to alter the behavior of existing node types, you may easily and permanently substitute in your own type. This implies that calls to ``Node`` and ``NodeFromObj`` will automatically return your type.
 
+This can be required if you are not able or willing to contribute code to MRV, but still want to completely override (parts) of the default implementation:
+	#. Derive your own Type ( directly or indirectly ) from the MRV node type to override and make sure your type has the same name, i.e. ``class Mesh(nt.Mesh) [...]``. This is all you have to do as your derived type inherits a metaclass which takes care of the details. 
+	#. Override existing methods or add your own ones. Its important to bare in mind that you must not restrict the existing interface so that code which doesn't expect your type continues to work properly.
 
+For a complete example, see ``mrv.test.maya.nt.test_general.test_replacing_default_node_types``.
+
+This procedure is not recommended for software that is distributed into uncontrolled environments as you can never be sure that you don't affect existing code negatively.
 	
-Permanent Virtual Subtypes
-==========================
-pass
+Please note that this technique can only be used to replace leaf node types, that is types with no additional children. As all of the foundation classes, from which each node type inherits, are already implemented in MRV, replacing these foundation classes would not affect the existing leaf node types as they have been created with the previous base classes already.
 
+If you need to override existing base functionality, for example to customize the ``__str__`` representation of nodes, consider monkey patching, which may only be done in highly controlled code environments.
+
+For an example of the presented aspects, see ``mrv.test.maya.nt.test_general.test_replace_non_leaf_node_types``.
+
+
+***************************
+Plugin Node Types Revisited
+***************************
+Considering that a simple type deriving from a MRV node type already creates a valid MRV type that will be returned by ``Node`` and ``NodeFromObj``, the ``addCustomType`` method might seem dispensable.
+
+In fact this is True as the plugin-changed event carried out by MRV once your plugin loaded will never overwrite existing types, hence it does not matter whether your custom types gets imported before or after your plugin was loaded.
+
+The only difference in a type using the ``addCustomType`` is that the internal node inheritance tree will be updated with your custom type. This does not happen if the type is automatically added by the metaclass. The tree is used by the ``createNode`` method to pre-determine whether the node to be created is a dag or a dg node. In the general case, this will work even if ``addCustomType``
+was not used as the default type added to the tree already identifies it ( considering it was not removed using ``removeCustomType`` ). If it was removed, ``createNode`` will still work although it will do slightly more work. 
 	
 ******************
 Adding Convenience
