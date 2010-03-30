@@ -863,7 +863,7 @@ class Node( object ):
 		"""
 		:return: list of all function set classes this node supports, most derived
 			function set comes first"""
-		return [ cls._mfncls for cls in self.__class__.mro() if hasattr( cls, '_mfncls' ) ]
+		return [ cls._mfncls for cls in self.__class__.mro() if '_mfncls' in cls.__dict__ ]
 
 	def apiType( self ):
 		""":return: the MFn Type id of the wrapped object"""
