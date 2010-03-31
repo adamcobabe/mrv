@@ -15,6 +15,7 @@ import mrv.maya.env as env
 import mrv.maya as mrvmaya
 
 import maya.cmds as cmds
+import maya.OpenMaya as api
 
 import UserDict
 import inspect
@@ -197,6 +198,41 @@ def writeMfnDBCacheFiles(  ):
 		# END for each api class
 	# END for each api module
 
+def _createTmpNode(nodetype):
+	"""Return tuple(mobject, modifier) for the nodetype or raise RuntimeError
+	doIt has not yet been called on the modifier, hence the mobject is temporary"""
+	try:
+		mod = api.MDGModifier()
+		obj = mod.createNode(nodetype)
+		return (obj, mod)
+	except RuntimeError:
+		mod = api.MDagModifier()
+		tmpparent = mod.createNode("transform")
+		obj = mod.createNode(nodetype, tmpparent)
+		return (obj, mod)
+	# END exception handling
+# END utility
+
+def _iterAllNodeTypes( ):
+	"""Returns iterator which yield tuple(nodeTypeName, MObject, modifier) triplets
+	of nodeTypes, with an MObjects instance of it, created with the given modifier, 
+	one for each node type available to maya.
+	
+	:note: skips manipulators as they tend to crash maya on creation ( perhaps its only
+	one which does that, but its not that important )"""
+	for nodetype in sorted(cmds.ls(nodeTypes=1)):
+		# evil crashers
+		if 'Manip' in nodetype or nodetype.startswith('manip'):
+			continue
+		# END skip manipulators
+		try:
+			obj, mod = _createTmpNode(nodetype) 
+			yield nodetype, obj, mod
+		except RuntimeError:
+			log.warn("Could not create '%s'" % nodetype)
+			continue
+		# END create dg/dag node exception handling
+
 def generateNodeHierarchy( ):
 	"""Generate the node-hierarchy for the current version based on all node types 
 	which can be created in maya.
@@ -206,7 +242,6 @@ def generateNodeHierarchy( ):
 		 * list represents typeName to MFnClassName associations
 	:note: should only be run as part of the upgrade process to prepare MRV for  a
 	new maya release. Otherwise the nodetype tree will be read from a cache"""
-	import maya.OpenMaya as api
 	from mrv.util import DAGTree
 	from mrv.util import uncapitalize, capitalize
 	from mrv.maya.util import MEnumeration
@@ -225,6 +260,7 @@ def generateNodeHierarchy( ):
 	sl = list()							# string list
 	
 	
+	mfndep = api.MFnDependencyNode()
 	def getInheritanceAndUndo(obj, modifier):
 		"""Takes a prepared modifier ( doIt not yet called ) and the previously created object, 
 		returning the inheritance of the obj which was retrieved before undoing
@@ -236,40 +272,12 @@ def generateNodeHierarchy( ):
 		return inheritance
 	# END utility
 	
-	def createTmpNode(nodetype):
-		"""Return tuple(mobject, modifier) for the nodetype or raise RuntimeError
-		doIt has not yet been called on the modifier, hence the mobject is temporary"""
-		try:
-			mod = api.MDGModifier()
-			obj = mod.createNode(nodetype)
-			return (obj, mod)
-		except RuntimeError:
-			mod = api.MDagModifier()
-			tmpparent = mod.createNode("transform")
-			obj = mod.createNode(nodetype, tmpparent)
-			return (obj, mod)
-		# END exception handling
-	# END utility
-	
 	
 	# CREATE ALL NODE TYPES
 	#######################
 	# query the inheritance afterwards
-	mfndep = api.MFnDependencyNode()
-	
-	for nodetype in sorted(cmds.ls(nodeTypes=1)):
-		# evil crashers
-		if 'Manip' in nodetype or nodetype.startswith('manip'):
-			continue
-		# END skip manipulators
-		
-		try:
-			obj, mod = createTmpNode(nodetype)
-			inheritance = getInheritanceAndUndo(obj, mod)
-		except RuntimeError:
-			log.warn("Could not create '%s'" % nodetype)
-			continue
-		# END create dg/dag node exception handling
+	for nodetype, obj, mod in _iterAllNodeTypes():
+		inheritance = getInheritanceAndUndo(obj, mod)
 		
 		if not inheritance:
 			log.error("Failed on type %s" % nodetype)
@@ -290,7 +298,6 @@ def generateNodeHierarchy( ):
 		api.MGlobal.getFunctionSetList(obj, sl)
 		for mfnType in sl:
 			mfnTypes.add(mfnType)
-		
 	# END for each node type
 	
 	# INSERT SPECIAL TYPES
@@ -491,7 +498,7 @@ def generateNodeHierarchy( ):
 		perfectMatches = list()		# keeps mfnnames of perfect matches
 		for failedApiTypeStr in failedMFnTypes:
 			nodeType = apiTypeToNodeTypeMap[failedApiTypeStr]
-			obj, mod = createTmpNode(nodeType)
+			obj, mod = _createTmpNode(nodeType)
 			
 			removeThisMFn = None
 			for mfncls in candidateMFns:

@@ -11,6 +11,7 @@ import maya.OpenMayaUI as apiui
 
 import inspect
 import os
+import sys
 
 # test import all
 from mrv.maya.mdb import *
@@ -146,7 +147,6 @@ class TestMDB( unittest.TestCase ):
 		# fail in current version ( as it exists )
 		self.failUnlessRaises(EnvironmentError, mrvmaya.initializeNewMayaRelease)
 
-
 	def _DISABLED_test_init_new_maya_release(self):
 		# NOTE: this test should only be run manually if you want to check 
 		# the initializeNewMayaRelease method - it will change your local database
@@ -165,39 +165,35 @@ class TestMDB( unittest.TestCase ):
 			# END rename original file back if it wasnt affected
 		# END cleanup state
 		
-		
-	
+	@with_scene('empty.ma')
 	def _DISABLED_test_testWrappers( self ):
-		# NOTE: This method needs not to run, but is part of the version initiailization process.
-		filename = get_maya_file( "allnodetypes_%s.mb" % env.appVersion( )[0] )
-		if not Path( filename ).isfile():
-			raise AssertionError( "File %s not found for loading" % filename )
-		mrvmaya.Scene.open( filename, force=True )
+		# NOTE: This method needs not to run, but is part of the version initialization process.
+		import mrv.maya.env as env
+		import mrv.maya.nt as nt
+		from mrv.util import capitalize, uncapitalize
+		import maya.cmds as cmds
 		
 		missingTypesList = list()
 		invalidInheritanceList = list()
 		seen_types = set()		# keeps class names that we have seen already 
-		for nodename in cmds.ls( ):
-			try:
-				node = nt.Node( nodename )
-				node.getMFnClasses()
-			except (TypeError,AttributeError):
-				missingTypesList.append( ( nodename, cmds.nodeType( nodename ) ) )
-				continue
-			except:
-				raise
-
-			assert not node.object().isNull() 
+		for nodetypename, obj, mod in mdb._iterAllNodeTypes():
+			mod.doIt()
 			
+			node = nt.NodeFromObj( obj )
+			node.getMFnClasses()
+
+			assert not node.object().isNull()
+			if isinstance(node, nt.DagNode):
+				node.dagPath()
+				
 			# skip duplicate types - it truly happens that there is the same typename
 			# with a different parent class - we cannot handle this 
-			nodetypename = node.typeName()
 			if nodetypename in seen_types:
 				continue
 			seen_types.add( nodetypename )
 
 			# assure we have all the parents we need
-			parentClsNames = [ capitalize( typename ) for typename in cmds.nodeType( nodename, i=1 ) ]
+			parentClsNames = [ capitalize( typename ) for typename in cmds.nodeType( str(node), i=1 ) ]
 			
 			for pn in parentClsNames:
 				token = ( node, parentClsNames )
@@ -218,7 +214,7 @@ class TestMDB( unittest.TestCase ):
 					invalidInheritanceList.append( token )
 					break
 				# END if a parent class is missing
-			# END for each parent class name 
+			# END for each parent class name
 		# END for each type in file
 
 		if len( missingTypesList ):

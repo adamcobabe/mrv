@@ -28,8 +28,6 @@ nodeTypeToMfnClsMap = dict()		# allows to see the most specialized compatible mf
 #} END caches
 
 #{Globals
-# special name handling - we assume lower case names, these are capitalized though
-nameToTreeMap = set( [ 'FurAttractors', 'FurCurveAttractors', 'FurGlobals', 'FurDescription','FurFeedback' ] )
 targetModule = None				# must be set in intialization to tell this class where to put newly created classes
 mfnclsattr = '_mfncls'
 mfndbattr = '_mfndb'
@@ -271,9 +269,19 @@ class MetaClassCreatorNodes( MetaClassCreator ):
 		""" Called to create the class with name """
 		# will be used later
 		def func_nameToTree( name ):
-			if name in nameToTreeMap:
+			# first check whether an uncapitalized name is known, if not, check 
+			# the capitalized version ( for special cases ), finalyl return
+			# the uncapitalized version which is the default
+			name = uncapitalize(name)
+			if nodeTypeTree.has_node(name):
 				return name
-			return uncapitalize( name )
+				
+			capname = capitalize(name)
+			if nodeTypeTree.has_node(capname):
+				return capname
+			
+			return name
+		# END utility
 
 		# ATTACH MFNCLS
 		#################
