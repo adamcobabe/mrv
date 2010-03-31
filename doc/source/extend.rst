@@ -207,5 +207,17 @@ As the Maya API never changes the signature of existing methods, or removes them
 *******************************
 Upgrading to a new Maya Release
 *******************************
-Talk about how to update the database to work with a new maya version. 
+Whenever a new major maya release hits the scene, it is required to update the database with the latest additions and more importantly, changes to the node hierarchy.
+
+To achieve this proceed as follows::
+	#. Create the new branch 'release_upgrade' and check it out.
+	#. In ``mrv.test.maya.test_mdb``, remove the *_DISABLED_* portion in front of the ``test_init_new_maya_release``
+	#. Run the test using the new maya release, for example::
+		
+		Runs the upgrade procedure for maya 2020 from the root of the repository.
+		>>> test/bin/tmrv 2020 test/maya/test_mdb.py -s
+		
+	#. Go through the list of instructions printed to screen, commit your changes and merge your branch into master.
+
+	
 
