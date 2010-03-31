@@ -2,7 +2,7 @@
 """
 Test general MPlug performance
 """
-from mrv.test.lib import *
+from mrv.test.maya import *
 import mrv.maya as mrvmaya
 import mrv.maya.undo as undo
 import mrv.maya.nt as nt

@@ -613,9 +613,6 @@ class PythonMFnCodeGenerator(MFnCodeGeneratorBase):
 	 	it the MFnMethod caches the function set and actual MObject/MDagPath, which 
 	 	can be dangerous if held too long
 	 	
-	 * kMFnNeedsMObject:
-	 	See `MMemberMap` and its InitWithMObject description
-	 	
 	 * kIsMObject:
 	 	If set, the type we create the method for is not derived from Node, but 
 	 	from MObject. This hint is required in order to generate correct calling code.
@@ -637,11 +634,10 @@ class PythonMFnCodeGenerator(MFnCodeGeneratorBase):
 	"""
 	# IMPORTANT: If these change, update docs above, and test.maya.test_mdb and test.maya.performance.test_mdb !
 	kDirectCall, \
-	kMFnNeedsMObject, \
 	kIsMObject, \
 	kIsDagNode, \
 	kIsStatic, \
-	kWithDocs = [ 1<<i for i in range(6) ] 
+	kWithDocs = [ 1<<i for i in range(5) ] 
 	
 	def generateMFnClsMethodWrapper(self, source_method_name, target_method_name, mfn_fun_name, method_descriptor, flags=0):
 		"""Generates code as python string which can be used to compile a function. It assumes the following 
@@ -653,11 +649,6 @@ class PythonMFnCodeGenerator(MFnCodeGeneratorBase):
 		as well as all flags except kIsStatic.
 		:raise ValueError: if flags are incompatible with each other
 		"""
-			# if an mobject is required, we disable the isDagPath flag
-		if flags & self.kIsDagNode and flags & self.kMFnNeedsMObject:
-			flags ^= self.kIsDagNode
-		# END handle needs MObject
-		
 		if flags & self.kIsMObject and flags & self.kIsDagNode:
 			raise ValueError("kIsMObject and kIsDagNode are mutually exclusive")
 		# END handle flags
@@ -837,18 +828,9 @@ class MMemberMap( UserDict.UserDict ):
 	
 	**Globals**:
 	The __globals__ entry in MFn db files allows to pass additional options.
-	Currently supported ones are:
-	
-	 * **InitWithMObject**:
-	 	If set, the function set's instance will be initialized with an MObject
-	 	even though an MDagPath would be available.
-	 	Default False.
-	 	NOTE: This might want to become special handling in the code itself as 
-	 	for now MFnMesh is the only one using the globals at all. Having globals 
-	 	is a good thing only if its used by a few more."""
+	Currently there are no supported flags"""
 	__slots__ = ("flags", "enums")
 	kDelete = 'x'
-	kInitWithMObjectFlagName = "InitWithMObject"
 
 	def __init__( self, filepath = None, parse_enums=False ):
 		"""intiialize self from a file if not None
@@ -865,9 +847,8 @@ class MMemberMap( UserDict.UserDict ):
 		self.flags = 0
 		ge = self.get('__global__', None)
 		if ge is not None:
-			# currently we only know this one
-			if ge.flag == self.kInitWithMObjectFlagName:
-				self.flags |= PythonMFnCodeGenerator.kMFnNeedsMObject
+			# currently we know none
+			pass
 		# END fetch info
 		
 		# INITIALIZE PARSED DATA

@@ -48,11 +48,6 @@ class TestMDB( unittest.TestCase ):
 					assert isinstance(fname, basestring)
 					assert isinstance(entry, MMethodDescriptor)
 				# END for functionname, entry pair
-				
-				# we know that MFnMesh needs MObject iniitalization
-				if mfnclsname == "MFnMesh":
-					assert mfndb.flags & PythonMFnCodeGenerator.kMFnNeedsMObject
-				# END special global flags check
 			# END for each mfn cls 
 		# END for each apimod
 		
@@ -69,38 +64,36 @@ class TestMDB( unittest.TestCase ):
 		
 		cgen = PythonMFnCodeGenerator(locals())
 		for directCall in (0, cgen.kDirectCall):
-			for needsMObject in (0, cgen.kMFnNeedsMObject):
-				for isMObject in (0, cgen.kIsMObject):
-					for isDagNode in (0, cgen.kIsDagNode):
-						for withDocs in (0, cgen.kWithDocs):
-							for rvalwrapname in ('None', 'rvalwrapper'):
-								flags = directCall|needsMObject|isMObject|isDagNode|withDocs
-								source_fun_name = mfn_fun_name
-								if directCall:
-									source_fun_name = "_api_"+source_fun_name
-								# END create source function name
-								prevval = mdescr.rvalfunc
-								mdescr.rvalfunc = rvalwrapname
+			for isMObject in (0, cgen.kIsMObject):
+				for isDagNode in (0, cgen.kIsDagNode):
+					for withDocs in (0, cgen.kWithDocs):
+						for rvalwrapname in ('None', 'rvalwrapper'):
+							flags = directCall|isMObject|isDagNode|withDocs
+							source_fun_name = mfn_fun_name
+							if directCall:
+								source_fun_name = "_api_"+source_fun_name
+							# END create source function name
+							prevval = mdescr.rvalfunc
+							mdescr.rvalfunc = rvalwrapname
+							try:
 								try:
-									try:
-										fun_code_string = cgen.generateMFnClsMethodWrapper(source_fun_name, mfn_fun_name, mfn_fun_name, mdescr, flags)
-									except ValueError:
-										continue
-									# END ignore incorrect value flags
-								finally:
-									mdescr.rvalfunc = prevval
-								# END assure not to alter mfndb entries
-								
-								assert isinstance(fun_code_string, basestring)
-								
-								# generate the actual method 
-								fun = cgen.generateMFnClsMethodWrapperMethod(source_fun_name, mfn_fun_name, mfncls, mfn_fun, mdescr, flags)
-								assert inspect.isfunction(fun)
-							# END for each rvalwrapper type
-						# END for each withDocs state
-					# END for each isDagNode state
-				# END for each isMObject state
-			# END for each needsMObject state
+									fun_code_string = cgen.generateMFnClsMethodWrapper(source_fun_name, mfn_fun_name, mfn_fun_name, mdescr, flags)
+								except ValueError:
+									continue
+								# END ignore incorrect value flags
+							finally:
+								mdescr.rvalfunc = prevval
+							# END assure not to alter mfndb entries
+							
+							assert isinstance(fun_code_string, basestring)
+							
+							# generate the actual method 
+							fun = cgen.generateMFnClsMethodWrapperMethod(source_fun_name, mfn_fun_name, mfncls, mfn_fun, mdescr, flags)
+							assert inspect.isfunction(fun)
+						# END for each rvalwrapper type
+					# END for each withDocs state
+				# END for each isDagNode state
+			# END for each isMObject state
 		# END for each direct call state
 		
 	def test_header_parser(self):

@@ -127,24 +127,82 @@ Even if you don't want to ( or cannot ) contribute it is highly advised to work 
 ############
 The Database
 ############
+MRV provides python wrappers for the MObjects and MDagPaths used by the maya API. These wrappers are defined by a massive amount of Types - each maya node type, DataType, AttributeType and ComponentType has a representation within python - although within maya, these are only MObjects or MDagPaths respectively.
 
-***************
-Hierarchy Files
-***************
-UI and Node hierarchy
+MRVs type system is defined in a database which allows to define all of these types automatically, which is complemented by hand-written code whenever required.
+
+**********
+File Types
+**********
+The database consists of simple text files which come in two formats, P.ipe S.eparated F.ile and H.ierarchy F.ile. Both types are human readable, and human editable, and extremely easy to parse.
+
+Hierarchy File
+==============
+As the name suggest, the hierarchy file represents a simple hierarchy of items. Items are encoded in ascii and may contain all characters but <tab> or <newline>. Each tab-indentation in the file increases the level at which the following item is set::
+
+	root
+	    parent
+		    child
+			    subchild
+	    parent2
+	    [...]
+
+
+Pipe Separated File
+===================
+This file format is somewhat similar to the CSV file standard, the separator is a pipe in this case. It has a fixed amount of columns and any amount of rows. The items separated by the pipe may contain ascii characters, excluding a pipe and newline::
+
+	Project | Maintainer | Nationality  
+	MRV     | Sebastian  | German
+	
+It is up to the implementor which information is put into the actual rows - in this example, we have a dedicated header line. MRV does not use a header line though.
+
+*******************
+Node Type Hierarchy
+*******************
+MRV keeps the hierarchy of all built-in types in files called ``nodeHierarchy<mayaversion>.hf``, hence each maya release has its own file. This is because with each maya release, at least one built-in type base changes name, or moves in the hierarchy, which make the trees incompatible.
+
+The tree is generated automatically, and does not contain any plugin nodes. Plugin nodes are supported by providing plugin base types, such as ``unknownPluginDependNode`` or ``unknownPluginLocatorNode``, which serve as base class for dynamically generated plugin wrapper types.
 
 ************************************
-Mapping MFnFunctionSets to Nodetypes
+Mapping MFnFunctionSets to NodeTypes
 ************************************
-MFn to NodeTypeMap
+Maya node types may be compatible to one or more function sets, which are prefixed with ``MFn`` within the Maya API. Information about which function set can be attached to which node type is held in a file called ``nodeTypeToMfnCls.map``, defining a simple one-on-one mapping.
 
+As node types derive from each other, all sub types are automatically compatible to the function sets of their base types, so that all Dag Nodes support the ``MFnDagNode`` function set for example. 
+
+As MRV also provides custom ( but fully maya API compatible ) types for Data, Components and Attributes, their function set mappings are listed in that file as well.
+
+As maya only adds new function sets between the versions, but does not alter the compatibility of existing ones, it is possible to have one file for all maya versions. It will always represent the state of the latest available release. 
 
 .. _mfnmethodmutator-label:
 
 ******************
 MFn Database Files
 ******************
+Each node type may call any method on any of its compatible function sets. The way how these methods are called, and more, is defined in the pipe separated files of the MFn Database. Each function set has its own database file in the following format::
+	
+	flags | methodname      | rvalue conversion function | alias
+	      | parentNamespace | Namespace                  | namespace
+	  x   | setName         | None                       | 
+	  
 
+* **flags**	  
+	Currently supported method flags are **x** which makes the method in question unavailable for calls. This is done if there is a more specialized method available in MRV. ``setName`` for example will change the name of the node without undo support, the corresponding ``rename`` method implemented by MRV supports undo and more.
+	
+* **methodname**
+	The original name of the function set method.
+	
+* **rval value conversion function**
+	If set, the return value of the method in question will be passed to the conversion function, which in turn returns a converted type compatible to the inserted one. Its used mainly to automatically convert return values of MFn methods into the respective MRV type.
+
+* **alias**
+	An optional alias for the MFn method. If set, the method can be called using the original *or* the alias name. The method ``parentNamespace`` for instance can just be called using ``namespace`` for convenience.
+	MRV will only provide an alias if the new name is significantly more convenient to use, easier to remember, or just less 'out-of-place' than the original method name, but it will not be used to try to fix perceived maya API method naming inconsistencies.
+
+Please note that the database is manually maintained at the current time - future releases will add functionality to auto-set certain values according to reasonable rules. This means the database will continue to be hand-edited to stay in maximum control, but maintenance will become easier.
+
+As the Maya API never changes the signature of existing methods, or removes them completely, its valid to keep only one MFn Database for all maya releases.
 
 *******************************
 Upgrading to a new Maya Release
