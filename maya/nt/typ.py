@@ -300,9 +300,6 @@ class MetaClassCreatorNodes( MetaClassCreator ):
 		clsdict[ apiobjattr ] = None			# always have an api obj
 
 
-		# SETUP slots - add common members
-		# NOTE: does not appear to have any effect :(
-
 		# CREATE CLS
 		#################
 		newcls = super( MetaClassCreatorNodes, metacls ).__new__( nodeTypeTree, targetModule,

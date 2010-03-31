@@ -114,7 +114,7 @@ def nodeTypeToNodeTypeCls( nodeTypeName, apiobj ):
 	except KeyError:
 		# assume its a plugin node - in that case the parent will be nicely defined
 		# and helps us to figure out that its a default dummy
-		parentclsname = _plugin_type_to_node_type_name.get(apiobj.apiType(), 'Unknown')
+		parentclsname = _plugin_type_to_node_type_name.get(apiobj.apiType(), (isinstance(apiobj, MDagPath) and 'UnknownDag') or 'Unknown')
 		_addCustomType(_nodesdict, parentclsname, nodeTypeName)
 		nodeTypeCls = _nodesdict[capitalize(nodeTypeName)]
 	# END exception handling
