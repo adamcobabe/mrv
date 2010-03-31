@@ -93,10 +93,13 @@ allow MObjects or MDagPaths, wrapped nodes must be converted explicitly. At some
 point this should change to allow wrapped nodes as well.
 
 
+.. _development-workflow-label:
+
 ********************
 Development Workflow
 ********************
 suggest TDD, BTD
+Cloning, rebasinng, etc, default git stuff, but put it here to convince non-git people as well.
 
 
 .. _runtestsdoc-label:
@@ -123,6 +126,12 @@ Making Releases
 Building Docs
 =============
 
+
+************************************************
+Avoiding Trouble - A Word about Reference Counts
+************************************************
+TODO: MObject ref counts vs. python wrapper refcounts
+masData performance consderation ( add below )
 
 .. _performance-docs-label:
 

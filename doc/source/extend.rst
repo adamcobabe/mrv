@@ -108,28 +108,46 @@ In fact this is True as the plugin-changed event carried out by MRV once your pl
 The only difference in a type using the ``addCustomType`` is that the internal node inheritance tree will be updated with your custom type. This does not happen if the type is automatically added by the metaclass. The tree is used by the ``createNode`` method to pre-determine whether the node to be created is a dag or a dg node. In the general case, this will work even if ``addCustomType``
 was not used as the default type added to the tree already identifies it ( considering it was not removed using ``removeCustomType`` ). If it was removed, ``createNode`` will still work although it will do slightly more work. 
 	
-******************
-Adding Convenience
-******************
+***************************
+Convenience by Contribution
+***************************
+In case you find yourself writing certain convenience methods over and over again, you might as well consider to contribute you code to the MRV project.
 
+In the most common case, convenience can be added directly to the node type in question. This requires you to find the implementation of the type in question. There its totally valid to add new methods to your liking. An example for this would be the ``Mesh`` implementation, which can be found in the ``mrv.maya.nt.geometry`` module::
+	>>> class Mesh(SurfaceShape):
+	>>>		def getTweaks(self):
+	>>>			[ implementation ]
+	
+If the type in question has not been implemented yet, it can be added to an existing or new module in the ``mrv.maya.nt`` package. As this package is only being accessed as a whole, its absolutely valid and common practice to reorganize the types within the modules as the modules grow.
 
+If you intend to adjust MRVs code base, please have a closer look at the :ref:`development-workflow-label` section. In short words, its important to use git during development as it keeps you connected to the mainline of the development, and once you have cloned the MRV repository hosted at http://www.gitorious.com/mrv, you are ready to go.
 
+Even if you don't want to ( or cannot ) contribute it is highly advised to work on a git clone of the MRV mainline as git will allow you to rebase your changes onto the latest version.
+
+############
 The Database
-============
+############
 
+***************
 Hierarchy Files
----------------
+***************
 UI and Node hierarchy
 
+************************************
 Mapping MFnFunctionSets to Nodetypes
-------------------------------------
-
+************************************
 MFn to NodeTypeMap
-------------------
+
 
 .. _mfnmethodmutator-label:
 
-MFn Method Mutators
--------------------
+******************
+MFn Database Files
+******************
 
-Attribute creation, reference counts, point out possible problems
+
+*******************************
+Upgrading to a new Maya Release
+*******************************
+Talk about how to update the database to work with a new maya version. 
+
