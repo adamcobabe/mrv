@@ -184,7 +184,103 @@ Whenever an MRV developer encounters an 'uncallable' method, he is advised to im
 ********************
 Development Workflow
 ********************
-suggest TDD, BTD
+MRV's goal as development framework is to enable the programmer to write reliable, maintainable and well-performing code in less time compared to the conventional methods. 
+
+MRV natively assures that the code is well-performing, but reliability cannot be assured without proper testing. Maintainability comes with a good design, and clean code.
+
+If one wanted to find a development strategy which fits the previously mentioned goals, one would definitely find TDD - `Test Driven Development <http://en.wikipedia.org/wiki/Test-driven_development>`_. 
+
+For the sake of brevity, only the most important points will be mentioned here, check the wiki link above for more information.
+
+When developing for python within maya, one generally has the problem that simply 'sourcing' a file is not possible anymore. Instances of your classes which are still floating around somewhere use the code they have been instantiated with, not the new one which you might just have ``reload`` 'ed.
+
+This makes it cumbersome and hard to predict whether you are actually seeing your changes or not.
+
+The only way to be 100% sure that your changes are actually kicking in is to restart maya, and try again. This of course is not feasible if it is done manually as it takes much too long.
+
+Being aware of this issue, MRV has been developed using TestCases from the ground up. This is why it is possible to rerun a single test every ~3.5s in a standalone interpreter ( as a comparison, maya -batch takes ~5.5 seconds to startup ). The whole test suite can be run in just ~7s, and all regression tests in for Maya 8.5 to 2010 take less than two minutes.
+
+This makes it actually possible to write in a test-driven manner, running tests is easy and fast.
+
+Please note that the following examples use a linux shell, but the same development style will work on windows as well provided that you exchanges the commandline shown here with a cmd prompt compatible one.
+
+MRV TDD
+=======
+When implementing a new MRV feature, it is useful to start by getting a clear idea of what the feature should be like, and who will use it, and how it will be used. Then it is wise to conduct a quick manual test to see whether it is generally possible to do - usually the answer is yes, but its good to get an impression on how difficult it is going to be.
+
+The next step is to find a good place for the code, either it is placed into an existing module, or a new one is created. Before writing a line of code though, a first test case is added into an existing test module, or into a new one.
+
+Ideally you have at least two panes available in your editor, one is for the implementation, the other one for the test. For brevity, lets call the implementation ``lefty``, the test ``righty``.
+
+In ``lefty``, sketch out the design required to implement the feature - do you need a class, or several classes, which member functions do they have, are module level functions reasonable, or do you want to use classmethods instead ?
+
+Once the design has been sketched, its about defining the signature of the methods and function. Go through them one by one in a suitable order and write the documentation for them - use restructured Text. 
+
+Write down what the method is supposed to do, think about the possible input arguments and their types, the return type, as well as possible exceptions.
+While writing this, you essentially define the domain within which this method is supposed to work. 
+
+Whenever you set a pile for the fence of your domain, switch to ``righty`` and note down what the method can do, or what it can't do to assure you don't forget about the individual things that need to be tested::
+	
+	<feature.py>
+	>>> def makeFoo(bar_iterable, big=False):
+	>>>     """Create a new Foo instance which contains the Bar instances
+	>>>     retrieved from the bar_iterable.
+	>>>
+	>>>     :return: ``Foo`` compatible instance. If big was True, it will 
+	>>>         support the ``BigFoo`` interface
+	>>>     :param bar_iterable: iterable yielding Bar instances. As Foo's
+	>>>          cannot exist without Bars, an empty iterable is invalid.
+	>>>     :param big: if True, change the type from ``Foo`` to ``BigFoo``
+	>>>     :raise ValueError: if bar_iterable did not yield any Bar instance
+	>>>          pass # todo implementation"""
+
+	<test/test_feature.py>
+	It has been written while putting down the docs for the method
+	>>> def test_makeFoo(self):
+	>>>     # assure it returns Foo instances, BigFoo if the flag is set
+	>>>     
+	>>>     # which contain the bars we passed in
+	>>>
+	>>>     # empty iterables raise
+
+Next up is the implementation of the test case - as it knows the interface of the method to test, it can be fully implemented before write any actual implementation::
+	
+	>>> # assure it returns Foo instances, BigFoo if the flag is set
+	>>> bars = (Bar(), Bar()) 
+	>>> for big in range(2):
+	>>>		foo = makeFoo(iter(bars), big)
+	>>>		assert isinstance(foo, Foo)
+	>>>		if big:
+	>>>			assert isinstance(foo, BigFoo)
+	>>>		# END check rval type
+	>>>		
+	>>>		# which contain the bars we passed in
+	>>>		assert foo.bars == bars
+	>>>		
+	>>>		# empty iterables raise
+	>>>		self.failUnlessRaises(ValueError, makeFoo, tuple(), big)
+	>>>	# END for each value of 'big'
+
+Now you have a full frame for all the boundary cases that you have documented before. Run the test repeatedly while implementing your actual classes. Once the test succeeds, you can at least be quite confident that your code is actually working.
+
+The full implementation of the example can be found in ``mrv.test.maya.nt.test_general``.
+
+The case presented here is of course nothing more than a constructed example, in many cases the flow of the development will be much less 'predefined' and more flexible, and it is usually iterative as well. The basic steps are the same though::
+	#. Understand the problem to solve
+	#. Design your Interface, Class or Method by sketching it - write documentation to get an even clearer understanding of the problem, as well as the limits within which you will solve it.
+	 * Track the sub-tests that you will need while writing the documentation
+	#. Implement the test case(s)
+	#. Write your actual implementation.
+	
+Of course it is totally valid to switch order, or jump back and forth between the steps - but the list presented here gives a good outline on how MRV is being developed.
+
+Making Contributions
+====================
+Show gource video
+http://vimeo.com/10611158
+
+Using Git
+=========
 Cloning, rebasinng, etc, default git stuff, but put it here to convince non-git people as well.
 
 

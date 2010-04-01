@@ -52,9 +52,59 @@ class StorageNetworkNode(nt.Network, nt.StorageBase):
 				continue
 			# END try to wrap our type around
 		# END for each network node
+	
+	
+class Bar(object):
+	pass 
+
+
+class Foo(object):
+	"""A Foo containing Bars
+	:note: Documentation Example"""
+	def __init__ (self, bars):
+		self.bars = tuple(bars)
+		if not self.bars:
+			raise ValueError("Need bars")
+
+
+class BigFoo(Foo):
+	"""A BigFoo is a better Foo"""
+	pass
+
 		
+def makeFoo(bar_iterable, big=False):
+	"""Create a new Foo instance which contains the Bar instances
+	retrieved from the bar_iterable.
+	
+	:return: ``Foo`` compatible instance. If big was True, it will 
+		support the ``BigFoo`` interface
+	:param bar_iterable: iterable yielding Bar instances. As Foo's
+		cannot exist without Bars, an empty iterable is invalid.
+	:param big: if True, change the type from ``Foo`` to ``BigFoo``
+	:raise ValueError: if bar_iterable did not yield any Bar instance"""
+	if big:
+		return BigFoo(bar_iterable)
+	return Foo(bar_iterable)
+
 
 class TestTransform( unittest.TestCase ):
+	
+	def test_makeFoo(self):
+		# assure it returns Foo instances, BigFoo if the flag is set
+		bars = (Bar(), Bar()) 
+		for big in range(2):
+			foo = makeFoo(iter(bars), big)
+			assert isinstance(foo, Foo)
+			if big:
+				assert isinstance(foo, BigFoo)
+			# END check rval type
+			
+			# which contain the bars we passed in
+			assert foo.bars == bars
+			
+			# empty iterables raise
+			self.failUnlessRaises(ValueError, makeFoo, tuple(), big)
+		# END for each value of 'big'
 	
 	@with_persistence
 	def test_virtual_subtype(self):
