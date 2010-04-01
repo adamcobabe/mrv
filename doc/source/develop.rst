@@ -1,35 +1,95 @@
+
+.. _development-label: 
+
 ###################
 Developing with MRV
 ###################
+MRV is a framework onto which new programs are easily being built, and it provides many tools to facilitate development and to help producing good software quickly.
+
+Setting up your development environment is a first step, which involves cloning the MRV mainline repository, and assuring that some prerequisites are met.
+
+The second part of this guide explains the naming conventions used in MRV, tells you about the development practices employed to produce it.
 
 ***********************
 Development Environment
 ***********************
-*NOTE*: This article is still under development
+This article describes the required setup and configuration of your system to develop MRV or projects based on MRV.
 
-This article describes the required setup and configuration of your system to develop MRV.
-
-Prerequesites
+Prerequisites
 =============
-* Test Framework
-
- * Nose 0.11 or higher
+The following software packages need to be installed,
+* Git 1.6.5 or higher
+* Autodesk Maya 8.5 or higher
+* Nose 0.11 or higher ( required by Testing Framework )
  
-* Documentation Generation
+* Documentation Generation (linux and OSX only)
 
  * Epydoc 3.x or higher
  * Sphinx 0.62 or higher
 
+The following installation guide *assumes you have already installed git and Autodesk Maya* for your platform. For instruction, please see the documentations of the respective package.
+ 
 Installation
 ============
-Clone the repository to get all data. Either fork your own on [www.gitorious.org] or [www.github.com] and clone from there, or clone from the main repository.
+The basic installation steps are similar in all supported operating systems. Getting MRV to run within a standalone interpreter differs between the platforms.
 
- git clone git://gitorious.org/mrv/mainline.git mrv
- git submodule update --init --recursive
+If a standalone interpreter does not work for you, its absolutely possible to run MRV within the default maya python interpreter, ``mayapy``.
+
+.. _install-label:
+
+1. Install the Prerequisites
+----------------------------
+The instructions assume you are going to run MRV within a standalone interpreter. If you are planning to use mayapy, the installation may be more complicated, but in general all that needs to be done is to put the required package(s) into the 'site-packages' folder of your python installation.
+
+Using easy_install, which comes with the python setuptools ( http://pypi.python.org/pypi/setuptools ) the installation is as easy as the name suggests::
+	
+	$ easy_install<python_version> nose sphinx epydoc
+
+Please note that the version of easy_install is important as you need to install the prerequisites for each python version that is used by the maya version you are going to run:
+* Maya 8.5 -> Python 2.4
+* Maya 2008|2009 -> Pyhthon 2.5
+* Maya 2010 -> Python 2.6
+
+Please note that the generation of the docs currently only works on linux and OSX assuming that easy_install is installed. You don't strictly need sphinx and epydoc to develop in MRV.
+
+Mayapy
+^^^^^^
+On Windows, MRV currently uses mayapy only ( although there have been experiments which proved that it can run in a standalone interpreter there as well ).
+
+The only package that you need to install to run the tests is nose. Its recommended to retrieve the package using easy_install for your standalone interpreter and to copy it to *"C:\Program Files\Autodesk\Maya<version>\Python\Lib\site-packages"* afterwards.
+
+If you want to use mayapy on other system, copy the ``nose`` package either into *"/usr/autodesk/maya<version>/lib/python<pyversion>/site-packages"* ( linux ) or into *"/Applications/Autodesk/maya<version>/Maya.app/Contents/Frameworks/Python.framework/Versions/<pyversion>/lib/python<pyversion>/site-packages"* (OSX).
+
+2. Get A or Your Repository Clone
+---------------------------------
+Clone the MRV mainline repository from gitorious.org. Either fork your own on [www.gitorious.org/mrv] or [www.github.com/Byron/mrv] and clone from your fork, or clone from the mainline repository as shown here.
+
+Execute the following::
+
+ $ git clone git://gitorious.org/mrv/mainline.git mrv
+ $ git submodule update --init
+ 
+On linux and OSX, you would have done this in a shell of your choice. On windows, you would have retrieved a shell using the "Git Bash Here" menu entry in your RMB explorer menu when clicking on a folder of your choice.
+
+3. Run the tests
+----------------
+By running the tests, you verify that the installation actually succeeded as you are able to run MRV in a standalone interpreter. 
+
+Linux and OSX
+^^^^^^^^^^^^^
+In your shell, you should now be able to execute the ``tmrv`` tool, such as follows::
+	
+	$ cd mrv
+	$ # start the tests for the given maya version, 2011 in this case
+	$ test/bin/tmrv 2011
+
+All tests are expected to succeed. Please note that ``tmrv`` just executes ``mrv/bin/mrv`` and launches nosetest afterwards, hence all parameters supported ``nosetests`` in your particular installation will work here as well.
+
+On OSX, the default installation will not work if you intend to run Maya2010 or later. Please see the ``Troubleshooting`` guide for a solution.
 
 Windows
-=======
-On Windows, make sure that the maya revised repository has at least one folder between itself and the drive letter. Otherwise you are not able to run tests properly due to some issue with nose on windows. 
+^^^^^^^
+On Windows, make sure that the MRV repository has at least one folder between itself and the drive letter. Otherwise you are not able to run tests properly due to some issue with nose on windows (apparently). 
 
 * This is wrong:
 
@@ -39,59 +99,85 @@ On Windows, make sure that the maya revised repository has at least one folder b
 
  * c:\\projects\\mrv\\[.git]
 
-Set your '''MAYA_LOCATION''' environment variable to the location of the maya version to use. MRV will be run using ''mayapy'' of the specified version.
+Set your **MAYA_LOCATION** environment variable to the location of the maya version to use. MRV will be run using ''mayapy'' of the specified version, you cannot choose between the versions as on Linux / OSX.
 
-Install nose in maya's python site-libararies.
+Additionally, set the **MRV_MAYA_VERSION** variable to the version you use, i.e. "8.5" or "2011". This variable is required only by one test, which would fail otherwise.  
 
-'''TODO: Detail this'''
+In a command prompt, execute::
+	
+	$ cd mrv
+	$ test\bin\tmrv
 
-OSX
-===
-'''TODO: Detail this, it uses the default system interpreter, any of its sitelibraries will work.'''
+All tests are expected to succeed.
+	
+Troubleshooting
+---------------
+This paragraph informs about possible issues which have already been resolved, but which may be quite distracting at first.
 
-Maya2011 and onward
--------------------
-Starting with Maya2010, maya is delivered as 64 bit birnary. The default interpreter in your path should be 64 bits as well, but if it is not, you have to make some adjustments. 
+OSX and 64bit Executables
+^^^^^^^^^^^^^^^^^^^^^^^^^
+Starting with Maya2010, maya is delivered as 64 bit binary. The default interpreter in your path should be 64 bits as well, but if it is not, you have to make some adjustments. 
 
 To allow the mrv startup script to find a python interpreter compiled for 64 bit, it will be sufficient to put a symbolic link to ``python2.6`` into your /usr/bin directory which points to the interpreter in question. 
 
-``mayapy`` in your maya installation directory will work in case you don't want to build your own one, using macports for instance. In that case you need to put a symbolic link named ``python2.6`` into your ``/Applications/Autodesk/maya2010/Maya.app/Contents/bin`` directory which needs to be inserted to the first position of your PATH. To run the unit tests, you might have to install ``nose`` into maya's site-packages directory.
+``mayapy`` in your maya installation directory will work in case you don't want to build your own one, using macports for instance. In that case you need to put a symbolic link named ``python2.6`` into your ``/Applications/Autodesk/maya2010/Maya.app/Contents/bin`` directory which needs to be inserted to the first position of your PATH. To run the unit tests, you will have to install ``nose`` into maya's site-packages directory::
+	
+	$ mayabin=/Applications/Autodesk/maya<version>/Maya.app/Contents/bin
+	$ ln -s $mayabin/mayapy python<pyversion>
+	$ export PATH=$mayabin:$PATH
+
+The reason for this extra-effort is that the ``mrv`` executable wants to start ``python<pyversion>`` which needs to be in the path. In order to use mayapy without dropping dynamic version support, the respective python<version> symlinks need to be in the PATH. On OSX its additionally required to put it into the same location as mayapy as mayapy will not find its prerequisites otherwise and fails to start.
+
+Still troubled ? Use mayapy
+^^^^^^^^^^^^^^^^^^^^^^^^^^^
+If the standalone interpreter just doesn't want to work on your platform or with your particular configuration, you may always use ``mayapy``, which can be found in the *<maya_install_directory>/bin* folder. It will setup a  standalone interpreter which automatically pulls in the packages required for Maya to work.
+
+As a side-effect, ``nose`` needs to be installed in mayapy's *site-packages* directory, as indicated in the :ref:`installation section<install-label>`.
 
 *********************
 MRV Naming Convention
 *********************
-MRV's primary intention regarding its naming conventions is to fit into the ones already setup by the MayaAPI.
+MRV's primary intention regarding its naming conventions is to fit into the ones already setup by the MayaAPI, while trying not to completely neglect the python heritage and PEP8 which comes with it.
 
 Method Names
 ============
 MRV uses methods named ``setProperty`` to set the given property on an instance, and ``property`` to retrieve that property. ``property`` may take arguments as well to possibly configure the way the property is retrieved.
 
-To indicate non-property values, which are values that have to be generated or retrieved in some way, the method is prefixed to give a hint on the underlying operation, such as in ``findValue`` or ``createValue``.
+To indicate non-property values, which are values that have to be generated or retrieved in some way, the method is prefixed to give a hint on the underlying operation, such as in ``findValue`` or ``createItem``.
 
 If the property is a boolean, and if it equals a state of the instance, the method prefix is chosen to be close to 'natural english', i.e. ``isLocked``, or ``hasCache``.
 
-MayaAPI Method Names
-====================
-TODO: write it nicely
-If overridden MFnMethod uses getX, an alias X is provided, the method itself is overridden as getX. 
+Public methods which are part of the maya related parts of MRV must obey to this convention. Protected methods, that is methods which are not part of the public interface, may be named according to PEP8 as well. 
 
-If an overridden MFnMethod uses X, no alias is provided for getX.
-
-isSomething, but issometh	# abbreviations lower case
+Public MRV methods which do not depend on maya in any way may use PEP8, but it is advised to keep the naming consistent with the one employed by the MayaAPI if the interface is used by the maya dependent parts. For example, even though the types in ``mrv.interfaces`` don't depend on Maya, Maya depends on them, so their public methods are camel-cased. 
 
 Variable Names
 ==============
-TODO: var names, actually its quite free, is it ?
+Within your method or function, great freedom can be exercised regarding the names of variables. Some like camel-cased variableNames, others prefer PEP8 variable_names, and neither one is right or wrong. Choose what seems most appropriate for you, and whatever you like typing more. Within MRV, you might find passages that use a 'MEL' style variable naming, other parts prefer PEP8. In general, MRV will prefer PEP8 over camel-cases as its easier to type, which in turn increases productivity.
+
+Method Aliases
+==============
+If MRV overrides native MFnFunctionSet methods, the overriding function will use the same name even if it prefixed with 'get' - that prefix is dropped in MRV. In that case though, an alias is provided to conform to MRV's naming conventions. As an example, if the method ``MFnFoo.getBar`` is overridden with ``FooNode.getBar``, an alias called ``FooNode.bar`` would be provided.
+
+If an overridden MFnMethod uses X, no alias is provided for getX. For example, ``MFnFoo.bar`` would be overridden with ``FooNode.bar``, but an alias called ``FooNode.getBar`` will *not* be provided.
+
+Commonly used methods with long names, such as ``MPlug.isConnectedTo`` have an abbreviation alias in order to speed up typing and typing convenience. Abbreviations only use lower-case letters, and use the first character of each of the camel-cased words. The abbreviation in this case is be ``MPlug.mict``.
 
 
-MFnMethod Calling Conventions
-=============================
-Return values of overridden MFNMethods return the wrapped type. ( i.e. DagNode.child ).
+******************
+Calling MFnMethods
+******************
+Return values of overridden MFNMethods return the wrapped type. ( i.e. DagNode.child ). This is the expected behavior as MFnMethods called on wrapped objects should return wrapped objects to stay in the wrapped 'ecosystem'.
 
 At the current time, MFn methods which receive MObjects or MDagPaths will only
 allow MObjects or MDagPaths, wrapped nodes must be converted explicitly. At some 
 point this should change to allow wrapped nodes as well.
 
+If MFnMethods require the ``MScriptUtil`` to be used from python, and if it has not been overridden by MRV yet, there is no convenient way to call it.
+
+If the MFnMethod alters the object in question, and if there is no MRV override yet, undo will not be implemented. 
+
+Whenever an MRV developer encounters an 'uncallable' method, he is advised to implement the pythonic version of the method directly on the type or base type in question, see the document about :doc:`Extending MRV<extend>` for more information.
 
 .. _development-workflow-label:
 
