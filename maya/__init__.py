@@ -233,7 +233,7 @@ def init_system( ):
 
 	# EXTRACT VERSION INFORMATION IF POSSIBLE
 	##########################################
-	mayalocation = os.environ[locvar]
+	mayalocation = os.path.realpath(os.environ[locvar])
 	splitpos = -1
 
 	# OS X special case

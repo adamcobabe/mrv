@@ -53,10 +53,12 @@ class MetaClassCreatorNodes( MetaClassCreator ):
 		try:
 			return newcls.__dict__[ mfndbattr ]
 		except KeyError:
+			mfndbpath = mdb.mfnDBPath(mfncls.__name__)
 			try:
-				mfndb = mdb.MMemberMap(mdb.mfnDBPath(mfncls.__name__), **kwargs)
+				mfndb = mdb.MMemberMap(mfndbpath, **kwargs)
 			except IOError:
-				mfndb = mdb.MMemberMap(**kwargs)
+				print IOError("Could not create MFnDB for file at %s" % mfndbpath)
+				raise
 			# END handle mmap reading
 			type.__setattr__( newcls, mfndbattr, mfndb )
 			return mfndb
