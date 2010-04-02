@@ -7,7 +7,7 @@ Software
 ********
 This software is licensed under the **New BSD License**. A version for human beings with translations into many languages can be found here: http://creativecommons.org/licenses/BSD:
 
-Copyright (c) 2009-2010, Sebastian Thiel
+Copyright (c) 2009-2010, `Sebastian Thiel <http://de.linkedin.com/in/sebastianthiel>`_
 All rights reserved.
 
 Redistribution and use in source and binary forms, with or without

@@ -257,11 +257,33 @@ class TestTransform( unittest.TestCase ):
 		# undo our changes
 		nt.DependNode.__str__ = old_str
 		
+	def test_add_and_retrieve_complex_datatype_using_api(self):
+		sellist = api.MSelectionList()
+		sellist.add("persp")
+		p = api.MDagPath()
+		sellist.getDagPath(0, p)
+		
+		mfndag = api.MFnDagNode(p)
+		mfnattr = api.MFnTypedAttribute()
+		mfndata = api.MFnStringArrayData()
+		attr = mfnattr.create("stringArray", "sa", api.MFnData.kStringArray, mfndata.create())
+		mfndag.addAttribute(attr)
+		
+		# all this to add an attribute, now retrieve the value
+		# this is rather short as we reuse the function set.
+		mfndata.setObject(mfndag.findPlug("sa").asMObject())
+		mfndata.array()
+		
+	@with_scene('empty.ma')
+	def test_add_and_retrieve_complex_datatype_using_mrv(self):
+		p = nt.Node("persp")
+		p.addAttribute(nt.TypedAttribute.create('stringarray', 'sa', Data.Type.kStringArray, nt.StringArrayData.create()))
+		p.sa.masData().array()
+		
 	@with_undo
 	@with_persistence
+	@with_scene('empty.ma')
 	def test_usage_examples(self):
-		mrvmaya.Scene.new(force=True)
-		
 		# NOTE: If this test fails ( because of name changes for instance ), the 
 		# documentation needs to be fixed as well, usage.rst.
 		
