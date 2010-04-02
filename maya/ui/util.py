@@ -67,7 +67,8 @@ class Signal( Event ):
 	assure we can always call it. This implies that we may leave many dangling objects
 	unless we are being properly cleaned up on deletion.
 	
-	Calls generated from this event will not put the sender as first argument"""
+	Calls generated from this event will not put the sender as first argument, but 
+	you may retrieve it using ``self.sender()``."""
 	#{ Configuration 
 	use_weakref = False
 	remove_on_error = False

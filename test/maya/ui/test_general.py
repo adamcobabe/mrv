@@ -165,9 +165,7 @@ if not cmds.about(batch=1):
 			assert win.childByName( str( col ) ) == col 
 			def func( b, *args ):
 				b.p_label = "pressed"
-				b.p_actionIsSubstitute = 1
 				sys.stdout.write( str( args ) )
-	
 	
 			if col:
 				b = col.add( ui.Button( l="b with cb" ), set_self_active=1 )

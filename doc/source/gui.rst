@@ -59,6 +59,15 @@ As it is practical to indicate the hierachical level using indentations, you may
 	>>>		b1 = Button()
 	>>>	col.setParentActive()
 	
+In case you are interested to keep the actual child instances that you create,  its good to know that Layouts inherit from ``UIContainerBase`` which provides just that functionality::
+	
+	>>> col = ColumnLayout()
+	>>> if col:
+	>>>		b1 = col.add(Button())
+	>>> 	assert b1 is col.listChildren()[0] 
+	>>>	col.setParentActive()
+	
+
 ******
 Events
 ******
@@ -77,11 +86,41 @@ With MRV, events are properties of the class prefixed with *e_*. You can assign 
 Show the window to see a simple UI with two vertically arranged buttons, if 'one' is pressed, 'two' will be affected::
 	>>> win.show()
 
+.. _signals-label:
 	
 *******
 Signals
 *******
-TODO: Talk about custom signals, refer to modular user interface section for a complete example.
+Signals are custom events which are named after the `Signals and Slots <http://doc.trolltech.com/4.6/signalsandslots.html>`_ mechanism introduced by QT.
+
+Signals help to write truly modular user interface elements which can be combined freely. The way they respond to each other is solely defined by Signals send to receivers which provide methods to be called.
+
+Signals can be used just like any other event predefined by the system - the only difference is that you may call them yourself::
+	
+	>>> class Sensor(Button):
+	>>> 	e_pushed = Signal() 		# pushedWith(pressure)
+	>>> 	def __init__(self, *args, **kwargs):
+	>>> 		self.e_pressed = lambda *args: self.e_pushed(50)
+	>>> 		self.p_label = "Pressure Sensor"
+			
+	>>> class Receiver(TextField):
+	>>> 	def pushedWith(self, pressure):
+	>>> 		self.p_text = "%s pressure is %i" % (self.sender().basename(), pressure)
+	
+	>>> win = Window()
+	>>> ColumnLayout(adj=1)
+	>>> s = Sensor()
+	>>> r = Receiver()
+	>>> s.e_pushed = r.pushedWith
+	>>> win.show() 
+
+In this example, the Sensor is a button which reacts to its own button-pressed events. Whenever this event occours, it sends out a custom Signal with a pressure level. The Receiver is a TextField which can receive a pressure level, and displays it together with the sender ( as retrieved using the ``sender()`` method ).
+
+The Signal gets connected to the corresponding method using a simple assignment: ``s.e_pushed = r.pushedWith``.
+
+Its important that both interfaces in fact do not know each other, and don't need to know each other - this way they stay self-contained and care about nothing else than implementing their interface correctly.
+
+Even though the underpinning of the UI Wrap are still based on MEL ( until Maya 2010 ), you are enabled to program much more advanced, independent modules that are easier to reuse, and are based on more maintainable code.
 	
 **************************
 Managing Instance Lifetime
@@ -106,7 +145,7 @@ With these basics, you are already able to define user interfaces and make them 
 
 More complex user interface easily have several layouts in complex hierarchical relationships, updating the user interface properly and efficiently becomes a daunting task.
 
-The solution is to pack the user interface elements into modules which are not doing anything else than fulfilling a specific task. These modules provide an interface to interact with them, and events to react to them.
+The solution is to pack the user interface elements into modules which are not doing anything else than fulfilling a specific task. These modules provide an interface to interact with them, they send :ref:`Signals <signals-label>` to in order for others to respond to them, or they receive Signals of others themselves.
 
 This way, complex user interfaces can be assembled in a more controllable fashion, events bind the different indepenent modules together::
 	>>> class Additor(Button):

@@ -38,6 +38,23 @@ if not cmds.about(batch=1):
 			
 			win.show()
 			
+		def test_signals(self):
+			class Sensor(Button):
+				e_pushed = Signal() 		# pushedWith(pressure)
+				def __init__(self, *args, **kwargs):
+					self.e_pressed = lambda *args: self.e_pushed(50)
+					self.p_label = "Pressure Sensor"
+					
+			class Receiver(TextField):
+				def pushedWith(self, pressure):
+					self.p_text = "%s pressure is %i" % (self.sender().basename(), pressure)
+			
+			win = Window()
+			ColumnLayout(adj=1)
+			s = Sensor()
+			r = Receiver()
+			s.e_pushed = r.pushedWith
+			win.show()
 			
 		def test_doc_demo_modules(self):
 			class Additor(Button):

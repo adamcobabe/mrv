@@ -35,6 +35,19 @@ PyMel
  * mrv.maya.util.Mel ``( copy + customizations )``
  * mrv.maya.util.OptionVarDict ``( copy +  modifications )``
  
+NetworkX
+--------
+``NetworkX`` is licensed under the ``BSD License`` ( http://networkx.lanl.gov/reference/legal.html ).
+
+Pydot
+-----
+``Pydot`` is licensed under the ``MIT License`` ( http://www.opensource.org/licenses/mit-license.php ).
+
+Pyparsing
+---------
+``Pyparsing`` is licensed under the ``MIT License`` ( http://www.opensource.org/licenses/mit-license.php ).
+
+ 
 *************
 Documentation
 *************

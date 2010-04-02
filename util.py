@@ -8,7 +8,7 @@ import itertools
 from interface import iDuplicatable
 
 import logging
-log = logging.getLogger("mrv.maya.ui.qa")
+log = logging.getLogger("mrv.maya.ui.util")
 
 __docformat__ = "restructuredtext"
 __all__ = ("decodeString", "decodeStringOrList", "capitalize", "uncapitalize", 
@@ -298,6 +298,9 @@ class Event( object ):
 	sender_as_argument = None
 	#} END configuration
 
+	# internally used to keep track of the current sender. Is None if no event
+	# is being fired
+	_curSender = None
 
 	def __init__( self, **kwargs ):
 		"""
@@ -386,6 +389,9 @@ class Event( object ):
 			sas = self.sender_as_argument
 		# END event override
 		
+		# keep the sender
+		Event._curSender = inst
+		
 		for function in callbackset:
 			try:
 				func = self._key_to_func( function )
@@ -420,6 +426,7 @@ class Event( object ):
 		for function in failed_callbacks:
 			callbackset.remove( function )
 
+		Event._curSender = None
 		return success
 
 	# Alias, to make event sending even easier
@@ -497,6 +504,13 @@ class EventSender( object ):
 		except AttributeError:
 			pass
 		# END exception handling
+		
+	def sender(self):
+		""":return: instance which sent the event you are currently processing
+		:raise ValueError: if no event is currently in progress"""
+		if Event._curSender is None:
+			raise ValueError("Cannot return sender as no event is being sent")
+		return Event._curSender
 	
 
 class InterfaceMaster( iDuplicatable ):
