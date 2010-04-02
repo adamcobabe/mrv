@@ -18,13 +18,19 @@ This article describes the required setup and configuration of your system to de
 Prerequisites
 =============
 The following software packages need to be installed,
-* Git 1.6.5 or higher
-* Autodesk Maya 8.5 or higher
-* Nose 0.11 or higher ( required by Testing Framework )
- 
-* Documentation Generation (linux and OSX only)
 
- * Epydoc 3.x or higher
+* Git 1.6.5 or higher
+
+* Autodesk Maya 8.5 or higher
+
+* *Testing Framework*
+
+ * Nose 0.11 or higher
+ * Coverage ( optional )
+ 
+* *Documentation Generation (linux and OSX only)*
+
+ * Epydoc 3.x
  * Sphinx 0.62 or higher
 
 The following installation guide *assumes you have already installed git and Autodesk Maya* for your platform. For instruction, please see the documentations of the respective package.
@@ -43,7 +49,7 @@ The instructions assume you are going to run MRV within a standalone interpreter
 
 Using easy_install, which comes with the python setuptools ( http://pypi.python.org/pypi/setuptools ) the installation is as easy as the name suggests::
 	
-	$ easy_install<python_version> nose sphinx epydoc
+	$ easy_install<python_version> nose coverage sphinx epydoc
 
 Please note that the version of easy_install is important as you need to install the prerequisites for each python version that is used by the maya version you are going to run:
 * Maya 8.5 -> Python 2.4
@@ -223,7 +229,7 @@ While writing this, you essentially define the domain within which this method i
 
 Whenever you set a pile for the fence of your domain, switch to ``righty`` and note down what the method can do, or what it can't do to assure you don't forget about the individual things that need to be tested::
 	
-	<feature.py>
+	>>> # <feature.py>
 	>>> def makeFoo(bar_iterable, big=False):
 	>>>     """Create a new Foo instance which contains the Bar instances
 	>>>     retrieved from the bar_iterable.
@@ -236,8 +242,8 @@ Whenever you set a pile for the fence of your domain, switch to ``righty`` and n
 	>>>     :raise ValueError: if bar_iterable did not yield any Bar instance
 	>>>          pass # todo implementation"""
 
-	<test/test_feature.py>
-	It has been written while putting down the docs for the method
+	>>> # <test/test_feature.py>
+	>>> # It has been written while putting down the docs for the method
 	>>> def test_makeFoo(self):
 	>>>     # assure it returns Foo instances, BigFoo if the flag is set
 	>>>     
@@ -278,6 +284,142 @@ The case presented here is of course nothing more than a constructed example, in
 	
 Of course it is totally valid to switch order, or jump back and forth between the steps - but the list presented here gives a good outline on how MRV is being developed.
 
+Running Tests
+=============
+In Test-Driven-Development, running the test is a major part of the workflow, which is why this sections presents a few commonly used strategies to test efficiently and conveniently.
+
+Nose is the main test driver, it offers pretty much everything you ever wanted and allows to be extended using plugins rather easily - the following presentation shows only some of the vast amount of features available, you can read more on the `official homepage <http://somethingaboutorange.com/mrl/projects/nose>`_, the examples should work on linux, OSX and windows.
+
+If your working directory is the MRV root directory, the following command will run all tests ( in about ~7s )::
+	
+	$ test/bin/tmrv <mayaversion>
+	
+Run individual test packages or module by specifying there paths::
+	
+	$ # runs the Path test, as well as all maya related tests of the given maya version
+	$ test/bin/tmrv <mayaversion> test/test_path.py test/maya
+
+Running tests outside of the maya test package will not startup maya, hence it will return much quicker::
+	
+	$ test/bin/tmrv <mayaversion> test/test_enum.py
+	
+If an exception is raised in the tests, you will see it in the final output, as well as the caught standard output. The ``-d`` flag resolves symbols to their actual values. In case you want to jump right into the exception when it occurs, specify ``--pdb``. If you just have a failing test and want to inspect the variable values yourself, use ``--pdb-failure``::
+	
+	$ test/bin/tmrv <mayaversion> test/test_fails.py -d
+	$ test/bin/tmrv <mayaversion> test/test_fails.py --pdb
+	$ test/bin/tmrv <mayaversion> test/test_fails.py --pdb-failure
+	
+As nose will by default catch all standard output of your program, it may also suppress messages you print during the first import of your program. To show all of these as they occur, use the ``-s`` flag::
+	
+	$ test/bin/tmrv <mayaversion> test/test_startup_issues.py -s
+	
+Testing User Interfaces
+-----------------------
+Testing user interfaces is a very manual process. The tests currently available in the ``mrv.test.maya.ui`` package are showing a few windows, the knowing user may also click a few buttons to verify that callbacks work alright.
+
+These tests at least show that the UI system is not fundamentally broken, and that Callbacks and Signals work - nonetheless the manual nature of these tests causes them not to be run very often.
+
+The commandline required to run the tests is the following ( all platforms )::
+	
+	$ test/bin/tmrvUI <path/to/maya/bin/maya>
+	
+In future, this testing system is likely to be improved, also considering that QT offers a `test library <http://qt.nokia.com/doc/4.2/qtestlib-manual.html>`_ which can virtualize mouse clicks and keyboard input, in order to fully automate user interface testing.
+
+More information about this is to follow, but own experiences have to be made first.
+	
+Verifying Test Coverage
+-----------------------
+In statically typed languages, one benefits from the great blessing of having a compiler which is able to check types and their compatibility, as well as to verify names at compile time.
+
+Unfortunately, Python will only be able to discover this big class of errors at runtime, which essentially is too late. Test cases help to run your code, but are you sure it is running every line of it ?
+
+Nose comes with an excellent tool which verifies the tests code coverage. As it needs a few options, there is a utility ( Linux + OSX ) which runs all or the specified tests with coverage output::
+	
+	$ test/bin/tmrvc <mayaversion> 
+	$ firefox coverage/index.html
+	
+The resulting web page highlights all lines that ran, and shows the ones that did not run, which enables you to adjust your tests to run all the lines.
+
+At the time of writing, MRV had a test coverage of 90%, but of course `test coverage is not everything <http://www.infoq.com/news/2007/05/100_test_coverage>`_.
+
+Regression Testing
+------------------
+As MRV is meant to be useful in all Maya Releases which support python, namely 8.5 till X where X is the latest release, it must be verified that all tests indeed succeed in all available Maya versions, ideally on all platforms.
+
+On Linux and OSX, a tool is available to facilitate running these tests. If it succeeds, it will give instructions to manually run the user interface tests and to complete the regression testing::
+	
+	$ test/bin/tmrvr 
+	$ test/bin/tmrvUI <path/to/maya/bin/maya>
+
+IPython and IMRV
+================
+During development, it is unlikely that one remembers all methods available on instances of a certain type, sometimes its required to just quickly test or verify something, or to pull up the docs on a basic but rarely used python built-in function. Searching the Web is possible, but using ``ipython`` is much more convenient.
+
+``imrv``, one of MRVs :doc:`tools`,  essentially is an ipython shell which has been setup to load a specialized version of the MRV runtime to provide you with a fully initialized MRV runtime environment::
+	
+	$ bin/imrv
+	>>> p = Node("persp")
+	Transform("|persp")
+	
+	List all available methods on the perspective transform:
+	>>> p.<tab-key>
+	
+	Show the doc-string of a method:
+	>>> p.name?
+	
+	Jump into the debugger next time an exception occurs:
+	>>> pdb
+	
+	Disable the debugger
+	>>> pdb
+	
+Avoiding Trouble - A Word about Reference Counts
+================================================
+As MRV nearly exclusively uses the API to do work, it also allows you to use the underlying API types, MObject and MDagPath, directly.
+
+If used correctly, the benefit is performance and ease of use, but in the worst case, maya will crash - this happens more easily when using the Maya API than when using MEL for example.
+
+To understand the source of the issue, one has to understand what an MObject is: MObjects are containers with a reference count, a type and a pointer to the actual data. This in fact is very similar to the ``object`` base type in python.
+
+If you see an MObject in python, such as in the following snippet ... ::
+	
+	>>> p = Node("persp")
+	>>> po = p.object()
+	<maya.OpenMaya.MObject; proxy of <Swig Object of type 'MObject *' at 0x36a2ee0> >
+	
+... what you actually see is a proxy object which serves as a python handle to the actual C++ MObject. The reference count of that proxy object is 1, as it is stored in only one named variable, ``po``. The caveat here is that this does not affect the reference count of the underlying MObject at all - its reference count is the same as it was before. The only one who actually holds a reference to it is Maya, and it is allowed to drop it at any time, or copy its memory to a different location. If that would happen, any access to ``p`` or ``po`` may cause a crash or destabilize Maya to cause a crash later, which is even worse.
+
+The only way to forcibly increment the reference count is by copying the MObject explicitly::
+	
+	>>> poc = api.MObject(po)
+	>>> po, poc
+	(<maya.OpenMaya.MObject; proxy of C++ MObject instance at _f0d5050500000000_p_MObject>,
+ <maya.OpenMaya.MObjectPtr; proxy of C++ MObject instance at _1008460200000000_p_MObject>)
+ 
+This invoked the C++ copy constructor, and incremented the reference count on the MObject. Copying MObjects might come at additional costs though in case the MObject encapsulates data.
+
+When adding attributes with the bare python Maya API, this situation can easily occur::
+	>>> p.addAttribute(api.MFnTypedAttribute().create("sa", "stringarray", api.MFnData.kStringArray, api.MFnStringArrayData().create())
+	
+In this example, we created two temporary function sets, ``MFnTypedAttribute`` and ``MFnStringArrayData``. The ``create`` methods of the respective sets return newly create MObjects - the only one who keeps a reference is the actual function set. Two bad things happen:
+
+#. ``MFnStringArrayData`` returned an MObject encapsulating an empty string array to you, then it goes out of scope, and decrements its reference count on the returned MObject during its destruction sequence. The MObject has no one referencing it anymore, so it will destroy itself and its data. Python still has a handle onto the memory location that once kept the MObject, and it is passed to ``MFnTypedAttribute.create``.
+#. ``MFnTypedAttribute.create`` produces a new attribute ``MObject`` with invalid default data, returns it and destroys itself as it goes out of scope. Again, the reference count of the newly created Attribute decrements to 0, which destroys the Attribute and its data. The python handle you see will be passed to the ``p.addAttribute`` method, which tries to create an attribute from deleted data.
+
+If you try that line, you will see that it apparently works, but its not guaranteed to do so, nor will you be able to tell whether the caused memory corruption will crash Maya at a later point.
+
+The alternative to the line above is to use the Attribute wrappers that MRV provides::
+	
+	>>> p.addAttribute(TypedAttribute.create("sa", "stringarray", Data.Type.kStringArray, StringArrayData.create()))
+	
+In the version above, both create methods implicitly copy the returned MObject, which forcibly increments its reference count. Once the underlying MFnFunctionSet goes out of scope, it will decrement the MObject's reference counts to 1, keeping it alive and healthy.
+
+Generally, when dealing with MObjects directly, keep the reference count in mind especially in case of MObjects that have just been created.
+
+In c++, this is not a problem as MObjects are copied automatically when being assigned to a variable for instance or when being passed into functions ( most of the time ). If you have a proper compiler though, the above line would be invalid as well as you return temporary objects and pass them in as reference. 
+
+In python, there is no compiler who would be able to check for this. 
+
 ************
 Contributing
 ************
@@ -303,34 +445,24 @@ The workflow presented here is only a rough introduction to the multitude of pos
 
 .. _runtestsdoc-label:
 
-Running Tests
-=============
-
-Debugging
-=========
--> Utilities
-pdb
-utiltiies
-imrv
-
-Common Mistakes
-===============
-Lifetime of MObjects/reference count
-mat == p.wm.getByLogicalIndex(0).asData().matrix()	# matrix is ref, parent goes out of scope
 
 ***************
 Making Releases
 ***************
+TODO:
 
 Building Docs
 =============
+Currently, building of the docs is only supported on linux and on OSX provided that sphinx and epydoc have been installed properly. 
 
+If that is the case, the following line will build the docs you are currently reading, in the version you have checked out locally::
+	
+	$ cd doc
+	$ make html
+	$ # to redo existing docs from scratch
+	$ make clean html
 
-************************************************
-Avoiding Trouble - A Word about Reference Counts
-************************************************
-TODO: MObject ref counts vs. python wrapper refcounts
-masData performance consderation ( add below )
+The built documentation can be found in ``mrv/doc/build/html``.
 
 .. _performance-docs-label:
 
