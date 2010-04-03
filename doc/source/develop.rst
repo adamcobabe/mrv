@@ -142,9 +142,9 @@ If the standalone interpreter just doesn't want to work on your platform or with
 
 As a side-effect, ``nose`` needs to be installed in mayapy's *site-packages* directory, as indicated in the :ref:`installation section<install-label>`.
 
-*********************
-MRV Naming Convention
-*********************
+**********************
+MRV Naming Conventions
+**********************
 MRV's primary intention regarding its naming conventions is to fit into the ones already setup by the MayaAPI, while trying not to completely neglect the python heritage and PEP8 which comes with it.
 
 Method Names
@@ -283,6 +283,8 @@ The case presented here is of course nothing more than a constructed example, in
 	#. Write your actual implementation.
 	
 Of course it is totally valid to switch order, or jump back and forth between the steps - but the list presented here gives a good outline on how MRV is being developed.
+
+.. _runtestsdoc-label:
 
 Running Tests
 =============
@@ -443,8 +445,6 @@ When creating own features or patches, you just put them into a separate branch 
 
 The workflow presented here is only a rough introduction to the multitude of possible git workflows, and more concrete examples will be added as the need arises.
 
-.. _runtestsdoc-label:
-
 
 ***************
 Making Releases
@@ -465,8 +465,8 @@ If that is the case, the following line will build the docs you are currently re
 
 The built documentation can be found in ``mrv/doc/build/html``.
 
-.. _performance-docs-label:
 
+.. _pipeline-integration-label:
 
 *****************************************
 Integrating MRV into Production-Pipelines
@@ -478,6 +478,9 @@ Nowadays, and after many improvements, it should be even more useful when applie
 Besides that, you are able to :doc:`extend <extend>` it to suit your needs, and :doc:`configure <conf>` it to suit your needs even better.
 
 Finally, if - after a thorough study of the documentation - there are any questions or doubts left that would prevent its use, I will be glad to help personally.
+
+
+.. _performance-docs-label:
 
 *************************************
 Performance and Memory Considerations

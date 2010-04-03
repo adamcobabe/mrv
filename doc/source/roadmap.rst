@@ -7,6 +7,7 @@ v1.0.0
 ******
  * Freeze the MRV API, hence method names will stay as they are
  * Fix issues which came up in preview and RC releases
+ * Provide a template project which allows to get started on own MRV based tools easily.
  
 ******
 v1.0.9

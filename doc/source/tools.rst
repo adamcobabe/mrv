@@ -7,8 +7,6 @@ All production level programs are located in ``mrv/bin``, all testing utilities 
 
 All examples are given using linux shell semantics, windows users usually only have to substitute '/' with '\', and be aware of possible limitations.
 
-.. _imrv-label:
-
 ****************
 Production Tools
 ****************
@@ -37,6 +35,8 @@ It can easily be used to write only standalone tools with maya support.
 **Availability**: Linux, OSX and Windows
 
 .. note:: The windows version of the tool currently does not allow the maya version to be specified.
+
+.. _imrv-label:
 
 imrv
 ====

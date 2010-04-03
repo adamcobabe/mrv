@@ -541,6 +541,7 @@ class TestTransform( unittest.TestCase ):
 		assert isinstance(t.outTime.asMTime(), api.MTime)
 		
 		ninst = p.instanceNumber()
+		assert p.isInstancedAttribute(p.attribute('wm')) 
 		pewm = p.worldMatrix.elementByLogicalIndex(ninst)
 		
 		matfn = api.MFnMatrixData(pewm.asMObject())
@@ -570,7 +571,7 @@ class TestTransform( unittest.TestCase ):
 		assert len(ptc) == 3
 		assert (ptc[0] == p.tx) and (ptc[1] == p.ty)
 		assert ptc[2] == p.t.mchildByName('tz')
-		assert p.tx.mparent() == p.t
+		assert p.tx.parent() == p.t
 		assert p.t.isCompound()
 		assert p.tx.isChild()
 		

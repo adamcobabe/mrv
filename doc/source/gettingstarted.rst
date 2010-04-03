@@ -6,15 +6,15 @@ Besides the fact that you need to be familiar with Python, you should be able to
 ****************
 Helping Yourself
 ****************
-MRV uses Sphinx as main documentation system, but uses Epydoc to fill the gap.
+MRV uses Sphinx as main documentation system, but Epydoc fills the gap by providing more readable auto-generated documentation.
 
-The sphinx documentation provides additional hand-manufactured documentation whereas the epydoc documentation pages are created from the source code only.
+The sphinx docs provide additional hand-written articles whereas the epydoc documentation pages are created from the source code exclusively.
 
-Besides sphinx's ability to mix auto-generated pages with hand-written ones, it has a search feature that proves extemely useful: :ref:`search`.
+Besides sphinx's ability to mix auto-generated pages with hand-written ones, it has a search feature that proves extremely useful: :ref:`search`.
 
-Most modules contain their own documentation. Module and Class doc strings are written in restructuredText to achieve nice formatting. Currently all functions are documented in epydoc style. 
+Most modules contain their own documentation. Module and Class doc strings are written in restructuredText to achieve nice formatting. 
 
-The latter one works fine for epydoc, but looks awkward in this documentation. For your convenience, a link to the respective epydoc documentation page is provided on the top of each sphinx module docuemntation page.
+For your convenience, at the top of each sphinx python module documentation page, a link to the respective epydoc documentation page is provided.
 
-In theory, you will never have to look into mrv's code yourself, even if code studies are desired, you could use the epydoc's 'source code' links to do so.
+In theory, you will never have to look into MRV's code yourself, and even if code studies are desired, using epydoc's 'source code' links might be good to start with.
 
