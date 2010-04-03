@@ -91,7 +91,7 @@ Runs UI specific tests. For this to work, you must supply a path to the maya bin
 
 tmrvc
 =====
-Produce a coverage report using nose coverage. As it is essentially a reconfigured nose, it supports all nose specific arguments as well.
+Produce a :download:`coverage report <download/coverage/index.html>` using nose coverage. As it is essentially a reconfigured nose, it supports all nose specific arguments as well.
 
 **Sample Usage**::
 	

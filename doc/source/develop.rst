@@ -340,7 +340,7 @@ Nose comes with an excellent tool which verifies the tests code coverage. As it 
 	
 The resulting web page highlights all lines that ran, and shows the ones that did not run, which enables you to adjust your tests to run all the lines.
 
-At the time of writing (|today|), MRV had a test coverage of 90%, but of course `test coverage is not everything <http://www.infoq.com/news/2007/05/100_test_coverage>`_.
+At the time of writing (|today|), MRV had a :download:`test coverage of 90% <download/coverage/index.html>`, but of course `test coverage is not everything <http://www.infoq.com/news/2007/05/100_test_coverage>`_.
 
 Regression Testing
 ------------------
@@ -449,7 +449,7 @@ The workflow presented here is only a rough introduction to the multitude of pos
 ***************
 Making Releases
 ***************
-TODO:
+TODO: Although there is a build and release sysetm, at the time of writing ( |today| ), it was not used to create the release you have. It will be revised and documented for 1.0.0.
 
 
 Building Docs

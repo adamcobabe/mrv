@@ -17,7 +17,7 @@ AUTOGEN_TARGET  ?= source/generated
 PY_IMPORT_BASE	?= mrv
 
 
-.PHONY: help clean html web pickle htmlhelp latex changes linkcheck epydoc autogen
+.PHONY: help clean html web pickle htmlhelp latex changes linkcheck epydoc autogen coverage
 
 help:
 	@echo "Please use \`make <target>' where <target> is one of"
@@ -32,6 +32,8 @@ clean:
 	-rm -rf build/*
 	-rm -rf $(AUTOGEN_TARGET)
 	-rm source/index.rst
+	-rm source/download/coverage/index.html
+	-rmdir source/download/coverage
 
 source/index.rst:
 	@echo Generating $@
@@ -51,8 +53,15 @@ autogen: source/index.rst
 	$(SPHINXAUTOGEN) -o $(AUTOGEN_TARGET) $^
 	$(SPHINXAUTOGENPOST) $(AUTOGEN_TARGET)
 	
+coverage:
+	# $$(cd ../ && test/bin/tmrvc -v) - doesnt work as it cannot find the coverage command - why ?
+	$$(cd ../ && test/bin/tmrv --with-coverage --cover-html --cover-package=mrv --cover-html-dir=coverage -v)
+	@mkdir -p build/html/_downloads
+	@mkdir -p source/download/coverage
+	@cp -f ../coverage/* build/html/_downloads/
+	@cp -f ../coverage/index.html source/download/coverage/
 	
-html: source/index.rst autogen epydoc
+html: source/index.rst coverage autogen epydoc
 	@mkdir -p build/html build/doctrees
 	$(SPHINXBUILD) -b html $(ALLSPHINXOPTS) build/html
 	@echo
