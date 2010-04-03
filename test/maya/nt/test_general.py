@@ -80,7 +80,7 @@ def makeFoo(bar_iterable, big=False):
 		support the ``BigFoo`` interface
 	:param bar_iterable: iterable yielding Bar instances. As Foo's
 		cannot exist without Bars, an empty iterable is invalid.
-	:param big: if True, change the type from ``Foo`` to ``BigFoo``
+	:param big: if True, change the return type from ``Foo`` to ``BigFoo``
 	:raise ValueError: if bar_iterable did not yield any Bar instance"""
 	if big:
 		return BigFoo(bar_iterable)

@@ -46,6 +46,7 @@ MEL needs me to write two lines of code, python MEL 3 lines, and python API 13 (
 Fortunately, back in that time, an early version of PyMel would already be available, and they even had Node wraps which would provide native access to suitable MEL procedures, and effectively hide MEL from you as much as possible. Once again I was exited, but crash landed soon after. In short words, it was still far too early to be usable, and, as a most important point, it wouldn't work reliably on Maya 8.5 as it was actively developed on Maya 2008 and newer. Back in that time, there was no unittesting, and things could ( and would ) break at will.
 
 As giving up is not exactly my way, I realized something new would have to be created, and if PyMel made MEL nice in python, why shouldn't there be something that makes the MayaAPI at least as nice, to allow writing something like this::
+	
 	>>> import mrv.maya.nt as nt
 	>>> p = nt.Node("persp")
 	>>> p.addAttribute(nt.TypedAttribute.create('stringarray', 'sa', Data.Type.kStringArray, nt.StringArrayData.create()))

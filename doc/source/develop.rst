@@ -6,14 +6,16 @@ Developing with MRV
 ###################
 MRV is a framework onto which new programs are easily being built, and it provides many tools to facilitate development and to help producing good software quickly.
 
-Setting up your development environment is a first step, which involves cloning the MRV mainline repository, and assuring that some prerequisites are met.
+Setting up your development environment is the first step, which involves cloning the MRV mainline repository, and assuring that some prerequisites are met.
 
-The second part of this guide explains the naming conventions used in MRV, tells you about the development practices employed to produce it.
+The second part of this guide explains the naming conventions used in MRV and tells you about the development practices employed to produce it.
+
+At the end of this article, there are tips on how to optimize your code for performance, and how to contribute to the MRV project.
 
 ***********************
 Development Environment
 ***********************
-This article describes the required setup and configuration of your system to develop MRV or projects based on MRV.
+This paragraph describes the required setup and configuration of your system to develop MRV or projects based on MRV.
 
 Prerequisites
 =============
@@ -33,7 +35,7 @@ The following software packages need to be installed,
  * Epydoc 3.x
  * Sphinx 0.62 or higher
 
-The following installation guide *assumes you have already installed git and Autodesk Maya* for your platform. For instruction, please see the documentations of the respective package.
+The following installation guide *assumes you have already installed git and Autodesk Maya* for your platform. For instruction, please see the documentations of the respective software package.
  
 Installation
 ============
@@ -47,37 +49,38 @@ If a standalone interpreter does not work for you, its absolutely possible to ru
 ----------------------------
 The instructions assume you are going to run MRV within a standalone interpreter. If you are planning to use mayapy, the installation may be more complicated, but in general all that needs to be done is to put the required package(s) into the 'site-packages' folder of your python installation.
 
-Using easy_install, which comes with the python setuptools ( http://pypi.python.org/pypi/setuptools ) the installation is as easy as the name suggests::
+Using easy_install, which comes with the `python setuptools <http://pypi.python.org/pypi/setuptools>`_ the installation is as easy as the name suggests::
 	
 	$ easy_install<python_version> nose coverage sphinx epydoc
 
 Please note that the version of easy_install is important as you need to install the prerequisites for each python version that is used by the maya version you are going to run:
+
 * Maya 8.5 -> Python 2.4
 * Maya 2008|2009 -> Pyhthon 2.5
 * Maya 2010 -> Python 2.6
 
-Please note that the generation of the docs currently only works on linux and OSX assuming that easy_install is installed. You don't strictly need sphinx and epydoc to develop in MRV.
+The generation of the documentation currently only works on linux and OSX assuming that easy_install is installed. You don't strictly need sphinx and epydoc to develop in MRV.
 
 Mayapy
 ^^^^^^
 On Windows, MRV currently uses mayapy only ( although there have been experiments which proved that it can run in a standalone interpreter there as well ).
 
-The only package that you need to install to run the tests is nose. Its recommended to retrieve the package using easy_install for your standalone interpreter and to copy it to *"C:\Program Files\Autodesk\Maya<version>\Python\Lib\site-packages"* afterwards.
+The only package that you need to install to run the tests is ``nose``. Its recommended to retrieve the package using easy_install for your standalone interpreter and to copy it to *"C:\\Program Files\\Autodesk\\Maya<version>\\Python\\Lib\\site-packages"* afterwards.
 
-If you want to use mayapy on other system, copy the ``nose`` package either into *"/usr/autodesk/maya<version>/lib/python<pyversion>/site-packages"* ( linux ) or into *"/Applications/Autodesk/maya<version>/Maya.app/Contents/Frameworks/Python.framework/Versions/<pyversion>/lib/python<pyversion>/site-packages"* (OSX).
+If you want to use mayapy on another platform, copy the ``nose`` package either into *"/usr/autodesk/maya<version>/lib/python<pyversion>/site-packages"* ( Linux ) or into *"/Applications/Autodesk/maya<version>/Maya.app/Contents/Frameworks/Python.framework/Versions/<pyversion>/lib/python<pyversion>/site-packages"* ( OSX ).
 
 .. _repo-clone-label: 
 
 2. Get A or Your Repository Clone
 ---------------------------------
-Clone the MRV mainline repository from gitorious.org. Either fork your own on [www.gitorious.org/mrv] or [www.github.com/Byron/mrv] and clone from your fork, or clone from the mainline repository as shown here.
+Clone the MRV mainline repository from gitorious or github. Either fork your own on www.gitorious.org/mrv or www.github.com/Byron/mrv and clone from your fork, or clone from the mainline repository as shown here.
 
 Execute the following::
 
  $ git clone git://gitorious.org/mrv/mainline.git mrv
  $ git submodule update --init
  
-On linux and OSX, you would have done this in a shell of your choice. On windows, you would have retrieved a shell using the "Git Bash Here" menu entry in your RMB explorer menu when clicking on a folder of your choice.
+On linux and OSX, you would have done this in a shell of your choice. On windows, you would have retrieved a shell using the "Git Bash Here" menu entry in your RMB explorer menu when clicking on a parent-folder of your choice.
 
 3. Run the tests
 ----------------
@@ -85,7 +88,7 @@ By running the tests, you verify that the installation actually succeeded as you
 
 Linux and OSX
 ^^^^^^^^^^^^^
-In your shell, you should now be able to execute the ``tmrv`` tool, such as follows::
+In your shell, you should now be able to execute the ``tmrv`` command as follows::
 	
 	$ cd mrv
 	$ # start the tests for the given maya version, 2011 in this case
@@ -93,7 +96,7 @@ In your shell, you should now be able to execute the ``tmrv`` tool, such as foll
 
 All tests are expected to succeed. Please note that ``tmrv`` just executes ``mrv/bin/mrv`` and launches nosetest afterwards, hence all parameters supported ``nosetests`` in your particular installation will work here as well.
 
-On OSX, the default installation will not work if you intend to run Maya2010 or later. Please see the ``Troubleshooting`` guide for a solution.
+On OSX, the default python installation will not work if you intend to run Maya2010 or later. Please see the ``Troubleshooting`` guide for a solution.
 
 Windows
 ^^^^^^^
@@ -120,25 +123,25 @@ All tests are expected to succeed.
 	
 Troubleshooting
 ---------------
-This paragraph informs about possible issues which have already been resolved, but which may be quite distracting at first.
+This paragraph informs about possible issues which have a solution already.
 
-OSX and 64bit Executables
-^^^^^^^^^^^^^^^^^^^^^^^^^
+OSX and 64bit Maya Executables
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 Starting with Maya2010, maya is delivered as 64 bit binary. The default interpreter in your path should be 64 bits as well, but if it is not, you have to make some adjustments. 
 
 To allow the mrv startup script to find a python interpreter compiled for 64 bit, it will be sufficient to put a symbolic link to ``python2.6`` into your /usr/bin directory which points to the interpreter in question. 
 
-``mayapy`` in your maya installation directory will work in case you don't want to build your own one, using macports for instance. In that case you need to put a symbolic link named ``python2.6`` into your ``/Applications/Autodesk/maya2010/Maya.app/Contents/bin`` directory which needs to be inserted to the first position of your PATH. To run the unit tests, you will have to install ``nose`` into maya's site-packages directory::
+``mayapy`` in your maya installation directory will work in case you don't want to build your own one python interpreter, using macports for instance. In that case you need to put a symbolic link named ``python2.6`` into your ``/Applications/Autodesk/maya2010/Maya.app/Contents/bin`` directory which needs to be inserted to the first position of your PATH. To run the unit tests, you will have to install ``nose`` into maya's site-packages directory::
 	
 	$ mayabin=/Applications/Autodesk/maya<version>/Maya.app/Contents/bin
 	$ ln -s $mayabin/mayapy python<pyversion>
 	$ export PATH=$mayabin:$PATH
 
-The reason for this extra-effort is that the ``mrv`` executable wants to start ``python<pyversion>`` which needs to be in the path. In order to use mayapy without dropping dynamic version support, the respective python<version> symlinks need to be in the PATH. On OSX its additionally required to put it into the same location as mayapy as mayapy will not find its prerequisites otherwise and fails to start.
+The reason for this extra-effort is that the ``mrv`` executable wants to start ``python<pyversion>`` which needs to be in the path. In order to use mayapy without dropping dynamic version support, the respective python<version> symlinks need to be in the PATH. On OSX its additionally required to put it into the same location as mayapy - mayapy will not find its prerequisites otherwise and fails to start.
 
 Still troubled ? Use mayapy
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^
-If the standalone interpreter just doesn't want to work on your platform or with your particular configuration, you may always use ``mayapy``, which can be found in the *<maya_install_directory>/bin* folder. It will setup a  standalone interpreter which automatically pulls in the packages required for Maya to work.
+If the standalone interpreter just doesn't want to work on your platform or with your particular configuration, you may always use ``mayapy``, which can be found in the *<maya_install_directory>/bin* folder. It will setup a standalone interpreter which automatically pulls in the packages required for Maya to work.
 
 As a side-effect, ``nose`` needs to be installed in mayapy's *site-packages* directory, as indicated in the :ref:`installation section<install-label>`.
 
@@ -151,13 +154,15 @@ Method Names
 ============
 MRV uses methods named ``setProperty`` to set the given property on an instance, and ``property`` to retrieve that property. ``property`` may take arguments as well to possibly configure the way the property is retrieved.
 
-To indicate non-property values, which are values that have to be generated or retrieved in some way, the method is prefixed to give a hint on the underlying operation, such as in ``findValue`` or ``createItem``.
+To indicate non-property values, which are values that have to be generated or produced in some way, the method is prefixed to give a hint on the underlying operation, such as in ``findValue`` or ``createItem``.
 
 If the property is a boolean, and if it equals a state of the instance, the method prefix is chosen to be close to 'natural english', i.e. ``isLocked``, or ``hasCache``.
 
 Public methods which are part of the maya related parts of MRV must obey to this convention. Protected methods, that is methods which are not part of the public interface, may be named according to PEP8 as well. 
 
-Public MRV methods which do not depend on maya in any way may use PEP8, but it is advised to keep the naming consistent with the one employed by the MayaAPI if the interface is used by the maya dependent parts. For example, even though the types in ``mrv.interfaces`` don't depend on Maya, Maya depends on them, so their public methods are camel-cased. 
+Public MRV methods which do not depend on maya in any way may use PEP8, but it is advised to keep the naming consistent with the one employed by the MayaAPI if the interface is used by the maya dependent parts. For example, even though the types in ``mrv.interfaces`` don't depend on Maya, Maya depends on them, so their public methods are camel-cased.
+
+If you derive from a base type which uses PEP8 naming conventions, you must keep that convention alive in the interface methods you add, even if your type is used by the maya related parts of MRV.
 
 Variable Names
 ==============
@@ -165,11 +170,11 @@ Within your method or function, great freedom can be exercised regarding the nam
 
 Method Aliases
 ==============
-If MRV overrides native MFnFunctionSet methods, the overriding function will use the same name even if it prefixed with 'get' - that prefix is dropped in MRV. In that case though, an alias is provided to conform to MRV's naming conventions. As an example, if the method ``MFnFoo.getBar`` is overridden with ``FooNode.getBar``, an alias called ``FooNode.bar`` would be provided.
+If MRV overrides native MFnFunctionSet methods, the overriding function will use the same name even if it prefixed with 'get' - that prefix is usually dropped in MRV. In that case though, an alias is provided to conform to MRV's naming conventions. As an example, if the method ``MFnFoo.getBar`` is overridden with ``FooNode.getBar``, an alias called ``FooNode.bar`` would be provided.
 
 If an overridden MFnMethod uses X, no alias is provided for getX. For example, ``MFnFoo.bar`` would be overridden with ``FooNode.bar``, but an alias called ``FooNode.getBar`` will *not* be provided.
 
-Commonly used methods with long names, such as ``MPlug.isConnectedTo`` have an abbreviation alias in order to speed up typing and typing convenience. Abbreviations only use lower-case letters, and use the first character of each of the camel-cased words. The abbreviation in this case is be ``MPlug.mict``.
+Commonly used methods with long names, such as ``MPlug.misConnectedTo`` have an abbreviation alias in order to speed up typing and increase typing convenience. Abbreviations only use lower-case letters, and use the first character of each of the camel-cased words. The abbreviation in this case is be ``MPlug.mict``.
 
 
 ******************
@@ -196,7 +201,7 @@ MRV's goal as development framework is to enable the programmer to write reliabl
 
 MRV natively assures that the code is well-performing, but reliability cannot be assured without proper testing. Maintainability comes with a good design, and clean code.
 
-If one wanted to find a development strategy which fits the previously mentioned goals, one would definitely find TDD - `Test Driven Development <http://en.wikipedia.org/wiki/Test-driven_development>`_. 
+If one wanted to find a development strategy which fits the previously mentioned goals, one would definitely encounter TDD on the way - `Test Driven Development <http://en.wikipedia.org/wiki/Test-driven_development>`_. 
 
 For the sake of brevity, only the most important points will be mentioned here, check the wiki link above for more information.
 
@@ -204,13 +209,13 @@ When developing for python within maya, one generally has the problem that simpl
 
 This makes it cumbersome and hard to predict whether you are actually seeing your changes or not.
 
-The only way to be 100% sure that your changes are actually kicking in is to restart maya, and try again. This of course is not feasible if it is done manually as it takes much too long.
+The only way to be 100% sure that your changes are actually kicking in is to restart the python interpreter ( or maya ), and try again. This of course is not feasible if it is done manually as it takes too much time.
 
 Being aware of this issue, MRV has been developed using TestCases from the ground up. This is why it is possible to rerun a single test every ~3.5s in a standalone interpreter ( as a comparison, maya -batch takes ~5.5 seconds to startup ). The whole test suite can be run in just ~7s, and all regression tests in for Maya 8.5 to 2010 take less than two minutes.
 
-This makes it actually possible to write in a test-driven manner, running tests is easy and fast.
+This makes it possible to write code in a test-driven manner, running tests is easy and fast.
 
-Please note that the following examples use a linux shell, but the same development style will work on windows as well provided that you exchanges the commandline shown here with a cmd prompt compatible one.
+Please note that the following examples use a linux shell, but the same development style will work on windows as well provided that you exchange the command-line shown here with a cmd prompt compatible one.
 
 MRV TDD
 =======
@@ -222,14 +227,14 @@ Ideally you have at least two panes available in your editor, one is for the imp
 
 In ``lefty``, sketch out the design required to implement the feature - do you need a class, or several classes, which member functions do they have, are module level functions reasonable, or do you want to use classmethods instead ?
 
-Once the design has been sketched, its about defining the signature of the methods and function. Go through them one by one in a suitable order and write the documentation for them - use restructured Text. 
+Once the design has been sketched, its about defining the signature of the methods and functions. Go through them one by one in a suitable order and write the documentation for them - use `restructured Text <http://sphinx.pocoo.org/markup/index.html>`_. 
 
 Write down what the method is supposed to do, think about the possible input arguments and their types, the return type, as well as possible exceptions.
 While writing this, you essentially define the domain within which this method is supposed to work. 
 
 Whenever you set a pile for the fence of your domain, switch to ``righty`` and note down what the method can do, or what it can't do to assure you don't forget about the individual things that need to be tested::
 	
-	>>> # <feature.py>
+	>>> # <feature.py> in lefty
 	>>> def makeFoo(bar_iterable, big=False):
 	>>>     """Create a new Foo instance which contains the Bar instances
 	>>>     retrieved from the bar_iterable.
@@ -238,11 +243,11 @@ Whenever you set a pile for the fence of your domain, switch to ``righty`` and n
 	>>>         support the ``BigFoo`` interface
 	>>>     :param bar_iterable: iterable yielding Bar instances. As Foo's
 	>>>          cannot exist without Bars, an empty iterable is invalid.
-	>>>     :param big: if True, change the type from ``Foo`` to ``BigFoo``
-	>>>     :raise ValueError: if bar_iterable did not yield any Bar instance
-	>>>          pass # todo implementation"""
+	>>>     :param big: if True, change the return type from ``Foo`` to ``BigFoo``
+	>>>     :raise ValueError: if bar_iterable did not yield any Bar instance"""
+	>>>          pass # todo implementation
 
-	>>> # <test/test_feature.py>
+	>>> # <test/test_feature.py> in righty
 	>>> # It has been written while putting down the docs for the method
 	>>> def test_makeFoo(self):
 	>>>     # assure it returns Foo instances, BigFoo if the flag is set
@@ -251,7 +256,7 @@ Whenever you set a pile for the fence of your domain, switch to ``righty`` and n
 	>>>
 	>>>     # empty iterables raise
 
-Next up is the implementation of the test case - as it knows the interface of the method to test, it can be fully implemented before write any actual implementation::
+Next up is the implementation of the test case - as it knows the interface of the method to test, it can be fully implemented before writing any actual implementation::
 	
 	>>> # assure it returns Foo instances, BigFoo if the flag is set
 	>>> bars = (Bar(), Bar()) 
@@ -271,16 +276,17 @@ Next up is the implementation of the test case - as it knows the interface of th
 
 Now you have a full frame for all the boundary cases that you have documented before. Run the test repeatedly while implementing your actual classes. Once the test succeeds, you can at least be quite confident that your code is actually working.
 
-The full implementation of the example can be found in ``mrv.test.maya.nt.test_general``.
+The full implementation of the example can be found in ``mrv.test.maya.nt.test_general`` ( *test_makeFoo* ).
 
-The case presented here is of course nothing more than a constructed example, in many cases the flow of the development will be much less 'predefined' and more flexible, and it is usually iterative as well. The basic steps are the same though::
-	#. Understand the problem to solve
-	#. Design your Interface, Class or Method by sketching it - write documentation to get an even clearer understanding of the problem, as well as the limits within which you will solve it.
+The case presented here is of course nothing more than a constructed example, in many cases the flow of the development will be much less 'predefined' and more fluid, and it is usually iterative as well. The basic steps are the same though:
+
+	1. Understand the problem to solve
+	2. Design your Interface, Class or Method by sketching it - write documentation to get an even clearer understanding of the problem, as well as the limits within which you will solve it.
 	
 	 * Track the sub-tests that you will need while writing the documentation
 	 
-	#. Implement the test case(s)
-	#. Write your actual implementation.
+	3. Implement the test case(s)
+	4. Write your actual implementation.
 	
 Of course it is totally valid to switch order, or jump back and forth between the steps - but the list presented here gives a good outline on how MRV is being developed.
 
@@ -288,7 +294,7 @@ Of course it is totally valid to switch order, or jump back and forth between th
 
 Running Tests
 =============
-In Test-Driven-Development, running the test is a major part of the workflow, which is why this sections presents a few commonly used strategies to test efficiently and conveniently.
+In Test-Driven-Development, running the test is a major part of the workflow, which is why this section presents a few commonly used strategies to test efficiently and conveniently.
 
 Nose is the main test driver, it offers pretty much everything you ever wanted and allows to be extended using plugins rather easily - the following presentation shows only some of the vast amount of features available, you can read more on the `official homepage <http://somethingaboutorange.com/mrl/projects/nose>`_, the examples should work on linux, OSX and windows.
 
@@ -296,7 +302,7 @@ If your working directory is the MRV root directory, the following command will 
 	
 	$ test/bin/tmrv <mayaversion>
 	
-Run individual test packages or module by specifying there paths::
+Run individual test packages or module by specifying their paths::
 	
 	$ # runs the Path test, as well as all maya related tests of the given maya version
 	$ test/bin/tmrv <mayaversion> test/test_path.py test/maya
@@ -305,7 +311,7 @@ Running tests outside of the maya test package will not startup maya, hence it w
 	
 	$ test/bin/tmrv <mayaversion> test/test_enum.py
 	
-If an exception is raised in the tests, you will see it in the final output, as well as the caught standard output. The ``-d`` flag resolves symbols to their actual values. In case you want to jump right into the exception when it occurs, specify ``--pdb``. If you just have a failing test and want to inspect the variable values yourself, use ``--pdb-failure``::
+If an exception is raised in the tests, you will see it in the final output, as well as the caught standard output generated when the test case ran. The ``-d`` flag resolves traceback symbols to their actual values. In case you want to jump right into the exception when it occurs, specify ``--pdb``. If you just have a failing test and want to inspect the variable values yourself, use ``--pdb-failure``::
 	
 	$ test/bin/tmrv <mayaversion> test/test_fails.py -d
 	$ test/bin/tmrv <mayaversion> test/test_fails.py --pdb
@@ -360,6 +366,9 @@ During development, it is unlikely that one remembers all methods available on i
 ``imrv``, one of MRVs :doc:`tools`,  essentially is an ipython shell which has been setup to load a specialized version of the MRV runtime to provide you with a fully initialized MRV runtime environment::
 	
 	$ bin/imrv
+	
+::
+	
 	>>> p = Node("persp")
 	Transform("|persp")
 	
@@ -392,7 +401,7 @@ If you see an MObject in python, such as in the following snippet ... ::
 ... what you actually see is a proxy object which serves as a python handle to the actual C++ MObject. The reference count of that proxy object is 1, as it is stored in only one named variable, ``po``. The caveat here is that this does not affect the reference count of the underlying MObject at all - its reference count is the same as it was before. The only one who actually holds a reference to it is Maya, and it is allowed to drop it at any time, or copy its memory to a different location. If that would happen, any access to ``p`` or ``po`` may cause a crash or destabilize Maya to cause a crash later, which is even worse.
 
 The only way to forcibly increment the reference count is by copying the MObject explicitly::
-	
+
 	>>> poc = api.MObject(po)
 	>>> po, poc
 	(<maya.OpenMaya.MObject; proxy of C++ MObject instance at _f0d5050500000000_p_MObject>,
@@ -401,12 +410,13 @@ The only way to forcibly increment the reference count is by copying the MObject
 This invoked the C++ copy constructor, and incremented the reference count on the MObject. Copying MObjects might come at additional costs though in case the MObject encapsulates data.
 
 When adding attributes with the bare python Maya API, this situation can easily occur::
+	
 	>>> p.addAttribute(api.MFnTypedAttribute().create("sa", "stringarray", api.MFnData.kStringArray, api.MFnStringArrayData().create())
 	
-In this example, we created two temporary function sets, ``MFnTypedAttribute`` and ``MFnStringArrayData``. The ``create`` methods of the respective sets return newly create MObjects - the only one who keeps a reference is the actual function set. Two bad things happen:
+In this example, we created two temporary function sets, ``MFnTypedAttribute`` and ``MFnStringArrayData``. The ``create`` methods of the respective sets return newly created MObjects - the only one who keeps a reference is the actual function set. Two bad things happened in the example:
 
-#. ``MFnStringArrayData`` returned an MObject encapsulating an empty string array to you, then it goes out of scope, and decrements its reference count on the returned MObject during its destruction sequence. The MObject has no one referencing it anymore, so it will destroy itself and its data. Python still has a handle onto the memory location that once kept the MObject, and it is passed to ``MFnTypedAttribute.create``.
-#. ``MFnTypedAttribute.create`` produces a new attribute ``MObject`` with invalid default data, returns it and destroys itself as it goes out of scope. Again, the reference count of the newly created Attribute decrements to 0, which destroys the Attribute and its data. The python handle you see will be passed to the ``p.addAttribute`` method, which tries to create an attribute from deleted data.
+#. ``MFnStringArrayData`` returned an MObject encapsulating an empty string array, then it goes out of scope, and decrements its reference count on the returned MObject during its destruction sequence. The MObject has no one referencing it anymore, so it will destroy itself and its data. Python still has a handle onto the memory location that once kept the MObject, and it is passed to ``MFnTypedAttribute.create``.
+#. ``MFnTypedAttribute.create`` produces a new attribute ``MObject`` with (possibly) invalid default data, returns it and destroys itself as it goes out of scope. Again, the reference count of the newly created Attribute MObject decrements to 0, which destroys the Attribute and its data. The python handle you got will be passed to the ``p.addAttribute`` method, which tries to create an attribute from deleted data.
 
 If you try that line, you will see that it apparently works, but its not guaranteed to do so, nor will you be able to tell whether the caused memory corruption will crash Maya at a later point.
 
@@ -421,6 +431,8 @@ Generally, when dealing with MObjects directly, keep the reference count in mind
 In c++, this is not a problem as MObjects are copied automatically when being assigned to a variable for instance or when being passed into functions ( most of the time ). If you have a proper compiler though, the above line would be invalid as well as you return temporary objects and pass them in as reference. 
 
 In python, there is no compiler who would be able to check for this. 
+
+.. _contribute-label:
 
 ************
 Contributing
@@ -441,7 +453,7 @@ Once you have cloned your initial copy from the mainline repository ( see :ref:`
 
 In order to contribute though, the by far easiest workflow is to create your own MRV fork on either `www.gitorious.com <http://gitorious.org/mrv>`_ or on `www.github.com <http://www.github.com/Byron/mrv>`_. 
 
-When creating own features or patches, you just put them into a separate branch ( using ``git co -b myfeature`` ), commit your changes using ``git commit ...`` and finally push everything into your public repository ( ``git push ...`` ) and create a merge request. Once it has been merged into the mainline repository, your change automatically makes it into the next MRV release. 
+When creating own features or patches, you just put them into a separate branch ( using ``git co -b myfeature`` ), commit your changes using ``git commit ...`` and finally push everything into your public repository ( ``git push ...`` ) and create a merge request. Once it has been merged into the mainline repository, your change automatically makes it into the next MRV release and the mainline repository. 
 
 The workflow presented here is only a rough introduction to the multitude of possible git workflows, and more concrete examples will be added as the need arises.
 
@@ -449,7 +461,7 @@ The workflow presented here is only a rough introduction to the multitude of pos
 ***************
 Making Releases
 ***************
-TODO: Although there is a build and release sysetm, at the time of writing ( |today| ), it was not used to create the release you have. It will be revised and documented for 1.0.0.
+Although there is a build and release sysetm, at the time of writing ( |today| ), it was not used to create the release you have. It will be revised and documented for 1.0.0.
 
 
 Building Docs
@@ -473,7 +485,7 @@ Integrating MRV into Production-Pipelines
 *****************************************
 MRV sole purpose of existence originally was to serve as foundation of a Maya based 3D production pipeline, details about that can be read in a :doc:`designated article <history>`.
 
-Nowadays, and after many improvements, it should be even more useful when applied in the context of pipelines. MRV doesn't weigh much, neither in memory, nor on the CPU, is very well documented and very well tested.
+Nowadays, and after many improvements, it should be even more useful when applied in the context of pipelines. MRV doesn't weigh much, neither in memory, nor on the CPU, is very well documented and :download:`very well tested <download/coverage/index.html>`.
 
 Besides that, you are able to :doc:`extend <extend>` it to suit your needs, and :doc:`configure <conf>` it to suit your needs even better.
 
@@ -486,13 +498,14 @@ Finally, if - after a thorough study of the documentation - there are any questi
 Performance and Memory Considerations
 *************************************
 MRV has been created with performance in mind. Core code as gone through several iteration in order to be as fast as it can possibly be within python. This is beneficial to the developer as he can be sure that conveniently written code will run at a high pace. 
-Usually this kind of code is the most readable and the most maintainable which is why it is preferred. Nonetheless there are situations when performance outweights code convenience, this article explains what to look out for and how to improve the performance of your programs.
+Usually this kind of code is the most readable and the most maintainable which is why it is preferred. Nonetheless there are situations when performance outweighs code maintainability. This section explains what to look out for and how to improve the performance of your programs.
 
-The respective tips are listed in the order of simplicity and effect, hence simler and more effective ways to enhance performance come first.
+The respective tips are listed in the order of simplicity and effect, hence simpler and more effective ways to enhance performance come first.
 
 Iterators
 =========
 When operating in large scenes, its important to limit the amount of nodes that are returned by iterators. The fastest way to do this is to use an MFn.kType pre-filter to limit the yielded Nodes to certain types. As the pre-filtering will happen in C++, it will be very fast::
+	
 	>>> iterDagNodes(api.MFn.kTransform, api.MFn.kShape)		# Fast !
 	>>> iterDagNodes(predicate=lambda n: isinstance(n, (Transform, Shape)))	# slow and wasteful
 
@@ -508,13 +521,13 @@ Many programs operate on multiple objects of the same type, as a lot of work nee
 
 Considering that some boilerplate is involved with each call, which may even weigh more than the actual operation you intend to apply, it obvious that methods that operate on multiple objects at the same time are preferable in many cases.
 
-The Maya API actually does well here in many cases, and even though you will find many single object operations, there are many multi object operations as well. 
+The Maya API actually does mainly well here, and even though you will find many single object operations, there are many multi-object operations as well. 
 
-This implies that it might be worth accumulating the objects you want to work on before sending it to a multi method, which will ideally process the bunch within c++. This costs memory, but will be faster ( memory <-> performance tradeoffs are very common in general ).
+This implies that it might be worth accumulating the objects you want to work on before sending it to a multi method, which will ideally process the bunch within c++. This costs memory, but will be faster, but memory <-> performance tradeoffs are very common in general.
 
 There are times when you may use iterators instead of lists, they combine the benefits of passing in multiple objects ( at a slight overhead ) without notable memory consumption.
 
-A method worth noting at this point is ``MPlug.connectMultiToMulti``, which connects multiple source to multiple destination plugs. It also adds the benefit that it will more efficiently deal with the undo queue, effectively boosting the performance by factor 8 to 14.
+A method worth noting at this point is ``MPlug.mconnectMultiToMulti``, which connects multiple source to multiple destination plugs. It also adds the benefit that it will more efficiently deal with the undo queue, effectively boosting the performance by factor 8 to 14.
 
 
 Convenience Methods
@@ -524,22 +537,23 @@ Use specialized methods instead of generic ones. Generic methods that accept dif
 That kind of code will perform better if the specialized version of the method is used instead - it only takes a specific input type and comes right to the point.
 
 An example for this would be the overridden ``__getitem__`` method of the patched ``MPlug``::
-	>>> for node in iterDagNodes(api.MFn.kTransform):
-	>>> 	node.translate['tx']					# slow
-	>>> 	# node.tx would be even better, but its not the point here
-	>>>		node.translate.getChildByName('tx')	# better 
 	
-
+	>>> names = ("persp", "top", "time.output")
+	>>> sl = api.MSelectionList.mfromList(names)    # slow(er)
+	>>> sl = api.MSelectionList.mfromStrings(names) # better 
+	
 findPlug vs. node.plug
 ======================
-In fact, using the ``node.plug`` convention is a convenience method as well. Internally some processing is needed figure out that you actually want a plug. A more direct way to retrieve plugs is by using the ``findPlug('plug')`` method which boost plug lookup performance by quite exactly 7%. The previous example could be written like this::
-	>>> for node in iterDagNodes(api.MFn.kTransform):
-	>>> 	node.findPlug('translate').getChildByName('tx')
+In fact, using the ``node.plug`` convention is a convenience method as well. Internally some processing is needed figure out that you actually want a plug. A more direct way to retrieve plugs is by using the ``findPlug('plug')`` method which boost plug lookup performance by quite exactly 7%::
 	
-
+	>>> for node in iterDagNodes(api.MFn.kTransform):
+	>>> 	node.findPlug('tx')  # 7% faster than ... 
+	>>> 	node.tx              # ... this
+	
 _api_ calling convention
 =========================
 What happens whenever you call a method on a wrapped node is the following::
+	
 	>>> node.findPlug('plugname')
 	>>> # this is equivalent to ...
 	>>> mfninst = api.MFnDependencyNode(node.getMObject())
@@ -551,26 +565,20 @@ The ``_api_`` calling convention does two things.
  * For patched API types, like MPlug, you receive the original, unpatched instance method.
  * For Node types, _api_ will return a method which reuses its initialized function set. This will cache the function set, the associated api object as well as the function object itself directly on your node.
 
-To illustrate this, lets have a look at the examples::
-	>>> assert isinstance(node.tx.node(), Node)		# node() returns wrapped Node
-	>>> assert isinstance(node.tx._api_node(), api.MObject)	# _api_node() returns original MObject
+To illustrate the _api_ convention on Node types, have a look at this example::
 	
-The _api_ calling convention on patched types is possibly faster as the implementation does not do anything special. As always allows you to operate on unwrapped nodes though, the previous example could natively be rewritten like this::
-	>>> assert isinstance(node.tx.getNodeMObject(), api.MObject)
-	
-
-To illustrate the _api_ convention on Node types, see the next example::
 	>>> for i in xrange(10000):
-	>>> 	perspShape.focalLength()               # slow after first call
-	>>> 	topShape._api_focalLength()                 # very fast after first call
+	>>> 	perspShape.focalLength()               # much overhead for every call
+	>>> 	topShape._api_focalLength()            # very fast after first call
 	
-Its good to know about the _api_convention, but it clearly does *not* mean that you should preventively make all calls using this convention. This is because the performance gain shows up after the first call only, and only on that specific node. First the cache is built, and used in subsequent calls. In practice, it is unlikely that you are going to repeatetly call the same function on the same node in a tight loop.
+Its good to know about the _api_convention, but it clearly does *not* mean that you should preventively make all calls using it. This is because the performance gain shows up after the first call only, and only on that specific node. First the cache is built, and used in subsequent calls. In practice, it is unlikely that you are going to repeatetly call the same function on the same node in a tight loop.
 
 Also its worth considering that the cache consumes additional memory, an MFn function set is instantiated and cached for each _api_ call on a Node.
 
-Last but not least, its worth noting that maya controls the lifetime of your API Objects, hence these should not be cached. The _api_ cache usually is very short-lived though and should not make trouble.
+Last but not least, its worth noting that maya controls the lifetime of your API Objects, hence these should not be cached. The _api_ cache usually is very short-lived though and should not make trouble, but it stays a cached MObject within a cached function of the corresponding MFnFunctionSet.
 
 If you find yourself using _api_ method calls all the time, you might consider using the respective function set directly::
+	
 	>>> mfncamera = api.MFnCamera(topShape.getMObject())
 	>>> for i in xrange(10000):
 	>>> 	mfncamera.focalLength()
@@ -579,7 +587,8 @@ If you find yourself using _api_ method calls all the time, you might consider u
 
 Python Method Caching
 =====================
-Generally within python, each attribute access costs time, time that shows up to matter in tight loops. You can gain a lot of performance by caching the methods and attributes you have to use in local variables. The previous example could be rewritten like this, maximizing the examples performance::
+Generally within python, each attribute access costs time, time that tends to matter in tight loops. You can gain a lot of performance by caching the methods and attributes you have to use in local variables. The previous example could be rewritten like this, maximizing the examples performance::
+	
 	>>> mfncamera = api.MFnCamera(topShape.getMObject())
 	>>> getFocalLength = mfncamera.focalLength
 	>>> for i in xrange(10000):
@@ -589,15 +598,17 @@ Node-Wrapping
 ==============
 MRV is very aware of the fact that the added convenience comes at a cost. Where programming convenience and programmer's efficiency is improved, its likely that the runtime of the resulting programs is much less than optimal.
 
-Here its important to make a tradeoff by keeping the code convenient and readable in most spots, but to optimize it only where it matters.
+Here its important to make a tradeoff by keeping the code maintainable and readable in most spots, and to optimize it only where it matters.
 
 The wrapping of Nodes takes a considerable amount of time. On a 2 Ghz dual core machine you will get no more than 80k wrapped nodes per second. Turning the wrapping off and going bare API is supported by all methods which automatically wrap nodes, the kwarg is always named ``asNode`` which should be set to False in order to get bare MObjects or MDagPaths. This implies that you have to use MFn function sets explicitly::
+	
 	>>> mfndag = api.MFnDagNode()
 	>>> for mdagpath in iterDagNodes(api.MFn.kTransform, asNode=False):		# uses pre-filter as well
 	>>> 	mfndag.setObject(mdagpath)		# initialize the function set ...
 	>>> 	mfndag.findPlug('translate')	# ... and use it
 
 Combining this example with the Python Method Caching, you can maximize the performance of the given example by writing::
+	
 	>>> mfndag = api.MFnDagNode()
 	>>> setObject = mfndag.setObject
 	>>> findPlug = mfndag.findPlug

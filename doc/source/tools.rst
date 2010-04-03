@@ -5,7 +5,7 @@ This document contains a full listing of the included commandline tools as well 
 
 All production level programs are located in ``mrv/bin``, all testing utilities can be found in ``mrv/test/bin``. 
 
-All examples are given using linux shell semantics, windows users usually only have to substitute '/' with '\', and be aware of possible limitations.
+All examples are given using linux shell semantics, windows users usually only have to substitute '/' with '\\', and be aware of possible limitations.
 
 ****************
 Production Tools
@@ -13,13 +13,13 @@ Production Tools
 
 mrv
 ===
-This tool will setup the environment to allow running MRV and Maya Standalone within your system interpreter. It is expected to be in your PATH.
+This tool will setup the environment to allow running MRV and Maya Standalone within your system interpreter. The latter one is expected to be in your PATH.
 
 The first argument passed in to the tool names the Maya release you would like to run, these can be *8.5* to X, where X denotes the latest release.
 
 All additional arguments are passed to the python interpreter directly.
 
-It can easily be used to write only standalone tools with maya support.
+It can easily be used to write standalone tools with maya support.
 
 **Sample Usage**::
 	
@@ -40,7 +40,7 @@ It can easily be used to write only standalone tools with maya support.
 
 imrv
 ====
-This program is effectively nothing more than a customized IPython shell which provides a fully initialized MRV development environment. Additionally, it will attach all available functions to all types - under normal conditions this only happens on the fly as you call the function.
+This program is effectively nothing more than a customized IPython shell which provides a fully initialized MRV development environment. Additionally, it will attach all available functions to all types to aid auto-completion of methods - under normal conditions methods are only added to a type as you call the function.
 
 ``imrv`` can be seen as the python version of ``maya -prompt``.
 
@@ -79,7 +79,7 @@ A MRV specific replacement for the ``nosetests`` utility which supports all argu
 
 tmrvUI
 ======
-Runs UI specific tests. For this to work, you must supply a path to the maya binary you want to run the User Interface tests at ``mrv.test.maya.ui`` in.
+Runs UI specific tests. For this to work, you must supply a path to the maya binary which should run the User Interface tests in the ``mrv.test.maya.ui`` package.
 
 **Sample Usage**::
 	
@@ -87,7 +87,7 @@ Runs UI specific tests. For this to work, you must supply a path to the maya bin
 	
 **Availability**: Linux and OSX
 
-.. note:: This tool is inferior to ``tmrv`` and is likely to improve, together with the User Interface testing utilities.
+.. note:: This tool is inferior to ``tmrv`` and is likely to be improved, together with the User Interface testing utilities.
 
 tmrvc
 =====
