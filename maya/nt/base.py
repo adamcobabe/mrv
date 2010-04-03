@@ -108,7 +108,7 @@ def nodeTypeToNodeTypeCls( nodeTypeName, apiobj ):
 	
 	:param nodeTypeName: the type name you which to have the actual class for
 	:param apiobj: source api object, its apiType is used as fallback in case we 
-	don't know the node"""
+		don't know the node"""
 	try:
 		nodeTypeCls = _nodesdict[capitalize( nodeTypeName )]
 	except KeyError:
@@ -878,7 +878,7 @@ class Node( object ):
 def _lookup_type( mobject_or_mdagpath ):
 	""":return: node type name of the given MObject or MDagPath
 	:note: if we have a plugin type, we must use the 'slow' way
-	as the type is the same for all plugin nodes"""
+		as the type is the same for all plugin nodes"""
 	apitype = mobject_or_mdagpath.apiType() 
 	try:
 		if apitype in _plugin_type_ids_lut:

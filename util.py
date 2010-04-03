@@ -742,6 +742,7 @@ class DAGTree( nx.DiGraph ):
 		
 	def to_hierarchy_file(self, root, output_path):
 		"""Write ourselves in hierarchy file format to the given output_path.
+		
 		:param root: The root of the written file, nodes above it will not be serialized.
 		:note: Directories are expected to exist
 		:raise ValueError: If an node's string representation contains a newline or 

@@ -219,7 +219,7 @@ def _iterAllNodeTypes( ):
 	one for each node type available to maya.
 	
 	:note: skips manipulators as they tend to crash maya on creation ( perhaps its only
-	one which does that, but its not that important )"""
+		one which does that, but its not that important )"""
 	for nodetype in sorted(cmds.ls(nodeTypes=1)):
 		# evil crashers
 		if 'Manip' in nodetype or nodetype.startswith('manip'):
@@ -237,11 +237,13 @@ def generateNodeHierarchy( ):
 	"""Generate the node-hierarchy for the current version based on all node types 
 	which can be created in maya.
 	
-	:return: tuple(DAGTree, typeToMFnClsNameList) 
-		 * DAGTree representing the type hierarchy
-		 * list represents typeName to MFnClassName associations
+	:return: tuple(DAGTree, typeToMFnClsNameList)
+	
+		* DAGTree representing the type hierarchy
+		* list represents typeName to MFnClassName associations
+		 
 	:note: should only be run as part of the upgrade process to prepare MRV for  a
-	new maya release. Otherwise the nodetype tree will be read from a cache"""
+		new maya release. Otherwise the nodetype tree will be read from a cache"""
 	from mrv.util import DAGTree
 	from mrv.util import uncapitalize, capitalize
 	from mrv.maya.util import MEnumeration
@@ -764,6 +766,7 @@ class CppHeaderParser(object):
 	@classmethod
 	def parseAndExtract(cls, header_filepath, parse_enums=True):
 		"""Parse the given header file and return the parsed information
+		
 		:param header_filepath: Path pointing to the given header file. Its currently
 			assumed to be 7 bit ascii
 		:param parse_enums: If True, enumerations will be parsed from the file. If 

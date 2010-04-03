@@ -340,7 +340,7 @@ Nose comes with an excellent tool which verifies the tests code coverage. As it 
 	
 The resulting web page highlights all lines that ran, and shows the ones that did not run, which enables you to adjust your tests to run all the lines.
 
-At the time of writing, MRV had a test coverage of 90%, but of course `test coverage is not everything <http://www.infoq.com/news/2007/05/100_test_coverage>`_.
+At the time of writing (|today|), MRV had a test coverage of 90%, but of course `test coverage is not everything <http://www.infoq.com/news/2007/05/100_test_coverage>`_.
 
 Regression Testing
 ------------------
