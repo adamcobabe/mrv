@@ -847,9 +847,20 @@ class Node( object ):
 		:return: our name as hash - as python keeps a pool, each name will
 			correspond to the exact object.
 		:note: using asHashable of openMayaMPx did not work as it returns addresses
-			to instances - this does not work for MObjects though"""
+			to instances - this does not work for MObjects though
+		:note: in maya2009 and newer, MObjectHandle.hashCode provides the information 
+			we need, faster"""
 		return hash(str(self))
-
+		
+	if hasattr(api.MObjectHandle, 'hashCode'):
+		def __hash_2009__(self):
+			""":return: hash of our object using MObjectHandle functionlity"""
+			return MObjectHandle(self.object()).hashCode()
+			
+		__hash__ = __hash_2009__
+		__hash__.__name__ = '__hash__'
+	# END overwrite previous hash with faster version
+		
 	#} END overridden methods
 
 	#{ Interface
