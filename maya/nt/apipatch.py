@@ -1084,7 +1084,7 @@ class MSelectionList( api.MSelectionList, ArrayBase ):
 	def mfromList( iter_items, **kwargs ):
 		"""
 		:return: MSelectionList as initialized from the given iterable of Nodes, 
-			MObjects, MDagPaths or MPlugs
+			MObjects, MDagPaths, MPlugs or strings
 		:param kwargs: passed to `base.toSelectionList`"""
 		return base.toSelectionList(iter_items, **kwargs)
 		

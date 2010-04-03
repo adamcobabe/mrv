@@ -7,7 +7,7 @@ Software
 ********
 This software is licensed under the **New BSD License**. A version for human beings with translations into many languages can be found here: http://creativecommons.org/licenses/BSD:
 
-Copyright (c) 2009-2010, Sebastian Thiel
+Copyright (c) 2009-2010, `Sebastian Thiel <http://de.linkedin.com/in/sebastianthiel>`_
 All rights reserved.
 
 Redistribution and use in source and binary forms, with or without
@@ -35,6 +35,24 @@ PyMel
  * mrv.maya.util.Mel ``( copy + customizations )``
  * mrv.maya.util.OptionVarDict ``( copy +  modifications )``
  
+ 
+Submodules
+==========
+The following projects are used by MRV as a submodule.
+ 
+NetworkX
+--------
+`NetworkX <http://networkx.lanl.gov>`_ is licensed under the ``BSD License`` ( http://networkx.lanl.gov/reference/legal.html ).
+
+Pydot
+-----
+`Pydot <http://code.google.com/p/pydot/>`_ is licensed under the ``MIT License`` ( http://www.opensource.org/licenses/mit-license.php ).
+
+Pyparsing
+---------
+`Pyparsing <http://pyparsing.wikispaces.com>`_ is licensed under the ``MIT License`` ( http://www.opensource.org/licenses/mit-license.php ).
+
+ 
 *************
 Documentation
 *************
@@ -43,14 +61,14 @@ This work is licensed under the Creative Commons Attribution 3.0 Germany License
 ##############
 Special Thanks
 ##############
-The following people, countries and tools are mentioned because the helped during the development of the project in one way or another:
+The following people, countries and tools are mentioned because they helped during the development of the project in one way or another:
 
- * The people I worked with in Stockholm, who waited patiently for 3 months until the first actual feature came out of me - this is the time it took to get the first MRV version ready for their pipeline.
+* The people I worked with in Stockholm, who waited patiently for 3 months until the first actual feature came out of me - this is the time it took to get the first MRV version ready for their pipeline.
  
-  * ``Sweden`` in general as its quite a dark and cold country most of the year making it easy to live in the office. Yes, thanks to Sweden :) ! 
+ * ``Sweden`` in general as its quite a dark and cold country most of the year making it easy to live in the office. Yes, thanks to Sweden :) ! 
  
- * ``Martin Freitag``, who survived having me as a colleague and teacher, and generously converted his beloved AnimIO from MEL to MRV, providing it as a first demo tool from which others might be able to learn something.
+* ``Martin Freitag``, who survived having me as a colleague and teacher, and generously converted his beloved AnimIO from MEL to MRV, providing it as a first demo tool from which others might be able to learn something.
  
- * ``PyMel`` for being a source of inspiration and for hinting me at more advanced python techniques without which MRV wouldn't be possible.
+* ``PyMel`` for being a source of inspiration and for hinting me at more advanced python techniques without which MRV wouldn't be possible.
   
- * ``Python`` for being such a flexible and sometimes mind-bending language especially if you come from statically typed languages like C++, and for forcing me into Test-Driven-Development as MRV would be totally unreliable without it.
+* ``Python`` for being such a flexible and sometimes mind-bending language especially if you come from statically typed languages like C++, and for forcing me into Test-Driven-Development as MRV would be totally unreliable without it.

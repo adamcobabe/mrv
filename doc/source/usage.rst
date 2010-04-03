@@ -17,6 +17,7 @@ Nodes
 The term *Node* means any Dependency Node or DagNode which has been wrapped for convenient use. It is derived from ``mrv.maya.nt.base.Node``.
 
 A Node wraps an underlying *MObject* or an *MDagPath*, and it can be retrieved either by iteration, by using one of the various methods of the MRV library or by manually wrapping a maya node whose name is known::
+	
 	>>> from mrv.maya.nt import *
 	>>> # wrap a node by name
 	>>> p = Node("persp")
@@ -24,6 +25,7 @@ A Node wraps an underlying *MObject* or an *MDagPath*, and it can be retrieved e
 	>>> t = Node("time1")
 	
 The Node p now represents the transform named 'persp' within the maya scene. You can interact with it natively. It will behave properly within sets and when being compared::
+	
 	>>> assert p == p
 	>>> assert p != t
 	>>> assert p in [p]
@@ -34,15 +36,18 @@ The Node p now represents the transform named 'persp' within the maya scene. You
 	>>> assert p in s and t in s and len(s | s) == 2
 	
 As initially stated, a Node wraps the respective API object, which is either of type *MDagPath* or *MObject*. These objects can be retrieved from the Node afterwards::
+	
 	>>> # apiObject returns the api object which represents the underlying maya node best
 	>>> assert isinstance(p.apiObject(), api.MDagPath)
 	>>> assert isinstance(t.apiObject(), api.MObject)
 	
 You can query the MObject or the MDagPath specifically::
+	
 	>>> assert isinstance(p.dagPath(), api.MDagPath)
 	>>> assert isinstance(p.object(), api.MObject)
 	
-Although each wrapped node as a python type, which is its capitalized maya type, you may easily query the MayaAPI type representation, being a member of the ``MFn.k...`` enumeration::
+Although each wrapped node has a python type, which is its capitalized maya type, you may easily query the MayaAPI type representation, being a member of the ``MFn.k...`` enumeration::
+	
 	>>> assert isinstance(p, Transform) and p.apiType() == api.MFn.kTransform
 	>>> assert isinstance(t, Time) and t.apiType() == api.MFn.kTime
 	>>> assert p.hasFn(p.apiType())
@@ -59,24 +64,26 @@ Calling these methods involves nothing special, you just make the call on your n
 	>>> p.doesnt_exist()
 	
 MRV looks up the name in the following order:
- 1. Find a method on the instance itself. This would succeed if the method has been implemented on the respective python type, in order to make it easier to use for instance, or to work around limitations.
+ 1. Find a method on the instance itself. This would succeed if the method has been implemented on the respective python type or one of its base types, in order to make it easier to use for instance, or to work around limitations.
  
  2. Find the method name on the topmost MFnFunction set, and resort to more general function sets if the name could not be found. If a Node wraps a mesh for example, it would try to find the Method in MFnMesh, then in MFnDagNode.
  
- 3. Try to find a MPlug with the given name, internally using (MFnDependencyNode.)findPlug(name) to achieve this.
+ 3. Try to find a MPlug with the given name, internally using ``MFnDependencyNode.findPlug(name)`` to achieve this.
 
-This implies that functions will be found *before* an attribute of the same name. If you need the plug instead, use its short attribute name instead.
+This implies that functions will be found *before* an attribute of the same name. If you need the plug instead, use its short attribute name.
 
-It would be quite expensive to make any call if the shown lookup would be performed anytime, but in fact it will only be done once per node type, afterwards the type will know that you are looking for a method, or an MPlug respectively, and return the requested object right away.
+It would be quite expensive to make any call if the shown lookup would be performed anytime, but in fact it will only be done once per node type, afterwards the type will know that you are looking for a method, or an MPlug respectively, and return the requested object right away. MRV types learn what they need to know at runtime.
 
 Even in tight loops, this convenient calling convention may be used without overwhelming performance loss, but if you are interested in optimizing this, have a look at the :ref:`performance-docs-label` paragraph.
 
 MFnFunction Aliases
 ===================
 Methods that map to MFnFunctionSet functions may be aliased such that they better fit or are faster to type. Hence they can be accessed either by their original name or by their alias. For example, (MFnDependencyNode).isFromReferencedFile can also be retrieved using .isReferenced::
+	
 	>>> assert p.isFromReferencedFile() == p.isReferenced()
 
 If you are interested in knowing which MFnFunction sets your node supports, call the ``getMFnClasses`` method::
+	
 	>>> p.getMFnClasses()
 	[<class 'maya.OpenMaya.MFnTransform'>,
 	 <class 'maya.OpenMaya.MFnDagNode'>,
@@ -88,9 +95,11 @@ If you want to learn more about the MFnFunctionSet method aliases, see :ref:`mfn
 Static MFn Functions
 ====================
 Static functions on function sets may be accessed through the actual node type natively::
+	
 	>>> assert DependNode.classification('lambert') == api.MFnDependencyNode.classification('lambert')
 	
 Return values of static methods are wrapped as well if possible::
+	
 	>>> import maya.OpenMayaRender as apirender
 	>>> rnl = RenderLayer.currentLayer()
 	>>> assert isinstance(rnl, Node)
@@ -101,6 +110,7 @@ Return values of static methods are wrapped as well if possible::
 Enumerations
 ============
 If a MFnFunctionSet associated with a ``NodeType``, ``DataType`` or ``AttributeType`` has enumerations, these are statically available on the type by the name used in the MayaAPI documentation. A utility function allows to map enumeration values back to their name::
+	
 	>>> assert Node.Type.kMesh == api.MFn.kMesh
 	>>> assert Attribute.DisconnectBehavior.kReset == api.MFnAttribute.kReset
 	>>> assert Data.Type.kPlugin == api.MFnData.kPlugin
@@ -110,32 +120,38 @@ If a MFnFunctionSet associated with a ``NodeType``, ``DataType`` or ``AttributeT
 DAG-Navigation
 ==============
 DAG objects are organized in a hierarchy which can be walked and traversed at will. The following example also uses a very handy shortcut, allowing you to access the children and parent nodes by index::
+	
 	>>> ps = p.children()[0]
 	>>> assert ps == p[0]
 	>>> assert ps[-1] == p
 	>>> assert ps == p.children()[0]
 	
 Sometimes its required to use filters, only listing shape nodes or transforms are the most common cases and supported specifically::
+	
 	>>> assert ps == p.shapes()[0]
 	>>> assert ps.parent() == p == ps.transform()
 	
 More specialized filters can be applied as well::
+	
 	>>> assert len(p.childrenByType(Transform)) == 0
 	>>> assert p.childrenByType(Camera) == p.childrenByType(Shape)
 	>>> assert p.children(lambda n: n.apiType()==api.MFn.kCamera)[0] == ps
 	
 Generally, all items that are organized in a hierarchy support the  ``mrv.interface.iDagItem`` interface which provides methods for traversal and query::
+	
 	>>> assert ps.iterParents().next() == p == ps.getRoot()
 	>>> assert ps.parentDeep()[0] == p
 	>>> assert p.childrenDeep()[0] == ps
 
 Node Creation
 =============
-Creating nodes in MRV is simple and maybe a bit slow as you can only create about 1200 Nodes per second. There is only one method to accomplish this with plenty of functionality built-in, ``mrv.maya.nt.base.createNode``. This shall only be brief example::
+Creating nodes in MRV is simple and maybe a bit slow as you can only create about 1200 to 2500 Nodes per second. There is only one method to accomplish this with plenty of functionality built-in, ``mrv.maya.nt.base.createNode``. This shall only be a brief example::
+	
 	>>> cs = createNode("namespace:subspace:group|other:camera|other:cameraShape", "camera")
 	>>> assert len(cs.parentsDeep()) == 2
 	
 The short and more convenient way to create nodes is to use the NodeType() call signature, whose ``**kwargs`` will be passed to the ``createNode`` function::
+	
 	>>> m = Mesh()
 	>>> assert isinstance(m, Mesh) and m.isValid()
 		
@@ -147,16 +163,18 @@ Node duplication is an interesting problem as it might involve many secondary ta
 
 When using the blank duplicate function as provided by the MayaAPI, one will only get a bare copy of the input node, without any connections. Its safe to state that the MayaAPI duplicate is far behind the MEL implementation, as it can take care of much more. Lets just call it a design mistake that they implement functionality in a MEL command instead of in a library so that it can be made accessible in the MayaAPI *and* in MEL.
 
-MRV tackles the problem by providing an interface called ``mrv.interface.iDuplicatable``. It works much like a c++ copy constructor, and anyone who implements it correctly is able to be duplicated properly. Node-derived types may implement special duplication routines to assure their are duplicated correctly::
+MRV tackles the problem by providing an interface called ``mrv.interface.iDuplicatable``. It works much like a c++ copy constructor, and anything implementing it correctly is able to be duplicated properly. Node-derived types may implement special duplication routines to assure their are duplicated correctly::
+	
 	>>> # this duplicated tweaks, set and shader assignments as well
 	>>> md = m.duplicate()
 	>>> assert md != m
 	
-If you ever miss anything to be duplicated on a certain node-type, you only need to implement it in the ``copyFrom`` method in the respective type.
+If you ever miss anything to be duplicated on a certain node-type, you only need to implement it in the ``copyFrom`` method in the respective type or the most appropriate of its base types.
 	
 Namespaces
 ==========
 Namespaces in MRV are objects which may create a hierarchy, hence they support the ``mrv.interface.iDagItem`` interface::
+	
 	>>> ons = cs.namespace()
 	>>> assert ons == cs[-1].namespace()	# namespace of parent node
 	
@@ -172,13 +190,14 @@ Namespaces in MRV are objects which may create a hierarchy, hence they support t
 	
 DAG-Manipulation and Instancing
 ===============================
-Change the structure of the DAG, adjust parent-child relation ships and handle instances. DAG manipulation is an interesting topic as it is implemented using the MayaAPI, but it provides a new programming interface unique to MRV in order to be more intuitive and as a workaround to many issues that can occur when using the MayaAPI otherwise.
+Change the structure of the DAG, adjust parent-child relation ships and handle instances. DAG manipulation is an interesting topic as it is implemented using the MayaAPI, but it provides a new programming interface unique to MRV in order to be more intuitive and as a workaround to many issues that can occur when using the MayaAPI natively.
 
 Transforms can be parented under the world's root, which is the root of the Directed Acyclic Graph, and under other transforms. Shape nodes may be parented under transforms only. Some special nodes may appear parented under Shape nodes, which effectively puts them into the Shape's ``underworld``.
 
 As long as Transforms and Shapes have only one parent, there is only one DAGPath leading up to the object in question. If you add more parents to them, there are more DAGPaths leading to the same object, which is called ``instancing`` in Maya.
 
 The MRV DAG manipulation API provides multiple methods to adjust the number of children and parents of the individual items, including undo support::
+	
 	>>> csp = cs.transform()
 	>>> cs.setParent(p)
 	>>> assert cs.instanceCount(0) == 1
@@ -197,7 +216,8 @@ The MRV DAG manipulation API provides multiple methods to adjust the number of c
  
 It is worth noting that the only 'real' methods are ``addChild`` and ``removeChild``. All others, such as ``addParent``, ``removeParent``, ``setParent`` and ``addInstancedChild`` are only variations of them.
 
-``reparent`` and ``unparent`` are different operations than the instance-aware ones presented in the previous section, as they will not only ignore instances, but also enforce the object into a single DAGPath. This effectively removes all instances::
+``reparent`` and ``unparent`` are different operations than the instance-aware ones presented in the previous section, as they will not only ignore instances, but also force the object into a single DAGPath. This effectively removes all instances::
+	
 	>>> cspp = csp[-1]
 	>>> csi.reparent(cspp)
 	
@@ -206,15 +226,16 @@ It is worth noting that the only 'real' methods are ``addChild`` and ``removeChi
 	>>> assert len(cspp.children()) == 1
 	>>> assert csi.instanceCount(0) == 1
 
-The MayaAPI provides methods to handle instances and to accomplish fundamental re-parenting, MRV makes this more usable by providing own methods. Nonetheless, the general feeling of inconsistency remains as these sets of functions are slightly opposing each other, some are instance aware, some are not.
+The MayaAPI provides methods to handle instances and to accomplish fundamental re-parenting, MRV makes them more usable by providing own methods. Nonetheless, the general feeling of inconsistency remains as these sets of functions are slightly opposing each other, some are instance aware, some are not.
 
 As a general advice, you should be aware of instances and the methods to use to safely operate on them. ``reparent`` and ``unparent`` in MRV can be used safely as well as they will raise by default if instances would be destroyed otherwise.
 
 Node- and Graph-Iteration
 =========================
-The fastest way to retrieve Nodes is by iterating them. There are three major areas to iterate: DAG Nodes only, DG Nodes only, or the dependency graph which is defined by plug connections between DG Nodes.
+The fastest way to retrieve Nodes is by iterating them. There are three major areas to iterate: DAG Nodes only, DG Nodes ( which includes DAG Nodes ), or the dependency graph which is defined by plug connections between DG Nodes.
 
 MRV iterators are built around their MayaAPI counterparts, but provide a more intuitive and pythonic interface::
+	
 	>>> for dagnode in it.iterDagNodes():
 	>>> 	assert isinstance(dagnode, DagNode)
 		
@@ -226,9 +247,10 @@ MRV iterators are built around their MayaAPI counterparts, but provide a more in
 	
 Handling Selections with SelectionLists
 =======================================
-Many methods within the MayaAPI and within MRV will take MSelectionLists as input or return them. An MSelectionList is an ordered heterogeneous list which keeps MObjects, MDagPaths, MPlugs as well as ComponentLists, and although the name may suggest otherwise, it has nothing to do with the selection within the maya scene.
+Many methods within the MayaAPI and within MRV will take MSelectionLists as input or return them. An MSelectionList is an ordered heterogeneous list which keeps MObjects, MDagPaths, MPlugs as well as ComponentLists. Although the name may suggest it, ``MSelectionList`` instances have nothing to do with Maya's active selection.
 
-SelectionLists can easily be created using the ``mrv.maya.nt.base.toSelectionList`` function, or the monkey-patched creator functions. Conversion functions come in several variants which may be more specialized, but will be faster as well. Its safe and mostly fast enough to use the general version though::
+MSelectionLists can easily be created using the ``mrv.maya.nt.base.toSelectionList`` function, or the monkey-patched creator functions. Conversion functions come in several variants, some are more specialized, but faster, than others. Its safe and usually fast enough to use the general version though::
+	
 	>>> nl = (p, t, rlm)
 	>>> sl = toSelectionList(nl)
 	>>> assert isinstance(sl, api.MSelectionList) and len(sl) == 3
@@ -237,6 +259,7 @@ SelectionLists can easily be created using the ``mrv.maya.nt.base.toSelectionLis
 	>>> sl3 = api.MSelectionList.mfromStrings([str(n) for n in nl])
 	
 Adjust maya's selection or retrieve it using the ``mrv.maya.nt.base.select`` and ``mrv.maya.nt.base.selection`` functions::
+	
 	>>> osl = selection()
 	>>> select(sl)
 	>>> select(p, t)
@@ -247,11 +270,12 @@ Adjust maya's selection or retrieve it using the ``mrv.maya.nt.base.select`` and
 	
 Please be aware of the fact that ``selection`` as well as ``select`` are high-level functions that emphasize convenience over performance. If this matters, use the respective functions in MGlobal instead.
 
-SelectionLists can be iterated natively, or explicitly be converted into lists::
+SelectionLists can be iterated natively, or can explicitly be converted into lists::
+	
 	>>> for n in sl.mtoIter():
 	>>> 	assert isinstance(n, DependNode)
 		
-	>>> assert list(sl.mtoIter()) == sl.toList()
+	>>> assert list(sl.mtoIter()) == sl.mtoList()
 	>>> assert list(sl.mtoIter()) == list(it.iterSelectionList(sl))
 
 ObjectSets and Partitions
@@ -259,6 +283,7 @@ ObjectSets and Partitions
 Sets and Partitions are a major feature of Maya, which uses ObjectSets and their derivatives in many locations of the program. Partitions allow to enforce exclusive membership among sets. 
 
 ObjectSets in MRV can be controlled much like ordinary python sets, but they in fact correspond to an ObjectSet compatible node with your scene::
+	
 	>>> objset = ObjectSet()
 	>>> aobjset = ObjectSet()
 	>>> partition = Partition()
@@ -285,35 +310,39 @@ ObjectSets in MRV can be controlled much like ordinary python sets, but they in 
 
 	>>> assert len(aobjset.clear()) == 0
 	
-ShadingEngines work the same, except that they are attached to the renderParition by default, and in that commonly assign components to them.
+ShadingEngines work the same, except that they are attached to the renderParition by default.
 	
 Components and Component-Level Shader Assignments
 =================================================
 The following examples operate on a simple mesh, representing a polygonal cube with 6 faces, 8 vertices and 12 edges::
+	
 	>>> isb = Node("initialShadingGroup")
 	>>> pc = PolyCube()
 	>>> pc.output.mconnectTo(m.inMesh)
 	>>> assert m.numVertices() == 8
-	>>> assert m not in isb                            # it has no shaders on object level
+	>>> assert m not in isb                         # it has no shaders on object level
 	>>> assert len(m.componentAssignments()) == 0   # nor on component leveld 
 	
 Shader assignments on object level can simply be created and broken by adding or removing items from the respective shading group::
+	
 	>>> m.addTo(isb)
 	>>> assert m in isb
 	
 Component Assignments are mutually exclusive to the object level assignments, but maya will just allow the object level assignments to take priority. If you want component level assignments to become effective, make sure you have no object level assignments left::
+	
 	>>> assert m.sets(m.fSetsRenderable)[0] == isb
 	>>> m.removeFrom(isb)
 	>>> assert not m.isMemberOf(isb)
 	
 	>>> isb.add(m, m.cf[range(0,6,2)])     # add every second face
-	>>> isb.discard(m, m.cf[:])	            # remove all component assignments
+	>>> isb.discard(m, m.cf[:])            # remove all component assignments
 		
 	>>> isb.add(m, m.cf[:3])				# add faces 0 to 2
 	>>> isb.add(m, m.cf[3])					# add single face 3
 	>>> isb.add(m, m.cf[4,5])				# add remaining faces
 	
 To query component assignments, use the ``mrv.maya.nt.base.Shape.componentAssignments`` function::
+	
 	>>> se, comp = m.componentAssignments()[0]
 	>>> assert se == isb
 	>>> e = comp.elements()
@@ -322,7 +351,7 @@ To query component assignments, use the ``mrv.maya.nt.base.Shape.componentAssign
 ********************
 Plugs and Attributes 
 ********************
-People coming from MEL might be confused at first as MEL always uses the term ``attr`` when dealing with plugs and attributes. The MayaAPI, as well as MRV differentiate these.
+Persons without experience with the MayaAPI might be confused at first as MEL always uses the term ``attr`` when dealing with plugs *and* attributes. The MayaAPI, as well as MRV differentiate these.
 
  * Attributes define the type of data to be stored, its name and a suitable default value. They do not hold any other data themselves.
  
@@ -331,15 +360,17 @@ People coming from MEL might be confused at first as MEL always uses the term ``
 Plugs
 ======
 To access data on a node, you need to retrieve a plug to it, which is represented by the patched API type ``MPlug``. Whenever you deal with data and connections within MRV, you deal with plugs::
+	
 	>>> assert isinstance(p.translate, api.MPlug)
 	>>> assert p.translate == p.findPlug('t')
 	>>> assert p.t == p.translate 
 	
-The ``MPlug`` type has been extended with various convenience methods which are well worth an separate study, here we focus on the most important functionality though.
+The ``MPlug`` type has been extended with various convenience methods which are well worth an separate study, here we focus on the most important functionality only.
 	
 Connections
 -----------
-Connect and disconnect plugs using simple, chainable functions::
+Connect and disconnect plugs using simple, chainable methods::
+	
 	>>> p.tx.mconnectTo(p.ty).mconnectTo(p.tz)
 	>>> assert p.tx.misConnectedTo(p.ty)
 	>>> assert p.ty.misConnectedTo(p.tz)
@@ -350,45 +381,52 @@ Connect and disconnect plugs using simple, chainable functions::
 	>>> assert p.tz.minput().isNull()
 	
 	>>> p.tx.mconnectTo(p.tz, force=False)
-	>>> p.ty.mconnectTo(p.tz, force=False)     # raises tz is already connected
-	>>> p.ty.mconnectTo(p.tz)                              # force the connection, force defaults True
-	>>> p.tz.mdisconnect()                                    # disconnect all
+	>>> p.ty.mconnectTo(p.tz, force=False)     # raises as tz is already connected
+	>>> p.ty.mconnectTo(p.tz)                  # force the connection, force defaults True
+	>>> p.tz.mdisconnect()                     # disconnect all
 
 Querying Values
 ---------------
 Primitive values, like ints, floats, values with units as well as strings can easily be retrieved using one of the dedicated ``MPlug.asType`` functions::
+	
 	>>> assert isinstance(p.tx.asFloat(), float)
 	>>> assert isinstance(t.outTime.asMTime(), api.MTime)
 	
-All other data is returned as an MObject serving as a container for the possibly copied data. Data-specific function sets can operate on this data. You need to know which function set is actually compatible with the ``MObject``, or use a MRV data wrapper::
+All other data is returned as an MObject serving as a container for the possibly copied data. Data-specific function sets can operate on this data. You need to know which function set is actually compatible with the ``MObject`` at hand, or use a MRV data wrapper::
+	
 	>>> ninst = p.getInstanceNumber()
+	>>> assert p.isInstancedAttribute(p.attribute('wm')) 
 	>>> pewm = p.worldMatrix.elementByLogicalIndex(ninst)
 		
 	>>> matfn = api.MFnMatrixData(pewm.asMObject())
 	>>> matrix = matfn.matrix()                       # wrap data manually
 		
-	>>> dat = pewm.masData()							# or get a wrapped version right away
+	>>> dat = pewm.masData()                          # or get a wrapped version right away
 	>>> assert matrix == dat.matrix()
 	
-.. note:: Wrapping data automatically using ``masData`` is inefficient as all known data function sets will be tried for a compatible one. Afterwards the data is copied into a ``Data`` compatible object which gives convenient access to the data ( this can be very inefficient depending on how the data type is actually implemented ). If you favor performance over convenience, initialize the respective MFnFunctionSet yourself. 
+.. note:: Wrapping data automatically using ``masData`` is relatively inefficient as all known data function sets will be tried for a compatible one. Afterwards the data is copied into a ``Data`` compatible object which gives convenient access to the data ( this can be very inefficient depending on how the data type is actually implemented ). If you favor performance over convenience, initialize the respective MFnFunctionSet yourself. 
 
 Setting Values
 --------------
 Primitive value types can be handled easily using their corresponding ``MPlug.setType`` functions. Please note that the methods prefixed with 'm' are MRV specific and feature undo support::
+	
 	>>> newx = 10.0
 	>>> p.tx.msetDouble(newx)
 	>>> assert p.tx.asDouble() == newx
 	
-All other types need to be created and adjusted using their respective data function sets. The following example extracts mesh data defining a cube, deletes a face, creates a new mesh shape to be filled with the adjusted data so that it shows in the scene::
+All other types need to be created and adjusted using their respective data function sets. The following example extracts mesh data defining a cube, deletes a face, creates a new mesh shape to be filled with the adjusted data so that it shows up in the scene::
+	
 	>>> meshdata = m.outMesh.asMObject()
 	>>> meshfn = api.MFnMesh(meshdata)
 	>>> meshfn.deleteFace(0)                        # delete one face of copied cube data
 	>>> assert meshfn.numPolygons() == 5
 		
 	>>> mc = Mesh()                                 # create new empty mesh to 
-	>>> mc.cachedInMesh.msetMObject(meshdata)        # hold the new mesh in the scene
+	>>> mc.cachedInMesh.msetMObject(meshdata)       # hold the new mesh in the scene
 	>>> assert mc.numPolygons() == 5
 	>>> assert m.numPolygons() == 6
+	
+.. note:: As you see, the mesh data extracted initially has been copied at some point - if the data type does not implement copy-on-write, this can be very inefficient on large meshes, especially if you are just examining the data without any intention to alter it.
 	
 Compound Plugs and Plug-Arrays
 ------------------------------
@@ -401,11 +439,12 @@ A simple example for a compound plug is the translate attribute of a transform, 
 Array plugs are used to access the transform's worldMatrix data, which contains one world matrix per instance of the transform.
 
 The following example shows the traversal of these attribute types::
+	
 	>>> ptc = p.t.mchildren()
 	>>> assert len(ptc) == 3
 	>>> assert (ptc[0] == p.tx) and (ptc[1] == p.ty)
 	>>> assert ptc[2] == p.t.mchildByName('tz')
-	>>> assert p.tx.mparent() == p.t
+	>>> assert p.tx.parent() == p.t
 	>>> assert p.t.isCompound()
 	>>> assert p.tx.isChild()
 		
@@ -418,38 +457,38 @@ The following example shows the traversal of these attribute types::
 Graph Travseral
 ----------------
 Using the ``miter(Input|Output)Graph`` methods, complex and fast traversals of the dependency graph are made easy::
+	
 	>>> mihistory = list(m.inMesh.miterInputGraph())
 	>>> assert len(mihistory) > 2
 	>>> assert mihistory[0] == m.inMesh
-	>>> assert mihistory[2] == pc.output		# ignore groupparts
+	>>> assert mihistory[2] == pc.output        # ignore groupparts
 		
 	>>> pcfuture = list(pc.output.miterOutputGraph())
 	>>> assert len(pcfuture) > 2
 	>>> assert pcfuture[0] == pc.output
-	>>> assert pcfuture[2] == m.inMesh			# ignore groupparts 
+	>>> assert pcfuture[2] == m.inMesh          # ignore groupparts 
 	
 Please note that the traversal can be configured in many ways to meet your specific requirements, as it is implemented by ``iterGraph``.
 	
 Attributes
 ==========
-As attributes are just describing the type and further meta information of data, their most interesting purpose is to create new attributes which can be customized to fully suit your specific needs. 
+As attributes are just describing the type and further meta information of data, their most interesting purpose is to create new attributes which can be customized to fully suit your needs. 
 
 The following example will use facilities of MRV to create a complex attribute.
- * master ( Compound, Array )
+
+* master ( Compound, Array )
  
-  * String
+ * String
+ * Point ( double3, Compound )
   
-  * Point ( double3 compound )
-  
-   * x ( double )
+  * x ( double )
+  * y ( double )
+  * z ( double )
    
-   * y ( double )
-   
-   * z ( double )
-   
-  * message ( Message Array )
+ * message ( Message, Array )
 
 The code looks like this::
+	
 	>>> cattr = CompoundAttribute.create("compound", "co")
 	>>> cattr.setArray(True)
 	>>> if cattr:
@@ -464,6 +503,7 @@ The code looks like this::
 	>>> # END compound attribute
 
 Now the only thing left to do is to add the newly created attribute to a node::
+	
 	>>> n = Network()
 	>>> n.addAttribute(cattr)
 	>>> assert n.compound.isArray()
@@ -472,12 +512,14 @@ Now the only thing left to do is to add the newly created attribute to a node::
 	>>> assert n.compound['mymessage'].isArray() 
 	
 Finally, remove the attribute - either using the attribute we kept, ``cattr`` or by finding the attribute::
+	
 	>>> n.removeAttribute(n.compound.attribute())
 
 ************************
 Mesh Component Iteration
 ************************
 Meshes can be handled nicely through their wrapped ``MFnMesh`` methods, but in addition it is possible to quickly iterate its components using very pythonic syntax::
+	
 	>>> m = Mesh()
 	>>> PolyCube().output.mconnectTo(m.inMesh)
 	>>> average_x = 0.0
@@ -508,6 +550,7 @@ Selections
 There are several utility methods to aid in handling selections. They are mostly used during interactive sessions, although general utilities like ``select`` and ``activeSelectionList`` may also prove practical in scripts. 
 
 The following examples show some of the most common functions::
+	
 	>>> select(p.t, "time1", p, ps)
 	>>> assert len(selection()) == 4
 		
@@ -524,21 +567,24 @@ The following examples show some of the most common functions::
 Please note that many of the selection utilities operate on wrapped Nodes by default, which may not be desired in performance critical areas.  
 
 Advanced filtering can be implemented using the ``predicate`` of iterators, allowing to return only those items for which the predicate function returns a True value. Something like ``ls -ro`` would look like this::
+	
 	>>> assert len(selection(predicate=lambda n: n.isReferenced())) == 0
 
 Expanders, such as in ``ls -sl -dag`` could be implemented with adapter iterators, which expand dag nodes to the list of their children recursively.
 
-Its worth noting though that very complex filters could possibly be faster if they are handled by ``ls`` directly instead of reprogramming them using the python MayaAPI.
+Its worth noting though that very complex filters operating on large datasets could possibly be faster if they are handled by ``ls`` directly instead of reprogramming them using the python MayaAPI.
 
 Selecting Components and Plugs
 ==============================
 Selecting components is comparable to component assignments of sets and shading engines. In case of selections, one first creates a selection list to be selected, and adds the mesh as well as the components::
+	
 	>>> sl = api.MSelectionList()
 	>>> sl.add(m.dagPath(), m.cf[:4])			# first 4 faces
 	>>> select(sl)
 	>>> assert len(activeSelectionList().miterComponents().next()[1].elements()) == 4
 
 Plugs are can be selected exactly the same way as nodes::
+	
 	>>> sl.clear()
 	>>> sl.add(p.t)
 	>>> sl.add(m.outMesh)
@@ -548,9 +594,10 @@ Plugs are can be selected exactly the same way as nodes::
 **********
 Namespaces
 **********
-Namespaces provide a separate room for Nodes to exist in, hence they help to reduce the probability of name clashes when handling references or when importing files. Namespaces may be nested, hence they are forming a hierarchy that you may traverse freely using the ``mrv.interface.iDagItem`` interface.
+Namespaces provide a separate room for Nodes to exist in, hence they help to reduce the probability of name clashes when handling references or when importing files. Namespaces may be nested, hence they are forming a hierarchy that you may traverse using the ``mrv.interface.iDagItem`` interface.
 
-Handling namespaces is straightforward, you may retrieve the namespace of a node, create and rename namespaces as well as query their objects.
+Handling namespaces is straightforward, you may retrieve the namespace of a node, create and rename namespaces as well as query their objects::
+	
 	>>> from mrv.maya.ns import *
 	>>> assert p.namespace() == RootNamespace
 	>>> assert len(RootNamespace.children()) == 2     # we created 2 namespaces implicitly with objects
@@ -562,6 +609,7 @@ Handling namespaces is straightforward, you may retrieve the namespace of a node
 	>>> assert len(list(barns.iterNodes())) == 0 and len(list(RootNamespace.iterNodes())) != 0
 	
 Although you can set the namespace of individual nodes, it is also possible to move all objects in one namespace to another::
+	
 	>>> m.setNamespace(barns)
 	>>> assert m.namespace() == barns
 		
@@ -569,6 +617,7 @@ Although you can set the namespace of individual nodes, it is also possible to m
 	>>> assert foons.iterNodes().next() == m 
 	
 Renaming of namespaces as well as their deletion is supported as well.::
+	
 	>>> foons.delete()
 	>>> assert not barns.exists() and not foons.exists()
 	>>> assert m.namespace() == RootNamespace
@@ -590,6 +639,8 @@ Dealing with references correctly can be complex in times, but the ``FileReferen
 Maya organizes its references hierarchically, which can be queried using the ``iDagItem`` interface of the FileReference type. Additional functionality includes reference creation, import, removal as well as to query information and to iterate its contained nodes.
 
 The example uses files from the test system and respective utilities::
+	
+	>>> from mrv.maya.ref import FileReference
 	>>> refa = FileReference.create(get_maya_file('ref8m.ma'))     # file with 8 meshes
 	>>> refb = FileReference.create(get_maya_file('ref2re.ma'))    # two subreferences with subreferences
 		
@@ -617,7 +668,8 @@ The example uses files from the test system and respective utilities::
 **************
 Scene Handling
 **************
-The 'Scene' is a singleton class which may be used to interact with maya's currently opened scene and to manage scene messages. It is a mix of functionality from the ``file`` MEL command and the ``MSceneMessage`` API class. The following example uses utilities and scenes from the test system::
+The 'Scene' is a singleton class which may be used to interact with maya's currently opened scene and to manage scene messages. It is a mix of functionality from the ``file`` MEL command and the ``MSceneMessage`` API type. The following example uses utilities and scenes from the test system::
+	
 	>>> import mrv.maya as mrv
 	>>> empty_scene = get_maya_file('empty.ma')
 	>>> mrv.Scene.open(empty_scene, force=1)
@@ -637,6 +689,7 @@ The 'Scene' is a singleton class which may be used to interact with maya's curre
 	>>> assert files[0] == empty_scene
 	
 It is important to remove callbacks once you are done with them to allow the corresponding maya callbacks to be cleaned up properly::
+	
 	>>> mrv.Scene.beforeNew.remove(beforeAndAfterNewCB)
 	>>> mrv.Scene.afterNew.remove(beforeAndAfterNewCB)
 	
@@ -645,13 +698,14 @@ Undo
 ****
 The MayaAPI, the very basis of MRV, has limited support for undo as it clearly focuses on performance. Changes to the dependency graph can only be made through a utility which supports undo, but changes to values through plugs for instance  are not covered by that. To allow MRV to be used within user scripts, full undo was implemented wherever needed. This is indicated by the ``undoable`` decorator. Whenever a method which changes the state cannot be undone for whichever reason, it is decorated with ``notundoable``.
 
-As you are unlikely going to need undo support when running in batch mode or standalone, you can disable the undo system by setting MRV_UNDO_ENABLED to 0, which causes the undo implementation to completely disappear in many cases, which reduces the overhead considerably as well as the memory usage.
+As you are unlikely going to need undo support when running in batch mode or standalone, you can disable the undo system by setting MRV_UNDO_ENABLED to 0, which causes the undo implementation to completely disappear in many cases, reducing the overhead considerably as well as the memory usage.
 
-In case your method or function uses an undoable method, it must be decorated with ``undoable`` as well. If you fail doing so, undo will pick up your individual undoable calls, and a single invocation of maya's undo will just undo one of them ( instead of your complete method ).
+In case your method or function uses an undoable method, it must be decorated with ``undoable`` as well. If you fail doing so, undo will pick up your individual undoable calls, and a single invocation of maya's undo will just undo one of them ( instead of all the changes your method introduced ).
 
 To implement a simple undoable function yourself, you create a functor of type ``GenericOperation`` which will be told what to do to apply your operation, and to undo it.
 
 The following example shows how multiple undoable operations are bundled into a single undoable operation::
+	
 	>>> import maya.cmds as cmds
 	>>> @undoable
 	>>> def undoable_func( delobj ):
@@ -672,11 +726,14 @@ The following example shows how multiple undoable operations are bundled into a 
 	
 Whenever non-overridden MFnFunctions are called, these will not support undo by default unless it gets implemented specifically within MRV.
 
-Advanced Uses
-=============
+It is planned to improve this in :doc:`future releases<roadmap>`.
+
+Recording your Changes
+======================
 MRV keeps an own undo stack for its undoable commands which integrates itself with maya's undo queue using a custom MEL command. Effectively it records every change on that stack, once the main undoable method completes, the stack is moved onto maya's own undo queue.
 
-This allows for interesting uses considering that you can, at any time undo, your own doing in a controlled and safe fashion. This can be very useful to prepare a scene for export by changing it, and then undo your changes once you are done. This way, the user wouldn't have to reload the scene::
+This allows for interesting uses considering that you can, at any time undo, your own doing in a controlled and safe fashion. This can be very useful to prepare a scene for export by changing it, and then undo your changes once you are done. This way, the user wouldn't have to reload the ( possibly huge ) scene::
+	
 	>>> import mrv.maya.undo as undo
 	>>> ur = undo.UndoRecorder()
 	>>> ur.startRecording()
@@ -698,7 +755,8 @@ Persistence
 ***********
 Being able to use python data natively within your program is a great plus - unfortunately there is no default way to store that data in a native format within the maya scene. Everyone who desires to store python data would need to implement marshaling functions to convert python data to maya compatible data to be stored in nodes, and vice versa, which is time consuming and a possible source of bugs.
 
-MRV tackles the problem by providing a generic storage node which comes as part of the ``nt`` package. It is implemented as a plugin node which allows to store data and connections flexibly, allowing access by a convenient python interface::
+MRV tackles the problem by providing a generic storage node which comes as part of the ``nt`` package. It is implemented as a plugin node which allows to store data and connections::
+	
 	>>> did = 'dataid'
 	>>> sn = StorageNode()
 	>>> snn = sn.name()
@@ -718,6 +776,7 @@ MRV tackles the problem by providing a generic storage node which comes as part 
 	>>> assert pd['l'] == [1,2,3]
 		
 Additionally you may organize objects in sets, and these sets in partitions::
+	
 	>>> objset = sn.objectSet(did, 0, autoCreate=True)
 	>>> objset.add(Transform())
 	
@@ -733,14 +792,16 @@ The ``mrv.maya.nt.storage`` module is built to make it easy to create own node t
 About Methods and Types
 ***********************
 Wrapped Nodes make their function set methods available directly. If they have a  wrappable return value, like an MObject resembling an Attribute or a DepdendencyNode, it will be wrapped automatically into the respectve MRV Type::
+	
 	>>> p = Node("persp")
 	>>> ps = p.child(0)			# method originally on MFnDagNode
 	>>> assert isinstance(ps, DagNode)
 
 At the current time, input values of function set methods that resemble Objects as MObject or MDagPath will not allow a wrapped Node, but require the manual extraction of the object or dagpath::
+	
 	>>> ps.hasSamePerspective(ps)	# will raise a TypeError
 	>>> assert ps.hasSamePerspective(ps.dagPath())		# method on MFnCamera, needs MDagPath
 	
-If a function has not been explicitly wrapped by MRV, it will not support undo.
+If a MFnFunction has not been explicitly wrapped by MRV, it will not support undo.
 
-In future, automatic type conversions as well undo support are planned to be provided for all MFnFunctions, see :ref:`roadmap-label`.
+In future, automatic type conversions as well undo support are planned to be provided for all MFnFunctions, see the :doc:`roadmap`.

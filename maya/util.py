@@ -321,7 +321,7 @@ class MetaClassCreator( type ):
 		# ASSURE PARENTS
 		#####################
 		# Parent classes must be available in advance
-		if parentname != None:
+		if parentname is not None:
 			parentclsname = treeToNameFunc( parentname )
 			parentcls = module.__dict__[ parentclsname ]
 			if isinstance( parentcls, StandinClass ):

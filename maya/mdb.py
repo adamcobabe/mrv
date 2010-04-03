@@ -15,6 +15,7 @@ import mrv.maya.env as env
 import mrv.maya as mrvmaya
 
 import maya.cmds as cmds
+import maya.OpenMaya as api
 
 import UserDict
 import inspect
@@ -197,16 +198,52 @@ def writeMfnDBCacheFiles(  ):
 		# END for each api class
 	# END for each api module
 
+def _createTmpNode(nodetype):
+	"""Return tuple(mobject, modifier) for the nodetype or raise RuntimeError
+	doIt has not yet been called on the modifier, hence the mobject is temporary"""
+	try:
+		mod = api.MDGModifier()
+		obj = mod.createNode(nodetype)
+		return (obj, mod)
+	except RuntimeError:
+		mod = api.MDagModifier()
+		tmpparent = mod.createNode("transform")
+		obj = mod.createNode(nodetype, tmpparent)
+		return (obj, mod)
+	# END exception handling
+# END utility
+
+def _iterAllNodeTypes( ):
+	"""Returns iterator which yield tuple(nodeTypeName, MObject, modifier) triplets
+	of nodeTypes, with an MObjects instance of it, created with the given modifier, 
+	one for each node type available to maya.
+	
+	:note: skips manipulators as they tend to crash maya on creation ( perhaps its only
+		one which does that, but its not that important )"""
+	for nodetype in sorted(cmds.ls(nodeTypes=1)):
+		# evil crashers
+		if 'Manip' in nodetype or nodetype.startswith('manip'):
+			continue
+		# END skip manipulators
+		try:
+			obj, mod = _createTmpNode(nodetype) 
+			yield nodetype, obj, mod
+		except RuntimeError:
+			log.warn("Could not create '%s'" % nodetype)
+			continue
+		# END create dg/dag node exception handling
+
 def generateNodeHierarchy( ):
 	"""Generate the node-hierarchy for the current version based on all node types 
 	which can be created in maya.
 	
-	:return: tuple(DAGTree, typeToMFnClsNameList) 
-		 * DAGTree representing the type hierarchy
-		 * list represents typeName to MFnClassName associations
+	:return: tuple(DAGTree, typeToMFnClsNameList)
+	
+		* DAGTree representing the type hierarchy
+		* list represents typeName to MFnClassName associations
+		 
 	:note: should only be run as part of the upgrade process to prepare MRV for  a
-	new maya release. Otherwise the nodetype tree will be read from a cache"""
-	import maya.OpenMaya as api
+		new maya release. Otherwise the nodetype tree will be read from a cache"""
 	from mrv.util import DAGTree
 	from mrv.util import uncapitalize, capitalize
 	from mrv.maya.util import MEnumeration
@@ -225,6 +262,7 @@ def generateNodeHierarchy( ):
 	sl = list()							# string list
 	
 	
+	mfndep = api.MFnDependencyNode()
 	def getInheritanceAndUndo(obj, modifier):
 		"""Takes a prepared modifier ( doIt not yet called ) and the previously created object, 
 		returning the inheritance of the obj which was retrieved before undoing
@@ -236,40 +274,12 @@ def generateNodeHierarchy( ):
 		return inheritance
 	# END utility
 	
-	def createTmpNode(nodetype):
-		"""Return tuple(mobject, modifier) for the nodetype or raise RuntimeError
-		doIt has not yet been called on the modifier, hence the mobject is temporary"""
-		try:
-			mod = api.MDGModifier()
-			obj = mod.createNode(nodetype)
-			return (obj, mod)
-		except RuntimeError:
-			mod = api.MDagModifier()
-			tmpparent = mod.createNode("transform")
-			obj = mod.createNode(nodetype, tmpparent)
-			return (obj, mod)
-		# END exception handling
-	# END utility
-	
 	
 	# CREATE ALL NODE TYPES
 	#######################
 	# query the inheritance afterwards
-	mfndep = api.MFnDependencyNode()
-	
-	for nodetype in sorted(cmds.ls(nodeTypes=1)):
-		# evil crashers
-		if 'Manip' in nodetype or nodetype.startswith('manip'):
-			continue
-		# END skip manipulators
-		
-		try:
-			obj, mod = createTmpNode(nodetype)
-			inheritance = getInheritanceAndUndo(obj, mod)
-		except RuntimeError:
-			log.warn("Could not create '%s'" % nodetype)
-			continue
-		# END create dg/dag node exception handling
+	for nodetype, obj, mod in _iterAllNodeTypes():
+		inheritance = getInheritanceAndUndo(obj, mod)
 		
 		if not inheritance:
 			log.error("Failed on type %s" % nodetype)
@@ -290,7 +300,6 @@ def generateNodeHierarchy( ):
 		api.MGlobal.getFunctionSetList(obj, sl)
 		for mfnType in sl:
 			mfnTypes.add(mfnType)
-		
 	# END for each node type
 	
 	# INSERT SPECIAL TYPES
@@ -491,7 +500,7 @@ def generateNodeHierarchy( ):
 		perfectMatches = list()		# keeps mfnnames of perfect matches
 		for failedApiTypeStr in failedMFnTypes:
 			nodeType = apiTypeToNodeTypeMap[failedApiTypeStr]
-			obj, mod = createTmpNode(nodeType)
+			obj, mod = _createTmpNode(nodeType)
 			
 			removeThisMFn = None
 			for mfncls in candidateMFns:
@@ -613,9 +622,6 @@ class PythonMFnCodeGenerator(MFnCodeGeneratorBase):
 	 	it the MFnMethod caches the function set and actual MObject/MDagPath, which 
 	 	can be dangerous if held too long
 	 	
-	 * kMFnNeedsMObject:
-	 	See `MMemberMap` and its InitWithMObject description
-	 	
 	 * kIsMObject:
 	 	If set, the type we create the method for is not derived from Node, but 
 	 	from MObject. This hint is required in order to generate correct calling code.
@@ -637,11 +643,10 @@ class PythonMFnCodeGenerator(MFnCodeGeneratorBase):
 	"""
 	# IMPORTANT: If these change, update docs above, and test.maya.test_mdb and test.maya.performance.test_mdb !
 	kDirectCall, \
-	kMFnNeedsMObject, \
 	kIsMObject, \
 	kIsDagNode, \
 	kIsStatic, \
-	kWithDocs = [ 1<<i for i in range(6) ] 
+	kWithDocs = [ 1<<i for i in range(5) ] 
 	
 	def generateMFnClsMethodWrapper(self, source_method_name, target_method_name, mfn_fun_name, method_descriptor, flags=0):
 		"""Generates code as python string which can be used to compile a function. It assumes the following 
@@ -653,11 +658,6 @@ class PythonMFnCodeGenerator(MFnCodeGeneratorBase):
 		as well as all flags except kIsStatic.
 		:raise ValueError: if flags are incompatible with each other
 		"""
-			# if an mobject is required, we disable the isDagPath flag
-		if flags & self.kIsDagNode and flags & self.kMFnNeedsMObject:
-			flags ^= self.kIsDagNode
-		# END handle needs MObject
-		
 		if flags & self.kIsMObject and flags & self.kIsDagNode:
 			raise ValueError("kIsMObject and kIsDagNode are mutually exclusive")
 		# END handle flags
@@ -766,6 +766,7 @@ class CppHeaderParser(object):
 	@classmethod
 	def parseAndExtract(cls, header_filepath, parse_enums=True):
 		"""Parse the given header file and return the parsed information
+		
 		:param header_filepath: Path pointing to the given header file. Its currently
 			assumed to be 7 bit ascii
 		:param parse_enums: If True, enumerations will be parsed from the file. If 
@@ -837,18 +838,9 @@ class MMemberMap( UserDict.UserDict ):
 	
 	**Globals**:
 	The __globals__ entry in MFn db files allows to pass additional options.
-	Currently supported ones are:
-	
-	 * **InitWithMObject**:
-	 	If set, the function set's instance will be initialized with an MObject
-	 	even though an MDagPath would be available.
-	 	Default False.
-	 	NOTE: This might want to become special handling in the code itself as 
-	 	for now MFnMesh is the only one using the globals at all. Having globals 
-	 	is a good thing only if its used by a few more."""
+	Currently there are no supported flags"""
 	__slots__ = ("flags", "enums")
 	kDelete = 'x'
-	kInitWithMObjectFlagName = "InitWithMObject"
 
 	def __init__( self, filepath = None, parse_enums=False ):
 		"""intiialize self from a file if not None
@@ -865,9 +857,8 @@ class MMemberMap( UserDict.UserDict ):
 		self.flags = 0
 		ge = self.get('__global__', None)
 		if ge is not None:
-			# currently we only know this one
-			if ge.flag == self.kInitWithMObjectFlagName:
-				self.flags |= PythonMFnCodeGenerator.kMFnNeedsMObject
+			# currently we know none
+			pass
 		# END fetch info
 		
 		# INITIALIZE PARSED DATA

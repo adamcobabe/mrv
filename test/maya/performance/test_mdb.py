@@ -51,38 +51,36 @@ class TestMDB( unittest.TestCase ):
 				_discard, mdescr = mfndb.methodByName(fname)
 				
 				for directCall in (0, cgen.kDirectCall):
-					for needsMObject in (0, cgen.kMFnNeedsMObject):
-						for isMObject in (0, cgen.kIsMObject):
-							for isDagNode in (0, cgen.kIsDagNode):
-								for withDocs in (0, cgen.kWithDocs):
-									for rvalwrapname in ('None', 'rvalwrapper'):
-										flags = directCall|needsMObject|isMObject|isDagNode|withDocs
-										source_fun_name = fname
-										if directCall:
-											source_fun_name = "_api_"+fname
-										# END create source function name
-										prevval = mdescr.rvalfunc 
-										mdescr.rvalfunc = rvalwrapname
-										
-										# generate the actual method
+					for isMObject in (0, cgen.kIsMObject):
+						for isDagNode in (0, cgen.kIsDagNode):
+							for withDocs in (0, cgen.kWithDocs):
+								for rvalwrapname in ('None', 'rvalwrapper'):
+									flags = directCall|isMObject|isDagNode|withDocs
+									source_fun_name = fname
+									if directCall:
+										source_fun_name = "_api_"+fname
+									# END create source function name
+									prevval = mdescr.rvalfunc 
+									mdescr.rvalfunc = rvalwrapname
+									
+									# generate the actual method
+									try:
 										try:
-											try:
-												if not dry_run:
-													fun = cgen.generateMFnClsMethodWrapperMethod(source_fun_name, fname, mfncls, fun, mdescr, flags)
-												# END handle dry run
-											except ValueError:
-												continue
-											else:
-												num_fetched += 1
-											# END handle incorrect arguments
-										finally:
-											mdescr.rvalfunc = prevval
-										# END assure to reset our changes
-									# END for each rvalwrapper type
-								# END for each withDocs state
-							# END for each isDagNode state
-						# END for each isMObject state
-					# END for each needsMObject state
+											if not dry_run:
+												fun = cgen.generateMFnClsMethodWrapperMethod(source_fun_name, fname, mfncls, fun, mdescr, flags)
+											# END handle dry run
+										except ValueError:
+											continue
+										else:
+											num_fetched += 1
+										# END handle incorrect arguments
+									finally:
+										mdescr.rvalfunc = prevval
+									# END assure to reset our changes
+								# END for each rvalwrapper type
+							# END for each withDocs state
+						# END for each isDagNode state
+					# END for each isMObject state
 				# END for each direct call state
 			# END for each function
 		# END for each nodetype/mfncls pair

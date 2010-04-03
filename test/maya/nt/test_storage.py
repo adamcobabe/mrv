@@ -7,9 +7,7 @@ from mrv.path import Path
 import maya.cmds as cmds
 import tempfile
 
-
 class TestStorage( unittest.TestCase ):
-	
 	@with_undo
 	@with_persistence
 	def test_storagePickleData( self ):

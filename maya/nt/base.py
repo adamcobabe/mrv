@@ -108,13 +108,13 @@ def nodeTypeToNodeTypeCls( nodeTypeName, apiobj ):
 	
 	:param nodeTypeName: the type name you which to have the actual class for
 	:param apiobj: source api object, its apiType is used as fallback in case we 
-	don't know the node"""
+		don't know the node"""
 	try:
 		nodeTypeCls = _nodesdict[capitalize( nodeTypeName )]
 	except KeyError:
 		# assume its a plugin node - in that case the parent will be nicely defined
 		# and helps us to figure out that its a default dummy
-		parentclsname = _plugin_type_to_node_type_name.get(apiobj.apiType(), 'Unknown')
+		parentclsname = _plugin_type_to_node_type_name.get(apiobj.apiType(), (isinstance(apiobj, MDagPath) and 'UnknownDag') or 'Unknown')
 		_addCustomType(_nodesdict, parentclsname, nodeTypeName)
 		nodeTypeCls = _nodesdict[capitalize(nodeTypeName)]
 	# END exception handling
@@ -635,7 +635,7 @@ def _checkedInstanceCreation( apiobj, typeName, clsToBeCreated, basecls ):
 	"""Utiliy method creating a new class instance according to additional type information
 	Its used by __new__ constructors to finalize class creation
 	
-	:param apiobj: the MObject of object to wrap
+	:param apiobj: the MObject or MDagPath of object to wrap
 	:param typeName: the name of the node type to be created
 	:param clsToBeCreated: the cls object as passed in to __new__
 	:param basecls: the class of the caller containing the __new__ method
@@ -847,9 +847,20 @@ class Node( object ):
 		:return: our name as hash - as python keeps a pool, each name will
 			correspond to the exact object.
 		:note: using asHashable of openMayaMPx did not work as it returns addresses
-			to instances - this does not work for MObjects though"""
+			to instances - this does not work for MObjects though
+		:note: in maya2009 and newer, MObjectHandle.hashCode provides the information 
+			we need, faster"""
 		return hash(str(self))
-
+		
+	if hasattr(api.MObjectHandle, 'hashCode'):
+		def __hash_2009__(self):
+			""":return: hash of our object using MObjectHandle functionlity"""
+			return MObjectHandle(self.object()).hashCode()
+			
+		__hash__ = __hash_2009__
+		__hash__.__name__ = '__hash__'
+	# END overwrite previous hash with faster version
+		
 	#} END overridden methods
 
 	#{ Interface
@@ -878,7 +889,7 @@ class Node( object ):
 def _lookup_type( mobject_or_mdagpath ):
 	""":return: node type name of the given MObject or MDagPath
 	:note: if we have a plugin type, we must use the 'slow' way
-	as the type is the same for all plugin nodes"""
+		as the type is the same for all plugin nodes"""
 	apitype = mobject_or_mdagpath.apiType() 
 	try:
 		if apitype in _plugin_type_ids_lut:

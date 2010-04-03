@@ -86,12 +86,12 @@ def initializeNewMayaRelease( ):
 	
 	# PROVIDE INFO	TO THE USER
 	############################
-	print "1. git status reveals new MFnFunction sets - check them and assign them to their compatible node type in 'nodeTypeToMfnCls.map'"
-	print "2. Check the 'whats new' part of the maya docs for important API changes and possibly incorporate them into the code"
-	print "3. run 'tmrv %g' and fix breaking tests" % app_version
-	print "4. run 'tmrvr' to assure all maya versions are still working"
-	print "5. run the UI tests and check that they don't fail"
-	print "6. Commit and push your changes - you are done"
+	print >> sys.stderr, "1. git status might reveals new MFnFunction sets as untracked files - check the new methods and possibly define aliases (or delete them wiht 'x')"
+	print >> sys.stderr, "2. Check the 'whats new' part of the maya docs for important API changes and possibly incorporate them into the code"
+	print >> sys.stderr, "3. run 'tmrv %g' and fix possibly breaking tests or the code being tested" % app_version
+	print >> sys.stderr, "4. run 'tmrvr' to assure all maya versions are still working - ideally on all platforms."
+	print >> sys.stderr, "5. run the UI tests and assure that they don't fail"
+	print >> sys.stderr, "6. Commit and push your changes - you are done"
 
 #} END init new maya version
 

@@ -28,8 +28,6 @@ nodeTypeToMfnClsMap = dict()		# allows to see the most specialized compatible mf
 #} END caches
 
 #{Globals
-# special name handling - we assume lower case names, these are capitalized though
-nameToTreeMap = set( [ 'FurAttractors', 'FurCurveAttractors', 'FurGlobals', 'FurDescription','FurFeedback' ] )
 targetModule = None				# must be set in intialization to tell this class where to put newly created classes
 mfnclsattr = '_mfncls'
 mfndbattr = '_mfndb'
@@ -262,13 +260,9 @@ class MetaClassCreatorNodes( MetaClassCreator ):
 			# it in the instance dict
 			return getattrorigfunc( self, attr )
 			# EMD orig getattr handling
-
-
-
 		# END getattr_lazy func definition
 
 		# STORE LAZY GETATTR
-		#meta_getattr_lazy.__name__ = "__getattr__"	# lets keep the original method, we us it for
 		# identification !
 		setattr( newcls, "__getattr__", meta_getattr_lazy )
 
@@ -277,9 +271,19 @@ class MetaClassCreatorNodes( MetaClassCreator ):
 		""" Called to create the class with name """
 		# will be used later
 		def func_nameToTree( name ):
-			if name in nameToTreeMap:
+			# first check whether an uncapitalized name is known, if not, check 
+			# the capitalized version ( for special cases ), finalyl return
+			# the uncapitalized version which is the default
+			name = uncapitalize(name)
+			if nodeTypeTree.has_node(name):
 				return name
-			return uncapitalize( name )
+				
+			capname = capitalize(name)
+			if nodeTypeTree.has_node(capname):
+				return capname
+			
+			return name
+		# END utility
 
 		# ATTACH MFNCLS
 		#################
@@ -305,9 +309,6 @@ class MetaClassCreatorNodes( MetaClassCreator ):
 			clsdict[ mfnclsattr ] = mfncls			# we have at least a None mfn
 		clsdict[ apiobjattr ] = None			# always have an api obj
 
-
-		# SETUP slots - add common members
-		# NOTE: does not appear to have any effect :(
 
 		# CREATE CLS
 		#################

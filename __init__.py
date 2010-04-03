@@ -7,6 +7,7 @@ Initialize mrv system assisting development, debugging and maintenance
 import __builtin__
 from inspect import isfunction
 import logging
+import logging.config
 log = logging.getLogger("mrv")
 
 __all__ = ("init_modules", )
@@ -168,10 +169,24 @@ def _init_logging( ):
 
 	The logging interface unifies the way messages for the end user are handled
 	and assure a flexible message handling.
-
+	
+	:note: will not raise even if the logging module could not be setup
+	
 	:note: in the current implementation, it is based on the default python logging
-	package """
-	pass
+		package"""
+	logcfgfile = os.environ.get('MRV_LOGGING_INI', None)
+	if logcfgfile is None:
+		return
+		
+	try:
+		logcfgfile = Path(logcfgfile).expand_or_raise()
+		logging.config.fileConfig(logcfgfile)
+	except Exception, e:
+		print "Failed to apply logging configuration at %s with error: %s" % (logcfgfile, str(e))
+	else:
+		log.debug("Initialized logging configuration from file at %s" % logcfgfile)
+	# END exception handling
+	
 
 
 def _init_python( ):

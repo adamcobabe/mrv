@@ -4,12 +4,15 @@
 
 Welcome to the MRV documentation!
 ====================================
+MRV is a multi-platform python development environment to ease rapid development of maintainable, reliable and high-performance code to be used in and around Autodesk Maya.
 
-Contents:
+Contents
+========
 
 .. toctree::
    :maxdepth: 2
    
+   about
    Installation <install>
    gettingstarted
    Usage <usage>

@@ -2,63 +2,288 @@
 """Test basic node features """
 from mrv.test.maya import *
 import mrv.maya as mrvmaya
-import mrv.maya.nt as nt
-import maya.OpenMaya as api
-import maya.OpenMayaRender as apirender
-import maya.cmds as cmds
-
+import mrv.maya.nt.persistence as persistence
 import mrv.maya.nt as mrvnt
 from mrv.maya.nt import *
 from mrv.maya.ns import *
 from mrv.maya.ref import FileReference
 import mrv.maya as mrv
 import mrv.maya.undo as undo
+
+import mrv.maya.nt as nt
+
+import maya.OpenMaya as api
+import maya.OpenMayaRender as apirender
+import maya.cmds as cmds
+
 import tempfile
+
+class StorageNetworkNodeWrong(nt.Network):
+	# misses the __mrv_virtual_subtype__ attribute
+	pass 
+	
+	
+class StorageNetworkNode(nt.Network, nt.StorageBase):
+	"""Implements a wrapper for a specially prepared Network node which has 
+	StorageNode capabilities"""
+	__mrv_virtual_subtype__ = 1
+	
+	def __init__(self, node):
+		"""The overloaded initializer assures we do not wrap incompatible types"""
+		if not hasattr(self, 'data'):
+			raise TypeError("%r node is missing its data attribute" % self)
+		# END handle type
+		# assure we initialize our base - it requires some information to work
+		super(StorageNetworkNode, self).__init__(node)
+		
+	@classmethod
+	def create(cls):
+		"""Create a new Network node with storage node capabilities"""
+		n = nt.Network()
+		n.addAttribute(persistence.createStorageAttribute(persistence.PyPickleData.kPluginDataId))
+		return StorageNetworkNode(n.object())
+		
+	@classmethod
+	def iter_instances(cls):
+		for n in nt.iterDgNodes(nt.Node.Type.kAffect, asNode=False):
+			try:
+				yield StorageNetworkNode(n)
+			except TypeError:
+				continue
+			# END try to wrap our type around
+		# END for each network node
+	
+	
+class Bar(object):
+	pass 
+
+
+class Foo(object):
+	"""A Foo containing Bars
+	:note: Documentation Example"""
+	def __init__ (self, bars):
+		self.bars = tuple(bars)
+		if not self.bars:
+			raise ValueError("Need bars")
+
+
+class BigFoo(Foo):
+	"""A BigFoo is a better Foo"""
+	pass
+
+		
+def makeFoo(bar_iterable, big=False):
+	"""Create a new Foo instance which contains the Bar instances
+	retrieved from the bar_iterable.
+	
+	:return: ``Foo`` compatible instance. If big was True, it will 
+		support the ``BigFoo`` interface
+	:param bar_iterable: iterable yielding Bar instances. As Foo's
+		cannot exist without Bars, an empty iterable is invalid.
+	:param big: if True, change the return type from ``Foo`` to ``BigFoo``
+	:raise ValueError: if bar_iterable did not yield any Bar instance"""
+	if big:
+		return BigFoo(bar_iterable)
+	return Foo(bar_iterable)
+
 
 class TestTransform( unittest.TestCase ):
 	
-	@with_undo
-	def test_tranformation_overrides(self):
-		p = nt.Node('persp')
-		getters = ('getScale', 'getShear')
-		setters = ('setScale', 'setShear')
-		def cmp_val(lhs, rhs, loose):
-			if loose:
-				assert lhs != rhs
-			else:
-				assert lhs == rhs
-		# END util
-		
-		def assert_values(fgetname, fsetname, loose):
-			getter = getattr(p, fgetname)
-			v = getter()
-			assert isinstance(v, api.MVector)
+	def test_makeFoo(self):
+		# assure it returns Foo instances, BigFoo if the flag is set
+		bars = (Bar(), Bar()) 
+		for big in range(2):
+			foo = makeFoo(iter(bars), big)
+			assert isinstance(foo, Foo)
+			if big:
+				assert isinstance(foo, BigFoo)
+			# END check rval type
 			
-			nv = api.MVector(i+v.x+1.0, i+v.y+2.0, i+v.z+3.0)
-			getattr(p, fsetname)(nv)
+			# which contain the bars we passed in
+			assert foo.bars == bars
 			
-			cmp_val(nv, getter(), loose)
-			
-			cmds.undo()
-			cmp_val(v, getter(), loose)
-			cmds.redo()
-			cmp_val(nv, getter(), loose)
-		# END utility
+			# empty iterables raise
+			self.failUnlessRaises(ValueError, makeFoo, tuple(), big)
+		# END for each value of 'big'
+	
+	@with_persistence
+	def test_virtual_subtype(self):
+		n = nt.Network()
 		
-		for i,(fgetname, fsetname) in enumerate(zip(getters, setters)):
-			assert_values(fgetname, fsetname, loose=False)
-		# END for each fname
+		# types must define the __mrv_virtual_subtype__ attribute
+		self.failUnlessRaises(TypeError, StorageNetworkNodeWrong, n.object())
 		
-		setters = ("scaleBy", "shearBy")
-		for i,(fgetname, fsetname) in enumerate(zip(getters, setters)):
-			assert_values(fgetname, fsetname, loose=True)
-		# END for each name
+		# make a StorageNetwork node 
+		sn = StorageNetworkNode.create()
+		assert isinstance(sn, StorageNetworkNode)
+		
+		# it cannot wrap ordinary network nodes - we implemented it that way
+		self.failUnlessRaises(TypeError, StorageNetworkNode, n.object())
+		
+		# iteration works fine as well
+		sns = list(StorageNetworkNode.iter_instances())
+		assert len(sns) == 1 and isinstance(sns[0], StorageNetworkNode)
+		assert sns[0] == sn
+		
+		# be sure we can use the storage interface
+		assert isinstance(sn.dataIDs(), list)
+		
+	@with_persistence
+	def test_replacing_default_node_types(self):
+		n = nt.Network()
+		sn = StorageNetworkNode.create()
+		
+		# REPLACING BUILTIN NODE TYPES
+		##############################
+		# if we want to play crazy, we can make all network nodes our special
+		# storage node, be replacing the existing Network node type.
+		# Any instantiation will fail as if its not one of our specialized nodes, 
+		# but this is implementation defined of course.
+		# Defining a new derived Type automatically puts it into the nt module
+		OldNetwork = nt.Network
+		class Network(StorageNetworkNode):
+			def sayhello(self):
+				print "hello"
+		# yes, the official Network node is now our own one, automatically
+		assert nt.Network is Network
+		
+		sn2 = nt.Node(str(sn))
+		assert isinstance(sn2, StorageNetworkNode)
+		assert isinstance(sn2.dataIDs(), list)
+		
+		# and it can say something
+		sn2.sayhello()
+		
+		# we cannot wrap normal nodes as our initializer on StorageNetworkNode barks 
+		# if the vital data plug cannot be found.
+		self.failUnlessRaises(TypeError, nt.Node, str(n))
+		
+		# reset the old one, we affect everything within MRV now
+		nt.removeCustomType(Network)
+		nt.addCustomType(OldNetwork)
+		
+		# everything back to normal - we get plain old network nodes
+		sn_network = nt.Node(sn.object())
+		assert type(sn_network) is OldNetwork
+		assert type(sn_network) is nt.Network
+		
+		# REPLACING BUILTIN NODES PROPERLY
+		##################################
+		class Network(OldNetwork, nt.StorageBase):
+			def __init__(self, node):
+				"""Implement the initializer such that we only initialize our base
+				if we have the 'data' attribute. Otherwise we keep it uninitialized, so it 
+				will not be functional"""
+				try:
+					super(Network, self).__init__(node)
+				except TypeError:
+					pass
+				# END handle input type
+				
+			def sayaloha(self):
+				print "aloha"
+				
+		# END better Super-Network implementation
+		assert nt.Network is Network
+		
+		# now plain network nodes will be new Network nodes, but we are allowed
+		# to create them
+		# NodeFromObj works as well, just to be sure
+		n2 = nt.NodeFromObj(n.object())
+		assert type(n2) is Network
+		
+		# as the storage base has not been initialized, we cannot do anything 
+		# with it. The actual point here though is that users who don't know the
+		# interface will get a fully functional network node at least.
+		# As we do not 'tighten' the interface, code that doesn't expect our type
+		# will not get into trouble.
+		self.failUnlessRaises(AttributeError, n2.dataIDs)
+		assert isinstance(n2, OldNetwork)
+		n2.sayaloha()
+		
+		# and storage network nodes will be 'Network' nodes whose additional
+		# functions we can use
+		sn2 = nt.Node(sn.object())
+		assert type(sn2) is Network
+		sn2.sayaloha()
+		sn2.dataIDs()
+		
+		# once again, get rid of our custom type, reset the old one 
+		nt.removeCustomType(Network)
+		nt.addCustomType(OldNetwork)
+		assert nt.Network is OldNetwork
+		
+	def test_replace_non_leaf_node_types(self):
+		# keep the previous type as we want to restore it
+		OldDependNode = nt.DependNode
+		
+		nold = nt.Network()
+		assert str(nold).startswith("network")
+		
+		# overwriting the foundation of all nodes will not change anything 
+		# for existing node types, as they have bound the previous type already.
+		class DependNode(nt.Node):
+			"""This type cannot do anything, we have removed functionality"""
+			def __str__(self):
+				return 'me_as_string'
+		# END custom DependNode
+		
+		assert str(nold).startswith('network')
+		
+		# new instances still use the default implementation
+		nnew = nt.Network()
+		assert str(nnew).startswith('network')
+		
+		# also we cannot instatiate it explicitly as we are not inheriting 
+		# from the type that MRV wants to create, Network
+		self.failUnlessRaises(TypeError, DependNode, nnew.object())
+		
+		# we could get away with this, but we clean it up anyway
+		nt.removeCustomType(DependNode)
+		nt.addCustomType(OldDependNode)
+		
+		
+		# MONKEY PATCHING
+		#################
+		# The only way to get custom method implementation directly into the non-leaf  
+		# node types is monkey patching, hence existing methods will be overwritten
+		# with your implementation
+		# Using the dict for retrieval as one would get class methods otherwise, these
+		# check for the actual type passed in which would fail in our case.
+		old_str = nt.DependNode.__dict__['__str__']
+		nt.DependNode.__str__ = DependNode.__dict__['__str__']
+		
+		assert str(nold) == 'me_as_string'
+		# undo our changes
+		nt.DependNode.__str__ = old_str
+		
+	def test_add_and_retrieve_complex_datatype_using_api(self):
+		sellist = api.MSelectionList()
+		sellist.add("persp")
+		p = api.MDagPath()
+		sellist.getDagPath(0, p)
+		
+		mfndag = api.MFnDagNode(p)
+		mfnattr = api.MFnTypedAttribute()
+		mfndata = api.MFnStringArrayData()
+		attr = mfnattr.create("stringArray", "sa", api.MFnData.kStringArray, mfndata.create())
+		mfndag.addAttribute(attr)
+		
+		# all this to add an attribute, now retrieve the value
+		# this is rather short as we reuse the function set.
+		mfndata.setObject(mfndag.findPlug("sa").asMObject())
+		mfndata.array()
+		
+	@with_scene('empty.ma')
+	def test_add_and_retrieve_complex_datatype_using_mrv(self):
+		p = nt.Node("persp")
+		p.addAttribute(nt.TypedAttribute.create('stringarray', 'sa', Data.Type.kStringArray, nt.StringArrayData.create()))
+		p.sa.masData().array()
 		
 	@with_undo
 	@with_persistence
+	@with_scene('empty.ma')
 	def test_usage_examples(self):
-		mrvmaya.Scene.new(force=True)
-		
 		# NOTE: If this test fails ( because of name changes for instance ), the 
 		# documentation needs to be fixed as well, usage.rst.
 		
@@ -316,6 +541,7 @@ class TestTransform( unittest.TestCase ):
 		assert isinstance(t.outTime.asMTime(), api.MTime)
 		
 		ninst = p.instanceNumber()
+		assert p.isInstancedAttribute(p.attribute('wm')) 
 		pewm = p.worldMatrix.elementByLogicalIndex(ninst)
 		
 		matfn = api.MFnMatrixData(pewm.asMObject())
@@ -345,7 +571,7 @@ class TestTransform( unittest.TestCase ):
 		assert len(ptc) == 3
 		assert (ptc[0] == p.tx) and (ptc[1] == p.ty)
 		assert ptc[2] == p.t.mchildByName('tz')
-		assert p.tx.mparent() == p.t
+		assert p.tx.parent() == p.t
 		assert p.t.isCompound()
 		assert p.tx.isChild()
 		

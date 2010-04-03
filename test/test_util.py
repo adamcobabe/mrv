@@ -224,14 +224,16 @@ class TestDAGTree( unittest.TestCase ):
 			estrong = Event(weak=False)
 			eremove = Event(remove_failed=True)
 			
-			def needs_sender(self, arg1, arg2):
+			def needs_sender(self, sender, arg2):
 				self.needs_sender_called = 1
+				assert sender is self.sender()
 			
 			def weak_call(self):
 				self.weak_call_called = 1
 			
-			def needs_sender2(self, arg1, arg2):
+			def needs_sender2(self, sender, arg2):
 				self.needs_sender_called2 = 1
+				assert sender is self.sender()
 				
 			def weak_call2(self):
 				self.weak_call_called2 = 1
