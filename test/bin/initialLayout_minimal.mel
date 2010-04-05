@@ -60,18 +60,29 @@
 
 global proc setupUITest()
 {
-	// getting the arguments for the nose test from MAYA_TEST_ARGS variable,
+	// getting the arguments for the nose test from NOSE_ARGS variable,
 	// putting them into sys.argv and run nose
 
-	$cmdArgs = `getenv "MAYA_TEST_ARGS"`;
-	$args = stringToStringArray($cmdArgs,";");
-	
 	string $pycmd = "import sys\n";
-	$pycmd += "sys.path.append(u\""+`getenv "MRV_PYTHON_PATH"` + "\")\n";
-	$pycmd += "sys.argv =['";
-	for ($arg in $args) $pycmd += ("', '" + $arg);
-		
-	$pycmd += "']\n";
+	$pycmd += "sys.path.insert(0, u\""+`getenv "MRV_PYTHON_PATH"` + "\")\n";
+	
+	$cmdArgs = `getenv "NOSE_ARGS"`;
+	
+	// linux script passes space separated items, windows uses ; for now
+	string $sep = " ";
+	if( `about -nt` )
+		$sep = ";";
+	
+	$args = stringToStringArray($cmdArgs, $sep);
+	if( size($args))
+	{
+		$pycmd += "sys.argv =['nosetests', ";
+		for ($arg in $args)
+		{ 
+			$pycmd += "'" + $arg + "',\n";
+		}
+		$pycmd += "]\n";
+	}
 	$pycmd += "import nose\n";
 	$pycmd += "nose.main()";
 	

@@ -15,19 +15,23 @@ if not cmds.about(batch=1):
 			""" """
 			pass
 	
-		def disabled_test_createClasses( self ):
+		def _disabled_test_createClasses( self ):
 			win = ui.Window( title="Collector" )
 			col = ui.ColumnLayout( adj=1 )
 	
-			for uitype in ui._typetree.nodes_iter():
+			for uitype in ui.typ._typetree.nodes_iter():
 				capuitype = capitalize( uitype )
 				if capuitype in [ "BaseUI", "NamedUI" ]:
 					continue
-	
+				
 				try:
 					inst = ui.__dict__[ capuitype ](  )
-				except RuntimeError:
+				except (RuntimeError, TypeError):
+					# TypeError in case of overridden special elements
+					# RuntimeError in case the UI element just can't be created
+					# standalone
 					continue
+				# END exception handing
 	
 				assert isinstance( inst, ui.BaseUI ) 
 				if not isinstance( inst, ui.BaseUI ):

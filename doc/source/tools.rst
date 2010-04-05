@@ -79,15 +79,22 @@ A MRV specific replacement for the ``nosetests`` utility which supports all argu
 
 tmrvUI
 ======
-Runs UI specific tests. For this to work, you must supply a path to the maya binary which should run the User Interface tests in the ``mrv.test.maya.ui`` package.
+Runs UI specific tests. For this to work, you must supply a path to the maya binary which should run the specified or default User Interface. If no test modules are given as either relative or absolute paths, all test cases reachable from the current working directory will be run.
 
 **Sample Usage**::
 	
+	$ # run all tests reachable from the current directory ( even non-ui )
 	$ test/bin/tmrvUI <path/to/maya/bin/maya>
 	
-**Availability**: Linux and OSX
+	$ # run all UI tests
+	$ test/bin/tmrvUI <path/to/maya/bin/maya> test/maya/ui
+	
+	$ # run only the specified module, verbosely 
+	$ test/bin/tmrvUI <path/to/maya/bin/maya> test/maya/ui/test_base.py -v
+	
+**Availability**: Linux, OSX, Windows
 
-.. note:: This tool is inferior to ``tmrv`` and is likely to be improved, together with the User Interface testing utilities.
+.. note:: This tools interface is slightly different from ``tmrv`` as you currently may not specify the maya version to run by release, but by the full path to the executable. However, it is likely to be improved, together with the User Interface testing utilities.
 
 tmrvc
 =====

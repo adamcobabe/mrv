@@ -1,9 +1,12 @@
 @ECHO OFF
 
-REM call maya and use standard unittest testrunner to run UI given tests
+REM call maya and use nose as test runner
 
 set BASE=%~dp0
 set COLLECTED_ARGS=;
+set MAYA_BIN=%1%
+
+SHIFT
 
 REM collect command line arguments and convert files into fully qualified path names
 REM non filename arguments pass unchanged
@@ -22,7 +25,7 @@ REM to keep the current environment clean
 set COMMAND="set MAYA_SCRIPT_PATH=%BASE%;%BASE%..\..\..;%MAYA_SCRIPT_PATH%"
 set COMMAND=%COMMAND%"&&set MRV_PYTHON_PATH=%BASE%..\..\.."
 set COMMAND=%COMMAND%"&&set MAYA_OVERRIDE_UI=initialLayout_minimal.mel"
-set COMMAND=%COMMAND%"&&set MAYA_TEST_ARGS=%COLLECTED_ARGS%"
+set COMMAND=%COMMAND%"&&set NOSE_ARGS=%COLLECTED_ARGS%"
 
 REM assure we have no additional environment set
 set MAYA_APP_TMP=%TMP%\maya_test_home
@@ -30,7 +33,7 @@ IF NOT EXIST %MAYA_APP_TMP% mkdir %MAYA_APP_TMP%
 REM creating an empty Maya.env file
 echo. 2>%MAYA_APP_DIR%\Maya.env
 
-set COMMAND=%COMMAND%"&&set MAYA_APP_DIR=%MAYA_APP_TMP%&&maya"
+set COMMAND=%COMMAND%"&&set MAYA_APP_DIR=%MAYA_APP_TMP%&&%MAYA_BIN%"
 
 REM cleaning %COMMAND% from unnecessary quotes we needed to create the command
 set COMMAND="%COMMAND:"=%"

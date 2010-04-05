@@ -329,12 +329,10 @@ These tests at least show that the UI system is not fundamentally broken, and th
 
 The commandline required to run the tests is the following ( all platforms )::
 	
-	$ test/bin/tmrvUI <path/to/maya/bin/maya>
+	$ test/bin/tmrvUI <path/to/maya/bin/maya> [ nose arguments ]
 	
 In future, this testing system is likely to be improved, also considering that QT offers a `test library <http://qt.nokia.com/doc/4.2/qtestlib-manual.html>`_ which can virtualize mouse clicks and keyboard input, in order to fully automate user interface testing.
 
-More information about this is to follow, but own experiences have to be made first.
-	
 Verifying Test Coverage
 -----------------------
 In statically typed languages, one benefits from the great blessing of having a compiler which is able to check types and their compatibility, as well as to verify names at compile time.
