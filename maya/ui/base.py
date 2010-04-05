@@ -315,10 +315,15 @@ class NamedUI( unicode, BaseUI , iDagItem, EventSenderUI ):
 	def exists( self ):
 		""":return: True if this instance still exists in maya"""
 		try:
-			return self.__melcmd__( self, e=1 )
+			return self.__melcmd__( self, ex=1 )
 		except RuntimeError:
 			# although it should just return False if it does NOT exist, it raises
 			return False
+			
+	#{ Properties
+	p_exists = property(exists)
+	p_ex = p_exists
+	#} END properties
 
 
 class SizedControl( NamedUI ):
@@ -371,6 +376,10 @@ class SizedControl( NamedUI ):
 		:param dimension: (x,y) : tuple holding desired x and y dimension"""
 		self.__melcmd__( self, e=1, w=dimension[0] )
 		self.__melcmd__( self, e=1, h=dimension[1] )
+		
+	def setFocus(self):
+		"""Set the global keyboard focus to this control"""
+		cmds.setFocus(self)
 
 	#}END edit methods
 
@@ -390,7 +399,8 @@ class Window( SizedControl, uiutil.UIContainerBase ):
 	_properties_ = (	"t", "title",
 					   	"i", "iconify",
 						"s", "sizeable",
-						"iconName",
+						"wh", "widthHeight"
+						"in", "iconName",
 						"tb","titleBar",
 					   	"mnb", "minimizeButton",
 						"mxb", "maximizeButton",
@@ -463,13 +473,19 @@ class ContainerMenuBase( uiutil.UIContainerBase ):
 	"""Implements the container abilities of all menu types"""
 
 	def setActive( self ):
-		"""Make ourselves the active menu"""
+		"""Make ourselves the active menu
+		
+		:return: self"""
 		cmds.setParent( self, m=1 )
+		return self
 
 	def setParentActive( self ):
 		"""Make our parent the active menu layout
+		
+		:return: self
 		:note: only useful self is a submenu"""
 		cmds.setParent( ".." , m=1 )
+		return self
 
 
 class Menu( MenuBase, ContainerMenuBase ):

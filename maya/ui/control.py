@@ -177,6 +177,7 @@ class RadioButtonGrp( BooleanGroupBase, RadioButtonBase ):
 	"""Warning: inherits booleanBase multiple times """
 	pass
 
+
 class CheckBoxGrp( BooleanGroupBase, CheckBoxBase ):
 	"""Note: inherits booleanBase multiple times, this does no harm"""
 	_properties_ = list()
@@ -203,10 +204,45 @@ class Button( LabelBase ):
 	e_pressed = uiutil.EventSenderUI._UIEvent( "command", actOnPress=True )
 	e_released = uiutil.EventSenderUI._UIEvent( "command", actOnPress=False )
 
+
 class IconTextButton( LabelBase, IconTextBase ):
 	"""Class just for multiple inheritance - this cannot be expressed in the hierarchy
 	file"""
 	_events_ = ( "c", "command" )
+	
+	
+class RadioCollectionBase( object ):
+	"""Keeps common properties"""
+	__metaclass__ = uibase.typ.MetaClassCreatorUI
+	
+	_properties_ = ( 	"global", "gl",
+						"select", "sl", 
+						"disableCommands", "dcm", 
+						"numberOfCollectionItems", "nci", 
+						"collectionItemArray", "cia" )
+						
+	
+class RadioCollection( RadioCollectionBase, uibase.NamedUI ):
+	"""Required for multiple inhertance"""
+	pass
+	
+
+class IconTextRadioCollection( RadioCollectionBase, uibase.NamedUI ):
+	"""Required for multiple inhertance
+	:note: it inherits exists() and a few others which are actually not supported for 
+	some reason"""
+	pass
+
+
+class ToolCollection( RadioCollectionBase, uibase.NamedUI ):
+	"""Required for multiple inhertance"""
+	pass
+
+
+class RadioMenuItemCollection( RadioCollectionBase, uibase.NamedUI ):
+	"""Required for multiple inhertance"""
+	pass
+
 
 class IconTextCheckBox( CheckBoxBase, IconTextBase ):
 	"""Class just for multiple inheritance - this cannot be expressed in the hierarchy

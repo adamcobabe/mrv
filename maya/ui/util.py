@@ -103,6 +103,7 @@ class EventSenderUI( EventSender ):
 	# we are to be put as first arguemnt, allowing listeners to do something
 	# with the sender when handling the event
 	sender_as_argument = True
+	reraise_on_error  =True
 	#} END configuration
 
 		
@@ -253,8 +254,10 @@ class UIContainerBase( object ):
 		"""Set this container active, such that newly created items will be children
 		of this layout
 		
+		:return: self
 		:note: always use the addChild function to add the children !"""
 		cmds.setParent( self )
+		return self
 
 	def clearChildren( self ):
 		"""Clear our child arrays to quickly forget about our children"""

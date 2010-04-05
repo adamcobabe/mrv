@@ -34,8 +34,10 @@ class Layout( uibase.SizedControl, uiutil.UIContainerBase ):
 		"""Set the parent ( layout ) of this layout active - newly created items
 		will be children of the parent layout
 		
+		:return: self
 		:note: can safely be called several times """
 		cmds.setParent( self.parent( ) )
+		return self
 
 	#{ Properties
 	p_ca = property(children)

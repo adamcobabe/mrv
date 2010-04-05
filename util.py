@@ -399,6 +399,7 @@ class Event( object ):
 					log.warn("Listener for callback of %s was not available anymore" % self)
 					failed_callbacks.append( function )
 					continue
+				# END handle no-func
 
 				try:
 					if sas:
@@ -418,6 +419,7 @@ class Event( object ):
 				
 				if inst.reraise_on_error:
 					raise 
+				
 				log.error(str( e ))
 				success = False
 		# END for each registered event

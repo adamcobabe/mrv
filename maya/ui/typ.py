@@ -15,7 +15,7 @@ from util import propertyQE, EventSenderUI
 
 # CACHES
 _typetree = None
-_typemap = { "floatingWindow" : "window" }
+_typemap = { "floatingWindow" : "window", "field" : "textField" }
 
 
 #{ Initialization
