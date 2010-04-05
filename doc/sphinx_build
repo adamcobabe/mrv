@@ -1,4 +1,7 @@
 #!/bin/bash
 # use maya 2008 as it requires python 2.5 - for now this is where sphinx is installed
 # and has nothing to do with the quality of the generated documentation
-../bin/mrv 2008 sphinx_startup.py $@ 
+# Allow to be reused by callers, hence we use paths relative to our own absolute location
+IFS=''
+base=${0%/*}
+$base/../bin/mrv 2008 $base/sphinx_startup.py $@

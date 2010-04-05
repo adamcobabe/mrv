@@ -295,4 +295,4 @@ class TestDAGTree( unittest.TestCase ):
 	def test_version(self):
 		assert len(mrv.version_info) == 5
 		major, minor, micro, level, serial = mrv.version_info
-		assert major == 1 and minor == 0 and micro == 0 and level == 'RC1' and serial == 0
+		assert major == 1 and minor == 0 and micro == 0 and level == 'Preview' and serial == 0

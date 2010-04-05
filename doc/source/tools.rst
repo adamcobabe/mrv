@@ -81,7 +81,7 @@ tmrvUI
 ======
 Runs UI specific tests. For this to work, you must supply a path to the maya binary which should run the specified or default User Interface. If no test modules are given as either relative or absolute paths, all test cases reachable from the current working directory will be run.
 
-**Sample Usage**::
+**Sample Usage** ( Linux and OSX )::
 	
 	$ # run all tests reachable from the current directory ( even non-ui )
 	$ test/bin/tmrvUI <path/to/maya/bin/maya>
@@ -91,6 +91,12 @@ Runs UI specific tests. For this to work, you must supply a path to the maya bin
 	
 	$ # run only the specified module, verbosely 
 	$ test/bin/tmrvUI <path/to/maya/bin/maya> test/maya/ui/test_base.py -v
+	
+**Sample Usage** ( Windows )::
+	
+	$ test\\bin\\tmrvUI.bat [ nose args ]
+	
+Please note that the windows version currently requires the maya \bin directory to be in your PATH so that maya can be started by just typing 'maya'. This is due to the fact as the batch file is currently in a relatively poor state of development, and as it doesn't allow any spaces in the paths, its impossible to specify a path like "C:\\program files\autodesk" to the actual maya binary.
 	
 **Availability**: Linux, OSX, Windows
 

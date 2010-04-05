@@ -86,8 +86,7 @@ fi
 
 # set the python path to find our package
 
-script=`readlink -f $0`
-base=${script%/*}
+base=$(cd ${0%/*} && echo $PWD)
 mayarvbase=$(cd $base/../.. && echo $PWD)
 PYTHONPATH=${PYTHONPATH:+$PYTHONPATH:}$MAYA_LOCATION/$pylibdir/python$python_version/site-packages:$mayarvbase
 export PYTHONPATH MAYA_LOCATION
@@ -97,4 +96,5 @@ export MRV_MAYA_VERSION=$mayaversion
 
 # execute the interpreter
 # TODO: parse an optional option to specify the python version or just the maya version
+IFS=''
 /usr/bin/env python$python_version $@

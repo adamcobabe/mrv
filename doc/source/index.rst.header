@@ -2,7 +2,7 @@
    You can adapt this file completely to your liking, but it should at least
    contain the root `toctree` directive.
 
-Welcome to the MRV documentation!
+Welcome to MRV!
 ====================================
 MRV is a multi-platform python development environment to ease rapid development of maintainable, reliable and high-performance code to be used in and around Autodesk Maya.
 
