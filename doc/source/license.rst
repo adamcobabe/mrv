@@ -44,6 +44,8 @@ NetworkX
 --------
 `NetworkX <http://networkx.lanl.gov>`_ is licensed under the ``BSD License`` ( http://networkx.lanl.gov/reference/legal.html ).
 
+.. note:: Truncated to the modules actually used by MRV to speed up loading times - networkX imports everything into the root package.
+
 Pydot
 -----
 `Pydot <http://code.google.com/p/pydot/>`_ is licensed under the ``MIT License`` ( http://www.opensource.org/licenses/mit-license.php ).

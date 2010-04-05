@@ -94,7 +94,7 @@ def init_modules( filepath, moduleprefix, recurse=False, self_module = None):
 ## Version Info 
 # See http://docs.python.org/library/sys.html#sys.version_info for more information
 #               major, minor, micro, releaselevel, serial
-version_info = (1,     0,     0,     'RC1',        0)
+version_info = (1,     0,     0,     'Preview',        0)
 
 #} END common
 

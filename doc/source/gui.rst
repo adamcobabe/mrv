@@ -17,6 +17,7 @@ Creating new interface elements is straightforward, and the fact that all user i
 	>>> win = Window(title="demo")
 
 All keyword arguments passed to the ``Window`` class are exactly the same as if they would have been passed to window MEL command, in that case ``window -title "demo"``. The returned instance though will be an instance of type ``Window`` which is also a string::
+	
 	>>> assert isinstance(win, basestring)
 	
 **********

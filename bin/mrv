@@ -85,7 +85,9 @@ fi
 # need so imports can have name clashes
 
 # set the python path to find our package
-base=`/usr/bin/dirname $0`
+
+script=`readlink -f $0`
+base=${script%/*}
 mayarvbase=$(cd $base/../.. && echo $PWD)
 PYTHONPATH=${PYTHONPATH:+$PYTHONPATH:}$MAYA_LOCATION/$pylibdir/python$python_version/site-packages:$mayarvbase
 export PYTHONPATH MAYA_LOCATION

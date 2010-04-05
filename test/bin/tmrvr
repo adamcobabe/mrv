@@ -3,7 +3,8 @@
 # Apply full regression testing, testing all maya versions as well as all single 
 # tests.
 # 
-base=${0%/*}
+script=`readlink -f $0`
+base=${script%/*}
 if [[ $base != /* ]]; then
 	base=$PWD/$base
 fi

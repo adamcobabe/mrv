@@ -7,4 +7,4 @@ set basedir=%~dp0
 REM execute mrv
 cmd.exe /C "%basedir%..\..\bin\mrv.bat %basedir%\nosestartup.py" %*
 
-:end	
+:end

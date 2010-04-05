@@ -4,7 +4,8 @@
 # 
 # start a python shell suitable to run maya and launch ipython in it
 # This is useful mainly for debugging
-base=`/usr/bin/dirname $0`
+script=`readlink -f $0`
+base=${script%/*}
 firstArg=
 
 # if the first argument is the maya version, we have to parse it to be able to 
