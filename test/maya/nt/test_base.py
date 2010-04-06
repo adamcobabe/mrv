@@ -1048,12 +1048,16 @@ class TestNodeBase( unittest.TestCase ):
 		# create all implemented data types
 		self.failUnlessRaises(TypeError, nt.Data.create)
 		
-		basic_types = (	nt.VectorArrayData, nt.UInt64ArrayData, nt.StringData, 
+		basic_types = [nt.VectorArrayData, nt.UInt64ArrayData, nt.StringData, 
 						nt.StringArrayData, nt.SphereData, nt.PointArrayData,
 						nt.NObjectData, nt.MatrixData, nt.IntArrayData, 
 						nt.SubdData, nt.NurbsSurfaceData, nt.NurbsCurveData, 
 						nt.MeshData, nt.LatticeData, nt.DoubleArrayData, 
-						nt.ComponentListData, nt.ArrayAttrsData )
+						nt.ComponentListData, nt.ArrayAttrsData ]
+		
+		if env.appVersion()[0] > 2010.0:
+			basic_types.append(nt.NIdData)
+		# END 2011 special handling
 		
 		knullobj = nt.api.MObject()
 		for bt in basic_types:
