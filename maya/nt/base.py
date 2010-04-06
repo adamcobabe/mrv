@@ -308,9 +308,9 @@ def objExists( objectname ):
 
 @undoable
 def delete( *args, **kwargs ):
-	"""Delete the given Node instances
+	"""Delete the given nodes
 	
-	:note: all deletions will be stored on one undo operation
+	:param args: Node instances, MObjects, MDagPaths or strings to delete
 	:param kwargs:
 		 * presort: 
 		 	if True, default False, will do alot of pre-work to actually
@@ -322,23 +322,24 @@ def delete( *args, **kwargs ):
 		dag and dependency trees with locked attributes, conversion nodes, transforms and shapes
 	:note: in general , no matter which options have been chosen , api deletion does not work well
 		as the used algorithm is totally different and inferior to the mel implementaiton
-	:note: will not raise in case of an error, but print a notification message"""
+	:note: will not raise in case of an error, but print a notification message
+	:note: all deletions will be stored on one undo operation"""
 	presort = kwargs.get( "presort", False )
 
 	# presort - this allows objects high up in the hierarchy to be deleted first
 	# Otherwise we might have trouble deleting the ones lower in the hierarchy
 	# We are basically reimplementing the MEL command 'delete' which does the
 	# same thing internally I assume
-	nodes = args
+	nodes = toSelectionList(args).mtoList()
 	if presort:
 		depnodes = list()
 		dagnodes = list()
-		for node in args:
+		for node in nodes:
 			if isinstance( node, DagNode ):
 				dagnodes.append( node )
 			else:
 				depnodes.append( node )
-		# END for each node in args for categorizing
+		# END for each node in nodes for categorizing
 
 		# long paths first
 		dagnodes.sort( key = lambda n: len( str( n ).split( '|' ) ), reverse = True )

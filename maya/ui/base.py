@@ -58,6 +58,10 @@ def wrapUI( uinameOrList, ignore_errors = False ):
 
 	return out[0]
 
+# alias, allowing new items to be easily wrapped
+UI = wrapUI
+
+
 
 def lsUI( **kwargs ):
 	""" List UI elements as python wrapped types
@@ -420,8 +424,10 @@ class Window( SizedControl, uiutil.UIContainerBase ):
 	#{ Window Specific Methods
 
 	def show( self ):
-		""" Show Window"""
+		""" Show Window
+		:return: self"""
 		cmds.showWindow( self )
+		return self
 
 	def numberOfMenus( self ):
 		""":return: number of menus in the menu array"""

@@ -127,7 +127,7 @@ This paragraph informs about possible issues which have a solution already.
 
 OSX and 64bit Maya Executables
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-Starting with Maya2010, maya is delivered as 64 bit binary. The default interpreter in your path should be 64 bits as well, but if it is not, you have to make some adjustments. 
+Starting with Maya2011, maya is delivered as 64 bit binary. The default interpreter in your path should be 64 bits as well, but if it is not, you have to make some adjustments. 
 
 To allow the mrv startup script to find a python interpreter compiled for 64 bit, it will be sufficient to put a symbolic link to ``python2.6`` into your /usr/bin directory which points to the interpreter in question. 
 
