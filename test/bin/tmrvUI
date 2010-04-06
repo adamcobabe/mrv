@@ -3,7 +3,7 @@
 # 
 # Uses standard unittest testrunner to run UI tests in mayarv.test.maya.ui
 # make it complicated, just to get it to work on osx !
-base=${0%/*}/`readlink $0` || `echo $0`
+base=${0%/*}/`readlink $0`
 base=$(cd ${base%/*} && echo $PWD)
 if [[ $base != /* ]]; then
 	base=$PWD/$base
