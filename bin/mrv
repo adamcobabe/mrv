@@ -46,7 +46,7 @@ if [ ! -d $MAYA_LOCATION ]; then
 fi
 
 # determine python version
-for pyversion in 8.52.4 20082.5 20092.5 20102.6 ; do
+for pyversion in 8.52.4 20082.5 20092.5 20102.6 20112.6 ; do
 	if [[ $pyversion == ${mayaversion}* ]]; then
 		python_version=${pyversion/$mayaversion/}
 		break

@@ -36,6 +36,7 @@
     | renderType                              | None                |                                         
     | rgb                                     | None                |                                         
     | saveInitialState                        | None                |                                         
+    | setCount                                | None                |                                         
     | setPerParticleAttribute                 | None                |                                         
     | surfaceShading                          | None                |                                         
     | tailSize                                | None                |                                         

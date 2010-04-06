@@ -29,6 +29,7 @@
     | horizontalFieldOfView                   | None                |                                         
     | horizontalFilmAperture                  | None                |                                         
     | horizontalFilmOffset                    | None                |                                         
+    | horizontalPan                           | None                |                                         
     | horizontalRollPivot                     | None                |                                         
     | horizontalShake                         | None                |                                         
     | isClippingPlanes                        | None                |                                         
@@ -42,10 +43,12 @@
     | nearFocusDistance                       | None                |                                         
     | orthoWidth                              | None                |                                         
     | overscan                                | None                |                                         
+    | panZoomEnabled                          | None                |                                         
     | postProjectionMatrix                    | None                |                                         
     | postScale                               | None                |                                         
     | preScale                                | None                |                                         
     | projectionMatrix                        | None                |                                         
+    | renderPanZoom                           | None                |                                         
     | rightDirection                          | None                |                                         
     | set                                     | None                |                                         
     | setAspectRatio                          | None                |                                         
@@ -71,6 +74,7 @@
     | setHorizontalFieldOfView                | None                |                                         
     | setHorizontalFilmAperture               | None                |                                         
     | setHorizontalFilmOffset                 | None                |                                         
+    | setHorizontalPan                        | None                |                                         
     | setHorizontalRollPivot                  | None                |                                         
     | setHorizontalShake                      | None                |                                         
     | setIsOrtho                              | None                |                                         
@@ -81,8 +85,10 @@
     | setNearFocusDistance                    | None                |                                         
     | setOrthoWidth                           | None                |                                         
     | setOverscan                             | None                |                                         
+    | setPanZoomEnabled                       | None                |                                         
     | setPostScale                            | None                |                                         
     | setPreScale                             | None                |                                         
+    | setRenderPanZoom                        | None                |                                         
     | setShakeEnabled                         | None                |                                         
     | setShakeOverscan                        | None                |                                         
     | setShakeOverscanEnabled                 | None                |                                         
@@ -95,8 +101,10 @@
     | setVerticalFilmAperture                 | None                |                                         
     | setVerticalFilmOffset                   | None                |                                         
     | setVerticalLock                         | None                |                                         
+    | setVerticalPan                          | None                |                                         
     | setVerticalRollPivot                    | None                |                                         
     | setVerticalShake                        | None                |                                         
+    | setZoom                                 | None                |                                         
     | shakeEnabled                            | None                |                                         
     | shakeOverscan                           | None                |                                         
     | shakeOverscanEnabled                    | None                |                                         
@@ -110,6 +118,8 @@
     | verticalFieldOfView                     | None                |                                         
     | verticalFilmAperture                    | None                |                                         
     | verticalFilmOffset                      | None                |                                         
+    | verticalPan                             | None                |                                         
     | verticalRollPivot                       | None                |                                         
     | verticalShake                           | None                |                                         
     | viewDirection                           | None                |                                         
+    | zoom                                    | None                |                                         
