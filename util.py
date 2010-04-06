@@ -501,11 +501,13 @@ class EventSender( object ):
 		:note: This usually doesn't need to be called directly, but might be useful 
 			in conjunction with other system that do not release your strongly bound 
 			instance"""
-		try:
-			delattr(self, Event._inst_event_attr)
-		except AttributeError:
-			pass
-		# END exception handling
+		# call remove once for each registered method to properly deregister them
+		for en in self.listEventNames():
+			event = getattr(self, en)
+			for key in event._getFunctionSet(self).copy():
+				event.remove(event._key_to_func(key))
+			# END for each function key
+		# END for each event whose methods are to clear 
 		
 	def sender(self):
 		""":return: instance which sent the event you are currently processing
