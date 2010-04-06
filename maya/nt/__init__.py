@@ -210,10 +210,19 @@ class PluginDB(dict):
 		if anything changes."""
 		self.log = logging.getLogger('mrv.maya.nt.%s' % type(self).__name__)
 		# yes, we need a string here, yes, its mel
-		cmds.pluginInfo(changedCommand='python("import mrv.maya.nt; mrv.maya.nt.pluginDB.plugin_registry_changed()")')
+		# UPDATE: In maya 2011, a method is alright !
+		melstr = 'python("import mrv.maya.nt; mrv.maya.nt.pluginDB.plugin_registry_changed()")'
+		if env.appVersion()[0] < 2011.0:
+			cmds.pluginInfo(changedCommand=melstr)
+		else:
+			# Okay, if we do this, maya crashes during shutdown, which is why we 
+			# use mel then ... nice work, Autodesk ;)
+			# cmds.pluginInfo(changedCommand=self.plugin_registry_changed)
+			mrvmaya.Mel.eval('pluginInfo -changedCommand "%s"' % melstr.replace('"', '\\"'))
+		# END install callback
 		self.plugin_registry_changed()
 
-	def plugin_registry_changed(self):
+	def plugin_registry_changed(self, *args):
 		"""Called by maya to indicate something has changed. 
 		We will diff the returned plugin information with our own database 
 		to determine which plugin was added or removed, to make the appropriate 

@@ -153,16 +153,21 @@ class TestMDB( unittest.TestCase ):
 		
 		# rename original file
 		nhf = mdb.nodeHierarchyFile()
-		nhfr = nhf.rename(nhf + ".tmp")
+		nhfr = None
+		if nhf.isfile():
+			nhfr = nhf.rename(nhf + ".tmp")
+		# END protect original file
 		try:
 			mrvmaya.initializeNewMayaRelease()
 			self._createAndTestWrappers()
 		finally:
-			if not nhf.isfile():
-				nhfr.rename(nhf)
-			else:
-				nhfr.remove()
-			# END rename original file back if it wasnt affected
+			if nhfr is not None:
+				if not nhf.isfile():
+					nhfr.rename(nhf)
+				else:
+					nhfr.remove()
+				# END rename original file back if it wasnt affected
+			# END renamed file is available
 		# END cleanup state
 		
 	def _createAndTestWrappers( self ):

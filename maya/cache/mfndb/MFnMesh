@@ -81,6 +81,7 @@
     | getFloatBlindData                       | None                |                                         
     | getHoles                                | None                |                                         
     | getIntBlindData                         | None                |                                         
+    | getInvisibleFaces                       | None                |                                         
     | getNormalIds                            | None                |                                         
     | getNormals                              | None                |                                         
     | getPoint                                | None                |                                         
@@ -158,6 +159,7 @@
     | setFaceVertexNormals                    | None                |                                         
     | setFloatBlindData                       | None                |                                         
     | setIntBlindData                         | None                |                                         
+    | setInvisibleFaces                       | None                |                                         
     | setIsColorClamped                       | None                |                                         
     | setNormals                              | None                |                                         
     | setPoint                                | None                |                                         

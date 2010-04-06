@@ -217,6 +217,8 @@ Whenever a new major maya release hits the scene, it is required to update the d
 To achieve this proceed as follows:
 
 	#. Create the new branch 'release_upgrade' and check it out.
+	#. In ``mrv/bin/mrv`` add a new mayaversion|pyversion string matching your maya and python version. You cannot start bin/mrv <mayaversion> if this was not adjusted.
+	#. In ``mrv/maya/__init__.py`` add the new maya version to the list of supported ones. Trying to import ``mrv.maya`` would fail otherwise.
 	#. In ``mrv.test.maya.test_mdb``, remove the *_DISABLED_* portion in front of the ``test_init_new_maya_release``
 	#. Run the test using the new maya release, for example::
 		

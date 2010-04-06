@@ -2337,6 +2337,11 @@ class NObjectData( Data ):
 	pass
 
 
+class NIdData( Data ):
+	""":note: maya 2011 and newer"""
+	pass
+
+
 class MatrixData( Data ):
 	pass
 
@@ -2408,8 +2413,6 @@ class ComponentListData( Data ):
 
 class ArrayAttrsData( Data ):
 	pass
-
-
 
 #} END data
 
