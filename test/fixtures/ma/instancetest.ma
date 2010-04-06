@@ -5,7 +5,6 @@
 requires maya "8.5";
 requires "VectorRender" "7.0 - 3.209 - cut 200706070600";
 requires "Mayatomr" "8.5.1.7m - 3.5.6.7 ";
-requires "storage.py" "Unknown";
 requires "ik2Bsolver" "2.5";
 currentUnit -l centimeter -a degree -t pal;
 fileInfo "application" "maya";
@@ -267,7 +266,6 @@ createNode mentalrayOptions -s -n "ProductionFineTrace";
 	setAttr ".filh" 0.75;
 	setAttr ".jit" yes;
 	setAttr ".scan" 0;
-createNode vectorRenderGlobals -s -n "vectorRenderGlobals";
 createNode ik2Bsolver -s -n "ik2Bsolver";
 createNode script -n "sceneConfigurationScriptNode";
 	setAttr ".b" -type "string" "playbackOptions -min 1001 -max 1050 -ast 1001 -aet 1050 ";
