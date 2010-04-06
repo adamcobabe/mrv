@@ -2,8 +2,7 @@
 # tmrvUI /path/to/maya/binary [ maya_args ]
 # 
 # Uses standard unittest testrunner to run UI tests in mayarv.test.maya.ui
-script=`readlink -f $0`
-base=${script%/*}
+base=$(cd ${0%/*} && echo $PWD)
 if [[ $base != /* ]]; then
 	base=$PWD/$base
 fi
