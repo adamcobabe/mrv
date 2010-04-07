@@ -65,9 +65,9 @@ Mayapy
 ^^^^^^
 On Windows, MRV currently uses mayapy only ( although there have been experiments which proved that it can run in a standalone interpreter there as well ).
 
-The only package that you need to install to run the tests is ``nose``. Its recommended to retrieve the package using easy_install for your standalone interpreter and to copy it to *"C:\\Program Files\\Autodesk\\Maya<version>\\Python\\Lib\\site-packages"* afterwards.
+The only package that you need to install to run the tests is ``nose``. Its recommended to retrieve the package using easy_install for your standalone interpreter and to alter your ``PYTHONPATH`` to include the ``site-packages`` directory of your local python installation. 
 
-If you want to use mayapy on another platform, copy the ``nose`` package either into *"/usr/autodesk/maya<version>/lib/python<pyversion>/site-packages"* ( Linux ) or into *"/Applications/Autodesk/maya<version>/Maya.app/Contents/Frameworks/Python.framework/Versions/<pyversion>/lib/python<pyversion>/site-packages"* ( OSX ).
+Alternatively, copy the ``nose`` package into *"C:\\Program Files\\Autodesk\\Maya<version>\\Python\\Lib\\site-packages"* ( windows ), into *"/usr/autodesk/maya<version>/lib/python<pyversion>/site-packages"* ( Linux ) or into *"/Applications/Autodesk/maya<version>/Maya.app/Contents/Frameworks/Python.framework/Versions/<pyversion>/lib/python<pyversion>/site-packages"* ( OSX ).
 
 .. _repo-clone-label: 
 
@@ -125,11 +125,11 @@ Troubleshooting
 ---------------
 This paragraph informs about possible issues which have a solution already.
 
-OSX and 64bit Maya Executables
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-Starting with Maya2011, maya is delivered as 64 bit binary. The default interpreter in your path should be 64 bits as well, but if it is not, you have to make some adjustments. 
+OSX and 32bit/64bit Mismatch
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+Starting with Maya2011, maya is delivered as 64 bit binary. The default interpreter in your path should be 64 bits as well, but if it is not, you have to make some adjustments. Conversely, Maya2010 uses Pyhthon2.6 which is 64 bit on Snow Leopard, whereas Maya was just compiled in 32 bits.
 
-To allow the mrv startup script to find a python interpreter compiled for 64 bit, it will be sufficient to put a symbolic link to ``python2.6`` into your /usr/bin directory which points to the interpreter in question. 
+To allow the mrv startup script to find a python interpreter compiled for 32/64 bit, it will be sufficient to put a symbolic link to ``python2.6`` into your /usr/bin directory which points to the interpreter in question. 
 
 ``mayapy`` in your maya installation directory will work in case you don't want to build your own one python interpreter, using macports for instance. In that case you need to put a symbolic link named ``python2.6`` into your ``/Applications/Autodesk/maya2010/Maya.app/Contents/bin`` directory which needs to be inserted to the first position of your PATH. To run the unit tests, you will have to install ``nose`` into maya's site-packages directory::
 	
@@ -323,15 +323,23 @@ As nose will by default catch all standard output of your program, it may also s
 	
 Testing User Interfaces
 -----------------------
-Testing user interfaces is a very manual process. The tests currently available in the ``mrv.test.maya.ui`` package are showing a few windows, the knowing user may also click a few buttons to verify that callbacks work alright.
+Testing of user interfaces used to be a manual process, which clearly degrades the reliability of software as its user interface will only be tested occasionally in an unrepeatable and possibly incomplete manner. 
 
-These tests at least show that the UI system is not fundamentally broken, and that Callbacks and Signals work - nonetheless the manual nature of these tests causes them not to be run very often.
+Using python, it became far easier to automate user interface testing as your interface elements may provide a clear interface to interact with them. Within certain limits - you will most probably not get around testing a few things manually - you  can at least outline the expected functionality and verify the functionality within these bounds. 
+
+The tests currently available in the ``mrv.test.maya.ui`` package are showing a few windows, the knowing user may also click a few buttons to verify that callbacks work alright. Considering the possibilities, the tests are rather primitive and are assumed to be working if there is no exception - there are `other tools <http://gitorious.org/animio>`_ which do much better in that respect.
+
+These tests currently only show that the UI system is not fundamentally broken, and that Callbacks and Signals work - nonetheless the manual nature of them causes them not to be run very often.
 
 The commandline required to run the tests is the following ( all platforms )::
 	
 	$ test/bin/tmrvUI <path/to/maya/bin/maya> [ nose arguments ]
 	
 In future, this testing system is likely to be improved, also considering that QT offers a `test library <http://qt.nokia.com/doc/4.2/qtestlib-manual.html>`_ which can virtualize mouse clicks and keyboard input, in order to fully automate user interface testing.
+
+Other techniques may be used to allow automated tests on default Maya user interfaces, for more information, please see the :ref:`template-project-label` section.  
+
+.. note:: For UI tests to work, ``mayapy`` needs to be able to import ``nose`` to run the actual tests.
 
 Verifying Test Coverage
 -----------------------
@@ -624,6 +632,31 @@ Combining this example with the Python Method Caching, you can maximize the perf
 	
 The only way to make the previous example even faster is to use the dag node iterator directly with cached methods. This is usually not worth the effort though and will add even more boilerplate code which at some point might just not be worth the maintenance effort anymore.
 
+.. _template-project-label:
 
+####################
+The Template Project
+####################
 
+As MRV calls itself a 'Development Framework', it must be simple to create new tools based upon it. The template project gives you a kick-start to do exactly that.
 
+At this stage, the template project itself is still to be created, however, there is a demo project from which it will be derived one day - its called `AnimIO <http://gitorious.org/animio>`_  by Martin Freitag, and allows to export and import animation of nodes.
+
+AnimIO was initially created as MEL script, which makes it especially interesting to see it re-implemented in python, using an Object-Based design and TDD.
+
+The interested reader may have a look at its code. After cloning the repository at http://gitorious.org/animio ( ``git clone`` ), it is required to recursively initialize the submodules ( ``git submodule update --init --recursive`` ). Now you would be ready to run the tests. To sum it up::
+	
+	$ git clone http://gitorious.org/~byron/animio/byrons-sideline animio
+	$ cd animio
+	$ git submodule update --init --recursive
+	
+	$ # Test the library
+	$ test/bin/runtests [maya version]
+	
+	$ # Test the performance
+	$ test/bin/runtests [maya version] test/performance
+	
+	$ # Test the user interface
+	$ test/bin/runtestsUI <path/to/maya/bin/maya> test/ui
+	
+.. note:: The tests of animio will run on all platforms provided that MRV is able to run its tests as well. Effectively, ``animio`` uses the same test setup as MRV does.
