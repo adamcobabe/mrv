@@ -3,6 +3,12 @@ MRV Development Framework
 Use the MayaAPI with ease, boost your productivity and write more maintainable and reliable code !
 
 
+Documentation
+-------------
+Compiled Documentation can be viewed online at
+http://packages.python.org/MRV/index.html
+
+
 Links
 -----
 For more information, see the official wiki:
@@ -26,4 +32,4 @@ with translations into many languages can be found here:
 	
 	http://creativecommons.org/licenses/BSD:
 		
-Additional license information can be found in the docs.
+Additional license information can be found in the docs ( http://packages.python.org/MRV/license.html )

@@ -4,3 +4,4 @@ testresult.*.log
 coverage
 dist/
 build/
+MRV.egg-info

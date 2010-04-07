@@ -17,14 +17,14 @@ def get_packages():
 
 setup(name = "MRV",
       version = "1.0.0-preview",
-      description = "MRV Development Environment",
+      description = "MRV Development Framework",
       author = "Sebastian Thiel",
       author_email = "byronimo@gmail.com",
       url = "http://gitorious.org/mrv",
       packages = get_packages(),
-      package_dir = {'mrv' : ''} ,
-      package_data = { 'mrv' : ['bin/*'] },
+      package_dir = {'mrv' : ''},
       license = "BSD License",
+      requires = ['nose', ], 
       long_description = """"MRV is a multi-platform python development environment to ease rapid development 
 of maintainable, reliable and high-performance code to be used in and around Autodesk Maya."
 """,

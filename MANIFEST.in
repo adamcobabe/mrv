@@ -1,0 +1,37 @@
+prune automation 
+prune maya/automation 
+exclude conf.py
+exclude dge.py 
+exclude dgfe.py 
+exclude batch.py 
+exclude mdp.py
+
+prune test/automation
+prune test/maya/automation
+exclude test/test_conf.py 
+exclude test/test_dge.py 
+exclude test/test_dgfe.py 
+exclude test/test_batch.py 
+exclude test/test_mdp.py
+
+graft test/fixtures
+exclude test/fixtures/ma/large_scene_100000.mb
+exclude test/fixtures/ma/large_scene_25000.mb
+prune test/fixtures/*ini*
+prune test/fixtures/*INI*
+
+graft bin
+graft test/bin
+graft doc
+prune doc/mindmaps
+
+include AUTHORS
+
+graft ext
+prune ext/networkx/.git
+prune ext/pydot/.git
+prune ext/pyparsing/.git
+
+
+global-exclude .git*
+global-exclude *.pyc
