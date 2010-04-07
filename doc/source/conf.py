@@ -45,7 +45,7 @@ copyright = '2010, Sebastian Thiel'
 # The short X.Y version.
 version = '1.0'
 # The full version, including alpha/beta/rc tags.
-release = '1.0.0 Preview'
+release = '1.0.0-preview'
 
 # There are two options for replacing |today|: either, you set today to some
 # non-false value, then it is used:

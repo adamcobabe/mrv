@@ -15,11 +15,11 @@ As an additional benefit, it provides an extensible undo system to enable undo f
 
 MRV is versatile, as it runs on all platforms supported by Maya, starting at Maya 8.5 up to the latest version. Using MRV it is easy to write standalone applications, using a standalone python interpreter as long as access to the maya python libraries is available. 
 
-MRV is :doc:`extensible <doc>`, allowing you to add convenient interfaces to your plug-in nodes without any boilerplate code. You can configure and define every aspect to your liking or your specific needs, making it especially useful for 3D-production :ref:`pipeline development <pipeline-integration-label>`.
+MRV is :doc:`extensible <extend>`, allowing you to add convenient interfaces to your plug-in nodes without any boilerplate code. You can configure and define every aspect to your liking or your specific needs, making it especially useful for 3D-production :ref:`pipeline development <pipeline-integration-label>`.
 
 Reliability is a major concern, hence everything within MRV is :download:`backed up by unittests <download/coverage/index.html>`. New features are implemented using :doc:`test-driven development practices <develop>`, new releases are only done if no unittest fails on any supported platform.
 
-In future, MRV will add more convenience to Maya's built-in facilities to interact with the scene, possibly replacing parts of the outdated MEL interface with extensible python scripts.
+:doc:`In future <roadmap>`, MRV will add more convenience to Maya's built-in facilities to interact with the scene, possibly replacing parts of the outdated MEL interface with extensible python scripts.
 
 ******************
 What MRV is *not*

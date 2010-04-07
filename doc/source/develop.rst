@@ -646,7 +646,7 @@ AnimIO was initially created as MEL script, which makes it especially interestin
 
 The interested reader may have a look at its code. After cloning the repository at http://gitorious.org/animio ( ``git clone`` ), it is required to recursively initialize the submodules ( ``git submodule update --init --recursive`` ). Now you would be ready to run the tests. To sum it up::
 	
-	$ git clone http://gitorious.org/~byron/animio/byrons-sideline animio
+	$ git clone git://gitorious.org/~byron/animio/byrons-sideline.git animio
 	$ cd animio
 	$ git submodule update --init --recursive
 	

@@ -18,12 +18,12 @@ v1.0.9
 ******
 v1.1.0
 ******
- * Dynamically generate code required to use MFnFunctions on wrapped Nodes natively with other wrapped nodes, workaround MScriptUtil and to make methods undoable in general cases. In v1.0.0, only a few methods have been prepared manually. According to some statistics, about 12% of all api methods need fixing, whereas ~500 could support automatic undo.
- * Automated APIPatching - currently there are manual patches, but many classes need patches to get rid of MScriptUtil, or to support undo. These cannot be reached through Nodes though, hence the Apipatches needs to be applied similarly to wrapped methods used on objects, i.e. MClothSystem::addCloth.
+* Dynamically generate code required to use MFnFunctions on wrapped Nodes natively with other wrapped nodes, workaround MScriptUtil and to make methods undoable in general cases. In v1.0.0, only a few methods have been prepared manually. According to some statistics, about 12% of all api methods need fixing, whereas ~500 could support automatic undo.
+* Automated APIPatching - currently there are manual patches, but many classes need patches to get rid of MScriptUtil, or to support undo. These cannot be reached through Nodes though, hence the Apipatches needs to be applied similarly to wrapped methods used on objects, i.e. MClothSystem::addCloth.
  
- * Strengthen MRV as a framework, and make it even easier to create own tools and maya based programs on all platforms.
+* Strengthen MRV as a framework, and make it even easier to create own tools and maya based programs on all platforms.
  
- * Provide more learning material to make the MayaAPI and MRV easier to learn, add videos and tutorials.
+* Provide more learning material to make the MayaAPI and MRV easier to learn, add videos and tutorials.
  
 ******
 v1.5.0

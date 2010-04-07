@@ -87,7 +87,7 @@ def makeFoo(bar_iterable, big=False):
 	return Foo(bar_iterable)
 
 
-class TestTransform( unittest.TestCase ):
+class TestCases( unittest.TestCase ):
 	
 	def test_makeFoo(self):
 		# assure it returns Foo instances, BigFoo if the flag is set

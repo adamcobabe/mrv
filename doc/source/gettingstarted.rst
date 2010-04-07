@@ -1,11 +1,11 @@
 ###############
 Getting Started
 ###############
-Besides the fact that you need to be familiar with Python, you should be able to get started with MRV quickly by working though the Usage Guide: :ref:`usage-label`.
+Besides the fact that you need to be familiar with Python, you should be able to get started with MRV quickly by working though the usage guide: :ref:`usage-label`.
 
-****************
-Helping Yourself
-****************
+*****************
+About this Manual
+*****************
 MRV uses Sphinx as main documentation system, but Epydoc fills the gap by providing more readable auto-generated documentation.
 
 The sphinx docs provide additional hand-written articles whereas the epydoc documentation pages are created from the source code exclusively.
