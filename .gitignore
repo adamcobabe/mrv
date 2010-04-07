@@ -2,3 +2,5 @@
 testresult.*.log
 .coverage
 coverage
+dist/
+build/
