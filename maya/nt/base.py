@@ -978,8 +978,9 @@ class DependNode( Node, iDuplicatable ):		# parent just for epydoc -
 			# END try to get attribute by base class
 		# END find plug exception handling 
 		
-		# cache the plug on our instance
-		base.__setattr__( attr, plug )
+		# NOTE: Don't cache the plug on the instance, it might be too dangerous
+		# in conjunction with changes to the DAG
+		
 		# and assure our class knows about it so in future the plug will be retrieved
 		# right away, before having a function lookup miss
 		attr = str(attr)
