@@ -82,7 +82,7 @@ class Namespace( unicode, iDagItem ):
 		return "%s%s%s" % ( self, inbetween, other )
 
 	def __repr__( self ):
-		return "Namespace(%s)" % str( self )
+		return "Namespace('%s')" % str( self )
 	#}END Overridden Methods
 
 	#{Edit Methods
