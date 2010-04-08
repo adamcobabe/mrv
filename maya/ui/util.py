@@ -83,21 +83,15 @@ class EventSenderUI( EventSender ):
 	keeping an own list of callbacks registered for a specific event, and calling them
 	whenever the maya ui callback has been triggered
 
-	To make this work it is essential that you work with one and the same instance of your
-	class.
-
-	To use this class , see the documentation of `EventSender`, but use the Event
+	To use this class , see the documentation of ``EventSender``, but use the Event
 	instead.
-	If you want to add your own events, use your own events, use the `Event` class instead
+	If you want to add your own events, use your own ``Signal`` s.
 
 	The class does NOT use weakreferences for the main callbacks to make it easier to use.
-	Use the WeakFunction to properly and weakly bind an instance function
+	Use the ``WeakFunction`` to properly and weakly bind an instance function
 
 	When registered for an event, the sender will be provided to each callback as first
 	argument.
-
-	:note: your functions that are being registered for a certain event should
-		reside on a class that is being held alive by more than the callback
 	"""
 	#( Configuration
 	# we are to be put as first arguemnt, allowing listeners to do something

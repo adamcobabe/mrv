@@ -39,8 +39,8 @@ PyMel:
 MRV:
 	8.5 to 2011
 
-Node Database
-=============
+Database
+========
 Both frameworks organize maya's Nodetypes hierarchically and attach information about compatible MFnFunctionSets to them. This information is retrieved  automatically, but is stored in a cache to speed up loading and to allow manual edits.
 
 **PyMel**:
@@ -106,6 +106,7 @@ Access to a Node instances attributes is supported as well, making code like  ``
 	 #. A PyNode type is provided for any type available in maya, including plugin types. As plugins load and unload, respective types are added and removed.
 	 #. Docstrings provide additional information, these are retrieved from the respective MEL command docs if no hand-written doc string exists **?**
 	 #. The string name of DagNodes is the node's partial name, the shortest unique name.
+	 #. PyNodes can be used in PyMel provided versions of MEL commands natively.
 	 
 	2. **Methods**
 	
@@ -147,6 +148,7 @@ Access to a Node instances attributes is supported as well, making code like  ``
 	 5. A Node type is provided for any type available in maya, including plugin types. As plugins load and unload, respective node types are added and removed.
 	 6. Docstrings are handwritten on basic Node types, and do not exist on auto-generated ones.
 	 7. The string name of DagNodes is the full absolute path name.
+	 8. Nodes require explicit conversion to string before being passed to maya.cmds.
 	 
 	2. **Methods**
 	
@@ -173,23 +175,159 @@ Access to a Node instances attributes is supported as well, making code like  ``
 	 
 	  #. Access primitive data types and strings, all other data types using the ``MPlug.asMObject`` and ``MPlug.masData`` methods.
 	  #. Full undo is only implemented for the MRV methods which reside in the 'm' namespace. [#mpmmrv]_
-	 
+	
 
+Node Iteration/Node Listing
+===========================
+This section covers the differences in the interface to retrieve nodes. 
 
-Iteration
-=========
-dag iteration, dg iteration, graph iteration
-
-Attribute/Plug Handling
-=======================
+**PyMel**:
+	#. Retrieve PyNodes as lists **no iterators ?**
+	#. Get all DAG nodes using ``ls(dag=1)``
+	#. Get all DG nodes using ``ls()``
+	#. List all input or output nodes using ``node.history`` and ``node.future``, there no easy way to traverse actual plugs **?** 
+	
+**MRV**:
+	#. Retrieve iterators yielding Nodes (default), MObjects or MDagPaths
+	#. Iterate DAG nodes using ``iterDagNodes()``
+	#. Iterate all DG nodes using ``iterDgNodes()``
+	#. Iterate the dependency graph using ``iterGraph()``, or ``MPlug.miterGraph``.
+	
 
 User Interfaces
 ===============
+Both frameworks provide wrappers for maya's user interface MEL commands, allowing them to be used in an object oriented fashion.
 
+**PyMel**:
+	1. **UI Types**
+	
+	 #. Common base type for all UI elements is ``PyUI``, which is a unicode object.
+	 #. PyUI instances can be created from the name of maya's UI element. If no name is given, all flags supported by the underlying MEL command can be passed in as keyword argument.
+	 #. Each UI MEL comamnd has a corresponding capitalized PyUI type
+	 #. PyUI type hierarchy is solely based on the actual type inheritance in the ``uitypes`` module. **?**
+	 #. PyUI types may inherit from hand-implemented base classes to add custom functionality. 
+	 #. Fully auto-generated UI types derive from PyUI. **?**
+	 
+	 
+	2. **Property Access**
+	
+	 #. Database information is used to provide ``getX`` methods for all long MEL command flags ``X`` which can be queried, and ``setX``  methods for all long editable command flags ``X`` **?**.
+	 
+	  * i.e. ``x, y = win.getWidthHeight()`` or ``win.setWidthHeight((x, y))`` to get and set the dimension of a window. 
+	
+	3. **Callback/Event Handling**
+	
+	 1. Callbacks are set using the respective property, usually named ``setXCommand``.
+	 
+	  * i.e. ``button.setCommand(stringOrCallable)`` sets the command to be called once a button is pressed.
+	  
+	 2. As callbacks correspond to the underlying MEL callback, each one may have zero or one receivers.
+	 3. Maya callbacks which provide additional arguments return Python types, not just strings like 'true', 'false' or ''.
+
+**MRV**:
+	1. **UI Types**
+		#. Common base type for all UI elements is ``BaseUI``, which is an object. All UI elements with names derive from ``NamedUI``, which is a ``BaseUI``, and a unicode object, among others.
+		#. NamedUI instances can be created from the name of maya's UI element. If no name is given, all flags supported by the underlying MEL command can be passed in as keyword argument. BaseUI instances will always instantiate the actual maya UI element ( i.e. modal dialogs ).
+		#. Each UI MEL command has a corresponding capitalized BaseUI type
+		#. The BaseUI type hierarchy is defined in the database according to the commonalities of the flags of the respective MEL commands.
+		#. Types within that hierarchy are hand-implemented to provide common functionality to all derived types. Abstract bases are used as well. 
+		#. Fully auto-generated UI types derive from their base type as defined in the database.
+		
+	2. **Property Access**
+	
+	 #. A list of short and long property names as manually extracted from the MEL command documentation is kept on the respective UI type, which will be used by the type's metaclass to generate python properties prefixed with ``p_``. The property can be queried, but may not necessarily be edited, which is when a RuntimeError will be produced.
+	 
+	  * i.e. ``x, y = win.p_wh`` or ``x, y = win.p_widthHeight``, ``win.p_wh = (x, y)`` or ``win.p_widthHeight = (x, y)`` to get and set the dimensions of a window. 
+	
+	3. **Callback Handling**
+	
+	 1. Callbacks are called Events. A list of short and long event names as manually extracted from the MEL command documentation is kept on the respective UI type, which will be used by the type's metaclass to create UIEvent descriptors prefixed with ``e_``.
+	 
+	  * i.e. ``button.e_pressed = callable1`` and ``button.e_pressed = callable2`` to register two receivers with the button pressed event.
+	  
+	 2. An event may have any amount of receivers.
+	 3. Maya callbacks with arguments provide them as strings only. The receiver has to deal with it itself. The first argument of each sent event is the  event's sender.
+	 
+	 * Custom Signals may be created to facilitate QT-like modular user interfaces. 
+	 
 Regression Testing
-================== 
+==================
+Both frameworks feature nose compatible test cases.
+
+**PyMel**:
+	#. Test modules are organized in a flat list of files
+	#. Tests can be run in the maya version in your PATH.
+	#. There are no utilities to facilitate user interface testing.
+	
+**MRV**:
+	#. Test modules are organized in a hierarchy, matching the name and hierarchical location of the modules they test.
+	#. Tests can be run easily in all installed maya versions
+	#. User interfaces may be tested by the default nose based test system. Maya will be started in minimal GUI mode and runs the specified UI tests.
 
 
+Interfaces and Utilities
+========================
+Both frameworks provide additional utilities and interface to handle common problems that arise within maya. The actual implementation varies greatly though, this comparison merely lists the major ones.
+
+**PyMel**:
+	#. File handling through procedural interface
+	#. Reference handling through custom Type ( ``FileReference`` )
+	#. Namespace handling through custom Type ( ``Namespace`` )
+	#. OptionVar handling through custom dict type ( ``OptionVarDict`` )
+	#. **many more to add, go ahead**
+	
+**MRV**:
+	#. File handling though custom Type ( ``Scene`` )
+	#. Reference handling through custom Type ( ``FileReference`` )
+	#. Namespace handling through custom Type ( ``Namespace`` )
+	#. OptionVar handling through custom dict type ( ``OptionVarDict`` )
+	
+	
+	
+	
+Standalone Tools
+================
+Both frameworks offer standalone tools to provide additional functionality. These are listed here by their functionality, including the available platforms. 
+
+**PyMel**:
+	1. **Tools**
+	
+	 #. IPython shell with PyMel support, some Maya specific convenience functions like Node name completion and Attribute completion. A dag command lists the scene dag as ascii art. ( ``ipymel``, all platforms )
+	 
+	 * Convert MEL to Python ( ``mel2py``, all platforms )
+	 
+	2. **Testing**
+	
+	 #. Run tests in current maya version ( ``pymel_test``, Linux, OSX )
+	 
+	3. **Maintenance**
+	
+	 #. Compile full documentation **?** ( ``make_pymel_docs``, linux and osx )
+	 
+	 * Make a new release ( ``makerelease``, linux and OSX )
+	 * Rebuild the database caches ( ``rebuildcaches.py``, OSX )
+	 
+
+**MRV**:
+	1. **Tools**
+	
+	 #. IPython shell with MRV support, all MFnFunctions take part in tab completion, but nothing more.
+	 
+	 * Prepare a python standalone interpreter to run MRV and maya ( ``mrv``, All platforms, on windows it uses only the predefined maya version )
+	 
+	2. **Testing**
+	
+	 #. Run tests in current and specified maya versions ( ``tmrv``, all platforms, on windows the same limitations apply as for ``mrv`` )
+	 
+	 * Run UI specific tests in a slimmed down maya UI session, maya executable must be specified ( ``tmrvUI``, all platforms )
+	 * Retrieve the test coverage as html report for the specified maya version ( ``tmrvc``, linux and osx )
+	 * Full regression testing against all installed maya versions ( ``tmrvr``, linux and osx )
+	 
+	3. **Maintenance**
+	
+	 #. Compile full documentation ( ``make clean html``, Linux and OSX )
+	 
+	 
 
 ***********
 Performance
