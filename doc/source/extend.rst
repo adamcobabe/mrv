@@ -129,6 +129,8 @@ If you intend to adjust MRVs code base, please have a closer look at the :ref:`d
 
 Even if you don't want to ( or cannot ) contribute it is highly advised to work on a git clone of the MRV mainline as git will allow you to rebase your changes onto the latest version.
 
+.. _database-label:
+
 ############
 The Database
 ############
