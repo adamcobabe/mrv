@@ -31,7 +31,7 @@ class TestPlugPerformance( unittest.TestCase ):
 		r = range(5000)
 		st = time.time()
 		for source, dest in zip(pir(sn.a, r), pir(tn.ab, r)):
-			source > dest
+			source.mconnectTo(dest)
 		# END for whole range
 		elapsed = time.time() - st
 		print >> sys.stderr, "Single-Connected %i different multi-plugs in %f s ( %f / s )" % (len(r), elapsed, len(r) / elapsed)

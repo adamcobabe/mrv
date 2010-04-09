@@ -503,11 +503,13 @@ This more complex example performs an actual computation. It will set the verex 
 	>>> 
 	>>> m.setVertexColors(colors, vids, api.MDGModifier())
 
+
 ====================   ================================================== ==================================================
 Test                   PyMel 1.0.1											MRV 1.0.0 Preview
 ====================   ================================================== ==================================================
 Set Vertex Colors 		153.07s ( 259 colors/s )							1.715s ( 23.198 colors/s )
 ====================   ================================================== ==================================================
+	
 
 Node Wrapping
 =============
@@ -567,7 +569,139 @@ Wrap from String2 		xxxxxxxxxxxxxxxxxxxxxxx								0.426s ( 17.539 nodes/s )
 Wrap from API Obj		0.727 ( 15.068 )									0.112 ( 67.264 nodes/s )
 Wrap from API Obj2		xxxxxxxxxxxxxxxx									0.079 ( 94.665 nodes/s )
 ====================   ================================================== ==================================================
+
+
+Node Handling
+=============
+Nodes can be created, renamed, and their DAG relationships may change through parenting and instancing.
+
+
+Attributes and Plugs
+====================
+Whether you want to access data, or make new connections to alter the data flow, MPlugs (MRV) and Attributes (PyMel) are required to do it.
+
+The following tests take part in a scene with more than 21000 animation nodes and plenty of corresponding animated DAG and DG nodes of different types. The animation nodes are first retrieved, then their output plugs are accessed.
+
+* **Get Anim Nodes**
+
+ * **PyMel**::
+ 	 
+ 	>>> anim_nodes = ls(type="animCurve")
+
+ * **MRV**::
+ 	 
+ 	>>> anim_nodes = list(iterDgNodes(Node.Type.kAnimCurve))
+
+
+* **Access Plug/Attr**
+
+ * **PyMel**::
+ 	 
+ 	>>> for anode in anim_nodes:
+	>>> 	anode.output
+
+ * **MRV**::
+ 	 
+ 	>>> for anode in anim_nodes:
+	>>> 	anode.output
+		
+* **Access Plug**
+
+ * In MRV, one can access the plug using an MFn method. In PyMel, its not possible to receive the plug **?**
+
+ * **MRV**::
+ 	 
+ 	>>> for anode in anim_nodes:
+	>>> 	anode.findPlug('output')
+
 	
+The following tests are to determine the performance of the retrieval of simple floating point data, using the plug/attribute as well as an MFnMethod.
+
+The variable ``p`` is a PyNode/Node of the perspective camera ( shape ). The loop is set to 50000 iterations.
+
+* **Access Plug/Attr 2**
+
+ * Access the same plug/attribute repeatedly on the same node
+ 
+ * **PyMel**::
+ 	 
+ 	>>> for iteration in xrange(na):
+	>>> 	p.fl
+
+ * **MRV**::
+ 	 
+	>>> for iteration in xrange(na):
+	>>> 	p.fl
+
+* **Get Plug/Attr Data**
+
+ * **PyMel**::
+ 	 
+ 	>>> for iteration in xrange(na):
+	>>> 	p.fl.get()
+	
+ * **MRV**::
+ 	 
+ 	>>> for iteration in xrange(na):
+	>>> 	p.fl.asFloat()
+	
+* **MFnMethod Access**
+
+ * **PyMel**::
+ 	 
+ 	>>> for iteration in xrange(na):
+	>>> 	p.getFocalLength
+	
+ * **MRV**::
+ 	 
+ 	>>> for iteration in xrange(na):
+	>>> 	p.focalLength
+
+* **MFnMethod Call**
+
+ * **PyMel**::
+ 	 
+ 	>>> for iteration in xrange(na):
+	>>> 	p.getFocalLength()
+	
+ * **MRV**::
+ 	 
+ 	>>> for iteration in xrange(na):
+	>>> 	p.focalLength()
+	
+* **Plug/Attr Connection**
+
+ * The test contains two network nodes which feature multi-message plugs/attributes. 5000 of these are connected with each other, from one network node to another. A utility is used to produce the required element plugs/attributes. 
+ * Please note that single connecting plugs is inefficient, in case of MRV its better to use ``MPlug.mconnectMultiToMulti`` to get 10x the performance.
+ 
+ * **PyMel**::
+ 	 
+ 	>>> for source, dest in zip(pir(sn.a, r), pir(tn.ab, r)):
+	>>> 	source > dest
+	
+ * **MRV**::
+ 	 
+ 	>>> for source, dest in zip(pir(sn.a, r), pir(tn.ab, r)):
+	>>> 	source.mconnectTo(dest)
+	
+====================   ================================================== ==================================================
+Test                   PyMel 1.0.1											MRV 1.0.0 Preview
+====================   ================================================== ==================================================
+Get Anim Nodes 			10.26s ( 2.086 nodes/s )							0.393s ( 54.357 nodes/s )
+Access Plug/Attr		3.99s ( 5.363 attrs/s )								0.309s ( 69.872 plugs/s )
+Access Plug				xxxxxxxxxxxxxxxxxxxxxxx								0.275s ( 77.771 plugs/s )
+Access Plug/Attr 2		6.51s ( 7.671 attrs/s )								0.718s ( 69.579 plugs/s )
+Get Plug/Attr Data		14.04 ( 3.559 values/s )							1.03s ( 48.483 values/s )
+MFnMethod Access		0.0079s( 6.260.342 accesses/s )					0.0061s ( 8.184.646 accesses/s )
+MFnMethod Call			0.470s ( 106.234 calls/s )							0.286 ( 174.749 calls/s )
+Plug/Attr Connection	1.35s ( 3698 connections/s )						1.072 ( 4662 connections/s )
+====================   ================================================== ==================================================
+	
+Startup Time and Memory Consumption
+===================================
+todo.
+	
+
 ***********
 Basic Tasks
 ***********
