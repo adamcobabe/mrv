@@ -424,11 +424,11 @@ PyMel mesh iteration tests can be found in ``pymel/tests/performance/test_geomet
 ====================   ================================================== ==================================================
 Test                   PyMel 1.0.1											MRV 1.0.0 Preview
 ====================   ================================================== ==================================================
-Iter Vtx No-Op 			4.96s ( 8.018 vtx/s )								0.019s ( 2.009.699 vtx/s )
-Iter Vtx Index 			4.95s ( 8.035 vtx/s )								0.037s ( 1.065.929 vtx/s )
-Iter Vtx Position		23.69s ( 1.679 vtx/s )								0.070s ( 565.626 vtx/s )
-Iter Edge Position		59.82s ( 665 e/s )									0.329s ( 120.621 e/s )
-Iter Poly Position		13.36s ( 2.977 f/s )								0.065s ( 609.627 f/s )
+Iter Vtx No-Op 			4,96s ( 8.018 vtx/s )								0,019s ( 2.009.699 vtx/s )
+Iter Vtx Index 			4,95s ( 8.035 vtx/s )								0,037s ( 1.065.929 vtx/s )
+Iter Vtx Position		23,69s ( 1.679 vtx/s )								0,070s ( 565.626 vtx/s )
+Iter Edge Position		59,82s ( 665 e/s )									0,329s ( 120.621 e/s )
+Iter Poly Position		13,36s ( 2.977 f/s )								0,065s ( 609.627 f/s )
 ====================   ================================================== ==================================================
 
 Set Vertex Colors
@@ -507,7 +507,7 @@ This more complex example performs an actual computation. It will set the verex 
 ====================   ================================================== ==================================================
 Test                   PyMel 1.0.1											MRV 1.0.0 Preview
 ====================   ================================================== ==================================================
-Set Vertex Colors 		153.07s ( 259 colors/s )							1.715s ( 23.198 colors/s )
+Set Vertex Colors 		153,07s ( 259 colors/s )							1,715s ( 23.198 colors/s )
 ====================   ================================================== ==================================================
 	
 
@@ -564,10 +564,10 @@ As preparation, strings of all nodes in the scene are stored in the node_strings
 ====================   ================================================== ==================================================
 Test                   PyMel 1.0.1											MRV 1.0.0 Preview
 ====================   ================================================== ==================================================
-Wrap from String 		1.84s ( 5.928 Nodes/s )								0.469s ( 15.553 nodes/s )
-Wrap from String2 		xxxxxxxxxxxxxxxxxxxxxxx								0.426s ( 17.539 nodes/s )
-Wrap from API Obj		0.727 ( 15.068 )									0.112 ( 67.264 nodes/s )
-Wrap from API Obj2		xxxxxxxxxxxxxxxx									0.079 ( 94.665 nodes/s )
+Wrap from String 		1,84s ( 5.928 Nodes/s )								0,469s ( 15.553 nodes/s )
+Wrap from String2 		xxxxxxxxxxxxxxxxxxxxxxx								0,426s ( 17.539 nodes/s )
+Wrap from API Obj		0,727s ( 15.068 nodes/s)							0,112s ( 67.264 nodes/s )
+Wrap from API Obj2		xxxxxxxxxxxxxxxx									0,079s ( 94.665 nodes/s )
 ====================   ================================================== ==================================================
 
 
@@ -606,10 +606,10 @@ The following test creates 1000 dg nodes ( ``network`` ) as well as 1000 dag nod
 ====================   ================================================== ==================================================
 Test                   PyMel 1.0.1											MRV 1.0.0 Preview
 ====================   ================================================== ==================================================
-Create DG Nodes 		0.456s ( 2.190 Nodes/s )							0.436s ( 2.290 nodes/s )
-Create DAG Nodes 		0.425s ( 2.348 Nodes/s )							0.504s ( 1.983 nodes/s )
-Rename DG Nodes 		0.553s ( 1.807 Nodes/s )							0.290s ( 3.437 nodes/s )
-Rename DAG Nodes 		0.465s ( 2.148 Nodes/s )							0.339s ( 2.941 nodes/s )
+Create DG Nodes 		0,456s ( 2.190 Nodes/s )							0,436s ( 2.290 nodes/s )
+Create DAG Nodes 		0,425s ( 2.348 Nodes/s )							0,504s ( 1.983 nodes/s )
+Rename DG Nodes 		0,553s ( 1.807 Nodes/s )							0,290s ( 3.437 nodes/s )
+Rename DAG Nodes 		0,465s ( 2.148 Nodes/s )							0,339s ( 2.941 nodes/s )
 ====================   ================================================== ==================================================
 	
 Attributes and Plugs
@@ -723,20 +723,103 @@ The variable ``p`` is a PyNode/Node of the perspective camera ( shape ). The loo
 ====================   ================================================== ==================================================
 Test                   PyMel 1.0.1											MRV 1.0.0 Preview
 ====================   ================================================== ==================================================
-Get Anim Nodes 			10.26s ( 2.086 nodes/s )							0.393s ( 54.357 nodes/s )
-Access Plug/Attr		3.99s ( 5.363 attrs/s )								0.309s ( 69.872 plugs/s )
-Access Plug				xxxxxxxxxxxxxxxxxxxxxxx								0.275s ( 77.771 plugs/s )
-Access Plug/Attr 2		6.51s ( 7.671 attrs/s )								0.718s ( 69.579 plugs/s )
-Get Plug/Attr Data		14.04 ( 3.559 values/s )							1.03s ( 48.483 values/s )
-MFnMethod Access		0.0079s( 6.260.342 accesses/s )					0.0061s ( 8.184.646 accesses/s )
-MFnMethod Call			0.470s ( 106.234 calls/s )							0.286 ( 174.749 calls/s )
-Plug/Attr Connection	1.35s ( 3698 connections/s )						1.072 ( 4662 connections/s )
+Get Anim Nodes 			10,26s ( 2.086 nodes/s )							0,393s ( 54.357 nodes/s )
+Access Plug/Attr		3,99s ( 5.363 attrs/s )								0,309s ( 69.872 plugs/s )
+Access Plug				xxxxxxxxxxxxxxxxxxxxxxx								0,275s ( 77.771 plugs/s )
+Access Plug/Attr 2		6,51s ( 7.671 attrs/s )								0,718s ( 69.579 plugs/s )
+Get Plug/Attr Data		14,04 ( 3.559 values/s )							1,03s ( 48.483 values/s )
+MFnMethod Access		0,0079s( 6.260.342 accesses/s )					0,0061s ( 8.184.646 accesses/s )
+MFnMethod Call			0,470s ( 106.234 calls/s )							0,286 ( 174.749 calls/s )
+Plug/Attr Connection	1,35s ( 3698 connections/s )						1,072 ( 4662 connections/s )
 ====================   ================================================== ==================================================
 	
 Startup Time and Memory Consumption
 ===================================
-todo.
+When using a framework, it should ideally unfold its capabilities as fast as possible thanks to minimal loading times, and be as small as possible in main memory to keep more available for the actual task.
+
+This test regards two different scenarios: Usage in the script editor in gui mode and usage as part of a program running in a standalone python interpreter. The version running in the script editor should have all functionality available in the root namespace and imports everything, whereas the program will only import core functionality.
+
+In Gui mode, the time actually measured is the time it takes to import the respective modules from a freshly started maya with no plugins loaded. 
+
+In standalone mode, the time it takes to startup the interpreter and import the core framework modules is measured - they are assumed to initialize maya standalone. In MRV, undo is enabled even in standalone mode to be more comparable to PyMel which doesn't allow that. In MRVs case, the time and memory it takes to load a plugin could be saved otherwise.
+
+The memory consumption is measure by checking the resident memory of the program before and after the import of the respective modules.
+
+All GUI tests are performed in Maya 2011 on OSX - I could not activate my trial on linux. The OSX machine is a 2ghz dual core with 4GB of RAM. 
+All standalone tests are performed on Maya 2011 on Xubuntu linux as it nicely shows how fast maya can be startup.
+
+All tests have been performed at least two times, the best time was used.
+
+* **GUI Import Time**
+
+ * **PyMel**::
+ 	 
+ 	 >>> from pymel.all import *
 	
+ * **MRV**::
+ 	 
+ 	 >>> from mrv.maya.all import *
+ 	 
+* **OpenMaya Memory/Time**
+
+ * As both frameworks use OpenMaya and import all modules, the memory it takes to do so as well as the time it takes to load is included in the measurements::
+ 	 
+ 	>>> import maya.OpenMaya
+ 	>>> import maya.OpenMayaMPx
+ 	>>> import maya.OpenMayaRender
+ 	>>> import maya.OpenMayaFX
+ 	>>> import maya.OpenMayaAnim
+ 	 
+* **GUI Memory**
+
+ * The memory was measured once before importing the modules using the code above, and once after the import.
+
+* **Standalone Startup**
+
+ * **PyMel**::
+ 	 
+ 	$ time mrv 2011 -c "import pymel.core"
+ 	 
+ * Please note that the line above always crashed while deflating the database using zip ( for some strange reason ), so I had to use another line which worked::
+ 		
+ 	$ time mrv 2011 -c "import pymel.all"
+ 	
+ * The line above did not terminate maya correctly, but it was at least started up so a time could be extracted.
+ 
+ * **MRV**::
+ 	 
+ 	$ time mrv 2011 -c "import mrv.maya.nt"
+ 
+* **Standalone Memory**
+
+ * The memory is measured in a python interactive shell due to its persistent nature. The base memory is measured after manually initializing maya standalone. Afterwards, the respective core modules are imported::
+ 	 
+ 	>>> import maya.standalone
+ 	>>> maya.standalone.initialize()
+ 	
+ * **PyMel**::
+ 	 
+ 	>>> import pymel.core
+ 	
+ * Please note that the above line would crash at the same spot as it did during the startup test, so the following line worked so far::
+ 
+ 	>>> import pymel.all
+ 	 
+ * **MRV**::
+ 	 
+ 	>>> import mrv.maya.nt
+
+=====================  ================================================== ==================================================
+Test                   PyMel 1.0.1                                        MRV 1.0.0 Preview
+=====================  ================================================== ==================================================
+OpenMaya Memory/Time   203,5 MB -> 215,7 MB == 12,2 MB in 0,22s           see left side
+GUI Import Time        2,37s                                              0.62s
+GUI Memory             203,5 MB -> 291,1 MB == 87,6 MB                    203,5 MB -> 224,5 MB == 21,0 MB
+Standalone  Startup    8,24s (*invalid run due to repeatable crash*)      5,74s
+Standalone Memory      123,7 MB -> 253,9 MB == 130,2 MB (*invalid run*)   123,7 MB -> 153,1 MB == 29,4 MB
+=====================  ================================================== ==================================================
+
+.. note:: During testing, it is recommended to use maya 8.5 or 2008 as they will be ready in 3,2s (8.5) to 3,8s (2008).
 
 ***********
 Basic Tasks
