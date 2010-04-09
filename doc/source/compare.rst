@@ -332,19 +332,103 @@ Both frameworks offer standalone tools to provide additional functionality. Thes
 ***********
 Performance
 ***********
-Although all performance tests are synthetic and will to give a real indication  of the actual runtime of your scripts, they are able to give a hint about the general performance of certain operations.
+Although all performance tests are synthetic and will not give a real indication  of the actual runtime of your scripts, they are able to give a hint about the general performance of certain operations.
 
-The numbers have been produced on a 2Ghz Dual Core Machine running Xubuntu 8.04.  Maya has been preloaded by the systems virtual memory system, and all temporary  directories are RAM disks (tmpfs).
+The numbers have been produced on a 2Ghz Dual Core Machine running Xubuntu 8.04.  Maya 2010 [#perfm10]_ has been preloaded by the systems virtual memory system, and all temporary  directories are RAM disks (tmpfs).
 
 The tests were run one time only. All MRV performance tests can be found in the  ``mrv.test.maya.performance`` module and run using  ``test/bin/tmrv [maya_version] test/maya/performance``.
 
-All PyMel tests can be found on my github fork at  http://github.com/Byron/pymel/tree/performancetests, and run using  ``tests/pymel_test.py tests/performance``.
+All PyMel tests can be found on the github fork at  http://github.com/Byron/pymel/tree/performancetests, and run using  ``tests/pymel_test.py tests/performance``.
 
+All test cases are presented with their actual code, omitting the code needed to measure the actual time. The final results are presented in a table.
+
+Mesh Iteration
+===============
+MRV mesh iteration tests can be found in ``mrv/test/maya/performance/test_geometry.py``.
+
+PyMel mesh iteration tests can be found in ``pymel/tests/performance/test_geometry.py``.
+
+* **Iter Vtx No-Op**
+
+ * The test provides a basis to compute the pure iteration overhead.
+ * **PyMel**::
+ 	 
+ 	>>> m = PyNode('mesh40k')
+ 	>>> nc = 0
+	>>> for it in m.vtx:
+	>>> 	nc += 1
+	
+ * **MRV**::
+ 	 
+ 	>>> m = Node('mesh40k')
+ 	>>> nc = 0
+	>>> for it in m.vtx:
+	>>> 	nc += 1
+	
+* **Iter Vtx Index**
+
+ * Iterate vertices and query the index. It show how a very light operation affects iteration performance
+ * **PyMel**::
+ 	 
+ 	>>> for it in m.vtx:
+	>>> 	it.index()
+
+ * **MRV**::
+ 	 
+ 	>>> for it in m.vtx:
+	>>> 	it.getIndex()
+	
+* **Iter Vtx Position**
+
+ * Iterate vertices and query their local space position. This operation is more costly due to the potential space transformation.
+ * **PyMel**::
+ 	 
+ 	>>> for it in m.vtx:
+	>>> 	it.getPosition() 
+ 	 
+ * **MRV**::
+ 	 
+ 	>>> for it in m.vtx:
+	>>> 	it.position()
+	
+* **Iter Edge Position**
+
+ * Iterate edges and query their vertice's positions in local space
+ * **PyMel**::
+ 	 
+ 	>>> for it in m.e:
+	>>> 	it.getPoint(0)
+	>>> 	it.getPoint(1) 
+ 	 
+ * **MRV**::
+ 	 
+ 	>>> for it in m.e:
+	>>> 	it.point(0)
+	>>> 	it.point(1)
+
+* **Iter Poly Position**
+
+ * Iterate polygons and query all the polygon's vertex positions in localspace
+  
+ * **PyMel**::
+ 	 
+ 	>>> for it in m.f:
+	>>> 	it.getVertices()
+ 	 
+ * **MRV**::
+ 	 
+ 	>>> ia = api.MIntArray()
+ 	>>> for it in m.f:
+	>>> 	it.getVertices(ia)
 
 ====================   ================================================== ==================================================
-Topic                  MRV 1.0.0 Preview										PyMel 1.0.1
+Topic                  PyMel 1.0.1											MRV 1.0.0 Preview
 ====================   ================================================== ==================================================
-later 				    doing tables is a bit of a pain           			will do it once the list of items is complete
+Iter Vtx No-Op 			5.47s ( 7.271 vtx/s )								0.019s ( 2.009.699 vtx/s )
+Iter Vtx Index 			5.32s ( 7.479 vtx/s )								0.037s ( 1.065.929 vtx/s )
+Iter Vtx Position		36.66s ( 1.085 vtx/s )								0.070s ( 565.626 vtx/s )
+Iter Edge Position		89.78s ( 443 e/s )									0.329s ( 120.621 e/s )
+Iter Poly Position		18.51s ( 2.149 f/s )								0.065s ( 609.627 f/s )
 ====================   ================================================== ==================================================
 
 
@@ -365,3 +449,4 @@ The following table concentrates on the code required to perform everyday and  s
 .. [#mapymel] ``MFnDagNode::child`` becomes ``DagNode.childAtIndex``, and is not available under ``DagNode.child``.
 .. [#mmnsmrv] All patches applied to globally available MayaAPI types, such as MPlug or MSelection list reside in the 'm' namespace to prevent clashes with possibly existing patched methods.
 .. [#mpmmrv] This is potentially dangerous as ``MPlug.msetFloat(...)`` supports undo, whereas the original MPlug.setFloat(...) does not. There is a debugging environment variable which helps to find these kind of bugs.
+.. [#perfm10] Maya 2010 is the fastest release so far regarding the python performance. Maya 2011 is about 7% slower.
