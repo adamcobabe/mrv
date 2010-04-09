@@ -575,7 +575,43 @@ Node Handling
 =============
 Nodes can be created, renamed, and their DAG relationships may change through parenting and instancing.
 
+The following test creates 1000 dg nodes ( ``network`` ) as well as 1000 dag nodes ( ``transform`` ) and renames them afterwards. The code shown here is only comprised of the lines which are of actual importance, some boilerplate code is omitted.
 
+* **Create DG Nodes** and **Create DAG Nodes**
+
+ * **PyMel**::
+ 	 
+ 	>>> for node_type in ('network', 'transform'):
+ 	>>> 	for number in xrange(nn):
+	>>> 		createNode(node_type)
+
+ * **MRV**::
+ 	 
+ 	>>> for node_type in ('network', 'transform'):
+ 	>>> 	for number in xrange(nn):
+	>>> 		createNode(node_type, node_type) 
+
+* **Rename DG Nodes** and ** Rename DAG Nodes**
+
+* **PyMel**::
+ 	 
+ 	>>> for node in nodes:
+	>>> 	node.rename(node.name()[:-1])
+
+ * **MRV**::
+ 	 
+ 	>>> for node in node_list:
+	>>> 	node.rename(node.basename()[:-1])
+
+====================   ================================================== ==================================================
+Test                   PyMel 1.0.1											MRV 1.0.0 Preview
+====================   ================================================== ==================================================
+Create DG Nodes 		0.456s ( 2.190 Nodes/s )							0.436s ( 2.290 nodes/s )
+Create DAG Nodes 		0.425s ( 2.348 Nodes/s )							0.504s ( 1.983 nodes/s )
+Rename DG Nodes 		0.553s ( 1.807 Nodes/s )							0.290s ( 3.437 nodes/s )
+Rename DAG Nodes 		0.465s ( 2.148 Nodes/s )							0.339s ( 2.941 nodes/s )
+====================   ================================================== ==================================================
+	
 Attributes and Plugs
 ====================
 Whether you want to access data, or make new connections to alter the data flow, MPlugs (MRV) and Attributes (PyMel) are required to do it.
