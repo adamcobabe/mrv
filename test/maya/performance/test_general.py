@@ -5,7 +5,7 @@ import mrv.maya as mrvmaya
 import mrv.maya.nt as nt
 import mrv.maya.ns as ns
 from mrv.maya.ref import *
-from mrv.maya.nt import Node, NodeFromObj
+from mrv.maya.nt import Node, NodeFromObj, NodeFromStr
 import mrv.maya.nt.it as it
 import mrv.maya.undo as undo
 
@@ -207,20 +207,28 @@ class TestGeneralPerformance( unittest.TestCase ):
 
 		st = time.time( )
 		for name in nodenames:
-			nodes.append( Node( name ) )
+			nodes.append(Node(name))
 
 		elapsed = time.time() - st
 		print >>sys.stderr, "Created %i WRAPPED Nodes ( from STRING ) in %f s ( %f / s )" % ( len( nodenames ), elapsed, len( nodenames ) / elapsed )
 
 
+		# NodeFromStr
+		st = time.time( )
+		tmplist = list()
+		for name in nodenames:
+			tmplist.append(NodeFromStr(name))
+
+		elapsed = time.time() - st
+		print >>sys.stderr, "Created %i WRAPPED Nodes ( from STRING using NodeFromStr ) in %f s ( %f / s )" % ( len( nodenames ), elapsed, len( nodenames ) / elapsed )
+		
+		nodes_apiobjects = [ node.apiObject() for node in nodes ]
+	
 		# CREATE MAYA NODES FROM DAGPATHS AND OBJECTS
 		st = time.time( )
 		tmplist = list()	# previously we measured the time it took to append the node as well
-		for node in nodes:
-			if isinstance( node, nt.DagNode ):
-				tmplist.append( Node( node.dagPath() ) )
-			else:
-				tmplist.append( Node( node.object() ) )
+		for apiobj in nodes_apiobjects:
+			tmplist.append(Node(apiobj))
 		# END for each wrapped node
 
 		api_elapsed = time.time() - st
@@ -230,11 +238,8 @@ class TestGeneralPerformance( unittest.TestCase ):
 		# CREATE MAYA NODES USING THE FAST CONSTRUCTOR
 		st = time.time( )
 		tmplist = list()	# previously we measured the time it took to append the node as well
-		for node in nodes:
-			if isinstance( node, nt.DagNode ):
-				tmplist.append( NodeFromObj( node.dagPath() ) )
-			else:
-				tmplist.append( NodeFromObj( node.object() ) )
+		for apiobj in nodes_apiobjects:
+			tmplist.append(NodeFromObj(apiobj))
 		# END for each wrapped node
 
 		api_elapsed = time.time() - st

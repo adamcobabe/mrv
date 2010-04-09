@@ -424,11 +424,11 @@ PyMel mesh iteration tests can be found in ``pymel/tests/performance/test_geomet
 ====================   ================================================== ==================================================
 Test                   PyMel 1.0.1											MRV 1.0.0 Preview
 ====================   ================================================== ==================================================
-Iter Vtx No-Op 			5.47s ( 7.271 vtx/s )								0.019s ( 2.009.699 vtx/s )
-Iter Vtx Index 			5.32s ( 7.479 vtx/s )								0.037s ( 1.065.929 vtx/s )
-Iter Vtx Position		36.66s ( 1.085 vtx/s )								0.070s ( 565.626 vtx/s )
-Iter Edge Position		89.78s ( 443 e/s )									0.329s ( 120.621 e/s )
-Iter Poly Position		18.51s ( 2.149 f/s )								0.065s ( 609.627 f/s )
+Iter Vtx No-Op 			4.96s ( 8.018 vtx/s )								0.019s ( 2.009.699 vtx/s )
+Iter Vtx Index 			4.95s ( 8.035 vtx/s )								0.037s ( 1.065.929 vtx/s )
+Iter Vtx Position		23.69s ( 1.679 vtx/s )								0.070s ( 565.626 vtx/s )
+Iter Edge Position		59.82s ( 665 e/s )									0.329s ( 120.621 e/s )
+Iter Poly Position		13.36s ( 2.977 f/s )								0.065s ( 609.627 f/s )
 ====================   ================================================== ==================================================
 
 Set Vertex Colors
@@ -506,10 +506,68 @@ This more complex example performs an actual computation. It will set the verex 
 ====================   ================================================== ==================================================
 Test                   PyMel 1.0.1											MRV 1.0.0 Preview
 ====================   ================================================== ==================================================
-Set Vertex Colors 		151.07s ( 263 colors/s )							1.715s ( 23.198 colors/s )
+Set Vertex Colors 		153.07s ( 259 colors/s )							1.715s ( 23.198 colors/s )
+====================   ================================================== ==================================================
+
+Node Wrapping
+=============
+Both frameworks rely on custom types which wrap the underlying API object to provide a more convenient programming interface. The process of wrapping an API object in an instance of a custom type can be costly, and as both frameworks return these by default, node wrapping performance directly affects the performance of all operations.
+
+The scene loaded for the test contains more than 2500 DAG and DG nodes which are to be wrapped.
+
+As preparation, strings of all nodes in the scene are stored in the node_strings list. All (Py)Nodes are stored for later extraction of the API objects.
+
+* **Wrap from String**
+
+ * **PyMel**::
+ 	 
+ 	>>> for name in nodes_strings:
+ 	>>> 	PyNode(name)
+ 
+ * **MRV**::
+ 	 
+	>>> for name in nodenames:
+	>>> 	Node( name )
+	
+* **Wrap from String2**
+
+ * MRV supports a fast constructor which can be used to construct Node instances from strings only. There is no equivalent in PyMel **?**
+ 
+ * **MRV**::
+ 	 
+ 	>>> for name in nodenames:
+	>>> 	tmplist.append(NodeFromStr(name))
+
+* **Wrap from API Obj**
+
+ * **PyMel**::
+ 	 
+ 	>>> for apiobj in nodes_apiobjects:
+	>>> 	PyNode(apiobj)
+	
+ * **MRV**::
+ 	 
+ 	>>> for apiobj in nodes_apiobjects:
+	>>> 	Node(apiobj)
+ 
+* **Wrap from API Obj2**
+
+ * MRV supports fast constructors which get right to the point, and are more specialized. There is no equivalent in PyMel **?**
+ 
+ * **MRV**::
+ 	 
+ 	>>> for apiobj in nodes_apiobjects:
+	>>> 	NodeFromObj(apiobj)
+ 	 
+====================   ================================================== ==================================================
+Test                   PyMel 1.0.1											MRV 1.0.0 Preview
+====================   ================================================== ==================================================
+Wrap from String 		1.84s ( 5.928 Nodes/s )								0.469s ( 15.553 nodes/s )
+Wrap from String2 		xxxxxxxxxxxxxxxxxxxxxxx								0.426s ( 17.539 nodes/s )
+Wrap from API Obj		0.727 ( 15.068 )									0.112 ( 67.264 nodes/s )
+Wrap from API Obj2		xxxxxxxxxxxxxxxx									0.079 ( 94.665 nodes/s )
 ====================   ================================================== ==================================================
 	
-
 ***********
 Basic Tasks
 ***********
