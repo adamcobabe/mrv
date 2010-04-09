@@ -422,7 +422,7 @@ PyMel mesh iteration tests can be found in ``pymel/tests/performance/test_geomet
 	>>> 	it.getVertices(ia)
 
 ====================   ================================================== ==================================================
-Topic                  PyMel 1.0.1											MRV 1.0.0 Preview
+Test                   PyMel 1.0.1											MRV 1.0.0 Preview
 ====================   ================================================== ==================================================
 Iter Vtx No-Op 			5.47s ( 7.271 vtx/s )								0.019s ( 2.009.699 vtx/s )
 Iter Vtx Index 			5.32s ( 7.479 vtx/s )								0.037s ( 1.065.929 vtx/s )
@@ -431,6 +431,84 @@ Iter Edge Position		89.78s ( 443 e/s )									0.329s ( 120.621 e/s )
 Iter Poly Position		18.51s ( 2.149 f/s )								0.065s ( 609.627 f/s )
 ====================   ================================================== ==================================================
 
+Set Vertex Colors
+=================
+This more complex example performs an actual computation. It will set the verex color relative to the average length of the edges connected to the vertex in question.
+
+* **PyMel**::
+
+	>>> obj = PyNode('mesh40k')
+		
+	>>> cset = 'edgeLength'
+	>>> obj.createColorSet(cset)
+	>>> obj.setCurrentColorSetName(cset)
+	>>> colors = []
+	>>> el = api.MIntArray()
+	>>> el.setLength(obj.numVertices())
+	>>> maxLen = 0.0
+	>>> for vid, vtx in enumerate(obj.vtx):
+	>>> 	edgs = vtx.connectedEdges()
+	>>> 	totalLen=0
+	>>> 	for edg in edgs:
+	>>> 		totalLen += edg.getLength()
+	>>>
+	>>> 	avgLen=totalLen / len(edgs)
+	>>> 	maxLen = max(avgLen, maxLen)
+	>>> 	el[vid] = avgLen
+	>>> 	colors.append(Color.black)
+	>>>
+	>>> for vid, col in enumerate(colors):
+	>>> 	col.b = el[vid] / maxLen
+	>>>
+	>>> obj.setColors( colors )
+ 
+* **MRV**::
+	
+	>>> cset = 'edgeLength'
+	>>> m = Node('mesh40k')
+	>>> 
+	>>> m.createColorSetWithName(cset)
+	>>> m.setCurrentColorSetName(cset)
+	>>> 
+	>>> lp = api.MPointArray()
+	>>> m.getPoints(lp)
+	>>> 
+	>>> colors = api.MColorArray()
+	>>> colors.setLength(m.numVertices())
+	>>> 
+	>>> vids = api.MIntArray()
+	>>> vids.setLength(len(colors))
+	>>> 
+	>>> el = api.MFloatArray()
+	>>> el.setLength(len(colors))
+	>>> cvids = api.MIntArray()
+	>>> 
+	>>> # compute average edge-lengths
+	>>> max_len = 0.0
+	>>> for vid, vit in enumerate(m.vtx):
+	>>> 	vit.getConnectedVertices(cvids)
+	>>> 	cvp = lp[vid]
+	>>> 	accum_edge_len=0.0
+	>>> 	for cvid in cvids:
+	>>> 		accum_edge_len += (lp[cvid] - cvp).length()
+	>>> 	avg_len = accum_edge_len / len(cvids)
+	>>> 	max_len = max(avg_len, max_len)
+	>>> 	el[vid] = avg_len
+	>>> 	vids[vid] = vid
+	>>> 
+	>>> for cid in xrange(len(colors)):
+	>>> 	c = colors[cid]
+	>>> 	c.b = el[cid] / max_len
+	>>> 	colors[cid] = c
+	>>> 
+	>>> m.setVertexColors(colors, vids, api.MDGModifier())
+
+====================   ================================================== ==================================================
+Test                   PyMel 1.0.1											MRV 1.0.0 Preview
+====================   ================================================== ==================================================
+Set Vertex Colors 		151.07s ( 263 colors/s )							1.715s ( 23.198 colors/s )
+====================   ================================================== ==================================================
+	
 
 ***********
 Basic Tasks
