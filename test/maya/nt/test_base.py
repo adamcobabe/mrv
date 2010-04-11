@@ -1204,3 +1204,14 @@ class TestNodeBase( unittest.TestCase ):
 		# COMPOUND ATTRIBUTE #
 		attr = nt.CompoundAttribute.create(l, s)
 	
+	def test_dagContainer(self):
+		# only for maya 2011 and newer
+		if env.appVersion()[0] < 2011:
+			return
+			
+		# problem is that the dagContainer node is in fact a valid container 
+		# which must be compatible to the MFnContainerNode. It isnt though as 
+		# maya's hierarchy system only allows to derive from one parent, officially.
+		# Internally it derives from containerBase and hence is compatible. 
+		# Just make sure it really is that way, as this is a special tweak.
+		assert api.MFnContainerNode in nt.DagContainer.getMFnClasses() 

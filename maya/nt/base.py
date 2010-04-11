@@ -871,11 +871,12 @@ class Node( object ):
 			usually either MObject or MDagPath"""
 		raise NotImplementedError( "To be implemented in subclass" )
 
-	def getMFnClasses( self ):
+	@classmethod
+	def getMFnClasses( cls ):
 		"""
 		:return: list of all function set classes this node supports, most derived
 			function set comes first"""
-		return [ cls._mfncls for cls in self.__class__.mro() if '_mfncls' in cls.__dict__ ]
+		return [ mrocls._mfncls for mrocls in cls.mro() if '_mfncls' in mrocls.__dict__ ]
 
 	def apiType( self ):
 		""":return: the MFn Type id of the wrapped object"""

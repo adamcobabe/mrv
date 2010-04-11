@@ -342,6 +342,7 @@ def generateNodeHierarchy( ):
 	# add default associations - some are not picked up due to name mismatches
 	typeToMFn.add((noderoottype, 'MFn'))
 	typeToMFn.add((depnode, 'MFnDependencyNode'))
+	typeToMFn.add(('dagContainer', 'MFnContainerNode'))
 	
 	abstractMFns = ('MFnBase', )		# MFns which cannot be instantiated ans should be ignored
 	failedMFnTypes = list()			# list of types we could not yet associate

@@ -13,7 +13,8 @@ character                   | MFnCharacter
 component                   | MFnComponent                   
 componentListData           | MFnComponentListData           
 compoundAttribute           | MFnCompoundAttribute           
-containerBase               | MFnContainerNode               
+containerBase               | MFnContainerNode
+dagContainer                | MFnContainerNode
 dagNode                     | MFnDagNode                     
 data                        | MFnData                        
 dependNode                  | MFnDependencyNode              
