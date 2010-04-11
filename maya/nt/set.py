@@ -32,7 +32,7 @@ class ObjectSet:
 		 
 	
 	@undoable 	
-	def setPartition( self, partition, mode ):
+	def setPartition( self, partition, mode = 0 ):
 		"""Add, add exclusive or remove the given partition from our partition list
 		
 		:param partition: Node, representing the partition, or a list of such

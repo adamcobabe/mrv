@@ -257,6 +257,53 @@ class TestCases( unittest.TestCase ):
 		# undo our changes
 		nt.DependNode.__str__ = old_str
 		
+	@with_scene('empty.ma')
+	def test_usage_sets(self):
+		# NOTE: This test is part of the pymel comparison
+		p, t, f = Node('persp'), Node('top'), Node('front')
+		s = ObjectSet()
+		
+		# add single - set centric or object centric
+		s.add(p)
+		p.addTo(s)
+		assert p in s
+		
+		# add multiple
+		s.add((t, f))
+		
+		# remove single - set or object centric
+		s.discard(p)
+		p.removeFrom(s)
+		
+		# remove multiple 
+		s.discard((t, f))
+		
+		assert len(s) == 0
+		
+	@with_scene('empty.ma')
+	def test_usage_shading_engines(self):
+		# NOTE: this test is part of the pymel comparison
+		isg = Node("initialShadingGroup")
+		rp = Node("renderPartition")
+		
+		# assign new shading engine to the render partition
+		sg = ShadingEngine()
+		sg.setPartition(rp)
+		
+		
+		# create a poly sphere
+		m = Mesh()
+		PolySphere().output.mconnectTo(m.inMesh)
+		
+		# assign all faces to the initial shading group
+		# Cannot use the m.cf[:] shortcut to get a complete component as 
+		# shading engines apparently don't deal with it properly
+		m.addTo(isg, m.cf[:m.numPolygons()])
+		
+		# force the first 200 faces into another shading engine
+		m.addTo(sg, m.cf[:200], force=True)
+		
+		
 	def test_add_and_retrieve_complex_datatype_using_api(self):
 		sellist = api.MSelectionList()
 		sellist.add("persp")
