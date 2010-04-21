@@ -1,27 +1,28 @@
 ###################
 Comparison to PyMel
 ###################
-MRV is not the first attempt to make the use of Python within Maya more convenient. PyMel is an excellent feature packed Framework which is, as the name suggests,  more closely affiliated to MEL than to the Maya API, also it also allows you to  access the latter one conveniently.
+MRV is not the first attempt to make the use of Python within Maya more convenient. PyMel is an excellent feature packed Framework which is, as the name suggests,  more closely affiliated to MEL than to the Maya API, but which allows you to  access the latter one as well.
 
-Together with Chad Dombrova, the original Author and Maintainer of PyMel, the  following overview has been compiled to provide an overview of the similarities and differences of the two frameworks regarding their features, performance and coding convenience.
+Wherever applicable, tables have been used. Otherwise a numbered list is provided which allows to match the respective list items one on one. If list items are  presented in an unnumbered fashion, they indicate a feature which is exclusive to the respective framework or cannot be compared because its too different after all.
 
-Wherever applicable, tables have been used. Otherwise a numbered list is provided which allows to match the respective list items one on one. If list items are  presented in an unnumbered fashion, they indicate a feature which is exclusive to the respective framework.
+.. note:: The following comparison was created solely based on a single person's judgment, a person which also happens to be the author of MRV. This is why the comparison may be biased towards MRV, miss important features of PyMel or may even be wrong in parts due to an insufficient insight into the PyMel project. The author does not intent to postulate any outrageously incorrect statements, and will be glad to make adjustments if necessary.  
+
 
 ********
 Ideology
 ********
-TODO: This section needs to be improved, and clarified
+Both projects have been created with a certain idea in mind
 
-**PyMel**: **?**
-	#. PyMEL builds on the cmds module and allows access to compatible MayaAPI functions as well as respective MEL methods which can be accessed in an object oriented manner.
+**PyMel**: 
+	#. PyMEL originally builds on the cmds module and allows access to compatible MFn methods as well as respective MEL methods which can be accessed in an object oriented manner.
 	#. PyMEL uses MEL semantics.
 	#. PyMEL is as convenient and easy-to-use as possible, hiding details about the MayaAPI even if it is used. Direct operation of the MayaAPI is not intended.
 	#. Smart methods which take multiple of input types make its use easier and more intuitive.
-	#. Type-Handling should be convenient
+	#. Type-Handling should be convenient.
 	
 
 **MRV**
-	#. MRV builds on the MayaAPI and allows access to compatible MFn methods. The cmds module is not handled at all.
+	#. MRV builds on the MayaAPI and allows access to compatible MFn methods in an object oriented manner. The cmds module is not handled at all.
 	#. MRV uses MayaAPI semantics.
 	#. MRV wants to make using the MayaAPI more productive, trying to keep its own impact on performance as low as possible. It is possible and  valid to operate on the native MayaAPI if beneficial for performance.
 	#. Specialized methods take very specific input types. There are some general functions which support multiple input types to ease interactive use.
@@ -34,18 +35,22 @@ Features
 Supported Maya Versions
 =======================
 PyMel:
-	2008 to 2011
+
+#. 2008 to 2011
+
+* Bundled with Maya 2011
 	
 MRV:
-	8.5 to 2011
+
+#. 8.5 to 2011
 
 Database
 ========
 Both frameworks organize maya's Nodetypes hierarchically and attach information about compatible MFnFunctionSets to them. This information is retrieved  automatically, but is stored in a cache to speed up loading and to allow manual edits.
 
 **PyMel**:
-	1. Stored in one compressed file per maya release, which contains multiple pickled files **?**
-	2. Database file is fully (**?**) decompressed at startup, not necessarily using all information.
+	1. Stored in one compressed file per maya release, which contains multiple pickled files 
+	2. Database file is fully () decompressed at startup, not necessarily using all information.
 	3. **Stored Information**
 	
 	 #. Node Type Hierarchy
@@ -56,12 +61,12 @@ Both frameworks organize maya's Nodetypes hierarchically and attach information 
 	  #. Method Visibility [#mv]_
 	  #. Return Value Conversions
 	  
-	  * Choose between MEL or API Methods (**?**, rephrase maybe)
+	  * Choose between MEL or API Methods (, rephrase maybe)
 	 
-	 * API Docs **?**
-	 * MEL Docs **?**
+	 * API Docs 
+	 * MEL Docs 
 	 * C++ Enumerations
-	 * MFnMethod Signatures **?**
+	 * MFnMethod Signatures 
 	 
 	4. **Database Editing**
 	
@@ -104,7 +109,7 @@ Access to a Node instances attributes is supported as well, making code like  ``
 	 #. All PyNode types are located in the ``pymel.core.nodetypes`` module
 	 #. MayaAPI objects are an implementation detail, and are internally accessed through the PyNode's ``.__api*__`` methods and properties, where applicable. Keeps the most appropriate API Object and an initialized function set as well as an MObjectHandle at all times.
 	 #. A PyNode type is provided for any type available in maya, including plugin types. As plugins load and unload, respective types are added and removed.
-	 #. Docstrings provide additional information, these are retrieved from the respective MEL command docs if no hand-written doc string exists **?**
+	 #. Docstrings provide additional information, these are retrieved from the respective MEL command docs if no hand-written doc string exists 
 	 #. The string name of DagNodes is the node's partial name, the shortest unique name.
 	 #. PyNodes can be used in PyMel provided versions of MEL commands natively.
 	 
@@ -112,26 +117,26 @@ Access to a Node instances attributes is supported as well, making code like  ``
 	
 	 1. Attributes hide MFnMethods
 	 2. MFnMethods are available by only one name which may be aliased, possibly making the original name unavailable. [#mapymel]_
-	 3. MFnMethods return PyNodes where applicable **?**
+	 3. MFnMethods return PyNodes where applicable 
 	 4. MFnMethods originally taking MObjects or MDagPaths also take PyNodes, handling the type conversion internally. The type handling is automated.
 	 5. MFnMethods normally support undo if a 'setter' method has a corresponding 'getter' method. This functionality is automated.
 	 6. MFnMethods that would require referenced parameter types which would receive the output of the method are called without them. The output parameters are returned instead [#moppymel]_. MScriptUtil is never used.
 	 
-	  1. If there are several overloaded signatures, one of them is choosen using the database editing tool **?**
+	  1. If there are several overloaded signatures, one of them is choosen using the database editing tool 
 	  
 	 7. Docstrings correspond to the respective MFnMethod's documentation, the documentation of the underlying MEL command, or hand-written documentation if the method was implemented by hand.
 	 8. Methods follow the ``getX`` and ``setX`` conventions. MFnMethods are not altered to fit this convention, but may be renamed to be more intuitive.
-	 9. All MFnMethods are attached to the node type when the type is created **?** 
+	 9. All MFnMethods are attached to the node type when the type is created  
 	 
 	3. **Plugs/Attributes**
 	
 	 #. ``node.plugname`` returns an ``Attribute`` instance, a custom PyMel type.
 	 #. Attributes can be accessed by their short and long attribute name.
-	 #. Attributes will be tried first when looking up name, methods are looked up afterwards. This happens on every access **?**
+	 #. Attributes will be tried first when looking up name, methods are looked up afterwards. This happens on every access 
 	 #. There is no differentiation between Plugs and Attributes, MEL semantics are used.
 	 #. **Data Access**
 	 
-	  #. Access primitive numeric data types and strings. **?**
+	  #. Access primitive numeric data types and strings. 
 	  #. Full undo is implemented for all modifying methods.
 	
 **MRV**:
@@ -185,7 +190,7 @@ This section covers the differences in the interface to retrieve nodes.
 	#. Retrieve PyNodes as lists **no iterators ?**
 	#. Get all DAG nodes using ``ls(dag=1)``
 	#. Get all DG nodes using ``ls()``
-	#. List all input or output nodes using ``node.history`` and ``node.future``, there no easy way to traverse actual plugs **?** 
+	#. List all input or output nodes using ``node.history`` and ``node.future``, there no easy way to traverse actual plugs  
 	
 **MRV**:
 	#. Retrieve iterators yielding Nodes (default), MObjects or MDagPaths
@@ -204,14 +209,14 @@ Both frameworks provide wrappers for maya's user interface MEL commands, allowin
 	 #. Common base type for all UI elements is ``PyUI``, which is a unicode object.
 	 #. PyUI instances can be created from the name of maya's UI element. If no name is given, all flags supported by the underlying MEL command can be passed in as keyword argument.
 	 #. Each UI MEL comamnd has a corresponding capitalized PyUI type
-	 #. PyUI type hierarchy is solely based on the actual type inheritance in the ``uitypes`` module. **?**
+	 #. PyUI type hierarchy is solely based on the actual type inheritance in the ``uitypes`` module. 
 	 #. PyUI types may inherit from hand-implemented base classes to add custom functionality. 
-	 #. Fully auto-generated UI types derive from PyUI. **?**
+	 #. Fully auto-generated UI types derive from PyUI. 
 	 
 	 
 	2. **Property Access**
 	
-	 #. Database information is used to provide ``getX`` methods for all long MEL command flags ``X`` which can be queried, and ``setX``  methods for all long editable command flags ``X`` **?**.
+	 #. Database information is used to provide ``getX`` methods for all long MEL command flags ``X`` which can be queried, and ``setX``  methods for all long editable command flags ``X`` .
 	 
 	  * i.e. ``x, y = win.getWidthHeight()`` or ``win.setWidthHeight((x, y))`` to get and set the dimension of a window. 
 	
@@ -274,7 +279,8 @@ Both frameworks provide additional utilities and interface to handle common prob
 	#. Reference handling through custom Type ( ``FileReference`` )
 	#. Namespace handling through custom Type ( ``Namespace`` )
 	#. OptionVar handling through custom dict type ( ``OptionVarDict`` )
-	#. **many more to add, go ahead**
+	
+	* **Probably many more**
 	
 **MRV**:
 	#. File handling though custom Type ( ``Scene`` )
@@ -302,7 +308,7 @@ Both frameworks offer standalone tools to provide additional functionality. Thes
 	 
 	3. **Maintenance**
 	
-	 #. Compile full documentation **?** ( ``make_pymel_docs``, linux and osx )
+	 #. Compile full documentation  ( ``make_pymel_docs``, linux and osx )
 	 
 	 * Make a new release ( ``makerelease``, linux and OSX )
 	 * Rebuild the database caches ( ``rebuildcaches.py``, OSX )
@@ -533,7 +539,7 @@ As preparation, strings of all nodes in the scene are stored in the node_strings
 	
 * **Wrap from String2**
 
- * MRV supports a fast constructor which can be used to construct Node instances from strings only. There is no equivalent in PyMel **?**
+ * MRV supports a fast constructor which can be used to construct Node instances from strings only. There is no equivalent in PyMel 
  
  * **MRV**::
  	 
@@ -554,7 +560,7 @@ As preparation, strings of all nodes in the scene are stored in the node_strings
  
 * **Wrap from API Obj2**
 
- * MRV supports fast constructors which get right to the point, and are more specialized. There is no equivalent in PyMel **?**
+ * MRV supports fast constructors which get right to the point, and are more specialized. There is no equivalent in PyMel 
  
  * **MRV**::
  	 
@@ -643,7 +649,7 @@ The following tests take part in a scene with more than 21000 animation nodes an
 		
 * **Access Plug**
 
- * In MRV, one can access the plug using an MFn method. In PyMel, its not possible to receive the plug **?**
+ * In MRV, one can access the plug using an MFn method. In PyMel, its not possible to receive the plug 
 
  * **MRV**::
  	 
