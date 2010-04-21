@@ -21,6 +21,13 @@ class TestAnimPerformance( unittest.TestCase ):
 			elapsed = time.time() - st
 			print >>sys.stderr, "Found %i animation nodes ( as_node=%i ) in %f s ( %f anim nodes / s )" % (num_nodes, as_node, elapsed, num_nodes/elapsed)
 			
+			# find animation by iteration
+			st = time.time()
+			iterated_anim_nodes = list(nt.it.iterDgNodes(nt.Node.Type.kAnimCurve, asNode=as_node))
+			elapsed = time.time() - st
+			print >>sys.stderr, "Iterated %i animation nodes ( as_node=%i ) in %f s ( %f anim nodes / s )" % (len(iterated_anim_nodes), as_node, elapsed, len(iterated_anim_nodes)/elapsed)
+			
+			
 			# check plug access
 			if as_node:
 				st = time.time()

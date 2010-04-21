@@ -145,6 +145,8 @@ If the standalone interpreter just doesn't want to work on your platform or with
 
 As a side-effect, ``nose`` needs to be installed in mayapy's *site-packages* directory, as indicated in the :ref:`installation section<install-label>`.
 
+.. _naming-conventions-label:
+
 **********************
 MRV Naming Conventions
 **********************
