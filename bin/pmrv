@@ -1,0 +1,41 @@
+#!python
+"""This module can run standalone, within the native project directory, or with
+mrv available in the python path. It can be imported in order to provide common 
+functionality"""
+import sys
+import optparse
+
+
+#{ Initialization
+def prepare_syspath():
+	"""Make sure mrv is in the python path, and manipulate sys.path if required
+	in order to assure that.
+	
+	:raise EnvironmentError: If mrv could not be found in this interpreter"""
+	raise NotImplementedError("todo");
+
+
+def init_mrv(args):
+	"""Intialize MRV up to the point where we can replace this process with the 
+	one we prepared
+	
+	:return: tuple(options, args) tuple of parsed options and the remaining args"""
+	prepare_syspath()
+	from mrv.cmds.init import *
+	
+	# parse args
+	parser = arg_parser()
+	setup_maya_environment()
+	
+	
+#} END initialization
+
+def main(args):
+	"""Prepare the environment to allow the operation of maya"""
+	options, rargs = init_mrv(args)
+	replace_process(options, rargs)
+	
+
+if __name__ == "__main__":
+	main(sys.argv)
+# END initialization 
