@@ -74,6 +74,8 @@ _root_
 					unknownPluginObjectSet
 				dagNode
 					transform
+						manipContainer
+							unknownPluginManipContainer
 						groundPlane
 						baseGeometryVarGroup
 							meshVarGroup

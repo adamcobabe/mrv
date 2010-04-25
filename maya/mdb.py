@@ -312,6 +312,12 @@ def generateNodeHierarchy( ):
 	# touch directly
 	dagTree.add_edge('transform', 'groundPlane')
 	
+	# although we don't handle manips directly, we must still support them if it
+	# is a plugin manipulator
+	dagTree.add_edge('transform', 'manipContainer')
+	
+	
+	
 	# INSERT PLUGIN TYPES
 	######################
 	for edge in (	(depnode, 'DependNode'),

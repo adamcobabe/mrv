@@ -567,6 +567,8 @@ _root_
 						hikEffector
 						lodGroup
 						hikGroundPlane
+						manipContainer
+							unknownPluginManipContainer
 						rigidConstraint
 						place3dTexture
 						ikEffector
