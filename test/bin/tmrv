@@ -1,23 +1,35 @@
-#!/bin/bash
-# tmrv [ mayaversion ] [ args ]
-# Maya version can be 8.5, 2008, 2009 and so forth
-# 
-# Uses nose to run tests defined by mayarv, options are provided to nose
-# make it complicated, just to get it to work on osx !
-base=${0%/*}/`readlink $0`
-base=$(cd ${base%/*} && echo $PWD)
-if [[ $base != /* ]]; then
-	base=$PWD/$base
-fi
+#!/usr/bin/env python
+# -*- coding: utf-8 -*-
+"""Prepares the nose test environment for use with mrv"""
+import sys
+import os
 
-firstArg=
+__docformat__ = "restructuredtext"
 
-# if the first argument is the maya version, we have to parse it to be able to 
-# put it as first argument, inserting our args for the interpreter
-if [[ $1 == 8.5 || $1 == 20?? ]]; then
-	firstArg=$1
-	shift
-fi
-
-startupfile=`[[ -f $base/nosestartup.py ]] && echo $base/nosestartup.py || echo $base/nosestartup.pyc`
-$base/../../bin/mrv $firstArg -i $startupfile $@
+def tmrvmain(args):
+	"""Launch mrv main with customized startup"""
+	# we assume to be launched using a relative path 
+	ospd = os.path.dirname
+	# mrv/test/bin/tmrv -> mrv/bin/mrv
+	mrvpath = os.path.join(ospd(ospd(ospd(os.path.realpath(os.path.abspath(__file__))))), 'bin', 'mrv')
+	globals()['__name__'] = "prevent execution of main"
+	# mrv assumes its being started from mrv/bin
+	globals()['__file__'] = mrvpath
+	
+	try:
+		fp = open(mrvpath)
+		exec fp in globals()
+		fp.close()
+	except Exception, e:
+		raise EnvironmentError("Could not execute mrv at %r with error %s" % (mrvpath, e))
+	# END exception handling
+	
+	# NOTE: Using the module (-m) does not work in py2.4 apparently
+	args_mod = lambda a: ('-c', 'import mrv.test.cmds.nosestartup') + a
+	mrvmain(args, args_modifier=args_mod)
+	
+	
+if __name__ == "__main__":
+	# ignore first arg which is the executable
+	tmrvmain(sys.argv[1:])
+# END initialization 

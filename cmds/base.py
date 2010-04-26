@@ -1,6 +1,5 @@
 # -*- coding: utf-8 -*-
 """Contains routines required to initialize mrv"""
-import optparse
 import os
 import sys
 
@@ -31,19 +30,16 @@ def parse_maya_version(arg, default):
 	""":return: tuple(bool, version) tuple of bool indicating whether the version could 
 	be parsed and was valid, and a float representing the parsed or default version.
 	:param default: The desired default maya version"""
-	candidate = default
-	parsed = False
 	try:
 		candidate = float(arg)
+		if not is_supported_maya_version(candidate):
+			# in that case, we don't claim the arg and just use the default
+			return (False, default)
+		# END verify version
+		return (True, candidate)
 	except ValueError:
-		pass
+		return (False, default)
 	# END exception handling
-	
-	if is_supported_maya_version(candidate):
-		parsed = True
-	# END verify candidate
-	
-	return (parsed, candidate)
 	
 def python_version_of(maya_version):
 	""":return: python version matching the given maya version
@@ -185,14 +181,6 @@ def update_maya_environment(maya_version):
 	# export the actual maya version to allow scripts to pick it up even before maya is launched
 	env['MRV_MAYA_VERSION'] = "%g" % maya_version
 	
-
-def arg_parser():
-	""":return: Argument parser initialized with all arguments supported by mrv"""
-	usage = """usage: %prog [mayaversion] [python interpreter arguments]
-	
-	mayaversion = Defaults to 8.5, valid valid values are 8.5 and 2008 to 20XX """
-	parser = optparse.OptionParser(usage=usage)
-	return parser
 
 def exec_python_interpreter(args, maya_version):
 	"""Replace this process with a python process as determined by the given options.

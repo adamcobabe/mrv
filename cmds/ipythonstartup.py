@@ -62,8 +62,10 @@ def init_ipython():
 	setup_ipython()
 	apply_user_configuration()
 	ips.mainloop()
-	
+
 # } END initialization
+
+
 
 
 ################

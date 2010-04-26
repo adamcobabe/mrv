@@ -9,7 +9,7 @@ import optparse
 
 class TestBase( unittest.TestCase ):
 	def test_base( self ):
-		valid_versions = (8.5, 2008, 2009, 2010, 2011)
+		valid_versions = (8.5, 2008, 2009.0, 2010, 2011.0)
 		
 		# supported version
 		for ver in valid_versions:
@@ -25,6 +25,9 @@ class TestBase( unittest.TestCase ):
 			parsed, version = parse_maya_version(str(ver), 8.5)
 			assert parsed and version == ver
 		# END for each version to check
+		
+		parsed, version = parse_maya_version('-c', 8.5)
+		assert not parsed
 		
 		# python_version raises
 		self.failUnlessRaises(EnvironmentError, python_version_of, 2050)
@@ -42,9 +45,6 @@ class TestBase( unittest.TestCase ):
 		# END for each valid version
 		
 		self.failUnlessRaises(EnvironmentError, maya_location, 2050)
-		
-		# can call it
-		assert isinstance(arg_parser(), optparse.OptionParser)
 		
 		
 
