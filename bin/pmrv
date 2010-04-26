@@ -55,8 +55,7 @@ def init_environment(args, parser_init=lambda p: p):
 		# END cut version arg
 	# END if there are args at all
 	
-	env = mrvinit.create_maya_environment(maya_version)
-	os.environ = env
+	mrvinit.update_maya_environment(maya_version)
 	return (maya_version, parser, options, args)
 	
 	

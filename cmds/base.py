@@ -51,7 +51,7 @@ def python_version_of(maya_version):
 	try:
 		return _maya_to_py_version_map[maya_version]
 	except KeyError:
-		raise EnvironmentError("Do not know python version matching the given maya version %s" % maya_version) 
+		raise EnvironmentError("Do not know python version matching the given maya version %g" % maya_version) 
 	
 def update_env_path(environment, env_var, value, append=False):
 	"""Set the given env_var to the given value, but append the existing value
@@ -60,7 +60,8 @@ def update_env_path(environment, env_var, value, append=False):
 	:param append: if True, value will be appended to existing values, otherwise it will 
 		be prepended"""
 	curval = environment.get(env_var, None)
-	if curval is not None:
+	# rule out empty strings
+	if curval:
 		if append:
 			value = curval + os.pathsep + value
 		else:
@@ -104,9 +105,8 @@ def maya_location(maya_version):
 	return mayalocation
 		
 	
-def create_maya_environment(maya_version):
+def update_maya_environment(maya_version):
 	"""Configure os.environ to allow Maya to run in standalone mode
-	:return: Dictionary with environment based on a copy of the environment of this process
 	:param maya_version: The maya version to prepare to run, either 8.5 or 2008 to 
 	20XX. This requires the respective maya version to be installed in a default location.
 	:raise EnvironmentError: If the platform is unsupported or if the maya installation could not be found"""
@@ -133,7 +133,7 @@ def create_maya_environment(maya_version):
 	# END verfy maya location
 	
 	
-	env = os.environ.copy()
+	env = os.environ
 	
 	# ADJUST LD_LIBRARY_PATH or PATH
 	################################
@@ -185,7 +185,6 @@ def create_maya_environment(maya_version):
 	# export the actual maya version to allow scripts to pick it up even before maya is launched
 	env['MRV_MAYA_VERSION'] = "%g" % maya_version
 	
-	return env
 
 def arg_parser():
 	""":return: Argument parser initialized with all arguments supported by mrv"""
