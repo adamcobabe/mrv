@@ -38,16 +38,6 @@ def addProcesses( *args ):
 
 #{ Initialization
 
-# assure we only do certain things once
-if 'init_done' not in locals():
-	init_done = False
-
-# SYSTEM INITIALIZATION
-if not init_done:
-	pass
-	# import everything into the processes module
-	# currently there is nothing
-	# from base import *
 #} END initialization
 
 

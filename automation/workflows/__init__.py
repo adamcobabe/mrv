@@ -14,17 +14,10 @@ import mrv.automation.processes
 
 
 #{ Initialization
+import mrv.automation.base as common
 
-# assure we only do certain things once
-if 'init_done' not in locals():
-	init_done = False
-
-# SYSTEM INITIALIZATIONs
-if not init_done:
-	import mrv.automation.base as common
-
-	# load all workflows at once
-	common.addWorkflowsFromDotFiles( _this_module, Path( __file__ ).parent().glob( "*.dot" ) )
+# load all workflows at once
+common.addWorkflowsFromDotFiles( _this_module, Path( __file__ ).parent().glob( "*.dot" ) )
 
 #} END initialization
 

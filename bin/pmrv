@@ -1,9 +1,11 @@
-#!python
+#!/usr/bin/env python
 """This module can run standalone, within the native project directory, or with
 mrv available in the python path. It can be imported in order to provide common 
 functionality"""
 import sys
-import optparse
+import os
+
+__docformat__ = "restructuredtext"
 
 
 #{ Initialization
@@ -11,31 +13,63 @@ def prepare_syspath():
 	"""Make sure mrv is in the python path, and manipulate sys.path if required
 	in order to assure that.
 	
-	:raise EnvironmentError: If mrv could not be found in this interpreter"""
-	raise NotImplementedError("todo");
+	:raise ImportError: If mrv could not be found in this interpreter"""
+	try:
+		import mrv
+	except ImportError:
+		# manipulate the import path - first we may be within the mrv structurure
+		# or alternatively within /usr/bin/, that is outside of the structure.
+		# In the latter case we can't do anything though
+		ospd = os.path.dirname
+		sys.path.append(ospd(ospd(ospd(os.path.realpath(os.path.abspath(__file__))))))
+		try:
+			import mrv
+		except ImportError:
+			del(sys.path[-1])
+			raise ImportError("Failed to import MRV as it could not be found in your syspath, nor could it be deduced"); 
+		# END second attempt exception handling
+	# END import exception handling
 
 
-def init_mrv(args):
+def init_environment(args, parser_init=lambda p: p):
 	"""Intialize MRV up to the point where we can replace this process with the 
 	one we prepared
 	
-	:return: tuple(options, args) tuple of parsed options and the remaining args"""
+	:param args: commandline arguments excluding the executable ( usually first arg )
+	:param parser_init: Function receiving a pre-initialized parser. It may be adjusted
+		according to your needs and should be returned by the function.
+	:return: tuple(maya_version, parser, options, args) tuple of maya_version, parser, parsed options and the remaining args"""
 	prepare_syspath()
-	from mrv.cmds.init import *
+	import mrv.cmds.base as mrvinit
 	
 	# parse args
-	parser = arg_parser()
-	setup_maya_environment()
+	parser = parser_init(mrvinit.arg_parser())
+	options, args = parser.parse_args(args)
+	
+	# see if first argument is the maya version
+	maya_version=8.5
+	if args:
+		parsed_successfully, maya_version = mrvinit.parse_maya_version(args[0], maya_version)
+		if parsed_successfully:
+			args = args[1:]
+		# END cut version arg
+	# END if there are args at all
+	
+	env = mrvinit.create_maya_environment(maya_version)
+	os.environ = env
+	return (maya_version, parser, options, args)
 	
 	
 #} END initialization
 
 def main(args):
 	"""Prepare the environment to allow the operation of maya"""
-	options, rargs = init_mrv(args)
-	replace_process(options, rargs)
+	maya_version, parser, options, rargs = init_environment(args)
+	import mrv.cmds.base as mrvinit
+	mrvinit.exec_python_interpreter(rargs, maya_version)
 	
 
 if __name__ == "__main__":
-	main(sys.argv)
+	# ignore first arg which is the executable
+	main(sys.argv[1:])
 # END initialization 
