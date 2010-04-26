@@ -7,13 +7,6 @@ import logging
 
 #{ Initialization 
 # assure all sitelibs are available, important for OSX
-def setup_syspath():
-	"""Assure additional site-packages get initialized"""
-	for syspath in sys.path[:]:
-		if syspath.endswith('site-packages'):
-			site.addsitedir(syspath, set(sys.path))
-	# END for each syspath
-
 def apply_user_configuration():
 	"""Run optional user scripts"""
 	# try to load custom settings
@@ -26,10 +19,8 @@ def apply_user_configuration():
 	else:
 		print "Set IMRV_CONFIG to point to python script doing additional setup"
 
-def setup_ipython():
-	"""Perform additional ipython initialization"""
-	import IPython
-	
+def setup_mrv():
+	"""Initialize MRV"""
 	# configure MRV
 	# as IPython is some sort of interactive mode, we load the user preferences
 	for var in ( 	'MRV_STANDALONE_AUTOLOAD_PLUGINS', 
@@ -41,6 +32,10 @@ def setup_ipython():
 	# init maya
 	import mrv.maya
 	
+
+def setup_ipython():
+	"""Perform additional ipython initialization"""
+	import IPython
 	# make default imports
 	ip = IPython.ipapi.get()
 	ip.ex("from mrv.maya.all import *")
@@ -54,6 +49,8 @@ def setup_ipython():
 
 def init_ipython():
 	"""Get the main ipython system up and running"""
+	setup_mrv()
+
 	# init ipython - needs to be available in your local python installation
 	try: 
 		import IPython
@@ -70,7 +67,6 @@ def init_ipython():
 
 
 ################
-setup_syspath()
 init_ipython()
 ################
 

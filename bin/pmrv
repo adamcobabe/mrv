@@ -56,19 +56,24 @@ def init_environment(args, parser_init=lambda p: p):
 	# END if there are args at all
 	
 	mrvinit.update_maya_environment(maya_version)
-	return (maya_version, parser, options, args)
+	return (maya_version, parser, options, tuple(args))
 	
 	
 #} END initialization
 
-def main(args):
-	"""Prepare the environment to allow the operation of maya"""
-	maya_version, parser, options, rargs = init_environment(args)
+def mrvmain(args, parser_init=lambda p: p, args_modifier=lambda a: a):
+	"""Prepare the environment to allow the operation of maya
+	:param parser_init: see ``init_environment``
+	:param args_modifier: Function returning a possibly modified argument list. The passed 
+		in argument list was parsed by the parser already, the maya version was extraced as well."""
+	maya_version, parser, options, rargs = init_environment(args, parser_init=parser_init)
 	import mrv.cmds.base as mrvinit
+	
+	rargs = args_modifier(rargs)
 	mrvinit.exec_python_interpreter(rargs, maya_version)
 	
 
 if __name__ == "__main__":
 	# ignore first arg which is the executable
-	main(sys.argv[1:])
-# END initialization 
+	mrvmain(sys.argv[1:])
+# END initialization

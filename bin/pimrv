@@ -1,0 +1,25 @@
+#!/usr/bin/env python
+"""Prepares ipython to startup with mrv support"""
+import sys
+import os
+
+__docformat__ = "restructuredtext"
+
+def imrvmain(args):
+	"""Launch mrv main with customized startup"""
+	# pull in mrv 
+	pmrvpath = os.path.join(os.path.dirname(__file__), 'pmrv')
+	globals()['__name__'] = "prevent execution of main"
+	
+	fp = open(pmrvpath)
+	exec fp in globals()
+	fp.close()
+	
+	args_mod = lambda a: ('-m', 'mrv.cmds.ipythonstartup') + a
+	mrvmain(args, args_modifier=args_mod)
+	
+	
+if __name__ == "__main__":
+	# ignore first arg which is the executable
+	imrvmain(sys.argv[1:])
+# END initialization 
