@@ -326,7 +326,7 @@ Both frameworks offer standalone tools to provide additional functionality. Thes
 	 #. Run tests in current and specified maya versions ( ``tmrv``, all platforms, on windows the same limitations apply as for ``mrv`` )
 	 
 	 * Run UI specific tests in a slimmed down maya UI session, maya executable must be specified ( ``tmrvUI``, all platforms )
-	 * Retrieve the test coverage as html report for the specified maya version ( ``tmrvc``, linux and osx )
+	 * Retrieve the test coverage as html report for the specified maya version ( ``tmrv --mrv-coverage``, linux and osx )
 	 * Full regression testing against all installed maya versions ( ``tmrvr``, linux and osx )
 	 
 	3. **Maintenance**

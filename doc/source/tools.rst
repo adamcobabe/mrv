@@ -64,6 +64,8 @@ tmrv
 ====
 A MRV specific replacement for the ``nosetests`` utility which supports all arguments of ``nosetests``, whereas the first argument may be the Maya release you want to run the tests in.
 
+Arguments specific to mrv are prefixed with ``--mrv-``.
+
 **Sample Usage**::
 	
 	$ # run all tests in Maya 2011
@@ -74,6 +76,15 @@ A MRV specific replacement for the ``nosetests`` utility which supports all argu
 	
 	$ # show all arguments supported by nosetests
 	$ test/bin/tmrv --help
+	
+To generate a **coverage report**, use the ``--mrv-coverage`` flag. Such a  :download:`coverage report <download/coverage/index.html>` is generated using  nose coverage which must be available in your local nose installation. As it is essentially a reconfigured nose, it supports all nose specific arguments as well.
+
+**Coverage Sample Usage**::
+	
+	$ # get a coverage report after running all tests in Maya 2011 
+	$ test/bin/tmrv 2011 --mrv-coverage
+	$ # show the report in a browser
+	$ firefox coverage/index.html
 
 **Availability**: Linux, OSX and Windows
 
@@ -101,16 +112,3 @@ Please note that the windows version currently requires the maya \bin directory 
 **Availability**: Linux, OSX, Windows
 
 .. note:: This tools interface is slightly different from ``tmrv`` as you currently may not specify the maya version to run by release, but by the full path to the executable. However, it is likely to be improved, together with the User Interface testing utilities.
-
-tmrvc
-=====
-Produce a :download:`coverage report <download/coverage/index.html>` using nose coverage. As it is essentially a reconfigured nose, it supports all nose specific arguments as well.
-
-**Sample Usage**::
-	
-	$ # get a coverage report after running all tests in Maya 2011 
-	$ test/bin/tmrvc 2011
-	$ # show the report in a browser
-	$ firefox coverage/index.html
-	
-**Availability**: Linux and OSX
