@@ -88,6 +88,21 @@ To generate a **coverage report**, use the ``--mrv-coverage`` flag. Such a  :dow
 
 **Availability**: Linux, OSX and Windows
 
+tmrvr
+=====
+This tools allows automated full regression testing by running all tests for all available or specified maya versions. Use the ``--help`` flag for additional options.
+
+**Sample Usage**::
+	
+	$ # Run all tests for all available maya versions
+	$ test/bin/tmrvr
+	
+	$ # Run all tests only for the given maya versions
+	$ test/bin/tmrvr 8.5 2008
+	
+	$ # Run all tests, but skip the single tests
+	$ test/bin/tmrvr --skip-single
+
 tmrvUI
 ======
 Runs UI specific tests. For this to work, you must supply a path to the maya binary which should run the specified or default User Interface. If no test modules are given as either relative or absolute paths, all test cases reachable from the current working directory will be run.

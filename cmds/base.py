@@ -6,7 +6,7 @@ import sys
 __docformat__ = "restructuredtext"
 
 #{ Globals
-_maya_to_py_version_map = {
+maya_to_py_version_map = {
 	8.5 : 2.4, 
 	2008: 2.5, 
 	2009: 2.5, 
@@ -45,7 +45,7 @@ def python_version_of(maya_version):
 	""":return: python version matching the given maya version
 	:raise EnvironmentError: If there is no known matching python version"""
 	try:
-		return _maya_to_py_version_map[maya_version]
+		return maya_to_py_version_map[maya_version]
 	except KeyError:
 		raise EnvironmentError("Do not know python version matching the given maya version %g" % maya_version) 
 	
