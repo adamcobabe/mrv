@@ -87,7 +87,9 @@ def tmrvrmain(args):
 	
 	# assure relative paths
 	os.chdir(basepath)
-	tmrvpath = os.path.relpath(tmrvpath)
+	
+	from mrv.path import Path
+	tmrvpath = Path(tmrvpath).relpath()
 	
 	# find the single tests to run
 	testfiles = [None]	# none indicates no test file

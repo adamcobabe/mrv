@@ -141,15 +141,13 @@ def update_maya_environment(maya_version):
 		update_env_path(env, envld, ldpath)
 	elif sys.platform == 'darwin':
 		# adjust maya location to point to the actual directtoy
-		mayalocation=os.path.join(mayalocation, 'Maya.app', 'Contents')
-		
 		dldpath = os.path.join(mayalocation, 'MacOS')
 		update_env_path(env, "DYLD_LIBRARY_PATH", dldpath)
 		
 		dldframeworkpath = os.path.join(mayalocation, 'Frameworks')
 		update_env_path(env, "DYLD_FRAMEWORK_PATH", dldframeworkpath)
 		
-		env['MAYA_NO_BUNDLE_RESOURCES'] = 1
+		env['MAYA_NO_BUNDLE_RESOURCES'] = "1"
 		
 		# on osx, python will only use the main frameworks path and ignore 
 		# its own sitelibraries. We put them onto the PYTHONPATH for that reason
