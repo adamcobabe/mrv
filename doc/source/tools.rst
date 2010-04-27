@@ -5,7 +5,7 @@ This document contains a full listing of the included commandline tools as well 
 
 All production level programs are located in ``mrv/bin``, all testing utilities can be found in ``mrv/test/bin``. 
 
-All examples are given using linux shell semantics, windows users usually only have to substitute '/' with '\\', and be aware of possible limitations.
+All examples are given using linux shell semantics, windows users usually only have to substitute '/' with '\\' and prepend the ``python.exe`` interpreter which has to be used to launch the programs.
 
 ****************
 Production Tools
@@ -31,10 +31,14 @@ It can easily be used to write standalone tools with maya support.
 	
 	$ # show the help of the underlying python interpreter
 	$ bin/mrv 2011 -h
-
-**Availability**: Linux, OSX and Windows
-
-.. note:: The windows version of the tool currently does not allow the maya version to be specified.
+	
+Additionally you can prepare the environment and start a default maya session with mrv support. Use the ``--mrv-maya`` flag to accomplish this::
+	
+	$ # start a default maya 2011 session
+	$ bin/mrv 2011 --mrv-maya
+	
+	$ # start maya 8.5 in prompt mode
+	$ bin/mrv --mrv-maya -prompt
 
 .. _imrv-label:
 
@@ -83,11 +87,23 @@ To generate a **coverage report**, use the ``--mrv-coverage`` flag. Such a  :dow
 	
 	$ # get a coverage report after running all tests in Maya 2011 
 	$ test/bin/tmrv 2011 --mrv-coverage
+	
 	$ # show the report in a browser
 	$ firefox coverage/index.html
 
-**Availability**: Linux, OSX and Windows
+	
+In order to test user interfaces, you need to run the actual maya executable in UI mode, that is without '-batch' or '-prompt' specified. Using the ``--mrv-maya``flag that ``mrv`` provides, you will get a maya UI session setup to run the specified nose tests with the given options.
 
+**UI Tests Sample Usage**::
+	
+	$ # Run all UI tests in maya 2011
+	$ test/bin/tmrv 2011 --mrv-maya test/maya/ui
+	
+	$ # Run all tests, including coverage, within maya 8.5
+	$ test/bin/tmrv 2011 --mrv-maya --mrv-coverage
+
+.. note:: nose must be installed for mayapy in order for the UI tests to work.
+	
 tmrvr
 =====
 This tools allows automated full regression testing by running all tests for all available or specified maya versions. Use the ``--help`` flag for additional options.
@@ -103,27 +119,3 @@ This tools allows automated full regression testing by running all tests for all
 	$ # Run all tests, but skip the single tests
 	$ test/bin/tmrvr --skip-single
 
-tmrvUI
-======
-Runs UI specific tests. For this to work, you must supply a path to the maya binary which should run the specified or default User Interface. If no test modules are given as either relative or absolute paths, all test cases reachable from the current working directory will be run.
-
-**Sample Usage** ( Linux and OSX )::
-	
-	$ # run all tests reachable from the current directory ( even non-ui )
-	$ test/bin/tmrvUI <path/to/maya/bin/maya>
-	
-	$ # run all UI tests
-	$ test/bin/tmrvUI <path/to/maya/bin/maya> test/maya/ui
-	
-	$ # run only the specified module, verbosely 
-	$ test/bin/tmrvUI <path/to/maya/bin/maya> test/maya/ui/test_base.py -v
-	
-**Sample Usage** ( Windows )::
-	
-	$ test\\bin\\tmrvUI.bat [ nose args ]
-	
-Please note that the windows version currently requires the maya \bin directory to be in your PATH so that maya can be started by just typing 'maya'. This is due to the fact as the batch file is currently in a relatively poor state of development, and as it doesn't allow any spaces in the paths, its impossible to specify a path like "C:\\program files\autodesk" to the actual maya binary.
-	
-**Availability**: Linux, OSX, Windows
-
-.. note:: This tools interface is slightly different from ``tmrv`` as you currently may not specify the maya version to run by release, but by the full path to the executable. However, it is likely to be improved, together with the User Interface testing utilities.

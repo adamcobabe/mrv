@@ -335,7 +335,7 @@ These tests currently only show that the UI system is not fundamentally broken, 
 
 The commandline required to run the tests is the following ( all platforms )::
 	
-	$ test/bin/tmrvUI <path/to/maya/bin/maya> [ nose arguments ]
+	$ test/bin/tmrv [maya_version] --mrv-maya [ nose arguments ]
 	
 In future, this testing system is likely to be improved, also considering that QT offers a `test library <http://qt.nokia.com/doc/4.2/qtestlib-manual.html>`_ which can virtualize mouse clicks and keyboard input, in order to fully automate user interface testing.
 
@@ -365,7 +365,7 @@ As MRV is meant to be useful in all Maya Releases which support python, namely 8
 On Linux and OSX, a tool is available to facilitate running these tests. If it succeeds, it will give instructions to manually run the user interface tests and to complete the regression testing::
 	
 	$ test/bin/tmrvr 
-	$ test/bin/tmrvUI <path/to/maya/bin/maya>
+	$ test/bin/tmrv [maya version] --mrv-maya test/maya/ui
 
 IPython and IMRV
 ================

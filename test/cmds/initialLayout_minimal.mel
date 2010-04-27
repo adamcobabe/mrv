@@ -63,29 +63,7 @@ global proc setupUITest()
 	// getting the arguments for the nose test from NOSE_ARGS variable,
 	// putting them into sys.argv and run nose
 
-	string $pycmd = "import sys\n";
-	$pycmd += "sys.path.insert(0, u\""+`getenv "MRV_PYTHON_PATH"` + "\")\n";
-	
-	$cmdArgs = `getenv "NOSE_ARGS"`;
-	
-	// linux script passes space separated items, windows uses ; for now
-	string $sep = " ";
-	if( `about -nt` )
-		$sep = ";";
-	
-	$args = stringToStringArray($cmdArgs, $sep);
-	if( size($args))
-	{
-		$pycmd += "sys.argv =['nosetests', ";
-		for ($arg in $args)
-		{ 
-			$pycmd += "'" + $arg + "',\n";
-		}
-		$pycmd += "]\n";
-	}
-	$pycmd += "import nose\n";
-	$pycmd += "nose.main()";
-	
+	string $pycmd = "import mrv.test.cmds.nosestartup\n";
 	print $pycmd;
 	catch(` python $pycmd`);
 	

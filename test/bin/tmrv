@@ -3,10 +3,14 @@
 """Prepares the nose test environment for use with mrv"""
 import sys
 import os
+import tempfile
 
 __docformat__ = "restructuredtext"
 
-def _parse_args(args):
+_mrv_ui_flag = '--mrv-ui'
+_mrv_coverage_flag = '--mrv-coverage'
+
+def _parse_args(args, maya_version, start_maya):
 	"""Parse our arguments and react accordingly. 
 	args don't contain the maya version number anymore, but may contain our 
 	args interleaved with nose args
@@ -15,18 +19,55 @@ def _parse_args(args):
 	# run nose, no matter what
 	args = list(args)
 	base = ['-c', 'import mrv.test.cmds.nosestartup']
+	mine = list()
 	
 	# HANDLE COVERAGE
 	#################
 	try:
-		args.remove('--mrv-coverage')
-		base += ['--with-coverage', '--cover-html', '--cover-package=mrv', '--cover-html-dir=coverage']
+		args.remove(_mrv_coverage_flag)
+		mine.extend(['--with-coverage', '--cover-html', '--cover-package=mrv', '--cover-html-dir=coverage'])
 	except ValueError:
 		pass
 	# END coverage handling
 	
+	# HANDLE MAYA
+	#############
+	if start_maya:
+		ospd = os.path.dirname
+		env = os.environ
+		import mrv.cmds.base as mrvbase
+		import mrv.test.cmds as mrvtestcmds
+		
+		# SETUP MAYA SCRIPT PATH 
+		# It must contain our override UI script
+		# NOTE: at this point, we have altered our own file to become 'mrv'
+		scriptpath = os.path.join(ospd(ospd(__file__)), 'test', 'cmds')
+		
+		# set environment
+		mrvbase.update_env_path(env, 'MAYA_SCRIPT_PATH', scriptpath, append=True)
+		env['MAYA_OVERRIDE_UI'] = 'initialLayout_minimal.mel'
+		
+		# Use all our args as nose test args
+		env[mrvtestcmds.env_nose_args] = mrvtestcmds.nose_args_splitter.join(mine + args)
+		
+		# SETUP MAYA APP DIR
+		# Create a dummy Maya.env and a separate app dir
+		mappdir = os.path.join(tempfile.gettempdir(), 'maya_test_prefsdir')
+		if not os.path.isdir(mappdir):
+			os.mkdir(mappdir)
+		open(os.path.join(mappdir, 'Maya.env'), 'w').close()
+		
+		env['MAYA_APP_DIR'] = mappdir
+		
+		# clear the args, maya may not see them
+		del(mine[:])
+		del(base[:])
+		del(args[:])
+	# END handle maya
+	
 	return tuple(base + args)
 
+	
 def tmrvmain(args):
 	"""Launch mrv main with customized startup"""
 	# we assume to be launched using a relative path 

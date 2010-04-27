@@ -14,7 +14,7 @@ maya_to_py_version_map = {
 	2011: 2.6
 }
 
-#}
+#} END globals
 
 #{ Maya-Intiialization
 	
@@ -210,6 +210,23 @@ def exec_python_interpreter(args, maya_version):
 			raise EnvironmentError("Could not find suitable python interpreter at %r or %r" % (py_executable, mayapy_executable))
 		# END final exception handling
 	# END exception handling
+	
+	
+def exec_maya_binary(args, maya_version):
+	"""Replace this process with the maya executable as specified by maya_version.
+	
+	:param args: The arguments to be provided to maya
+	:param maya_version: Float identifying the maya version to be launched
+	:rase EnvironmentError: if the respective maya version could not be found"""
+	mayalocation = maya_location(maya_version)
+	mayabin = os.path.join(mayalocation, 'bin', 'maya')
+	if sys.platform.startswith('win'):
+		mayabin += ".exe"
+	# END windows special handling
+	
+	actual_args = (mayabin, ) + args
+	os.execvp(mayabin, actual_args)
+	
 	
 #} END Maya initialization
 
