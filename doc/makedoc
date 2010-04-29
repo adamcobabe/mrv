@@ -3,18 +3,55 @@
 """Command to build the documentation"""
 __docformat__ = "restructuredtext"
 
+import os
 import sys
 import optparse
 
-
 #{ Initialization
 
-def main(args):
+def prepare_mrv_package():
+	"""Assure we are able to import mrv. If this is not the case, 
+	resort to manually including the required code to set everything up"""
+	try:
+		import mrv
+	except ImportError:
+		ospd = os.path.dirname
+		mrvpath = os.path.join(ospd(ospd(os.path.realpath(os.path.abspath(__file__)))), 'bin', 'mrv')
+		globals()['__name__'] = "prevent execution of main"
+		globals()['__file__'] = mrvpath
+		
+		try:
+			execfile(mrvpath, globals())
+		except Exception, e:
+			raise EnvironmentError("Could not execute mrv at %r with error %s" % (mrvpath, e))
+		# END exception handling
+		
+		prepare_mrv_syspath()
+	else:
+		return
+	# END assure mrv can be imported
+
+def makedoc_main(args):
 	"""Parse args, initialize a builder, and run it"""
+	prepare_mrv_package()
+	
 	p = DocGenerator.parser()
+	
+	hlp = """If specified, previously generated files will be removed. Works in conjunction 
+	with the other flags, which default to True, hence %prog --clean will remove all 
+	generated files by default"""
+	p.add_option('--clean', dest='clean', action='store_true', default=False, help=hlp)
+	
 	options, args = p.parse_args(args)
+	clean = options.clean
+	del(options.clean)
+	
 	dgen = DocGenerator(*args, **options.__dict__)
-	dgen.generate()
+	if clean:
+		dgen.clean()
+	else:
+		dgen.generate()
+	# END handle mode
 
 #} END initialization
 
@@ -22,32 +59,90 @@ def main(args):
 class DocGenerator(object):
 	"""Encapsulates all functionality required to create sphinx/epydoc documentaiton"""
 
-	def __init__(self, *args, **kwargs):
-		"""Initialize the instance"""
+	def __init__(self, sphinx=True, coverage=True, epydoc=True, *args):
+		"""Initialize the instance
+		
+		:param sphinx: If True, sphinx documentation will be produced
+		:param coverage: If True, the coverage report will be generated
+		:param epydoc: If True, epydoc documentation will be generated"""
+		self._sphinx = sphinx
+		self._coverage = coverage
+		self._epydoc = epydoc
 	
 	#{ Public Interface
+	
 	@classmethod
 	def parser(cls):
 		""":return: OptionParser instance suitable to parse commandline arguments
 		with which to initialize our instance"""
-	
-	def generate():
-		"""Geneate the documentation according to our configuration"""
+		usage = """%prog [options]
 		
+		Make documentation or remove the generated files."""
+		parser = optparse.OptionParser(usage=usage)
+		
+		hlp = """Specifies sphinx documentation. It will include the epydoc pages, whether 
+		they exist or not"""
+		parser.add_option('-s', '--sphinx', dest='sphinx', type='int',default=1,
+							help=hlp, metavar='STATE')
+		
+		hlp = """Specifies epydoc documentation"""
+		parser.add_option('-e', '--epydoc', dest='epydoc', type='int', default=1, 
+							help=hlp, metavar='STATE')
+		
+		hlp = """Specifies a coverage report. It will be referenced from within the 
+		sphinx documentation"""
+		parser.add_option('-c', '--coverage', dest='coverage', type='int', default=1, 
+							help=hlp, metavar='STATE')
+		
+		return parser
 	
+	def generate(self):
+		"""Geneate the documentation according to our configuration
+		
+		:note: respects the options given during construction"""
+		if self._coverage:
+			self._make_coverage
+		
+		if self._epydoc:
+			self._make_epydoc()
+		
+		if self._sphinx:
+			self._make_sphinx_index()
+			self._make_sphinx_autogen()
+			self._make_sphinx()
+		# END make sphinx
+	
+	def clean(self):
+		"""Clean the generated files by removing them
+		:note: Must respect the options the same way as done by the ``generate``
+		method"""
+		if self._coverage:
+			pass
+		# END clean coverage 
+		
+		if self._epydoc:
+			pass
+		# END clean epydoc
+		
+		if self._sphinx:
+			pass
+		# END clean sphinx
 	#} END public interface 
 	
 	#{ Protected Interface
 
-	def _make_index(self):
+	def _make_sphinx_index(self):
 		"""Generate the index.rst file according to the modules and packages we
 		actually have"""
 	
 	def _make_coverage(self):
 		"""Generate a coverage report and make it available as download"""
 		
-	def _make_autogen(self):
+	def _make_sphinx_autogen(self):
 		"""Instruct sphinx to generate the autogen rst files"""
+		
+	def _make_sphinx(self):
+		"""Generate the sphinx documentation"""
 		
 	def _make_epydoc(self):
 		"""Generate epydoc documentation"""
@@ -57,4 +152,4 @@ class DocGenerator(object):
 
 # run the script 
 if __name__ == "__main__":
-	main(sys.argv[1:])
+	makedoc_main(sys.argv[1:])

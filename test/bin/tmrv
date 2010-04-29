@@ -9,6 +9,32 @@ __docformat__ = "restructuredtext"
 
 _mrv_coverage_flag = '--mrv-coverage'
 
+#{ Initialization
+def import_mrv_program():
+	"""Fake-import everything that is available in the mrv program. Its something
+	like the #import statement in c++"""
+	# we assume to be launched using a relative path 
+	ospd = os.path.dirname
+	# mrv/test/bin/tmrv -> mrv/bin/mrv
+	mrvpath = os.path.join(ospd(ospd(ospd(os.path.realpath(os.path.abspath(__file__))))), 'bin', 'mrv')
+	globals()['__name__'] = "prevent execution of main"
+	# mrv assumes its being started from mrv/bin
+	globals()['__file__'] = mrvpath
+	
+	try:
+		execfile(mrvpath, globals())
+	except Exception, e:
+		raise EnvironmentError("Could not execute mrv at %r with error %s" % (mrvpath, e))
+	# END exception handling
+	
+def tmrvmain(args):
+	"""Launch mrv main with customized startup"""
+	import_mrv_program()
+	mrvmain(args, args_modifier=_parse_args)
+	
+#} END initialization
+
+#{ Utilities 
 def _parse_args(args, maya_version, start_maya):
 	"""Parse our arguments and react accordingly. 
 	args don't contain the maya version number anymore, but may contain our 
@@ -66,27 +92,7 @@ def _parse_args(args, maya_version, start_maya):
 	
 	return tuple(base + args)
 
-	
-def tmrvmain(args):
-	"""Launch mrv main with customized startup"""
-	# we assume to be launched using a relative path 
-	ospd = os.path.dirname
-	# mrv/test/bin/tmrv -> mrv/bin/mrv
-	mrvpath = os.path.join(ospd(ospd(ospd(os.path.realpath(os.path.abspath(__file__))))), 'bin', 'mrv')
-	globals()['__name__'] = "prevent execution of main"
-	# mrv assumes its being started from mrv/bin
-	globals()['__file__'] = mrvpath
-	
-	try:
-		fp = open(mrvpath)
-		exec fp in globals()
-		fp.close()
-	except Exception, e:
-		raise EnvironmentError("Could not execute mrv at %r with error %s" % (mrvpath, e))
-	# END exception handling
-	
-	mrvmain(args, args_modifier=_parse_args)
-	
+#} END utilities
 	
 if __name__ == "__main__":
 	# ignore first arg which is the executable

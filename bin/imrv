@@ -15,9 +15,7 @@ def imrvmain(args):
 	# use exec to use globals - execfile does something differently, it separates
 	# the environments more it appears
 	try:
-		fp = open(mrvpath)
-		exec fp in globals()
-		fp.close()
+		execfile(mrvpath, globals())
 	except Exception, e:
 		raise EnvironmentError("Could not execute mrv at %r with error %s" % (mrvpath, e))
 	# END exception handling
