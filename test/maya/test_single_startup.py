@@ -15,7 +15,13 @@ class TestStartup( tutil.StandaloneTestBase ):
 	
 	def _rm_test_dir(self):
 		if self.temp_app_dir.isdir():
-			self.temp_app_dir.rmtree()
+			try:
+				self.temp_app_dir.rmtree()
+			except OSError:
+				# on windows, maya usually keps the maya.log open, so the 
+				# full removal fails. Ignore that ... .
+				pass 
+		# END delete test dir
 	
 	def setup_environment(self):
 		os.environ['MRV_STANDALONE_INIT_OPTIONVARS'] = "1"
