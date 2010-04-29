@@ -567,12 +567,16 @@ class TestNodeBase( unittest.TestCase ):
 		pfail = nt.NodeFromObj(p)
 		
 		# oh look, how inconsistent the wrap is :) ... 
-		expected_type = RuntimeError
-		if env.appVersion()[0] > 8.5:
-			expected_type = TypeError
-		if os.name == 'nt':
-			expected_type = NotImplementedError
-		self.failUnlessRaises(expected_type, pfail.findPlug, 'wm')
+		try:
+			pfail.findPlug('wm')
+		except (RuntimeError, TypeError, NotImplementedError):
+			# yes, it actually throws all kinds of different exceptions 
+			# depending on the OS and the maya version
+			pass
+		else:
+			self.fail("Expected exception")
+		# END exception handling
+		
 
 	@with_undo
 	def test_wrapDagNode( self ):
