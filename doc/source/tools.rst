@@ -32,7 +32,9 @@ It can easily be used to write standalone tools with maya support.
 	$ # show the help of the underlying python interpreter
 	$ bin/mrv 2011 -h
 	
-Additionally you can prepare the environment and start a default maya session with mrv support. Use the ``--mrv-maya`` flag to accomplish this::
+Additionally you can prepare the environment and start a default maya session with mrv support. Use the ``--mrv-maya`` flag to accomplish this.
+
+**Maya UI Sample Usage**
 	
 	$ # start a default maya 2011 session
 	$ bin/mrv 2011 --mrv-maya
@@ -40,6 +42,13 @@ Additionally you can prepare the environment and start a default maya session wi
 	$ # start maya 8.5 in prompt mode
 	$ bin/mrv --mrv-maya -prompt
 
+By default, mrv will try to use the system's python interpreter first, and mayapy if it could not be found. This can be problematic if the system' python interpreter is not suitable to run the given maya version. In that case, you may force mrv to use maya's builtin python interpreter using the ``--mrv-mayapy`` flag.
+
+**Enforce Mayapy Sample Usage**::
+	
+	$ # start mrv for maya 2010 using mayapy
+	$ bin/mrv 2010 --mrv-mayapy
+	
 .. note::
 	The mrv command will use execv on non-windows system, but use spawn on windows to workaround some issues. This implies that scripts on linux/osx can natively use the mrv program, standardchannels are handled automatically. On windows the spawned process will be attached with all standardchannels of the parent python process, but its questionable whether this has the intended effect.
 	
@@ -57,8 +66,6 @@ An introduction to using the tool can be found in :doc:`develop`.
 	
 	$ # get ipython with a fully initialized MRV in Maya 2011
 	$ imrv 2011
-
-**Availability**: Linux and OSX
 
 .. note:: Will only work if you have the ipython package available in your python installation.
 

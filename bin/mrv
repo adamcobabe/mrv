@@ -11,6 +11,7 @@ __docformat__ = "restructuredtext"
 
 #{ Globals
 _mrv_ui_flag = '--mrv-maya'
+_mrv_mayapy_flag = '--mrv-mayapy'
 #} END globals
 
 #{ Initialization
@@ -71,22 +72,26 @@ def mrvmain(args, args_modifier=lambda a, v, m: a):
 	maya_version, rargs = init_environment(args)
 	import mrv.cmds.base as mrvinit
 	
-	# figure out whether to start python or maya
-	start_maya = False
-	try:
-		lrargs = list(rargs)
-		lrargs.remove(_mrv_ui_flag)
-		rargs = tuple(lrargs)
-		start_maya = True
-	except ValueError:
-		pass
-	# HANDLE maya in UI mode
+	# handle special arguments
+	config = [False, False]
+	lrargs = list(rargs)
+	for i, (flag, varname) in enumerate(( (_mrv_ui_flag, 'start_maya'), 
+							    		  (_mrv_mayapy_flag, 'mayapy_only'))):
+		try:
+			lrargs.remove(flag)
+			config[i] = True
+		except ValueError:
+			pass
+		# HANDLE maya in UI mode
+	# END for each flag to handle
+	start_maya, mayapy_only = config
+	rargs = tuple(lrargs)
 	
 	rargs = args_modifier(rargs, maya_version, start_maya)
 	if start_maya:
 		mrvinit.exec_maya_binary(rargs, maya_version)
 	else:
-		mrvinit.exec_python_interpreter(rargs, maya_version)
+		mrvinit.exec_python_interpreter(rargs, maya_version, mayapy_only)
 	# END handle process to start
 	
 

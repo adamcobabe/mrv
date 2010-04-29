@@ -8,6 +8,10 @@ import subprocess
 
 __docformat__ = "restructuredtext"
 
+#{ Globals 
+_mrv_mayapy_flag = '--mrv-mayapy'
+#} END globals
+
 def parse_opts(args):
 	"""Parse our options
 	:return: tuple(options, maya_versions) tuple of options hash and the maya_versions to run."""
@@ -23,6 +27,9 @@ including standalone tests. If one test fails, the operation will abort with a n
 always fail in that case"""
 	parser.add_option('--skip-single', dest='skip_single', action='store_true', help=hlp)
 	
+	hlp = """If set, mayapy will be used to startup the mrv tests even though the system
+interpreter may be available."""
+	parser.add_option(_mrv_mayapy_flag, dest='mayapy_only', action='store_true', help=hlp) 
 	options, args = parser.parse_args(args)
 	
 	# PARSE MAYA VERSIONS
@@ -82,7 +89,7 @@ def tmrvrmain(args):
 	
 	baseargs = tuple()
 	if sys.platform.startswith('win'):
-		baseargs = ("python.exe", )
+		baseargs = ("python", )
 	# END handle windows
 	
 	# assure relative paths
@@ -114,6 +121,9 @@ def tmrvrmain(args):
 			if testfile:
 				args += (testfile, )
 			# END add testfile
+			if options.mayapy_only:
+				args += (_mrv_mayapy_flag, )
+			# END add mayapy only flag
 			
 			callstring = ' '.join(args)
 			print callstring

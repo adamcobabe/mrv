@@ -256,13 +256,15 @@ def _execute(executable, args):
 		os.execvp(executable, actual_args)
 	# END handle windows
 
-def exec_python_interpreter(args, maya_version):
+def exec_python_interpreter(args, maya_version, mayapy_only=False):
 	"""Replace this process with a python process as determined by the given options.
 	This will either be the respective python interpreter, or mayapy.
 	If it works, the function does not return
 	
 	:param args: remaining arguments which should be passed to the process
 	:param maya_version: float indicating the maya version to use
+	:param mayapy_only: If True, only mayapy will be considered for startup.
+	Use this option in case the python interpreter crashes for some reason.
 	:raise EnvironmentError: If no suitable executable could be started"""
 	py_version = python_version_of(maya_version)
 	py_executable = "python%s" % py_version
@@ -274,17 +276,24 @@ def exec_python_interpreter(args, maya_version):
 	# END win specials 
 	
 	args = tuple(args)
+	tried_paths = list()
 	try:
+		if mayapy_only:
+			raise OSError()
+		tried_paths.append(py_executable)
 		_execute(py_executable, args)
 	except OSError:
-		print "Python interpreter named %r not found, trying mayapy ..." % py_executable
+		if not mayapy_only:
+			print "Python interpreter named %r not found, trying mayapy ..." % py_executable
+		# END print error message
 		mayalocation = maya_location(maya_version)
 		mayapy_executable = os.path.join(mayalocation, "bin", "mayapy")
 		
 		try:
+			tried_paths.append(mayapy_executable)
 			_execute(mayapy_executable, args)
 		except OSError, e:
-			raise EnvironmentError("Could not find suitable python interpreter at %r or %r: %s" % (py_executable, mayapy_executable, e))
+			raise EnvironmentError("Could not find suitable python interpreter at paths %s : %s" % (', '.join(tried_paths), e))
 		# END final exception handling
 	# END exception handling
 	
