@@ -13,11 +13,13 @@ Production Tools
 
 mrv
 ===
-This tool will setup the environment to allow running MRV and Maya Standalone within your system interpreter. The latter one is expected to be in your PATH.
+This tool will setup the environment to allow running MRV and Maya Standalone within your system interpreter, mayapy, or maya.bin. The system interpreter will be used by default and is expected to be in your path. On Linux and OSX, it must be named ``python2.x``. On Windows, the python interpreter's executable is expected to be ``python2x``.**x** can be 4,5 and 6 and depends on the maya version you would like to run.
 
-The first argument passed in to the tool names the Maya release you would like to run, these can be *8.5* to X, where X denotes the latest release.
+If no python interpreter can be found in your path, ``mrv`` will fallback to using ``mayapy``.
 
-All additional arguments are passed to the python interpreter directly.
+The first optional argument passed in to the tool names the Maya version you would like to run, these can be *8.5* to X, where X denotes the latest release.
+
+All additional arguments are passed to the python interpreter or maya.bin directly.
 
 It can easily be used to write standalone tools with maya support.
 
@@ -32,9 +34,10 @@ It can easily be used to write standalone tools with maya support.
 	$ # show the help of the underlying python interpreter
 	$ bin/mrv 2011 -h
 	
-Additionally you can prepare the environment and start a default maya session with mrv support. Use the ``--mrv-maya`` flag to accomplish this.
-
-**Maya UI Sample Usage**
+The --mrv-maya flag
+-------------------
+	
+Additionally you can prepare the environment and start a default maya session with mrv support. Use the ``--mrv-maya`` flag to accomplish this::
 	
 	$ # start a default maya 2011 session
 	$ bin/mrv 2011 --mrv-maya
@@ -43,6 +46,9 @@ Additionally you can prepare the environment and start a default maya session wi
 	$ bin/mrv --mrv-maya -prompt
 
 By default, mrv will try to use the system's python interpreter first, and mayapy if it could not be found. This can be problematic if the system' python interpreter is not suitable to run the given maya version. In that case, you may force mrv to use maya's builtin python interpreter using the ``--mrv-mayapy`` flag.
+
+The --mrv-mayapy flag
+---------------------
 
 **Enforce Mayapy Sample Usage**::
 	
@@ -60,10 +66,8 @@ This program is effectively nothing more than a customized IPython shell which p
 
 ``imrv`` can be seen as the python version of ``maya -prompt``.
 
-An introduction to using the tool can be found in :doc:`develop`.
+An introduction to using the tool can be found in :doc:`develop`::
 
-**Sample Usage**::
-	
 	$ # get ipython with a fully initialized MRV in Maya 2011
 	$ imrv 2011
 
@@ -78,8 +82,6 @@ tmrv
 ====
 A MRV specific replacement for the ``nosetests`` utility which supports all arguments of ``nosetests``, whereas the first argument may be the Maya release you want to run the tests in.
 
-Arguments specific to mrv are prefixed with ``--mrv-``.
-
 **Sample Usage**::
 	
 	$ # run all tests in Maya 2011
@@ -91,31 +93,29 @@ Arguments specific to mrv are prefixed with ``--mrv-``.
 	$ # show all arguments supported by nosetests
 	$ test/bin/tmrv --help
 	
-To generate a **coverage report**, use the ``--mrv-coverage`` flag. Such a  :download:`coverage report <download/coverage/index.html>` is generated using  nose coverage which must be available in your local nose installation. As it is essentially a reconfigured nose, it supports all nose specific arguments as well.
+The --mrv-coverage flag
+-----------------------
+To generate a **coverage report**, use the ``--mrv-coverage`` flag. Such a  :download:`coverage report <download/coverage/index.html>` is generated using  nose coverage which must be available in your local nose installation. As it is essentially a reconfigured nose, it supports all nose specific arguments as well::
 
-.. note:: On Windows, paths to the test modules and packages to run must be absolute which appears to be a nose limitation. For example, the *test/maya* becomes something like "c:\projects\mrv\test\maya" on windows.
-Additionally, an absolute path must be specified as opposed to the non-windows os's which take the current directory as hint for where to find tests.
-
-**Coverage Sample Usage**::
-	
 	$ # get a coverage report after running all tests in Maya 2011 
 	$ test/bin/tmrv 2011 --mrv-coverage
 	
 	$ # show the report in a browser
 	$ firefox coverage/index.html
 
-	
-In order to test user interfaces, you need to run the actual maya executable in UI mode, that is without '-batch' or '-prompt' specified. Using the ``--mrv-maya``flag that ``mrv`` provides, you will get a maya UI session setup to run the specified nose tests with the given options.
+.. note:: On Windows when using cmd.exe, paths to the test modules and packages to run must be absolute. For example, the *test/maya* becomes something like "c:\projects\mrv\test\maya" on windows. Additionally, an absolute path must be specified as opposed to the non-windows os's which take the current directory as hint for where to find tests.
 
-**UI Tests Sample Usage**::
-	
+Testing User Interfaces
+-----------------------
+In order to test user interfaces, you need to run the actual maya executable in UI mode, that is without '-batch' or '-prompt' specified. Using the ``--mrv-maya``flag that ``mrv`` provides, you will get a maya UI session setup to run the specified nose tests with the given options::
+
 	$ # Run all UI tests in maya 2011
 	$ test/bin/tmrv 2011 --mrv-maya test/maya/ui
 	
 	$ # Run all tests, including coverage, within maya 8.5
 	$ test/bin/tmrv 2011 --mrv-maya --mrv-coverage
 
-.. note:: nose must be installed for mayapy in order for the UI tests to work.
+.. note:: nose must be installed for ``mayapy`` in order for the UI tests to work.
 	
 tmrvr
 =====
@@ -128,6 +128,10 @@ This tools allows automated full regression testing by running all tests for all
 	
 	$ # Run all tests only for the given maya versions
 	$ test/bin/tmrvr 8.5 2008
+	
+The --skip-single flag
+----------------------
+If you would like to shorten the regression test, you can skip the single tests which perform only one tests per maya session as they have to be run in an isolated fashion. In case you decide to do so, the final result of the regression test will be failure though.
 	
 	$ # Run all tests, but skip the single tests
 	$ test/bin/tmrvr --skip-single

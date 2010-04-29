@@ -63,8 +63,6 @@ The generation of the full documentation currently only works on linux and OSX, 
 
 Mayapy
 ^^^^^^
-On Windows, MRV currently uses mayapy only ( although there have been experiments which proved that it can run in a standalone interpreter there as well ).
-
 The only package that you need to install to run the tests is ``nose``. Its recommended to retrieve the package using easy_install for your standalone interpreter and to alter your ``PYTHONPATH`` to include the ``site-packages`` directory of your local python installation. 
 
 Alternatively, copy the ``nose`` package into *"C:\\Program Files\\Autodesk\\Maya<version>\\Python\\Lib\\site-packages"* ( windows ), into *"/usr/autodesk/maya<version>/lib/python<pyversion>/site-packages"* ( Linux ) or into *"/Applications/Autodesk/maya<version>/Maya.app/Contents/Frameworks/Python.framework/Versions/<pyversion>/lib/python<pyversion>/site-packages"* ( OSX ).
@@ -82,22 +80,6 @@ Execute the following::
  
 On linux and OSX, you would have done this in a shell of your choice. On windows, you would have retrieved a shell using the "Git Bash Here" menu entry in your RMB explorer menu when clicking on a parent-folder of your choice.
 
-3. Run the tests
-----------------
-By running the tests, you verify that the installation actually succeeded as you are able to run MRV in a standalone interpreter. 
-
-Linux and OSX
-^^^^^^^^^^^^^
-In your shell, you should now be able to execute the ``tmrv`` command as follows::
-	
-	$ cd mrv
-	$ # start the tests for the given maya version, 2011 in this case
-	$ test/bin/tmrv 2011
-
-All tests are expected to succeed. Please note that ``tmrv`` just executes ``mrv/bin/mrv`` and launches nosetest afterwards, hence all parameters supported ``nosetests`` in your particular installation will work here as well.
-
-On OSX, the default python installation will not work if you intend to run Maya2010 or later. Please see the ``Troubleshooting`` guide for a solution.
-
 Windows
 ^^^^^^^
 On Windows, make sure that the MRV repository has at least one folder between itself and the drive letter. Otherwise you are not able to run tests properly due to some issue with nose on windows (apparently). 
@@ -110,16 +92,29 @@ On Windows, make sure that the MRV repository has at least one folder between it
 
  * c:\\projects\\mrv\\[.git]
 
-Set your **MAYA_LOCATION** environment variable to the location of the maya version to use. MRV will be run using ''mayapy'' of the specified version, you cannot choose between the versions as on Linux / OSX.
 
-Additionally, set the **MRV_MAYA_VERSION** variable to the version you use, i.e. "8.5" or "2011". This variable is required only by one test, which would fail otherwise.  
+3. Run the tests
+----------------
+By running the tests, you verify that the installation actually succeeded as you are able to run MRV in a standalone interpreter.
 
-In a command prompt, execute::
+In your shell, you should now be able to execute the ``tmrv`` command as follows::
 	
 	$ cd mrv
-	$ test\bin\tmrv
+	$ # start the tests for the given maya version, 2011 in this case
+	$ test/bin/tmrv 2011
 
-All tests are expected to succeed.
+All tests are expected to succeed. Please note that ``tmrv`` just executes ``mrv/bin/mrv`` and launches nosetest afterwards, hence all parameters supported ``nosetests`` in your particular installation will work here as well.
+
+On OSX, the default python installation will not work if you intend to run Maya2010 or later. Please see the ``Troubleshooting`` guide for a solution which is essentially using mayapy. This can be achieved using the following command::
+	
+	$ test/bin/tmrv 2011  --mrv-mayapy
+
+On *windows*, in a command prompt, execute::
+	
+	$ cd mrv
+	$ python test\bin\tmrv 2011 <full/path/to/test/directory>
+
+.. note:: On windows, you can use the same commands presented here if you use a git-bash instead of cmd.exe.
 	
 Troubleshooting
 ---------------
@@ -129,21 +124,21 @@ OSX and 32bit/64bit Mismatch
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 Starting with Maya2011, maya is delivered as 64 bit binary. The default interpreter in your path should be 64 bits as well, but if it is not, you have to make some adjustments. Conversely, Maya2010 uses Pyhthon2.6 which is 64 bit on Snow Leopard, whereas Maya was just compiled in 32 bits.
 
-To allow the mrv startup script to find a python interpreter compiled for 32/64 bit, it will be sufficient to put a symbolic link to ``python2.6`` into your /usr/bin directory which points to the interpreter in question. 
-
-``mayapy`` in your maya installation directory will work in case you don't want to build your own one python interpreter, using macports for instance. In that case you need to put a symbolic link named ``python2.6`` into your ``/Applications/Autodesk/maya2010/Maya.app/Contents/bin`` directory which needs to be inserted to the first position of your PATH. To run the unit tests, you will have to install ``nose`` into maya's site-packages directory::
-	
-	$ mayabin=/Applications/Autodesk/maya<version>/Maya.app/Contents/bin
-	$ ln -s $mayabin/mayapy python<pyversion>
-	$ export PATH=$mayabin:$PATH
-
-The reason for this extra-effort is that the ``mrv`` executable wants to start ``python<pyversion>`` which needs to be in the path. In order to use mayapy without dropping dynamic version support, the respective python<version> symlinks need to be in the PATH. On OSX its additionally required to put it into the same location as mayapy - mayapy will not find its prerequisites otherwise and fails to start.
+To solve the issue, either install a python interpreter which matches the architecture of your respective maya version, or use mayapy.
 
 Still troubled ? Use mayapy
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^
 If the standalone interpreter just doesn't want to work on your platform or with your particular configuration, you may always use ``mayapy``, which can be found in the *<maya_install_directory>/bin* folder. It will setup a standalone interpreter which automatically pulls in the packages required for Maya to work.
 
 As a side-effect, ``nose`` needs to be installed in mayapy's *site-packages* directory, as indicated in the :ref:`installation section<install-label>`.
+
+To force using mayapy, use the ``--mrv-mayapy`` flag::
+	
+	$ # start the mayapy python interpreter in interactive mode
+	$ bin/mrv 2011 --mrv-mayapy
+	
+	$ # run all tests in mayapy
+	$ /test/bin/tmrv 2009 --mrv-mayapy
 
 .. _naming-conventions-label:
 
@@ -349,7 +344,7 @@ In statically typed languages, one benefits from the great blessing of having a 
 
 Unfortunately, Python will only be able to discover this big class of errors at runtime, which essentially is too late. Test cases help to run your code, but are you sure it is running every line of it ?
 
-Nose comes with an excellent tool which verifies the tests code coverage. As it needs a few options, there is a utility ( Linux + OSX ) which runs all or the specified tests with coverage output::
+Nose comes with an excellent tool which verifies the tests code coverage. As it needs a few options, there is a tmrv flag which configures nose to run all or the specified tests with coverage output::
 	
 	$ test/bin/tmrv <mayaversion> --mrv-coverage 
 	$ firefox coverage/index.html
@@ -362,7 +357,7 @@ Regression Testing
 ------------------
 As MRV is meant to be useful in all Maya Releases which support python, namely 8.5 till X where X is the latest release, it must be verified that all tests indeed succeed in all available Maya versions, ideally on all platforms.
 
-On Linux and OSX, a tool is available to facilitate running these tests. If it succeeds, it will give instructions to manually run the user interface tests and to complete the regression testing::
+``tmrvr`` greatly facilitates running these tests::
 	
 	$ test/bin/tmrvr 
 	$ test/bin/tmrv [maya version] --mrv-maya test/maya/ui
