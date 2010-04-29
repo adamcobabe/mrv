@@ -1,6 +1,9 @@
 # -*- coding: utf-8 -*-
-"""Intiailize the automation and process framework """
+"""Intiailize the cmd package"""
+__docformat__ = "restructuredtext"
+
 #{ Initialization
+
 
 #} END initialization
 

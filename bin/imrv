@@ -1,19 +1,33 @@
-#!/bin/bash
-# imrv [ mayaversion ] [ args ]
-# Maya version can be 8.5, 2008, 2009 and so forth
-# 
-# start a python shell suitable to run maya and launch ipython in it
-# This is useful mainly for debugging
-base=$(cd ${0%/*} && echo $PWD)
-firstArg=
+#!/usr/bin/env python
+# -*- coding: utf-8 -*-
+"""Prepares ipython to startup with mrv support"""
+import sys
+import os
 
-# if the first argument is the maya version, we have to parse it to be able to 
-# put it as first argument, inserting our args for the interpreter
-if [[ $1 == 8.5 || $1 == 20?? ]]; then
-	firstArg=$1
-	shift
-fi
+__docformat__ = "restructuredtext"
 
-# determine which file to start based on existing ones, prefer .py
-startupfile=`[[ -f $base/ipythonstartup.py ]] && echo $base/ipythonstartup.py || echo $base/ipythonstartup.pyc`
-$base/mrv $firstArg -i $startupfile $@
+def imrvmain(args):
+	"""Launch mrv main with customized startup"""
+	# pull in mrv 
+	mrvpath = os.path.join(os.path.dirname(os.path.realpath(os.path.abspath(__file__))), 'mrv')
+	globals()['__name__'] = "prevent execution of main"
+	
+	# use exec to use globals - execfile does something differently, it separates
+	# the environments more it appears
+	try:
+		fp = open(mrvpath)
+		exec fp in globals()
+		fp.close()
+	except Exception, e:
+		raise EnvironmentError("Could not execute mrv at %r with error %s" % (mrvpath, e))
+	# END exception handling
+	
+	# NOTE: using the module (-m) does not work in py2.4
+	args_mod = lambda a, v, m: ('-c', 'import mrv.cmds.ipythonstartup') + a
+	mrvmain(args, args_modifier=args_mod)
+	
+	
+if __name__ == "__main__":
+	# ignore first arg which is the executable
+	imrvmain(sys.argv[1:])
+# END initialization 

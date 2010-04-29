@@ -337,10 +337,9 @@ class Path( _base, iDagItem ):
 
 	def relpath(self):
 		""" Return this path as a relative path,
-		based from the current working directory.
+		originating from the current working directory.
 		"""
-		cwd = self.__class__(os.getcwd())
-		return cwd.relpathto(self)
+		return self.relpathto(os.getcwd())
 
 	def relpathto(self, dest):
 		""" Return a relative path from self to dest.
@@ -361,7 +360,7 @@ class Path( _base, iDagItem ):
 		
 		start_list = os.path.abspath(dest).split(os.sep)
 		path_list = os.path.abspath(self._expandvars()).split(os.sep)
-	
+		
 		# Work out how much of the filepath is shared by start and path.
 		i = len(commonprefix([start_list, path_list]))
 	
