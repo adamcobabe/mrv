@@ -40,6 +40,9 @@ Additionally you can prepare the environment and start a default maya session wi
 	$ # start maya 8.5 in prompt mode
 	$ bin/mrv --mrv-maya -prompt
 
+.. note::
+	The mrv command will use execv on non-windows system, but use spawn on windows to workaround some issues. This implies that scripts on linux/osx can natively use the mrv program, standardchannels are handled automatically. On windows the spawned process will be attached with all standardchannels of the parent python process, but its questionable whether this has the intended effect.
+	
 .. _imrv-label:
 
 imrv
@@ -82,6 +85,9 @@ Arguments specific to mrv are prefixed with ``--mrv-``.
 	$ test/bin/tmrv --help
 	
 To generate a **coverage report**, use the ``--mrv-coverage`` flag. Such a  :download:`coverage report <download/coverage/index.html>` is generated using  nose coverage which must be available in your local nose installation. As it is essentially a reconfigured nose, it supports all nose specific arguments as well.
+
+.. note:: On Windows, paths to the test modules and packages to run must be absolute which appears to be a nose limitation. For example, the *test/maya* becomes something like "c:\projects\mrv\test\maya" on windows.
+Additionally, an absolute path must be specified as opposed to the non-windows os's which take the current directory as hint for where to find tests.
 
 **Coverage Sample Usage**::
 	

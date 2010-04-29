@@ -7,7 +7,6 @@ import tempfile
 
 __docformat__ = "restructuredtext"
 
-_mrv_ui_flag = '--mrv-ui'
 _mrv_coverage_flag = '--mrv-coverage'
 
 def _parse_args(args, maya_version, start_maya):

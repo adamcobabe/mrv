@@ -2,11 +2,12 @@
 """Contains routines required to initialize mrv"""
 import os
 import sys
+import subprocess
 from mrv.path import Path
 
 __docformat__ = "restructuredtext"
 
-__all__ = ( 'is_supported_maya_version', 'parse_maya_version', 'update_env_path', 
+__all__ = ( 'is_supported_maya_version', 'python_version_of', 'parse_maya_version', 'update_env_path', 
 			'maya_location', 'update_maya_environment', 'exec_python_interpreter', 
 			'exec_maya_binary' )
 
@@ -239,6 +240,22 @@ def mangle_executable(executable):
 	# END handle freakin' spaces
 	return executable
 
+def _execute(executable, args):
+	"""Perform the actual execution of the executable with the given args.
+	This method does whatever is required to get it right on windows, which is 
+	the only reason this method exists !
+	
+	:param args: arguments, without the executable as first argument
+	:note: does not return """
+	# on windows we spawn, otherwise we don't get the interactive input right
+	actual_args = (executable, ) + args
+	if sys.platform.startswith('win'):
+		p = subprocess.Popen(actual_args, stdin=sys.stdin, stdout=sys.stdout, stderr=sys.stderr)
+		sys.exit(p.wait())
+	else:
+		os.execvp(executable, actual_args)
+	# END handle windows
+
 def exec_python_interpreter(args, maya_version):
 	"""Replace this process with a python process as determined by the given options.
 	This will either be the respective python interpreter, or mayapy.
@@ -250,20 +267,22 @@ def exec_python_interpreter(args, maya_version):
 	py_version = python_version_of(maya_version)
 	py_executable = "python%s" % py_version
 	
-	args = tuple(args)
-	actual_args = (py_executable, ) + args
+	if sys.platform.startswith('win'):
+		# so, on windows the executables don't have a . in their name, most likely
+		# because windows threats the '.' in a special way as ... anyway. 
+		py_executable = "python%g" % (py_version*10)
+	# END win specials 
 	
+	args = tuple(args)
 	try:
-		os.execvp(py_executable, actual_args)
+		_execute(py_executable, args)
 	except OSError:
 		print "Python interpreter named %r not found, trying mayapy ..." % py_executable
 		mayalocation = maya_location(maya_version)
 		mayapy_executable = os.path.join(mayalocation, "bin", "mayapy")
 		
-		mayapy_executable = mangle_executable(mayapy_executable)
-		actual_args = (mayapy_executable, ) + mangle_args(args)
 		try:
-			os.execv(mayapy_executable, actual_args)
+			_execute(mayapy_executable, args)
 		except OSError, e:
 			raise EnvironmentError("Could not find suitable python interpreter at %r or %r: %s" % (py_executable, mayapy_executable, e))
 		# END final exception handling
@@ -279,9 +298,9 @@ def exec_maya_binary(args, maya_version):
 	mayalocation = maya_location(maya_version)
 	mayabin = os.path.join(mayalocation, 'bin', 'maya')
 	
-	mayabin = mangle_executable(mayabin)
-	actual_args = (mayabin, ) + mangle_args(args)
-	os.execvp(mayabin, actual_args)
+	# although execv would work on windows, we use our specialized _execute method 
+	# in order to keep things consistent
+	_execute(mayabin, args)
 	
 	
 #} END Maya initialization
