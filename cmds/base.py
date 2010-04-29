@@ -2,8 +2,13 @@
 """Contains routines required to initialize mrv"""
 import os
 import sys
+from mrv.path import Path
 
 __docformat__ = "restructuredtext"
+
+__all__ = ( 'is_supported_maya_version', 'parse_maya_version', 'update_env_path', 
+			'maya_location', 'update_maya_environment', 'exec_python_interpreter', 
+			'exec_maya_binary' )
 
 #{ Globals
 maya_to_py_version_map = {
@@ -81,7 +86,20 @@ def maya_location(maya_version):
 	elif sys.platform == 'darwin':
 		mayaroot = "/Applications/Autodesk/maya"
 	elif sys.platform.startswith('win'):
-		raise NotImplementedError("todo windows")
+		# try to find it in all kinds of program files, prefer 64 bit versions
+		tried_paths = list()
+		for envvar in ('PROGRAMW6432', 'PROGRAMFILES','PROGRAMFILES(X86)'):
+			if envvar not in os.environ: 
+				continue
+			basepath = Path(os.environ[envvar]) / "Autodesk"
+			if basepath.isdir():
+				mayaroot = basepath / 'Maya'
+				break
+			# END if we have found Autodesk installations
+			tried_paths.append(basepath)
+		# END for each envvar
+		if mayaroot is None:
+			raise EnvironmentError("Could not find any maya installation, searched %s" % (', '.join(tried_paths)))
 	# END os specific adjustments
 	
 	if mayaroot is None:
@@ -116,7 +134,7 @@ def update_maya_environment(maya_version):
 	elif sys.platform == 'darwin':
 		pylibdir = "Frameworks/Python.framework/Versions/Current/lib"
 	elif sys.platform.startswith('win'):
-		raise NotImplementedError("todo windows")
+		pylibdir = "Python"
 	# END os specific adjustments
 	
 	
@@ -156,7 +174,9 @@ def update_maya_environment(maya_version):
 		update_env_path(env, envppath, ppath, append=True)
 		
 	elif sys.platform.startswith('win'):
-		raise NotImplementedError("todo win PATH")
+		mayadll = os.path.join(mayalocation, 'bin')
+		mayapydll = os.path.join(mayalocation, 'Python', 'DLLs')
+		update_env_path(env, 'PATH', mayadll+os.pathsep+mayapydll, append=False)
 	else:
 		raise EnvironmentError("Current platform %s is unsupported" % sys.platform)
 	# END handle os's
@@ -167,7 +187,12 @@ def update_maya_environment(maya_version):
 	# mrv is already in the path, we just make sure that the respective path can 
 	# be found in the python path. We add additional paths as well
 	ospd = os.path.dirname
-	ppath = os.path.join(mayalocation, pylibdir, "python%s"%py_version, "site-packages")
+	if not sys.platform.startswith('win'):
+		ppath = os.path.join(mayalocation, pylibdir, "python%s"%py_version, "site-packages")
+	else:
+		ppath = os.path.join(mayalocation, pylibdir, "lib", "site-packages")
+	# END windows special handling
+	
 	ppath += os.pathsep + ospd(ospd(ospd(__file__)))
 	update_env_path(env, envppath, ppath, append=True)
 	
@@ -179,6 +204,40 @@ def update_maya_environment(maya_version):
 	# export the actual maya version to allow scripts to pick it up even before maya is launched
 	env['MRV_MAYA_VERSION'] = "%g" % maya_version
 	
+
+def mangle_args(args):
+	"""Enclose arguments in quotes if they contain spaces ... on windows only
+	:return: tuple of possibly modified arguments"""
+	if not sys.platform.startswith('win'):
+		return args
+	
+	newargs = list()
+	for arg in args:
+		if ' ' in arg:
+			arg = '"%s"' % arg
+		# END put quotes around strings with spaces
+		newargs.append(arg)
+	# END for each arg
+	return tuple(newargs)
+	
+def mangle_executable(executable):
+	""":return: possibly adjusted path to executable in order to allow its execution
+		This currently only kicks in on windows as we can't handle spaces properly.
+	
+	:note: Will change working dir"""
+	if not sys.platform.startswith('win'):
+		return executable
+		
+	# execv appears to call the shell, hence we make sure we handle whitespaecs
+	# in the path, which usually happens on windows !
+	# Problem here is that it cannot find the executable if it has a space in the
+	# path as it will split it, and if quotes are put around, it can't find 
+	# it either. Hence we chdir into it and use a relative path
+	if ' ' in executable:
+		os.chdir(os.path.dirname(executable))
+		executable = os.path.basename(executable)
+	# END handle freakin' spaces
+	return executable
 
 def exec_python_interpreter(args, maya_version):
 	"""Replace this process with a python process as determined by the given options.
@@ -198,14 +257,15 @@ def exec_python_interpreter(args, maya_version):
 		os.execvp(py_executable, actual_args)
 	except OSError:
 		print "Python interpreter named %r not found, trying mayapy ..." % py_executable
-		mayalocation = maya_location(gsion)
+		mayalocation = maya_location(maya_version)
 		mayapy_executable = os.path.join(mayalocation, "bin", "mayapy")
 		
-		actual_args = (mayapy_executable, ) + args
+		mayapy_executable = mangle_executable(mayapy_executable)
+		actual_args = (mayapy_executable, ) + mangle_args(args)
 		try:
 			os.execv(mayapy_executable, actual_args)
-		except OSError:
-			raise EnvironmentError("Could not find suitable python interpreter at %r or %r" % (py_executable, mayapy_executable))
+		except OSError, e:
+			raise EnvironmentError("Could not find suitable python interpreter at %r or %r: %s" % (py_executable, mayapy_executable, e))
 		# END final exception handling
 	# END exception handling
 	
@@ -218,11 +278,9 @@ def exec_maya_binary(args, maya_version):
 	:rase EnvironmentError: if the respective maya version could not be found"""
 	mayalocation = maya_location(maya_version)
 	mayabin = os.path.join(mayalocation, 'bin', 'maya')
-	if sys.platform.startswith('win'):
-		mayabin += ".exe"
-	# END windows special handling
 	
-	actual_args = (mayabin, ) + args
+	mayabin = mangle_executable(mayabin)
+	actual_args = (mayabin, ) + mangle_args(args)
 	os.execvp(mayabin, actual_args)
 	
 	
