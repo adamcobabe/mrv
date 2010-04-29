@@ -92,9 +92,18 @@ def tmrvrmain(args):
 	tmrvpath = Path(tmrvpath).relpath()
 	
 	# find the single tests to run
-	testfiles = [None]	# none indicates no test file
+	testfiles = [None]	# none indicates no test file, which runs all tests
+	search_root = os.path.join('.', 'test')
+	
+	# on windows though, things are a little different so that we have to specify 
+	# absolute paths, and to run all tests
+	if sys.platform.startswith('win'):
+		search_root = os.path.join(basepath, 'test')
+		testfiles[0] = search_root
+	# END windoze special handling as usual
+	
 	if not options.skip_single:
-		for root, dirs, files in os.walk('.'):
+		for root, dirs, files in os.walk(search_root):
 			testfiles.extend(os.path.join(root, f) for f in files if f.startswith('test_single_') and f.endswith('.py'))
 		# END filter fiels
 	# END find single tests
