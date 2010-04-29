@@ -841,7 +841,7 @@ class TestCases( unittest.TestCase ):
 		pd[0] = "hello"
 		pd['l'] = [1,2,3]
 		
-		tmpscene = tempfile.gettempdir() + "/persistence.ma"
+		tmpscene = tempfile.gettempdir() + "/persistence.mb"
 		mrv.Scene.save(tmpscene)
 		mrv.Scene.open(tmpscene)
 		

@@ -28,6 +28,25 @@ class TestStorage( unittest.TestCase ):
 			lval = mydict.get( "list" )
 			assert len( lval ) == 3 
 
+		def fix_ascii_file(filepath):
+			"""Unfortunately, on windows and osx and maya2011, 
+			ascii's tend to corrupt themselves by writing ',' 
+			into floats which should be a '.'. Could be something
+			related to the locale too. Nonetheless, we have to 
+			fix it and do a stupid find a replace"""
+			if filepath.ext() != '.ma':
+				return
+			
+			tmpfile = Path(tempfile.mktemp())
+			ofh = open(tmpfile, 'wb')
+			for line in open(filepath):
+				ofh.write(line.replace(',', '.'))
+			# END for each line
+			ofh.close()
+			
+			filepath.remove()
+			tmpfile.move(filepath)
+	
 
 		did = "test"
 		for filetype in [ ".ma", ".mb" ]:
@@ -48,6 +67,7 @@ class TestStorage( unittest.TestCase ):
 			# ascii and binary ( including reference test )
 			filepath = tmpdir / ( "storagetest" + filetype )
 			mrvmaya.Scene.save( filepath )
+			fix_ascii_file(filepath)
 
 			# reload
 			mrvmaya.Scene.open( filepath, force=True )
@@ -85,6 +105,7 @@ class TestStorage( unittest.TestCase ):
 			# save reference
 			filewithrefpath = tmpdir / ( "refstoragetest" + filetype )
 			mrvmaya.Scene.save( filewithrefpath )
+			fix_ascii_file(filewithrefpath)
 			mrvmaya.Scene.open( filewithrefpath, force = True )
 
 			# check test value and the newly written one
