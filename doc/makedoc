@@ -1,0 +1,60 @@
+#!/usr/bin/env python
+# -*- coding: utf-8 -*-
+"""Command to build the documentation"""
+__docformat__ = "restructuredtext"
+
+import sys
+import optparse
+
+
+#{ Initialization
+
+def main(args):
+	"""Parse args, initialize a builder, and run it"""
+	p = DocGenerator.parser()
+	options, args = p.parse_args(args)
+	dgen = DocGenerator(*args, **options.__dict__)
+	dgen.generate()
+
+#} END initialization
+
+
+class DocGenerator(object):
+	"""Encapsulates all functionality required to create sphinx/epydoc documentaiton"""
+
+	def __init__(self, *args, **kwargs):
+		"""Initialize the instance"""
+	
+	#{ Public Interface
+	@classmethod
+	def parser(cls):
+		""":return: OptionParser instance suitable to parse commandline arguments
+		with which to initialize our instance"""
+	
+	def generate():
+		"""Geneate the documentation according to our configuration"""
+		
+	
+	#} END public interface 
+	
+	#{ Protected Interface
+
+	def _make_index(self):
+		"""Generate the index.rst file according to the modules and packages we
+		actually have"""
+	
+	def _make_coverage(self):
+		"""Generate a coverage report and make it available as download"""
+		
+	def _make_autogen(self):
+		"""Instruct sphinx to generate the autogen rst files"""
+		
+	def _make_epydoc(self):
+		"""Generate epydoc documentation"""
+
+	#} END protected interface
+
+
+# run the script 
+if __name__ == "__main__":
+	main(sys.argv[1:])
