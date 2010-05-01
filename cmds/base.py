@@ -9,7 +9,7 @@ __docformat__ = "restructuredtext"
 
 __all__ = ( 'is_supported_maya_version', 'python_version_of', 'parse_maya_version', 'update_env_path', 
 			'maya_location', 'update_maya_environment', 'exec_python_interpreter', 
-			'exec_maya_binary' )
+			'exec_maya_binary', 'available_maya_versions' )
 
 #{ Globals
 maya_to_py_version_map = {
@@ -71,7 +71,22 @@ def update_env_path(environment, env_var, value, append=False):
 		# END handle append
 	# END handle existing value
 	environment[env_var] = value
-	
+
+def available_maya_versions():
+	""":return: list of installed maya versions which are locally available - 
+	they can be used in methods that require the maya_version to be given. 
+	Versions are ordered such that the latest version is given last."""
+	versions = list()
+	for version_candidate in sorted(maya_to_py_version_map.keys()):
+		try:
+			loc = maya_location(version_candidate)
+			versions.append(version_candidate)
+		except Exception:
+			pass
+		# END check maya location
+	# END for each version
+	return versions
+
 def maya_location(maya_version):
 	""":return: string path to the existing maya installation directory for the 
 	given maya version

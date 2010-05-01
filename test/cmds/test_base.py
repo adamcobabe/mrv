@@ -46,5 +46,10 @@ class TestBase( unittest.TestCase ):
 		
 		self.failUnlessRaises(EnvironmentError, maya_location, 2050)
 		
+		# at least one version should be found
+		versions = available_maya_versions()
+		assert versions == sorted(versions)
+		assert versions and isinstance(versions[0], float)
+		
 		
 

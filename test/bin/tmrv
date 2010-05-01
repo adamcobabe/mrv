@@ -7,7 +7,6 @@ import tempfile
 
 __docformat__ = "restructuredtext"
 
-_mrv_coverage_flag = '--mrv-coverage'
 
 #{ Initialization
 def import_mrv_program():
@@ -41,6 +40,9 @@ def _parse_args(args, maya_version, start_maya):
 	args interleaved with nose args
 	
 	:return: altered arguments to be passed to mrv"""
+	import mrv
+	import mrv.test.cmds
+	
 	# run nose, no matter what
 	args = list(args)
 	base = ['-c', 'import mrv.test.cmds.nosestartup']
@@ -49,8 +51,8 @@ def _parse_args(args, maya_version, start_maya):
 	# HANDLE COVERAGE
 	#################
 	try:
-		args.remove(_mrv_coverage_flag)
-		mine.extend(['--with-coverage', '--cover-html', '--cover-package=mrv', '--cover-html-dir=coverage'])
+		args.remove(mrv.test.cmds.tmrv_coverage_flag)
+		mine.extend(['--with-coverage', '--cover-html', '--cover-package=%s' % mrv.__name__, '--cover-html-dir=%s' % mrv.test.cmds.tmrv_coverage_dir])
 	except ValueError:
 		pass
 	# END coverage handling
@@ -90,7 +92,7 @@ def _parse_args(args, maya_version, start_maya):
 		del(args[:])
 	# END handle maya
 	
-	return tuple(base + args)
+	return tuple(base + mine + args)
 
 #} END utilities
 	

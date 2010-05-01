@@ -8,12 +8,6 @@ import os
 
 __docformat__ = "restructuredtext"
 
-
-#{ Globals
-_mrv_ui_flag = '--mrv-maya'
-_mrv_mayapy_flag = '--mrv-mayapy'
-#} END globals
-
 #{ Initialization
 def prepare_mrv_syspath():
 	"""Make sure mrv is in the python path, and manipulate sys.path if required
@@ -45,14 +39,15 @@ def mrvmain(args, args_modifier=lambda a, v, m: a):
 		python interpreter
 	"""
 	prepare_mrv_syspath()
+	import mrv.cmds
 	import mrv.cmds.base as mrvinit
 	maya_version, rargs = mrvinit.init_environment(args)
 	
 	# handle special arguments
 	config = [False, False]
 	lrargs = list(rargs)
-	for i, (flag, varname) in enumerate(( (_mrv_ui_flag, 'start_maya'), 
-							    		  (_mrv_mayapy_flag, 'mayapy_only'))):
+	for i, (flag, varname) in enumerate(( (mrv.cmds.mrv_ui_flag, 'start_maya'), 
+							    		  (mrv.cmds.mrv_mayapy_flag, 'mayapy_only'))):
 		try:
 			lrargs.remove(flag)
 			config[i] = True
