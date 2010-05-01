@@ -157,6 +157,11 @@ class DocGenerator(object):
 		""":return: Path to directory to which epydoc will write its output"""
 		return self._base_dir / self.html_dir / 'generated' / 'api'
 		
+	def _mrv_maya_version(self):
+		""":return: maya version with which mrv subcommands should be started with"""
+		import mrv.cmds.base as cmdsbase
+		return cmdsbase.available_maya_versions()[-1]
+		
 	def _epydoc_cfg(self):
 		""":return: string which can be written out as epydoc.cfg file. It will be used
 		to define what epydoc will do for us"""
@@ -169,7 +174,7 @@ modules: unittest
 modules: pydot,pyparsing
 modules: ../,../ext/networkx/networkx
 
-exclude: mrv.test
+exclude: mrv.test,mrv.doc,mrv.cmds.ipythonstartup
 
 output: html"""
 		
@@ -227,7 +232,6 @@ output: html"""
 	
 	def _make_coverage(self):
 		"""Generate a coverage report and make it available as download"""
-		import mrv.cmds.base as cmdsbase
 		import mrv.test.cmds as cmds
 		import mrv.test
 		ospd = os.path.dirname
@@ -239,10 +243,8 @@ output: html"""
 		prevcwd = os.getcwd()
 		os.chdir(self._project_dir)
 		
-		# find the newest maya version that we have installed
-		maya_version = cmdsbase.available_maya_versions()[-1]
 		try:
-			rval = self._call_python_script([tmrvpath, str(maya_version), cmds.tmrv_coverage_flag])
+			rval = self._call_python_script([tmrvpath, str(self._mrv_maya_version()), cmds.tmrv_coverage_flag])
 		finally:
 			os.chdir(prevcwd)
 		# END handle cwd
@@ -285,11 +287,11 @@ output: html"""
 		
 	def _make_epydoc(self):
 		"""Generate epydoc documentation"""
-		# start epydocs commandline interface
-		# have to adjust our own argv to make it work
-		origargv = sys.argv[:]
-		del(sys.argv[:])
+		import mrv
+		mrvpath = os.path.join(os.path.dirname(mrv.__file__), 'bin', 'mrv')
 		
+		# start epydocs in a separate process
+		# as maya support is required
 		epytarget = self._epydoc_target_dir()
 		if not epytarget.isdir():
 			epytarget.makedirs()
@@ -299,12 +301,13 @@ output: html"""
 		epydoc_cfg_file = "epydoc.cfg"
 		open(epydoc_cfg_file, 'wb').write(self._epydoc_cfg())
 		
-		sys.argv.extend(('epydoc', '-q', '-q', '-o', str(epytarget), self._project_dir))
-		from epydoc.cli import cli as epycli
-		
-		# it will only call sys.exit on error, which is fine
+		args = [mrvpath, str(self._mrv_maya_version()), 
+				'-c', 'import epydoc.cli; import mrv.maya; epydoc.cli.cli()', 
+				'-q', '-q', '--config', epydoc_cfg_file,
+				'--debug',
+				'-o', str(epytarget)]
 		try:
-			epycli()
+			self._call_python_script(args)
 		finally:
 			os.remove(epydoc_cfg_file)
 		# END handle epydoc config file
