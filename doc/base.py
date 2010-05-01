@@ -122,7 +122,11 @@ class DocGenerator(object):
 		# END clean coverage 
 		
 		if self._epydoc:
-			pass
+			try:
+				shutil.rmtree(self._epydoc_target_dir())
+			except OSError:
+				pass
+			# END ignore errors if directory doesnt exist
 		# END clean epydoc
 		
 		if self._sphinx:
@@ -148,6 +152,26 @@ class DocGenerator(object):
 	def _source_downloads_coverage_dir(self):
 		""":return: Path to coverage related downloads"""
 		return self._source_downloads_dir() / 'coverage'
+		
+	def _epydoc_target_dir(self):
+		""":return: Path to directory to which epydoc will write its output"""
+		return self._base_dir / self.html_dir / 'generated' / 'api'
+		
+	def _epydoc_cfg(self):
+		""":return: string which can be written out as epydoc.cfg file. It will be used
+		to define what epydoc will do for us"""
+		return """[epydoc]
+name: MRV Development Framework
+url: http://wiki.byronimo.de/mrv
+
+sourcecode: yes
+modules: unittest
+modules: pydot,pyparsing
+modules: ../,../ext/networkx/networkx
+
+exclude: mrv.test
+
+output: html"""
 		
 	def _call_python_script(self, *args, **kwargs):
 		"""Wrapper of subprocess.call which assumes that we call a python script.
@@ -261,6 +285,30 @@ class DocGenerator(object):
 		
 	def _make_epydoc(self):
 		"""Generate epydoc documentation"""
+		# start epydocs commandline interface
+		# have to adjust our own argv to make it work
+		origargv = sys.argv[:]
+		del(sys.argv[:])
+		
+		epytarget = self._epydoc_target_dir()
+		if not epytarget.isdir():
+			epytarget.makedirs()
+		# END assure directory exists
+		
+		# write epydoc.cfg file temporarily
+		epydoc_cfg_file = "epydoc.cfg"
+		open(epydoc_cfg_file, 'wb').write(self._epydoc_cfg())
+		
+		sys.argv.extend(('epydoc', '-q', '-q', '-o', str(epytarget), self._project_dir))
+		from epydoc.cli import cli as epycli
+		
+		# it will only call sys.exit on error, which is fine
+		try:
+			epycli()
+		finally:
+			os.remove(epydoc_cfg_file)
+		# END handle epydoc config file
+		
 
 	#} END protected interface
 
