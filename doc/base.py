@@ -293,7 +293,8 @@ output: html"""
 		os.chdir(self._project_dir)
 		
 		try:
-			rval = self._call_python_script([tmrvpath, str(self._mrv_maya_version()), cmds.tmrv_coverage_flag])
+			rval = self._call_python_script([tmrvpath, str(self._mrv_maya_version()), 
+											"%s=%s" % (cmds.tmrv_coverage_flag, self.rootpackage)])
 		finally:
 			os.chdir(prevcwd)
 		# END handle cwd

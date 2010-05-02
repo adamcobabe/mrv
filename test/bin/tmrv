@@ -50,12 +50,21 @@ def _parse_args(args, maya_version, start_maya):
 	
 	# HANDLE COVERAGE
 	#################
-	try:
-		args.remove(mrv.test.cmds.tmrv_coverage_flag)
-		mine.extend(['--with-coverage', '--cover-html', '--cover-package=%s' % mrv.__name__, '--cover-html-dir=%s' % mrv.test.cmds.tmrv_coverage_dir])
-	except ValueError:
-		pass
-	# END coverage handling
+	for i, arg in enumerate(args[:]):
+		if arg.startswith(mrv.test.cmds.tmrv_coverage_flag):
+			del(args[i])
+			tokens = arg.split('=', 1)
+			package = mrv.__name__
+			if len(tokens) == 2:
+				package = tokens[1]
+			# END if a package is set
+			
+			mine.extend(['--with-coverage', '--cover-erase', 
+					'--cover-html', '--cover-package=%s' % package, 
+					'--cover-html-dir=%s' % mrv.test.cmds.tmrv_coverage_dir])
+			break
+		# END if coverage arg is set
+	# END for each argument
 	
 	# HANDLE MAYA
 	#############
