@@ -8,14 +8,8 @@ import os
 
 __docformat__ = "restructuredtext"
 
-
-#{ Globals
-_mrv_ui_flag = '--mrv-maya'
-_mrv_mayapy_flag = '--mrv-mayapy'
-#} END globals
-
 #{ Initialization
-def prepare_syspath():
+def prepare_mrv_syspath():
 	"""Make sure mrv is in the python path, and manipulate sys.path if required
 	in order to assure that.
 	
@@ -36,31 +30,6 @@ def prepare_syspath():
 		# END second attempt exception handling
 	# END import exception handling
 
-
-def init_environment(args):
-	"""Intialize MRV up to the point where we can replace this process with the 
-	one we prepared
-	
-	:param args: commandline arguments excluding the executable ( usually first arg )
-	:return: tuple(maya_version, args) tuple of maya_version, and the remaining args"""
-	prepare_syspath()
-	import mrv.cmds.base as mrvinit
-	
-	# see if first argument is the maya version
-	maya_version=8.5
-	if args:
-		parsed_successfully, maya_version = mrvinit.parse_maya_version(args[0], maya_version)
-		if parsed_successfully:
-			args = args[1:]
-		# END cut version arg
-	# END if there are args at all
-	
-	mrvinit.update_maya_environment(maya_version)
-	return (maya_version, tuple(args))
-	
-	
-#} END initialization
-
 def mrvmain(args, args_modifier=lambda a, v, m: a):
 	"""Prepare the environment to allow the operation of maya
 	:param args_modifier: Function returning a possibly modified argument list. The passed 
@@ -69,14 +38,16 @@ def mrvmain(args, args_modifier=lambda a, v, m: a):
 		If start_maya is True, the process to be started will be maya, not the 
 		python interpreter
 	"""
-	maya_version, rargs = init_environment(args)
+	prepare_mrv_syspath()
+	import mrv.cmds
 	import mrv.cmds.base as mrvinit
+	maya_version, rargs = mrvinit.init_environment(args)
 	
 	# handle special arguments
 	config = [False, False]
 	lrargs = list(rargs)
-	for i, (flag, varname) in enumerate(( (_mrv_ui_flag, 'start_maya'), 
-							    		  (_mrv_mayapy_flag, 'mayapy_only'))):
+	for i, (flag, varname) in enumerate(( (mrv.cmds.mrv_ui_flag, 'start_maya'), 
+							    		  (mrv.cmds.mrv_mayapy_flag, 'mayapy_only'))):
 		try:
 			lrargs.remove(flag)
 			config[i] = True
@@ -94,6 +65,8 @@ def mrvmain(args, args_modifier=lambda a, v, m: a):
 		mrvinit.exec_python_interpreter(rargs, maya_version, mayapy_only)
 	# END handle process to start
 	
+#} END initialization
+
 
 if __name__ == "__main__":
 	# ignore first arg which is the executable

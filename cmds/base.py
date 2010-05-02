@@ -9,7 +9,7 @@ __docformat__ = "restructuredtext"
 
 __all__ = ( 'is_supported_maya_version', 'python_version_of', 'parse_maya_version', 'update_env_path', 
 			'maya_location', 'update_maya_environment', 'exec_python_interpreter', 
-			'exec_maya_binary' )
+			'exec_maya_binary', 'available_maya_versions' )
 
 #{ Globals
 maya_to_py_version_map = {
@@ -71,7 +71,22 @@ def update_env_path(environment, env_var, value, append=False):
 		# END handle append
 	# END handle existing value
 	environment[env_var] = value
-	
+
+def available_maya_versions():
+	""":return: list of installed maya versions which are locally available - 
+	they can be used in methods that require the maya_version to be given. 
+	Versions are ordered such that the latest version is given last."""
+	versions = list()
+	for version_candidate in sorted(maya_to_py_version_map.keys()):
+		try:
+			loc = maya_location(version_candidate)
+			versions.append(version_candidate)
+		except Exception:
+			pass
+		# END check maya location
+	# END for each version
+	return versions
+
 def maya_location(maya_version):
 	""":return: string path to the existing maya installation directory for the 
 	given maya version
@@ -208,7 +223,9 @@ def update_maya_environment(maya_version):
 
 def mangle_args(args):
 	"""Enclose arguments in quotes if they contain spaces ... on windows only
-	:return: tuple of possibly modified arguments"""
+	:return: tuple of possibly modified arguments
+	
+	:todo: remove this function, its unused"""
 	if not sys.platform.startswith('win'):
 		return args
 	
@@ -225,7 +242,8 @@ def mangle_executable(executable):
 	""":return: possibly adjusted path to executable in order to allow its execution
 		This currently only kicks in on windows as we can't handle spaces properly.
 	
-	:note: Will change working dir"""
+	:note: Will change working dir
+	:todo: remove this function, its unused"""
 	if not sys.platform.startswith('win'):
 		return executable
 		
@@ -239,6 +257,28 @@ def mangle_executable(executable):
 		executable = os.path.basename(executable)
 	# END handle freakin' spaces
 	return executable
+	
+
+def init_environment(args):
+	"""Intialize MRV up to the point where we can replace this process with the 
+	one we prepared
+	
+	:param args: commandline arguments excluding the executable ( usually first arg )
+	:return: tuple(maya_version, args) tuple of maya_version, and the remaining args"""
+	import mrv.cmds.base as mrvinit
+	
+	# see if first argument is the maya version
+	maya_version=8.5
+	if args:
+		parsed_successfully, maya_version = parse_maya_version(args[0], maya_version)
+		if parsed_successfully:
+			args = args[1:]
+		# END cut version arg
+	# END if there are args at all
+	
+	update_maya_environment(maya_version)
+	return (maya_version, tuple(args))
+	
 
 def _execute(executable, args):
 	"""Perform the actual execution of the executable with the given args.

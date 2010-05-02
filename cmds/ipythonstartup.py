@@ -65,10 +65,3 @@ def init_ipython():
 
 # } END initialization
 
-
-
-
-################
-init_ipython()
-################
-

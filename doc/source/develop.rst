@@ -33,7 +33,7 @@ The following software packages need to be installed,
 * *Documentation Generation*
 
  * Epydoc 3.x
- * Sphinx 0.62 or higher ( currently Linux and OSX only )
+ * Sphinx 0.62 or higher
 
 The following installation guide *assumes you have already installed git and Autodesk Maya* for your platform. For instruction, please see the documentations of the respective software package.
  
@@ -58,8 +58,6 @@ Please note that the version of easy_install is important as you need to install
 * Maya 8.5 -> Python 2.4
 * Maya 2008|2009 -> Pyhthon 2.5
 * Maya 2010 -> Python 2.6
-
-The generation of the full documentation currently only works on linux and OSX, partial epydoc documentation works on windows as well. You don't strictly need sphinx and/or epydoc to develop with MRV.
 
 Mayapy
 ^^^^^^
@@ -464,30 +462,23 @@ The workflow presented here is only a rough introduction to the multitude of pos
 ***************
 Making Releases
 ***************
-Although there is a build and release sysetm, at the time of writing ( |today| ), it was not used to create the release you have. It will be revised and documented for 1.0.0.
+Although there is a build and release system, at the time of writing ( |today| ), it was not used to create the release you have. It will be revised and documented for 1.0.0.
 
 
 Building Docs
 =============
-Currently, building of the full documentation is only supported on linux and on OSX provided that sphinx and epydoc have been installed in your python 2.5 interpreter. The preference for python 2.5 is currently hard-coded into the ``mrv/docs/sphinx_build`` script, but there is no reason why it wouldn't work in other python versions if the prerequisites are met. 
+Currently, building of the full documentation requires sphinx and epydoc to be installed in your python interpreter. 
 
 If that is the case, the following line will build the docs you are currently reading, in the version you have checked out locally::
 	
 	$ cd doc
-	$ make html
+	$ makedoc
+	
 	$ # to redo existing docs from scratch
-	$ make clean html
+	$ makedoc --clean
+	$ makedoc
 
 The built documentation can be found in ``mrv/doc/build/html``.
-
-Windows
--------
-On windows, you may create the epydoc version only, which is rather readable documentation from the source code only, which unfortunately cannot be searched as is the case with the Sphinx documentation.
-
-To do that, execute ``epydoc.bat``, which should work if epydoc has been installed for the python interpreter located in your path::
-	
-	$ cd doc
-	$ epydoc.bat
 	
 .. _pipeline-integration-label:
 

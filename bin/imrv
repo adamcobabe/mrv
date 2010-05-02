@@ -15,15 +15,13 @@ def imrvmain(args):
 	# use exec to use globals - execfile does something differently, it separates
 	# the environments more it appears
 	try:
-		fp = open(mrvpath)
-		exec fp in globals()
-		fp.close()
+		execfile(mrvpath, globals())
 	except Exception, e:
 		raise EnvironmentError("Could not execute mrv at %r with error %s" % (mrvpath, e))
 	# END exception handling
 	
 	# NOTE: using the module (-m) does not work in py2.4
-	args_mod = lambda a, v, m: ('-c', 'import mrv.cmds.ipythonstartup') + a
+	args_mod = lambda a, v, m: ('-c', 'import mrv.cmds.ipythonstartup as ip; ip.init_ipython()') + a
 	mrvmain(args, args_modifier=args_mod)
 	
 	

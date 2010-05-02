@@ -136,3 +136,18 @@ If you would like to shorten the regression test, you can skip the single tests 
 	$ # Run all tests, but skip the single tests
 	$ test/bin/tmrvr --skip-single
 
+	
+*************
+Release Tools
+*************
+A list of tools which are used mainly to do new releases.
+
+makedoc
+=======
+Create and update the MRV documentation or parts thereof. By default, all parts will be built. Use the ``--help`` flag to see a full list of viable options::
+	
+	$ # make all docs
+	$ cd mrv/doc
+	$ ./makedoc
+	
+.. note:: In order for the documentation to be generated, the python interpreter of your latest installed maya version needs to have sphinx and/or epydoc installed depending on the options. If a coverage report should be generated, nose and coverage are a prerequesite as well.
