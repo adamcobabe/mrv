@@ -301,15 +301,18 @@ output: html"""
 		epydoc_cfg_file = "epydoc.cfg"
 		open(epydoc_cfg_file, 'wb').write(self._epydoc_cfg())
 		
-		args = [mrvpath, str(self._mrv_maya_version()), 
-				'-c', 'import epydoc.cli; import mrv.maya; epydoc.cli.cli()', 
-				'-q', '-q', '--config', epydoc_cfg_file,
-				'--debug',
-				'-o', str(epytarget)]
+		args = ['epydoc', '-q', '-q', '--config', epydoc_cfg_file, '-o', str(epytarget)]
+				
+		origargs = sys.argv[:]
+		del(sys.argv[:])
+		sys.argv.extend(args)
 		try:
-			self._call_python_script(args)
+			import epydoc.cli
+			epydoc.cli.cli()
 		finally:
 			os.remove(epydoc_cfg_file)
+			del(sys.argv[:])
+			sys.argv.extend(origargs)
 		# END handle epydoc config file
 		
 
