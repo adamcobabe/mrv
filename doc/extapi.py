@@ -66,7 +66,9 @@ def api_role(role, rawtext, text, lineno, inliner, options={}, content=[]):
                 uri = '%s/%s-class.html#%s' % (basedir, fprefix, method)
 
     if exists(file):
-        node = nodes.reference(rawtext, "( Click here for epydoc version of module documentation )", refuri=uri, **options)
+        name = os.path.basename(uri)
+        name = name[:name.rfind('-')]
+        node = nodes.reference(rawtext, "Epydoc: %s" % name, refuri=uri, **options)
     else:
         # cannot find reference, then just inline the text
         node = nodes.literal(rawtext, text)

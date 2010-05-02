@@ -312,6 +312,13 @@ output: html"""
 		
 		code = "import sphinx.ext.autosummary.generate as sas; sas.main()"
 		agp = self._autogen_output_dir()
+		
+		# make sure its clean, otherwise we will reprocess the same files
+		if agp.isdir():
+			shutil.rmtree(agp)
+			agp.makedirs()
+		# END handle existing directory
+		
 		args = [mrvpath, str(self._mrv_maya_version()), '-c', code, 
 				'-o', agp, 
 				self._index_rst_path()]
@@ -323,8 +330,25 @@ output: html"""
 		# Add :api:module.name which gets picked up by extapi, inserting a 
 		# epydoc link to the respective file.
 		for rstfile in agp.files("*.rst"):
+			# insert module link
 			lines = rstfile.lines()
-			lines.insert(2, ":api:%s" % lines[0][5:])
+			modulename = lines[0][6:-2]	# skip `\n
+			lines.insert(2, ":api:`%s`\n" % modulename)
+			
+			# insert :api: links to the autoclasses
+			i = 0
+			l = len(lines)
+			while i < l:
+				line = lines[i]
+				if line.startswith('.. autoclass'):
+					classname = line[line.rfind(' ')+1:-1]	# skip newline
+					l += 1
+					lines.insert(i, ':api:`%s.%s`\n\n' % (modulename, classname))
+					i += 1
+				# END if we have a class
+				i += 1
+			# END for each line
+			
 			rstfile.write_lines(lines)
 		# END for each rst to process
 		
