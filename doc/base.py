@@ -92,7 +92,7 @@ class DocGenerator(object):
 		if self._sphinx:
 			self._make_sphinx_index()
 			self._make_sphinx_autogen()
-			# self._make_sphinx()
+			self._make_sphinx()
 		# END make sphinx
 	
 	def clean(self):
@@ -133,6 +133,16 @@ class DocGenerator(object):
 			ip = self._index_rst_path()
 			if ip.isfile():
 				ip.remove()
+			# END remove generated index
+			
+			out_dir = self._html_output_dir()
+			dt_dir = self._doctrees_dir()
+			agp = self._autogen_output_dir()
+			for dir in (agp, out_dir, dt_dir):
+				if dir.isdir():
+					shutil.rmtree(dir)
+				# END remove html dir
+			# END for each directory
 		# END clean sphinx
 	#} END public interface
 	
@@ -155,12 +165,35 @@ class DocGenerator(object):
 		
 	def _epydoc_target_dir(self):
 		""":return: Path to directory to which epydoc will write its output"""
-		return self._base_dir / self.html_dir / 'generated' / 'api'
+		return self._html_output_dir() / 'generated' / 'api'
+		
+	def _html_output_dir(self):
+		""":return: html directory to receive all output"""
+		return self._base_dir / self.html_dir
+		
+	def _autogen_output_dir(self):
+		""":return: directory to which sphinx-autogen will write its output to"""
+		return self._base_dir / self.source_dir / 'generated'
+		
+	def _doctrees_dir(self):
+		""":return: Path to doctrees directory to which sphinx writes some files"""
+		return self._base_dir / self.build_dir / 'doctrees'
 		
 	def _mrv_maya_version(self):
 		""":return: maya version with which mrv subcommands should be started with"""
 		import mrv.cmds.base as cmdsbase
 		return cmdsbase.available_maya_versions()[-1]
+		
+	def _mrv_bin_path(self):
+		""":return: Path to mrv binary"""
+		import mrv
+		return Path(os.path.join(os.path.dirname(mrv.__file__), 'bin', 'mrv'))
+		
+	def _tmrv_bin_path(self):
+		""":return: Path to tmrv binary"""
+		import mrv.test.cmds as cmds
+		ospd = os.path.dirname
+		return Path(os.path.join(ospd(ospd(cmds.__file__)), 'bin', 'tmrv'))
 		
 	def _epydoc_cfg(self):
 		""":return: string which can be written out as epydoc.cfg file. It will be used
@@ -233,9 +266,7 @@ output: html"""
 	def _make_coverage(self):
 		"""Generate a coverage report and make it available as download"""
 		import mrv.test.cmds as cmds
-		import mrv.test
-		ospd = os.path.dirname
-		tmrvpath = os.path.join(ospd(ospd(cmds.__file__)), 'bin', 'tmrv')
+		tmrvpath = self._tmrv_bin_path()
 		
 		# for some reason, the html output can only be generated if the current 
 		# working dir is in the project root. Its something within nose's coverage 
@@ -276,20 +307,52 @@ output: html"""
 		
 	def _make_sphinx_autogen(self):
 		"""Instruct sphinx to generate the autogen rst files"""
+		# will have to run it in a separate process for maya support
+		mrvpath = self._mrv_bin_path()
+		
+		code = "import sphinx.ext.autosummary.generate as sas; sas.main()"
+		agp = self._autogen_output_dir()
+		args = [mrvpath, str(self._mrv_maya_version()), '-c', code, 
+				'-o', agp, 
+				self._index_rst_path()]
+		
+		self._call_python_script(args)
+		
+		# POST PROCESS
+		##############
+		# Add :api:module.name which gets picked up by extapi, inserting a 
+		# epydoc link to the respective file.
+		for rstfile in agp.files("*.rst"):
+			lines = rstfile.lines()
+			lines.insert(2, ":api:%s" % lines[0][5:])
+			rstfile.write_lines(lines)
+		# END for each rst to process
+		
 		
 	def _make_sphinx(self):
 		"""Generate the sphinx documentation"""
-		import sphinx.cmdline
+		mrvpath = self._mrv_bin_path()
+		out_dir = self._html_output_dir()
 		
-		# adjust commandline arguments
+		for dir in (self.source_dir, out_dir):
+			if not dir.isdir():
+				dir.makedirs()
+			# END assure directory exists
+		# END for each directory
 		
-		sphinx.cmdline.main(sys.argv[:])
+		args = [mrvpath, str(self._mrv_maya_version()),
+				'-c', 'import sys, sphinx.cmdline; sphinx.cmdline.main(sys.argv)',
+				'-b', 'html',
+				'-D', 'latex_paper_size=a4', 
+				'-D', 'latex_paper_size=letter', 
+				'-d', self._doctrees_dir(),
+				self.source_dir, 
+				out_dir]
+		
+		self._call_python_script(args)
 		
 	def _make_epydoc(self):
 		"""Generate epydoc documentation"""
-		import mrv
-		mrvpath = os.path.join(os.path.dirname(mrv.__file__), 'bin', 'mrv')
-		
 		# start epydocs in a separate process
 		# as maya support is required
 		epytarget = self._epydoc_target_dir()

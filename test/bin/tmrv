@@ -45,7 +45,7 @@ def _parse_args(args, maya_version, start_maya):
 	
 	# run nose, no matter what
 	args = list(args)
-	base = ['-c', 'import mrv.test.cmds.nosestartup']
+	base = ['-c', 'import mrv.test.cmds.nosestartup as ns; ns.init_nose()']
 	mine = list()
 	
 	# HANDLE COVERAGE
