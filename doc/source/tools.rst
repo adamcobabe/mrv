@@ -150,4 +150,4 @@ Create and update the MRV documentation or parts thereof. By default, all parts 
 	$ cd mrv/doc
 	$ ./makedoc
 	
-.. note:: In order for the documentation to be generated, the python interpreter of your latest installed maya version needs to have sphinx and/or epydoc installed depending on the options. If a coverage report should be generated, nose and coverage are a prerequesite as well.
+.. note:: In order for the documentation to be generated, the python interpreter of your latest installed maya version needs to have sphinx installed. If a coverage report should be generated, nose and coverage are a prerequesite as well for the python interpreter matching your latest installed maya version. If epydoc documentation should be generated, the interpreter *executing* ``makedoc`` needs to have epydoc available.
