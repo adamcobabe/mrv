@@ -34,25 +34,8 @@ def prepare_mrv_package():
 def makedoc_main(args):
 	"""Parse args, initialize a builder, and run it"""
 	prepare_mrv_package()
-	from mrv.doc.base import DocGenerator
-	
-	p = DocGenerator.parser()
-	
-	hlp = """If specified, previously generated files will be removed. Works in conjunction 
-	with the other flags, which default to True, hence %prog --clean will remove all 
-	generated files by default"""
-	p.add_option('--clean', dest='clean', action='store_true', default=False, help=hlp)
-	
-	options, args = p.parse_args(args)
-	clean = options.clean
-	del(options.clean)
-	
-	dgen = DocGenerator(*args, **options.__dict__)
-	if clean:
-		dgen.clean()
-	else:
-		dgen.generate()
-	# END handle mode
+	import base
+	base.DocGenerator.makedoc(args)
 
 #} END initialization
 

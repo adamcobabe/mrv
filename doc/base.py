@@ -1,7 +1,6 @@
 # -*- coding: utf-8 -*-
 """Contains basic classes and functionaliy"""
 __docformat__ = "restructuredtext"
-
 import os
 import sys
 import optparse
@@ -12,7 +11,6 @@ import mrv
 import mrv.doc
 
 from mrv.path import Path
-
 
 
 __all__ = [ "DocGenerator" ]
@@ -32,7 +30,21 @@ class DocGenerator(object):
 	index_rst_path = source_dir / "index.rst"
 	html_dir = build_dir / 'html'
 	downloads_dir = html_dir / '_downloads'
-	 
+	
+	rootpackage = 'mrv'
+	epydoc_cfg = """[epydoc]
+name: MRV Development Framework
+url: http://wiki.byronimo.de/mrv
+
+sourcecode: yes
+modules: unittest
+modules: pydot,pyparsing
+modules: ../,../ext/networkx/networkx
+
+exclude: mrv.test,mrv.doc,mrv.cmds.ipythonstartup
+
+output: html"""
+
 	#} END configuration
 
 	def __init__(self, sphinx=True, coverage=True, epydoc=True, *args):
@@ -78,6 +90,27 @@ class DocGenerator(object):
 							help=hlp, metavar='STATE')
 		
 		return parser
+		
+	@classmethod
+	def makedoc(cls, args):
+		"""Produce the actual docs using this type"""
+		p = cls.parser()
+		
+		hlp = """If specified, previously generated files will be removed. Works in conjunction 
+		with the other flags, which default to True, hence %prog --clean will remove all 
+		generated files by default"""
+		p.add_option('--clean', dest='clean', action='store_true', default=False, help=hlp)
+		
+		options, args = p.parse_args(args)
+		clean = options.clean
+		del(options.clean)
+		
+		dgen = cls(*args, **options.__dict__)
+		if clean:
+			dgen.clean()
+		else:
+			dgen.generate()
+		# END handle mode
 	
 	def generate(self):
 		"""Geneate the documentation according to our configuration
@@ -195,22 +228,6 @@ class DocGenerator(object):
 		ospd = os.path.dirname
 		return Path(os.path.join(ospd(ospd(cmds.__file__)), 'bin', 'tmrv'))
 		
-	def _epydoc_cfg(self):
-		""":return: string which can be written out as epydoc.cfg file. It will be used
-		to define what epydoc will do for us"""
-		return """[epydoc]
-name: MRV Development Framework
-url: http://wiki.byronimo.de/mrv
-
-sourcecode: yes
-modules: unittest
-modules: pydot,pyparsing
-modules: ../,../ext/networkx/networkx
-
-exclude: mrv.test,mrv.doc,mrv.cmds.ipythonstartup
-
-output: html"""
-		
 	def _call_python_script(self, *args, **kwargs):
 		"""Wrapper of subprocess.call which assumes that we call a python script.
 		On windows, the python interpreter needs to be called directly
@@ -235,7 +252,8 @@ output: html"""
 		# write header
 		ifp.write((indexpath+'.header').bytes())
 		
-		basepath = os.path.join(self._base_dir, "..")
+		basepath = self._base_dir / ".."
+		rootmodule = basepath.abspath().basename()
 		for root, dirs, files in os.walk(basepath):
 			remove_dirs = list()
 			for dirname in dirs:
@@ -254,7 +272,7 @@ output: html"""
 				filepath = os.path.join(root, fname)
 				
 				# + 1 as there is a trailing path separator
-				modulepath = "%s.%s" % (mrv.__name__, filepath[len(basepath)+1:-3].replace(os.path.sep, '.'))
+				modulepath = "%s.%s" % (rootmodule, filepath[len(basepath)+1:-3].replace(os.path.sep, '.'))
 				ifp.write("\t%s\n" % modulepath)
 			# END for each file
 		# END for each file
@@ -386,7 +404,7 @@ output: html"""
 		
 		# write epydoc.cfg file temporarily
 		epydoc_cfg_file = "epydoc.cfg"
-		open(epydoc_cfg_file, 'wb').write(self._epydoc_cfg())
+		open(epydoc_cfg_file, 'wb').write(self.epydoc_cfg)
 		
 		args = ['epydoc', '-q', '-q', '--config', epydoc_cfg_file, '-o', str(epytarget)]
 				
@@ -404,5 +422,4 @@ output: html"""
 		
 
 	#} END protected interface
-
 
