@@ -34,7 +34,7 @@ interpreter may be available."""
 	
 	# PARSE MAYA VERSIONS
 	######################
-	import mrv.cmds.base as mrvbase
+	import mrv.cmd.base as mrvbase
 	maya_versions = list()
 	for arg in args:
 		parsed, version = mrvbase.parse_maya_version(arg, 8.5)
@@ -80,7 +80,7 @@ def tmrvrmain(args):
 		raise EnvironmentError("Could not execute mrv at %r with error %s" % (mrvpath, e))
 	# END exception handling
 	
-	prepare_syspath()
+	prepare_mrv_syspath()
 	options, maya_versions = parse_opts(args)
 	
 	if not maya_versions:

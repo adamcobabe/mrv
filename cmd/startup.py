@@ -63,16 +63,16 @@ def mrv(args, args_modifier=None):
 		Signature: ``arglist func(arglist, maya_version, start_maya)
 		If start_maya is True, the process to be started will be maya, not the 
 		python interpreter"""
-	import mrv.cmds
-	import mrv.cmds.base as cmdsbase
+	import mrv.cmd
+	import mrv.cmd.base as cmdbase
 	
-	maya_version, rargs = cmdsbase.init_environment(args)
+	maya_version, rargs = cmdbase.init_environment(args)
 	
 	# handle special arguments
 	config = [False, False]
 	lrargs = list(rargs)
-	for i, (flag, varname) in enumerate(( (mrv.cmds.mrv_ui_flag, 'start_maya'), 
-							    		  (mrv.cmds.mrv_mayapy_flag, 'mayapy_only'))):
+	for i, (flag, varname) in enumerate(( (mrv.cmd.mrv_ui_flag, 'start_maya'), 
+							    		  (mrv.cmd.mrv_mayapy_flag, 'mayapy_only'))):
 		try:
 			lrargs.remove(flag)
 			config[i] = True
@@ -85,9 +85,9 @@ def mrv(args, args_modifier=None):
 	
 	rargs = args_modifier(rargs, maya_version, start_maya)
 	if start_maya:
-		cmdsbase.exec_maya_binary(rargs, maya_version)
+		cmdbase.exec_maya_binary(rargs, maya_version)
 	else:
-		cmdsbase.exec_python_interpreter(rargs, maya_version, mayapy_only)
+		cmdbase.exec_python_interpreter(rargs, maya_version, mayapy_only)
 	# END handle process to start
 	
 def imrv():

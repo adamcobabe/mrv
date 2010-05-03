@@ -34,7 +34,7 @@ def prepare_mrv_syspath():
 def mrvmain(args, args_modifier=lambda a, v, m: a):
 	"""Prepare the path and redirect the call to the actual library module"""
 	prepare_mrv_syspath()
-	import mrv.cmds.startup as startup
+	import mrv.cmd.startup as startup
 	startup.mrv(args, args_modifier)
 	
 #} END initialization

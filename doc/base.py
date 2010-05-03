@@ -41,7 +41,7 @@ modules: unittest
 modules: pydot,pyparsing
 modules: ../,../ext/networkx/networkx
 
-exclude: mrv.test,mrv.doc,mrv.cmds.ipythonstartup
+exclude: mrv.test,mrv.doc,mrv.cmd.ipythonstartup
 
 output: html"""
 
@@ -214,8 +214,8 @@ output: html"""
 		
 	def _mrv_maya_version(self):
 		""":return: maya version with which mrv subcommands should be started with"""
-		import mrv.cmds.base as cmdsbase
-		return cmdsbase.available_maya_versions()[-1]
+		import mrv.cmd.base as cmdbase
+		return cmdbase.available_maya_versions()[-1]
 		
 	def _mrv_bin_path(self):
 		""":return: Path to mrv binary"""

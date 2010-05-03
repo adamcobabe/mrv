@@ -2,7 +2,7 @@
 """Test for commands - the funny thing here is that it needs itself to be working in order
 to run the tests"""
 from mrv.test.lib import *
-from mrv.cmds.base import *
+from mrv.cmd.base import *
 
 import os
 import optparse
