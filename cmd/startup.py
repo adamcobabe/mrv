@@ -4,7 +4,6 @@ __docformat__ = "restructuredtext"
 
 import sys
 import os
-import logging
 
 
 #{ IPython 
@@ -38,6 +37,8 @@ def ipython_setup_mrv():
 def ipython_setup():
 	"""Perform additional ipython initialization"""
 	import IPython
+	import logging
+	
 	# make default imports
 	ip = IPython.ipapi.get()
 	ip.ex("from mrv.maya.all import *")
@@ -61,18 +62,19 @@ def mrv(args, args_modifier=None):
 	:param args_modifier: Function returning a possibly modified argument list. The passed 
 		in argument list was parsed already to find and extract the maya version. 
 		Signature: ``arglist func(arglist, maya_version, start_maya)
-		If start_maya is True, the process to be started will be maya, not the 
-		python interpreter"""
+		If start_maya is True, the process to be started will be maya.bin, not the 
+		python interpreter. If maya_version is 0, the process will continue execution
+		within this python interpreter which is assured to have mrv facilities availble 
+		which do not require maya."""
 	import mrv.cmd
 	import mrv.cmd.base as cmdbase
 	
-	maya_version, rargs = cmdbase.init_environment(args)
-	
 	# handle special arguments
-	config = [False, False]
-	lrargs = list(rargs)
-	for i, (flag, varname) in enumerate(( (mrv.cmd.mrv_ui_flag, 'start_maya'), 
-							    		  (mrv.cmd.mrv_mayapy_flag, 'mayapy_only'))):
+	config = [False, False, False]
+	lrargs = list(args)
+	for i, flag in enumerate((mrv.cmd.mrv_ui_flag,
+							  mrv.cmd.mrv_mayapy_flag, 
+							  mrv.cmd.mrv_nomaya_flag)):
 		try:
 			lrargs.remove(flag)
 			config[i] = True
@@ -80,15 +82,55 @@ def mrv(args, args_modifier=None):
 			pass
 		# HANDLE maya in UI mode
 	# END for each flag to handle
-	start_maya, mayapy_only = config
-	rargs = tuple(lrargs)
+	start_maya, mayapy_only, no_maya = config
+	rargs = lrargs
 	
-	rargs = args_modifier(rargs, maya_version, start_maya)
-	if start_maya:
-		cmdbase.exec_maya_binary(rargs, maya_version)
+	if no_maya and ( start_maya or mayapy_only ):
+		raise EnvironmentError("If %s is specified, %s or %s may not be given as well" % (mrv.cmd.mrv_nomaya_flag, mrv.cmd.mrv_ui_flag, mrv.cmd.mrv_mayapy_flag))
+	
+	if not no_maya:
+		maya_version, rargs = cmdbase.init_environment(rargs)
 	else:
-		cmdbase.exec_python_interpreter(rargs, maya_version, mayapy_only)
-	# END handle process to start
+		maya_version = 0.0
+	# EMD initialize maya if required
+	
+	rargs = list(args_modifier(tuple(rargs), maya_version, start_maya))
+	if no_maya:
+		# parse the option ourselves, the optparse would throw on unknown opts
+		remaining_args = list()
+		eval_script = None
+		module = None
+		while rargs:
+			arg = rargs.pop(0)
+			if arg == '-c':
+				eval_script = rargs.pop(0)
+			elif arg == '-m':
+				module = rargs.pop(0)
+			else:
+				remaining_args.append(arg)
+			# END handle flags
+		# END for each arg
+		
+		# overwrite our own sys.args with our parsed arguments
+		arg0 = sys.argv[0]
+		del(sys.argv[:])
+		sys.argv.extend([arg0] + remaining_args)
+		
+		if eval_script:
+			exec(eval_script)
+		elif module:
+			__import__(module)
+		else:
+			raise EnvironmentError("Please specify '-c CMD' or '-m MODULE' to indicate which code to execute")
+		# END handle flags
+		
+	else:
+		if start_maya:
+			cmdbase.exec_maya_binary(rargs, maya_version)
+		else:
+			cmdbase.exec_python_interpreter(rargs, maya_version, mayapy_only)
+		# END handle process to start
+	# END handle flags
 	
 def imrv():
 	"""Get the main ipython system up and running"""

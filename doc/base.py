@@ -10,6 +10,8 @@ import shutil
 import mrv
 import mrv.doc
 
+import mrv.test.cmd as cmd
+
 from mrv.path import Path
 
 
@@ -133,10 +135,9 @@ output: html"""
 		:note: Must respect the options the same way as done by the ``generate``
 		method"""
 		if self._coverage:
-			import mrv.test.cmds as cmds
 			bdd = self._build_downloads_dir()
 			csdd = self._source_downloads_coverage_dir()
-			coverage_dir = Path(self._project_dir / cmds.tmrv_coverage_dir)
+			coverage_dir = Path(self._project_dir / cmd.tmrv_coverage_dir)
 			
 			# delete all files we copied from the coverage dir
 			for fpath in coverage_dir.files():
@@ -224,9 +225,8 @@ output: html"""
 		
 	def _tmrv_bin_path(self):
 		""":return: Path to tmrv binary"""
-		import mrv.test.cmds as cmds
 		ospd = os.path.dirname
-		return Path(os.path.join(ospd(ospd(cmds.__file__)), 'bin', 'tmrv'))
+		return Path(os.path.join(ospd(ospd(cmd.__file__)), 'bin', 'tmrv'))
 		
 	def _call_python_script(self, *args, **kwargs):
 		"""Wrapper of subprocess.call which assumes that we call a python script.
@@ -283,7 +283,6 @@ output: html"""
 	
 	def _make_coverage(self):
 		"""Generate a coverage report and make it available as download"""
-		import mrv.test.cmds as cmds
 		tmrvpath = self._tmrv_bin_path()
 		
 		# for some reason, the html output can only be generated if the current 
@@ -294,7 +293,7 @@ output: html"""
 		
 		try:
 			rval = self._call_python_script([tmrvpath, str(self._mrv_maya_version()), 
-											"%s=%s" % (cmds.tmrv_coverage_flag, self.rootpackage)])
+											"%s=%s" % (cmd.tmrv_coverage_flag, self.rootpackage)])
 		finally:
 			os.chdir(prevcwd)
 		# END handle cwd
@@ -314,7 +313,7 @@ output: html"""
 		# coverage was generated into the current working dir
 		# index goes to downloads in the source directory as it is referenced
 		# by the docs
-		coverage_dir = Path(self._project_dir / cmds.tmrv_coverage_dir)
+		coverage_dir = Path(self._project_dir / cmd.tmrv_coverage_dir)
 		cindex = coverage_dir / 'index.html'
 		shutil.copy(cindex, csdd)
 		

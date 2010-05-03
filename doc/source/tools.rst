@@ -45,19 +45,28 @@ Additionally you can prepare the environment and start a default maya session wi
 	$ # start maya 8.5 in prompt mode
 	$ bin/mrv --mrv-maya -prompt
 
-By default, mrv will try to use the system's python interpreter first, and mayapy if it could not be found. This can be problematic if the system' python interpreter is not suitable to run the given maya version. In that case, you may force mrv to use maya's builtin python interpreter using the ``--mrv-mayapy`` flag.
-
 The --mrv-mayapy flag
 ---------------------
+By default, mrv will try to use the system's python interpreter first, and mayapy if it could not be found. This can be problematic if the system' python interpreter is not suitable to run the given maya version. In that case, you may force mrv to use maya's builtin python interpreter using the ``--mrv-mayapy`` flag.
 
 **Enforce Mayapy Sample Usage**::
 	
 	$ # start mrv for maya 2010 using mayapy
 	$ bin/mrv 2010 --mrv-mayapy
 	
+
+	
+The --mrv-no-maya flag
+----------------------
+There may be occasions when you want to use mrv facilities which are not specific to maya at all, and the ``mrv.maya`` module is not used. In this case you may specifiy which code to run using the default python ``-c`` and ``-m`` arguments. All remaining arguments will be set to ``sys.argv`` which can be read by your code subsequently.
+
+**Use the current python interpreter without maya support**::
+	
+	$ bin/mrv --mrv-no-maya -c "import mrv; print mrv" -given -via=sys.argv
+
 .. note::
 	The mrv command will use execv on non-windows system, but use spawn on windows to workaround some issues. This implies that scripts on linux/osx can natively use the mrv program, standardchannels are handled automatically. On windows the spawned process will be attached with all standardchannels of the parent python process, but its questionable whether this has the intended effect.
-	
+
 .. _imrv-label:
 
 imrv
