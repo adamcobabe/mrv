@@ -22,6 +22,7 @@ maya_to_py_version_map = {
 
 #} END globals
 
+
 #{ Maya-Intiialization
 	
 def is_supported_maya_version(version):
@@ -265,8 +266,6 @@ def init_environment(args):
 	
 	:param args: commandline arguments excluding the executable ( usually first arg )
 	:return: tuple(maya_version, args) tuple of maya_version, and the remaining args"""
-	import mrv.cmds.base as mrvinit
-	
 	# see if first argument is the maya version
 	maya_version=8.5
 	if args:

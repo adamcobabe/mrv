@@ -9,6 +9,7 @@ import os
 __docformat__ = "restructuredtext"
 
 #{ Initialization
+
 def prepare_mrv_syspath():
 	"""Make sure mrv is in the python path, and manipulate sys.path if required
 	in order to assure that.
@@ -31,39 +32,10 @@ def prepare_mrv_syspath():
 	# END import exception handling
 
 def mrvmain(args, args_modifier=lambda a, v, m: a):
-	"""Prepare the environment to allow the operation of maya
-	:param args_modifier: Function returning a possibly modified argument list. The passed 
-		in argument list was parsed already to find and extract the maya version. 
-		Signature: ``arglist func(arglist, maya_version, start_maya)
-		If start_maya is True, the process to be started will be maya, not the 
-		python interpreter
-	"""
+	"""Prepare the path and redirect the call to the actual library module"""
 	prepare_mrv_syspath()
-	import mrv.cmds
-	import mrv.cmds.base as mrvinit
-	maya_version, rargs = mrvinit.init_environment(args)
-	
-	# handle special arguments
-	config = [False, False]
-	lrargs = list(rargs)
-	for i, (flag, varname) in enumerate(( (mrv.cmds.mrv_ui_flag, 'start_maya'), 
-							    		  (mrv.cmds.mrv_mayapy_flag, 'mayapy_only'))):
-		try:
-			lrargs.remove(flag)
-			config[i] = True
-		except ValueError:
-			pass
-		# HANDLE maya in UI mode
-	# END for each flag to handle
-	start_maya, mayapy_only = config
-	rargs = tuple(lrargs)
-	
-	rargs = args_modifier(rargs, maya_version, start_maya)
-	if start_maya:
-		mrvinit.exec_maya_binary(rargs, maya_version)
-	else:
-		mrvinit.exec_python_interpreter(rargs, maya_version, mayapy_only)
-	# END handle process to start
+	import mrv.cmds.startup as startup
+	startup.mrv(args, args_modifier)
 	
 #} END initialization
 
