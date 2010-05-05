@@ -1,6 +1,6 @@
-#############
-Extending MRV
-#############
+##########
+Extensions
+##########
 Although MRV is fully usable without any modifications, it was designed with extensibility in mind. This means that you can add custom node types at runtime, extend existing ones with own methods, or provide virtual subclasses that extend an existing type.
 
 MRV's dynamic wrapping engine is based on a simple ascii text file database, which can easily be adjusted if the requirement should arise.

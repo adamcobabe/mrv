@@ -1,6 +1,6 @@
-##############
-History of MRV
-##############
+#######
+History
+#######
 
 The story of MRV begins more than two years ago when I was starting a new job in Sweden. The task wasn't easy, as it involved the creation of a Maya 8.5 based production pipeline in exactly 240 days, and alone.
 

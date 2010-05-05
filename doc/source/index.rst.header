@@ -10,20 +10,20 @@ Contents
 ========
 
 .. toctree::
-   :maxdepth: 2
+   :maxdepth: 1
    
    about
    Installation <install>
    gettingstarted
-   Usage <usage>
+   usage/index
    Graphical User Interfaces <gui>
    conf
-   develop
+   develop/index
    extend
    tools
    history
    roadmap
-   compare
+   compare/index
    license
    
 Module Summary

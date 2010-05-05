@@ -5,8 +5,11 @@ Use the MayaAPI with ease, boost your productivity and write more maintainable a
 
 Links
 -----
-For more information, see the official wiki
+For more information, see the official wiki:
 http://wiki.byronimo.de/mrv
+
+Issues are tracked by Lighthouse:
+http://byronimo.lighthouseapp.com/projects/51780-mrv/overview
 
 Developers can obtain the source code from github or gitorious, which also enable collaboration:
 http://gitorious.org/mrv     ( main )

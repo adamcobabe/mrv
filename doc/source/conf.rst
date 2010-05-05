@@ -1,6 +1,6 @@
-###############
-Configuring MRV
-###############
+#############
+Configuration
+#############
 The framework can be configured using environment variables which have sensible defaults. A full listing can be found here, but specialized articles will reference them as well where they see it fit.
 
 *********************
