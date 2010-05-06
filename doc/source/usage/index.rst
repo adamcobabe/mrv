@@ -13,9 +13,9 @@ It is advised to start a mrv enabled ipython shell allowing you to try the examp
 To understand some of the terms used here, its a plus if you are familiar with the MayaAPI. If not, it shouldn't be a problem either as knowledge of the MayaAPI is not strictly required.
 
 
-########
+********
 Contents
-########
+********
 
 .. toctree::
    :maxdepth: 2
