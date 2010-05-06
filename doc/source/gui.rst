@@ -13,12 +13,12 @@ Instantiation
 *************
 Creating new interface elements is straightforward, and the fact that all user interface elements call MEL in the background becomes obvious when looking at the way they are created::
 	
-	>>> from mrv.maya.ui import *
-	>>> win = Window(title="demo")
+	from mrv.maya.ui import *
+	win = Window(title="demo")
 
 All keyword arguments passed to the ``Window`` class are exactly the same as if they would have been passed to window MEL command, in that case ``window -title "demo"``. The returned instance though will be an instance of type ``Window`` which is also a string::
 	
-	>>> assert isinstance(win, basestring)
+	assert isinstance(win, basestring)
 	
 **********
 Properties
@@ -28,10 +28,10 @@ In this example, we have set the title of the Window to 'demo'. In MEL it would 
 In MRV, everything that is *at least* queryable is a property. Properties are prefixed with *p_* and hence live in their own namespace. The name of the properties follow the capitalization of the MEL flag which they represent. 
 Some properties can only be queried, and you will get an AttributeError if you try to set them::
 	
-	>>> assert "demo" == win.p_title
-	>>> win.p_title = "property demo"
-	>>> assert "property demo" == win.p_title
-	>>> # win.p_numberOfMenus = 3 # raises AttributeError
+	assert "demo" == win.p_title
+	win.p_title = "property demo"
+	assert "property demo" == win.p_title
+	# win.p_numberOfMenus = 3 # raises AttributeError
 	
 *******
 Layouts
@@ -42,36 +42,36 @@ They will only receive newly created interface elements if they are set to be th
 
 In MRV you may either set a specific container active using ``container.setActive()`` or the container's parent using ``container.setParentActive()``::
 	
-	>>> form = FormLayout( )        # an empty form layout
-	>>> win.setActive()
+	form = FormLayout( )        # an empty form layout
+	win.setActive()
 		
-	>>> col = ColumnLayout(adj=1)   # put two buttons into the layout
-	>>> b1 = Button(label="one")
-	>>> b2 = Button(label="two")
-	>>> col.setParentActive()       # set the window to be the active parent
+	col = ColumnLayout(adj=1)   # put two buttons into the layout
+	b1 = Button(label="one")
+	b2 = Button(label="two")
+	col.setParentActive()       # set the window to be the active parent
 		
 If you use Maya2008 and later, you may also use the ``with`` statement, which takes care of the current parent automatically. The previous part creating the column layout could be rewritten like that::
 	
-	>>> with ColumnLayout(adj=1) as col:
-	>>> 	...
-	>>> # implicit setParentActive()
+	with ColumnLayout(adj=1) as col:
+		...
+	# implicit setParentActive()
 	
 Please note that using the ``with`` statement is not very portable as it is only natively available in maya 2010 or newer, or python 2.6 respectively.
 	
 As it is practical to indicate the hierarchical level using indentations, you may also consider the following writing style::
 	
-	>>> col = ColumnLayout()
-	>>> if col:
-	>>>		b1 = Button()
-	>>>	col.setParentActive()
+	col = ColumnLayout()
+	if col:
+		b1 = Button()
+		col.setParentActive()
 	
 In case you are interested to keep the actual child instances that you create,  its good to know that Layouts inherit from ``UIContainerBase`` which provides just that functionality::
 	
-	>>> col = ColumnLayout()
-	>>> if col:
-	>>>		b1 = col.add(Button())
-	>>> 	assert b1 is col.listChildren()[0] 
-	>>>	col.setParentActive()
+	col = ColumnLayout()
+	if col:
+		b1 = col.add(Button())
+		assert b1 is col.listChildren()[0] 
+		col.setParentActive()
 	
 
 ******
@@ -83,15 +83,15 @@ The Maya UI System provides simple string or python callbacks which will be exec
 
 With MRV, events are properties of the class prefixed with *e_*. You can assign any amount of callable objects to them. Any MEL command flag ending with *somethingCommand* is available under the name with the 'Command' portion removed, i.e. *e_something*::
 	
-	>>> def adjust_button( sender ):
-	>>> 	sender.p_label = "pressed"
-	>>> 	b2.p_label = "affected"
-	>>> # END call
+	def adjust_button( sender ):
+		sender.p_label = "pressed"
+		b2.p_label = "affected"
+	# END call
 	
-	>>> b1.e_released = adjust_button
+	b1.e_released = adjust_button
 
 Show the window to see a simple UI with two vertically arranged buttons, if 'one' is pressed, 'two' will be affected::
-	>>> win.show()
+	win.show()
 
 .. _signals-label:
 	
@@ -104,22 +104,22 @@ Signals help to write truly modular user interface elements which can be combine
 
 Signals can be used just like any other event predefined by the system - the only difference is that you may call them yourself, and that the sender of the Signal will not automatically be sent to the receiver as first method argument, as it is the case with Events::
 	
-	>>> class Sensor(Button):
-	>>> 	e_pushed = Signal() 		# pushedWith(pressure)
-	>>> 	def __init__(self, *args, **kwargs):
-	>>> 		self.e_pressed = lambda *args: self.e_pushed(50)
-	>>> 		self.p_label = "Pressure Sensor"
+	class Sensor(Button):
+		e_pushed = Signal() 		# pushedWith(pressure)
+		def __init__(self, *args, **kwargs):
+			self.e_pressed = lambda *args: self.e_pushed(50)
+			self.p_label = "Pressure Sensor"
 	
-	>>> class Receiver(TextField):
-	>>> 	def pushedWith(self, pressure):
-	>>> 		self.p_text = "%s pressure is %i" % (self.sender().basename(), pressure)
+	class Receiver(TextField):
+		def pushedWith(self, pressure):
+			self.p_text = "%s pressure is %i" % (self.sender().basename(), pressure)
 	
-	>>> win = Window()
-	>>> ColumnLayout(adj=1)
-	>>> s = Sensor()
-	>>> r = Receiver()
-	>>> s.e_pushed = r.pushedWith
-	>>> win.show() 
+	win = Window()
+	ColumnLayout(adj=1)
+	s = Sensor()
+	r = Receiver()
+	s.e_pushed = r.pushedWith
+	win.show() 
 
 In this example, the Sensor is a button which reacts to its own button-pressed events. Whenever this event occours, it sends out a custom Signal with a pressure level. The Receiver is a TextField which can receive a pressure level, and displays it together with the sender, as retrieved using the ``sender()`` method which is shared by all MRV user interface elements.
 
@@ -156,44 +156,44 @@ The solution is to pack the user interface elements into modules which are not d
 
 This way, complex user interfaces can be assembled in a more controllable fashion, events bind the different independent modules together::
 	
-	>>> class Additor(Button):
-	>>> 	e_added = Signal()
-	>>> 	def __init__(self, *args, **kwarg):
-	>>> 		self.reset(0)
-	>>> 		
-	>>> 	def reset(self, base, add=1):
-	>>> 		self._val = base
-	>>> 		self._add = add
-	>>> 		self.p_label = str(self._val)
-	>>> 		
-	>>> 	def add(self, *args):
-	>>> 		self._val += self._add
-	>>> 		self.p_label = str(self._val)
-	>>> 		self.e_added(self._val)
-	>>> # END additor
-	>>> 
-	>>> class Collector(Text):
-	>>> 	def __init__(self, *args, **kwargs):
-	>>> 		self.p_label = ""
-	>>> 		
-	>>>	def collect(self, value):
-	>>> 		self.p_label = self.p_label + ", %i" % value
-	>>> # END collector
-	>>> 
-	>>> class AdditionWindow(Window):
-	>>> 	def __init__(self, *args, **kwargs):
-	>>> 		col = ColumnLayout()
-	>>> 		lb = Additor()
-	>>> 		rb = Additor()
-	>>> 		c = Collector()
-	>>> 		
-	>>> 		lb.e_released = rb.add
-	>>> 		rb.e_released = lb.add
-	>>> 		lb.e_added = c.collect
-	>>> 		rb.e_added = c.collect
-	>>> 		col.setParentActive()
-	>>> # END addition window
-	>>> AdditionWindow().show()
+	class Additor(Button):
+		e_added = Signal()
+		def __init__(self, *args, **kwarg):
+			self.reset(0)
+			
+		def reset(self, base, add=1):
+			self._val = base
+			self._add = add
+			self.p_label = str(self._val)
+			
+		def add(self, *args):
+			self._val += self._add
+			self.p_label = str(self._val)
+			self.e_added(self._val)
+	# END additor
+	
+	class Collector(Text):
+		def __init__(self, *args, **kwargs):
+			self.p_label = ""
+			
+	def collect(self, value):
+		self.p_label = self.p_label + ", %i" % value
+	# END collector
+	
+	class AdditionWindow(Window):
+		def __init__(self, *args, **kwargs):
+			col = ColumnLayout()
+			lb = Additor()
+			rb = Additor()
+			c = Collector()
+			
+			lb.e_released = rb.add
+			rb.e_released = lb.add
+			lb.e_added = c.collect
+			rb.e_added = c.collect
+			col.setParentActive()
+	# END addition window
+	AdditionWindow().show()
 
 You can customize your constructors as well, or constrain and manipulate the way your UI-element is created.
 

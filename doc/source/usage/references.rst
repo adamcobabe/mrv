@@ -10,26 +10,26 @@ Maya organizes its references hierarchically, which can be queried using the ``i
 
 The example uses files from the test system and respective utilities::
 	
-	>>> from mrv.maya.ref import FileReference
-	>>> refa = FileReference.create(get_maya_file('ref8m.ma'))     # file with 8 meshes
-	>>> refb = FileReference.create(get_maya_file('ref2re.ma'))    # two subreferences with subreferences
+	from mrv.maya.ref import FileReference
+	refa = FileReference.create(get_maya_file('ref8m.ma'))     # file with 8 meshes
+	refb = FileReference.create(get_maya_file('ref2re.ma'))    # two subreferences with subreferences
 		
-	>>> assert refb.isLoaded()
-	>>> assert len(FileReference.ls()) == 2
+	assert refb.isLoaded()
+	assert len(FileReference.ls()) == 2
 		
-	>>> assert len(refa.children()) == 0 and len(refb.children()) == 2
-	>>> subrefa, subrefb = refb.children()
+	assert len(refa.children()) == 0 and len(refb.children()) == 2
+	subrefa, subrefb = refb.children()
 		
-	>>> assert subrefa.namespace() != subrefb.namespace()
-	>>> assert subrefa.path() == subrefb.path()
-	>>> assert subrefa.parent() == refb
+	assert subrefa.namespace() != subrefb.namespace()
+	assert subrefa.path() == subrefb.path()
+	assert subrefa.parent() == refb
 		
-	>>> refa.setLoaded(False)
-	>>> assert not refa.isLoaded()
-	>>> assert refa.setLoaded(True).isLoaded()
+	refa.setLoaded(False)
+	assert not refa.isLoaded()
+	assert refa.setLoaded(True).isLoaded()
 		
-	>>> assert len(list(refa.iterNodes(api.MFn.kMesh))) == 8
+	assert len(list(refa.iterNodes(api.MFn.kMesh))) == 8
 		
-	>>> refa.remove(); refb.remove()
-	>>> assert not refa.exists() and not refb.exists()
-	>>> assert len(FileReference.ls()) == 0
+	refa.remove(); refb.remove()
+	assert not refa.exists() and not refb.exists()
+	assert len(FileReference.ls()) == 0

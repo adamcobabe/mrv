@@ -23,58 +23,58 @@ PyMel mesh iteration tests can be found in ``pymel/tests/performance/test_geomet
  * The test provides a basis to compute the pure iteration overhead.
  * **PyMel**::
  	 
- 	>>> m = PyNode('mesh40k')
- 	>>> nc = 0
-	>>> for it in m.vtx:
-	>>> 	nc += 1
+ 	m = PyNode('mesh40k')
+ 	nc = 0
+	for it in m.vtx:
+		nc += 1
 	
  * **MRV**::
  	 
- 	>>> m = Node('mesh40k')
- 	>>> nc = 0
-	>>> for it in m.vtx:
-	>>> 	nc += 1
+ 	m = Node('mesh40k')
+ 	nc = 0
+	for it in m.vtx:
+		nc += 1
 	
 * **Iter Vtx Index**
 
  * Iterate vertices and query the index. It show how a very light operation affects iteration performance
  * **PyMel**::
  	 
- 	>>> for it in m.vtx:
-	>>> 	it.index()
+ 	for it in m.vtx:
+		it.index()
 
  * **MRV**::
  	 
- 	>>> for it in m.vtx:
-	>>> 	it.getIndex()
+ 	for it in m.vtx:
+		it.getIndex()
 	
 * **Iter Vtx Position**
 
  * Iterate vertices and query their local space position. This operation is more costly due to the potential space transformation.
  * **PyMel**::
  	 
- 	>>> for it in m.vtx:
-	>>> 	it.getPosition() 
+ 	for it in m.vtx:
+		it.getPosition() 
  	 
  * **MRV**::
  	 
- 	>>> for it in m.vtx:
-	>>> 	it.position()
+ 	for it in m.vtx:
+		it.position()
 	
 * **Iter Edge Position**
 
  * Iterate edges and query their vertice's positions in local space
  * **PyMel**::
  	 
- 	>>> for it in m.e:
-	>>> 	it.getPoint(0)
-	>>> 	it.getPoint(1) 
+ 	for it in m.e:
+		it.getPoint(0)
+		it.getPoint(1) 
  	 
  * **MRV**::
  	 
- 	>>> for it in m.e:
-	>>> 	it.point(0)
-	>>> 	it.point(1)
+ 	for it in m.e:
+		it.point(0)
+		it.point(1)
 
 * **Iter Poly Position**
 
@@ -82,14 +82,14 @@ PyMel mesh iteration tests can be found in ``pymel/tests/performance/test_geomet
   
  * **PyMel**::
  	 
- 	>>> for it in m.f:
-	>>> 	it.getVertices()
+ 	for it in m.f:
+		it.getVertices()
  	 
  * **MRV**::
  	 
- 	>>> ia = api.MIntArray()
- 	>>> for it in m.f:
-	>>> 	it.getVertices(ia)
+ 	ia = api.MIntArray()
+ 	for it in m.f:
+		it.getVertices(ia)
 
 ====================   ================================================== ==================================================
 Test                   PyMel 1.0.1											MRV 1.0.0 Preview
@@ -107,71 +107,71 @@ This more complex example performs an actual computation. It will set the verex 
 
 * **PyMel**::
 
-	>>> obj = PyNode('mesh40k')
+	obj = PyNode('mesh40k')
 		
-	>>> cset = 'edgeLength'
-	>>> obj.createColorSet(cset)
-	>>> obj.setCurrentColorSetName(cset)
-	>>> colors = []
-	>>> el = api.MIntArray()
-	>>> el.setLength(obj.numVertices())
-	>>> maxLen = 0.0
-	>>> for vid, vtx in enumerate(obj.vtx):
-	>>> 	edgs = vtx.connectedEdges()
-	>>> 	totalLen=0
-	>>> 	for edg in edgs:
-	>>> 		totalLen += edg.getLength()
-	>>>
-	>>> 	avgLen=totalLen / len(edgs)
-	>>> 	maxLen = max(avgLen, maxLen)
-	>>> 	el[vid] = avgLen
-	>>> 	colors.append(Color.black)
-	>>>
-	>>> for vid, col in enumerate(colors):
-	>>> 	col.b = el[vid] / maxLen
-	>>>
-	>>> obj.setColors( colors )
+	cset = 'edgeLength'
+	obj.createColorSet(cset)
+	obj.setCurrentColorSetName(cset)
+	colors = []
+	el = api.MIntArray()
+	el.setLength(obj.numVertices())
+	maxLen = 0.0
+	for vid, vtx in enumerate(obj.vtx):
+		edgs = vtx.connectedEdges()
+		totalLen=0
+		for edg in edgs:
+			totalLen += edg.getLength()
+	
+		avgLen=totalLen / len(edgs)
+		maxLen = max(avgLen, maxLen)
+		el[vid] = avgLen
+		colors.append(Color.black)
+	
+	for vid, col in enumerate(colors):
+		col.b = el[vid] / maxLen
+	
+	obj.setColors( colors )
  
 * **MRV**::
 	
-	>>> cset = 'edgeLength'
-	>>> m = Node('mesh40k')
-	>>> 
-	>>> m.createColorSetWithName(cset)
-	>>> m.setCurrentColorSetName(cset)
-	>>> 
-	>>> lp = api.MPointArray()
-	>>> m.getPoints(lp)
-	>>> 
-	>>> colors = api.MColorArray()
-	>>> colors.setLength(m.numVertices())
-	>>> 
-	>>> vids = api.MIntArray()
-	>>> vids.setLength(len(colors))
-	>>> 
-	>>> el = api.MFloatArray()
-	>>> el.setLength(len(colors))
-	>>> cvids = api.MIntArray()
-	>>> 
-	>>> # compute average edge-lengths
-	>>> max_len = 0.0
-	>>> for vid, vit in enumerate(m.vtx):
-	>>> 	vit.getConnectedVertices(cvids)
-	>>> 	cvp = lp[vid]
-	>>> 	accum_edge_len=0.0
-	>>> 	for cvid in cvids:
-	>>> 		accum_edge_len += (lp[cvid] - cvp).length()
-	>>> 	avg_len = accum_edge_len / len(cvids)
-	>>> 	max_len = max(avg_len, max_len)
-	>>> 	el[vid] = avg_len
-	>>> 	vids[vid] = vid
-	>>> 
-	>>> for cid in xrange(len(colors)):
-	>>> 	c = colors[cid]
-	>>> 	c.b = el[cid] / max_len
-	>>> 	colors[cid] = c
-	>>> 
-	>>> m.setVertexColors(colors, vids, api.MDGModifier())
+	cset = 'edgeLength'
+	m = Node('mesh40k')
+	
+	m.createColorSetWithName(cset)
+	m.setCurrentColorSetName(cset)
+	
+	lp = api.MPointArray()
+	m.getPoints(lp)
+	
+	colors = api.MColorArray()
+	colors.setLength(m.numVertices())
+	
+	vids = api.MIntArray()
+	vids.setLength(len(colors))
+	
+	el = api.MFloatArray()
+	el.setLength(len(colors))
+	cvids = api.MIntArray()
+	
+	# compute average edge-lengths
+	max_len = 0.0
+	for vid, vit in enumerate(m.vtx):
+		vit.getConnectedVertices(cvids)
+		cvp = lp[vid]
+		accum_edge_len=0.0
+		for cvid in cvids:
+			accum_edge_len += (lp[cvid] - cvp).length()
+		avg_len = accum_edge_len / len(cvids)
+		max_len = max(avg_len, max_len)
+		el[vid] = avg_len
+		vids[vid] = vid
+	
+	for cid in xrange(len(colors)):
+		c = colors[cid]
+		c.b = el[cid] / max_len
+		colors[cid] = c
+	
+	m.setVertexColors(colors, vids, api.MDGModifier())
 
 
 ====================   ================================================== ==================================================
@@ -193,13 +193,13 @@ As preparation, strings of all nodes in the scene are stored in the node_strings
 
  * **PyMel**::
  	 
- 	>>> for name in nodes_strings:
- 	>>> 	PyNode(name)
+ 	for name in nodes_strings:
+ 		PyNode(name)
  
  * **MRV**::
  	 
-	>>> for name in nodenames:
-	>>> 	Node( name )
+	for name in nodenames:
+		Node( name )
 	
 * **Wrap from String2**
 
@@ -207,20 +207,20 @@ As preparation, strings of all nodes in the scene are stored in the node_strings
  
  * **MRV**::
  	 
- 	>>> for name in nodenames:
-	>>> 	tmplist.append(NodeFromStr(name))
+ 	for name in nodenames:
+		tmplist.append(NodeFromStr(name))
 
 * **Wrap from API Obj**
 
  * **PyMel**::
  	 
- 	>>> for apiobj in nodes_apiobjects:
-	>>> 	PyNode(apiobj)
+ 	for apiobj in nodes_apiobjects:
+		PyNode(apiobj)
 	
  * **MRV**::
  	 
- 	>>> for apiobj in nodes_apiobjects:
-	>>> 	Node(apiobj)
+ 	for apiobj in nodes_apiobjects:
+		Node(apiobj)
  
 * **Wrap from API Obj2**
 
@@ -228,8 +228,8 @@ As preparation, strings of all nodes in the scene are stored in the node_strings
  
  * **MRV**::
  	 
- 	>>> for apiobj in nodes_apiobjects:
-	>>> 	NodeFromObj(apiobj)
+ 	for apiobj in nodes_apiobjects:
+		NodeFromObj(apiobj)
  	 
 ====================   ================================================== ==================================================
 Test                   PyMel 1.0.1											MRV 1.0.0 Preview
@@ -251,27 +251,27 @@ The following test creates 1000 dg nodes ( ``network`` ) as well as 1000 dag nod
 
  * **PyMel**::
  	 
- 	>>> for node_type in ('network', 'transform'):
- 	>>> 	for number in xrange(nn):
-	>>> 		createNode(node_type)
+ 	for node_type in ('network', 'transform'):
+ 		for number in xrange(nn):
+			createNode(node_type)
 
  * **MRV**::
  	 
- 	>>> for node_type in ('network', 'transform'):
- 	>>> 	for number in xrange(nn):
-	>>> 		createNode(node_type, node_type) 
+ 	for node_type in ('network', 'transform'):
+ 		for number in xrange(nn):
+			createNode(node_type, node_type) 
 
 * **Rename DG Nodes** and ** Rename DAG Nodes**
 
 * **PyMel**::
  	 
- 	>>> for node in nodes:
-	>>> 	node.rename(node.name()[:-1])
+ 	for node in nodes:
+		node.rename(node.name()[:-1])
 
  * **MRV**::
  	 
- 	>>> for node in node_list:
-	>>> 	node.rename(node.basename()[:-1])
+ 	for node in node_list:
+		node.rename(node.basename()[:-1])
 
 ====================   ================================================== ==================================================
 Test                   PyMel 1.0.1											MRV 1.0.0 Preview
@@ -292,24 +292,24 @@ The following tests take part in a scene with more than 21000 animation nodes an
 
  * **PyMel**::
  	 
- 	>>> anim_nodes = ls(type="animCurve")
+ 	anim_nodes = ls(type="animCurve")
 
  * **MRV**::
  	 
- 	>>> anim_nodes = list(iterDgNodes(Node.Type.kAnimCurve))
+ 	anim_nodes = list(iterDgNodes(Node.Type.kAnimCurve))
 
 
 * **Access Plug/Attr**
 
  * **PyMel**::
  	 
- 	>>> for anode in anim_nodes:
-	>>> 	anode.output
+ 	for anode in anim_nodes:
+		anode.output
 
  * **MRV**::
  	 
- 	>>> for anode in anim_nodes:
-	>>> 	anode.output
+ 	for anode in anim_nodes:
+		anode.output
 		
 * **Access Plug**
 
@@ -317,8 +317,8 @@ The following tests take part in a scene with more than 21000 animation nodes an
 
  * **MRV**::
  	 
- 	>>> for anode in anim_nodes:
-	>>> 	anode.findPlug('output')
+ 	for anode in anim_nodes:
+		anode.findPlug('output')
 
 	
 The following tests are to determine the performance of the retrieval of simple floating point data, using the plug/attribute as well as an MFnMethod.
@@ -331,49 +331,49 @@ The variable ``p`` is a PyNode/Node of the perspective camera ( shape ). The loo
  
  * **PyMel**::
  	 
- 	>>> for iteration in xrange(na):
-	>>> 	p.fl
+ 	for iteration in xrange(na):
+		p.fl
 
  * **MRV**::
  	 
-	>>> for iteration in xrange(na):
-	>>> 	p.fl
+	for iteration in xrange(na):
+		p.fl
 
 * **Get Plug/Attr Data**
 
  * **PyMel**::
  	 
- 	>>> for iteration in xrange(na):
-	>>> 	p.fl.get()
+ 	for iteration in xrange(na):
+		p.fl.get()
 	
  * **MRV**::
  	 
- 	>>> for iteration in xrange(na):
-	>>> 	p.fl.asFloat()
+ 	for iteration in xrange(na):
+		p.fl.asFloat()
 	
 * **MFnMethod Access**
 
  * **PyMel**::
  	 
- 	>>> for iteration in xrange(na):
-	>>> 	p.getFocalLength
+ 	for iteration in xrange(na):
+		p.getFocalLength
 	
  * **MRV**::
  	 
- 	>>> for iteration in xrange(na):
-	>>> 	p.focalLength
+ 	for iteration in xrange(na):
+		p.focalLength
 
 * **MFnMethod Call**
 
  * **PyMel**::
  	 
- 	>>> for iteration in xrange(na):
-	>>> 	p.getFocalLength()
+ 	for iteration in xrange(na):
+		p.getFocalLength()
 	
  * **MRV**::
  	 
- 	>>> for iteration in xrange(na):
-	>>> 	p.focalLength()
+ 	for iteration in xrange(na):
+		p.focalLength()
 	
 * **Plug/Attr Connection**
 
@@ -382,13 +382,13 @@ The variable ``p`` is a PyNode/Node of the perspective camera ( shape ). The loo
  
  * **PyMel**::
  	 
- 	>>> for source, dest in zip(pir(sn.a, r), pir(tn.ab, r)):
-	>>> 	source > dest
+ 	for source, dest in zip(pir(sn.a, r), pir(tn.ab, r)):
+		source > dest
 	
  * **MRV**::
  	 
- 	>>> for source, dest in zip(pir(sn.a, r), pir(tn.ab, r)):
-	>>> 	source.mconnectTo(dest)
+ 	for source, dest in zip(pir(sn.a, r), pir(tn.ab, r)):
+		source.mconnectTo(dest)
 	
 ====================   ================================================== ==================================================
 Test                   PyMel 1.0.1											MRV 1.0.0 Preview
@@ -424,21 +424,21 @@ All tests have been performed at least two times, the best time was used.
 
  * **PyMel**::
  	 
- 	 >>> from pymel.all import *
+ 	 from pymel.all import *
 	
  * **MRV**::
  	 
- 	 >>> from mrv.maya.all import *
+ 	 from mrv.maya.all import *
  	 
 * **OpenMaya Memory/Time**
 
  * As both frameworks use OpenMaya and import all modules, the memory it takes to do so as well as the time it takes to load is included in the measurements::
  	 
- 	>>> import maya.OpenMaya
- 	>>> import maya.OpenMayaMPx
- 	>>> import maya.OpenMayaRender
- 	>>> import maya.OpenMayaFX
- 	>>> import maya.OpenMayaAnim
+ 	import maya.OpenMaya
+ 	import maya.OpenMayaMPx
+ 	import maya.OpenMayaRender
+ 	import maya.OpenMayaFX
+ 	import maya.OpenMayaAnim
  	 
 * **GUI Memory**
 
@@ -464,20 +464,20 @@ All tests have been performed at least two times, the best time was used.
 
  * The memory is measured in a python interactive shell due to its persistent nature. The base memory is measured after manually initializing maya standalone. Afterwards, the respective core modules are imported::
  	 
- 	>>> import maya.standalone
- 	>>> maya.standalone.initialize()
+ 	import maya.standalone
+ 	maya.standalone.initialize()
  	
  * **PyMel**::
  	 
- 	>>> import pymel.core
+ 	import pymel.core
  	
  * Please note that the above line would crash at the same spot as it did during the startup test, so the following line worked so far::
  
- 	>>> import pymel.all
+ 	import pymel.all
  	 
  * **MRV**::
  	 
- 	>>> import mrv.maya.nt
+ 	import mrv.maya.nt
 
 =====================  ================================================== ==================================================
 Test                   PyMel 1.0.1                                        MRV 1.0.0 Preview

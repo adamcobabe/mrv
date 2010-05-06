@@ -15,46 +15,46 @@ Sets are a very nice feature in Maya, as well as their implementation. Handling 
 
 * **PyMel**::
 	
-	>>> p, t, f = PyNode('persp'), PyNode('top'), PyNode('front')
-	>>> s = sets()
+	p, t, f = PyNode('persp'), PyNode('top'), PyNode('front')
+	s = sets()
 	
-	>>> # add single
-	>>> s.add(p)
-	>>> assert p in s
+	# add single
+	s.add(p)
+	assert p in s
 	
-	>>> # add multiple - need sets command for undo support
-	>>> sets(s, add=(t,f))
-	>>> # same in MEL, argument meaning changed in PyMel
-	>>> cmds.sets(str(t), str(f), add=str(s))
+	# add multiple - need sets command for undo support
+	sets(s, add=(t,f))
+	# same in MEL, argument meaning changed in PyMel
+	cmds.sets(str(t), str(f), add=str(s))
 	
-	>>> # remove single 
-	>>> s.remove(p)
+	# remove single 
+	s.remove(p)
 	
-	>>> # remove multiple
-	>>> sets(s, rm=(t,f))
-	>>> assert sets(s, q=1, size=1) == 0
+	# remove multiple
+	sets(s, rm=(t,f))
+	assert sets(s, q=1, size=1) == 0
 
 * **MRV**::
 	
-	>>> p, t, f = Node('persp'), Node('top'), Node('front')
-	>>> s = ObjectSet()
+	p, t, f = Node('persp'), Node('top'), Node('front')
+	s = ObjectSet()
 	
-	>>> # add single - set centric or object centric
-	>>> s.add(p)
-	>>> p.addTo(s)
-	>>> assert p in s
+	# add single - set centric or object centric
+	s.add(p)
+	p.addTo(s)
+	assert p in s
 	
-	>>> # add multiple
-	>>> s.add((t, f))
+	# add multiple
+	s.add((t, f))
 	
-	>>> # remove single - set or object centric
-	>>> s.discard(p)
-	>>> p.removeFrom(s)
+	# remove single - set or object centric
+	s.discard(p)
+	p.removeFrom(s)
 	
-	>>> # remove multiple 
-	>>> s.discard((t, f))
+	# remove multiple 
+	s.discard((t, f))
 	
-	>>> assert len(s) == 0
+	assert len(s) == 0
 	
 	
 Shading Engine Handling
@@ -63,52 +63,52 @@ ShadingEngines are ObjectSets, but are specialized for the purpose of rendering.
 
 * **PyMel**::
 	
-	>>> isg = PyNode("initialShadingGroup")
-	>>> rp = PyNode("renderPartition")
+	isg = PyNode("initialShadingGroup")
+	rp = PyNode("renderPartition")
 	
-	>>> # assign new shading engine to the render partition
-	>>> sg = createNode('shadingEngine')
-	>>> rp.sets.evaluateNumElements()
+	# assign new shading engine to the render partition
+	sg = createNode('shadingEngine')
+	rp.sets.evaluateNumElements()
 	
-	>>> # the partition plug is overridden by the 'partition' function of the 
-	>>> # underlying pseudostring
-	>>> # sg.partition > rp.sets[rp.sets.getNumElements()]
-	>>> sg.pa > rp.sets[rp.sets.getNumElements()]
+	# the partition plug is overridden by the 'partition' function of the 
+	# underlying pseudostring
+	# sg.partition > rp.sets[rp.sets.getNumElements()]
+	sg.pa > rp.sets[rp.sets.getNumElements()]
 	
-	>>> m = polySphere()[0].getShape()
+	m = polySphere()[0].getShape()
 	
-	>>> # assign all faces to the initial shading group
-	>>> # m is automatically part of the default shading engine
-	>>> isg.remove(m)
-	>>> isg.add(m.f)
+	# assign all faces to the initial shading group
+	# m is automatically part of the default shading engine
+	isg.remove(m)
+	isg.add(m.f)
 	
-	>>> # assign 200 faces to another shading group
-	>>> # Cannot use object as it does not allow to force the membersship
-	>>> # sg.add(m.f[0:199])
-	>>> sets(sg, fe=m.f[0:199])
+	# assign 200 faces to another shading group
+	# Cannot use object as it does not allow to force the membersship
+	# sg.add(m.f[0:199])
+	sets(sg, fe=m.f[0:199])
 	
 * **MRV**::
 	
-	>>> # NOTE: this test is part of the pymel comparison
-	>>> isg = Node("initialShadingGroup")
-	>>> rp = Node("renderPartition")
+	# NOTE: this test is part of the pymel comparison
+	isg = Node("initialShadingGroup")
+	rp = Node("renderPartition")
 	
-	>>> # assign new shading engine to the render partition
-	>>> sg = ShadingEngine()
-	>>> sg.setPartition(rp)
+	# assign new shading engine to the render partition
+	sg = ShadingEngine()
+	sg.setPartition(rp)
 	
 	
-	>>> # create a poly sphere
-	>>> m = Mesh()
-	>>> PolySphere().output.mconnectTo(m.inMesh)
+	# create a poly sphere
+	m = Mesh()
+	PolySphere().output.mconnectTo(m.inMesh)
 	
-	>>> # assign all faces to the initial shading group
-	>>> # Cannot use the m.cf[:] shortcut to get a complete component as 
-	>>> # shading engines apparently don't deal with it properly
-	>>> m.addTo(isg, m.cf[:m.numPolygons()])
+	# assign all faces to the initial shading group
+	# Cannot use the m.cf[:] shortcut to get a complete component as 
+	# shading engines apparently don't deal with it properly
+	m.addTo(isg, m.cf[:m.numPolygons()])
 	
-	>>> # force the first 200 faces into another shading engine
-	>>> m.addTo(sg, m.cf[:200], force=True)
+	# force the first 200 faces into another shading engine
+	m.addTo(sg, m.cf[:200], force=True)
 
 
 Mixed
@@ -118,52 +118,52 @@ The following example was taken from the PyMel homepage at http://code.google.co
 
 * **PyMel**::
 
-	>>> for x in ls( type='transform'):
-	>>> 	print x.longName()                # object oriented design
-	>>> 
-	>>> 	x.sx >> x.sy                      # connection operator
-	>>> 	x.sx >> x.sz
-	>>> 	x.sx // x.sy                      # disconnection operator
-	>>> 	x.sx.disconnect()                 # smarter methods -- (automatically disconnects all inputs and outputs when no arg is passed)
+	for x in ls( type='transform'):
+		print x.longName()                # object oriented design
 	
-	>>> # add and set a string array attribute with the history of this transform's shape
-	>>> 	x.setAttr( 'newAt', x.getShape().history(), force=1 )
+		x.sx >> x.sy                      # connection operator
+		x.sx >> x.sz
+		x.sx // x.sy                      # disconnection operator
+		x.sx.disconnect()                 # smarter methods -- (automatically disconnects all inputs and outputs when no arg is passed)
 	
-	>>> 	# get and set some attributes
-	>>> 	x.rotate.set( [1,1,1] )
-	>>> 	trans = x.translate.get()
-	>>> 	trans *= x.scale.get()           # vector math
-	>>> 	x.translate.set( trans )         # ability to pass list/vector args
-	>>> 	# mel.myMelScript(x.type(), trans) # automatic handling of mel procedures
+	# add and set a string array attribute with the history of this transform's shape
+		x.setAttr( 'newAt', x.getShape().history(), force=1 )
+	
+		# get and set some attributes
+		x.rotate.set( [1,1,1] )
+		trans = x.translate.get()
+		trans *= x.scale.get()           # vector math
+		x.translate.set( trans )         # ability to pass list/vector args
+		# mel.myMelScript(x.type(), trans) # automatic handling of mel procedures
 
 * **MRV**::
 	
-    >>> import mrv.maya as mrvmaya                  # required for some utilities
-    >>> # later we query the shape, hence we must assure we actually have one
-    >>> # and setup a custom predicate
-    >>> for x in iterDagNodes(Node.Type.kTransform, predicate=lambda n: n.childCount()):
-    >>>     print x.name()                          # name() always returns the full path name
-    >>> 
-    >>>     x.sx.mconnectTo(x.sy)                   # Convenience methods are located in the 'm' namespace of the MPlug type
-    >>>     x.sx.mconnectTo(x.sz)
-    >>>     x.sx.mdisconnectFrom(x.sy)
-    >>>     x.sx.mdisconnect()
-    >>>     
-    >>>     default = StringArrayData.create(list())
-    >>>     shapehistory = [n.name() for n in iterGraph(x[0], input=True)]
-    >>>     x.addAttribute(TypedAttribute.create('newAt', 'na', Data.Type.kStringArray, default)).masData().set(shapehistory)
-    >>>     
-    >>>     x.rx.msetFloat(1.0)                     # using individual plugs to have undo support, otherwise you would use MFn methods, like setRotation(...)
-    >>>     x.ry.msetFloat(1.0)
-    >>>     x.rz.msetFloat(1.0)
+    import mrv.maya as mrvmaya                  # required for some utilities
+    # later we query the shape, hence we must assure we actually have one
+    # and setup a custom predicate
+    for x in iterDagNodes(Node.Type.kTransform, predicate=lambda n: n.childCount()):
+        print x.name()                          # name() always returns the full path name
+    
+        x.sx.mconnectTo(x.sy)                   # Convenience methods are located in the 'm' namespace of the MPlug type
+        x.sx.mconnectTo(x.sz)
+        x.sx.mdisconnectFrom(x.sy)
+        x.sx.mdisconnect()
         
-    >>>     trans = x.getTranslation(api.MSpace.kTransform)
-    >>>     dot = trans * x.getScale()                   # the dot product is a single float, MVector has no in-place dot-product as the type changes
-    >>>     x.tx.msetFloat(dot)                   # have to use child plugs for undo support
-    >>>     x.ty.msetFloat(dot)
-    >>>     x.tz.msetFloat(dot)
+        default = StringArrayData.create(list())
+        shapehistory = [n.name() for n in iterGraph(x[0], input=True)]
+        x.addAttribute(TypedAttribute.create('newAt', 'na', Data.Type.kStringArray, default)).masData().set(shapehistory)
         
-    >>>     # mrvmaya.Mel.myScript(x.typeName(), trans) # its essentially the pymel implementation which is used here.
+        x.rx.msetFloat(1.0)                     # using individual plugs to have undo support, otherwise you would use MFn methods, like setRotation(...)
+        x.ry.msetFloat(1.0)
+        x.rz.msetFloat(1.0)
+        
+        trans = x.getTranslation(api.MSpace.kTransform)
+        dot = trans * x.getScale()                   # the dot product is a single float, MVector has no in-place dot-product as the type changes
+        x.tx.msetFloat(dot)                   # have to use child plugs for undo support
+        x.ty.msetFloat(dot)
+        x.tz.msetFloat(dot)
+        
+        # mrvmaya.Mel.myScript(x.typeName(), trans) # its essentially the pymel implementation which is used here.
 	
 
 .. rubric:: Footnotes

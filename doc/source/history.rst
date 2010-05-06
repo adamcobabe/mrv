@@ -10,36 +10,36 @@ Shortly after my initial excitement came the crash into the bitter truth: its no
 
 But let me illustrate the situation I was facing::
 	
-	>>> # MEL - adding a string array attribute and retrieving its value
-	>>> addAttr -ln "stringarray" -sn "sa" -dt "stringArray" "persp"
-	>>> getAttr "persp.sa"
+	# MEL - adding a string array attribute and retrieving its value
+	addAttr -ln "stringarray" -sn "sa" -dt "stringArray" "persp"
+	getAttr "persp.sa"
 	
 Sure, MEL is short, but that language is simply to primitive to built a proper pipeline upon it. Previously, I simulated virtual function calls, and emulated associative array using MEL string arrays, but of course it stays a workaround for something that should be provided by the language natively.
 
 The same code in python using ``maya.cmds`` looks even worse - although you have the chance to work in an object oriented fashion, lots of work would be needed to meld MEL into python, or you end up writing code like this::
 	
-	>>> import maya.cmds as cmds
-	>>> cmds.addAttr("persp", ln="stringArray", sn="sa", dt="stringArray")
-	>>> cmds.getAttr("persp.sa")		# ups, its an empty array, so we get None in 8.5 at least !!
+	import maya.cmds as cmds
+	cmds.addAttr("persp", ln="stringArray", sn="sa", dt="stringArray")
+	cmds.getAttr("persp.sa")		# ups, its an empty array, so we get None in 8.5 at least !!
 
 Sure thing, I would use the API instead, but lets see what we get then::
 	
-	>>> import maya.OpenMaya as api  
-	>>> sellist = api.MSelectionList()
-	>>> sellist.add("persp")
-	>>> p = api.MDagPath()
-	>>> sellist.getDagPath(0, p)
+	import maya.OpenMaya as api  
+	sellist = api.MSelectionList()
+	sellist.add("persp")
+	p = api.MDagPath()
+	sellist.getDagPath(0, p)
 		
-	>>> mfndag = api.MFnDagNode(p)
-	>>> mfnattr = api.MFnTypedAttribute()
-	>>> mfndata = api.MFnStringArrayData()
-	>>> attr = mfnattr.create("stringArray", "sa", api.MFnData.kStringArray, mfndata.create())
-	>>> mfndag.addAttribute(attr)
+	mfndag = api.MFnDagNode(p)
+	mfnattr = api.MFnTypedAttribute()
+	mfndata = api.MFnStringArrayData()
+	attr = mfnattr.create("stringArray", "sa", api.MFnData.kStringArray, mfndata.create())
+	mfndag.addAttribute(attr)
 		
-	>>> # all this to add an attribute, now retrieve the value
-	>>> # this is rather short as we reuse the function set.
-	>>> mfndata.setObject(mfndag.findPlug("sa").asMObject())
-	>>> mfndata.array()
+	# all this to add an attribute, now retrieve the value
+	# this is rather short as we reuse the function set.
+	mfndata.setObject(mfndag.findPlug("sa").asMObject())
+	mfndata.array()
 	
 MEL needs me to write two lines of code, python MEL 3 lines, and python API 13 (!!) lines ! Considering that less code is more, I would have to choose maya.cmds as a basis for a new pipeline, but would have to be aware of the fact that it needs quite some fixing before being usable.
 
@@ -47,10 +47,10 @@ Fortunately, back in that time, an early version of PyMel would already be avail
 
 As giving up is not exactly my way, I realized something new would have to be created, and if PyMel made MEL nice in python, why shouldn't there be something that makes the MayaAPI at least as nice, to allow writing something like this::
 	
-	>>> import mrv.maya.nt as nt
-	>>> p = nt.Node("persp")
-	>>> p.addAttribute(nt.TypedAttribute.create('stringarray', 'sa', Data.Type.kStringArray, nt.StringArrayData.create()))
-	>>> p.sa.masData().array()
+	import mrv.maya.nt as nt
+	p = nt.Node("persp")
+	p.addAttribute(nt.TypedAttribute.create('stringarray', 'sa', Data.Type.kStringArray, nt.StringArrayData.create()))
+	p.sa.masData().array()
 	
 The previous code should of course internally use the API exclusively, and it should support undo - what you see here is how you could write it in MRV 1.0 Effectively, I needed to reduce the amount of typing required to use the API by factor 3 ( or more ), while improving the reliability of the code as well as the readability, without hurting performance much or make the rest of the API unusable.
 

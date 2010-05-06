@@ -19,29 +19,29 @@ Registering own node types is simple, and an example of the required techniques 
 
 The persistence plugin implements a simple Dependency Node which performs no computations, but hosts a set of attributes to store data and connections. Its implementation can be found in ``mrv.maya.nt.persistence``. Once the plugin is loaded, MRV will be notified about the event and add a dummy node type called ``storageNode`` to its internal type hierarchy - the inheritance follows the previous example. This allows the nodes to be created and wrapped, but access to the actual data storage capabilities is not yet available::
 	
-	>>> # load the plugin
-	>>> from mrv.maya.nt import *
-	>>> sn = StorageNode()
-	>>> sn.dataIDs()		# ERROR: default wraps have no special capabilities
+	# load the plugin
+	from mrv.maya.nt import *
+	sn = StorageNode()
+	sn.dataIDs()		# ERROR: default wraps have no special capabilities
 	
 The interface to access storage node data conveniently is implemented on the ``StorageNode`` type, located in ``mrv.maya.nt.storage``. To teach MRV your new type, you have to register it. In this case its important to unregister the default type first::
 	
-	>>> # Lets assume the StorageNode implementation is not yet imported into mrv.maya.nt
-	>>> import mrv.maya.nt.storage as modstorage
-	>>> import mrv.maya.nt as nt
+	# Lets assume the StorageNode implementation is not yet imported into mrv.maya.nt
+	import mrv.maya.nt.storage as modstorage
+	import mrv.maya.nt as nt
 	
-	>>> # remove the previous 'dummy' type
-	>>> nt.removeCustomType("StorageNode")
-	>>> # add our implementation
-	>>> nt.addCustomType(modstorage.StorageNode)
+	# remove the previous 'dummy' type
+	nt.removeCustomType("StorageNode")
+	# add our implementation
+	nt.addCustomType(modstorage.StorageNode)
 	
 Please note that the name of your implemented type, i.e. ``StorageNode`` must match the name of the node registered by your plugin.
 
 The inheritance of your type matters, as it defines your base abilities which should match the actual type of your plugin node. In this case, the class definition of the ``StorageNode`` type looks like this::
 	
-	>>> # file mrv/maya/nt/storage.py
-	>>> class StorageNode( DependNode, StorageBase ):
-	>>>		[ ... ]
+	# file mrv/maya/nt/storage.py
+	class StorageNode( DependNode, StorageBase ):
+		[ ... ]
 	
 Here we see two interesting concepts:
 	First is that we make our StorageNode type a real DependencyNode ( in the context of MRV's type system ) simply by deriving from the type ``mrv.maya.nt.base.DependNode``.
@@ -50,10 +50,10 @@ Here we see two interesting concepts:
 	
 As we previously registered our type, we are now able to access additional functionality. Please note that we need a new wrap to the existing node - the previously created instance still uses the dummy type::
 	
-	>>> # create a new wrap, using the new type this time
-	>>> snnew = Node(sn.object())
-	>>> snnew.dataIDs()
-	>>> []
+	# create a new wrap, using the new type this time
+	snnew = Node(sn.object())
+	snnew.dataIDs()
+	[]
 	
 As a summary:
 	#. Split your implementation into at least two modules, one for the maya plugin, one for the MRV interface ( see ``mrv.maya.nt.persistence`` and ``mrv.may.nt.storage`` )
@@ -119,9 +119,9 @@ In case you find yourself writing certain convenience methods over and over agai
 
 In the most common case, convenience can be added directly to the node type in question. This requires you to find the implementation of the type. There it is totally valid to add new methods according to your liking. An example for this would be the ``Mesh`` implementation, which can be found in the ``mrv.maya.nt.geometry`` module::
 	
-	>>> class Mesh(SurfaceShape):
-	>>>		def getTweaks(self):
-	>>>			[ implementation ]
+	class Mesh(SurfaceShape):
+		def getTweaks(self):
+			[ implementation ]
 	
 If the type in question has not been implemented yet, it can be added to an existing or new module in the ``mrv.maya.nt`` package. As this package is only being accessed as a whole, its absolutely valid and common practice to reorganize the types within the modules as the modules grow.
 
@@ -225,7 +225,7 @@ To achieve this proceed as follows:
 	#. Run the test using the new maya release, for example::
 		
 		Runs the upgrade procedure for maya 2020 from the root of the repository.
-		>>> test/bin/tmrv 2020 test/maya/test_mdb.py -s
+		test/bin/tmrv 2020 test/maya/test_mdb.py -s
 		
 	#. Go through the list of instructions printed on screen, commit your changes and merge your branch into master.
 

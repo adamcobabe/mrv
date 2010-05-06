@@ -58,9 +58,9 @@ By default, python's logging is not initialized which is why no messages will be
 
 If you like to change this easily, you may initialize the logging module prior to importing mrv using::
 	
-	>>> import logging
-	>>> # INFO level shows only the most important information, as well as errors and warnings
-	>>> logging.basicConfig(level=logging.INFO)
+	import logging
+	# INFO level shows only the most important information, as well as errors and warnings
+	logging.basicConfig(level=logging.INFO)
 	
 MRV's unittest framework automatically initializes the logging module on DEBUG level. 
 

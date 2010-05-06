@@ -12,23 +12,23 @@ To implement a simple undoable function yourself, you create a functor of type `
 
 The following example shows how multiple undoable operations are bundled into a single undoable operation::
 	
-	>>> import maya.cmds as cmds
-	>>> @undoable
-	>>> def undoable_func( delobj ):
-	>>> 	p.tx.mconnectTo(p.tz)
-	>>> 	delobj.delete()
+	import maya.cmds as cmds
+	@undoable
+	def undoable_func( delobj ):
+		p.tx.mconnectTo(p.tz)
+		delobj.delete()
 		
-	>>> p = Node("persp")
-	>>> t = Transform()
-	>>> assert not p.tx.misConnectedTo(p.tz)
-	>>> assert t.isValid() and t.isAlive()
-	>>> undoable_func(t)
-	>>> assert p.tx.misConnectedTo(p.tz)
-	>>> assert not t.isValid() and t.isAlive()
+	p = Node("persp")
+	t = Transform()
+	assert not p.tx.misConnectedTo(p.tz)
+	assert t.isValid() and t.isAlive()
+	undoable_func(t)
+	assert p.tx.misConnectedTo(p.tz)
+	assert not t.isValid() and t.isAlive()
 		
-	>>> cmds.undo()
-	>>> assert not p.tx.misConnectedTo(p.tz)
-	>>> assert t.isValid() and t.isAlive()
+	cmds.undo()
+	assert not p.tx.misConnectedTo(p.tz)
+	assert t.isValid() and t.isAlive()
 	
 Whenever non-overridden MFnFunctions are called, these will not support undo by default unless it gets implemented specifically within MRV.
 
@@ -40,18 +40,18 @@ MRV keeps an own undo stack for its undoable commands which integrates itself wi
 
 This allows for interesting uses considering that you can, at any time undo, your own doing in a controlled and safe fashion. This can be very useful to prepare a scene for export by changing it, and then undo your changes once you are done. This way, the user wouldn't have to reload the ( possibly huge ) scene::
 	
-	>>> import mrv.maya.undo as undo
-	>>> ur = undo.UndoRecorder()
-	>>> ur.startRecording()
-	>>> p.tx.mconnectTo(p.ty)
-	>>> p.tx.mconnectTo(p.tz)
-	>>> ur.stopRecording()
-	>>> p.t.mconnectTo(t.t)
+	import mrv.maya.undo as undo
+	ur = undo.UndoRecorder()
+	ur.startRecording()
+	p.tx.mconnectTo(p.ty)
+	p.tx.mconnectTo(p.tz)
+	ur.stopRecording()
+	p.t.mconnectTo(t.t)
 		
-	>>> assert p.tx.misConnectedTo(p.ty)
-	>>> assert p.tx.misConnectedTo(p.tz)
-	>>> assert p.t.misConnectedTo(t.t)
-	>>> ur.undo()
-	>>> assert not p.tx.misConnectedTo(p.ty)
-	>>> assert not p.tx.misConnectedTo(p.tz)
-	>>> assert p.t.misConnectedTo(t.t)
+	assert p.tx.misConnectedTo(p.ty)
+	assert p.tx.misConnectedTo(p.tz)
+	assert p.t.misConnectedTo(t.t)
+	ur.undo()
+	assert not p.tx.misConnectedTo(p.ty)
+	assert not p.tx.misConnectedTo(p.tz)
+	assert p.t.misConnectedTo(t.t)

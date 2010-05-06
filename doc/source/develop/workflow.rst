@@ -40,46 +40,49 @@ Write down what the method is supposed to do, think about the possible input arg
 While writing this, you essentially define the domain within which this method is supposed to work. 
 
 Whenever you set a pile for the fence of your domain, switch to ``righty`` and note down what the method can do, or what it can't do to assure you don't forget about the individual things that need to be tested::
-	
-	>>> # <feature.py> in lefty
-	>>> def makeFoo(bar_iterable, big=False):
-	>>>     """Create a new Foo instance which contains the Bar instances
-	>>>     retrieved from the bar_iterable.
-	>>>
-	>>>     :return: ``Foo`` compatible instance. If big was True, it will 
-	>>>         support the ``BigFoo`` interface
-	>>>     :param bar_iterable: iterable yielding Bar instances. As Foo's
-	>>>          cannot exist without Bars, an empty iterable is invalid.
-	>>>     :param big: if True, change the return type from ``Foo`` to ``BigFoo``
-	>>>     :raise ValueError: if bar_iterable did not yield any Bar instance"""
-	>>>          pass # todo implementation
 
-	>>> # <test/test_feature.py> in righty
-	>>> # It has been written while putting down the docs for the method
-	>>> def test_makeFoo(self):
-	>>>     # assure it returns Foo instances, BigFoo if the flag is set
-	>>>     
-	>>>     # which contain the bars we passed in
-	>>>
-	>>>     # empty iterables raise
+    # <feature.py> in lefty
+    def makeFoo(bar_iterable, big=False):
+        """Create a new Foo instance which contains the Bar instances
+        retrieved from the bar_iterable.
+    
+        :return: ``Foo`` compatible instance. If big was True, it will 
+            support the ``BigFoo`` interface
+        :param bar_iterable: iterable yielding Bar instances. As Foo's
+             cannot exist without Bars, an empty iterable is invalid.
+        :param big: if True, change the return type from ``Foo`` to ``BigFoo``
+        :raise ValueError: if bar_iterable did not yield any Bar instance"""
+        pass # todo implementation
+        
+::
+    
+    # <test/test_feature.py> in righty
+    # It has been written while putting down the docs for the method
+    def test_makeFoo(self):
+        pass
+        # assure it returns Foo instances, BigFoo if the flag is set
+        
+        # which contain the bars we passed in
+    
+        # empty iterables raise
 
 Next up is the implementation of the test case - as it knows the interface of the method to test, it can be fully implemented before writing any actual implementation::
 	
-	>>> # assure it returns Foo instances, BigFoo if the flag is set
-	>>> bars = (Bar(), Bar()) 
-	>>> for big in range(2):
-	>>>		foo = makeFoo(iter(bars), big)
-	>>>		assert isinstance(foo, Foo)
-	>>>		if big:
-	>>>			assert isinstance(foo, BigFoo)
-	>>>		# END check rval type
-	>>>		
-	>>>		# which contain the bars we passed in
-	>>>		assert foo.bars == bars
-	>>>		
-	>>>		# empty iterables raise
-	>>>		self.failUnlessRaises(ValueError, makeFoo, tuple(), big)
-	>>>	# END for each value of 'big'
+	# assure it returns Foo instances, BigFoo if the flag is set
+	bars = (Bar(), Bar()) 
+	for big in range(2):
+		foo = makeFoo(iter(bars), big)
+		assert isinstance(foo, Foo)
+		if big:
+			assert isinstance(foo, BigFoo)
+		# END check rval type
+		
+		# which contain the bars we passed in
+		assert foo.bars == bars
+		
+		# empty iterables raise
+		self.failUnlessRaises(ValueError, makeFoo, tuple(), big)
+	# END for each value of 'big'
 
 Now you have a full frame for all the boundary cases that you have documented before. Run the test repeatedly while implementing your actual classes. Once the test succeeds, you can at least be quite confident that your code is actually working.
 
@@ -183,18 +186,18 @@ During development, it is unlikely that one remembers all methods available on i
 ::
 	
 	>>> p = Node("persp")
-	Transform("|persp")
-	
-	List all available methods on the perspective transform:
+	>>> Transform("|persp")
+	>>> 
+	>>> List all available methods on the perspective transform:
 	>>> p.<tab-key>
-	
-	Show the doc-string of a method:
+	>>> 
+	>>> Show the doc-string of a method:
 	>>> p.name?
-	
-	Jump into the debugger next time an exception occurs:
+	>>> 
+	>>> Jump into the debugger next time an exception occurs:
 	>>> pdb
 	
-	Disable the debugger
+	>>> Disable the debugger
 	>>> pdb
 	
 Avoiding Trouble - A Word about Reference Counts
@@ -207,24 +210,24 @@ To understand the source of the issue, one has to understand what an MObject is:
 
 If you see an MObject in python, such as in the following snippet ... ::
 	
-	>>> p = Node("persp")
-	>>> po = p.object()
+	p = Node("persp")
+	po = p.object()
 	<maya.OpenMaya.MObject; proxy of <Swig Object of type 'MObject *' at 0x36a2ee0> >
 	
 ... what you actually see is a proxy object which serves as a python handle to the actual C++ MObject. The reference count of that proxy object is 1, as it is stored in only one named variable, ``po``. The caveat here is that this does not affect the reference count of the underlying MObject at all - its reference count is the same as it was before. The only one who actually holds a reference to it is Maya, and it is allowed to drop it at any time, or copy its memory to a different location. If that would happen, any access to ``p`` or ``po`` may cause a crash or destabilize Maya to cause a crash later, which is even worse.
 
 The only way to forcibly increment the reference count is by copying the MObject explicitly::
 
-	>>> poc = api.MObject(po)
-	>>> po, poc
+	poc = api.MObject(po)
+	po, poc
 	(<maya.OpenMaya.MObject; proxy of C++ MObject instance at _f0d5050500000000_p_MObject>,
- <maya.OpenMaya.MObjectPtr; proxy of C++ MObject instance at _1008460200000000_p_MObject>)
+	<maya.OpenMaya.MObjectPtr; proxy of C++ MObject instance at _1008460200000000_p_MObject>)
  
 This invoked the C++ copy constructor, and incremented the reference count on the MObject. Copying MObjects might come at additional costs though in case the MObject encapsulates data.
 
 When adding attributes with the bare python Maya API, this situation can easily occur::
 	
-	>>> p.addAttribute(api.MFnTypedAttribute().create("sa", "stringarray", api.MFnData.kStringArray, api.MFnStringArrayData().create())
+	p.addAttribute(api.MFnTypedAttribute().create("sa", "stringarray", api.MFnData.kStringArray, api.MFnStringArrayData().create()))
 	
 In this example, we created two temporary function sets, ``MFnTypedAttribute`` and ``MFnStringArrayData``. The ``create`` methods of the respective sets return newly created MObjects - the only one who keeps a reference is the actual function set. Two bad things happened in the example:
 
@@ -235,7 +238,7 @@ If you try that line, you will see that it apparently works, but its not guarant
 
 The alternative to the line above is to use the Attribute wrappers that MRV provides::
 	
-	>>> p.addAttribute(TypedAttribute.create("sa", "stringarray", Data.Type.kStringArray, StringArrayData.create()))
+	p.addAttribute(TypedAttribute.create("sa", "stringarray", Data.Type.kStringArray, StringArrayData.create()))
 	
 In the version above, both create methods implicitly copy the returned MObject, which forcibly increments its reference count. Once the underlying MFnFunctionSet goes out of scope, it will decrement the MObject's reference counts to 1, keeping it alive and healthy.
 
