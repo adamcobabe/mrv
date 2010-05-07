@@ -17,6 +17,38 @@ import os, sys
 from path import Path
 
 
+#{ Configuration 
+
+## Version Info 
+# See http://docs.python.org/library/sys.html#sys.version_info for more information
+#               major, minor, micro, releaselevel, serial
+version_info = (1,     0,     0,     'Preview',        0)
+
+project_name = "mrv"
+author = "Sebastian Thiel"
+author_email = 'byronimo@gmail.com'
+url = "http://gitorious.org/mrv"
+description ='Convenient Animation Export and Import'
+license = "BSD License"
+setup_kwargs = dict(scripts=['bin/mrv', 'bin/imrv'],
+					  requires = ['nose', ], 
+					  long_description = """MRV is a multi-platform python development environment to ease rapid development 
+									of maintainable, reliable and high-performance code to be used in and around Autodesk Maya."
+									""",
+					  classifiers = [
+						"Development Status :: 5 - Production/Stable",
+						"Intended Audience :: Developers",
+						"License :: OSI Approved :: BSD License",
+						"Operating System :: OS Independent",
+						"Programming Language :: Python",
+						"Programming Language :: Python :: 2.5",
+						"Programming Language :: Python :: 2.6",
+						"Topic :: Software Development :: Libraries :: Python Modules",
+						]
+					)
+#} END configuration
+
+
 #{ Common
 def init_modules( filepath, moduleprefix, recurse=False, self_module = None):
 	""" Call '__initialize' functions in submodules of module at filepath if they exist
@@ -91,10 +123,6 @@ def init_modules( filepath, moduleprefix, recurse=False, self_module = None):
 			# EMD handle result
 	# END for each file or dir
 
-## Version Info 
-# See http://docs.python.org/library/sys.html#sys.version_info for more information
-#               major, minor, micro, releaselevel, serial
-version_info = (1,     0,     0,     'Preview',        0)
 
 #} END common
 
