@@ -30,22 +30,24 @@ author_email = 'byronimo@gmail.com'
 url = "http://gitorious.org/mrv"
 description ='Convenient Animation Export and Import'
 license = "BSD License"
-setup_kwargs = dict(scripts=['bin/mrv', 'bin/imrv'],
-					  requires = ['nose', ], 
-					  long_description = """MRV is a multi-platform python development environment to ease rapid development 
-									of maintainable, reliable and high-performance code to be used in and around Autodesk Maya."
-									""",
-					  classifiers = [
-						"Development Status :: 5 - Production/Stable",
-						"Intended Audience :: Developers",
-						"License :: OSI Approved :: BSD License",
-						"Operating System :: OS Independent",
-						"Programming Language :: Python",
-						"Programming Language :: Python :: 2.5",
-						"Programming Language :: Python :: 2.6",
-						"Topic :: Software Development :: Libraries :: Python Modules",
-						]
-					)
+setup_kwargs = dict(scripts=['bin/mrv', 'bin/imrv', 
+                             'test/bin/tmrv', 'test/bin/tmrvr'],
+                    requires = ['nose', ], 
+                    long_description = """MRV is a multi-platform python development environment to ease rapid development 
+                                    of maintainable, reliable and high-performance code to be used in and around Autodesk Maya."
+                                    """,
+                    package_data = { 'mrv.test' : ['fixtures/ma/*', 'fixtures/maya_user_prefs/'] },   
+                    classifiers = [
+                        "Development Status :: 5 - Production/Stable",
+                        "Intended Audience :: Developers",
+                        "License :: OSI Approved :: BSD License",
+                        "Operating System :: OS Independent",
+                        "Programming Language :: Python",
+                        "Programming Language :: Python :: 2.5",
+                        "Programming Language :: Python :: 2.6",
+                        "Topic :: Software Development :: Libraries :: Python Modules",
+                        ]
+                    )
 #} END configuration
 
 

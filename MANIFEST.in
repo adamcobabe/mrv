@@ -18,8 +18,7 @@ exclude test/test_batch.py
 exclude test/test_mdp.py
 
 graft test/fixtures
-exclude test/fixtures/ma/large_scene_100000.mb
-exclude test/fixtures/ma/large_scene_25000.mb
+prune test/fixtures/ma/huge
 
 # excluded as long conf.py is excluded
 prune test/fixtures/*ini*

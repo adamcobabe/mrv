@@ -98,14 +98,8 @@ class BuildPython(build_py):
 	def finalize_options(self):
 		build_py.finalize_options(self)
 		
-		# assign final value to our py_version
-		if self.maya_version is not None:
-			import mrv.cmd.base 
-			try:
-				self.py_version = mrv.cmd.base.python_version_of(float(self.maya_version))
-			except ValueError:
-				raise ValueError("Incorrect MayaVersion format: %s" % self.maya_version)
-		# END handle maya version
+		self.maya_version = self.distribution.maya_version
+		self.py_version = self.distribution.py_version 
 		
 	def byte_compile( self, files, **kwargs):
 		"""If we are supposed to compile, remove the original file afterwards"""
@@ -151,7 +145,46 @@ class BuildPython(build_py):
 		properly"""
 		build_py.build_packages(self)
 		
-	
+	def find_data_files(self, package, src_dir):
+		"""Fixes the underlying method by allowing to specify whole directories
+		whose files will be copied recursively. Thanks python for not even providing 
+		the bare mininum so people end up reimplementing parts of the 'distribution system'"""
+		# ALLOW DIRECTORY RECURSION
+		# preprocess the globs listing in package data: If it is not a glob, but 
+		# appears to be a directory, expand the directory tree and simple append
+		# the respective files ourselves
+		patterns = self.package_data.get(package, None)
+		add_files = list()
+		if patterns:
+			cl = len(src_dir) + 1	# cut length including path separator 
+			for pt in patterns[:]:
+				d = os.path.join(src_dir, pt)
+				if os.path.isdir(d):
+					patterns.remove(pt)		# remove original
+					for root, dirs, files in os.walk(d):
+						for f in files:
+							add_files.append(os.path.join(root, f))
+						# END for each actual directory
+					# END for each directory to walk
+				# END expand directory
+			# END for each patterm
+		# END handle expand patterns
+		
+		files = build_py.find_data_files(self, package, src_dir)
+		
+		# FIX DIRECTORIES
+		# additionally ... prune out items which are directories, as the system
+		# is as stupid as it gets so it ends up trying to copy a directory as 
+		# if it was a file
+		for f in files[:]:
+			if os.path.isdir(f):
+				files.remove(f)
+			# END remove directories
+		# END for each file
+		
+		return files + add_files
+		
+
 	#} END overridden methods 
 
 
@@ -163,7 +196,17 @@ class Distribution(object, BaseDistribution):
 	# for this class to work
 	root = None 
 	
+	# if True, every package in the 'ext' folder will be included in the distribution as well
+	# .git repository data will be pruned
+	include_external = True
 	#} END configuration
+	
+	
+	# Additional Global Options
+	BaseDistribution.global_options.extend( 
+		( ('%s=' % BuildPython.opt_maya_version, 'm', "Specify the maya version to operate on"), )
+	)
+	
 	
 	#{ Internals
 	@classmethod 
@@ -213,7 +256,7 @@ class Distribution(object, BaseDistribution):
 		# add external packages - just pretent its a package even though it it just 
 		# a path in external
 		ext_path = os.path.join(os.path.dirname(__file__), 'ext')
-		if os.path.isdir(ext_path):
+		if self.include_external and os.path.isdir(ext_path):
 			for root, dirs, files in os.walk(ext_path):
 				# remove hidden paths
 				for dir in dirs[:]:
@@ -250,12 +293,42 @@ class Distribution(object, BaseDistribution):
 		"""Initialize base and set some useful defaults"""
 		BaseDistribution.__init__(self, *args, **kwargs)
 		
-		if self.root is None:
-			raise ValueError("Root package is not set - it should be set in setup.main()")
+		# at this point, the options have not yet been parsed
+		self.py_version = float(sys.version[:3])
+		self.maya_version = None
 		
-		# assure we get all packages we need, including external if desired
-		self.packages = self.get_packages()
+		if not self.packages:
+			if self.root is None:
+				raise ValueError("Root package is not set - it should be set in setup.main()")
+			
+			# assure we get all packages we need, including external if desired
+			self.packages = self.get_packages()
+		# END auto-generate packages if not explicitly set
 		
+	def __del__(self):
+		"""undo monkey patches"""
+		if hasattr(self, '_orig_sys_version'):
+			sys.version = self._orig_sys_version
+		
+	def parse_command_line(self):
+		"""Handle our custom options"""
+		rval = BaseDistribution.parse_command_line(self)
+		if self.maya_version is not None:
+			import mrv.cmd.base
+			try:
+				self.py_version = mrv.cmd.base.python_version_of(float(self.maya_version))
+				
+				# APPLY MONKEY PATCHES
+				# NOTE: There is a method called get_python_version, but it is not used
+				# by all commands, so the safest thing is to override sys.version ... 
+				# ... yeah, whatever
+				self._orig_sys_version = sys.version
+				sys.version = "%g" % (self.py_version)
+			except ValueError:
+				raise ValueError("Incorrect MayaVersion format: %s" % self.maya_version)
+		# END handle python version
+		
+		return rval
 		
 	def get_command_class(self, command):
 		"""Return a command class, but prefer ours. We make it explicit here instead
