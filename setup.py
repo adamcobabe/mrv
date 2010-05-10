@@ -7,9 +7,10 @@ from distutils.dist import Distribution as BaseDistribution
 from distutils import log
 
 
-import distutils.command.build_py
-
-build_py = distutils.command.build_py.build_py
+import distutils.command
+from distutils.command.build_py import build_py
+from distutils.command.bdist_dumb import bdist_dumb
+from distutils.command.sdist import sdist
 
 try:
 	from setuptools import find_packages
@@ -71,7 +72,168 @@ def get_root_package():
 
 #{ Commands 
 
-class BuildPython(build_py):
+
+class _GitMixin(object):
+	"""Provides functionality to add files and folders within a base directory 
+	into the **root** of a git repository of our choice"""
+	
+	#{ Configuration
+	# default name of the remote with which to interact
+	remote_name = 'distro'
+	
+	#} END configuration 
+	
+	def __new__(cls, *args, **kwargs):
+		"""Because of our old-style bases, new needs to be overridden to 
+		call the object constructor without arguments"""
+		self = object.__new__(cls)
+		# have to manually call init on all bases because the old-style classes
+		# don't really cut it here
+		for c in cls.mro():
+			c.__init__(self, *args, **kwargs)
+		return self
+	
+	def __init__(self, *args, **kwargs):
+		"""Allows to configure some details, such as 
+		* remote name - name of the remote for which branches should be created/updated"""
+		self.remote_name = kwargs.pop('remote_name', 'distro')
+	
+	#{ Utilities
+	
+	def branch_name(self):
+		"""
+		:return: name of the branch identifying our current release configuration
+			The branch will be populated with the respective tags that in fact include 
+			a version. The branch does not include a version."""
+		root_name = self.distribution.root.__name__
+		suffix = ''
+		if 'sdist' in self.distribution.commands:
+			suffix = "_src"
+		elif 'bdist' in self.distribution.commands:
+			suffix = '_py'+sys.version[:3]
+		# END handle suffix
+		
+		return root_name + suffix
+	
+	def tag_name(self):
+		""":return: name for the tag we should use once we are done
+		:note: this method assumes our head is already in the distribution repositorys"""
+		# use the actual version as base version, but increment the minor 
+		# version based on the last tag in our revision history
+		
+		raise NotImplementedError()
+		
+	def set_head_to(self, repo, head_name):
+		"""et our head to point to the given head_name. If possible, 
+		update the index to represent the tree the head points to
+		
+		:return: Head named head_name
+		:note: In the worst case, the head points to non-existing ref, as the 
+			repository is still empty"""
+		import git
+		
+		head_ref = git.Head(repo, git.Head.to_full_path(head_name))
+		if head_ref.is_valid():
+			repo.index.reset(head_ref, working_tree=False, head=False)
+		# END handle index
+			
+		# if the head ref exists or not, we want to change the branch to the one
+		# we define. This is why we do this explicitly here. Resetting the index
+		# and setting the head will just set the current branch to the commit we 
+		# reset to 
+		repo.head.ref = head_ref
+		# END head exists handling
+		
+		return head_ref
+			
+		
+	def add_files_below(self, repo, root_dir):
+		"""Add all files recursively found below root_dir
+		As a special ability, we will rewrite their paths and thus add them relative
+		to the root directory, even though the git repository might be on another level
+		:return: Commit object """
+		
+		# the path to cut is (root_dir - repo.working_dir)
+		cut_path = os.path.abspath(root_dir)[len(os.path.abspath(repo.working_tree_dir))+1:]
+		def path_rewriter(entry):
+			# remove the root portion of the path as it is supposed to be relative
+			# to the repository. 
+			return entry.path[len(cut_path)+1:]	# +1 to cut the separator
+		# END path rewriter
+		
+		def path_generator():
+			for root, dirs, files in os.walk(root_dir):
+				for f in files:
+					yield os.path.join(root, f)
+				# END for each file
+			# END for each iteration
+		# END path generator
+		
+		# clear out the original index by deleting it
+		try:
+			os.remove(repo.index.path)
+		except OSError:
+			# it doesn't even exist
+			pass
+		# END remove index
+		
+		# add all files, rewriting their paths accordingly
+		repo.index.add(path_generator(), path_rewriter=path_rewriter)
+		
+	
+	#} END utilities
+	
+	#{ Interface 
+	def update_git(self, root_dir):
+		"""Put the contents in the root_dir into the configured git repository
+		Its important to note that the actual relative location of root_dir does not
+		matter as long as it is inside the git repository. The later object paths
+		within the git repository will all be relative to root_dir."""
+		from mrv.util import CallOnDeletion
+		try:
+			import git
+		except ImportError:
+			raise ImportError("Could not import git, please make sure that gitpython is available in your installation")
+		# END end 
+		
+		# searches for closest available repo in parent dirs, might end up in 
+		# the developers dir which is okay as well.
+		repo = git.Repo(root_dir)
+		assert os.path.basename(repo.working_dir) != self.distribution.root.__name__, "Aborting as I shouldn't be working in the main repository: %s" % repo
+		
+		
+		if repo.is_dirty(index=True, working_tree=False, untracked_files=False):
+			raise EnvironmentError("Cannot operate on a dirty index - please have a look at git repository at %s" % repo)
+		# END abort on dirty index
+		
+		
+		try:
+			prev_head_ref = repo.head.ref
+			__IndexCleanup = CallOnDeletion(lambda : self.set_head_to(repo, prev_head_ref))
+		except TypeError:
+			# ignore detached heads
+			pass 
+		# END handle head is detached
+		
+		
+		# checkout the target branch gently ( index and head only )
+		branch_name = self.branch_name()
+		head_ref = self.set_head_to(repo, branch_name)
+		assert repo.head.ref == head_ref
+		
+		# add our all files below our root
+		self.add_files_below(repo, root_dir)
+		
+		# finalize the commit, advancing the head
+		# Provide a good comment that helps associating the distribution commit
+		# with the current repository commit
+		main_repo = git.Repo(os.path.dirname(self.distribution.root.__file__)) 
+		commit = repo.index.commit("%s@%s" % (self.distribution.get_fullname(), main_repo.head.commit), head=True)
+	
+	#} END interface 
+	
+
+class BuildPython(_GitMixin, build_py):
 	"""Customize the command preparing python modules in order to skip copying 
 	original py files if compile is specified. Additionally we allow the python 
 	interpreter to be specified as the bytecode is incompatible between the versions"""
@@ -174,7 +336,7 @@ class BuildPython(build_py):
 		
 		# FIX DIRECTORIES
 		# additionally ... prune out items which are directories, as the system
-		# is as stupid as it gets so it ends up trying to copy a directory as 
+		# is as stupid as it gets, so it ends up trying to copy a directory as 
 		# if it was a file
 		for f in files[:]:
 			if os.path.isdir(f):
@@ -184,8 +346,35 @@ class BuildPython(build_py):
 		
 		return files + add_files
 		
+	def run(self):
+		"""Perform the main operation, and handle git afterwards
+		:note: It is done at a point where the py modules as well as the executables
+		are available. In case there are c-modules, these wouldn't be availble here."""
+		build_py.run(self)
+		
+		# HANDLE GIT
+		############
+		# this works ... checked their code which seems hacky, so we continue with the 
+		# hackiness
+		package_dir = os.path.join(self.build_lib, self.distribution.root.__name__)
+		self.update_git(package_dir)
 
 	#} END overridden methods 
+
+
+class GitSourceDistribution(_GitMixin, sdist):
+	"""Instead of creating an archive, we put the source tree into a git repository"""
+	#{ Overridden Functions
+	
+	def make_archive(self, base_name, format, root_dir=None, base_dir=None):
+		self.update_git(root_dir)
+		super(_GitMixin, self).make_archive(base_name, format, root_dir, base_dir)
+		
+	#} END overridden functions
+
+
+class GitBinaryDistribution(_GitMixin, bdist_dumb):
+	"""Instead of creating an archive, the built data will be put into a git repository."""
 
 
 class Distribution(object, BaseDistribution):
@@ -199,16 +388,23 @@ class Distribution(object, BaseDistribution):
 	# if True, every package in the 'ext' folder will be included in the distribution as well
 	# .git repository data will be pruned
 	include_external = True
+	
+	
+	# requires map - lists additional includes for different distribution outputs
+	requires_map = dict(	sdist = [ 'nose', 'epydoc', 'sphinx', 'gitpython' ], 
+							bdist = list() ) 
+	
 	#} END configuration
 	
 	
 	# Additional Global Options
-	BaseDistribution.global_options.extend( 
+	BaseDistribution.global_options.extend(
 		( ('%s=' % BuildPython.opt_maya_version, 'm', "Specify the maya version to operate on"), )
 	)
 	
 	
 	#{ Internals
+	
 	@classmethod 
 	def modifiy_sys_args(cls):
 		"""Parse our own arguments off the args list and modify the argument 
@@ -233,7 +429,32 @@ class Distribution(object, BaseDistribution):
 		if version_info[3]:
 			base += "-%s" % version_info[3]
 		return base
-	
+		
+	def postprocess_metadata(self):
+		"""Called after the commandline has been parsed. With all information available
+		we can decide whether additional dependencies need to be specified"""
+		
+		# HANDLE DEPENDENCIES
+		num_dist_commands = 0
+		for key in sorted(self.requires_map.keys()):
+			if key in self.commands:
+				if self.metadata.requires is None:
+					self.metadata.requires = list()
+				# END assure we have a list
+				
+				# assign unique depends
+				rlist = self.requires_map[key]
+				self.metadata.set_requires(sorted(list(set(self.metadata.requires) | set(rlist)))) 
+				num_dist_commands += 1
+			# END if we have requirements for a command
+		# END for each distribution command
+		
+		# for now, we can only handle one dist command at a time !
+		# this could be improved though 
+		if num_dist_commands > 1:
+			raise AssertionError("Currently we can only process one distribution target per invocation")
+		# END assure only one dist command per invocation
+			
 	#} END Internals 
 	
 	
@@ -305,6 +526,10 @@ class Distribution(object, BaseDistribution):
 			self.packages = self.get_packages()
 		# END auto-generate packages if not explicitly set
 		
+		# Override Commands
+		self.cmdclass[build_py.__name__] = BuildPython
+		self.cmdclass[sdist.__name__] = GitSourceDistribution
+		
 	def __del__(self):
 		"""undo monkey patches"""
 		if hasattr(self, '_orig_sys_version'):
@@ -327,15 +552,10 @@ class Distribution(object, BaseDistribution):
 			except ValueError:
 				raise ValueError("Incorrect MayaVersion format: %s" % self.maya_version)
 		# END handle python version
-		
+
+		self.postprocess_metadata()
+
 		return rval
-		
-	def get_command_class(self, command):
-		"""Return a command class, but prefer ours. We make it explicit here instead
-		of monkey-patching the existing module"""
-		if command == build_py.__name__:
-			return BuildPython
-		return BaseDistribution.get_command_class(self, command)
 	
 	#} END overridden methods
 
