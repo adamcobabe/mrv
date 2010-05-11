@@ -118,13 +118,14 @@ class _GitMixin(object):
 		
 		return root_name + suffix
 	
-	def tag_name(self):
+	def tag_name(self, repo):
 		""":return: name for the tag we should use once we are done
-		:note: this method assumes our head is already in the distribution repositorys"""
+		:param repo: repository with the distribution branch set as HEAD
+		:note: this method assumes our head is already set to the distribution branch"""
 		# use the actual version as base version, but increment the minor 
 		# version based on the last tag in our revision history
-		
-		raise NotImplementedError()
+		version_info = self.distribution.root.version_info
+		return "%sv%i.%i.%i" % (self.branch_name(),) + version_info[:3]
 		
 	def set_head_to(self, repo, head_name):
 		"""et our head to point to the given head_name. If possible, 
@@ -221,6 +222,206 @@ class _GitMixin(object):
 		# END check duplicate data and drop commit if required
 			 
 		return commit
+		
+	def _query_user_token(self, tokens):
+		"""Read tokens from user and finally return a token he picked
+		:raise Exception: if user failed in some point.
+		:return: tuple with version info in corresponding format"""
+		ml = 5
+		assert len(tokens) == ml, "invalid token format: %s" % str(tokens)
+		
+		while True:
+			ot = list()
+			
+			# provide all tokens to the user and allow him to change each one
+			print "The current version is: %s" % ', '.join(str(t) for t in tokens)
+			print "Each version token will be presented to you in order, and you may provide an alternative"
+			print "Once you are happy with the result, it will be written to the init file"
+			print ""
+			for count, (token, ttype) in enumerate(zip(tokens, (int, int, int, str, int))):
+				while True:
+					answer = raw_input("%s %i of %i == %s [%s]: " % (ttype.__name__, count+1, ml, token, token))
+					if answer == '':
+						answer = str(token)
+					# END handle default answer
+					
+					try:
+						converted = ttype(answer)
+						if issubclass(ttype, basestring):
+							converted = converted.strip()
+							for char in "\"'":
+								if converted.endswith(char): 
+									converted = converted[:-1]
+								if converted.startswith(char):
+									converted = converted[1:]
+							# END for each character to truncate
+						# END handle strings
+							
+						ot.append(converted)
+						break		# get out of the type loop
+					except ValueError:
+						print "Answer %r could not be converted to %s - please try again" % (answer, ttype.__name__)
+						continue
+					# END exception handline
+				# END get type right loop
+			# END for each token/type pair
+			
+			# present the version to the user, one last time
+			print "The version you selected is: %s" % ', '.join(str(t) for t in ot)
+			print "Continue with it or try again ?"
+			asw = 'continue'
+			answer = raw_input("%s/retry [%s]: " % (asw, asw)) or asw
+			if answer != asw:
+				tokens = ot
+				continue
+			# END handle retry
+			
+			return tuple(ot)
+		# END while to determine user is happy
+		
+		
+	def handle_version_and_tag(self, root_repo):
+		"""Assure our current commit in the main repository is tagged properly
+		If so, continue, if not, try to create a tag with the current version.
+		If the version was already tagged before, help the user to adjust his 
+		version string in the root module, make a commit, and finally create 
+		the tag we were so desperate for. The main idea is to enforce a unique 
+		version each time we make a release, and to make that easy
+		
+		:return: TagReference object created
+		:raise EnvironmentError: if we could not get a valid tag"""
+		import git
+		
+		root_head_commit = root_repo.head.commit
+		tags = [ t for t in git.TagReference.iter_items(root_repo) if t.commit == root_head_commit ]
+		if len(tags) == 1:
+			return tags[0]
+		# END tag existed
+		
+		
+		msg = "Please create a tag at your main repository at your currently checked-out commit to mark your release"
+		createexc = EnvironmentError(msg)
+		if not sys.stdout.isatty():
+			raise createexc
+		# END abort if we cannot communicate
+			
+		def version_tag(vi):
+			tag_name = 'v%i.%i.%i' % vi[:3]
+			if vi[3]:
+				tag_name += "-%s" % vi[3]
+			# END append suffix
+			
+			out_tag = None
+			return git.Tag.from_path(root_repo, git.Tag.to_full_path(tag_name))
+		# END version tag creator 
+		
+		# CREATE TAG ?
+		##############
+		# from current version
+		# ask the user to create a tag - make sure it does not yet exist 
+		# before asking
+		target_tag = version_tag(self.distribution.root.version_info)
+		if not target_tag.is_valid():
+			asw = "abort"
+			msg = "Would you like me to create the tag %s in your repository at %s to proceed ?\n" % (target_tag.name, root_repo.working_tree_dir)
+			msg += "yes/%s [%s]: " % (asw, asw)
+			answer = raw_input(msg) or asw
+			if answer != 'yes':
+				raise createexc
+			# END check query
+			
+			return git.TagReference.create(root_repo, target_tag.name, force=False)
+		# END could create the tag with current version 
+		
+		# INCREMENT VERSION AND CREATE TAG
+		##################################
+		asw = "adjust version"
+		msg = """Your current commit is not tagged - the automatically generated tag name %s does already exist at a previous commit.
+Would you like to adjust your version_info or abort ?
+%s/abort [%s]: """ % (target_tag.name, asw, asw) 
+		answer = raw_input(msg) or asw
+		if answer != asw:
+			raise createexc
+		# END abort automated creation
+		
+		# ASSURE INIT FILE UNCHANGED
+		# parse the init script and adjust it - if there are changes in the 
+		# working tree file, abort !
+		init_file = os.path.join(os.path.dirname(self.distribution.root.__file__), "__init__.py")
+		if len(root_repo.index.diff(None, paths=init_file)):
+			raise EnvironmentError("The init file %r that would be changed contains uncommitted changes. Please commit them and try again" % init_file)
+		# END assure init file unchanged
+		
+		out_lines = list()
+		made_adjustment = False
+		fmtexc = ValueError("Expecting following version_info format: version_info = (1, 0, 0, 'string', 0)")
+		for line in open(init_file, 'r'):
+			if not made_adjustment and line.strip().startswith('version_info'):
+				# present the stripped strings separated by commas - it must be a tuple
+				# fail on parsing errors
+				sline = line.strip()
+				if not sline.endswith(')'):
+					raise fmtexc
+					
+				tokens = [ t.strip() for t in sline[sline.find('(')+1:-1].split(',') ]
+				
+				if len(tokens) != 5:
+					raise fmtexc
+				
+				while True:
+					tokens = self._query_user_token( tokens )
+					
+					# verify the version provides a unique tag name
+					target_tag = version_tag(tokens)
+					if not target_tag.is_valid():
+						break
+					# END have valid tag ( as it does not yet exist )
+					
+					asw = 'increment'
+					print "The tag created according to your version info %r does already exist. Increment the minor version and retry ?" % target_tag.name
+					answer = raw_input("%s/abort [%s]: " % (asw, asw)) or asw
+					if answer != asw:
+						raise createexc
+					# END handle answer
+					
+					# increment minor
+					ptl = list(tokens)
+					ptl[2] += 1
+					tokens = tuple(ptl)  
+					print "\nIncremented minor version to %i" % ptl[2]
+					print "You will be asked to verify the new version again, allowing you to adjust it manually as well\n"
+				# END while user didn't provide a unique token
+				
+				# build a new line with our updated version info
+				line = "version_info = ( %i, %i, %i, '%s', %i )\n" % tokens
+				
+				made_adjustment = True
+			# END adjust version-info line with user help
+			out_lines.append(line)
+		# END for each line
+		
+		if not made_adjustment:
+			raise fmtexc
+		
+		# query the commit message
+		cmsg = "Adjusted version_info to %s " % target_tag.name[1:]
+		
+		print "The changes to the init file at %r will be committed." % init_file 
+		print "Please enter your commit message or hit Ctrl^C to abort without a change to your file"
+		cmsg = raw_input("[%s]: " % cmsg) or cmsg
+		
+		# write the file back - at this point the index is garantueed to be clean
+		# so our init file is the only one that changes
+		open(init_file, 'wb').writelines(out_lines)
+		root_repo.index.add([init_file])
+		commit = root_repo.index.commit(cmsg, head=True)
+		
+		# create tag on the latest head 
+		git.TagReference.create(root_repo, target_tag.name, force=False)
+		
+		return target_tag
+		
+		
 	
 	#} END utilities
 	
@@ -249,6 +450,10 @@ class _GitMixin(object):
 		if repo.is_dirty(index=True, working_tree=False, untracked_files=False):
 			raise EnvironmentError("Cannot operate on a dirty index - please have a look at git repository at %s" % repo)
 		# END abort on dirty index
+		
+		
+		# we require the current commit to be tagged
+		root_tag = self.handle_version_and_tag(root_repo)
 		
 		try:
 			prev_head_ref = repo.head.ref
