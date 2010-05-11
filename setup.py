@@ -81,6 +81,9 @@ class _GitMixin(object):
 	# default name of the remote with which to interact
 	remote_name = 'distro'
 	
+	# name of symbolic reference which keeps the previous reference name to which 
+	# HEAD pointed before we changed HEAD
+	prev_head_name = 'DIST_ORIG_HEAD'
 	#} END configuration 
 	
 	def __new__(cls, *args, **kwargs):
@@ -106,10 +109,10 @@ class _GitMixin(object):
 			The branch will be populated with the respective tags that in fact include 
 			a version. The branch does not include a version."""
 		root_name = self.distribution.root.__name__
-		suffix = ''
-		if 'sdist' in self.distribution.commands:
-			suffix = "_src"
-		elif 'bdist' in self.distribution.commands:
+		suffix = '_src'
+		build_py_cmd = self.distribution.get_command_obj('build_py', create=False)
+		
+		if build_py_cmd and build_py_cmd.needs_compilation:
 			suffix = '_py'+sys.version[:3]
 		# END handle suffix
 		
@@ -135,6 +138,9 @@ class _GitMixin(object):
 		head_ref = git.Head(repo, git.Head.to_full_path(head_name))
 		if head_ref.is_valid():
 			repo.index.reset(head_ref, working_tree=False, head=False)
+			
+			# store the previous ref in a new symbolic ref
+			git.SymbolicReference.create(repo, self.prev_head_name, head_ref, force=True)
 		# END handle index
 			
 		# if the head ref exists or not, we want to change the branch to the one
@@ -145,13 +151,21 @@ class _GitMixin(object):
 		# END head exists handling
 		
 		return head_ref
-			
 		
-	def add_files_below(self, repo, root_dir):
-		"""Add all files recursively found below root_dir
+	def add_files_and_commit(self, root_repo, repo, root_dir):
+		"""
+		Add all files recursively to the index as found below root_dir and commit the
+		index.
+		
 		As a special ability, we will rewrite their paths and thus add them relative
-		to the root directory, even though the git repository might be on another level
+		to the root directory, even though the git repository might be on another level.
+		It also sports a simple way to determine whether the commit already exists, 
+		so it will not recommit data that has just been committed.
+		
+		:param root_repo: Repository containing the data of the main project
+		:param repo: dedicated repository containing the distribution data
 		:return: Commit object """
+		import git
 		
 		# the path to cut is (root_dir - repo.working_dir)
 		cut_path = os.path.abspath(root_dir)[len(os.path.abspath(repo.working_tree_dir))+1:]
@@ -180,6 +194,33 @@ class _GitMixin(object):
 		# add all files, rewriting their paths accordingly
 		repo.index.add(path_generator(), path_rewriter=path_rewriter)
 		
+		# finalize the commit, advancing the head
+		# Provide a good comment that helps associating the distribution commit
+		# with the current repository commit. We handle the case that the distribution
+		# repository is the root repository, hence the last actual head reference is 
+		# stored in a temporary symbolic ref. It will not exist of root_repo and repo
+		# are different repositories
+		prev_head = git.SymbolicReference(root_repo, self.prev_head_name)
+		root_commit = root_repo.head.commit
+		suffix = ''
+		if prev_head.is_valid():
+			root_commit = prev_head.commit
+		# END get actual commit reference
+		
+		if root_repo.is_dirty(index=False, working_tree=True, untracked_files=False):
+			suffix = "-dirty"
+		# END handle suffix
+		
+		commit = repo.index.commit("%s@%s%s" % (self.distribution.get_fullname(), root_commit, suffix), head=True)
+		
+		# check whether the commit encapsulates new information - did the tree change ?
+		if commit.parents and commit.parents[0].tree == commit.tree:
+			log.info("Dropped created commit %s as it contained the same tree as its parent commit" % commit)
+			commit = commit.parents[0] 
+			repo.head.commit = commit
+		# END check duplicate data and drop commit if required
+			 
+		return commit
 	
 	#} END utilities
 	
@@ -199,13 +240,15 @@ class _GitMixin(object):
 		# searches for closest available repo in parent dirs, might end up in 
 		# the developers dir which is okay as well.
 		repo = git.Repo(root_dir)
-		assert os.path.basename(repo.working_dir) != self.distribution.root.__name__, "Aborting as I shouldn't be working in the main repository: %s" % repo
+		root_repo = git.Repo(os.path.dirname(self.distribution.root.__file__))
+		assert root_repo != repo, "Aborting as I shouldn't be working in the main repository: %s" % repo
 		
+		if root_repo.is_dirty(index=True, working_tree=False, untracked_files=False):
+			raise EnvironmentError("Please commit your changes in index of repository %s and try again" % root_repo)
 		
 		if repo.is_dirty(index=True, working_tree=False, untracked_files=False):
 			raise EnvironmentError("Cannot operate on a dirty index - please have a look at git repository at %s" % repo)
 		# END abort on dirty index
-		
 		
 		try:
 			prev_head_ref = repo.head.ref
@@ -222,13 +265,8 @@ class _GitMixin(object):
 		assert repo.head.ref == head_ref
 		
 		# add our all files below our root
-		self.add_files_below(repo, root_dir)
+		commit = self.add_files_and_commit(root_repo, repo, root_dir)
 		
-		# finalize the commit, advancing the head
-		# Provide a good comment that helps associating the distribution commit
-		# with the current repository commit
-		main_repo = git.Repo(os.path.dirname(self.distribution.root.__file__)) 
-		commit = repo.index.commit("%s@%s" % (self.distribution.get_fullname(), main_repo.head.commit), head=True)
 	
 	#} END interface 
 	
@@ -238,17 +276,42 @@ class BuildPython(_GitMixin, build_py):
 	original py files if compile is specified. Additionally we allow the python 
 	interpreter to be specified as the bytecode is incompatible between the versions"""
 	
-	#{ Configuration
-	
 	description="Implements byte-compilation with different python interpreter versions"
 	
-	opt_maya_version = 'maya-version'
-	build_py.user_options.extend((( '%s=' % opt_maya_version, 'm', 
-									'maya version you would like to compile the bytecode for. \
-									Determines the interpreter used. If not set, the current \
-									one will be used' ), 
-									))
+	#{ Configuration
+	
+	# if we are to byte-compile the code, the test suite ( everything in the 
+	# /test/ directory ) will be excluded automatically
+	exclude_compiled_test_suite = True
+	
 	#} END configuration 
+	
+	#{ Internals
+	def handle_test_suite(self):
+		"""Remove test-suite related packages from our package array if required"""
+		if not self.exclude_compiled_test_suite or not self.needs_compilation:
+			return
+		# END check early abort
+		
+		# remove all .test. packages
+		token = '.test'
+		if self.packages:
+			self.packages = [ p for p in self.packages if token not in p ]
+		if self.py_modules:
+			self.py_modules = [ p for p in self.py_modules if token not in p ]
+			
+		# additionally, remove all data files which appear to be tests
+		if self.data_files:
+			# its sooo terrible that it is named 'data_files', but in fact contains
+			# a tuple with much more information !
+			# Besides, every module we build is represented in here, even though 
+			# there are no 'data files' ... !
+			self.data_files = [ 	(package, src_dir, build_dir, filenames) 
+									for package, src_dir, build_dir, filenames in self.data_files 
+									if token not in package ]
+		# END handle data files
+		
+	#} END internals
 	
 	#{ Overridden Methods 
 	
@@ -256,25 +319,29 @@ class BuildPython(_GitMixin, build_py):
 		build_py.initialize_options(self)
 		self.py_version = None
 		self.maya_version = None		# set later by distutils
+		self.needs_compilation = None
 		
 	def finalize_options(self):
 		build_py.finalize_options(self)
 		
 		self.maya_version = self.distribution.maya_version
-		self.py_version = self.distribution.py_version 
+		self.py_version = self.distribution.py_version
+		self.needs_compilation = self.compile or self.optimize
+		
+		self.handle_test_suite()
 		
 	def byte_compile( self, files, **kwargs):
 		"""If we are supposed to compile, remove the original file afterwards"""
-		needs_compilation = self.compile or self.optimize
-		if needs_compilation and self.py_version is None:
-			raise ValueError("If compilation is requested, the'%s' option must be specified" % self.opt_maya_version)
+		
+		if self.needs_compilation and self.py_version is None:
+			raise ValueError("If compilation is requested, the'%s' option must be specified" % self.distribution.opt_maya_version)
 		# END handle errors
 		
 		# assure we byte-compile in a standalone interpreter, manipulating the 
 		# sys.executable as it will be used later
 		prev_debug = __debug__
 		prev_executable = sys.executable
-		if needs_compilation:
+		if self.needs_compilation:
 			# this forces to use a standalone process
 			__builtin__.__debug__ = False
 			
@@ -282,11 +349,9 @@ class BuildPython(_GitMixin, build_py):
 			sys.executable = "python%g" % self.py_version
 		# END preparation
 		
-		# TODO: allow choosing the python version
-		# Additionally: allow to rename pyo back to pyc possibly if maya wants it 
 		rval = build_py.byte_compile(self, files, **kwargs)
 		
-		if needs_compilation:
+		if self.needs_compilation:
 			# restore original values
 			__builtin__.__debug__ = prev_debug
 			sys.executable = prev_executable
@@ -302,11 +367,6 @@ class BuildPython(_GitMixin, build_py):
 		
 		return rval
 	
-	def build_packages(self):
-		"""Makes sure that the external modules are found as well and handled 
-		properly"""
-		build_py.build_packages(self)
-		
 	def find_data_files(self, package, src_dir):
 		"""Fixes the underlying method by allowing to specify whole directories
 		whose files will be copied recursively. Thanks python for not even providing 
@@ -398,8 +458,9 @@ class Distribution(object, BaseDistribution):
 	
 	
 	# Additional Global Options
+	opt_maya_version = 'maya-version'
 	BaseDistribution.global_options.extend(
-		( ('%s=' % BuildPython.opt_maya_version, 'm', "Specify the maya version to operate on"), )
+		( ('%s=' % opt_maya_version, 'm', "Specify the maya version to operate on"), )
 	)
 	
 	
