@@ -12,6 +12,8 @@ from distutils.command.build_py import build_py
 from distutils.command.bdist_dumb import bdist_dumb
 from distutils.command.sdist import sdist
 
+from itertools import chain
+
 try:
 	from setuptools import find_packages
 except ImportError:
@@ -117,15 +119,6 @@ class _GitMixin(object):
 		# END handle suffix
 		
 		return root_name + suffix
-	
-	def tag_name(self, repo):
-		""":return: name for the tag we should use once we are done
-		:param repo: repository with the distribution branch set as HEAD
-		:note: this method assumes our head is already set to the distribution branch"""
-		# use the actual version as base version, but increment the minor 
-		# version based on the last tag in our revision history
-		version_info = self.distribution.root.version_info
-		return "%sv%i.%i.%i" % (self.branch_name(),) + version_info[:3]
 		
 	def set_head_to(self, repo, head_name):
 		"""et our head to point to the given head_name. If possible, 
@@ -152,8 +145,140 @@ class _GitMixin(object):
 		# END head exists handling
 		
 		return head_ref
+	
+	def item_chooser(self, description, items):
+		"""Utility allowing the user to easily select items from the items list
+		:param items: objects that can be converted into a string
+		:return: list of selected items"""
+		if not items:
+			return list()
 		
-	def add_files_and_commit(self, root_repo, repo, root_dir):
+		while True:
+			print description
+			print "Type the numbers to select the items, i.e. 1,2,5 or 0 to select all"
+			print ""
+			print "0 == All Items"
+			for i, item in enumerate(items):
+				print "%i == %s" % (i+1, item)
+			# END for each item to print
+			
+			indices = list()
+			sel_items = list()
+			while True:
+				try:
+					answer = raw_input("Choice: " )
+					indices.extend(int(i.strip()) for i in answer.split(','))
+					break
+				except Exception:
+					print "Failed to parse your choice, please try again: %s" % answer
+					continue
+				# END excpetion handling
+			# END parse loop
+			
+			if not indices:
+				asw = 'abort'
+				print "No item selected - would you like to abort ?"
+				answer = raw_input("%s/continue [%s]" % (asw, asw)) or asw
+				if answer == asw:
+					print "User aborted selection"
+					return list()
+				else:
+					continue
+				# END handle answer
+			# END handle nothing choosen
+			
+			# gather indices
+			if 0 in indices:
+				sel_items.extend(items)
+			else:
+				for index in indices:
+					try:
+						sel_items.append(items[index-1])
+					except IndexError:
+						pass
+					# END handle invalid indices
+				# END for each index
+			# END for each 
+			
+			# present the selection
+			print "Your selection: "
+			for item in sel_items:
+				print str(item)
+			# END for each item
+			asw = "proceed"
+			print "Would you like to proceed or re-select ?"
+			answer = raw_input("%s/reselect [%s]: " % (asw, asw)) or asw
+			
+			if answer != asw:
+				continue
+			
+			return sel_items
+		# END while user is unhappy
+		
+		return items
+	
+	def push_to_remotes(self, repo):
+		"""Find remotes in the given repository, and ask the user which branches
+		he wants to push to where. 
+		Generally, all tags will be pushed too"""
+		remotes = repo.remotes
+		heads = repo.heads
+		if not remotes or not heads:
+			return
+		# END skip empty remotes
+		
+		asw = "yes"
+		print "Would you like to push your changes in repo %s" % repo
+		answer = raw_input("%s/no [%s]: " % (asw, asw)) or asw
+		if answer != asw:
+			print "You can push your changes manually any time"
+			return 
+		# END see if the user wants to push
+		
+		
+		desc = "Please choose the remotes to push to"
+		remotes = self.item_chooser(desc, remotes)
+		
+		desc = "Please choose your branches to push to the selected remotes" 
+		heads = self.item_chooser(desc, heads)
+		
+		if not remotes or not heads:
+			print "No remotes or heads selected - won't push anything"
+			return
+		# END abort if there is nothing to do
+		
+		tags = repo.tags
+		
+		asw = 'yes'
+		print "The following branches will be pushed to the given following remotes"
+		print "Branches: %s" % ', '.join(str(h) for h in heads)
+		print "Remotes: %s" % ', '.join(str(r) for r in remotes)
+		print "Tags: all"
+		print "Are you sure ?"
+		answer = raw_input("%s/skip [%s]: " % (asw, asw)) or asw
+		if answer != asw:
+			print "Skipped pushing to remotes for repo %s" % repo
+			return
+		# END handle final confirmation
+		
+		# prep refspec
+		specs = list()
+		for item in chain(heads, tags):
+			specs.append("%s:%s" % (item.path, item.path))
+		# END for each item to push
+		
+		# do the operation
+		for remote in remotes:
+			print "Pushing to %s ..." % remote
+			remote.push(specs)
+			print "Done"
+		# END for each remote to push to
+		
+		
+		
+		
+
+	def add_files_and_commit(self, root_repo, repo, root_dir, root_tag):
 		"""
 		Add all files recursively to the index as found below root_dir and commit the
 		index.
@@ -220,6 +345,16 @@ class _GitMixin(object):
 			commit = commit.parents[0] 
 			repo.head.commit = commit
 		# END check duplicate data and drop commit if required
+		
+		# finally, create a tag which is unique for the branches and the actual version
+		# If the commit didn't change anything, it might already exist, but we 
+		# don't care about that
+		# In case the user managed to adjust data and create a new tree, but kept 
+		# the version the same for some reason ( you could do that if you really 
+		# want to ), we force the tag creation to update it in these cases
+		# If the user wants it, we do it, no questions asked
+		tag_name = "%s-%s" % (self.branch_name(), root_tag.name)
+		git.Tag.create(repo, tag_name, force=True)
 			 
 		return commit
 		
@@ -278,7 +413,6 @@ class _GitMixin(object):
 			
 			return tuple(ot)
 		# END while to determine user is happy
-		
 		
 	def handle_version_and_tag(self, root_repo):
 		"""Assure our current commit in the main repository is tagged properly
@@ -421,8 +555,6 @@ Would you like to adjust your version_info or abort ?
 		
 		return target_tag
 		
-		
-	
 	#} END utilities
 	
 	#{ Interface 
@@ -470,7 +602,15 @@ Would you like to adjust your version_info or abort ?
 		assert repo.head.ref == head_ref
 		
 		# add our all files below our root
-		commit = self.add_files_and_commit(root_repo, repo, root_dir)
+		commit = self.add_files_and_commit(root_repo, repo, root_dir, root_tag)
+		
+		# allow to auto-push to all or given remotes for both repositories
+		if sys.stdout.isatty():
+			repos = set((root_repo, repo))
+			for rpo in repos:
+				self.push_to_remotes(rpo)
+			# END for each repo
+		# END handle remotes
 		
 	
 	#} END interface 
