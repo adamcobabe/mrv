@@ -14,6 +14,8 @@ import mrv.test.cmd as cmd
 
 from mrv.path import Path
 
+ospd = os.path.dirname
+
 
 __all__ = [ "DocGenerator" ]
 
@@ -33,18 +35,27 @@ class DocGenerator(object):
 	html_dir = build_dir / 'html'
 	downloads_dir = html_dir / '_downloads'
 	
-	rootpackage = 'mrv'
-	epydoc_cfg = """[epydoc]
-name: MRV Development Framework
-url: http://wiki.byronimo.de/mrv
-
-sourcecode: yes
-modules: unittest
+	# EPYDOC
+	epydoc_show_source = 'yes'
+	epydoc_modules = """modules: unittest
 modules: pydot,pyparsing
-modules: ../,../ext/networkx/networkx
+modules: ../,../ext/networkx/networkx"""
 
-exclude: mrv.test,mrv.doc,mrv.cmd.ipythonstartup
+	epydoc_exclude = "mrv.test,mrv.doc,mrv.cmd.ipythonstartup"  
 
+
+	# DYNAMICALLY ADJUSTED MEMBERS
+	# These members will be adjusted after reading the current project's 
+	# information
+	rootmodule = None
+	epydoc_cfg = """[epydoc]
+name: %s
+url: %s
+
+sourcecode: %s
+%s
+
+exclude: %s
 output: html"""
 
 	#} END configuration
@@ -55,14 +66,18 @@ output: html"""
 		:param sphinx: If True, sphinx documentation will be produced
 		:param coverage: If True, the coverage report will be generated
 		:param epydoc: If True, epydoc documentation will be generated"""
+		assert self.rootmodule is not None, "Call adjust_project_info before instantiating this class to initialize the type"
+		
+		
 		self._sphinx = sphinx
 		self._coverage = coverage
 		self._epydoc = epydoc
 		
-		# these directories are used for navigation
-		# Currently we assume that we are being started in the docs 
-		# directory
-		assert Path(os.getcwd()).basename() == 'doc', "Need to run in the 'doc' directory"
+		# We assume to be in the project's doc directory, otherwise we cannot
+		# automatically handle the project information
+		if Path(os.getcwd()).basename() != 'doc':
+			raise EnvironmentError("Current directory needs to be the 'doc' directory")
+			
 		self._base_dir = Path('.')
 		self._project_dir = Path(self._base_dir / "..")
 	
@@ -94,8 +109,39 @@ output: html"""
 		return parser
 		
 	@classmethod
+	def package_info(cls):
+		""":return: tuple(root_path, package_root_path, root_package_name ) tuple of the path containing
+		all modules, path containing the root package, as well as the name of our root package 
+		as deduced from the package_root_path"""
+		rootpath = ospd(os.path.realpath(os.path.abspath('.')))
+		packageroot = ospd(rootpath)
+		packagename = os.path.basename(rootpath)
+		return (rootpath, packageroot, packagename)
+		
+	@classmethod
+	def adjust_project_info(cls):
+		"""Store the project information of the actual project in our class members
+		for later use"""
+		rootpath, packageroot, packagename = cls.package_info()
+		
+		# for now, we assume our root package is already in the path
+		try:
+			cls.rootmodule = __import__(packagename)
+		except ImportError:
+			raise EnvironmentError("Root package %s could not be imported" % packagename)
+		# END handle import 
+		
+		cls.epydoc_cfg = cls.epydoc_cfg % (cls.rootmodule.project_name, 
+											cls.rootmodule.url, 
+											cls.epydoc_show_source,
+											cls.epydoc_modules, 
+											cls.epydoc_exclude)
+		
+		
+	@classmethod
 	def makedoc(cls, args):
 		"""Produce the actual docs using this type"""
+		cls.adjust_project_info()
 		p = cls.parser()
 		
 		hlp = """If specified, previously generated files will be removed. Works in conjunction 
@@ -225,7 +271,6 @@ output: html"""
 		
 	def _tmrv_bin_path(self):
 		""":return: Path to tmrv binary"""
-		ospd = os.path.dirname
 		return Path(os.path.join(ospd(ospd(cmd.__file__)), 'bin', 'tmrv'))
 		
 	def _call_python_script(self, *args, **kwargs):
@@ -242,6 +287,39 @@ output: html"""
 	
 	#{ Protected Interface
 
+	@classmethod
+	def _version_file_name(cls, idstring):
+		""":return: filename at which to write the version file with the given id"""
+		return "%s.version_info" % idstring 
+
+	@classmethod
+	def _write_version(cls, idstring):
+		"""Writes a version file containing the rootmodule's version info. 
+		This allows to verify that the version of the individual parts, like
+		epydoc and sphinx are still matching"""
+		version_string = "version_info = (%i, %i, %i, '%s', %i)" % cls.rootmodule.version_info
+		open(cls._version_file_name(idstring), 'wb').write(version_string)
+	
+	@classmethod
+	def _check_version(cls, opid, idstring):
+		"""Checks whether the current version info matches with the stored version info
+		as retrieved from idstring. 
+		If there is no such info or if the version matches exactly, do nothing. 
+		Otherwise raise an environment error to tell the user to rebuild the 
+		respective part of the documentation"""
+		vlocals = dict()
+		vfile = cls._version_file_name(idstring)
+		if not os.path.isfile(vfile):
+			return
+		
+		execfile(vfile, vlocals)
+		vinfo = vlocals['version_info']
+		if vinfo != cls.rootmodule.version_info:
+			msg = "Documentation target named '%s' at version %s requires '%s' ( last built at %s ) to be rebuild" % (opid, str(cls.rootmodule.version_info), idstring, str(vinfo))
+			raise EnvironmentError(msg)
+		# END raise exception
+		
+	
 	def _make_sphinx_index(self):
 		"""Generate the index.rst file according to the modules and packages we
 		actually have"""
@@ -293,7 +371,7 @@ output: html"""
 		
 		try:
 			rval = self._call_python_script([tmrvpath, str(self._mrv_maya_version()), 
-											"%s=%s" % (cmd.tmrv_coverage_flag, self.rootpackage)])
+											"%s=%s" % (cmd.tmrv_coverage_flag, self.rootmodule.__name__)])
 		finally:
 			os.chdir(prevcwd)
 		# END handle cwd
@@ -321,6 +399,8 @@ output: html"""
 		for html in coverage_dir.files():
 			shutil.copy(html, bdd)
 		# END for each html
+		
+		self._write_version('coverage')
 		
 		
 	def _make_sphinx_autogen(self):
@@ -370,9 +450,24 @@ output: html"""
 			rstfile.write_lines(lines)
 		# END for each rst to process
 		
+	def _sphinx_args(self):
+		""":return: list of arguments to be used when calling sphinx from the commandline
+		:note: directories of all kinds will be handled by the caller"""
+		# we don't need "" around the values as we don't use a shell
+		return ['-c', 'import sys, sphinx.cmdline; sphinx.cmdline.main(sys.argv)',
+				'-b', 'html',
+				'-D', 'latex_paper_size=a4', 
+				'-D', 'latex_paper_size=letter',
+				'-D', 'project=%s' % self.rootmodule.project_name,
+				'-D', 'copyright=%s' % self.rootmodule.author,
+				'-D', 'version=%s' % "%i.%i" % self.rootmodule.version_info[:2],
+				'-D', 'release=%s' % "%i.%i.%i-%s" % self.rootmodule.version_info[:4]]
 		
 	def _make_sphinx(self):
 		"""Generate the sphinx documentation"""
+		self._check_version('sphinx', 'epydoc')
+		self._check_version('sphinx', 'coverage')
+		
 		mrvpath = self._mrv_bin_path()
 		out_dir = self._html_output_dir()
 		
@@ -382,16 +477,13 @@ output: html"""
 			# END assure directory exists
 		# END for each directory
 		
-		args = [mrvpath, str(self._mrv_maya_version()),
-				'-c', 'import sys, sphinx.cmdline; sphinx.cmdline.main(sys.argv)',
-				'-b', 'html',
-				'-D', 'latex_paper_size=a4', 
-				'-D', 'latex_paper_size=letter', 
-				'-d', self._doctrees_dir(),
-				self.source_dir, 
-				out_dir]
+		pathargs = ['-d', self._doctrees_dir(), self.source_dir,  out_dir]
 		
+		args = [mrvpath, str(self._mrv_maya_version())] + self._sphinx_args() + pathargs 
+				
 		self._call_python_script(args)
+		
+		self._write_version('sphinx')
 		
 	def _make_epydoc(self):
 		"""Generate epydoc documentation"""
@@ -420,6 +512,7 @@ output: html"""
 			sys.argv.extend(origargs)
 		# END handle epydoc config file
 		
+		self._write_version('epydoc')
 
 	#} END protected interface
 

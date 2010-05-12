@@ -35,17 +35,9 @@ source_suffix = '.rst'
 # The master toctree document.
 master_doc = 'index'
 
-# General substitutions.
-project = 'MRV'
-copyright = '2010, Sebastian Thiel'
-
 # The default replacements for |version| and |release|, also used in various
 # other places throughout the built documents.
 #
-# The short X.Y version.
-version = '1.0'
-# The full version, including alpha/beta/rc tags.
-release = '1.0.0-preview'
 
 # There are two options for replacing |today|: either, you set today to some
 # non-false value, then it is used:
