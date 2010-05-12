@@ -39,7 +39,8 @@ setup_kwargs = dict(scripts=__scripts_bin + __scripts_test_bin,
                                     of maintainable, reliable and high-performance code to be used in and around Autodesk Maya."
                                     """,
                     package_data = {   'mrv.test' : ['fixtures/ma/*', 'fixtures/maya_user_prefs/'] + __scripts_test_bin_s, 
-                    					'mrv' : __scripts_bin + ['doc/source', 'doc/makedoc', '!*doc/source/generated/*', '!*.gitignore'] },   
+                    					'mrv' : __scripts_bin + ['!*.gitignore'], 
+                    					'mrv.doc' : ['source', 'makedoc', '!*source/generated/*'] },   
                     classifiers = [
                         "Development Status :: 5 - Production/Stable",
                         "Intended Audience :: Developers",

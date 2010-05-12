@@ -57,12 +57,11 @@ class _GitMixin(object):
 	into the **root** of a git repository of our choice"""
 	
 	#{ Configuration
-	# default name of the remote with which to interact
-	remote_name = 'distro'
-	
 	# name of symbolic reference which keeps the previous reference name to which 
 	# HEAD pointed before we changed HEAD
 	prev_head_name = 'DIST_ORIG_HEAD'
+	
+	branch_suffix = None
 	#} END configuration 
 	
 	def __new__(cls, *args, **kwargs):
@@ -78,24 +77,16 @@ class _GitMixin(object):
 	def __init__(self, *args, **kwargs):
 		"""Allows to configure some details, such as 
 		* remote name - name of the remote for which branches should be created/updated"""
-		self.remote_name = kwargs.pop('remote_name', 'distro')
+		pass
 	
 	#{ Utilities
 	
 	def branch_name(self):
-		"""
-		:return: name of the branch identifying our current release configuration
-			The branch will be populated with the respective tags that in fact include 
-			a version. The branch does not include a version."""
+		""":return: name of the branch identifying our current release configuration"""
 		root_name = self.distribution.rootmodule.__name__
-		suffix = '_src'
-		build_py_cmd = self.distribution.get_command_obj('build_py', create=False)
-		
-		if build_py_cmd and build_py_cmd.needs_compilation:
-			suffix = '_py'+sys.version[:3]
-		# END handle suffix
-		
-		return root_name + suffix
+		if self.branch_suffix is None:
+			raise ValueError("Branch suffix is not set")
+		return root_name + self.branch_suffix
 		
 	def set_head_to(self, repo, head_name):
 		"""et our head to point to the given head_name. If possible, 
@@ -231,12 +222,13 @@ class _GitMixin(object):
 		# END abort if there is nothing to do
 		
 		tags = repo.tags
+		tag_map = dict((tag.commit, tag) for tag in tags)
 		
 		asw = 'yes'
 		print "The following branches will be pushed to the given following remotes"
 		print "Branches: %s" % ', '.join(str(h) for h in heads)
 		print "Remotes: %s" % ', '.join(str(r) for r in remotes)
-		print "Tags: all"
+		print "Tags: included in branches"
 		print "Are you sure ?"
 		answer = raw_input("%s/skip [%s]: " % (asw, asw)) or asw
 		if answer != asw:
@@ -244,9 +236,23 @@ class _GitMixin(object):
 			return
 		# END handle final confirmation
 		
+		# walk the history of all branches and select all tags on the way
+		actual_tags = list()
+		for head in heads:
+			curcommit = head.commit
+			while True:
+				if curcommit in tag_map:
+					actual_tags.append(tag_map[curcommit])
+				# END found tag
+				if not curcommit.parents:
+					break
+				curcommit = curcommit.parents[0]
+			# END pseudo do-while
+		# END for each branch
+		
 		# prep refspec
 		specs = list()
-		for item in chain(heads, tags):
+		for item in chain(heads, actual_tags):
 			specs.append("%s:%s" % (item.path, item.path))
 		# END for each item to push
 		
@@ -412,15 +418,14 @@ class BuildPython(_GitMixin, build_py):
 	
 	#{ Configuration
 	
-	# if we are to byte-compile the code, the test suite ( everything in the 
-	# /test/ directory ) will be excluded automatically
-	exclude_compiled_test_suite = True
+	# A sequence of modules to exclude, i.e. '.modulename' or 'this.that'
+	exclude_modules = ( '.test', '.doc' )
 	
 	#} END configuration 
 	
 	#{ Internals
 	
-	def _exclude_package(self, package_name):
+	def _exclude_items(self, package_name):
 		"""Exclude the given package name from our packages and datafiles
 		:param package_name: The name of the package, i.e. '.test'"""
 		token = package_name
@@ -440,14 +445,10 @@ class BuildPython(_GitMixin, build_py):
 									if token not in package ]
 		# END handle data files
 	
-	def handle_test_suite(self):
-		"""Remove test-suite related packages from our package array if required"""
-		if not self.exclude_compiled_test_suite or not self.needs_compilation:
-			return
-		# END check early abort
-		
-		# remove all .test. packages
-		self._exclude_package('.test')
+	def handle_exclusion(self):
+		"""Apply the exclusion patterns"""
+		for exclude_pattern in self.exclude_modules:
+			self._exclude_items(exclude_pattern)
 		
 	#} END internals
 	
@@ -466,7 +467,14 @@ class BuildPython(_GitMixin, build_py):
 		self.py_version = self.distribution.py_version
 		self.needs_compilation = self.compile or self.optimize
 		
-		self.handle_test_suite()
+		self.handle_exclusion()
+		
+		# HANDLE BRANCH SUFFIX
+		if self.needs_compilation:
+			self.branch_suffix = '-py'+sys.version[:3]
+		else:
+			self.branch_suffix = '-pyany'
+		# END handle suffix
 		
 	def byte_compile( self, files, **kwargs):
 		"""If we are supposed to compile, remove the original file afterwards"""
@@ -581,6 +589,10 @@ class BuildPython(_GitMixin, build_py):
 
 class GitSourceDistribution(_GitMixin, sdist):
 	"""Instead of creating an archive, we put the source tree into a git repository"""
+	#{ Configuration 
+	branch_suffix = '-src'
+	#} END configuration
+	
 	#{ Overridden Functions
 	
 	def make_archive(self, base_name, format, root_dir=None, base_dir=None):
@@ -600,6 +612,8 @@ class DocCommand(_GitMixin, Command):
 	user_options = [ 
 					('zip-archive', 'z', "If set, a zip archive will be created")
 					]
+					
+	branch_suffix = '-doc'
 	#} END configuration
 	
 	def __init__(self, *args):
@@ -633,16 +647,12 @@ class DocCommand(_GitMixin, Command):
 			self.update_git(html_out_dir)
 		# END handle git
 	
-	def branch_name(self):
-		root_name = self.distribution.rootmodule.__name__
-		return "%s-docs" % root_name
-	
 	#{ Interface
 	
 	def create_zip_archive(self, html_out_dir):
 		"""Create a zip archive from the data in the html output directory
 		:return: path to the created zip file"""
-		fname = "%s-docs" % self.distribution.get_fullname()
+		fname = "%s-doc" % self.distribution.get_fullname()
 		base_name = os.path.join(self.dist_dir, fname)
 		
 		zfile = self.make_archive(base_name, "zip", base_dir='.', root_dir=html_out_dir)
