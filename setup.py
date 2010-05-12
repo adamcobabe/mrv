@@ -9,6 +9,7 @@ from distutils import log
 
 
 import distutils.command
+from distutils.cmd import Command
 from distutils.command.build_py import build_py
 from distutils.command.bdist_dumb import bdist_dumb
 from distutils.command.sdist import sdist
@@ -562,9 +563,137 @@ class GitSourceDistribution(_GitMixin, sdist):
 	#} END overridden functions
 
 
-class GitBinaryDistribution(_GitMixin, bdist_dumb):
-	"""Instead of creating an archive, the built data will be put into a git repository."""
-
+class DocCommand(_GitMixin, Command):
+	"""Build the documentation, and include everything into the git repository if 
+	required."""
+	
+	cmdname = 'docdist'
+	
+	#{ Configuration
+	user_options = [ 
+					('zip-archive', 'z', "If set, a zip archive will be created")
+					]
+	#} END configuration
+	
+	def __init__(self, *args):
+		self.docgen = None
+		self.dist_dir = None
+		self.zip_archive = False
+	
+	def initialize_options(self):
+   	   pass
+   
+	def finalize_options(self):
+		# documentation generator instance, only set if docs should be included
+		self.docgen = None
+		if self.dist_dir is None:
+			self.dist_dir = self.distribution.dist_dir
+		self._init_doc_generator()
+	
+	def run(self):
+		if not self.distribution.use_git and not self.zip_archive:
+			raise ValueError("Please specify to use git or to generate a zip-archive")
+		# END assert config
+		
+		html_out_dir, was_built = self.build_documentation()
+		
+		if self.zip_archive:
+			self.create_zip_archive(html_out_dir)
+		# END create zip
+	
+	#{ Interface
+	
+	def create_zip_archive(self, html_out_dir):
+		"""Create a zip archive from the data in the html output directory
+		:return: path to the created zip file"""
+		fname = "%s-docs" % self.distribution.get_fullname()
+		base_name = os.path.join(self.dist_dir, fname)
+		
+		zfile = self.make_archive(base_name, "zip", base_dir='.', root_dir=html_out_dir)
+		self.distribution.dist_files.append((self.cmdname, '', zfile))
+		return zfile
+	
+	def build_documentation(self):
+		"""Build the documentation with our current version tag - this allows
+		it to be included in the release as it has been updated
+		:return: tuple(html_base, Bool) tuple with base directory containing all html
+		files ( possibly with subdirectories ), and a boolean which is True if 
+		the documentation was build, False if it was still uptodate """
+		base_dir = self._init_doc_generator()
+		
+		# CHECK IF BUILD IS REQUIRED
+		############################
+		html_out_dir = self.docgen.html_output_dir()
+		index_file = html_out_dir / 'index.html'
+		needs_build = True
+		if index_file.isfile():
+			needs_build = False
+			# version file for sphinx really should exist at least, its the main 
+			# documentation no matter what
+			st = 'sphinx'
+			if not self.docgen.version_file_name(st, basedir=base_dir).isfile():
+				needs_build = True
+			# END check existing version info
+			
+			if not needs_build:
+				for token in ('coverage', 'epydoc', st):
+					# check if the docs need to be rebuild
+					try:
+						self.docgen.check_version('release', token)
+					except EnvironmentError:
+						needs_build = True
+					# END docs don't need to be build
+				# END for each token
+			# END additional search
+		# END check version as index exists
+		
+		if not needs_build:
+			log.info("Skipped building documentation as it was uptodate and complete")
+			return (html_out_dir, False)
+		# END skip build
+		
+		# when actually creating the docs, we start the respective script as it 
+		# might as well be re-implemented in a derived project, and is probably 
+		# safest to do
+		import mrv.cmd.base
+		makedocpath = mrv.cmd.base.find_mrv_script('makedoc')
+		
+		# makedoc must be started from the doc directory - adjust makedoc
+		p = self.spawn_python_interpreter((makedocpath.basename(), ), cwd=base_dir)
+		if p.wait():
+			raise ValueError("Building of Documentation failed")
+		# END wait for build to complete
+		
+		return (html_out_dir, True)
+	#} END interface 
+	
+	#{ Internal
+	def _init_doc_generator(self):
+		"""initialize the docgen instance, and return the base_dir at which 
+		it operates"""
+		base_dir = os.path.join('.', 'doc')
+		if self.docgen is not None:
+			return base_dir
+		# END handle duplicate calls 
+		
+		# try to use an overriden docgenerator, then our own one
+		GenCls = None
+		try:
+			docbase = __import__("%s.doc.base" % self.rootmodule.__name__, fromlist=['doesntmatter'])
+			GenCls = docbase.DocGenerator
+		except (ImportError, AttributeError):
+			import mrv.doc.base as docbase
+			GenCls = docbase.DocGenerator
+		# END get doc generator class
+		
+		if not os.path.isdir(base_dir):
+			raise EnvironmentError("Cannot build documentation as '%s' directory does not exist" % base_dir)
+		# END check doc dir exists
+		
+		self.docgen = GenCls(base_dir=base_dir)
+		return base_dir
+	
+	#} END internal
 
 class Distribution(object, BaseDistribution):
 	"""Customize available options and behaviour to work with mrv and derived projects"""
@@ -583,6 +712,9 @@ class Distribution(object, BaseDistribution):
 	requires_map = dict(	sdist = [ 'nose', 'epydoc', 'sphinx', 'gitpython' ], 
 							bdist = list() ) 
 	
+	
+	# directory to which all of our comamnds will store their distribution data
+	dist_dir = 'dist'
 	#} END configuration
 	
 	
@@ -591,7 +723,6 @@ class Distribution(object, BaseDistribution):
 	
 	BaseDistribution.global_options.extend(
 		( ('%s=' % opt_maya_version, 'm', "Specify the maya version to operate on"),
-		  ('include-docs=', 'd', "If set (default), the full documentation will be built and included in the release"),
 		  ('regression-tests=', 't', "If set (default), the regression tests will be executed, distribution fails if one test fails"),
 		  ('use-git=', 'g', "If set (default), the build results will be put into a git repository"), )
 	)
@@ -872,68 +1003,6 @@ Would you like to adjust your version_info or abort ?
 		if p.wait():
 			raise ValueError("Regression Tests failed")
 			
-	def build_documentation(self):
-		"""Build the documentation with our current version tag - this allows
-		it to be included in the release as it has been updated"""
-		# try to use an overriden docgenerator, then our own one
-		GenCls = None
-		try:
-			docbase = __import__("%s.doc.base" % self.rootmodule.__name__, fromlist=['doesntmatter'])
-			GenCls = docbase.DocGenerator
-		except (ImportError, AttributeError):
-			import mrv.doc.base as docbase
-			GenCls = docbase.DocGenerator
-		# END get doc generator class
-		
-		base_dir = os.path.join('.', 'doc')
-		if not os.path.isdir(base_dir):
-			raise EnvironmentError("Cannot build documentation as '%s' directory does not exist" % base_dir)
-		# END check doc dir exists
-		
-		self.docgen = GenCls(base_dir=base_dir)
-		
-		# CHECK IF BUILD IS REQUIRED
-		############################
-		index_file = self.docgen.html_output_dir() / 'index.html'
-		needs_build = True
-		if index_file.isfile():
-			needs_build = False
-			# version file for sphinx really should exist at least, its the main 
-			# documentation no matter what
-			st = 'sphinx'
-			if not self.docgen.version_file_name(st, basedir=base_dir).isfile():
-				needs_build = True
-			# END check existing version info
-			
-			if not needs_build:
-				for token in ('coverage', 'epydoc', st):
-					# check if the docs need to be rebuild
-					try:
-						self.docgen.check_version('release', token)
-					except EnvironmentError:
-						needs_build = True
-					# END docs don't need to be build
-				# END for each token
-			# END additional search
-		# END check version as index exists
-		
-		if not needs_build:
-			log.info("Skipped building documentation as it was uptodate and complete")
-			return
-		# END skip build
-		
-		# when actually creating the docs, we start the respective script as it 
-		# might as well be re-implemented in a derived project, and is probably 
-		# safest to do
-		import mrv.cmd.base
-		makedocpath = mrv.cmd.base.find_mrv_script('makedoc')
-		
-		# makedoc must be started from the doc directory - adjust makedoc
-		p = self.spawn_python_interpreter((makedocpath.basename(), ), cwd=base_dir)
-		if p.wait():
-			raise ValueError("Building of Documentation failed")
-		# END wait for build to complete
-		
 	#} END Internals 
 	
 	
@@ -1026,10 +1095,6 @@ Would you like to adjust your version_info or abort ?
 		self.use_git = True
 		self.root_repo = None
 		
-		# documentation generator instance, only set if docs should be included
-		self.include_docs = True
-		self.docgen = None
-		
 		if not self.packages:
 			self.packages = self.get_packages()
 		# END auto-generate packages if not explicitly set
@@ -1037,6 +1102,7 @@ Would you like to adjust your version_info or abort ?
 		# Override Commands
 		self.cmdclass[build_py.__name__] = BuildPython
 		self.cmdclass[sdist.__name__] = GitSourceDistribution
+		self.cmdclass[DocCommand.cmdname] = DocCommand
 		
 	def __del__(self):
 		"""undo monkey patches"""
@@ -1070,7 +1136,6 @@ Would you like to adjust your version_info or abort ?
 		# handle evil types - the underlying systems puts strings into the variables
 		# ... how can you ?
 		self.use_git = int(self.use_git)
-		self.include_docs = int(self.include_docs)
 		self.regression_tests = int(self.regression_tests)
 		
 		# setup git if required
@@ -1091,10 +1156,6 @@ Would you like to adjust your version_info or abort ?
 		if self.regression_tests:
 			self.perform_regression_tests()
 		# END regression tests
-		
-		if self.include_docs:
-			self.build_documentation()
-		# END doc building
 		
 		BaseDistribution.run_commands(self)
 		
