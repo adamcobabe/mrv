@@ -13,6 +13,7 @@ from distutils.command.bdist_dumb import bdist_dumb
 from distutils.command.sdist import sdist
 
 from itertools import chain
+import subprocess
 
 try:
 	from setuptools import find_packages
@@ -130,6 +131,13 @@ class _GitMixin(object):
 		import git
 		
 		head_ref = git.Head(repo, git.Head.to_full_path(head_name))
+		
+		# if the head ref exists or not, we want to change the branch to the one
+		# we define. This is why we do this explicitly here. Resetting the index
+		# and setting the head will just set the current branch to the commit we 
+		# reset to 
+		repo.head.ref = head_ref
+		
 		if head_ref.is_valid():
 			repo.index.reset(head_ref, working_tree=False, head=False)
 			
@@ -137,11 +145,6 @@ class _GitMixin(object):
 			git.SymbolicReference.create(repo, self.prev_head_name, head_ref, force=True)
 		# END handle index
 			
-		# if the head ref exists or not, we want to change the branch to the one
-		# we define. This is why we do this explicitly here. Resetting the index
-		# and setting the head will just set the current branch to the commit we 
-		# reset to 
-		repo.head.ref = head_ref
 		# END head exists handling
 		
 		return head_ref
@@ -201,10 +204,14 @@ class _GitMixin(object):
 			# END for each 
 			
 			# present the selection
-			print "Your selection: "
-			for item in sel_items:
-				print str(item)
-			# END for each item
+			if sel_items:
+				print "Your selection: "
+				for item in sel_items:
+					print str(item)
+				# END for each item
+			else:
+				print "You didn't select anything"
+			# END present items
 			asw = "proceed"
 			print "Would you like to proceed or re-select ?"
 			answer = raw_input("%s/reselect [%s]: " % (asw, asw)) or asw
@@ -273,10 +280,6 @@ class _GitMixin(object):
 			remote.push(specs)
 			print "Done"
 		# END for each remote to push to
-		
-		
-		
-		
 
 	def add_files_and_commit(self, root_repo, repo, root_dir, root_tag):
 		"""
@@ -358,203 +361,6 @@ class _GitMixin(object):
 			 
 		return commit
 		
-	def _query_user_token(self, tokens):
-		"""Read tokens from user and finally return a token he picked
-		:raise Exception: if user failed in some point.
-		:return: tuple with version info in corresponding format"""
-		ml = 5
-		assert len(tokens) == ml, "invalid token format: %s" % str(tokens)
-		
-		while True:
-			ot = list()
-			
-			# provide all tokens to the user and allow him to change each one
-			print "The current version is: %s" % ', '.join(str(t) for t in tokens)
-			print "Each version token will be presented to you in order, and you may provide an alternative"
-			print "Once you are happy with the result, it will be written to the init file"
-			print ""
-			for count, (token, ttype) in enumerate(zip(tokens, (int, int, int, str, int))):
-				while True:
-					answer = raw_input("%s %i of %i == %s [%s]: " % (ttype.__name__, count+1, ml, token, token))
-					if answer == '':
-						answer = str(token)
-					# END handle default answer
-					
-					try:
-						converted = ttype(answer)
-						if issubclass(ttype, basestring):
-							converted = converted.strip()
-							for char in "\"'":
-								if converted.endswith(char): 
-									converted = converted[:-1]
-								if converted.startswith(char):
-									converted = converted[1:]
-							# END for each character to truncate
-						# END handle strings
-							
-						ot.append(converted)
-						break		# get out of the type loop
-					except ValueError:
-						print "Answer %r could not be converted to %s - please try again" % (answer, ttype.__name__)
-						continue
-					# END exception handline
-				# END get type right loop
-			# END for each token/type pair
-			
-			# present the version to the user, one last time
-			print "The version you selected is: %s" % ', '.join(str(t) for t in ot)
-			print "Continue with it or try again ?"
-			asw = 'continue'
-			answer = raw_input("%s/retry [%s]: " % (asw, asw)) or asw
-			if answer != asw:
-				tokens = ot
-				continue
-			# END handle retry
-			
-			return tuple(ot)
-		# END while to determine user is happy
-		
-	def handle_version_and_tag(self, root_repo):
-		"""Assure our current commit in the main repository is tagged properly
-		If so, continue, if not, try to create a tag with the current version.
-		If the version was already tagged before, help the user to adjust his 
-		version string in the root module, make a commit, and finally create 
-		the tag we were so desperate for. The main idea is to enforce a unique 
-		version each time we make a release, and to make that easy
-		
-		:return: TagReference object created
-		:raise EnvironmentError: if we could not get a valid tag"""
-		import git
-		
-		root_head_commit = root_repo.head.commit
-		tags = [ t for t in git.TagReference.iter_items(root_repo) if t.commit == root_head_commit ]
-		if len(tags) == 1:
-			return tags[0]
-		# END tag existed
-		
-		
-		msg = "Please create a tag at your main repository at your currently checked-out commit to mark your release"
-		createexc = EnvironmentError(msg)
-		if not sys.stdout.isatty():
-			raise createexc
-		# END abort if we cannot communicate
-			
-		def version_tag(vi):
-			tag_name = 'v%i.%i.%i' % vi[:3]
-			if vi[3]:
-				tag_name += "-%s" % vi[3]
-			# END append suffix
-			
-			out_tag = None
-			return git.Tag.from_path(root_repo, git.Tag.to_full_path(tag_name))
-		# END version tag creator 
-		
-		# CREATE TAG ?
-		##############
-		# from current version
-		# ask the user to create a tag - make sure it does not yet exist 
-		# before asking
-		target_tag = version_tag(self.distribution.root.version_info)
-		if not target_tag.is_valid():
-			asw = "abort"
-			msg = "Would you like me to create the tag %s in your repository at %s to proceed ?\n" % (target_tag.name, root_repo.working_tree_dir)
-			msg += "yes/%s [%s]: " % (asw, asw)
-			answer = raw_input(msg) or asw
-			if answer != 'yes':
-				raise createexc
-			# END check query
-			
-			return git.TagReference.create(root_repo, target_tag.name, force=False)
-		# END could create the tag with current version 
-		
-		# INCREMENT VERSION AND CREATE TAG
-		##################################
-		asw = "adjust version"
-		msg = """Your current commit is not tagged - the automatically generated tag name %s does already exist at a previous commit.
-Would you like to adjust your version_info or abort ?
-%s/abort [%s]: """ % (target_tag.name, asw, asw) 
-		answer = raw_input(msg) or asw
-		if answer != asw:
-			raise createexc
-		# END abort automated creation
-		
-		# ASSURE INIT FILE UNCHANGED
-		# parse the init script and adjust it - if there are changes in the 
-		# working tree file, abort !
-		init_file = os.path.join(os.path.dirname(self.distribution.root.__file__), "__init__.py")
-		if len(root_repo.index.diff(None, paths=init_file)):
-			raise EnvironmentError("The init file %r that would be changed contains uncommitted changes. Please commit them and try again" % init_file)
-		# END assure init file unchanged
-		
-		out_lines = list()
-		made_adjustment = False
-		fmtexc = ValueError("Expecting following version_info format: version_info = (1, 0, 0, 'string', 0)")
-		for line in open(init_file, 'r'):
-			if not made_adjustment and line.strip().startswith('version_info'):
-				# present the stripped strings separated by commas - it must be a tuple
-				# fail on parsing errors
-				sline = line.strip()
-				if not sline.endswith(')'):
-					raise fmtexc
-					
-				tokens = [ t.strip() for t in sline[sline.find('(')+1:-1].split(',') ]
-				
-				if len(tokens) != 5:
-					raise fmtexc
-				
-				while True:
-					tokens = self._query_user_token( tokens )
-					
-					# verify the version provides a unique tag name
-					target_tag = version_tag(tokens)
-					if not target_tag.is_valid():
-						break
-					# END have valid tag ( as it does not yet exist )
-					
-					asw = 'increment'
-					print "The tag created according to your version info %r does already exist. Increment the minor version and retry ?" % target_tag.name
-					answer = raw_input("%s/abort [%s]: " % (asw, asw)) or asw
-					if answer != asw:
-						raise createexc
-					# END handle answer
-					
-					# increment minor
-					ptl = list(tokens)
-					ptl[2] += 1
-					tokens = tuple(ptl)  
-					print "\nIncremented minor version to %i" % ptl[2]
-					print "You will be asked to verify the new version again, allowing you to adjust it manually as well\n"
-				# END while user didn't provide a unique token
-				
-				# build a new line with our updated version info
-				line = "version_info = ( %i, %i, %i, '%s', %i )\n" % tokens
-				
-				made_adjustment = True
-			# END adjust version-info line with user help
-			out_lines.append(line)
-		# END for each line
-		
-		if not made_adjustment:
-			raise fmtexc
-		
-		# query the commit message
-		cmsg = "Adjusted version_info to %s " % target_tag.name[1:]
-		
-		print "The changes to the init file at %r will be committed." % init_file 
-		print "Please enter your commit message or hit Ctrl^C to abort without a change to your file"
-		cmsg = raw_input("[%s]: " % cmsg) or cmsg
-		
-		# write the file back - at this point the index is garantueed to be clean
-		# so our init file is the only one that changes
-		open(init_file, 'wb').writelines(out_lines)
-		root_repo.index.add([init_file])
-		commit = root_repo.index.commit(cmsg, head=True)
-		
-		# create tag on the latest head 
-		git.TagReference.create(root_repo, target_tag.name, force=False)
-		
-		return target_tag
-		
 	#} END utilities
 	
 	#{ Interface 
@@ -563,6 +369,9 @@ Would you like to adjust your version_info or abort ?
 		Its important to note that the actual relative location of root_dir does not
 		matter as long as it is inside the git repository. The later object paths
 		within the git repository will all be relative to root_dir."""
+		if not self.distribution.use_git:
+			return
+		
 		from mrv.util import CallOnDeletion
 		try:
 			import git
@@ -573,19 +382,20 @@ Would you like to adjust your version_info or abort ?
 		# searches for closest available repo in parent dirs, might end up in 
 		# the developers dir which is okay as well.
 		repo = git.Repo(root_dir)
-		root_repo = git.Repo(os.path.dirname(self.distribution.root.__file__))
+		root_repo = self.distribution.root_repo
 		assert root_repo != repo, "Aborting as I shouldn't be working in the main repository: %s" % repo
 		
-		if root_repo.is_dirty(index=True, working_tree=False, untracked_files=False):
+		dirty_kwargs = dict(index=True, working_tree=False, untracked_files=False)
+		if root_repo.is_dirty(**dirty_kwargs):
 			raise EnvironmentError("Please commit your changes in index of repository %s and try again" % root_repo)
 		
-		if repo.is_dirty(index=True, working_tree=False, untracked_files=False):
+		if repo.is_dirty(**dirty_kwargs):
 			raise EnvironmentError("Cannot operate on a dirty index - please have a look at git repository at %s" % repo)
 		# END abort on dirty index
 		
 		
 		# we require the current commit to be tagged
-		root_tag = self.handle_version_and_tag(root_repo)
+		root_tag = self.distribution.handle_version_and_tag()
 		
 		try:
 			prev_head_ref = repo.head.ref
@@ -804,8 +614,12 @@ class Distribution(object, BaseDistribution):
 	
 	# Additional Global Options
 	opt_maya_version = 'maya-version'
+	
 	BaseDistribution.global_options.extend(
-		( ('%s=' % opt_maya_version, 'm', "Specify the maya version to operate on"), )
+		( ('%s=' % opt_maya_version, 'm', "Specify the maya version to operate on"),
+		  ('build-docs=', 'b', "If set (default), the full documentation will be built"),
+		  ('regression-tests=', 't', "If set (default), the regression tests will be executed, distribution fails if one test fails"),
+		  ('use-git=', 'g', "If set (default), the build results will be put into a git repository"), )
 	)
 	
 	
@@ -860,6 +674,228 @@ class Distribution(object, BaseDistribution):
 		if num_dist_commands > 1:
 			raise AssertionError("Currently we can only process one distribution target per invocation")
 		# END assure only one dist command per invocation
+		
+	def _query_user_token(self, tokens):
+		"""Read tokens from user and finally return a token he picked
+		:raise Exception: if user failed in some point.
+		:return: tuple with version info in corresponding format"""
+		ml = 5
+		assert len(tokens) == ml, "invalid token format: %s" % str(tokens)
+		
+		while True:
+			ot = list()
+			
+			# provide all tokens to the user and allow him to change each one
+			print "The current version is: %s" % ', '.join(str(t) for t in tokens)
+			print "Each version token will be presented to you in order, and you may provide an alternative"
+			print "Once you are happy with the result, it will be written to the init file"
+			print ""
+			for count, (token, ttype) in enumerate(zip(tokens, (int, int, int, str, int))):
+				while True:
+					answer = raw_input("%s %i of %i == %s [%s]: " % (ttype.__name__, count+1, ml, token, token))
+					if answer == '':
+						answer = str(token)
+					# END handle default answer
+					
+					try:
+						converted = ttype(answer)
+						if issubclass(ttype, basestring):
+							converted = converted.strip()
+							for char in "\"'":
+								if converted.endswith(char): 
+									converted = converted[:-1]
+								if converted.startswith(char):
+									converted = converted[1:]
+							# END for each character to truncate
+						# END handle strings
+							
+						ot.append(converted)
+						break		# get out of the type loop
+					except ValueError:
+						print "Answer %r could not be converted to %s - please try again" % (answer, ttype.__name__)
+						continue
+					# END exception handline
+				# END get type right loop
+			# END for each token/type pair
+			
+			# present the version to the user, one last time
+			print "The version you selected is: %s" % ', '.join(str(t) for t in ot)
+			print "Continue with it or try again ?"
+			asw = 'continue'
+			answer = raw_input("%s/retry [%s]: " % (asw, asw)) or asw
+			if answer != asw:
+				tokens = ot
+				continue
+			# END handle retry
+			
+			return tuple(ot)
+		# END while to determine user is happy
+		
+	def handle_version_and_tag(self):
+		"""Assure our current commit in the main repository is tagged properly
+		If so, continue, if not, try to create a tag with the current version.
+		If the version was already tagged before, help the user to adjust his 
+		version string in the root module, make a commit, and finally create 
+		the tag we were so desperate for. The main idea is to enforce a unique 
+		version each time we make a release, and to make that easy
+		
+		:return: TagReference object created
+		:raise EnvironmentError: if we could not get a valid tag"""
+		import git
+		
+		root_repo = self.root_repo
+		root_head_commit = root_repo.head.commit
+		tags = [ t for t in git.TagReference.iter_items(root_repo) if t.commit == root_head_commit ]
+		if len(tags) == 1:
+			return tags[0]
+		# END tag existed
+		
+		
+		msg = "Please create a tag at your main repository at your currently checked-out commit to mark your release"
+		createexc = EnvironmentError(msg)
+		if not sys.stdout.isatty():
+			raise createexc
+		# END abort if we cannot communicate
+			
+		def version_tag(vi):
+			tag_name = 'v%i.%i.%i' % vi[:3]
+			if vi[3]:
+				tag_name += "-%s" % vi[3]
+			# END append suffix
+			
+			out_tag = None
+			return git.Tag.from_path(root_repo, git.Tag.to_full_path(tag_name))
+		# END version tag creator 
+		
+		# CREATE TAG ?
+		##############
+		# from current version
+		# ask the user to create a tag - make sure it does not yet exist 
+		# before asking
+		target_tag = version_tag(self.root.version_info)
+		if not target_tag.is_valid():
+			asw = "abort"
+			msg = "Would you like me to create the tag %s in your repository at %s to proceed ?\n" % (target_tag.name, root_repo.working_tree_dir)
+			msg += "yes/%s [%s]: " % (asw, asw)
+			answer = raw_input(msg) or asw
+			if answer != 'yes':
+				raise createexc
+			# END check query
+			
+			return git.TagReference.create(root_repo, target_tag.name, force=False)
+		# END could create the tag with current version 
+		
+		# INCREMENT VERSION AND CREATE TAG
+		##################################
+		asw = "adjust version"
+		msg = """Your current commit is not tagged - the automatically generated tag name %s does already exist at a previous commit.
+Would you like to adjust your version_info or abort ?
+%s/abort [%s]: """ % (target_tag.name, asw, asw) 
+		answer = raw_input(msg) or asw
+		if answer != asw:
+			raise createexc
+		# END abort automated creation
+		
+		# ASSURE INIT FILE UNCHANGED
+		# parse the init script and adjust it - if there are changes in the 
+		# working tree file, abort !
+		init_file = os.path.join(os.path.dirname(self.root.__file__), "__init__.py")
+		if len(root_repo.index.diff(None, paths=init_file)):
+			raise EnvironmentError("The init file %r that would be changed contains uncommitted changes. Please commit them and try again" % init_file)
+		# END assure init file unchanged
+		
+		out_lines = list()
+		made_adjustment = False
+		fmtexc = ValueError("Expecting following version_info format: version_info = (1, 0, 0, 'string', 0)")
+		for line in open(init_file, 'r'):
+			if not made_adjustment and line.strip().startswith('version_info'):
+				# present the stripped strings separated by commas - it must be a tuple
+				# fail on parsing errors
+				sline = line.strip()
+				if not sline.endswith(')'):
+					raise fmtexc
+					
+				tokens = [ t.strip() for t in sline[sline.find('(')+1:-1].split(',') ]
+				
+				if len(tokens) != 5:
+					raise fmtexc
+				
+				while True:
+					tokens = self._query_user_token( tokens )
+					
+					# verify the version provides a unique tag name
+					target_tag = version_tag(tokens)
+					if not target_tag.is_valid():
+						break
+					# END have valid tag ( as it does not yet exist )
+					
+					asw = 'increment'
+					print "The tag created according to your version info %r does already exist. Increment the minor version and retry ?" % target_tag.name
+					answer = raw_input("%s/abort [%s]: " % (asw, asw)) or asw
+					if answer != asw:
+						raise createexc
+					# END handle answer
+					
+					# increment minor
+					ptl = list(tokens)
+					ptl[2] += 1
+					tokens = tuple(ptl)  
+					print "\nIncremented minor version to %i" % ptl[2]
+					print "You will be asked to verify the new version again, allowing you to adjust it manually as well\n"
+				# END while user didn't provide a unique token
+				
+				# build a new line with our updated version info
+				line = "version_info = ( %i, %i, %i, '%s', %i )\n" % tokens
+				
+				made_adjustment = True
+			# END adjust version-info line with user help
+			out_lines.append(line)
+		# END for each line
+		
+		if not made_adjustment:
+			raise fmtexc
+		
+		# query the commit message
+		cmsg = "Adjusted version_info to %s " % target_tag.name[1:]
+		
+		print "The changes to the init file at %r will be committed." % init_file 
+		print "Please enter your commit message or hit Ctrl^C to abort without a change to your file"
+		cmsg = raw_input("[%s]: " % cmsg) or cmsg
+		
+		# write the file back - at this point the index is garantueed to be clean
+		# so our init file is the only one that changes
+		open(init_file, 'wb').writelines(out_lines)
+		root_repo.index.add([init_file])
+		commit = root_repo.index.commit(cmsg, head=True)
+		
+		# create tag on the latest head 
+		git.TagReference.create(root_repo, target_tag.name, force=False)
+		
+		return target_tag
+			
+	def spawn_python_interpreter(self, args):
+		"""Start the default python interpreter, and handle the windows special case
+		:param args: passed to the python interpreter, must not include the executable
+		:return: Spawned Process
+		:note: All output channels of our process will be connected to the output channels 
+		of the spawned one"""
+		import mrv.cmd.base
+		py_executable = mrv.cmd.base.python_executable()
+		
+		actual_args = (py_executable, ) + tuple(args)
+		log.info("Spawning: %s" % ' '.join(actual_args))
+		proc = subprocess.Popen(actual_args, stdout=sys.stdout, stderr=sys.stderr)
+		return proc
+		
+	def perform_regression_tests(self):
+		"""Run regression tests and fail with a report if one of the regression 
+		test fails""" 
+		import mrv.cmd.base
+		tmrvrpath = mrv.cmd.base.find_mrv_script('tmrvr')
+		
+		p = self.spawn_python_interpreter((tmrvrpath, ))
+		if p.wait():
+			raise ValueError("Regression Tests failed")
 			
 	#} END Internals 
 	
@@ -923,6 +959,10 @@ class Distribution(object, BaseDistribution):
 		# at this point, the options have not yet been parsed
 		self.py_version = float(sys.version[:3])
 		self.maya_version = None
+		self.build_docs = True
+		self.regression_tests = True
+		self.use_git = True
+		self.root_repo = None
 		
 		if not self.packages:
 			if self.root is None:
@@ -938,6 +978,9 @@ class Distribution(object, BaseDistribution):
 		
 	def __del__(self):
 		"""undo monkey patches"""
+		if sys is None:
+			return
+		
 		if hasattr(self, '_orig_sys_version'):
 			sys.version = self._orig_sys_version
 		
@@ -958,10 +1001,37 @@ class Distribution(object, BaseDistribution):
 			except ValueError:
 				raise ValueError("Incorrect MayaVersion format: %s" % self.maya_version)
 		# END handle python version
-
+		
+		
 		self.postprocess_metadata()
+		
+		# handle evil types - the underlying systems puts strings into the variables
+		# ... how can you ?
+		self.use_git = int(self.use_git)
+		self.build_docs = int(self.build_docs)
+		self.regression_tests = int(self.regression_tests)
+		
+		# setup git if required
+		if self.use_git:
+			import git
+			self.root_repo = git.Repo(os.path.dirname(self.root.__file__))
+		# END init root repo
+
 
 		return rval
+		
+	def run_commands(self):
+		"""Perform required pre- and post-run actions"""
+		if self.use_git:
+			self.handle_version_and_tag()
+		# END assure git tag is set correctly
+		
+		if self.regression_tests:
+			self.perform_regression_tests()
+		# END regression tests
+		
+		BaseDistribution.run_commands(self)
+		
 	
 	#} END overridden methods
 
