@@ -134,7 +134,6 @@ def maya_location(maya_version):
 	# END verfy maya location
 	
 	return mayalocation
-		
 	
 def update_maya_environment(maya_version):
 	"""Configure os.environ to allow Maya to run in standalone mode
@@ -311,7 +310,8 @@ def find_mrv_script(name):
 	"""Find an mrv script of the given name. This method should be used if you 
 	want to figure out where the mrv executable with the given name is located.
 	The returned path is either relative or absolute.
-	
+
+	:return: Path to script 
 	:raise EnvironmentError: if the executable could not be found
 	:note: Currently it only looks for executables, but handles projects
 	which use mrv as a subproject"""
@@ -320,7 +320,7 @@ def find_mrv_script(name):
 	
 	tried_paths = list()
 	for base in ('', 'ext', mrvroot):
-		for subdir in ('bin', os.path.join('test', 'bin')):
+		for subdir in ('bin', 'doc', os.path.join('test', 'bin')):
 			path = None
 			if base:
 				path = os.path.join(base, subdir, name)
@@ -328,14 +328,12 @@ def find_mrv_script(name):
 				path = os.path.join(subdir, name)
 			# END handle base
 			if os.path.isfile(path):
-				return path
+				return Path(path)
 			tried_paths.append(path)
 		# END for each subdir
 	# END for each base
 	
 	raise EnvironmentError("Script named %s not found, looked at %s" % (name, ', '.join(tried_paths))) 
-	
-	
 	
 def exec_python_interpreter(args, maya_version, mayapy_only=False):
 	"""Replace this process with a python process as determined by the given options.

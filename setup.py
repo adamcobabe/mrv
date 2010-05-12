@@ -1,4 +1,5 @@
 import os
+ospd = os.path.dirname
 import sys
 import __builtin__
 
@@ -46,33 +47,6 @@ distutils.cmd.Command.__init__ = __init__
 #} END Distutils fixes
 
 
-#{ Utilities
-
-def get_root_package():
-	"""Make sure the root package is in the python path
-	:return: root package object"""
-	ospd = os.path.dirname
-	packageroot = ospd((os.path.realpath(os.path.abspath(__file__))))
-	root_package_name = os.path.basename(packageroot)
-	try:
-		return __import__(root_package_name)
-	except ImportError:
-		sys.path.append(ospd(packageroot))
-		try:
-			return __import__(root_package_name)
-		except ImportError:
-			del(sys.path[-1])
-			raise ImportError("Failed to import MRV as it could not be found in your syspath, nor could it be deduced"); 
-		# END second attempt exception handling
-	# END import exception handling
-#} END utilities
-
-
-#{ Decorators
-
-
-#} END decorators 
-
 #{ Commands 
 
 
@@ -111,7 +85,7 @@ class _GitMixin(object):
 		:return: name of the branch identifying our current release configuration
 			The branch will be populated with the respective tags that in fact include 
 			a version. The branch does not include a version."""
-		root_name = self.distribution.root.__name__
+		root_name = self.distribution.rootmodule.__name__
 		suffix = '_src'
 		build_py_cmd = self.distribution.get_command_obj('build_py', create=False)
 		
@@ -571,7 +545,7 @@ class BuildPython(_GitMixin, build_py):
 		############
 		# this works ... checked their code which seems hacky, so we continue with the 
 		# hackiness
-		package_dir = os.path.join(self.build_lib, self.distribution.root.__name__)
+		package_dir = os.path.join(self.build_lib, self.distribution.rootmodule.__name__)
 		self.update_git(package_dir)
 
 	#} END overridden methods 
@@ -598,7 +572,7 @@ class Distribution(object, BaseDistribution):
 	#{ Configuration
 	# root package module, will be set by the main routine, must be set 
 	# for this class to work
-	root = None 
+	rootmodule = None 
 	
 	# if True, every package in the 'ext' folder will be included in the distribution as well
 	# .git repository data will be pruned
@@ -617,7 +591,7 @@ class Distribution(object, BaseDistribution):
 	
 	BaseDistribution.global_options.extend(
 		( ('%s=' % opt_maya_version, 'm', "Specify the maya version to operate on"),
-		  ('build-docs=', 'b', "If set (default), the full documentation will be built"),
+		  ('include-docs=', 'd', "If set (default), the full documentation will be built and included in the release"),
 		  ('regression-tests=', 't', "If set (default), the regression tests will be executed, distribution fails if one test fails"),
 		  ('use-git=', 'g', "If set (default), the build results will be put into a git repository"), )
 	)
@@ -772,7 +746,7 @@ class Distribution(object, BaseDistribution):
 		# from current version
 		# ask the user to create a tag - make sure it does not yet exist 
 		# before asking
-		target_tag = version_tag(self.root.version_info)
+		target_tag = version_tag(self.rootmodule.version_info)
 		if not target_tag.is_valid():
 			asw = "abort"
 			msg = "Would you like me to create the tag %s in your repository at %s to proceed ?\n" % (target_tag.name, root_repo.working_tree_dir)
@@ -799,7 +773,7 @@ Would you like to adjust your version_info or abort ?
 		# ASSURE INIT FILE UNCHANGED
 		# parse the init script and adjust it - if there are changes in the 
 		# working tree file, abort !
-		init_file = os.path.join(os.path.dirname(self.root.__file__), "__init__.py")
+		init_file = os.path.join(ospd(self.rootmodule.__file__), "__init__.py")
 		if len(root_repo.index.diff(None, paths=init_file)):
 			raise EnvironmentError("The init file %r that would be changed contains uncommitted changes. Please commit them and try again" % init_file)
 		# END assure init file unchanged
@@ -873,9 +847,10 @@ Would you like to adjust your version_info or abort ?
 		
 		return target_tag
 			
-	def spawn_python_interpreter(self, args):
+	def spawn_python_interpreter(self, args, cwd=None):
 		"""Start the default python interpreter, and handle the windows special case
 		:param args: passed to the python interpreter, must not include the executable
+		:param cwd: if not None, it will be set for the childs working directory
 		:return: Spawned Process
 		:note: All output channels of our process will be connected to the output channels 
 		of the spawned one"""
@@ -884,7 +859,7 @@ Would you like to adjust your version_info or abort ?
 		
 		actual_args = (py_executable, ) + tuple(args)
 		log.info("Spawning: %s" % ' '.join(actual_args))
-		proc = subprocess.Popen(actual_args, stdout=sys.stdout, stderr=sys.stderr)
+		proc = subprocess.Popen(actual_args, stdout=sys.stdout, stderr=sys.stderr, cwd=cwd)
 		return proc
 		
 	def perform_regression_tests(self):
@@ -897,6 +872,68 @@ Would you like to adjust your version_info or abort ?
 		if p.wait():
 			raise ValueError("Regression Tests failed")
 			
+	def build_documentation(self):
+		"""Build the documentation with our current version tag - this allows
+		it to be included in the release as it has been updated"""
+		# try to use an overriden docgenerator, then our own one
+		GenCls = None
+		try:
+			docbase = __import__("%s.doc.base" % self.rootmodule.__name__, fromlist=['doesntmatter'])
+			GenCls = docbase.DocGenerator
+		except (ImportError, AttributeError):
+			import mrv.doc.base as docbase
+			GenCls = docbase.DocGenerator
+		# END get doc generator class
+		
+		base_dir = os.path.join('.', 'doc')
+		if not os.path.isdir(base_dir):
+			raise EnvironmentError("Cannot build documentation as '%s' directory does not exist" % base_dir)
+		# END check doc dir exists
+		
+		self.docgen = GenCls(base_dir=base_dir)
+		
+		# CHECK IF BUILD IS REQUIRED
+		############################
+		index_file = self.docgen.html_output_dir() / 'index.html'
+		needs_build = True
+		if index_file.isfile():
+			needs_build = False
+			# version file for sphinx really should exist at least, its the main 
+			# documentation no matter what
+			st = 'sphinx'
+			if not self.docgen.version_file_name(st, basedir=base_dir).isfile():
+				needs_build = True
+			# END check existing version info
+			
+			if not needs_build:
+				for token in ('coverage', 'epydoc', st):
+					# check if the docs need to be rebuild
+					try:
+						self.docgen.check_version('release', token)
+					except EnvironmentError:
+						needs_build = True
+					# END docs don't need to be build
+				# END for each token
+			# END additional search
+		# END check version as index exists
+		
+		if not needs_build:
+			log.info("Skipped building documentation as it was uptodate and complete")
+			return
+		# END skip build
+		
+		# when actually creating the docs, we start the respective script as it 
+		# might as well be re-implemented in a derived project, and is probably 
+		# safest to do
+		import mrv.cmd.base
+		makedocpath = mrv.cmd.base.find_mrv_script('makedoc')
+		
+		# makedoc must be started from the doc directory - adjust makedoc
+		p = self.spawn_python_interpreter((makedocpath.basename(), ), cwd=base_dir)
+		if p.wait():
+			raise ValueError("Building of Documentation failed")
+		# END wait for build to complete
+		
 	#} END Internals 
 	
 	
@@ -905,20 +942,43 @@ Would you like to adjust your version_info or abort ?
 	def _rootpath(self):                   
 		""":return: path to the root of the rootpackage, which includes all modules
 		and subpackages directly"""
-		return os.path.dirname(os.path.abspath(self.root.__file__)) 
+		return ospd(os.path.abspath(self.rootmodule.__file__)) 
 	
 	#} END path generators
 
 	
 	#{ Interface
 	
+	@classmethod
+	def retrieve_root_module(cls, basedir='.'):
+		"""Make sure the root package is in the python path and is set as our root
+		:return: root package object"""
+		packageroot = os.path.realpath(os.path.abspath(basedir))
+		root_package_name = os.path.basename(packageroot)
+		
+		try:
+			cls.rootmodule = __import__(root_package_name)
+		except ImportError:
+			sys.path.append(ospd(packageroot))
+			try:
+				cls.rootmodule = __import__(root_package_name)
+			except ImportError:
+				del(sys.path[-1])
+				raise ImportError("Failed to import MRV as it could not be found in your syspath, nor could it be deduced"); 
+			# END second attempt exception handling
+		# END import exception handling
+		
+		return cls.rootmodule
+		
+	
+	
 	def get_packages(self):
 		""":return: list of all packages in rootpackage in __import__ compatible form"""
-		base_packages = [self.root.__name__] + [ self.root.__name__ + '.' + pkg for pkg in find_packages(self._rootpath()) ]
+		base_packages = [self.rootmodule.__name__] + [ self.rootmodule.__name__ + '.' + pkg for pkg in find_packages(self._rootpath()) ]
 		
 		# add external packages - just pretent its a package even though it it just 
 		# a path in external
-		ext_path = os.path.join(os.path.dirname(__file__), 'ext')
+		ext_path = os.path.join(ospd(__file__), 'ext')
 		if self.include_external and os.path.isdir(ext_path):
 			for root, dirs, files in os.walk(ext_path):
 				# remove hidden paths
@@ -934,7 +994,7 @@ Would you like to adjust your version_info or abort ?
 				
 				# process paths
 				for dir in dirs:
-					base_packages.append(self.root.__name__+"."+os.path.join(root, dir).replace(os.sep, '.'))
+					base_packages.append(self.rootmodule.__name__+"."+os.path.join(root, dir).replace(os.sep, '.'))
 				# END for each remaining valid directory
 			# END walking external dir
 		# END if external directory exists
@@ -955,20 +1015,22 @@ Would you like to adjust your version_info or abort ?
 	def __init__(self, *args, **kwargs):
 		"""Initialize base and set some useful defaults"""
 		BaseDistribution.__init__(self, *args, **kwargs)
+		if self.rootmodule is None:
+			self.retrieve_root_module()
+		# END assure root is set
 		
 		# at this point, the options have not yet been parsed
 		self.py_version = float(sys.version[:3])
 		self.maya_version = None
-		self.build_docs = True
 		self.regression_tests = True
 		self.use_git = True
 		self.root_repo = None
 		
+		# documentation generator instance, only set if docs should be included
+		self.include_docs = True
+		self.docgen = None
+		
 		if not self.packages:
-			if self.root is None:
-				raise ValueError("Root package is not set - it should be set in setup.main()")
-			
-			# assure we get all packages we need, including external if desired
 			self.packages = self.get_packages()
 		# END auto-generate packages if not explicitly set
 		
@@ -1008,13 +1070,13 @@ Would you like to adjust your version_info or abort ?
 		# handle evil types - the underlying systems puts strings into the variables
 		# ... how can you ?
 		self.use_git = int(self.use_git)
-		self.build_docs = int(self.build_docs)
+		self.include_docs = int(self.include_docs)
 		self.regression_tests = int(self.regression_tests)
 		
 		# setup git if required
 		if self.use_git:
 			import git
-			self.root_repo = git.Repo(os.path.dirname(self.root.__file__))
+			self.root_repo = git.Repo(ospd(self.rootmodule.__file__))
 		# END init root repo
 
 
@@ -1030,6 +1092,10 @@ Would you like to adjust your version_info or abort ?
 			self.perform_regression_tests()
 		# END regression tests
 		
+		if self.include_docs:
+			self.build_documentation()
+		# END doc building
+		
 		BaseDistribution.run_commands(self)
 		
 	
@@ -1040,9 +1106,9 @@ Would you like to adjust your version_info or abort ?
 
 
 
-def main(root, args, distclass=Distribution):
-	distclass.root = root
+def main(args, distclass=Distribution):
 	distclass.modifiy_sys_args()
+	root = distclass.retrieve_root_module()
 	
 	setup(
 	      distclass=distclass,
@@ -1060,5 +1126,4 @@ def main(root, args, distclass=Distribution):
 	
 
 if __name__ == '__main__':
-	root = get_root_package()
-	main(root, sys.argv[1:])
+	main(sys.argv[1:])
