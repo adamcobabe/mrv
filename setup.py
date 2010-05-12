@@ -16,6 +16,7 @@ from distutils.command.sdist import sdist
 
 from itertools import chain
 import subprocess
+import fnmatch
 
 try:
 	from setuptools import find_packages
@@ -305,10 +306,12 @@ class _GitMixin(object):
 		# stored in a temporary symbolic ref. It will not exist of root_repo and repo
 		# are different repositories
 		prev_head = git.SymbolicReference(root_repo, self.prev_head_name)
-		root_commit = root_repo.head.commit
+		root_commit = None
 		suffix = ''
 		if prev_head.is_valid():
 			root_commit = prev_head.commit
+		else:
+			root_commit = root_repo.head.commit
 		# END get actual commit reference
 		
 		if root_repo.is_dirty(index=False, working_tree=True, untracked_files=False):
@@ -358,7 +361,6 @@ class _GitMixin(object):
 		# the developers dir which is okay as well.
 		repo = git.Repo(root_dir)
 		root_repo = self.distribution.root_repo
-		assert root_repo != repo, "Aborting as I shouldn't be working in the main repository: %s" % repo
 		
 		dirty_kwargs = dict(index=True, working_tree=False, untracked_files=False)
 		if root_repo.is_dirty(**dirty_kwargs):
@@ -417,14 +419,11 @@ class BuildPython(_GitMixin, build_py):
 	#} END configuration 
 	
 	#{ Internals
-	def handle_test_suite(self):
-		"""Remove test-suite related packages from our package array if required"""
-		if not self.exclude_compiled_test_suite or not self.needs_compilation:
-			return
-		# END check early abort
-		
-		# remove all .test. packages
-		token = '.test'
+	
+	def _exclude_package(self, package_name):
+		"""Exclude the given package name from our packages and datafiles
+		:param package_name: The name of the package, i.e. '.test'"""
+		token = package_name
 		if self.packages:
 			self.packages = [ p for p in self.packages if token not in p ]
 		if self.py_modules:
@@ -440,6 +439,15 @@ class BuildPython(_GitMixin, build_py):
 									for package, src_dir, build_dir, filenames in self.data_files 
 									if token not in package ]
 		# END handle data files
+	
+	def handle_test_suite(self):
+		"""Remove test-suite related packages from our package array if required"""
+		if not self.exclude_compiled_test_suite or not self.needs_compilation:
+			return
+		# END check early abort
+		
+		# remove all .test. packages
+		self._exclude_package('.test')
 		
 	#} END internals
 	
@@ -507,9 +515,15 @@ class BuildPython(_GitMixin, build_py):
 		# the respective files ourselves
 		patterns = self.package_data.get(package, None)
 		add_files = list()
+		ignore_patterns = list()
 		if patterns:
 			cl = len(src_dir) + 1	# cut length including path separator 
 			for pt in patterns[:]:
+				if pt.startswith('!'):
+					patterns.remove(pt)
+					ignore_patterns.append(pt[1:])
+					continue
+				# END handle ignore pattern
 				d = os.path.join(src_dir, pt)
 				if os.path.isdir(d):
 					patterns.remove(pt)		# remove original
@@ -523,6 +537,19 @@ class BuildPython(_GitMixin, build_py):
 		# END handle expand patterns
 		
 		files = build_py.find_data_files(self, package, src_dir)
+		
+		if ignore_patterns:
+			for pt in ignore_patterns:
+				for flist in (files, add_files):
+					ignored_files = fnmatch.filter(flist, pt)
+					print pt
+					print flist
+					for f in ignored_files:
+						flist.remove(f)
+					# END brute force remove files
+				# END for list to handle
+			# END for each ignore pattern
+		# END remove ignored files
 		
 		# FIX DIRECTORIES
 		# additionally ... prune out items which are directories, as the system
@@ -557,7 +584,7 @@ class GitSourceDistribution(_GitMixin, sdist):
 	#{ Overridden Functions
 	
 	def make_archive(self, base_name, format, root_dir=None, base_dir=None):
-		self.update_git(root_dir)
+		self.update_git(base_dir)
 		super(_GitMixin, self).make_archive(base_name, format, root_dir, base_dir)
 		
 	#} END overridden functions
@@ -581,6 +608,7 @@ class DocCommand(_GitMixin, Command):
 		self.zip_archive = False
 	
 	def initialize_options(self):
+		# this needs to be here or we get an error because of the bitchy base class
    	   pass
    
 	def finalize_options(self):
@@ -600,6 +628,14 @@ class DocCommand(_GitMixin, Command):
 		if self.zip_archive:
 			self.create_zip_archive(html_out_dir)
 		# END create zip
+	
+		if self.distribution.use_git:
+			self.update_git(html_out_dir)
+		# END handle git
+	
+	def branch_name(self):
+		root_name = self.distribution.rootmodule.__name__
+		return "%s-docs" % root_name
 	
 	#{ Interface
 	

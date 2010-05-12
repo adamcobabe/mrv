@@ -28,6 +28,7 @@ graft bin
 graft test/bin
 recursive-include doc *.py makedoc
 graft doc/source
+prune doc/source/generated
 
 include AUTHORS
 
