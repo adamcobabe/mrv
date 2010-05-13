@@ -50,7 +50,8 @@ setup_kwargs = dict(scripts=__scripts_bin + __scripts_test_bin,
                         "Programming Language :: Python :: 2.5",
                         "Programming Language :: Python :: 2.6",
                         "Topic :: Software Development :: Libraries :: Python Modules",
-                        ]
+                        ], 
+					options = dict(build_py={ 'exclude_from_compile' : ('*/maya/undo.py', '*/maya/nt/persistence.py')}) 
                     )
 #} END configuration
 

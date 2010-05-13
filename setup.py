@@ -421,6 +421,9 @@ class BuildPython(_GitMixin, build_py):
 	# A sequence of modules to exclude, i.e. '.modulename' or 'this.that'
 	exclude_modules = ( '.test', '.doc' )
 	
+	build_py.user_options.extend(
+	[('exclude-from-compile', 'e', "Exclude the given comma separated list of file(globs) from being compiled")]
+									)
 	#} END configuration 
 	
 	#{ Internals
@@ -459,6 +462,7 @@ class BuildPython(_GitMixin, build_py):
 		self.py_version = None
 		self.maya_version = None		# set later by distutils
 		self.needs_compilation = None
+		self.exclude_from_compile = list()
 		
 	def finalize_options(self):
 		build_py.finalize_options(self)
@@ -482,6 +486,14 @@ class BuildPython(_GitMixin, build_py):
 		if self.needs_compilation and self.py_version is None:
 			raise ValueError("If compilation is requested, the'%s' option must be specified" % self.distribution.opt_maya_version)
 		# END handle errors
+		
+		# MAKE EXCLUSION
+		for exclude_pattern in self.exclude_from_compile:
+			remove_files = fnmatch.filter(files, exclude_pattern)
+			for f in remove_files:
+				files.remove(f)
+			# END remove all matched files
+		# END for each exclude pattern to apply
 		
 		# assure we byte-compile in a standalone interpreter, manipulating the 
 		# sys.executable as it will be used later
