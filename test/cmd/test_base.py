@@ -49,7 +49,7 @@ class TestBase( unittest.TestCase ):
 		# at least one version should be found
 		versions = available_maya_versions()
 		assert versions == sorted(versions)
-		assert versions and isinstance(versions[0], float)
+		assert versions and isinstance(versions[0], (float, int))
 		
 		
 

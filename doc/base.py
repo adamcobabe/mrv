@@ -297,13 +297,17 @@ output: html"""
 	def _call_python_script(self, *args, **kwargs):
 		"""Wrapper of subprocess.call which assumes that we call a python script.
 		On windows, the python interpreter needs to be called directly
-		:return: return value of call """
+		:raise EnvironmentError: if the called had a non-0 return value"""
 		if sys.platform.startswith('win'):
 			args[0].insert(0, "python")
 		# END handle windows
-		print ' '.join(str(i) for i in args[0])
-		return subprocess.call(*args, **kwargs)
+		cmd = ' '.join(str(i) for i in args[0])
+		print cmd
+		rval = subprocess.call(*args, **kwargs)
 		
+		if rval:
+			raise EnvironmentError("Call to %s failed with status %i" % (args[0][0], rval))
+		# END handle call error
 	#} END utilities
 	
 	#{ Protected Interface
@@ -417,7 +421,9 @@ output: html"""
 		# will have to run it in a separate process for maya support
 		mrvpath = self.mrv_bin_path()
 		
-		code = "import sphinx.ext.autosummary.generate as sas; sas.main()"
+		# note: the mrv import resolves the site-packages for us which does not
+		# happen on osx for some reason
+		code = "import mrv; import sphinx.ext.autosummary.generate as sas; sas.main()"
 		agp = self.autogen_output_dir()
 		
 		# make sure its clean, otherwise we will reprocess the same files
@@ -463,7 +469,7 @@ output: html"""
 		""":return: list of arguments to be used when calling sphinx from the commandline
 		:note: directories of all kinds will be handled by the caller"""
 		# we don't need "" around the values as we don't use a shell
-		return ['-c', 'import sys, sphinx.cmdline; sphinx.cmdline.main(sys.argv)',
+		return ['-c', 'import sys, mrv, sphinx.cmdline; sphinx.cmdline.main(sys.argv)',
 				'-b', 'html',
 				'-D', 'latex_paper_size=a4', 
 				'-D', 'latex_paper_size=letter',

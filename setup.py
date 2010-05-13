@@ -939,7 +939,7 @@ class DocCommand(_GitMixin, Command):
 		makedocpath = mrv.cmd.base.find_mrv_script('makedoc')
 		
 		# makedoc must be started from the doc directory - adjust makedoc
-		p = self.spawn_python_interpreter((makedocpath.basename(), ), cwd=base_dir)
+		p = self.distribution.spawn_python_interpreter((makedocpath.basename(), ), cwd=base_dir)
 		if p.wait():
 			raise ValueError("Building of Documentation failed")
 		# END wait for build to complete

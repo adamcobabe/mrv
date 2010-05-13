@@ -167,6 +167,12 @@ def _init_syspath( ):
 		# END found site-packages path
 	# END for each path to possibly initialize
 	
+	if sys.platform == 'darwin':
+		# in order to have a chance to get the setuptools going, 
+		# add the default python library to the path.
+		sys.path.append("/System/Library/Frameworks/Python.framework/Versions/%s/Extras/lib/python"%sys.version[:3])
+	# END desperate hack
+	
 	# get external base
 	extbase = os.path.join( mrvroot, "ext" )
 
