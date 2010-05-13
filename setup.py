@@ -78,9 +78,21 @@ class _GitMixin(object):
 	def __init__(self, *args, **kwargs):
 		"""Allows to configure some details, such as 
 		* remote name - name of the remote for which branches should be created/updated"""
-		pass
+		self.root_remotes = list()
+		self.dist_remotes = list()
+	
+	def finalize_options(self):
+		"""Assure our args are of the correct type"""
+		self.root_remotes = self.distribution.fixed_list_arg(self.root_remotes)
+		self.dist_remotes = self.distribution.fixed_list_arg(self.dist_remotes)
 	
 	#{ Utilities
+	
+	@classmethod
+	def adjust_user_options(cls, options):
+		"""Append git specific user options to the given options"""
+		options.append(('dist-remotes=', 'd', "Default remotes to push the distribution branches to"))
+		options.append(('root-remotes=', 'r', "Default remotes to push the the main source branch to"))
 	
 	def branch_name(self):
 		""":return: name of the branch identifying our current release configuration"""
@@ -98,23 +110,22 @@ class _GitMixin(object):
 			repository is still empty"""
 		import git
 		
-		head_ref = git.Head(repo, git.Head.to_full_path(head_name))
+		# store the previous ref in a new symbolic ref
+		git.SymbolicReference.create(repo, self.prev_head_name, repo.head.ref, force=True)
+		
 		
 		# if the head ref exists or not, we want to change the branch to the one
 		# we define. This is why we do this explicitly here. Resetting the index
 		# and setting the head will just set the current branch to the commit we 
-		# reset to 
+		# reset to
+		head_ref = git.Head(repo, git.Head.to_full_path(head_name))
 		repo.head.ref = head_ref
 		
 		if head_ref.is_valid():
 			repo.index.reset(head_ref, working_tree=False, head=False)
-			
-			# store the previous ref in a new symbolic ref
-			git.SymbolicReference.create(repo, self.prev_head_name, head_ref, force=True)
 		# END handle index
 			
 		# END head exists handling
-		
 		return head_ref
 	
 	def item_chooser(self, description, items):
@@ -123,6 +134,8 @@ class _GitMixin(object):
 		:return: list of selected items"""
 		if not items:
 			return list()
+		
+		assert sys.stdout.isatty(), "Need a tty for item chooser"
 		
 		while True:
 			print description
@@ -192,32 +205,59 @@ class _GitMixin(object):
 		
 		return items
 	
-	def push_to_remotes(self, repo):
-		"""Find remotes in the given repository, and ask the user which branches
-		he wants to push to where. 
-		Generally, all tags will be pushed too"""
-		remotes = repo.remotes
-		heads = repo.heads
-		if not remotes or not heads:
+	def push_to_remotes(self, repo, heads=list(), remotes=list()):
+		"""Push the given branchs to the given remotes.
+		If one of the lists is empty, it the respective items 
+		will be queried from the user"""
+		_heads = heads
+		_remotes = remotes
+		all_remotes = repo.remotes
+		
+		if not _remotes:
+			_remotes = all_remotes
+		if not _heads:
+			_heads = repo.heads
+		
+		if not _remotes or not _heads:
 			return
 		# END skip empty remotes
 		
-		asw = "yes"
-		print "Would you like to push your changes in repo %s" % repo
-		answer = raw_input("%s/no [%s]: " % (asw, asw)) or asw
-		if answer != asw:
-			print "You can push your changes manually any time"
-			return 
-		# END see if the user wants to push
+		# cannot push if we don't know exactly what to do ( and if we cannot
+		# ask the user )
+		have_tty = sys.stdout.isatty()
+		if not have_tty and (not heads or not remotes):
+			log.info("Skipped push to %r as no push information was provided" % repo)
+			return
+		# END handle tty
 		
+		if have_tty:
+			asw = "yes"
+			man = 'manual'
+			print "\nWould you like to push your changes in repo %s ?" % repo
+			print "Currently selected heads: %s" % ', '.join(str(h) for h in heads) or 'None'
+			print "Currently selected remotes: %s" % ', '.join(str(r) for r in remotes) or 'None'
+			print "You can the given values, force manual (re)selection or skip this ?"
+			answer = raw_input("%s/%s/skip [%s]: " % (asw, man, asw)) or asw
+			if answer == man:
+				remotes = list()
+				heads = list()
+			elif answer != asw:
+				print "You can push your changes manually any time"
+				return 
+			# END see if the user wants to push
+		# END last query
 		
-		desc = "Please choose the remotes to push to"
-		remotes = self.item_chooser(desc, remotes)
+		if not remotes:
+			desc = "Please choose the remotes to push to"
+			_remotes = self.item_chooser(desc, _remotes)
+		# END query if not given
 		
-		desc = "Please choose your branches to push to the selected remotes" 
-		heads = self.item_chooser(desc, heads)
-		
-		if not remotes or not heads:
+		if not heads:
+			desc = "Please choose your branches to push to the selected remotes" 
+			_heads = self.item_chooser(desc, _heads)
+		# END query if not given 
+		 
+		if not _remotes or not _heads:
 			print "No remotes or heads selected - won't push anything"
 			return
 		# END abort if there is nothing to do
@@ -225,21 +265,9 @@ class _GitMixin(object):
 		tags = repo.tags
 		tag_map = dict((tag.commit, tag) for tag in tags)
 		
-		asw = 'yes'
-		print "The following branches will be pushed to the given following remotes"
-		print "Branches: %s" % ', '.join(str(h) for h in heads)
-		print "Remotes: %s" % ', '.join(str(r) for r in remotes)
-		print "Tags: included in branches"
-		print "Are you sure ?"
-		answer = raw_input("%s/skip [%s]: " % (asw, asw)) or asw
-		if answer != asw:
-			print "Skipped pushing to remotes for repo %s" % repo
-			return
-		# END handle final confirmation
-		
 		# walk the history of all branches and select all tags on the way
 		actual_tags = list()
-		for head in heads:
+		for head in _heads:
 			curcommit = head.commit
 			while True:
 				if curcommit in tag_map:
@@ -253,13 +281,17 @@ class _GitMixin(object):
 		
 		# prep refspec
 		specs = list()
-		for item in chain(heads, actual_tags):
+		for item in chain(_heads, actual_tags):
 			specs.append("%s:%s" % (item.path, item.path))
 		# END for each item to push
 		
 		# do the operation
-		for remote in remotes:
-			print "Pushing to %s ..." % remote
+		for remote in _remotes:
+			# might be a string if it was a preconfigured remote - hence we 
+			# retrieve the object no matter what
+			remote = all_remotes[str(remote)]
+			
+			print "Pushing to %s: %s ..." % (remote, ", ".join(str(i) for i in chain(_heads, actual_tags)))
 			remote.push(specs)
 			print "Done"
 		# END for each remote to push to
@@ -276,7 +308,9 @@ class _GitMixin(object):
 		
 		:param root_repo: Repository containing the data of the main project
 		:param repo: dedicated repository containing the distribution data
-		:return: Commit object """
+		:return: tuple(root_original_head, (Created)Commit object) The head to which
+			the root repository pointed before we changed it to our distribution head, 
+			and the commit object we possible created in the distribution repository"""
 		import git
 		
 		# the path to cut is (root_dir - repo.working_dir)
@@ -312,14 +346,13 @@ class _GitMixin(object):
 		# repository is the root repository, hence the last actual head reference is 
 		# stored in a temporary symbolic ref. It will not exist of root_repo and repo
 		# are different repositories
-		prev_head = git.SymbolicReference(root_repo, self.prev_head_name)
+		prev_root_head = git.SymbolicReference(root_repo, self.prev_head_name)
 		root_commit = None
 		suffix = ''
-		if prev_head.is_valid():
-			root_commit = prev_head.commit
-		else:
-			root_commit = root_repo.head.commit
+		if not prev_root_head.is_valid():
+			prev_root_head = root_repo.head
 		# END get actual commit reference
+		root_commit = prev_root_head.commit
 		
 		if root_repo.is_dirty(index=False, working_tree=True, untracked_files=False):
 			suffix = "-dirty"
@@ -344,7 +377,7 @@ class _GitMixin(object):
 		tag_name = "%s-%s" % (self.branch_name(), root_tag.name)
 		git.Tag.create(repo, tag_name, force=True)
 			 
-		return commit
+		return prev_root_head, commit
 		
 	#} END utilities
 	
@@ -396,15 +429,15 @@ class _GitMixin(object):
 		assert repo.head.ref == head_ref
 		
 		# add our all files below our root
-		commit = self.add_files_and_commit(root_repo, repo, root_dir, root_tag)
+		root_head, commit = self.add_files_and_commit(root_repo, repo, root_dir, root_tag)
 		
+		# PUSH CHANGES
+		##############
 		# allow to auto-push to all or given remotes for both repositories
-		if sys.stdout.isatty():
-			repos = set((root_repo, repo))
-			for rpo in repos:
-				self.push_to_remotes(rpo)
-			# END for each repo
-		# END handle remotes
+		# fill in defaults
+		root_head = (root_head.is_detached and root_head) or root_head.ref
+		self.push_to_remotes(root_repo, [root_head], self.root_remotes)
+		self.push_to_remotes(repo, [head_ref], self.dist_remotes)
 		
 	
 	#} END interface 
@@ -430,6 +463,8 @@ class BuildPython(_GitMixin, build_py):
 	build_py.user_options.extend(
 	[('exclude-from-compile', 'e', "Exclude the given comma separated list of file(globs) from being compiled")]
 									)
+	
+	_GitMixin.adjust_user_options(build_py.user_options)
 	#} END configuration 
 	
 	#{ Internals
@@ -472,10 +507,12 @@ class BuildPython(_GitMixin, build_py):
 		
 	def finalize_options(self):
 		build_py.finalize_options(self)
+		_GitMixin.finalize_options(self)
 		
 		self.maya_version = self.distribution.maya_version
 		self.py_version = self.distribution.py_version
 		self.needs_compilation = self.compile or self.optimize
+		self.exclude_from_compile = self.distribution.fixed_list_arg(self.exclude_from_compile)
 		
 		self.handle_exclusion()
 		
@@ -669,7 +706,15 @@ class GitSourceDistribution(_GitMixin, sdist):
 	branch_suffix = '-src'
 	#} END configuration
 	
+	_GitMixin.adjust_user_options(sdist.user_options)
+	
 	#{ Overridden Functions
+	
+	def finalize_options(self):
+		"""As the inheritance hierarchy is screwed up with old-style classes, 
+		we have to forward to the call manually to our bases ... """
+		sdist.finalize_options(self)
+		_GitMixin.finalize_options(self)
 	
 	def make_archive(self, base_name, format, root_dir=None, base_dir=None):
 		self.update_git(base_dir)
@@ -690,6 +735,8 @@ class DocCommand(_GitMixin, Command):
 					]
 					
 	branch_suffix = '-doc'
+	
+	_GitMixin.adjust_user_options(user_options)
 	#} END configuration
 	
 	def __init__(self, *args):
@@ -702,6 +749,7 @@ class DocCommand(_GitMixin, Command):
    	   pass
    
 	def finalize_options(self):
+		_GitMixin.finalize_options(self)
 		# documentation generator instance, only set if docs should be included
 		self.docgen = None
 		if self.dist_dir is None:
@@ -1139,6 +1187,19 @@ Would you like to adjust your version_info or abort ?
 
 	
 	#{ Interface
+	
+	@classmethod
+	def fixed_list_arg(cls, value):
+		"""As the comamndline parsing is as bad as it gets, it will not parse the 
+		correct types, nor will it split ',' separated items into a list correctly.
+		If options are provided via the comandline, they are generally screwed up
+		as they are plain strings, so each and every command has to check and verify
+		them by itself. Well done, could have been a nice base task job.
+		We check value for a comman separated string, and return the parsed list
+		if necessary, or the value itself if it is already a list or tuple"""
+		if isinstance(value, (list, tuple)):
+			return value
+		return value.split(',')
 	
 	@classmethod
 	def retrieve_root_module(cls, basedir='.'):
