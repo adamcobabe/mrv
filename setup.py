@@ -689,6 +689,9 @@ class BuildPython(_GitMixin, build_py):
 		"""Check what the user classified as script and fix the first line
 		to point to the right python interpreter version (only if we are compiling).
 		Additionally, make the file executable on linux"""
+		if not self.distribution.scripts:
+			return
+		# END check scripts are available
 		out_dir = self._build_dir()
 		scripts_abs = [ os.path.join(out_dir, s) for s in self.distribution.scripts ]
 		scripts_abs = [ s for s in scripts_abs if os.path.isfile(s) ]	# skip pruned
@@ -1350,9 +1353,9 @@ Would you like to adjust your version_info or abort ?
 		
 		# add external packages - just pretent its a package even though it it just 
 		# a path in external
-		ext_path = os.path.join(ospd(__file__), 'ext')
+		ext_path = os.path.relpath(os.path.join(ospd(self.rootmodule.__file__), 'ext'))
 		if self.include_external and os.path.isdir(ext_path):
-			for root, dirs, files in os.walk(ext_path):
+			for root, dirs, files in os.walk(ext_path, followlinks=True):
 				# remove hidden paths
 				for dir in dirs[:]:
 					if not dir.startswith('.'):
