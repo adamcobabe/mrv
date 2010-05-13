@@ -71,6 +71,7 @@ class TestGeneral( unittest.TestCase ):
 		assert not hasattr(nt.Node, 'nameToTreeMap')	# has dg and dag nodes
 		
 	@with_persistence
+	@with_scene('empty.ma')
 	def test_plugin_handling(self):
 		mrp = "Mayatomr"
 		pp = 'persistence'

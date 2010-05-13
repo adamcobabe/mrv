@@ -41,7 +41,8 @@ setup_kwargs = dict(scripts=__scripts_bin + __scripts_test_bin,
                     package_data = {   'mrv.test' : ['fixtures/ma/*', 'fixtures/maya_user_prefs/'] + __scripts_test_bin_s, 
                     					'mrv' : __scripts_bin + ['!*.gitignore'],
                     					'mrv.maya' : ['cache'],
-                    					'mrv.doc' : ['source', 'makedoc', '!*source/generated/*'] },   
+                    					'mrv.doc' : ['source', 'makedoc', '!*source/generated/*']
+                    				},   
                     classifiers = [
                         "Development Status :: 5 - Production/Stable",
                         "Intended Audience :: Developers",
@@ -52,7 +53,12 @@ setup_kwargs = dict(scripts=__scripts_bin + __scripts_test_bin,
                         "Programming Language :: Python :: 2.6",
                         "Topic :: Software Development :: Libraries :: Python Modules",
                         ], 
-					options = dict(build_py={ 'exclude_from_compile' : ('*/maya/undo.py', '*/maya/nt/persistence.py')}) 
+					options = dict(build_py={	'exclude_from_compile' : ('*/maya/undo.py', '*/maya/nt/persistence.py'), 
+												'exclude_items' : ('mrv.conf', 'mrv.dg', 'mrv.batch', 'mrv.mdp', 
+																	'.automation',
+																	'mrv.test.test_conf', 'mrv.test.test_dg', 
+																	'mrv.test.test_batch', 'mrv.test.test_mdp', 
+																	'mrv.test.test_conf') }) 
                     )
 #} END configuration
 
@@ -138,7 +144,7 @@ def init_modules( filepath, moduleprefix, recurse=False, self_module = None):
 def _init_syspath( ):
 	""" Initialize the path such that additional modules can be found"""
 	import site
-	mrvroot = os.path.split( __file__ )[0]
+	mrvroot = os.path.dirname( __file__ )
 	
 	# fix sys.path: if there are empty entries and our cwd is the mrvroot
 	# we will be in trouble as we try to import our own 'maya' module which 
@@ -160,7 +166,6 @@ def _init_syspath( ):
 			site.addsitedir(syspath, set(sys.path))
 		# END found site-packages path
 	# END for each path to possibly initialize
-	
 	
 	# get external base
 	extbase = os.path.join( mrvroot, "ext" )

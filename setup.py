@@ -10,14 +10,16 @@ from distutils import log
 
 import distutils.command
 from distutils.cmd import Command
+from distutils.command.install_lib import install_lib
+from distutils.command.install import install
 from distutils.command.build_py import build_py
-from distutils.command.bdist_dumb import bdist_dumb
 from distutils.command.build_scripts import build_scripts
 from distutils.command.sdist import sdist
 
 from itertools import chain
 import subprocess
 import fnmatch
+import new
 import re
 
 try:
@@ -456,9 +458,14 @@ class BuildPython(_GitMixin, build_py):
 	# common and not properly supported by python itself
 	rename_pyo_to_pyc = True
 	
+	# if we create optimized bytecode, prune out all tests as they use assert 
+	# statements which would be dropped by the 'optimization'
+	remove_tests_if_optimize = True
+	
+	
 	build_py.user_options.extend(
 	[('exclude-from-compile=', 'e', "Exclude the given comma separated list of file(globs) from being compiled"), 
-	 ('exclude-modules=', 'm', "Exclude the given comma separated list of modules from being included, i.e. .test")]
+	 ('exclude-items=', 'm', "Exclude the given comma separated list of modules or packages from being build, i.e. .test")]
 									)
 	
 	_GitMixin.adjust_user_options(build_py.user_options)
@@ -466,14 +473,19 @@ class BuildPython(_GitMixin, build_py):
 	
 	#{ Internals
 	
+	def _filter_by_token(self, token, array):
+		"""Use a simple filter function and return all array items which do not contain
+		the token"""
+		return [ p for p in array if token not in p ]
+	
 	def _exclude_items(self, package_name):
 		"""Exclude the given package name from our packages and datafiles
 		:param package_name: The name of the package, i.e. '.test'"""
 		token = package_name
 		if self.packages:
-			self.packages = [ p for p in self.packages if token not in p ]
+			self.packages = self._filter_by_token(token, self.packages)
 		if self.py_modules:
-			self.py_modules = [ p for p in self.py_modules if token not in p ]
+			self.py_modules = self._filter_by_token(token, self.py_modules)
 			
 		# additionally, remove all data files which appear to be tests
 		if self.data_files:
@@ -488,7 +500,7 @@ class BuildPython(_GitMixin, build_py):
 	
 	def handle_exclusion(self):
 		"""Apply the exclusion patterns"""
-		for exclude_pattern in self.exclude_modules:
+		for exclude_pattern in self.exclude_items:
 			self._exclude_items(exclude_pattern)
 		
 	#} END internals
@@ -501,7 +513,7 @@ class BuildPython(_GitMixin, build_py):
 		self.maya_version = None		# set later by distutils
 		self.needs_compilation = None
 		self.exclude_from_compile = list()
-		self.exclude_modules = list()
+		self.exclude_items = list()
 		
 	def finalize_options(self):
 		build_py.finalize_options(self)
@@ -511,7 +523,14 @@ class BuildPython(_GitMixin, build_py):
 		self.py_version = self.distribution.py_version
 		self.needs_compilation = self.compile or self.optimize
 		self.exclude_from_compile = self.distribution.fixed_list_arg(self.exclude_from_compile)
-		self.exclude_modules = self.distribution.fixed_list_arg(self.exclude_modules)
+		self.exclude_items = self.distribution.fixed_list_arg(self.exclude_items)
+		
+		# as optimize removes assertions
+		if self.optimize and self.remove_tests_if_optimize:
+			log.info("Pruning all tests from output as they would fail with optimized bytecode")
+			self.exclude_items = list(self.exclude_items)
+			self.exclude_items.insert(0, '.test')
+		# END handle tests
 		
 		self.handle_exclusion()
 		
@@ -615,8 +634,6 @@ class BuildPython(_GitMixin, build_py):
 			for pt in ignore_patterns:
 				for flist in (files, add_files):
 					ignored_files = fnmatch.filter(flist, pt)
-					print pt
-					print flist
 					for f in ignored_files:
 						flist.remove(f)
 					# END brute force remove files
@@ -635,6 +652,38 @@ class BuildPython(_GitMixin, build_py):
 		# END for each file
 		
 		return files + add_files
+		
+	def _filtered_module_list(self, modules):
+		"""Because things multiply in our base class ...  argh"""
+		# yes, its  a special format again totally undocumented except for the code
+		# ... its hacky shit, so this becomes hacky shit as well ... :(
+		# brute force ...
+		filtered_modules = list()
+		for p, m, f  in modules:
+			skip = False
+			for token in self.exclude_items:
+				if token in ("%s.%s" % (p, m)):
+					skip = True
+				# END token was not found
+				if skip: break
+			# END for each token
+			if not skip:
+				filtered_modules.append((p, m, f))
+			else:
+				log.info("Skipped : %s.%s" % (p, m))
+			# END handle skipping
+		# END for each unpacked module info
+		
+		return filtered_modules
+		
+	def find_package_modules(self, package, package_dir):
+		"""Overridden to filter return value using our exludes"""
+		return self._filtered_module_list(build_py.find_package_modules(self, package, package_dir))
+		
+	def find_all_modules(self):
+		"""Same as above, but ... different. Instaed of using the find_package_modules method, 
+		it reimplements the same functionality ... wtf ??"""
+		return self._filtered_module_list(build_py.find_all_modules(self))
 		
 	def fix_scripts(self):
 		"""Check what the user classified as script and fix the first line
@@ -718,7 +767,6 @@ class BuildScripts(build_scripts):
 	
 	#} END interface 
 	
-	
 	def copy_scripts(self):
 		if self.dry_run:
 			return
@@ -739,6 +787,28 @@ class BuildScripts(build_scripts):
 		
 		self.handle_scripts(outfiles, adjust_first_line=True)
 	
+
+class InstallLibCommand(install_lib):
+	"""Makes sure the compilation does not happen - if the user wants it, it will 
+	only work in the build_py command."""
+	
+	def byte_compile(self, files):
+		"""Ignore it"""
+		log.info("Skipping byte compilation - it should be done by build_py")
+		
+
+class InstallCommand(install):
+	"""Assure compilation is done by build_py"""
+	
+	def run(self):
+		"""initialize build_py with our compile options"""
+		
+		bcmd = self.distribution.get_command_obj('build_py')
+		bcmd.compile = (self.compile is None and 1) or self.compile
+		bcmd.optimize = self.optimize or 0
+		
+		install.run(self)
+
 
 class GitSourceDistribution(_GitMixin, sdist):
 	"""Instead of creating an archive, we put the source tree into a git repository"""
@@ -905,6 +975,7 @@ class DocCommand(_GitMixin, Command):
 	
 	#} END internal
 
+
 class Distribution(object, BaseDistribution):
 	"""Customize available options and behaviour to work with mrv and derived projects"""
 	
@@ -964,6 +1035,15 @@ class Distribution(object, BaseDistribution):
 		if version_info[3]:
 			base += "-%s" % version_info[3]
 		return base
+		
+	def get_fullname(self):
+		""":return: Full name, including the python version we are compiling the code"""
+		basename = self.metadata.get_fullname()
+		bcmd = self.get_command_obj('build_py', create=False)
+		if bcmd and bcmd.finalized and bcmd.needs_compilation:
+			basename += "-py%s" % sys.version[:3]
+		# END make names dependent on the actual version if bytecode is used
+		return basename
 		
 	def postprocess_metadata(self):
 		"""Called after the commandline has been parsed. With all information available
@@ -1326,7 +1406,15 @@ Would you like to adjust your version_info or abort ?
 		self.cmdclass[build_py.__name__] = BuildPython
 		self.cmdclass[build_scripts.__name__] = BuildScripts
 		self.cmdclass[sdist.__name__] = GitSourceDistribution
+		self.cmdclass[install_lib.__name__] = InstallLibCommand
+		self.cmdclass[install.__name__] = InstallCommand
+		
 		self.cmdclass[DocCommand.cmdname] = DocCommand
+		
+		# well, here it comes: For some reason, the superclass dynamically attaches
+		# access methods from the distmetadata class onto itself. Its amazing, 
+		# so to override it, we have to do the same ... .
+		self.get_fullname = new.instancemethod(type(self).get_fullname.im_func, self, type(self))
 		
 	def __del__(self):
 		"""undo monkey patches"""
