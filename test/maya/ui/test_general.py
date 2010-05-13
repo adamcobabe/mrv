@@ -2,7 +2,6 @@
 """ Test some default ui capababilities """
 from mrv.test.maya import *
 import mrv.maya.ui as ui
-import mrv.maya.ui.qa as qaui
 from mrv.util import capitalize
 import maya.cmds as cmds
 import sys
@@ -241,6 +240,11 @@ if not cmds.about(batch=1):
 			assert progress.get() == maxrange 
 	
 		def test_qa( self ):
+			try:
+				import mrv.maya.ui.qa as qaui
+			except ImportError:
+				return
+			# END handle existence of QA - maybe this should go into a separate module to exclude, soon
 			import mrv.test.automation.workflows as workflows
 	
 			qawfl = workflows.qualitychecking

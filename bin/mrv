@@ -25,9 +25,9 @@ def prepare_mrv_syspath():
 		sys.path.append(ospd(ospd(ospd(os.path.realpath(os.path.abspath(__file__))))))
 		try:
 			import mrv
-		except ImportError:
+		except ImportError, e:
 			del(sys.path[-1])
-			raise ImportError("Failed to import MRV as it could not be found in your syspath, nor could it be deduced"); 
+			raise ImportError("Failed to import MRV as it could not be found in your syspath, nor could it be deduced: %s" % str(e)); 
 		# END second attempt exception handling
 	# END import exception handling
 

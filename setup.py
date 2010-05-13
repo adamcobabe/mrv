@@ -17,6 +17,7 @@ from distutils.command.sdist import sdist
 from itertools import chain
 import subprocess
 import fnmatch
+import re
 
 try:
 	from setuptools import find_packages
@@ -414,12 +415,17 @@ class BuildPython(_GitMixin, build_py):
 	original py files if compile is specified. Additionally we allow the python 
 	interpreter to be specified as the bytecode is incompatible between the versions"""
 	
+	re_script_first_line = re.compile('^(#!.*python)[0-9.]*([ \t].*)?$')
 	description="Implements byte-compilation with different python interpreter versions"
 	
 	#{ Configuration
 	
 	# A sequence of modules to exclude, i.e. '.modulename' or 'this.that'
 	exclude_modules = ( '.test', '.doc' )
+	
+	# if set, pyo will be renamed to pyc, for some reason the pyo extension is not
+	# common and not properly supported by python itself
+	rename_pyo_to_pyc = True
 	
 	build_py.user_options.extend(
 	[('exclude-from-compile', 'e', "Exclude the given comma separated list of file(globs) from being compiled")]
@@ -518,10 +524,21 @@ class BuildPython(_GitMixin, build_py):
 			# as if it was a totally separate case and duplicates code for whichever 
 			# reason 
 			for py_file in (f for f in files if f.endswith('.py')):
-				log.info("Removing original file after byte compile: %s" % py_file)
+				log.debug("Removing original file after byte compile: %s" % py_file)
 				os.remove(py_file)
+				
+				if self.rename_pyo_to_pyc:
+					base, ext = os.path.splitext(py_file)
+					pyo_file = base + ".pyo"
+					if os.path.isfile(pyo_file):
+						pyc_file = base + ".pyc"
+						os.rename(pyo_file, pyc_file)
+						log.debug("Renamed %s to %s" % (pyo_file, pyc_file))
+					# END check and rename
+				# END rename file
 			# END for each python file to remove
 		# END post processing
+		
 		
 		return rval
 	
@@ -583,18 +600,65 @@ class BuildPython(_GitMixin, build_py):
 		
 		return files + add_files
 		
+	def fix_scripts(self):
+		"""Check what the user classified as script and fix the first line
+		to point to the right python interpreter version (only if we are compiling).
+		Additionally, make the file executable on linux"""
+		out_dir = self._build_dir()
+		scripts_abs = [ os.path.join(out_dir, s) for s in self.distribution.scripts ]
+		scripts_abs = [ s for s in scripts_abs if os.path.isfile(s) ]	# skip pruned
+		if not scripts_abs:
+			return
+		# END early abort
+		
+		if self.needs_compilation:
+			for file in scripts_abs:
+				lines = open(file).readlines()
+				if not lines:
+					continue
+				# END skip empty
+				
+				m = self.re_script_first_line.match(lines[0])
+				if not m:
+					continue
+				# END skip if no shebang
+				
+				lines[0] = "%s%s%s\n" % (m.group(1), sys.version[:3], m.group(2) or '')
+				open(file, 'wb').writelines(lines)
+			# END for each file
+		# END fix first line
+		
+		if os.name == 'posix':
+			for file in scripts_abs:
+				oldmode = os.stat(file).st_mode & 07777
+				newmode = (oldmode | 0555)
+				if newmode != oldmode:
+					log.info("changing mode of %s from %o to %o", file, oldmode, newmode)
+					os.chmod(file, newmode)
+				# END change mode
+			# END for each script
+		# END make executable
+		
+		
+	def _build_dir(self):
+		""":return: directory into which all files will be put"""
+		# this works ... checked their code which seems hacky, so we continue with the 
+		# hackiness
+		return os.path.join(self.build_lib, self.distribution.rootmodule.__name__)
+		
 	def run(self):
 		"""Perform the main operation, and handle git afterwards
 		:note: It is done at a point where the py modules as well as the executables
 		are available. In case there are c-modules, these wouldn't be availble here."""
 		build_py.run(self)
 		
+		# FIX SCRIPTS
+		##############
+		self.fix_scripts()
+		
 		# HANDLE GIT
 		############
-		# this works ... checked their code which seems hacky, so we continue with the 
-		# hackiness
-		package_dir = os.path.join(self.build_lib, self.distribution.rootmodule.__name__)
-		self.update_git(package_dir)
+		self.update_git(self._build_dir())
 
 	#} END overridden methods 
 
@@ -1188,6 +1252,12 @@ Would you like to adjust your version_info or abort ?
 				raise ValueError("Incorrect MayaVersion format: %s" % self.maya_version)
 		# END handle python version
 		
+		# in install mode, we never use git or run regression tests
+		if 'install' in self.commands:
+			log.debug("Disabled usage of git and regression testing as install command is present")
+			self.use_git = False
+			self.regression_tests = False
+		# END handle install mode
 		
 		self.postprocess_metadata()
 		

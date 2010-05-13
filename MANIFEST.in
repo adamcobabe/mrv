@@ -1,6 +1,8 @@
 
 # if some of the following gets included, check the tests and fixtures as 
 # they have to be included as well
+
+graft maya
 prune automation 
 prune maya/automation
 exclude dge.py 
@@ -9,6 +11,7 @@ exclude batch.py
 exclude mdp.py
 exclude conf.py
 
+graft test
 prune test/automation
 prune test/maya/automation
 exclude test/test_conf.py 
