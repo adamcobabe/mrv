@@ -12,6 +12,7 @@ import distutils.command
 from distutils.cmd import Command
 from distutils.command.build_py import build_py
 from distutils.command.bdist_dumb import bdist_dumb
+from distutils.command.build_scripts import build_scripts
 from distutils.command.sdist import sdist
 
 from itertools import chain
@@ -448,20 +449,16 @@ class BuildPython(_GitMixin, build_py):
 	original py files if compile is specified. Additionally we allow the python 
 	interpreter to be specified as the bytecode is incompatible between the versions"""
 	
-	re_script_first_line = re.compile('^(#!.*python)[0-9.]*([ \t].*)?$')
 	description="Implements byte-compilation with different python interpreter versions"
 	
 	#{ Configuration
-	
-	# A sequence of modules to exclude, i.e. '.modulename' or 'this.that'
-	exclude_modules = ( '.test', '.doc' )
-	
 	# if set, pyo will be renamed to pyc, for some reason the pyo extension is not
 	# common and not properly supported by python itself
 	rename_pyo_to_pyc = True
 	
 	build_py.user_options.extend(
-	[('exclude-from-compile', 'e', "Exclude the given comma separated list of file(globs) from being compiled")]
+	[('exclude-from-compile=', 'e', "Exclude the given comma separated list of file(globs) from being compiled"), 
+	 ('exclude-modules=', 'm', "Exclude the given comma separated list of modules from being included, i.e. .test")]
 									)
 	
 	_GitMixin.adjust_user_options(build_py.user_options)
@@ -504,6 +501,7 @@ class BuildPython(_GitMixin, build_py):
 		self.maya_version = None		# set later by distutils
 		self.needs_compilation = None
 		self.exclude_from_compile = list()
+		self.exclude_modules = list()
 		
 	def finalize_options(self):
 		build_py.finalize_options(self)
@@ -513,6 +511,7 @@ class BuildPython(_GitMixin, build_py):
 		self.py_version = self.distribution.py_version
 		self.needs_compilation = self.compile or self.optimize
 		self.exclude_from_compile = self.distribution.fixed_list_arg(self.exclude_from_compile)
+		self.exclude_modules = self.distribution.fixed_list_arg(self.exclude_modules)
 		
 		self.handle_exclusion()
 		
@@ -648,33 +647,7 @@ class BuildPython(_GitMixin, build_py):
 			return
 		# END early abort
 		
-		if self.needs_compilation:
-			for file in scripts_abs:
-				lines = open(file).readlines()
-				if not lines:
-					continue
-				# END skip empty
-				
-				m = self.re_script_first_line.match(lines[0])
-				if not m:
-					continue
-				# END skip if no shebang
-				
-				lines[0] = "%s%s%s\n" % (m.group(1), sys.version[:3], m.group(2) or '')
-				open(file, 'wb').writelines(lines)
-			# END for each file
-		# END fix first line
-		
-		if os.name == 'posix':
-			for file in scripts_abs:
-				oldmode = os.stat(file).st_mode & 07777
-				newmode = (oldmode | 0555)
-				if newmode != oldmode:
-					log.info("changing mode of %s from %o to %o", file, oldmode, newmode)
-					os.chmod(file, newmode)
-				# END change mode
-			# END for each script
-		# END make executable
+		BuildScripts.handle_scripts(scripts_abs, self.needs_compilation)
 		
 		
 	def _build_dir(self):
@@ -699,6 +672,73 @@ class BuildPython(_GitMixin, build_py):
 
 	#} END overridden methods 
 
+
+class BuildScripts(build_scripts):
+	"""Uses our way to adjust the first line of the script, additionally rename 
+	the executable to indicate the required interpreter. Otherwise scripts 
+	would override each other anyway."""
+	
+	re_script_first_line = re.compile('^(#!.*python)[0-9.]*([ \t].*)?$')
+	
+	#{ Interface 
+	@classmethod
+	def handle_scripts(cls, scripts, adjust_first_line):
+		"""Handle the given scripts to work for later installation
+		:param scripts: paths to scripts to hanlde
+		:param adjust_first_line: if True, the first line will receive the actual 
+			python version to match the version of the this python interpreter"""
+		if adjust_first_line:
+			for file in scripts:
+				lines = open(file).readlines()
+				if not lines:
+					continue
+				# END skip empty
+				
+				m = cls.re_script_first_line.match(lines[0])
+				if not m:
+					continue
+				# END skip if no shebang
+				
+				lines[0] = "%s%s%s\n" % (m.group(1), sys.version[:3], m.group(2) or '')
+				open(file, 'wb').writelines(lines)
+			# END for each file
+		# END fix first line
+		
+		if os.name == 'posix':
+			for file in scripts:
+				oldmode = os.stat(file).st_mode & 07777
+				newmode = (oldmode | 0555)
+				if newmode != oldmode:
+					log.info("changing mode of %s from %o to %o", file, oldmode, newmode)
+					os.chmod(file, newmode)
+				# END change mode
+			# END for each script
+		# END make executable
+	
+	
+	#} END interface 
+	
+	
+	def copy_scripts(self):
+		if self.dry_run:
+			return
+		# END not implemented
+		
+		self.mkpath(self.build_dir)
+		outfiles = list()
+		for script in self.scripts:
+			outfile = os.path.join(self.build_dir, os.path.basename(script))
+			base, ext = os.path.splitext(outfile)
+			
+			# append py version !
+			outfile = base + sys.version[:3] + ext
+			
+			self.copy_file(script, outfile)
+			outfiles.append(outfile)
+		# END for each script 
+		
+		self.handle_scripts(outfiles, adjust_first_line=True)
+	
 
 class GitSourceDistribution(_GitMixin, sdist):
 	"""Instead of creating an archive, we put the source tree into a git repository"""
@@ -1199,7 +1239,7 @@ Would you like to adjust your version_info or abort ?
 		if necessary, or the value itself if it is already a list or tuple"""
 		if isinstance(value, (list, tuple)):
 			return value
-		return value.split(',')
+		return [ s.strip() for s in value.split(',') ]
 	
 	@classmethod
 	def retrieve_root_module(cls, basedir='.'):
@@ -1284,6 +1324,7 @@ Would you like to adjust your version_info or abort ?
 		
 		# Override Commands
 		self.cmdclass[build_py.__name__] = BuildPython
+		self.cmdclass[build_scripts.__name__] = BuildScripts
 		self.cmdclass[sdist.__name__] = GitSourceDistribution
 		self.cmdclass[DocCommand.cmdname] = DocCommand
 		
