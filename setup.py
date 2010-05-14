@@ -1072,7 +1072,8 @@ class Distribution(object, BaseDistribution):
 	BaseDistribution.global_options.extend(
 		( ('%s=' % opt_maya_version, 'm', "Specify the maya version to operate on"),
 		  ('regression-tests=', 't', "If set (default), the regression tests will be executed, distribution fails if one test fails"),
-		  ('use-git=', 'g', "If set (default), the build results will be put into a git repository"), )
+		  ('use-git=', 'g', "If set (default), the build results will be put into a git repository"),
+		  ('force-git-tag', 'f', "If set, the corresponding git tag will be moved to your current root repository commit"),)
 	)
 	
 	
@@ -1235,16 +1236,28 @@ class Distribution(object, BaseDistribution):
 		# ask the user to create a tag - make sure it does not yet exist 
 		# before asking
 		target_tag = version_tag(self.pinfo.version)
-		if not target_tag.is_valid():
+		
+		# if force is specified, we may just create the tag forcibly and proceed
+		# This only works for us if we have a string tag in our version - this 
+		# is usually not the case for non-release versions, but for alphas, preview, 
+		# betas etc.
+		can_set_tag = not target_tag.is_valid() 
+		may_force = self.force_git_tag and not can_set_tag and self.pinfo.version[3]	# string descriptor
+		if not may_force and (self.force_git_tag and not can_set_tag):
+			log.warn("Cannot force git tag if string identifier of your info.version is not set")
+		# END emit warning
+		
+		if may_force or can_set_tag:
 			asw = "abort"
-			msg = "Would you like me to create the tag %s in your repository at %s to proceed ?\n" % (target_tag.name, root_repo.working_tree_dir)
+			add = (may_force and not can_set_tag and '*forcibly* ') or '' 
+			msg = "Would you like me to %screate the tag %s in your repository at %s to proceed ?\n" % (add, target_tag.name, root_repo.working_tree_dir)
 			msg += "yes/%s [%s]: " % (asw, asw)
 			answer = raw_input(msg) or asw
 			if answer != 'yes':
 				raise createexc
 			# END check query
 			
-			return git.TagReference.create(root_repo, target_tag.name, force=False)
+			return git.TagReference.create(root_repo, target_tag.name, force=may_force)
 		# END could create the tag with current version 
 		
 		# INCREMENT VERSION AND CREATE TAG
@@ -1485,6 +1498,7 @@ Would you like to adjust your version info or abort ?
 		self.regression_tests = True
 		self.use_git = True
 		self.root_repo = None
+		self.force_git_tag = 0
 		
 		if not self.packages:
 			self.packages = self.get_packages()

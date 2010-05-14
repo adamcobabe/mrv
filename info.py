@@ -21,10 +21,11 @@ license = "BSD License"
 __scripts_bin = ['bin/mrv', 'bin/imrv']
 __scripts_test_bin = ['test/bin/tmrv', 'test/bin/tmrvr']
 __scripts_test_bin_s = [ p.replace('test/', '') for p in __scripts_test_bin ]
+__ld = """MRV is a multi-platform python development environment to ease rapid development 
+of maintainable, reliable and high-performance code to be used in and around Autodesk Maya."""
+
 setup_kwargs = dict(scripts=__scripts_bin + __scripts_test_bin, 
-                    long_description = """MRV is a multi-platform python development environment to ease rapid development 
-                                    of maintainable, reliable and high-performance code to be used in and around Autodesk Maya."
-                                    """,
+                    long_description = __ld,
                     package_data = {   'mrv.test' : ['fixtures/ma/*', 'fixtures/maya_user_prefs/'] + __scripts_test_bin_s, 
                     					'mrv' : __scripts_bin + ['!*.gitignore'],
                     					'mrv.maya' : ['cache'],
