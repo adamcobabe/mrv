@@ -1574,7 +1574,11 @@ Would you like to adjust your version info or abort ?
 		
 		# setup git if required
 		if self.use_git:
-			import git
+			try:
+				import git
+			except ImportError:
+				raise ImportError("Please make sure that GitPython is available to python %s" % sys.version[:3])
+			# END handle git nicely just once
 			self.root_repo = git.Repo(ospd(self.pinfo.__file__))
 		# END init root repo
 
