@@ -47,6 +47,7 @@ modules: ../,../ext/networkx/networkx"""
 	# These members will be adjusted after reading the current project's 
 	# information
 	rootmodule = None
+	pinfo = None
 	epydoc_cfg = """[epydoc]
 name: %s
 url: %s
@@ -96,7 +97,7 @@ output: html"""
 		"""Writes a version file containing the rootmodule's version info. 
 		This allows to verify that the version of the individual parts, like
 		epydoc and sphinx are still matching"""
-		version_string = "version_info = (%i, %i, %i, '%s', %i)" % cls.rootmodule.version_info
+		version_string = "version_info = (%i, %i, %i, '%s', %i)" % cls.pinfo.version
 		open(cls.version_file_name(idstring, basedir), 'wb').write(version_string)
 	
 	@classmethod
@@ -113,8 +114,8 @@ output: html"""
 		
 		execfile(vfile, vlocals)
 		vinfo = vlocals['version_info']
-		if vinfo != cls.rootmodule.version_info:
-			msg = "Documentation target named '%s' at version %s requires '%s' ( last built at %s ) to be rebuild" % (opid, str(cls.rootmodule.version_info), idstring, str(vinfo))
+		if vinfo != cls.pinfo.version:
+			msg = "Documentation target named '%s' at version %s requires '%s' ( last built at %s ) to be rebuild" % (opid, str(cls.pinfo.version), idstring, str(vinfo))
 			raise EnvironmentError(msg)
 		# END raise exception
 	
@@ -203,12 +204,14 @@ output: html"""
 			coverage_dir = Path(self._project_dir / cmd.tmrv_coverage_dir)
 			
 			# delete all files we copied from the coverage dir
-			for fpath in coverage_dir.files():
-				tfpath = bdd / fpath.basename()
-				if tfpath.isfile():
-					tfpath.remove()
-				# END remove file
-			# END for each coverage file to remove
+			if coverage_dir.isdir():
+				for fpath in coverage_dir.files():
+					tfpath = bdd / fpath.basename()
+					if tfpath.isfile():
+						tfpath.remove()
+					# END remove file
+				# END for each coverage file to remove
+			# END if coverage directory exists
 			
 			try:
 				shutil.rmtree(csdd)
@@ -324,10 +327,17 @@ output: html"""
 			cls.rootmodule = __import__(packagename)
 		except ImportError:
 			raise EnvironmentError("Root package %s could not be imported" % packagename)
-		# END handle import 
+		# END handle import
 		
-		cls.epydoc_cfg = cls.epydoc_cfg % (cls.rootmodule.project_name, 
-											cls.rootmodule.url, 
+		pinfo_package =  "%s.info" % packagename
+		try:
+			cls.pinfo = __import__(pinfo_package, fromlist=[''])
+		except ImportError:
+			raise EnvironmentError("Project information module %r could not be imported:" % pinfo_package)
+		# END handle import
+		
+		cls.epydoc_cfg = cls.epydoc_cfg % (cls.pinfo.project_name, 
+											cls.pinfo.url, 
 											cls.epydoc_show_source,
 											cls.epydoc_modules, 
 											cls.epydoc_exclude)
@@ -384,7 +394,7 @@ output: html"""
 		
 		try:
 			rval = self._call_python_script([tmrvpath, str(self._mrv_maya_version()), 
-											"%s=%s" % (cmd.tmrv_coverage_flag, self.rootmodule.__name__)])
+											"%s=%s" % (cmd.tmrv_coverage_flag, self.pinfo.root_package)])
 		finally:
 			os.chdir(prevcwd)
 		# END handle cwd
@@ -473,10 +483,10 @@ output: html"""
 				'-b', 'html',
 				'-D', 'latex_paper_size=a4', 
 				'-D', 'latex_paper_size=letter',
-				'-D', 'project=%s' % self.rootmodule.project_name,
-				'-D', 'copyright=%s' % self.rootmodule.author,
-				'-D', 'version=%s' % "%i.%i" % self.rootmodule.version_info[:2],
-				'-D', 'release=%s' % "%i.%i.%i-%s" % self.rootmodule.version_info[:4]]
+				'-D', 'project=%s' % self.pinfo.project_name,
+				'-D', 'copyright=%s' % self.pinfo.author,
+				'-D', 'version=%s' % "%i.%i" % self.pinfo.version[:2],
+				'-D', 'release=%s' % "%i.%i.%i-%s" % self.pinfo.version[:4]]
 		
 	def _make_sphinx(self):
 		"""Generate the sphinx documentation"""

@@ -99,7 +99,7 @@ class _GitMixin(object):
 	
 	def branch_name(self):
 		""":return: name of the branch identifying our current release configuration"""
-		root_name = self.distribution.rootmodule.__name__
+		root_name = self.distribution.pinfo.root_package
 		if self.branch_suffix is None:
 			raise ValueError("Branch suffix is not set")
 		return root_name + self.branch_suffix
@@ -706,7 +706,7 @@ class BuildPython(_GitMixin, build_py):
 		""":return: directory into which all files will be put"""
 		# this works ... checked their code which seems hacky, so we continue with the 
 		# hackiness
-		return os.path.join(self.build_lib, self.distribution.rootmodule.__name__)
+		return os.path.join(self.build_lib, self.distribution.pinfo.root_package)
 		
 	def run(self):
 		"""Perform the main operation, and handle git afterwards
@@ -962,7 +962,7 @@ class DocCommand(_GitMixin, Command):
 		# try to use an overriden docgenerator, then our own one
 		GenCls = None
 		try:
-			docbase = __import__("%s.doc.base" % self.rootmodule.__name__, fromlist=['doesntmatter'])
+			docbase = __import__("%s.doc.base" % self.pinfo.root_package, fromlist=['doesntmatter'])
 			GenCls = docbase.DocGenerator
 		except (ImportError, AttributeError):
 			import mrv.doc.base as docbase
@@ -983,9 +983,13 @@ class Distribution(object, BaseDistribution):
 	"""Customize available options and behaviour to work with mrv and derived projects"""
 	
 	#{ Configuration
+	
+	# module providing project related information
+	pinfo = None 
+	
 	# root package module, will be set by the main routine, must be set 
 	# for this class to work
-	rootmodule = None 
+	rootpackage = None
 	
 	# if True, every package in the 'ext' folder will be included in the distribution as well
 	# .git repository data will be pruned
@@ -1170,7 +1174,7 @@ class Distribution(object, BaseDistribution):
 		# from current version
 		# ask the user to create a tag - make sure it does not yet exist 
 		# before asking
-		target_tag = version_tag(self.rootmodule.version_info)
+		target_tag = version_tag(self.pinfo.version)
 		if not target_tag.is_valid():
 			asw = "abort"
 			msg = "Would you like me to create the tag %s in your repository at %s to proceed ?\n" % (target_tag.name, root_repo.working_tree_dir)
@@ -1187,7 +1191,7 @@ class Distribution(object, BaseDistribution):
 		##################################
 		asw = "adjust version"
 		msg = """Your current commit is not tagged - the automatically generated tag name %s does already exist at a previous commit.
-Would you like to adjust your version_info or abort ?
+Would you like to adjust your version info or abort ?
 %s/abort [%s]: """ % (target_tag.name, asw, asw) 
 		answer = raw_input(msg) or asw
 		if answer != asw:
@@ -1197,16 +1201,18 @@ Would you like to adjust your version_info or abort ?
 		# ASSURE INIT FILE UNCHANGED
 		# parse the init script and adjust it - if there are changes in the 
 		# working tree file, abort !
-		init_file = os.path.join(ospd(self.rootmodule.__file__), "__init__.py")
-		if len(root_repo.index.diff(None, paths=init_file)):
-			raise EnvironmentError("The init file %r that would be changed contains uncommitted changes. Please commit them and try again" % init_file)
+		info_file = os.path.splitext(self.pinfo.__file__)[0] + ".py"
+		if not os.path.isfile(info_file):
+			raise EnvironmentError("Project information file source does not exist at %r" % info_file)
+		if len(root_repo.index.diff(None, paths=info_file)):
+			raise EnvironmentError("The init file %r that would be changed contains uncommitted changes. Please commit them and try again" % info_file)
 		# END assure init file unchanged
 		
 		out_lines = list()
 		made_adjustment = False
-		fmtexc = ValueError("Expecting following version_info format: version_info = (1, 0, 0, 'string', 0)")
-		for line in open(init_file, 'r'):
-			if not made_adjustment and line.strip().startswith('version_info'):
+		fmtexc = ValueError("Expecting following version format: version = (1, 0, 0, 'string', 0)")
+		for line in open(info_file, 'r'):
+			if not made_adjustment and line.strip().startswith('version'):
 				# present the stripped strings separated by commas - it must be a tuple
 				# fail on parsing errors
 				sline = line.strip()
@@ -1243,7 +1249,7 @@ Would you like to adjust your version_info or abort ?
 				# END while user didn't provide a unique token
 				
 				# build a new line with our updated version info
-				line = "version_info = ( %i, %i, %i, '%s', %i )\n" % tokens
+				line = "version = ( %i, %i, %i, '%s', %i )\n" % tokens
 				
 				made_adjustment = True
 			# END adjust version-info line with user help
@@ -1254,16 +1260,16 @@ Would you like to adjust your version_info or abort ?
 			raise fmtexc
 		
 		# query the commit message
-		cmsg = "Adjusted version_info to %s " % target_tag.name[1:]
+		cmsg = "Adjusted version to %s " % target_tag.name[1:]
 		
-		print "The changes to the init file at %r will be committed." % init_file 
+		print "The changes to the init file at %r will be committed." % info_file 
 		print "Please enter your commit message or hit Ctrl^C to abort without a change to your file"
 		cmsg = raw_input("[%s]: " % cmsg) or cmsg
 		
 		# write the file back - at this point the index is garantueed to be clean
 		# so our init file is the only one that changes
-		open(init_file, 'wb').writelines(out_lines)
-		root_repo.index.add([init_file])
+		open(info_file, 'wb').writelines(out_lines)
+		root_repo.index.add([info_file])
 		commit = root_repo.index.commit(cmsg, head=True)
 		
 		# create tag on the latest head 
@@ -1304,7 +1310,7 @@ Would you like to adjust your version_info or abort ?
 	def _rootpath(self):                   
 		""":return: path to the root of the rootpackage, which includes all modules
 		and subpackages directly"""
-		return ospd(os.path.abspath(self.rootmodule.__file__)) 
+		return ospd(os.path.abspath(self.pinfo.__file__)) 
 	
 	#} END path generators
 
@@ -1325,35 +1331,46 @@ Would you like to adjust your version_info or abort ?
 		return [ s.strip() for s in value.split(',') ]
 	
 	@classmethod
-	def retrieve_root_module(cls, basedir='.'):
+	def retrieve_project_info(cls):
+		"""import the project information module
+		:return: package info module object"""
+		try:
+			import info
+			cls.pinfo = info
+		except ImportError:
+			raise ImportError("Failed to import package information module (info.py)"); 
+		# END import exception handling
+		
+		return cls.pinfo
+		
+	@classmethod
+	def retrieve_root_package(cls, basedir='.'):
 		"""Make sure the root package is in the python path and is set as our root
 		:return: root package object"""
-		packageroot = os.path.realpath(os.path.abspath(basedir))
-		root_package_name = os.path.basename(packageroot)
-		
 		try:
-			cls.rootmodule = __import__(root_package_name)
+			cls.rootpackage = __import__(cls.pinfo.root_package)
 		except ImportError:
+			packageroot = os.path.realpath(os.path.abspath(basedir))
 			sys.path.append(ospd(packageroot))
 			try:
-				cls.rootmodule = __import__(root_package_name)
+				cls.rootpackage = __import__(cls.pinfo.root_package)
 			except ImportError:
+				log.info("Contents of your sys.path:")
+				for p in sys.path: log.info("%r" % p)
 				del(sys.path[-1])
-				raise ImportError("Failed to import MRV as it could not be found in your syspath, nor could it be deduced"); 
+				raise ImportError("Failed to import root package %r as it could not be found in your syspath" % (cls.pinfo.root_package)); 
 			# END second attempt exception handling
 		# END import exception handling
 		
-		return cls.rootmodule
-		
-	
+		return cls.rootpackage
 	
 	def get_packages(self):
 		""":return: list of all packages in rootpackage in __import__ compatible form"""
-		base_packages = [self.rootmodule.__name__] + [ self.rootmodule.__name__ + '.' + pkg for pkg in find_packages(self._rootpath()) ]
+		base_packages = [self.pinfo.root_package] + [ self.pinfo.root_package + '.' + pkg for pkg in find_packages(self._rootpath())]
 		
 		# add external packages - just pretent its a package even though it it just 
 		# a path in external
-		ext_path = os.path.relpath(os.path.join(ospd(self.rootmodule.__file__), 'ext'))
+		ext_path = os.path.relpath(os.path.join(ospd(self.pinfo.__file__), 'ext'))
 		if self.include_external and os.path.isdir(ext_path):
 			for root, dirs, files in os.walk(ext_path, followlinks=True):
 				# remove hidden paths
@@ -1369,11 +1386,10 @@ Would you like to adjust your version_info or abort ?
 				
 				# process paths
 				for dir in dirs:
-					base_packages.append(self.rootmodule.__name__+"."+os.path.join(root, dir).replace(os.sep, '.'))
+					base_packages.append(self.pinfo.root_package+"."+os.path.join(root, dir).replace(os.sep, '.'))
 				# END for each remaining valid directory
 			# END walking external dir
 		# END if external directory exists
-		
 		return base_packages
 		
 	#} END interface 
@@ -1390,8 +1406,8 @@ Would you like to adjust your version_info or abort ?
 	def __init__(self, *args, **kwargs):
 		"""Initialize base and set some useful defaults"""
 		BaseDistribution.__init__(self, *args, **kwargs)
-		if self.rootmodule is None:
-			self.retrieve_root_module()
+		if self.pinfo is None:
+			self.retrieve_project_info()
 		# END assure root is set
 		
 		# at this point, the options have not yet been parsed
@@ -1430,6 +1446,22 @@ Would you like to adjust your version_info or abort ?
 	def parse_command_line(self):
 		"""Handle our custom options"""
 		rval = BaseDistribution.parse_command_line(self)
+		
+		# in install mode, we never use git or run regression tests
+		if 'install' in self.commands:
+			log.debug("Disabled usage of git and regression testing as install command is present")
+			self.use_git = False
+			self.regression_tests = False
+		# END handle install mode
+		
+		# import the root module to allow us importing mrv. This is only required
+		# if a few commands are used, and may not always be possible. Problem
+		# here is that we don't know all commands in advance, so we have a few 
+		# hardcoded cases here when NOT to use the root package
+		if 'install' not in self.commands and 'bdist_egg' not in self.commands:
+			self.retrieve_root_package()
+		# END assure root is available if necessary
+		
 		if self.maya_version is not None:
 			import mrv.cmd.base
 			try:
@@ -1445,12 +1477,6 @@ Would you like to adjust your version_info or abort ?
 				raise ValueError("Incorrect MayaVersion format: %s" % self.maya_version)
 		# END handle python version
 		
-		# in install mode, we never use git or run regression tests
-		if 'install' in self.commands:
-			log.debug("Disabled usage of git and regression testing as install command is present")
-			self.use_git = False
-			self.regression_tests = False
-		# END handle install mode
 		
 		self.postprocess_metadata()
 		
@@ -1462,7 +1488,7 @@ Would you like to adjust your version_info or abort ?
 		# setup git if required
 		if self.use_git:
 			import git
-			self.root_repo = git.Repo(ospd(self.rootmodule.__file__))
+			self.root_repo = git.Repo(ospd(self.pinfo.__file__))
 		# END init root repo
 
 
@@ -1490,20 +1516,20 @@ Would you like to adjust your version_info or abort ?
 
 def main(args, distclass=Distribution):
 	distclass.modifiy_sys_args()
-	root = distclass.retrieve_root_module()
+	info = distclass.retrieve_project_info()
 	
 	setup(
 	      distclass=distclass,
-	      name = root.project_name,
-		  version = distclass.version_string(root.version_info),
-		  description = root.description,
-		  author = root.author,
-		  author_email = root.author_email,
-		  url = root.url,
-		  license = root.license,
-		  package_dir = {root.__name__ : ''},
+	      name = info.project_name,
+		  version = distclass.version_string(info.version),
+		  description = info.description,
+		  author = info.author,
+		  author_email = info.author_email,
+		  url = info.url,
+		  license = info.license,
+		  package_dir = {info.root_package : ''},
 		  
-		  **root.setup_kwargs
+		  **info.setup_kwargs
 		  )
 	
 
