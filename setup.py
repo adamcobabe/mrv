@@ -15,6 +15,7 @@ from distutils.command.install import install
 from distutils.command.build_py import build_py
 from distutils.command.build_scripts import build_scripts
 from distutils.command.sdist import sdist
+from distutils.util import convert_path
 
 from itertools import chain
 import subprocess
@@ -550,7 +551,7 @@ class BuildPython(_GitMixin, build_py):
 		
 		# MAKE EXCLUSION
 		for exclude_pattern in self.exclude_from_compile:
-			remove_files = fnmatch.filter(files, exclude_pattern)
+			remove_files = fnmatch.filter(files, convert_path(exclude_pattern))
 			for f in remove_files:
 				files.remove(f)
 			# END remove all matched files
@@ -633,7 +634,7 @@ class BuildPython(_GitMixin, build_py):
 		if ignore_patterns:
 			for pt in ignore_patterns:
 				for flist in (files, add_files):
-					ignored_files = fnmatch.filter(flist, pt)
+					ignored_files = fnmatch.filter(flist, convert_path(pt))
 					for f in ignored_files:
 						flist.remove(f)
 					# END brute force remove files
@@ -818,9 +819,17 @@ class BuildScripts(build_scripts):
 		outfiles = list()
 		suffix = sys.version[:3]
 		
+		# on windows, we don't process scripts as they end up in distinctive
+		# python installation directories
+		if os.name == 'nt':
+			suffix = ''
+		# END handle windows suffix  
+		
 		# only copy what's left
 		rmscripts = set()
 		for pattern in self.exclude_scripts:
+			# NOTE: no pattern conversion required, here its all based on 
+			# linux setup script information	
 			rmscripts.update(set(fnmatch.filter(self.scripts, pattern)))
 		# END for each pattern 
 		for rms in rmscripts:
