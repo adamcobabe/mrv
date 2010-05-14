@@ -18,6 +18,10 @@ url = "http://gitorious.org/mrv"
 description ='Development Framework for Autodesk Maya'
 license = "BSD License"
 
+regression_test_exec = 'test/bin/tmrvr'
+nosetest_exec = 'test/bin/tmrv'
+makedoc_exec = 'doc/makedoc'
+
 __scripts_bin = ['bin/mrv', 'bin/imrv']
 __scripts_test_bin = ['test/bin/tmrv', 'test/bin/tmrvr']
 __scripts_test_bin_s = [ p.replace('test/', '') for p in __scripts_test_bin ]

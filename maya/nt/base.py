@@ -961,8 +961,6 @@ class NodeFromStr( object ):
 class DependNode( Node, iDuplicatable ):		# parent just for epydoc -
 	""" Implements access to dependency nodes"""
 
-	__metaclass__ = MetaClassCreatorNodes
-
 	#{ Overridden Methods
 	def __getattr__( self, attr ):
 		"""Interpret attributes not in our dict as attributes on the wrapped node,
@@ -1323,12 +1321,10 @@ class DependNode( Node, iDuplicatable ):		# parent just for epydoc -
 
 class Entity( DependNode ):		# parent just for epydoc
 	"""Common base for dagnodes and paritions"""
-	__metaclass__ = MetaClassCreatorNodes
 
 
 class DagNode( Entity, iDagItem ):	# parent just for epydoc
 	""" Implements access to DAG nodes """
-	__metaclass__ = MetaClassCreatorNodes
 	_sep = "|"
 	kNextPos = MFnDagNode.kNextPos
 
@@ -2637,7 +2633,6 @@ class Transform( DagNode ):		# derived just for epydoc
 	:note: bases determined by metaclass
 	:note: to have undoable set* functions , get the ( improved ) transformation matrix
 		make your changes to it and use the `set` method """
-	__metaclass__ = MetaClassCreatorNodes
 
 	#{ MFnTransform Overrides
 
@@ -2696,7 +2691,6 @@ class Shape( DagNode ):	 # base for epydoc !
 		whereever possible
 	:note: bases determined by metaclass"""
 
-	__metaclass__ = MetaClassCreatorNodes
 
 	#{ preset type filters
 	fSetsRenderable = SetFilter( api.MFn.kShadingEngine, False, 0 )	# shading engines only

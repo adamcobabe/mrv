@@ -20,7 +20,8 @@ def prepare_mrv_syspath():
 	except ImportError:
 		# manipulate the import path - first we may be within the mrv structurure
 		# or alternatively within /usr/bin/, that is outside of the structure.
-		# In the latter case we can't do anything though
+		# In the latter case we can't do anything though, and in fact we 
+		# should be natively installed.
 		ospd = os.path.dirname
 		sys.path.append(ospd(ospd(ospd(os.path.realpath(os.path.abspath(__file__))))))
 		try:

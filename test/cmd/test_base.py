@@ -52,4 +52,9 @@ class TestBase( unittest.TestCase ):
 		assert versions and isinstance(versions[0], (float, int))
 		
 		
-
+		# misc
+		assert isinstance(python_executable(), basestring)
+		assert isinstance(python_executable(2.6), basestring)
+		
+		assert isinstance(find_mrv_script('mrv'), Path)
+		self.failUnlessRaises(EnvironmentError, find_mrv_script, 'something')

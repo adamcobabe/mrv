@@ -5,7 +5,7 @@ import __builtin__
 
 from distutils.core import setup
 from distutils.dist import Distribution as BaseDistribution
-from distutils import log
+from distutils import log, dir_util
 
 
 import distutils.command
@@ -16,7 +16,6 @@ from distutils.command.build_py import build_py
 from distutils.command.build_scripts import build_scripts
 from distutils.command.sdist import sdist
 from distutils.util import convert_path
-
 from itertools import chain
 import subprocess
 import fnmatch
@@ -445,9 +444,71 @@ class _GitMixin(object):
 		
 	
 	#} END interface 
+
+
+class _RegressionMixin(object):
+	"""Provides a simple interface allowing to perform a regression test"""
+	
+	def __init__(self, *args, **kwargs):
+		self.post_testing = list()
+	
+	#{ Interface 
+	
+	@classmethod
+	def adjust_user_options(cls, user_options):
+		user_options.append(('post-testing=', 't', "Specifies the maya version(s) with which post-build testing will be performed"))
+		
+	def finalize_options(self):
+		self.post_testing = self.distribution.fixed_list_arg(self.post_testing)
+		
+	def _find_test_modules(self, root_dir):
+		"""
+		:return: list of files within the root_dir which appear to be containing tests.
+			Explicit selection is required if we are byte-compiling modules, nose skips .pyc
+			even if there is no .py file ;)"""
+		test_modules = list()
+		seen_paths = set()
+		for root, dirs, files in os.walk(root_dir):
+			for f in files:
+				fpath = os.path.join(root, f)
+				bpath, ext = os.path.splitext(fpath)
+				if bpath in seen_paths:
+					continue
+				# END handle py/pyc extension
+				seen_paths.add(bpath)
+				if os.path.basename(bpath).startswith('test_'):
+					test_modules.append(fpath)
+				# END pick path
+			# END for each file
+		# END while walking
+		return test_modules
+		
+	def post_regression_test(self, testexecutable, test_root_dir):
+		"""Perform a regression test for the maya version's the user supplied.
+		:param testexecutable: path to the tmrv-compatible executable - it is 
+			expected to be inside a tree which allows the project to put itself into the path.
+		:param root_dir: root directory under which tests can be found
+		:raise EnvironmentError: if started process returned non-0"""
+		if not self.post_testing:
+			return 
+		# END early abort
+		
+		test_modules = tuple(self._find_test_modules(test_root_dir))
+		
+		# select everything which looks like a test for it as nose officially 
+		# ignores compiled files
+		for maya_version_str in self.post_testing:
+			args = (testexecutable, maya_version_str ) + test_modules
+			if self.distribution.spawn_python_interpreter(args).wait():
+				raise EnvironmentError("Post-Operation test failed")
+			# END call test program
+		# END for each maya version
+		
+	#} END interface
+	
 	
 
-class BuildPython(_GitMixin, build_py):
+class BuildPython(_GitMixin, _RegressionMixin, build_py):
 	"""Customize the command preparing python modules in order to skip copying 
 	original py files if compile is specified. Additionally we allow the python 
 	interpreter to be specified as the bytecode is incompatible between the versions"""
@@ -470,6 +531,7 @@ class BuildPython(_GitMixin, build_py):
 									)
 	
 	_GitMixin.adjust_user_options(build_py.user_options)
+	_RegressionMixin.adjust_user_options(build_py.user_options)
 	#} END configuration 
 	
 	#{ Internals
@@ -506,6 +568,25 @@ class BuildPython(_GitMixin, build_py):
 		
 	#} END internals
 	
+	#{ Paths
+	
+	def _build_dir(self):
+		""":return: directory into which all files will be put"""
+		# this works ... checked their code which seems hacky, so we continue with the 
+		# hackiness
+		return os.path.join(self.build_lib, self.distribution.pinfo.root_package)
+		
+	def _test_abspath(self):
+		"""
+		:return: First the executable in our build dir, then the one our distro
+			deems best"""
+		build_exec = os.path.join(self._build_dir(), self.distribution._test_relapath())
+		if os.path.isfile(build_exec):
+			return build_exec
+		return self.distribution._test_relapath()
+		
+	#} END paths
+	
 	#{ Overridden Methods 
 	
 	def initialize_options(self):
@@ -519,6 +600,7 @@ class BuildPython(_GitMixin, build_py):
 	def finalize_options(self):
 		build_py.finalize_options(self)
 		_GitMixin.finalize_options(self)
+		_RegressionMixin.finalize_options(self)
 		
 		self.maya_version = self.distribution.maya_version
 		self.py_version = self.distribution.py_version
@@ -702,18 +784,15 @@ class BuildPython(_GitMixin, build_py):
 		
 		BuildScripts.handle_scripts(scripts_abs, self.needs_compilation)
 		
-		
-	def _build_dir(self):
-		""":return: directory into which all files will be put"""
-		# this works ... checked their code which seems hacky, so we continue with the 
-		# hackiness
-		return os.path.join(self.build_lib, self.distribution.pinfo.root_package)
-		
 	def run(self):
 		"""Perform the main operation, and handle git afterwards
 		:note: It is done at a point where the py modules as well as the executables
 		are available. In case there are c-modules, these wouldn't be availble here."""
 		build_py.run(self)
+		
+		# POST REGRESSION TESTING
+		#########################
+		self.post_regression_test(self._test_abspath(), self._build_dir())
 		
 		# FIX SCRIPTS
 		##############
@@ -873,13 +952,14 @@ class InstallCommand(install):
 		install.run(self)
 
 
-class GitSourceDistribution(_GitMixin, sdist):
+class GitSourceDistribution(_GitMixin, _RegressionMixin, sdist):
 	"""Instead of creating an archive, we put the source tree into a git repository"""
 	#{ Configuration 
 	branch_suffix = '-src'
 	#} END configuration
 	
 	_GitMixin.adjust_user_options(sdist.user_options)
+	_RegressionMixin.adjust_user_options(sdist.user_options)
 	
 	#{ Overridden Functions
 	
@@ -888,10 +968,59 @@ class GitSourceDistribution(_GitMixin, sdist):
 		we have to forward to the call manually to our bases ... """
 		sdist.finalize_options(self)
 		_GitMixin.finalize_options(self)
+		_RegressionMixin.finalize_options(self)
 	
 	def make_archive(self, base_name, format, root_dir=None, base_dir=None):
 		self.update_git(base_dir)
 		super(_GitMixin, self).make_archive(base_name, format, root_dir, base_dir)
+		
+	def make_distribution(self):
+		# prevent deletion before test possibly ran
+		keep_tmp = self.keep_temp
+		self.keep_temp = True
+		sdist.make_distribution(self)
+		self.keep_temp = keep_tmp
+		
+		# there is no official function for this ... its just in the code ... 
+		base_dir = self.distribution.get_fullname()
+		
+		# If our root package is directly in the root folder, we have to rename
+		# the basedir to match the root package name ( temporarily )
+		package_dir = self.distribution.package_dir.get(self.distribution.pinfo.root_package)
+		prev_base_dir = None
+		inbetween_dir = 'sdist_tmp'
+		if package_dir == '':	# if we have a root package in our root folder
+			# special case: mrv tries to import itself to see whether it is in the 
+			# path natively. This would work if we would just rename 
+			# the folder to the root package name, causing lots of trouble down
+			# the road. Hence we create a subdirectory to prevent this from 
+			# happening.
+			if not os.path.isdir(inbetween_dir):
+				os.mkdir(inbetween_dir)
+			# END handle dir creation
+			
+			target_dir = os.path.join(inbetween_dir, self.distribution.pinfo.root_package)
+			os.rename(base_dir, target_dir)
+			prev_base_dir = base_dir
+			base_dir = target_dir
+		# END rename base-dir 
+		
+		testexec = os.path.join(base_dir, self.distribution._test_relapath())
+		self.post_regression_test(testexec, base_dir)
+		
+		# finally clear the temp directory if requested
+		if not self.keep_temp:
+			dir_util.remove_tree(base_dir, dry_run=self.dry_run)
+		else:
+			# possibly rename the directory back to what it was
+			if prev_base_dir is not None:
+				os.rename(base_dir, prev_base_dir)
+			# END handle rename 
+		# END clean temp directory
+		
+		if os.path.isdir(inbetween_dir):
+			os.rmdir(inbetween_dir)
+		# END handle inbetween dir
 		
 	#} END overridden functions
 
@@ -999,10 +1128,10 @@ class DocCommand(_GitMixin, Command):
 		# might as well be re-implemented in a derived project, and is probably 
 		# safest to do
 		import mrv.cmd.base
-		makedocpath = mrv.cmd.base.find_mrv_script('makedoc')
+		makedocpath = self._makedoc_relapath()
 		
 		# makedoc must be started from the doc directory - adjust makedoc
-		p = self.distribution.spawn_python_interpreter((makedocpath.basename(), ), cwd=base_dir)
+		p = self.distribution.spawn_python_interpreter((os.path.basename(makedocpath), ), cwd=base_dir)
 		if p.wait():
 			raise ValueError("Building of Documentation failed")
 		# END wait for build to complete
@@ -1356,7 +1485,7 @@ Would you like to adjust your version info or abort ?
 		:param cwd: if not None, it will be set for the childs working directory
 		:return: Spawned Process
 		:note: All output channels of our process will be connected to the output channels 
-		of the spawned one"""
+			of the spawned one"""
 		import mrv.cmd.base
 		py_executable = mrv.cmd.base.python_executable()
 		
@@ -1369,7 +1498,7 @@ Would you like to adjust your version info or abort ?
 		"""Run regression tests and fail with a report if one of the regression 
 		test fails""" 
 		import mrv.cmd.base
-		tmrvrpath = mrv.cmd.base.find_mrv_script('tmrvr')
+		tmrvrpath = self._regressiontest_relapath()
 		
 		p = self.spawn_python_interpreter((tmrvrpath, ))
 		if p.wait():
@@ -1384,7 +1513,19 @@ Would you like to adjust your version info or abort ?
 		""":return: path to the root of the rootpackage, which includes all modules
 		and subpackages directly"""
 		return ospd(os.path.abspath(self.pinfo.__file__)) 
-	
+
+	def _test_relapath(self):
+		""":return: tmrv compatible test executable"""
+		return self.pinfo.nosetest_exec
+		
+	def _regressiontest_relapath(self):
+		""":return: tmrvr compatible test executable relative to the project root"""
+		return self.pinfo.regression_test_exec
+
+	def _makedoc_relapath(self):
+		""":return: relative path to makedoc executable"""
+		return self.pinfo.makedoc
+		
 	#} END path generators
 
 	
