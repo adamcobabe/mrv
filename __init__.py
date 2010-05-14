@@ -95,20 +95,24 @@ def init_modules( filepath, moduleprefix, recurse=False, self_module = None):
 #} END common
 
 #{ Initialization
+
+def _remove_empty_syspath_entries():
+	"""fix sys.path: if there are empty entries and our cwd is the mrvroot
+	we will be in trouble as we try to import our own 'maya' module which 
+	will not provide the original maya packages of course
+	
+	:note: only for internal use - code was moved into a method as it needs 
+		to be called again from maya.__init__"""
+	while '' in sys.path:
+		sys.path.remove('')
+	# END while we have whitespace
+
 def _init_syspath( ):
 	""" Initialize the path such that additional modules can be found"""
 	import site
-	mrvroot = os.path.dirname( __file__ )
+	mrvroot = mrvroot = os.path.dirname( __file__ )
 	
-	# fix sys.path: if there are empty entries and our cwd is the mrvroot
-	# we will be in trouble as we try to import our own 'maya' module which 
-	# will not provide the original maya packages of course.
-	# realpath to handle links correctly
-	if os.path.realpath(mrvroot) == os.path.realpath(os.getcwd()):
-		while '' in sys.path:
-			sys.path.remove('')
-		# END while we have whitespace
-	# END find and remove empty paths
+	_remove_empty_syspath_entries()
 	
 	# process additional site-packackes
 	# The startup script may add additional site-package paths, but if these

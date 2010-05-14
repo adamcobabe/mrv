@@ -297,6 +297,9 @@ def init_system( ):
 		# END if it is an invalid path
 	# END for each sys path
 
+	# although this was already done, do it again :). Its required if mrv is installed
+	# natively
+	mrv._remove_empty_syspath_entries()
 
 	try:
 		import maya

@@ -1370,9 +1370,18 @@ Would you like to adjust your version info or abort ?
 		
 		# add external packages - just pretent its a package even though it it just 
 		# a path in external
-		ext_path = os.path.relpath(os.path.join(ospd(self.pinfo.__file__), 'ext'))
+		ext_path = os.path.join('.', 'ext')
+		
+		# try to get an iterator - followlinks is not supported in the easy_install
+		# pseudosandbox ...
+		try:
+			dirwalker = os.walk(ext_path, followlinks=True)
+		except TypeError:
+			dirwalker = os.walk(ext_path)
+		# END handle sandbox
+		
 		if self.include_external and os.path.isdir(ext_path):
-			for root, dirs, files in os.walk(ext_path, followlinks=True):
+			for root, dirs, files in dirwalker:
 				# remove hidden paths
 				for dir in dirs[:]:
 					if not dir.startswith('.'):
@@ -1447,20 +1456,28 @@ Would you like to adjust your version info or abort ?
 		"""Handle our custom options"""
 		rval = BaseDistribution.parse_command_line(self)
 		
+		# handle evil types - the underlying systems puts strings into the variables
+		# ... how can you ?
+		self.use_git = int(self.use_git)
+		self.regression_tests = int(self.regression_tests)
+
+
+		is_build_mode = 'install' not in self.commands and 'bdist_egg' not in self.commands
+
 		# in install mode, we never use git or run regression tests
-		if 'install' in self.commands:
+		if not is_build_mode:
 			log.debug("Disabled usage of git and regression testing as install command is present")
 			self.use_git = False
 			self.regression_tests = False
+			self.maya_version = None
+		else:
+			# import the root module to allow us importing mrv. This is only required
+			# if a few commands are used, and may not always be possible. Problem
+			# here is that we don't know all commands in advance, so we have a few 
+			# hardcoded cases here when NOT to use the root package
+			self.retrieve_root_package()
 		# END handle install mode
 		
-		# import the root module to allow us importing mrv. This is only required
-		# if a few commands are used, and may not always be possible. Problem
-		# here is that we don't know all commands in advance, so we have a few 
-		# hardcoded cases here when NOT to use the root package
-		if 'install' not in self.commands and 'bdist_egg' not in self.commands:
-			self.retrieve_root_package()
-		# END assure root is available if necessary
 		
 		if self.maya_version is not None:
 			import mrv.cmd.base
@@ -1480,10 +1497,6 @@ Would you like to adjust your version info or abort ?
 		
 		self.postprocess_metadata()
 		
-		# handle evil types - the underlying systems puts strings into the variables
-		# ... how can you ?
-		self.use_git = int(self.use_git)
-		self.regression_tests = int(self.regression_tests)
 		
 		# setup git if required
 		if self.use_git:
@@ -1528,7 +1541,7 @@ def main(args, distclass=Distribution):
 		  url = info.url,
 		  license = info.license,
 		  package_dir = {info.root_package : ''},
-		  
+		  zip_safe=False,
 		  **info.setup_kwargs
 		  )
 	
