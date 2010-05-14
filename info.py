@@ -45,7 +45,8 @@ setup_kwargs = dict(scripts=__scripts_bin + __scripts_test_bin,
 																	'.automation',
 																	'mrv.test.test_conf', 'mrv.test.test_dg', 
 																	'mrv.test.test_batch', 'mrv.test.test_mdp', 
-																	'mrv.test.test_conf') }) 
+																	'mrv.test.test_conf') }, 
+									build_scripts={ 'exclude_scripts' : ['test/bin/tmrvr']}) 
                     )
 #} END configuration
 

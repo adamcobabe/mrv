@@ -15,16 +15,28 @@ def import_mrv_program():
 	# we assume to be launched using a relative path 
 	ospd = os.path.dirname
 	# mrv/test/bin/tmrv -> mrv/bin/mrv
-	mrvpath = os.path.join(ospd(ospd(ospd(os.path.realpath(os.path.abspath(__file__))))), 'bin', 'mrv')
-	globals()['__name__'] = "prevent execution of main"
-	# mrv assumes its being started from mrv/bin
-	globals()['__file__'] = mrvpath
+	includefile_path = os.path.join(ospd(ospd(ospd(os.path.realpath(os.path.abspath(__file__))))), 'bin', 'mrv')
 	
-	try:
-		execfile(mrvpath, globals())
-	except Exception, e:
-		raise EnvironmentError("Could not execute mrv at %r with error %s" % (mrvpath, e))
-	# END exception handling
+	# it could be an installed script, so mrv is assumed in the same directory
+	includefile_path_bin = os.path.join(ospd(os.path.realpath(os.path.abspath(__file__))), 'mrv')
+	globals()['__name__'] = "prevent execution of main"
+	
+	included_mrv = False
+	for ifile in (includefile_path, includefile_path_bin):
+		globals()['__file__'] = ifile
+		try:
+			execfile(ifile, globals())
+		except Exception:
+			pass
+		else:
+			included_mrv = True
+			break
+		# END exception handling
+	# END for each include file
+	
+	if not included_mrv:
+		raise EnvironmentError("Could not execute mrv at %r or %r" % (includefile_path, includefile_path_bin))
+	# END check issues
 	
 def tmrvmain(args):
 	"""Launch mrv main with customized startup"""

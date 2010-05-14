@@ -732,13 +732,38 @@ class BuildScripts(build_scripts):
 	
 	re_script_first_line = re.compile('^(#!.*python)[0-9.]*([ \t].*)?$')
 	
+	build_scripts.user_options.extend(
+	[('exclude-scripts=', 'e', "Exclude the given comma separated list of scripts(globs) from being copied and installed"), ]
+									)
+	
+	def initialize_options(self):
+		build_scripts.initialize_options(self)
+		self.exclude_scripts = list()
+	
+	def finalize_options(self):
+		build_scripts.finalize_options(self)
+		self.exclude_scripts = self.distribution.fixed_list_arg(self.exclude_scripts)
+	
 	#{ Interface 
 	@classmethod
-	def handle_scripts(cls, scripts, adjust_first_line):
+	def handle_scripts(cls, scripts, adjust_first_line, suffix=''):
 		"""Handle the given scripts to work for later installation
 		:param scripts: paths to scripts to hanlde
 		:param adjust_first_line: if True, the first line will receive the actual 
-			python version to match the version of the this python interpreter"""
+			python version to match the version of the this python interpreter
+		:param suffix: if given, the suffix is assumed to be a suffix for all scripts.
+			If scripts want to execfile each other, the name of the script needs adjustment
+			to actually work, which is unknown to the script in advance. Hence we fix
+			the string ourselves.
+			The suffix is assumed to be appended to all input script files, revealing the 
+			original script basename if the suffix is removed. The latter one is searched for 
+			in the script."""
+		re_includefile_path = None
+		if suffix:
+			basenames = [ os.path.basename(s)[:-len(suffix)] for s in scripts ]
+			re_includefile_path = re.compile("""(\s*includefile_path.*['"])(%s)(['"].*)""" % '|'.join(basenames))
+		# END handle suffix
+			
 		if adjust_first_line:
 			for file in scripts:
 				lines = open(file).readlines()
@@ -746,13 +771,27 @@ class BuildScripts(build_scripts):
 					continue
 				# END skip empty
 				
+				changed = False
 				m = cls.re_script_first_line.match(lines[0])
-				if not m:
-					continue
-				# END skip if no shebang
+				if m:
+					lines[0] = "%s%s%s\n" % (m.group(1), sys.version[:3], m.group(2) or '')
+					changed=True
+				# END handle shebang line
 				
-				lines[0] = "%s%s%s\n" % (m.group(1), sys.version[:3], m.group(2) or '')
-				open(file, 'wb').writelines(lines)
+				if re_includefile_path:
+					for i, line in enumerate(lines):
+						m = re_includefile_path.match(line)
+						if m is None: continue
+						
+						nline = m.group(1) + m.group(2) + suffix + m.group(3) + "\n"
+						lines[i] = nline
+						log.info("Adjusted line %r to %r" % (line, nline))
+						changed = True
+				# END handle execfile replacements
+				
+				if changed:
+					open(file, 'wb').writelines(lines)
+				# END write changes
 			# END for each file
 		# END fix first line
 		
@@ -777,18 +816,30 @@ class BuildScripts(build_scripts):
 		
 		self.mkpath(self.build_dir)
 		outfiles = list()
+		suffix = sys.version[:3]
+		
+		# only copy what's left
+		rmscripts = set()
+		for pattern in self.exclude_scripts:
+			rmscripts.update(set(fnmatch.filter(self.scripts, pattern)))
+		# END for each pattern 
+		for rms in rmscripts:
+			log.info("Excluding script: %r" % rms)
+			self.scripts.remove(rms)
+		# END remove matching script
+		 
 		for script in self.scripts:
 			outfile = os.path.join(self.build_dir, os.path.basename(script))
 			base, ext = os.path.splitext(outfile)
 			
 			# append py version !
-			outfile = base + sys.version[:3] + ext
+			outfile = base + suffix + ext
 			
 			self.copy_file(script, outfile)
 			outfiles.append(outfile)
 		# END for each script 
 		
-		self.handle_scripts(outfiles, adjust_first_line=True)
+		self.handle_scripts(outfiles, adjust_first_line=True, suffix=suffix)
 	
 
 class InstallLibCommand(install_lib):

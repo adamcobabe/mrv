@@ -65,19 +65,32 @@ interpreter may be available."""
 def tmrvrmain(args):
 	# pull in mrv 
 	ospd = os.path.dirname
-	mrvpath = os.path.join(ospd(ospd(ospd(os.path.realpath(os.path.abspath(__file__))))), 'bin', 'mrv')
-	tmrvpath = os.path.join(ospd(os.path.realpath(os.path.abspath(__file__))), 'tmrv')
+	includefile_path = os.path.join(ospd(ospd(ospd(os.path.realpath(os.path.abspath(__file__))))), 'bin', 'mrv')
+	includefile_path_bin = os.path.join(ospd(os.path.realpath(os.path.abspath(__file__))), 'mrv')
+	
+	includefile_path_tmrv = tmrvpath = os.path.join(ospd(os.path.realpath(os.path.abspath(__file__))), 'tmrv')
+	
 	globals()['__name__'] = "prevent execution of main"
-	globals()['__file__'] = mrvpath
+	globals()['__file__'] = includefile_path
 	
 	# use exec to use globals - execfile does something differently, it separates
 	# the environments more it appears
-	try:
-		fp = open(mrvpath)
-		exec fp in globals()
-		fp.close()
-	except Exception, e:
-		raise EnvironmentError("Could not execute mrv at %r with error %s" % (mrvpath, e))
+	include_success = False
+	for ifile in (includefile_path, includefile_path_bin):
+		try:
+			fp = open(ifile)
+			exec fp in globals()
+			fp.close()
+		except Exception:
+			pass
+		else:
+			include_success = True
+			break
+		# END exception handling 
+	# END for each include path for testing 
+	
+	if not include_success:
+		raise EnvironmentError("Could not execute mrv at %r or %r" % (includefile_path, includefile_path_bin))
 	# END exception handling
 	
 	prepare_mrv_syspath()
@@ -127,7 +140,7 @@ def tmrvrmain(args):
 			# END add mayapy only flag
 			
 			callstring = ' '.join(args)
-			print callstring
+			sys.stderr.write(callstring + "\n")
 			rval = subprocess.call(args)
 			if rval:
 				print "Failed to run: %s" % callstring
