@@ -13,17 +13,13 @@
 
 import sys, os
 
-# If your extensions are in another directory, add it here. If the directory
-# is relative to the documentation root, use os.path.abspath to make it
-# absolute, like shown here.
-sys.path.append(os.path.abspath('../'))
 
 # General configuration
 # ---------------------
 
 # Add any Sphinx extension module names here, as strings. They can be extensions
 # coming with Sphinx (named 'sphinx.ext.*') or your custom ones.
-extensions = ['sphinx.ext.autodoc', 'sphinx.ext.autosummary', 'extapi']
+extensions = ['sphinx.ext.autodoc', 'sphinx.ext.autosummary', 'mrv.doc.extapi']
 
 # Add any paths that contain templates here, relative to this directory.
 templates_path = ['.templates']

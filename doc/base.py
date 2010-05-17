@@ -190,7 +190,7 @@ output: html"""
 		
 		if self._sphinx:
 			self._make_sphinx_index()
-			# self._make_sphinx_autogen()
+			self._make_sphinx_autogen()
 			self._make_sphinx()
 		# END make sphinx
 	
@@ -336,12 +336,19 @@ output: html"""
 			raise EnvironmentError("Project information module %r could not be imported:" % pinfo_package)
 		# END handle import
 		
+		# APPLY DOC-CONFIG 
+		###################
+		dcon = getattr(cls.pinfo, 'doc_config', dict())
+		for k,v in dcon.items():
+			if k.startswith('epydoc'):
+				setattr(cls, k, v)
+		# END apply project info 
+		
 		cls.epydoc_cfg = cls.epydoc_cfg % (cls.pinfo.project_name, 
 											cls.pinfo.url, 
 											cls.epydoc_show_source,
 											cls.epydoc_modules, 
 											cls.epydoc_exclude)
-		
 
 	def _make_sphinx_index(self):
 		"""Generate the index.rst file according to the modules and packages we
@@ -353,30 +360,30 @@ output: html"""
 		# write header
 		ifp.write((indexpath+'.header').bytes())
 		
-		# basepath = self._base_dir / ".."
-		# rootmodule = basepath.abspath().basename()
-		# for root, dirs, files in os.walk(basepath):
-			# remove_dirs = list()
-			# for dirname in dirs:
-				# if dirname in self.forbidden_dirs:
-					# remove_dirs.append(dirname)
-				# # END for each forbidden dir
-			# # END for each directory
-			# 
-			# for dirname in remove_dirs:
-				# del(dirs[dirs.index(dirname)])
-			# # END for each dirname to remove
-			# 
-			# for fname in files:
-				# if not fname.endswith('.py') or fname.startswith('_'):
-					# continue
-				# filepath = os.path.join(root, fname)
-				# 
-				# # + 1 as there is a trailing path separator
-				# modulepath = "%s.%s" % (rootmodule, filepath[len(basepath)+1:-3].replace(os.path.sep, '.'))
-				# ifp.write("\t%s\n" % modulepath)
-			# # END for each file
-		# # END for each file
+		basepath = self._base_dir / ".."
+		rootmodule = basepath.abspath().basename()
+		for root, dirs, files in os.walk(basepath):
+			remove_dirs = list()
+			for dirname in dirs:
+				if dirname in self.forbidden_dirs:
+					remove_dirs.append(dirname)
+				# END for each forbidden dir
+			# END for each directory
+			
+			for dirname in remove_dirs:
+				del(dirs[dirs.index(dirname)])
+			# END for each dirname to remove
+			
+			for fname in files:
+				if not fname.endswith('.py') or fname.startswith('_'):
+					continue
+				filepath = os.path.join(root, fname)
+				
+				# + 1 as there is a trailing path separator
+				modulepath = "%s.%s" % (rootmodule, filepath[len(basepath)+1:-3].replace(os.path.sep, '.'))
+				ifp.write("\t%s\n" % modulepath)
+			# END for each file
+		# END for each file
 		
 		# finalize it, write the footer
 		ifp.write((indexpath+'.footer').bytes())
