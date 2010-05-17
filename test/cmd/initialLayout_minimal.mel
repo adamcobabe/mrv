@@ -63,7 +63,7 @@ global proc setupUITest()
 	// getting the arguments for the nose test from NOSE_ARGS variable,
 	// putting them into sys.argv and run nose
 
-	string $pycmd = "import mrv.test.cmds.nosestartup as ns; ns.init_nose()\n";
+	string $pycmd = "import mrv.test.cmd.startup as start; start.nose()\n";
 	print $pycmd;
 	catch(` python $pycmd`);
 	

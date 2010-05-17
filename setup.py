@@ -452,6 +452,14 @@ class _RegressionMixin(object):
 	def __init__(self, *args, **kwargs):
 		self.post_testing = list()
 	
+	
+	#{ Configuration
+	# directory containing the actual tests.
+	# This information can be used by subclasses to limit the amount of located 
+	# files
+	test_sub_dir = 'test'
+	#} END configuration
+	
 	#{ Interface 
 	
 	@classmethod
@@ -466,6 +474,9 @@ class _RegressionMixin(object):
 		:return: list of files within the root_dir which appear to be containing tests.
 			Explicit selection is required if we are byte-compiling modules, nose skips .pyc
 			even if there is no .py file ;)"""
+		if not os.path.isdir(root_dir):
+			return list()
+		# END handle non-existing directory
 		test_modules = list()
 		seen_paths = set()
 		for root, dirs, files in os.walk(root_dir):
@@ -493,7 +504,10 @@ class _RegressionMixin(object):
 			return 
 		# END early abort
 		
+		# need explicit test modules
 		test_modules = tuple(self._find_test_modules(test_root_dir))
+		if not test_modules:
+			return 
 		
 		# select everything which looks like a test for it as nose officially 
 		# ignores compiled files
@@ -619,6 +633,10 @@ class BuildPython(_GitMixin, _RegressionMixin, build_py):
 		
 		# HANDLE BRANCH SUFFIX
 		if self.needs_compilation:
+			# force recompilation, its important in case of files which might
+			# just have been compiled by a different python version, and hence
+			# don't need recompilation when just regarding the timestamp
+			self.force = True
 			self.branch_suffix = '-py'+sys.version[:3]
 		else:
 			self.branch_suffix = '-pyany'
@@ -792,7 +810,7 @@ class BuildPython(_GitMixin, _RegressionMixin, build_py):
 		
 		# POST REGRESSION TESTING
 		#########################
-		self.post_regression_test(self._test_abspath(), self._build_dir())
+		self.post_regression_test(self._test_abspath(), os.path.join(self._build_dir(), self.test_sub_dir))
 		
 		# FIX SCRIPTS
 		##############
@@ -1006,7 +1024,7 @@ class GitSourceDistribution(_GitMixin, _RegressionMixin, sdist):
 		# END rename base-dir 
 		
 		testexec = os.path.join(base_dir, self.distribution._test_relapath())
-		self.post_regression_test(testexec, base_dir)
+		self.post_regression_test(testexec, os.path.join(base_dir, self.test_sub_dir))
 		
 		# finally clear the temp directory if requested
 		if not self.keep_temp:
@@ -1127,8 +1145,7 @@ class DocCommand(_GitMixin, Command):
 		# when actually creating the docs, we start the respective script as it 
 		# might as well be re-implemented in a derived project, and is probably 
 		# safest to do
-		import mrv.cmd.base
-		makedocpath = self._makedoc_relapath()
+		makedocpath = self.distribution._makedoc_relapath()
 		
 		# makedoc must be started from the doc directory - adjust makedoc
 		p = self.distribution.spawn_python_interpreter((os.path.basename(makedocpath), ), cwd=base_dir)
@@ -1524,7 +1541,7 @@ Would you like to adjust your version info or abort ?
 
 	def _makedoc_relapath(self):
 		""":return: relative path to makedoc executable"""
-		return self.pinfo.makedoc
+		return self.pinfo.makedoc_exec
 		
 	#} END path generators
 

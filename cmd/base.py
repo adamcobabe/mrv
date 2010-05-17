@@ -381,7 +381,7 @@ def exec_maya_binary(args, maya_version):
 	
 	# although execv would work on windows, we use our specialized _execute method 
 	# in order to keep things consistent
-	_execute(mayabin, args)
+	_execute(mayabin, tuple(args))
 	
 	
 #} END Maya initialization

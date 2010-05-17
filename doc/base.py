@@ -190,7 +190,7 @@ output: html"""
 		
 		if self._sphinx:
 			self._make_sphinx_index()
-			self._make_sphinx_autogen()
+			# self._make_sphinx_autogen()
 			self._make_sphinx()
 		# END make sphinx
 	
@@ -353,30 +353,30 @@ output: html"""
 		# write header
 		ifp.write((indexpath+'.header').bytes())
 		
-		basepath = self._base_dir / ".."
-		rootmodule = basepath.abspath().basename()
-		for root, dirs, files in os.walk(basepath):
-			remove_dirs = list()
-			for dirname in dirs:
-				if dirname in self.forbidden_dirs:
-					remove_dirs.append(dirname)
-				# END for each forbidden dir
-			# END for each directory
-			
-			for dirname in remove_dirs:
-				del(dirs[dirs.index(dirname)])
-			# END for each dirname to remove
-			
-			for fname in files:
-				if not fname.endswith('.py') or fname.startswith('_'):
-					continue
-				filepath = os.path.join(root, fname)
-				
-				# + 1 as there is a trailing path separator
-				modulepath = "%s.%s" % (rootmodule, filepath[len(basepath)+1:-3].replace(os.path.sep, '.'))
-				ifp.write("\t%s\n" % modulepath)
-			# END for each file
-		# END for each file
+		# basepath = self._base_dir / ".."
+		# rootmodule = basepath.abspath().basename()
+		# for root, dirs, files in os.walk(basepath):
+			# remove_dirs = list()
+			# for dirname in dirs:
+				# if dirname in self.forbidden_dirs:
+					# remove_dirs.append(dirname)
+				# # END for each forbidden dir
+			# # END for each directory
+			# 
+			# for dirname in remove_dirs:
+				# del(dirs[dirs.index(dirname)])
+			# # END for each dirname to remove
+			# 
+			# for fname in files:
+				# if not fname.endswith('.py') or fname.startswith('_'):
+					# continue
+				# filepath = os.path.join(root, fname)
+				# 
+				# # + 1 as there is a trailing path separator
+				# modulepath = "%s.%s" % (rootmodule, filepath[len(basepath)+1:-3].replace(os.path.sep, '.'))
+				# ifp.write("\t%s\n" % modulepath)
+			# # END for each file
+		# # END for each file
 		
 		# finalize it, write the footer
 		ifp.write((indexpath+'.footer').bytes())
