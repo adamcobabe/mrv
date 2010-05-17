@@ -784,7 +784,11 @@ class MPlug( api.MPlug ):
 		return base.Attribute(self.attribute())
 
 	def mwrappedNode( self ):
-		""":return: wrapped Node of the plugs node"""
+		"""
+		:return: wrapped Node of the plugs node
+		:note: instance information gets lost this way, the respective instance 
+			can be re-retrieved using the instance information on this instanced 
+			attribute, if this is an instanced attribute"""
 		return base.NodeFromObj(self.node())
 
 	def masData( self, *args, **kwargs ):
@@ -799,6 +803,7 @@ class MPlug( api.MPlug ):
 			plug. It might take longer to evaluate but is safe to use if you want to 
 			convert the resulting string back to the actual plug"""
 		return self.partialName(1, 1, 1, 0, 1, 1)
+		
 	#} END query
 
 
