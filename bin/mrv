@@ -18,16 +18,24 @@ def prepare_project_syspath():
 	# try to figure out our actual root package, resort to a hardcoded choice
 	default_package = 'mrv'
 	root_package = default_package
+	
+	# assure we can import the root info
+	sys.path.append('.')
 	try:
 		import info
 		root_package = info.root_package
 	except (ImportError, AttributeError):
 		pass
 	# END get root packge
-		
+	sys.path.pop()
 	
+
+	# IMPORT ROOT PACKAGE
+	#####################
+	ospd = os.path.dirname
+	root = None
 	try:
-		__import__(root_package)
+		root = __import__(root_package)
 	except ImportError:
 		# manipulate the import path - first we may be within the mrv structurure
 		# or alternatively within /usr/bin/, that is outside of the structure.
@@ -37,7 +45,6 @@ def prepare_project_syspath():
 		# cwd within the package root. Use this to our advantage
 		tried_paths = list()
 		candidates = list()
-		ospd = os.path.dirname
 		if root_package != default_package:
 			candidates.append(ospd(os.path.abspath('.')))
 		# END handle extra opportunity
@@ -45,7 +52,7 @@ def prepare_project_syspath():
 		for cpath in candidates:
 			sys.path.append(cpath)
 			try:
-				__import__(root_package)
+				root = __import__(root_package)
 			except ImportError, e:
 				del(sys.path[-1])
 				tried_paths.append(cpath)
@@ -57,6 +64,32 @@ def prepare_project_syspath():
 		if len(tried_paths) == len(candidates):
 			raise ImportError("Failed to import %s as it could not be found in your syspath, tried import with following paths: %s, error was : %s" % (root_package, ', '.join(tried_paths), str(e)))
 	# END import exception handling
+	
+	# HANDLE PYTHONPATH
+	###################
+	# At this point, we either imported mrv or we imported the root package 
+	# of a derived project.
+	# As mrv is just like a shell script, it adjust the environment in order to 
+	# allow subprograms to run with an environment that allows them to import 
+	# what they need right away.
+	# If code that follows in a subprocess is from mrv, the import mrv statement 
+	# would fail as only the project root package would work by default, and will 
+	# adjust the sys.path to allow direct mrv imports.
+	# To allow all code to run, we put both paths to the PYTHONPATH, so it will be 
+	# inherited by subprocessess
+	import mrv.cmd.base as cmdbase
+	envppath = "PYTHONPATH"
+	def add_package_to_env(p):
+		cmdbase.update_env_path(os.environ, envppath, ospd(ospd(os.path.abspath(p.__file__))), append=True)
+	# END utility
+	
+	add_package_to_env(root)
+	if root.__name__ != default_package:
+		import mrv
+		add_package_to_env(mrv)
+	# END add mrv specificallys
+		
+	
 
 def mrvmain(args, args_modifier=lambda a, v, m: a):
 	"""Prepare the path and redirect the call to the actual library module"""
