@@ -36,9 +36,9 @@ Contents
    
    environment
    conventions
-   workflow
    contribute
-   release
+   workflow
+   distribute/index
    integrate
    performance
    projects

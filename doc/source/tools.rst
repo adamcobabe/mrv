@@ -75,7 +75,7 @@ This program is effectively nothing more than a customized IPython shell which p
 
 ``imrv`` can be seen as the python version of ``maya -prompt``.
 
-An introduction to using the tool can be found in :doc:`develop`::
+An introduction to using the tool can be found in :doc:`develop/index`::
 
 	$ # get ipython with a fully initialized MRV in Maya 2011
 	$ imrv 2011
