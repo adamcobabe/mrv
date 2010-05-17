@@ -1106,10 +1106,11 @@ class DocCommand(_GitMixin, Command):
 	def build_documentation(self):
 		"""Build the documentation with our current version tag - this allows
 		it to be included in the release as it has been updated
+		
 		:return: tuple(html_base, Bool) tuple with base directory containing all html
-		files ( possibly with subdirectories ), and a boolean which is True if 
-		the documentation was build, False if it was still uptodate """
-		base_dir = self._init_doc_generator()
+			files ( possibly with subdirectories ), and a boolean which is True if 
+			the documentation was build, False if it was still uptodate """
+		doc_dir = self._init_doc_generator()
 		
 		# CHECK IF BUILD IS REQUIRED
 		############################
@@ -1121,7 +1122,7 @@ class DocCommand(_GitMixin, Command):
 			# version file for sphinx really should exist at least, its the main 
 			# documentation no matter what
 			st = 'sphinx'
-			if not self.docgen.version_file_name(st, basedir=base_dir).isfile():
+			if not self.docgen.version_file_name(st, basedir=doc_dir).isfile():
 				needs_build = True
 			# END check existing version info
 			
@@ -1142,13 +1143,12 @@ class DocCommand(_GitMixin, Command):
 			return (html_out_dir, False)
 		# END skip build
 		
-		# when actually creating the docs, we start the respective script as it 
-		# might as well be re-implemented in a derived project, and is probably 
-		# safest to do
+		# when actually creating the docs, we start the respective script as found
+		# in our project info
 		makedocpath = self.distribution._makedoc_relapath()
 		
-		# makedoc must be started from the doc directory - adjust makedoc
-		p = self.distribution.spawn_python_interpreter((os.path.basename(makedocpath), ), cwd=base_dir)
+		# makedoc must be started from the doc directory
+		p = self.distribution.spawn_python_interpreter((makedocpath, ), cwd=doc_dir)
 		if p.wait():
 			raise ValueError("Building of Documentation failed")
 		# END wait for build to complete
@@ -1158,7 +1158,7 @@ class DocCommand(_GitMixin, Command):
 	
 	#{ Internal
 	def _init_doc_generator(self):
-		"""initialize the docgen instance, and return the base_dir at which 
+		"""initialize the docgen instance, and return our doc_dir at which 
 		it operates"""
 		base_dir = os.path.join('.', 'doc')
 		if self.docgen is not None:
@@ -1507,7 +1507,8 @@ Would you like to adjust your version info or abort ?
 		py_executable = mrv.cmd.base.python_executable()
 		
 		actual_args = (py_executable, ) + tuple(args)
-		log.info("Spawning: %s" % ' '.join(actual_args))
+		cwdinfo = (cwd and " at %r" % cwd) or ''
+		log.info("Spawning%s: %s" % (cwdinfo, ' '.join(actual_args)))
 		proc = subprocess.Popen(actual_args, stdout=sys.stdout, stderr=sys.stderr, cwd=cwd)
 		return proc
 		

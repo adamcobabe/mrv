@@ -47,7 +47,9 @@ license = "BSD License"
 # you provide an own implementation.
 regression_test_exec = 'test/bin/tmrvr'
 nosetest_exec = 'test/bin/tmrv'
-makedoc_exec = 'doc/makedoc'
+# makedoc is special in that it wants to be started from within the project's doc
+# directory. The path given here is relative to it
+makedoc_exec = 'makedoc'
 
 __scripts_bin = ['bin/mrv', 'bin/imrv']
 __scripts_test_bin = ['test/bin/tmrv', 'test/bin/tmrvr']
