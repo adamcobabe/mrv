@@ -10,32 +10,62 @@ __docformat__ = "restructuredtext"
 
 #{ Initialization
 
-def prepare_mrv_syspath():
-	"""Make sure mrv is in the python path, and manipulate sys.path if required
-	in order to assure that.
+def prepare_project_syspath():
+	"""Make sure the project's root package is in the python path, and manipulate 
+	sys.path if required in order to assure that.
 	
-	:raise ImportError: If mrv could not be found in this interpreter"""
+	:raise ImportError: If project's root package could not be found in this interpreter"""
+	# try to figure out our actual root package, resort to a hardcoded choice
+	default_package = 'mrv'
+	root_package = default_package
 	try:
-		import mrv
+		import info
+		root_package = info.root_package
+	except (ImportError, AttributeError):
+		pass
+	# END get root packge
+		
+	
+	try:
+		__import__(root_package)
 	except ImportError:
 		# manipulate the import path - first we may be within the mrv structurure
 		# or alternatively within /usr/bin/, that is outside of the structure.
 		# In the latter case we can't do anything though, and in fact we 
 		# should be natively installed.
+		# If we managed to import the info module, we are likely to have our 
+		# cwd within the package root. Use this to our advantage
+		tried_paths = list()
+		candidates = list()
 		ospd = os.path.dirname
-		sys.path.append(ospd(ospd(ospd(os.path.realpath(os.path.abspath(__file__))))))
-		try:
-			import mrv
-		except ImportError, e:
-			del(sys.path[-1])
-			raise ImportError("Failed to import MRV as it could not be found in your syspath, nor could it be deduced: %s" % str(e)); 
-		# END second attempt exception handling
+		if root_package != default_package:
+			candidates.append(ospd(os.path.abspath('.')))
+		# END handle extra opportunity
+		candidates.append(ospd(ospd(ospd(os.path.realpath(os.path.abspath(__file__))))))
+		for cpath in candidates:
+			sys.path.append(cpath)
+			try:
+				__import__(root_package)
+			except ImportError, e:
+				del(sys.path[-1])
+				tried_paths.append(cpath)
+			else:
+				break
+			# END exception handling
+		# END for each candidate
+		
+		if len(tried_paths) == len(candidates):
+			raise ImportError("Failed to import %s as it could not be found in your syspath, tried import with following paths: %s, error was : %s" % (root_package, ', '.join(tried_paths), str(e)))
 	# END import exception handling
 
 def mrvmain(args, args_modifier=lambda a, v, m: a):
 	"""Prepare the path and redirect the call to the actual library module"""
-	prepare_mrv_syspath()
-	import mrv.cmd.startup as startup
+	prepare_project_syspath()
+	try:
+		import mrv.cmd.startup as startup
+	except ImportError:
+		raise EnvironmentError("Failed to import mrv as the root package did not initialize the python import path correctly")
+	# END final exception handling
 	startup.mrv(args, args_modifier)
 	
 #} END initialization

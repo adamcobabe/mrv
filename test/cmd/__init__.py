@@ -7,6 +7,6 @@
 env_nose_args = 'MRV_NOSE_ARGS'
 nose_args_splitter = '^'
 
-tmrv_coverage_flag = '--mrv-coverage'
+tmrv_coverage_flag = '--tmrv-coverage'
 tmrv_coverage_dir = "coverage"
 #} END TMRV Globals

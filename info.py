@@ -1,6 +1,8 @@
 # -*- coding: utf-8 -*-
 """
-Provide project related global information
+Provide project related global information.
+
+:note: Importing this module must not have any side effects !
 """
 
 #{ Configuration 
