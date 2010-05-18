@@ -264,13 +264,25 @@ def init_environment(args):
 	:param args: commandline arguments excluding the executable ( usually first arg )
 	:return: tuple(maya_version, args) tuple of maya_version, and the remaining args"""
 	# see if first argument is the maya version
-	maya_version=8.5
+	maya_version=None
 	if args:
 		parsed_successfully, maya_version = parse_maya_version(args[0], maya_version)
 		if parsed_successfully:
 			args = args[1:]
 		# END cut version arg
 	# END if there are args at all
+	
+	# choose the newest available maya version if none was specified
+	if maya_version is None:
+		versions = available_maya_versions()
+		if versions:
+			maya_version = versions[-1]
+		# END set latest
+	# END set maya version 
+	
+	if maya_version is None:
+		raise EnvironmentError("Maya version not specified on the commandline, couldn't find any maya version on this system")
+	# END abort if not installed
 	
 	update_maya_environment(maya_version)
 	return (maya_version, tuple(args))
