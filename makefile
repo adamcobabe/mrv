@@ -4,14 +4,11 @@
 # There is no intention to have something like it on windows, but the commandlines
 # shown here could work mostly unaltered on the windows platform as well.
 
-.PHONY=preview-docs preview
+.PHONY=preview
 
 all:
 	echo "Nothing to do - specify an actual target"
 
-preview-docs:
-	/usr/bin/python setup.py --force-git-tag  --use-git=1 --regression-tests=0 docdist --zip-archive --from-build-version --dist-remotes=docdistro,hubdocdistro --root-remotes=gitorious,hub
-
 # Moving-Tag Preview Commit 
-preview: preview-docs
-	/usr/bin/python setup.py --force-git-tag  --use-git=1 --regression-tests=0 clean --all sdist --format=zip --dist-remotes=distro,hubdistro --root-remotes=gitorious,hub
+preview: 
+	/usr/bin/python setup.py --force-git-tag  --use-git=1 --regression-tests=1 clean --all sdist --format=zip --post-testing=2011 --dist-remotes=distro,hubdistro --root-remotes=gitorious,hub docdist --zip-archive --from-build-version --dist-remotes=docdistro,hubdocdistro --root-remotes=gitorious,hub
