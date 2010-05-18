@@ -32,6 +32,7 @@ interpreter may be available."""
 	parser.add_option(_mrv_mayapy_flag, dest='mayapy_only', action='store_true', help=hlp) 
 	options, args = parser.parse_args(args)
 	
+	
 	# PARSE MAYA VERSIONS
 	######################
 	import mrv.cmd.base as mrvbase
@@ -40,7 +41,7 @@ interpreter may be available."""
 		parsed, version = mrvbase.parse_maya_version(arg, 8.5)
 		if not parsed:
 			raise EnvironmentError("Invalid maya version: %s" % arg)
-		# END abort if it coudlnt be parsed
+		# END abort if it couldn't be parsed
 		maya_versions.append(version)
 	# END for each arg
 	
@@ -64,23 +65,35 @@ interpreter may be available."""
 def tmrvrmain(args):
 	# pull in mrv 
 	ospd = os.path.dirname
-	mrvpath = os.path.join(ospd(ospd(ospd(os.path.realpath(os.path.abspath(__file__))))), 'bin', 'mrv')
-	tmrvpath = os.path.join(ospd(os.path.realpath(os.path.abspath(__file__))), 'tmrv')
-	basepath = ospd(ospd(ospd(tmrvpath)))
+	includefile_path = os.path.join(ospd(ospd(ospd(os.path.realpath(os.path.abspath(__file__))))), 'bin', 'mrv')
+	includefile_path_bin = os.path.join(ospd(os.path.realpath(os.path.abspath(__file__))), 'mrv')
+	
+	includefile_path_tmrv = tmrvpath = os.path.join(ospd(os.path.realpath(os.path.abspath(__file__))), 'tmrv')
+	
 	globals()['__name__'] = "prevent execution of main"
-	globals()['__file__'] = mrvpath
+	globals()['__file__'] = includefile_path
 	
 	# use exec to use globals - execfile does something differently, it separates
 	# the environments more it appears
-	try:
-		fp = open(mrvpath)
-		exec fp in globals()
-		fp.close()
-	except Exception, e:
-		raise EnvironmentError("Could not execute mrv at %r with error %s" % (mrvpath, e))
+	include_success = False
+	for ifile in (includefile_path, includefile_path_bin):
+		try:
+			fp = open(ifile)
+			exec fp in globals()
+			fp.close()
+		except Exception:
+			pass
+		else:
+			include_success = True
+			break
+		# END exception handling 
+	# END for each include path for testing 
+	
+	if not include_success:
+		raise EnvironmentError("Could not execute mrv at %r or %r" % (includefile_path, includefile_path_bin))
 	# END exception handling
 	
-	prepare_mrv_syspath()
+	prepare_project_syspath()
 	options, maya_versions = parse_opts(args)
 	
 	if not maya_versions:
@@ -92,11 +105,12 @@ def tmrvrmain(args):
 		baseargs = ("python", )
 	# END handle windows
 	
-	# assure relative paths
-	os.chdir(basepath)
 	
 	from mrv.path import Path
-	tmrvpath = Path(tmrvpath).relpath()
+	tmrvrelapath = Path(tmrvpath).relpath()
+	if len(tmrvrelapath) < len(tmrvpath):
+		tmrvpath = tmrvrelapath
+	# END use optically shortest path
 	
 	# find the single tests to run
 	testfiles = [None]	# none indicates no test file, which runs all tests
@@ -105,7 +119,7 @@ def tmrvrmain(args):
 	# on windows though, things are a little different so that we have to specify 
 	# absolute paths, and to run all tests
 	if sys.platform.startswith('win'):
-		search_root = os.path.join(basepath, 'test')
+		search_root = os.path.abspath(search_root)
 		testfiles[0] = search_root
 	# END windoze special handling as usual
 	
@@ -126,7 +140,7 @@ def tmrvrmain(args):
 			# END add mayapy only flag
 			
 			callstring = ' '.join(args)
-			print callstring
+			sys.stderr.write(callstring + "\n")
 			rval = subprocess.call(args)
 			if rval:
 				print "Failed to run: %s" % callstring

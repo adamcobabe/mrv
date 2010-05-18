@@ -3,8 +3,10 @@
 from mrv.test.maya import *
 import mrv.maya.nt as nt
 import mrv.maya.nt.geometry as modgeo
-import maya.OpenMaya as api
 import mrv.maya as mrvmaya
+
+import maya.OpenMaya as api
+
 
 class TestGeometry( unittest.TestCase ):
 	""" Test general maya framework """

@@ -91,28 +91,28 @@ def init_modules( filepath, moduleprefix, recurse=False, self_module = None):
 			# EMD handle result
 	# END for each file or dir
 
-## Version Info 
-# See http://docs.python.org/library/sys.html#sys.version_info for more information
-#               major, minor, micro, releaselevel, serial
-version_info = (1,     0,     0,     'Preview',        0)
 
 #} END common
 
 #{ Initialization
+
+def _remove_empty_syspath_entries():
+	"""fix sys.path: if there are empty entries and our cwd is the mrvroot
+	we will be in trouble as we try to import our own 'maya' module which 
+	will not provide the original maya packages of course
+	
+	:note: only for internal use - code was moved into a method as it needs 
+		to be called again from maya.__init__"""
+	while '' in sys.path:
+		sys.path.remove('')
+	# END while we have whitespace
+
 def _init_syspath( ):
 	""" Initialize the path such that additional modules can be found"""
 	import site
-	mrvroot = os.path.split( __file__ )[0]
+	mrvroot = mrvroot = os.path.dirname( __file__ )
 	
-	# fix sys.path: if there are empty entries and our cwd is the mrvroot
-	# we will be in trouble as we try to import our own 'maya' module which 
-	# will not
-	# realpath to handle links correctly
-	if os.path.realpath(mrvroot) == os.path.realpath(os.getcwd()):
-		while '' in sys.path:
-			sys.path.remove('')
-		# END while we have whitespace
-	# END find and remove empty paths
+	_remove_empty_syspath_entries()
 	
 	# process additional site-packackes
 	# The startup script may add additional site-package paths, but if these
@@ -125,6 +125,11 @@ def _init_syspath( ):
 		# END found site-packages path
 	# END for each path to possibly initialize
 	
+	if sys.platform == 'darwin':
+		# in order to have a chance to get the setuptools going, 
+		# add the default python library to the path.
+		sys.path.append("/System/Library/Frameworks/Python.framework/Versions/%s/Extras/lib/python"%sys.version[:3])
+	# END desperate hack
 	
 	# get external base
 	extbase = os.path.join( mrvroot, "ext" )

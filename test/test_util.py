@@ -7,6 +7,7 @@ from mrv.util import *
 from mrv.interface import *
 import re
 import weakref
+import mrv.info as info
 
 class TestDAGTree( unittest.TestCase ):
 
@@ -292,7 +293,7 @@ class TestDAGTree( unittest.TestCase ):
 		sender.clearAllEvents()
 		assert not sender.estrong._getFunctionSet(sender)
 		
-	def test_version(self):
-		assert len(mrv.version_info) == 5
-		major, minor, micro, level, serial = mrv.version_info
+	def test_info(self):
+		assert len(info.version) == 5
+		major, minor, micro, level, serial = info.version
 		assert major == 1 and minor == 0 and micro == 0 and level == 'Preview' and serial == 0

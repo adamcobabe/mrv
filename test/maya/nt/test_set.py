@@ -2,6 +2,7 @@
 """ Test sets and partitions """
 from mrv.test.maya import *
 import mrv.maya.nt as nt
+
 import maya.cmds as cmds
 import maya.OpenMaya as api
 

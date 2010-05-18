@@ -159,7 +159,7 @@ Unfortunately, Python will only be able to discover this big class of errors at 
 
 Nose comes with an excellent tool which verifies the tests code coverage. As it needs a few options, there is a tmrv flag which configures nose to run all or the specified tests with coverage output::
 	
-	$ test/bin/tmrv <mayaversion> --mrv-coverage 
+	$ test/bin/tmrv <mayaversion> --tmrv-coverage 
 	$ firefox coverage/index.html
 	
 The resulting web page highlights all lines that ran, and shows the ones that did not run, which enables you to adjust your tests to run all the lines.

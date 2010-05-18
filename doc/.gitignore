@@ -1,4 +1,4 @@
 epydocs
 source/generated
 build
-
+*.version_info

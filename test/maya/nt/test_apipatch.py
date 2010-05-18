@@ -2,8 +2,10 @@
 """ Test general nodes features """
 from mrv.test.maya import *
 import mrv.maya.nt as nt
+
 import maya.cmds as cmds
 import maya.OpenMaya as api
+
 from itertools import izip
 
 class TestDataBase( unittest.TestCase ):

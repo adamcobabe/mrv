@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 """Contains specialized attributes that judge value based on different criteria,
-allowing more elaborate typecheckingr """
+allowing more elaborate typechecking"""
 __docformat__ = "restructuredtext"
 
 from mrv.dge import Attribute

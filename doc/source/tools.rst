@@ -75,7 +75,7 @@ This program is effectively nothing more than a customized IPython shell which p
 
 ``imrv`` can be seen as the python version of ``maya -prompt``.
 
-An introduction to using the tool can be found in :doc:`develop`::
+An introduction to using the tool can be found in :doc:`develop/index`::
 
 	$ # get ipython with a fully initialized MRV in Maya 2011
 	$ imrv 2011
@@ -102,14 +102,14 @@ A MRV specific replacement for the ``nosetests`` utility which supports all argu
 	$ # show all arguments supported by nosetests
 	$ test/bin/tmrv --help
 	
-The --mrv-coverage flag[=packagename]
+The --tmrv-coverage flag[=packagename]
 -------------------------------------
-To generate a **coverage report**, use the ``--mrv-coverage`` flag. Such a  :download:`coverage report <download/coverage/index.html>` is generated using  nose coverage which must be available in your local nose installation. If you specify a package name, only code that ran within the given package will be included in the coverage report. It defaults to ``mrv``.
+To generate a **coverage report**, use the ``--tmrv-coverage`` flag. Such a  :download:`coverage report <download/coverage/index.html>` is generated using  nose coverage which must be available in your local nose installation. If you specify a package name, only code that ran within the given package will be included in the coverage report. It defaults to ``mrv``.
 
 As it is essentially a reconfigured nose, it supports all nose specific arguments as well::
 
 	$ # get a coverage report after running all tests in Maya 2011 
-	$ test/bin/tmrv 2011 --mrv-coverage
+	$ test/bin/tmrv 2011 --tmrv-coverage
 	
 	$ # show the report in a browser
 	$ firefox coverage/index.html
@@ -124,7 +124,7 @@ In order to test user interfaces, you need to run the actual maya executable in 
 	$ test/bin/tmrv 2011 --mrv-maya test/maya/ui
 	
 	$ # Run all tests, including coverage, within maya 8.5
-	$ test/bin/tmrv 2011 --mrv-maya --mrv-coverage
+	$ test/bin/tmrv 2011 --mrv-maya --tmrv-coverage
 
 .. note:: nose must be installed for ``mayapy`` in order for the UI tests to work.
 	

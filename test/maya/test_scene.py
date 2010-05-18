@@ -2,11 +2,12 @@
 """ Test the scene methods """
 from mrv.test.maya import *
 from mrv.maya.scene import *
-import maya.cmds as cmds
-import maya.OpenMaya as api
 import mrv.maya.env as env
 from mrv.path import Path
 import mrv.maya.ref as ref
+
+import maya.cmds as cmds
+import maya.OpenMaya as api
 
 import tempfile
 import shutil
@@ -136,7 +137,7 @@ class TestScene( unittest.TestCase ):
 		assert Scene.export(esfile, nodes) == esfile
 		assert not cmds.ls(sl=1)			# selection unaltered
 		
-		assert esfile.exists()
+		assert esfile.isfile()
 		
 		# it truly exported our sphere
 		Scene.new(force=1)

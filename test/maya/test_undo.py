@@ -2,10 +2,12 @@
 """ Test ALL features of the undo queue """
 from mrv.test.maya import *
 import mrv.maya as mrvmaya
-import maya.cmds as cmds
 import mrv.maya.undo as undo
 from mrv.maya.nt import *
+
+import maya.cmds as cmds
 import maya.OpenMaya as api
+
 import sys
 
 class TestUndoQueue( unittest.TestCase ):

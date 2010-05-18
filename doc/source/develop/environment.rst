@@ -21,7 +21,7 @@ The following software packages need to be installed,
 * *Documentation Generation*
 
  * Epydoc 3.x
- * Sphinx 0.62 or higher
+ * Sphinx 0.65 or higher
 
 The following installation guide *assumes you have already installed git and Autodesk Maya* for your platform. For instruction, please see the documentations of the respective software package.
  

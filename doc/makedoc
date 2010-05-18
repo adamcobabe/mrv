@@ -9,31 +9,26 @@ import sys
 
 #{ Initialization
 
-def prepare_mrv_package():
-	"""Assure we are able to import mrv. If this is not the case, 
+def prepare_project_package():
+	"""Assure we are able to import the root package. If this is not the case, 
 	resort to manually including the required code to set everything up"""
+	ospd = os.path.dirname
+	mrvpath = os.path.join(ospd(ospd(os.path.realpath(os.path.abspath(__file__)))), 'bin', 'mrv')
+	globals()['__name__'] = "prevent execution of main"
+	globals()['__file__'] = mrvpath
+	
 	try:
-		import mrv
-	except ImportError:
-		ospd = os.path.dirname
-		mrvpath = os.path.join(ospd(ospd(os.path.realpath(os.path.abspath(__file__)))), 'bin', 'mrv')
-		globals()['__name__'] = "prevent execution of main"
-		globals()['__file__'] = mrvpath
-		
-		try:
-			execfile(mrvpath, globals())
-		except Exception, e:
-			raise EnvironmentError("Could not execute mrv at %r with error %s" % (mrvpath, e))
-		# END exception handling
-		
-		prepare_mrv_syspath()
-	else:
-		return
-	# END assure mrv can be imported
+		execfile(mrvpath, globals())
+	except Exception, e:
+		raise EnvironmentError("Could not execute mrv at %r with error %s" % (mrvpath, e))
+	# END exception handling
+	
+	prepare_project_syspath()
+
 
 def makedoc_main(args):
 	"""Parse args, initialize a builder, and run it"""
-	prepare_mrv_package()
+	prepare_project_package()
 	import base
 	base.DocGenerator.makedoc(args)
 

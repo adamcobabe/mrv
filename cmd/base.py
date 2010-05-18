@@ -9,7 +9,7 @@ __docformat__ = "restructuredtext"
 
 __all__ = ( 'is_supported_maya_version', 'python_version_of', 'parse_maya_version', 'update_env_path', 
 			'maya_location', 'update_maya_environment', 'exec_python_interpreter', 
-			'exec_maya_binary', 'available_maya_versions' )
+			'exec_maya_binary', 'available_maya_versions', 'python_executable', 'find_mrv_script' )
 
 #{ Globals
 maya_to_py_version_map = {
@@ -134,7 +134,6 @@ def maya_location(maya_version):
 	# END verfy maya location
 	
 	return mayalocation
-		
 	
 def update_maya_environment(maya_version):
 	"""Configure os.environ to allow Maya to run in standalone mode
@@ -221,7 +220,6 @@ def update_maya_environment(maya_version):
 	# export the actual maya version to allow scripts to pick it up even before maya is launched
 	env['MRV_MAYA_VERSION'] = "%g" % maya_version
 	
-
 def mangle_args(args):
 	"""Enclose arguments in quotes if they contain spaces ... on windows only
 	:return: tuple of possibly modified arguments
@@ -258,7 +256,6 @@ def mangle_executable(executable):
 		executable = os.path.basename(executable)
 	# END handle freakin' spaces
 	return executable
-	
 
 def init_environment(args):
 	"""Intialize MRV up to the point where we can replace this process with the 
@@ -267,7 +264,7 @@ def init_environment(args):
 	:param args: commandline arguments excluding the executable ( usually first arg )
 	:return: tuple(maya_version, args) tuple of maya_version, and the remaining args"""
 	# see if first argument is the maya version
-	maya_version=8.5
+	maya_version=None
 	if args:
 		parsed_successfully, maya_version = parse_maya_version(args[0], maya_version)
 		if parsed_successfully:
@@ -275,10 +272,21 @@ def init_environment(args):
 		# END cut version arg
 	# END if there are args at all
 	
+	# choose the newest available maya version if none was specified
+	if maya_version is None:
+		versions = available_maya_versions()
+		if versions:
+			maya_version = versions[-1]
+		# END set latest
+	# END set maya version 
+	
+	if maya_version is None:
+		raise EnvironmentError("Maya version not specified on the commandline, couldn't find any maya version on this system")
+	# END abort if not installed
+	
 	update_maya_environment(maya_version)
 	return (maya_version, tuple(args))
 	
-
 def _execute(executable, args):
 	"""Perform the actual execution of the executable with the given args.
 	This method does whatever is required to get it right on windows, which is 
@@ -295,6 +303,50 @@ def _execute(executable, args):
 		os.execvp(executable, actual_args)
 	# END handle windows
 
+def python_executable(py_version=None):
+	""":return: name or path to python executable in this system, deals with 
+	linux and windows specials"""
+	if py_version is None:
+		return 'python'
+	# END handle simple case
+	
+	py_executable = "python%g" % py_version
+	if sys.platform.startswith('win'):
+		# so, on windows the executables don't have a . in their name, most likely
+		# because windows threats the '.' in a special way as ... anyway. 
+		py_executable = "python%g" % (py_version*10)
+	# END win specials
+	return py_executable
+	
+def find_mrv_script(name):
+	"""Find an mrv script of the given name. This method should be used if you 
+	want to figure out where the mrv executable with the given name is located.
+	The returned path is either relative or absolute.
+
+	:return: Path to script 
+	:raise EnvironmentError: if the executable could not be found
+	:note: Currently it only looks for executables, but handles projects
+	which use mrv as a subproject"""
+	import mrv
+	mrvroot = os.path.dirname(mrv.__file__)
+	
+	tried_paths = list()
+	for base in ('', 'ext', mrvroot):
+		for subdir in ('bin', 'doc', os.path.join('test', 'bin')):
+			path = None
+			if base:
+				path = os.path.join(base, subdir, name)
+			else:
+				path = os.path.join(subdir, name)
+			# END handle base
+			if os.path.isfile(path):
+				return Path(path)
+			tried_paths.append(path)
+		# END for each subdir
+	# END for each base
+	
+	raise EnvironmentError("Script named %s not found, looked at %s" % (name, ', '.join(tried_paths))) 
+	
 def exec_python_interpreter(args, maya_version, mayapy_only=False):
 	"""Replace this process with a python process as determined by the given options.
 	This will either be the respective python interpreter, or mayapy.
@@ -306,13 +358,7 @@ def exec_python_interpreter(args, maya_version, mayapy_only=False):
 	Use this option in case the python interpreter crashes for some reason.
 	:raise EnvironmentError: If no suitable executable could be started"""
 	py_version = python_version_of(maya_version)
-	py_executable = "python%s" % py_version
-	
-	if sys.platform.startswith('win'):
-		# so, on windows the executables don't have a . in their name, most likely
-		# because windows threats the '.' in a special way as ... anyway. 
-		py_executable = "python%g" % (py_version*10)
-	# END win specials 
+	py_executable = python_executable(py_version) 
 	
 	args = tuple(args)
 	tried_paths = list()
@@ -336,7 +382,6 @@ def exec_python_interpreter(args, maya_version, mayapy_only=False):
 		# END final exception handling
 	# END exception handling
 	
-	
 def exec_maya_binary(args, maya_version):
 	"""Replace this process with the maya executable as specified by maya_version.
 	
@@ -348,7 +393,7 @@ def exec_maya_binary(args, maya_version):
 	
 	# although execv would work on windows, we use our specialized _execute method 
 	# in order to keep things consistent
-	_execute(mayabin, args)
+	_execute(mayabin, tuple(args))
 	
 	
 #} END Maya initialization

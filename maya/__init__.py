@@ -1,6 +1,7 @@
 # -*- coding: utf-8 -*-
 """ Inialize the mrv.maya sub-system and startup maya as completely as possible or configured """
-import os, sys                                                                         
+import os, sys
+import mrv
 from mrv import init_modules
 from mrv.util import capitalize, DAGTree, PipeSeparatedFile
 from mrv.exc import MRVError
@@ -282,14 +283,31 @@ def init_system( ):
 		
 	mayapylibpath = os.path.join( mayalocation, osspecific, "site-packages" )
 	sys.path.append( mayapylibpath )
+	
 
-	# NOTE: Perhaps one should add an LD library path check on linux  - without it the modules will not load
+	# CHECK AND FIX SYSPATH
+	########################
+	# to be very sure: If for some reason we have our own root package
+	# in the path, remove it as we would most likely import our own maya
+	# This appears to happen if mrv is installed as site-package btw.
+	packagename = mrv.__name__
+	for path in sys.path[:]:
+		if path.endswith("/"+packagename) or path.endswith("\\"+packagename):
+			sys.path.remove(path)
+		# END if it is an invalid path
+	# END for each sys path
 
-	# DID IT WORK ?
+	# although this was already done, do it again :). Its required if mrv is installed
+	# natively
+	mrv._remove_empty_syspath_entries()
+
 	try:
 		import maya
 	except Exception, e:
+		print "Paths in sys.path: "
+		for p in sys.path: print "%r" % p
 		raise EnvironmentError( "Failed to import maya - check this script or assure LD_LIBRARY path is set accordingly: " + str( e ) )
+	# END handle import
 
 
 	# FINALLY STARTUP MAYA
@@ -300,6 +318,10 @@ def init_system( ):
 		import maya.standalone
 		maya.standalone.initialize()
 	except:
+		log.debug("Paths in sys.path: ")
+		for p in sys.path: log.debug("%r" % p)
+		if 'maya' in locals():
+			log.info("Imported maya module is located at: %r" % maya.__file__)
 		log.error("ERROR: Failed initialize maya")
 		raise
 	# END handle maya standalone initialization
