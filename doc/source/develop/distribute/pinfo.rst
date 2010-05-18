@@ -14,3 +14,9 @@ Module Contents
 ***************
 
 The ``info`` module contains global variables to which the respective values are assigned directly. For more information, please see the file itself for in-source documentation.
+
+
+============
+Setup KWargs
+============
+TODO: Talk about directory globs, package_data, per-command options, package_modules, and how this is used. There are some special things to bare in mind.

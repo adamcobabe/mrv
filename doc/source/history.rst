@@ -72,4 +72,4 @@ When the first rumors of Maya 2011 would reach my ears, saying it would use QT a
 
 With these news, I also got the impression that PyMel was going to be integrated into Maya, which was reason enough to put all my attention back to MayaRV, which became MRV in the course of that, and better and faster than ever. 
 
-The goal was to provide an alternative for all the Sebastian's out there, who cannot use PyMel for whichever reason. In the end, all the time spent on it is time well spent, as my pipeline V3 will clearly benefit from it. Hopefully there will be others who see MRV's :doc:`potential <roadmap>`, and start using it to further :doc:`boost its development <develop>`, for the benefit of the whole community this time.
+The goal was to provide an alternative for all the Sebastian's out there, who cannot use PyMel for whichever reason. In the end, all the time spent on it is time well spent, as my pipeline V3 will clearly benefit from it. Hopefully there will be others who see MRV's :doc:`potential <roadmap>`, and start using it to further :doc:`boost its development <develop/index>`, for the benefit of the whole community this time.

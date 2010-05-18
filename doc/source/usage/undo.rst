@@ -32,7 +32,7 @@ The following example shows how multiple undoable operations are bundled into a 
 	
 Whenever non-overridden MFnFunctions are called, these will not support undo by default unless it gets implemented specifically within MRV.
 
-It is planned to improve this in :doc:`future releases<roadmap>`.
+It is planned to improve this in :doc:`future releases <../roadmap>`.
 
 Recording your Changes
 ======================

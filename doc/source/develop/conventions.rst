@@ -46,5 +46,5 @@ If MFnMethods require the ``MScriptUtil`` to be used from python, and if it has 
 
 If the MFnMethod alters the object in question, and if there is no MRV override yet, undo will not be implemented. 
 
-Whenever an MRV developer encounters an 'uncallable' method, he is advised to implement the pythonic version of the method directly on the type or base type in question, see the document about :doc:`Extending MRV<extend>` for more information.
+Whenever an MRV developer encounters an 'uncallable' method, he is advised to implement the pythonic version of the method directly on the type or base type in question, see the document about :doc:`Extending MRV <../extend>` for more information.
 
