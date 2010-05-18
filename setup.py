@@ -681,7 +681,13 @@ class BuildPython(_GitMixin, _RegressionMixin, build_py):
 			# reason 
 			for py_file in (f for f in files if f.endswith('.py')):
 				log.debug("Removing original file after byte compile: %s" % py_file)
-				os.remove(py_file)
+				try:
+					os.remove(py_file)
+				except OSError:
+					# it can happen that the file gets deleted by the conversion 
+					# script itself ... don't fully understand it though.
+					pass
+				# END handle file doesn't exist anymore
 				
 				if self.rename_pyo_to_pyc:
 					base, ext = os.path.splitext(py_file)
@@ -1209,6 +1215,9 @@ class Distribution(object, BaseDistribution):
 	
 	# directory to which all of our comamnds will store their distribution data
 	dist_dir = 'dist'
+	
+	# directory containing all external packages
+	ext_dir = 'ext'
 	#} END configuration
 	
 	
@@ -1602,7 +1611,7 @@ Would you like to adjust your version info or abort ?
 		
 		# add external packages - just pretent its a package even though it it just 
 		# a path in external
-		ext_path = os.path.join('.', 'ext')
+		ext_path = self.ext_dir
 		
 		# try to get an iterator - followlinks is not supported in the easy_install
 		# pseudosandbox ...
@@ -1614,9 +1623,10 @@ Would you like to adjust your version info or abort ?
 		
 		if self.include_external and os.path.isdir(ext_path):
 			for root, dirs, files in dirwalker:
-				# remove hidden paths
+				# remove hidden paths, or paths with a '.' in them as they cannot 
+				# be handled properly
 				for dir in dirs[:]:
-					if not dir.startswith('.'):
+					if '.' not in dir:
 						continue
 					try:
 						dirs.remove(dir)
@@ -1627,7 +1637,8 @@ Would you like to adjust your version info or abort ?
 				
 				# process paths
 				for dir in dirs:
-					base_packages.append(self.pinfo.root_package+"."+os.path.join(root, dir).replace(os.sep, '.'))
+					dirpath = os.path.join(root, dir)
+					base_packages.append(self.pinfo.root_package+"."+dirpath.replace(os.sep, '.'))
 				# END for each remaining valid directory
 			# END walking external dir
 		# END if external directory exists
