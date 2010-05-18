@@ -247,6 +247,17 @@ output: html"""
 	#} END public interface
 	
 	#{ Paths
+	
+	def base_dir(self):
+		""":return: Path containing all documentation sources and output files"""
+		return self._base_dir
+		
+	def set_base_dir(self, base_dir):
+		"""Set the base directory to the given value
+		:return: self"""
+		self._base_dir = Path(base_dir)
+		return self
+		
 	def index_rst_path(self):
 		""":return: Path to index rst file"""
 		return self._base_dir / self.source_dir / "index.rst"

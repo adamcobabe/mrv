@@ -816,7 +816,8 @@ class BuildPython(_GitMixin, _RegressionMixin, build_py):
 		
 		# POST REGRESSION TESTING
 		#########################
-		self.post_regression_test(self._test_abspath(), os.path.join(self._build_dir(), self.test_sub_dir))
+		test_root = os.path.join(self._build_dir(), self.test_sub_dir)
+		self.post_regression_test(self._test_abspath(), test_root)
 		
 		# FIX SCRIPTS
 		##############
@@ -984,7 +985,23 @@ class GitSourceDistribution(_GitMixin, _RegressionMixin, sdist):
 	
 	_GitMixin.adjust_user_options(sdist.user_options)
 	_RegressionMixin.adjust_user_options(sdist.user_options)
+
+
+	def __init__(self, *args, **kwargs):
+		# special solution to temporarily override the default distribution directory
+		self._alternate_sdist_directory = None
+
+	#{ Paths 
+	def _sdist_directory(self):
+		""":return: direcory containing the source distribution
+		:note: there is no official function for this ... its just in the code ..."""
+		if self._alternate_sdist_directory:
+			return self._alternate_sdist_directory
+		# END handle alternates
+		return self.distribution.get_fullname()
 	
+	#} END paths
+
 	#{ Overridden Functions
 	
 	def finalize_options(self):
@@ -999,14 +1016,14 @@ class GitSourceDistribution(_GitMixin, _RegressionMixin, sdist):
 		super(_GitMixin, self).make_archive(base_name, format, root_dir, base_dir)
 		
 	def make_distribution(self):
+		"""Make s source distribution, but set it up to allow post-testing if desired"""
 		# prevent deletion before test possibly ran
 		keep_tmp = self.keep_temp
 		self.keep_temp = True
 		sdist.make_distribution(self)
 		self.keep_temp = keep_tmp
 		
-		# there is no official function for this ... its just in the code ... 
-		base_dir = self.distribution.get_fullname()
+		base_dir = self._sdist_directory()
 		
 		# If our root package is directly in the root folder, we have to rename
 		# the basedir to match the root package name ( temporarily )
@@ -1029,8 +1046,30 @@ class GitSourceDistribution(_GitMixin, _RegressionMixin, sdist):
 			base_dir = target_dir
 		# END rename base-dir 
 		
+		# RUN REGRESSION TEST
+		#######################
+		# will only actually run if it is enabled - we need the preprartion to
+		# build the docs anyway
 		testexec = os.path.join(base_dir, self.distribution._test_relapath())
-		self.post_regression_test(testexec, os.path.join(base_dir, self.test_sub_dir))
+		test_root = os.path.join(base_dir, self.test_sub_dir)
+		self.post_regression_test(testexec, test_root)
+		
+		# HOOK IN DOC DISTRO
+		####################
+		# The makedoc tool can only with our altered directory structure - hence
+		# we must trigger the documentation generation now.
+		if DocDistro.cmdname in self.distribution.commands: 
+			dcmd = self.distribution.get_command_obj(DocDistro.cmdname, create=True)
+			if dcmd is not None:
+				self._alternate_sdist_directory = base_dir
+				dcmd.ensure_finalized()
+				try:
+					dcmd.run()
+				finally:
+					self._alternate_sdist_directory = None
+				# END build docs
+			# END handle dcmd
+		# END if docdist was set on commandline
 		
 		# finally clear the temp directory if requested
 		if not self.keep_temp:
@@ -1049,7 +1088,7 @@ class GitSourceDistribution(_GitMixin, _RegressionMixin, sdist):
 	#} END overridden functions
 
 
-class DocCommand(_GitMixin, Command):
+class DocDistro(_GitMixin, Command):
 	"""Build the documentation, and include everything into the git repository if 
 	required."""
 	
@@ -1057,10 +1096,14 @@ class DocCommand(_GitMixin, Command):
 	
 	#{ Configuration
 	user_options = [ 
-					('zip-archive', 'z', "If set, a zip archive will be created")
+					('zip-archive', 'z', "If set, a zip archive will be created"),
+					('from-build-version', 'b', "If set, the documentation will be built from the recent build_py or sdist version")
 					]
 					
 	branch_suffix = '-doc'
+	
+	# directory name containing the documentation
+	doc_dir = 'doc'
 	
 	_GitMixin.adjust_user_options(user_options)
 	#} END configuration
@@ -1069,6 +1112,8 @@ class DocCommand(_GitMixin, Command):
 		self.docgen = None
 		self.dist_dir = None
 		self.zip_archive = False
+		self.from_build_version = False
+		self.handled_docs = False
 	
 	def initialize_options(self):
 		# this needs to be here or we get an error because of the bitchy base class
@@ -1088,6 +1133,12 @@ class DocCommand(_GitMixin, Command):
 		# END assert config
 		
 		html_out_dir, was_built = self.build_documentation()
+		
+		# skip it if it does not exist anymore - in a previous invocation it could
+		# have been handled already
+		if not os.path.isdir(html_out_dir):
+			return
+		# END early abort
 		
 		if self.zip_archive:
 			self.create_zip_archive(html_out_dir)
@@ -1116,11 +1167,18 @@ class DocCommand(_GitMixin, Command):
 		:return: tuple(html_base, Bool) tuple with base directory containing all html
 			files ( possibly with subdirectories ), and a boolean which is True if 
 			the documentation was build, False if it was still uptodate """
-		doc_dir = self._init_doc_generator()
+		# reinit the generator, which will update its base dir as well
+		docgen = self._init_doc_generator()
+		if self.handled_docs:
+			return (self.docgen.html_output_dir(), False)
+		# END handle multiple calls
+		self.handled_docs = True
+		
+		doc_dir = docgen.base_dir()
 		
 		# CHECK IF BUILD IS REQUIRED
 		############################
-		html_out_dir = self.docgen.html_output_dir()
+		html_out_dir = docgen.html_output_dir()
 		index_file = html_out_dir / 'index.html'
 		needs_build = True
 		if index_file.isfile():
@@ -1128,7 +1186,7 @@ class DocCommand(_GitMixin, Command):
 			# version file for sphinx really should exist at least, its the main 
 			# documentation no matter what
 			st = 'sphinx'
-			if not self.docgen.version_file_name(st, basedir=doc_dir).isfile():
+			if not docgen.version_file_name(st, basedir=doc_dir).isfile():
 				needs_build = True
 			# END check existing version info
 			
@@ -1136,7 +1194,7 @@ class DocCommand(_GitMixin, Command):
 				for token in ('coverage', 'epydoc', st):
 					# check if the docs need to be rebuild
 					try:
-						self.docgen.check_version('release', token)
+						docgen.check_version('release', token)
 					except EnvironmentError:
 						needs_build = True
 					# END docs don't need to be build
@@ -1162,14 +1220,46 @@ class DocCommand(_GitMixin, Command):
 		return (html_out_dir, True)
 	#} END interface 
 	
+	#{ Paths
+	
+	def _doc_directory(self):
+		"""
+		:return: path to the doc directory which (usually) contains the makedoc 
+			executable"""
+		doc_dir = self.doc_dir
+		if self.from_build_version:
+			base_dir = None
+			
+			# try build_py - sdist handles us directly
+			cmds = self.distribution.commands
+			if 'sdist' in cmds:
+				scmd = self.get_finalized_command('sdist', create=True)
+				base_dir = scmd._sdist_directory()
+			elif 'build_py' in cmds or 'build' in cmds:
+				bcmd = self.get_finalized_command('build_py', create=True)
+				base_dir = bcmd._build_dir()
+			# END handle build_py
+			
+			if base_dir is None:
+				raise EnvironmentError("Could not determine valid documentation directory")
+			# END handle error
+			doc_dir = os.path.join(base_dir, doc_dir)
+		# END handle build version docs generation
+		
+		return doc_dir
+		
+	#} END paths
+	
 	#{ Internal
+	
 	def _init_doc_generator(self):
-		"""initialize the docgen instance, and return our doc_dir at which 
-		it operates"""
-		base_dir = os.path.join('.', 'doc')
+		"""initialize the docgen instance, and return it"""
+		doc_dir = self._doc_directory()
 		if self.docgen is not None:
-			return base_dir
-		# END handle duplicate calls 
+			# assure the base_dir is still pointing to the right location - it 
+			# may change during runtime
+			return self.docgen.set_base_dir(doc_dir)
+		# END handle duplicate calls
 		
 		# try to use an overriden docgenerator, then our own one
 		GenCls = None
@@ -1181,12 +1271,12 @@ class DocCommand(_GitMixin, Command):
 			GenCls = docbase.DocGenerator
 		# END get doc generator class
 		
-		if not os.path.isdir(base_dir):
-			raise EnvironmentError("Cannot build documentation as '%s' directory does not exist" % base_dir)
+		if not os.path.isdir(doc_dir):
+			raise EnvironmentError("Cannot build documentation as '%s' directory does not exist" % doc_dir)
 		# END check doc dir exists
 		
-		self.docgen = GenCls(base_dir=base_dir)
-		return base_dir
+		self.docgen = GenCls(base_dir=doc_dir)
+		return self.docgen
 	
 	#} END internal
 
@@ -1681,7 +1771,7 @@ Would you like to adjust your version info or abort ?
 		self.cmdclass[install_lib.__name__] = InstallLibCommand
 		self.cmdclass[install.__name__] = InstallCommand
 		
-		self.cmdclass[DocCommand.cmdname] = DocCommand
+		self.cmdclass[DocDistro.cmdname] = DocDistro
 		
 		# well, here it comes: For some reason, the superclass dynamically attaches
 		# access methods from the distmetadata class onto itself. Its amazing, 

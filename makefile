@@ -10,7 +10,7 @@ all:
 	echo "Nothing to do - specify an actual target"
 
 preview-docs:
-	/usr/bin/python setup.py --force-git-tag  --use-git=1 --regression-tests=0 docdist --zip-archive --dist-remotes=docdistro,hubdocdistro --root-remotes=gitorious,hub
+	/usr/bin/python setup.py --force-git-tag  --use-git=1 --regression-tests=0 docdist --zip-archive --from-build-version --dist-remotes=docdistro,hubdocdistro --root-remotes=gitorious,hub
 
 # Moving-Tag Preview Commit 
 preview: preview-docs
