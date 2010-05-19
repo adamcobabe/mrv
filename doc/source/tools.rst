@@ -87,6 +87,8 @@ An introduction to using the tool can be found in :doc:`develop/index`::
 Test Utilities
 **************
 
+.. _tmrv-label:
+
 tmrv
 ====
 A MRV specific replacement for the ``nosetests`` utility which supports all arguments of ``nosetests``, whereas the first argument may be the Maya release you want to run the tests in.
@@ -102,8 +104,8 @@ A MRV specific replacement for the ``nosetests`` utility which supports all argu
 	$ # show all arguments supported by nosetests
 	$ test/bin/tmrv --help
 	
-The --tmrv-coverage flag[=packagename]
--------------------------------------
+The --tmrv-coverage[=packagename] flag
+--------------------------------------
 To generate a **coverage report**, use the ``--tmrv-coverage`` flag. Such a  :download:`coverage report <download/coverage/index.html>` is generated using  nose coverage which must be available in your local nose installation. If you specify a package name, only code that ran within the given package will be included in the coverage report. It defaults to ``mrv``.
 
 As it is essentially a reconfigured nose, it supports all nose specific arguments as well::
@@ -127,7 +129,9 @@ In order to test user interfaces, you need to run the actual maya executable in 
 	$ test/bin/tmrv 2011 --mrv-maya --tmrv-coverage
 
 .. note:: nose must be installed for ``mayapy`` in order for the UI tests to work.
-	
+
+.. _tmrvr-label:
+
 tmrvr
 =====
 This tools allows automated full regression testing by running all tests for all available or specified maya versions. Use the ``--help`` flag for additional options.
