@@ -34,38 +34,40 @@ It can easily be used to write standalone tools with maya support.
 	$ # show the help of the underlying python interpreter
 	$ bin/mrv 2011 -h
 	
-The --mrv-maya flag
--------------------
+Flags
+-----
 	
-Additionally you can prepare the environment and start a default maya session with mrv support. Use the ``--mrv-maya`` flag to accomplish this::
+* .. cmdoption:: --mrv-maya
 	
-	$ # start a default maya 2011 session
-	$ bin/mrv 2011 --mrv-maya
-	
-	$ # start maya 8.5 in prompt mode
-	$ bin/mrv --mrv-maya -prompt
+    Prepares the environment of a default maya session using ``maya.bin`` to enable mrv support::
+        
+        $ # start a default maya 2011 session
+        $ bin/mrv 2011 --mrv-maya
+        
+        $ # start maya 8.5 in prompt mode
+        $ bin/mrv --mrv-maya -prompt
 
-The --mrv-mayapy flag
----------------------
-By default, mrv will try to use the system's python interpreter first, and mayapy if it could not be found. This can be problematic if the system' python interpreter is not suitable to run the given maya version. In that case, you may force mrv to use maya's builtin python interpreter using the ``--mrv-mayapy`` flag.
+* .. cmdoption:: --mrv-mayapy
 
-**Enforce Mayapy Sample Usage**::
-	
-	$ # start mrv for maya 2010 using mayapy
-	$ bin/mrv 2010 --mrv-mayapy
-	
+    By default, mrv will try to use the system's python interpreter first, and mayapy if it could not be found. This can be problematic if the system' python interpreter is not suitable to run the given maya version. In that case, you may force mrv to use maya's builtin python interpreter using the ``--mrv-mayapy`` flag.
+    
+    **Enforce Mayapy Sample Usage**::
+        
+        $ # start mrv for maya 2010 using mayapy
+        $ bin/mrv 2010 --mrv-mayapy
+        
 
 	
-The --mrv-no-maya flag
-----------------------
-There may be occasions when you want to use mrv facilities which are not specific to maya at all, and the ``mrv.maya`` module is not used. In this case you may specifiy which code to run using the default python ``-c`` and ``-m`` arguments. All remaining arguments will be set to ``sys.argv`` which can be read by your code subsequently.
+* .. cmdoption:: --mrv-no-maya
 
-**Use the current python interpreter without maya support**::
-	
-	$ bin/mrv --mrv-no-maya -c "import mrv; print mrv" -given -via=sys.argv
-
-.. note::
-	The mrv command will use execv on non-windows system, but use spawn on windows to workaround some issues. This implies that scripts on linux/osx can natively use the mrv program, standardchannels are handled automatically. On windows the spawned process will be attached with all standardchannels of the parent python process, but its questionable whether this has the intended effect.
+    There may be occasions when you want to use mrv facilities which are not specific to maya at all, and the ``mrv.maya`` module is not used. In this case you may specifiy which code to run using the default python ``-c`` and ``-m`` arguments. All remaining arguments will be set to ``sys.argv`` which can be read by your code subsequently.
+    
+    **Use the current python interpreter without maya support**::
+        
+        $ bin/mrv --mrv-no-maya -c "import mrv; print mrv" -given -via=sys.argv
+    
+    .. note::
+        The mrv command will use execv on non-windows system, but use spawn on windows to workaround some issues. This implies that scripts on linux/osx can natively use the mrv program, standardchannels are handled automatically. On windows the spawned process will be attached with all standardchannels of the parent python process, but its questionable whether this has the intended effect.
 
 .. _imrv-label:
 
@@ -104,19 +106,22 @@ A MRV specific replacement for the ``nosetests`` utility which supports all argu
 	$ # show all arguments supported by nosetests
 	$ test/bin/tmrv --help
 	
-The --tmrv-coverage[=packagename] flag
---------------------------------------
-To generate a **coverage report**, use the ``--tmrv-coverage`` flag. Such a  :download:`coverage report <download/coverage/index.html>` is generated using  nose coverage which must be available in your local nose installation. If you specify a package name, only code that ran within the given package will be included in the coverage report. It defaults to ``mrv``.
+Flags
+-----
 
-As it is essentially a reconfigured nose, it supports all nose specific arguments as well::
-
-	$ # get a coverage report after running all tests in Maya 2011 
-	$ test/bin/tmrv 2011 --tmrv-coverage
-	
-	$ # show the report in a browser
-	$ firefox coverage/index.html
-
-.. note:: On Windows when using cmd.exe, paths to the test modules and packages to run must be absolute. For example, the *test/maya* becomes something like "c:\projects\mrv\test\maya" on windows. Additionally, an absolute path must be specified as opposed to the non-windows os's which take the current directory as hint for where to find tests.
+* .. cmdoption:: --tmrv-coverage[=packagename]
+    
+    Generates a :download:`coverage report <download/coverage/index.html>` using  nose coverage which must be available in your local nose installation. If you specify a package name, only code that ran within the given package will be included in the coverage report. It defaults to your project's root package.
+    
+    As it is essentially a reconfigured nose, it supports all nose specific arguments as well::
+    
+        $ # get a coverage report after running all tests in Maya 2011 
+        $ test/bin/tmrv 2011 --tmrv-coverage
+        
+        $ # show the report in a browser
+        $ firefox coverage/index.html
+    
+    .. note:: On Windows when using cmd.exe, paths to the test modules and packages to run must be absolute. For example, the *test/maya* becomes something like "c:\projects\mrv\test\maya" on windows. Additionally, an absolute path must be specified as opposed to the non-windows os's which take the current directory as hint for where to find tests.
 
 Testing User Interfaces
 -----------------------
@@ -144,14 +149,15 @@ This tools allows automated full regression testing by running all tests for all
 	$ # Run all tests only for the given maya versions
 	$ test/bin/tmrvr 8.5 2008
 	
-The --skip-single flag
-----------------------
-If you would like to shorten the regression test, you can skip the single tests which perform only one tests per maya session as they have to be run in an isolated fashion. In case you decide to do so, the final result of the regression test will be failure though.
-	
-	$ # Run all tests, but skip the single tests
-	$ test/bin/tmrvr --skip-single
+Flags
+-----
+* .. cmdoption:: --skip-single
 
-	
+    If you would like to shorten the regression test, you can skip the single tests which perform only one tests per maya session as they have to be run in an isolated fashion. In case you decide to do so, the final result of the regression test will be failure though.
+        
+        $ # Run all tests, but skip the single tests
+        $ test/bin/tmrvr --skip-single
+
 *************
 Release Tools
 *************
@@ -159,7 +165,9 @@ A list of tools which are used mainly to do new releases.
 
 makedoc
 =======
-Create and update the MRV documentation or parts thereof. By default, all parts will be built. Use the ``--help`` flag to see a full list of viable options::
+Create and update the MRV documentation or parts thereof. By default, all parts will be built. Use the ``--help`` flag to see a full list of viable options, or have a look at the :ref:`Documentation Generator <gendocs-label>` page for an in-depth discussion of makedoc.
+
+**Sample Usage**::
 	
 	$ # make all docs
 	$ cd mrv/doc

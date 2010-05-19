@@ -5,9 +5,6 @@ Provide project related global information.
 :note: Importing this module must not have any side effects !
 """
 
-#{ Configuration 
-
-
 # GENERAL INFORMATION
 #####################
 ## Version Info 
@@ -122,5 +119,14 @@ setup_kwargs = dict(
 																	'mrv.test.test_conf') }, 
 									build_scripts={ 'exclude_scripts' : ['test/bin/tmrvr']}) 
                     )
-#} END configuration
 
+
+# EPYDOC CONFIGURATION
+######################
+# These values help to dynamically generate the epydoc.cfg file which will be used 
+# to configure the epydoc source documentaiton generator.
+doc_config = dict(
+				epydoc_show_source = 'yes',
+				epydoc_modules = "modules: unittest\nmodules: pydot,pyparsing\nmodules: ../,../ext/networkx/networkx",
+				epydoc_exclude = "mrv.test,mrv.doc,mrv.cmd.ipythonstartup",
+				)
