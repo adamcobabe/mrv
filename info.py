@@ -63,14 +63,41 @@ of maintainable, reliable and high-performance code to be used in and around Aut
 # MRV's distribution system is based on distutils. The following dictionary will 
 # be passed to the setup routine of the distutils and applies additional configuration.
 # Read more about the distutils: http://docs.python.org/distutils/
-setup_kwargs = dict(scripts=__scripts_bin + __scripts_test_bin, 
+setup_kwargs = dict(
+					# scripts in the context of the distribution are executable python 
+					# scripts that should wind up executable when installed.
+					# scripts = list('path', ...)
+					scripts=__scripts_bin + __scripts_test_bin,
+					
+					# The long description is used on pypi I presume if the commandline 
+					# based upload is used. For MRV the manual upload id preferred though
+					# As the distutils don't provide a way to safely store non-cleartext
+					# credentials for the login
+					# long_description = string
                     long_description = __ld,
+                    
+                    # Winds up as egg-info which informs easy-install which other packages
+                    # ought to be downloaded to make this project operational
+                    # requires = list(id, ...) 
                     requires=[ 'nose', 'epydoc', 'sphinx', 'gitpython' ],
+                    
+                    # Each package to be build by build_py can be enriched with data files
+                    # which are copied into the build version of the respective package.
+                    # MRV introduces the ability to specify directories and exclude patterns 
+                    # which are prefixed with an exclamation mark (!)
+                    # package_data = dict( package_name : list('pattern', ...) )
                     package_data = {   'mrv.test' : ['fixtures/ma/*', 'fixtures/maya_user_prefs/'] + __scripts_test_bin_s, 
                     					'mrv' : __scripts_bin + ['!*.gitignore'],
                     					'mrv.maya' : ['cache'],
                     					'mrv.doc' : ['source', 'makedoc', '!*source/generated/*']
-                    				},   
+                    				},
+                    				
+                    # Classifiers are used exclusively by the python package index
+                    # and wind up in the package info/egg info. This is important
+                    # for command-line upload only, Here it serves more as general 
+                    # information that is not strictly required in the distribution 
+                    # process
+                    # classifiers = list(classifier, ...)
                     classifiers = [
                         "Development Status :: 5 - Production/Stable",
                         "Intended Audience :: Developers",
@@ -81,6 +108,12 @@ setup_kwargs = dict(scripts=__scripts_bin + __scripts_test_bin,
                         "Programming Language :: Python :: 2.6",
                         "Topic :: Software Development :: Libraries :: Python Modules",
                         ], 
+                        
+                    # Options are a more interesting kwarg as it is itself a dict
+                    # mapping option dicts to setup subcommand names. This allows 
+                    # to pass information directly to the specified subcommand, each 
+                    # of them supporting a unique set of options
+                    # options = dict( subcommand = dict( option_name : option_value ) )
 					options = dict(build_py={	'exclude_from_compile' : ('*/maya/undo.py', '*/maya/nt/persistence.py'), 
 												'exclude_items' : ('mrv.conf', 'mrv.dg', 'mrv.batch', 'mrv.mdp', 
 																	'.automation',
