@@ -88,6 +88,15 @@ output: html"""
 	#{ Public Interface
 	
 	@classmethod
+	def remove_version_info(cls, idstring, basedir='.'):
+		"""Remove the version info file if it exists"""
+		try:
+			os.remove(cls.version_file_name(idstring, basedir))
+		except OSError:
+			pass
+		# END exception handling
+	
+	@classmethod
 	def version_file_name(cls, idstring, basedir='.'):
 		""":return: filename at which to write the version file with the given id"""
 		return Path(os.path.join(basedir, "%s.version_info" % idstring)) 
@@ -199,6 +208,7 @@ output: html"""
 		:note: Must respect the options the same way as done by the ``generate``
 		method"""
 		if self._coverage:
+			self.remove_version_info('coverage')
 			bdd = self.build_downloads_dir()
 			csdd = self.source_downloads_coverage_dir()
 			coverage_dir = Path(self._project_dir / cmd.tmrv_coverage_dir)
@@ -222,6 +232,7 @@ output: html"""
 		# END clean coverage 
 		
 		if self._epydoc:
+			self.remove_version_info('epydoc')
 			try:
 				shutil.rmtree(self.epydoc_target_dir())
 			except OSError:
@@ -230,6 +241,7 @@ output: html"""
 		# END clean epydoc
 		
 		if self._sphinx:
+			self.remove_version_info('sphinx')
 			ip = self.index_rst_path()
 			if ip.isfile():
 				ip.remove()
