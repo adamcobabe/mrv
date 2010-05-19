@@ -450,22 +450,24 @@ class _GitMixin(object):
 class _RegressionMixin(object):
 	"""Provides a simple interface allowing to perform a regression test"""
 	
+	#{ Configuration
+	# default directory containing the actual tests.
+	# Specifying subdirectories may limit the amount of tests run
+	test_dir_default = 'test'
+	#} END configuration
+	
+	
 	def __init__(self, *args, **kwargs):
 		self.post_testing = list()
+		self.test_dir = self.test_dir_default
 	
-	
-	#{ Configuration
-	# directory containing the actual tests.
-	# This information can be used by subclasses to limit the amount of located 
-	# files
-	test_sub_dir = 'test'
-	#} END configuration
 	
 	#{ Interface 
 	
 	@classmethod
 	def adjust_user_options(cls, user_options):
 		user_options.append(('post-testing=', 't', "Specifies the maya version(s) with which post-build testing will be performed"))
+		user_options.append(('test-dir=', 'd', "Specifies directory containing test modules, relative to the distribution"))
 		
 	def finalize_options(self):
 		self.post_testing = self.distribution.fixed_list_arg(self.post_testing)
@@ -823,7 +825,7 @@ class BuildPython(_GitMixin, _RegressionMixin, build_py):
 		
 		# POST REGRESSION TESTING
 		#########################
-		test_root = os.path.join(self._build_dir(), self.test_sub_dir)
+		test_root = os.path.join(self._build_dir(), self.test_dir)
 		self.post_regression_test(self._test_abspath(), test_root)
 		
 		# FIX SCRIPTS
@@ -1058,7 +1060,7 @@ class GitSourceDistribution(_GitMixin, _RegressionMixin, sdist):
 		# will only actually run if it is enabled - we need the preprartion to
 		# build the docs anyway
 		testexec = os.path.join(base_dir, self.distribution._test_relapath())
-		test_root = os.path.join(base_dir, self.test_sub_dir)
+		test_root = os.path.join(base_dir, self.test_dir)
 		self.post_regression_test(testexec, test_root)
 		
 		# HOOK IN DOC DISTRO
