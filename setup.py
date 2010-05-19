@@ -1,3 +1,4 @@
+#!/usr/bin/env python
 import os
 ospd = os.path.dirname
 import sys
@@ -530,6 +531,10 @@ class BuildPython(_GitMixin, _RegressionMixin, build_py):
 	description="Implements byte-compilation with different python interpreter versions"
 	
 	#{ Configuration
+	# If True, the source module will be deleted ( in the build directory ) 
+	# after it was compiled to byte code
+	remove_py_after_byte_compile = True
+	
 	# if set, pyo will be renamed to pyc, for some reason the pyo extension is not
 	# common and not properly supported by python itself
 	rename_pyo_to_pyc = True
@@ -680,14 +685,16 @@ class BuildPython(_GitMixin, _RegressionMixin, build_py):
 			# as if it was a totally separate case and duplicates code for whichever 
 			# reason 
 			for py_file in (f for f in files if f.endswith('.py')):
-				log.debug("Removing original file after byte compile: %s" % py_file)
-				try:
-					os.remove(py_file)
-				except OSError:
-					# it can happen that the file gets deleted by the conversion 
-					# script itself ... don't fully understand it though.
-					pass
-				# END handle file doesn't exist anymore
+				if self.remove_py_after_byte_compile:
+					try:
+						os.remove(py_file)
+						log.debug("Removed original file after byte compile: %s" % py_file)
+					except OSError:
+						# it can happen that the file gets deleted by the conversion 
+						# script itself ... don't fully understand it though.
+						pass
+					# END handle file doesn't exist anymore
+				# END if remove py after byte compile
 				
 				if self.rename_pyo_to_pyc:
 					base, ext = os.path.splitext(py_file)
