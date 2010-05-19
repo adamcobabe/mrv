@@ -1300,17 +1300,9 @@ class Distribution(object, BaseDistribution):
 	# for this class to work
 	rootpackage = None
 	
-	# if True, every package in the 'ext' folder will be included in the distribution as well
-	# .git repository data will be pruned
-	include_external = True
-	
-	
-	# requires map - lists additional includes for different distribution outputs
-	requires_map = dict(	sdist = [ 'nose', 'epydoc', 'sphinx', 'gitpython' ], 
-							bdist = list() ) 
-	
-	
 	# directory to which all of our comamnds will store their distribution data
+	# Please note that other subcommands that are not overridden by us redefined
+	# this value privately, hence it is not recommended to change this here.
 	dist_dir = 'dist'
 	
 	# directory containing all external packages
@@ -1325,7 +1317,9 @@ class Distribution(object, BaseDistribution):
 		( ('%s=' % opt_maya_version, 'm', "Specify the maya version to operate on"),
 		  ('regression-tests=', 't', "If set (default), the regression tests will be executed, distribution fails if one test fails"),
 		  ('use-git=', 'g', "If set (default), the build results will be put into a git repository"),
-		  ('force-git-tag', 'f', "If set, the corresponding git tag will be moved to your current root repository commit"),)
+		  ('force-git-tag', 'f', "If set, the corresponding git tag will be moved to your current root repository commit"),
+		  ('add-requires=', 'r', "Specifies a comma separated list of 'requires' ids to be added to ones given to setup()"),
+		  ('package-search-dirs=', 'p', "If set, defaults to 'ext', packages within the given directories will be distributed as well"),)
 	)
 	
 	
@@ -1364,31 +1358,6 @@ class Distribution(object, BaseDistribution):
 			basename += "-py%s" % sys.version[:3]
 		# END make names dependent on the actual version if bytecode is used
 		return basename
-		
-	def postprocess_metadata(self):
-		"""Called after the commandline has been parsed. With all information available
-		we can decide whether additional dependencies need to be specified"""
-		
-		# HANDLE DEPENDENCIES
-		num_dist_commands = 0
-		for key in sorted(self.requires_map.keys()):
-			if key in self.commands:
-				if self.metadata.requires is None:
-					self.metadata.requires = list()
-				# END assure we have a list
-				
-				# assign unique depends
-				rlist = self.requires_map[key]
-				self.metadata.set_requires(sorted(list(set(self.metadata.requires) | set(rlist)))) 
-				num_dist_commands += 1
-			# END if we have requirements for a command
-		# END for each distribution command
-		
-		# for now, we can only handle one dist command at a time !
-		# this could be improved though 
-		if num_dist_commands > 1:
-			raise AssertionError("Currently we can only process one distribution target per invocation")
-		# END assure only one dist command per invocation
 		
 	def _query_user_token(self, tokens):
 		"""Read tokens from user and finally return a token he picked
@@ -1705,20 +1674,21 @@ Would you like to adjust your version info or abort ?
 	def get_packages(self):
 		""":return: list of all packages in rootpackage in __import__ compatible form"""
 		base_packages = [self.pinfo.root_package] + [ self.pinfo.root_package + '.' + pkg for pkg in find_packages(self._rootpath())]
-		
-		# add external packages - just pretent its a package even though it it just 
-		# a path in external
-		ext_path = self.ext_dir
-		
-		# try to get an iterator - followlinks is not supported in the easy_install
-		# pseudosandbox ...
-		try:
-			dirwalker = os.walk(ext_path, followlinks=True)
-		except TypeError:
-			dirwalker = os.walk(ext_path)
-		# END handle sandbox
-		
-		if self.include_external and os.path.isdir(ext_path):
+
+		for search_path in self.package_search_dirs:
+			if not os.path.isdir(search_path):
+				log.debug("package search path %r did not exist" % search_path)
+				continue
+			# END skip non-existing
+			
+			# try to get an iterator - followlinks is not supported in the easy_install
+			# pseudosandbox ...
+			try:
+				dirwalker = os.walk(search_path, followlinks=True)
+			except TypeError:
+				dirwalker = os.walk(search_path)
+			# END handle sandbox
+			
 			for root, dirs, files in dirwalker:
 				# remove hidden paths, or paths with a '.' in them as they cannot 
 				# be handled properly
@@ -1738,7 +1708,7 @@ Would you like to adjust your version info or abort ?
 					base_packages.append(self.pinfo.root_package+"."+dirpath.replace(os.sep, '.'))
 				# END for each remaining valid directory
 			# END walking external dir
-		# END if external directory exists
+		# END for each search dir
 		return base_packages
 		
 	#} END interface 
@@ -1762,14 +1732,12 @@ Would you like to adjust your version info or abort ?
 		# at this point, the options have not yet been parsed
 		self.py_version = float(sys.version[:3])
 		self.maya_version = None
-		self.regression_tests = True
-		self.use_git = True
+		self.regression_tests = False
+		self.use_git = False
 		self.root_repo = None
 		self.force_git_tag = 0
-		
-		if not self.packages:
-			self.packages = self.get_packages()
-		# END auto-generate packages if not explicitly set
+		self.add_requires = list()
+		self.package_search_dirs = None
 		
 		# Override Commands
 		self.cmdclass[build_py.__name__] = BuildPython
@@ -1796,6 +1764,17 @@ Would you like to adjust your version info or abort ?
 	def parse_command_line(self):
 		"""Handle our custom options"""
 		rval = BaseDistribution.parse_command_line(self)
+		
+		if self.package_search_dirs is None:
+			self.package_search_dirs = [self.ext_dir]
+		else:
+			self.package_search_dirs = self.fixed_list_arg(self.package_search_dirs)
+		# END handle package search dirs
+		
+		# handle packages
+		if not self.packages:
+			self.packages = self.get_packages()
+		# END auto-generate packages if not explicitly set
 		
 		# handle evil types - the underlying systems puts strings into the variables
 		# ... how can you ?
@@ -1836,7 +1815,18 @@ Would you like to adjust your version info or abort ?
 		# END handle python version
 		
 		
-		self.postprocess_metadata()
+		if isinstance(self.add_requires, basestring):
+			# well, lets parse the requires addition manually, metadata cannot 
+			# be set by the commandline, but only queried ... so we have to make 
+			# it a special case, yipeee.
+			if self.metadata.requires is None:
+				self.metadata.requires = list()
+			# END assure we have a list
+			
+			# assign unique depends
+			self.add_requires = self.fixed_list_arg(self.add_requires)
+			self.metadata.set_requires(sorted(list(set(self.metadata.requires) | set(self.add_requires)))) 
+		# END process requires
 		
 		
 		# setup git if required

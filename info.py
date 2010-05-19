@@ -65,6 +65,7 @@ of maintainable, reliable and high-performance code to be used in and around Aut
 # Read more about the distutils: http://docs.python.org/distutils/
 setup_kwargs = dict(scripts=__scripts_bin + __scripts_test_bin, 
                     long_description = __ld,
+                    requires=[ 'nose', 'epydoc', 'sphinx', 'gitpython' ],
                     package_data = {   'mrv.test' : ['fixtures/ma/*', 'fixtures/maya_user_prefs/'] + __scripts_test_bin_s, 
                     					'mrv' : __scripts_bin + ['!*.gitignore'],
                     					'mrv.maya' : ['cache'],
