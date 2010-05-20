@@ -63,7 +63,7 @@ Yes, it calls the ``build`` command in your source distribution which means that
 
 Depending on the complexity of your project, this is easier or harder, but as you will learn in the :doc:`workflow document <workflow>`, its all manageable, and ... what's done is done, the fame will be all yours !
 
-.. _distribution-label: 
+.. _distribution-flags-label: 
 
 ******************
 Distribution Flags
@@ -153,7 +153,7 @@ The ``build_py`` subcommand is in charge of creating builds of pure python modul
 
 Both, the `Git`_ Command Base as well as `post-testing <Testing>`_ Command Base are supported. The latter one becomes especially interesting if you only build a subset of your project and need to assure that this subset is still working as expected.
 
-When byte-compiling python modules using the ``--optimize=1|2`` flag as well as the ``--compile`` flag, the ``--maya-version`` needs to be set on the :ref:`Distribution <distribution-label>` as well. 
+When byte-compiling python modules using the ``--optimize=1|2`` flag as well as the ``--compile`` flag, the ``--maya-version`` needs to be set on the :ref:`Distribution <distribution-flags-label>` as well. 
 
 * .. cmdoption:: --exclude-from-compile=FILE_GLOB[,FILE_GLOB...] (-e)
 
@@ -269,7 +269,7 @@ The distributions created by `build_py`_ or `sdist`_ may only contain a subset o
 
 The Testing Command Base provides a facility to do exactly that and makes sure your distribution fails if a test fails. 
 
-Used in conjunction with the ``--regression-tests`` flag of the :ref:`Distribution <distribution-label>`, quality can be assured ( within the limits of your unit-testing framework ).
+Used in conjunction with the ``--regression-tests`` flag of the :ref:`Distribution <distribution-flags-label>`, quality can be assured ( within the limits of your unit-testing framework ).
 
 * .. cmdoption:: --post-testing=VERSION[,VERSION...] (-t)
 

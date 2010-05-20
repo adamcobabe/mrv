@@ -161,16 +161,5 @@ Flags
 *************
 Release Tools
 *************
-A list of tools which are used mainly to do new releases.
+The set of tools and scripts required to do release is further described in the :doc:`Distribution Manual <develop/distribute/index>`
 
-makedoc
-=======
-Create and update the MRV documentation or parts thereof. By default, all parts will be built. Use the ``--help`` flag to see a full list of viable options, or have a look at the :ref:`Documentation Generator <gendocs-label>` page for an in-depth discussion of makedoc.
-
-**Sample Usage**::
-	
-	$ # make all docs
-	$ cd mrv/doc
-	$ ./makedoc
-	
-.. note:: In order for the documentation to be generated, the python interpreter of your latest installed maya version needs to have sphinx installed. If a coverage report should be generated, nose and coverage are a prerequesite as well for the python interpreter matching your latest installed maya version. If epydoc documentation should be generated, the interpreter *executing* ``makedoc`` needs to have epydoc available.

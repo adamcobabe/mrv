@@ -25,14 +25,17 @@ The ``makedoc`` script is located in the ``doc`` directory and needs to be run f
 
 The script supports multiple flags to control the usage of individual features. To assure consistency, it will use the :doc:`info module <pinfo>` to retrieve basic project information.
 
+* .. cmdoption:: --sphinx 0|1 (-s)
+
+    If 1, default 1, the `sphinx`_ based manual will be generated. If False, neither that nor the autogen documentation will be built. 
+
+* .. cmdoption:: --sphinx-autogen 0|1 (-a)
+    
+    If 1, default 1, `sphinx`_ API docuementation will be generated. As it usually takes longest of all operations, its worth turning it off when writing the manual.
 
 * .. cmdoption:: --epydoc 0|1 (-e) 
     
     If 1, default 1, `epydoc`_ html API documentation will generated from your projects sources and embedded into the respective API documentation created by `sphinx`_.
-    
-* .. cmdoption:: --sphinx 0|1 (-s)
-    
-    If 1, default 1, `sphinx` documentation will be created.
     
 * .. cmdoption:: --coverage 0|1 (-c)
 
@@ -44,6 +47,7 @@ The script supports multiple flags to control the usage of individual features. 
         
         $ ./makedoc --clean -e 0 -s 0 -c 1
 
+.. note:: In order to generate sphinx or epydoc docuementation, ``sphinx`` and ``epydoc`` need to be installed in the python installation executing ``makedoc``. To generate a coverage report, you will need ``nose`` and ``coverage`` installed in the interpreter matching your latest available maya version.
 
 ==================
 version_info Files
