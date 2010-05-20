@@ -57,15 +57,17 @@ def ipython_setup():
 
 #{ Startup
 
-def mrv(args, args_modifier=None):
+def mrv(args, info, args_modifier=None):
 	"""Prepare the environment to allow the operation of maya
+	:param info: info module instance
 	:param args_modifier: Function returning a possibly modified argument list. The passed 
 		in argument list was parsed already to find and extract the maya version. 
-		Signature: ``arglist func(arglist, maya_version, start_maya)
+		Signature: ``arglist func(arglist, maya_version, start_maya, info)
 		If start_maya is True, the process to be started will be maya.bin, not the 
 		python interpreter. If maya_version is 0, the process will continue execution
 		within this python interpreter which is assured to have mrv facilities availble 
-		which do not require maya."""
+		which do not require maya.
+		The last argument is the project's info module"""
 	import mrv.cmd
 	import mrv.cmd.base as cmdbase
 	
@@ -94,7 +96,12 @@ def mrv(args, args_modifier=None):
 		maya_version = 0.0
 	# EMD initialize maya if required
 	
-	rargs = list(args_modifier(tuple(rargs), maya_version, start_maya))
+	if args_modifier is not None:
+		rargs = list(args_modifier(tuple(rargs), maya_version, start_maya, info))
+	else:
+		rargs = list(rargs)
+	# END handle arg list
+	
 	if no_maya:
 		# parse the option ourselves, the optparse would throw on unknown opts
 		remaining_args = list()

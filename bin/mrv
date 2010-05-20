@@ -14,7 +14,8 @@ def prepare_project_syspath():
 	"""Make sure the project's root package is in the python path, and manipulate 
 	sys.path if required in order to assure that.
 	
-	:return: imported root module/package
+	:return: tuple(root, info) tuple of imported root module/package and the projects
+		info package.
 	:raise ImportError: If project's root package could not be found in this interpreter"""
 	# try to figure out our actual root package, resort to a hardcoded choice
 	ospd = os.path.dirname
@@ -97,18 +98,18 @@ def prepare_project_syspath():
 		add_package_to_env(mrv)
 	# END add mrv specificallys
 		
-	return root
+	return root, info
 	
 
-def mrvmain(args, args_modifier=lambda a, v, m: a):
+def mrvmain(args, args_modifier=lambda a, v, m, i: a):
 	"""Prepare the path and redirect the call to the actual library module"""
-	prepare_project_syspath()
+	root, info = prepare_project_syspath()
 	try:
 		import mrv.cmd.startup as startup
 	except ImportError:
 		raise EnvironmentError("Failed to import mrv as the root package did not initialize the python import path correctly")
 	# END final exception handling
-	startup.mrv(args, args_modifier)
+	startup.mrv(args, info, args_modifier)
 	
 #} END initialization
 
