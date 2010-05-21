@@ -19,17 +19,16 @@ The main features are:
 
 The following guide will explain the individual MRV distribution facilities, how MRV uses them, and how you can use them easily. 
 
-********
-Contents
-********
+
+----
 
 .. toctree::
    :maxdepth: 2
    
-   workflow
    pinfo
-   docs
    setup
+   docs
+   workflow
    
    
 .. _easy_install: http://pypi.python.org/pypi/setuptools

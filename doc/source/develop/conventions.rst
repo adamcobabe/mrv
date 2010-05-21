@@ -1,9 +1,9 @@
 	
 .. _naming-conventions-label:
 
-**********************
-MRV Naming Conventions
-**********************
+******************
+Naming Conventions
+******************
 MRV's primary intention regarding its naming conventions is to fit into the ones already setup by the MayaAPI, while trying not to completely neglect the python heritage and PEP8 which comes with it.
 
 Method Names

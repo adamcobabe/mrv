@@ -31,7 +31,7 @@ The script supports multiple flags to control the usage of individual features. 
 
 * .. cmdoption:: --sphinx-autogen 0|1 (-a)
     
-    If 1, default 1, `sphinx`_ API docuementation will be generated. As it usually takes longest of all operations, its worth turning it off when writing the manual.
+    If 1, default 1, `sphinx`_ API documentation will be generated. As it usually takes longest of all operations, its worth turning it off when writing the manual.
 
 * .. cmdoption:: --epydoc 0|1 (-e) 
     

@@ -38,7 +38,7 @@ Contents
    conventions
    contribute
    workflow
-   distribute/index
    integrate
    performance
+   distribute/index
    projects

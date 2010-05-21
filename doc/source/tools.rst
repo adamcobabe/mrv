@@ -13,7 +13,7 @@ Production Tools
 
 mrv
 ===
-This tool will setup the environment to allow running MRV and Maya Standalone within your system interpreter, mayapy, or maya.bin. The system interpreter will be used by default and is expected to be in your path. On Linux and OSX, it must be named ``python2.x``. On Windows, the python interpreter's executable is expected to be ``python2x``.**x** can be 4,5 and 6 and depends on the maya version you would like to run.
+This tool will setup the environment to allow running MRV and derived projects together with Maya Standalone within your *system's python interpreter*, *mayapy*, or *maya.bin*. The system interpreter will be used by default and is expected to be in your path. On Linux and OSX, it must be named ``python2.x``. On Windows, the python interpreter's executable is expected to be ``python2x``.**x** can be 4,5 and 6 and depends on the maya version you would like to run.
 
 If no python interpreter can be found in your path, ``mrv`` will fallback to using ``mayapy``.
 
@@ -69,6 +69,16 @@ Flags
     .. note::
         The mrv command will use execv on non-windows system, but use spawn on windows to workaround some issues. This implies that scripts on linux/osx can natively use the mrv program, standardchannels are handled automatically. On windows the spawned process will be attached with all standardchannels of the parent python process, but its questionable whether this has the intended effect.
 
+``mrv`` and derived Projects
+----------------------------
+``mrv``\ s main tasks are to adjust the python``sys.path`` to include mrv and to possible prepare the environment to start maya standalone inside the interpreter. 
+
+To allow derived projects, which use MRV as a subproject, to be handled as well, the :doc:`info module <develop/distribute/pinfo>` takes a key role in providing information about the project. To ``mrv`` it is no difference whether it prepares the environment for MRV or a derived projects as it relies in the *info module* in both cases.
+
+When searching for the info module, it tries to import it at the current working directory, moving upward the path until one is found. As the *info* module is supposed to be located in the project root, it must be possible to import the actual project by its ``root_package`` name. If this is the root package of a derived project, it is supposed to adjust ``sys.path`` once more to allow mrv to be imported as well.
+
+This allows derived projects to be started and used through ``mrv`` as long as your current working directory hints at it.
+        
 .. _imrv-label:
 
 imrv
@@ -153,7 +163,7 @@ Flags
 -----
 * .. cmdoption:: --skip-single
 
-    If you would like to shorten the regression test, you can skip the single tests which perform only one tests per maya session as they have to be run in an isolated fashion. In case you decide to do so, the final result of the regression test will be failure though.
+    If you would like to shorten the regression test, you can skip the single tests which perform only one tests per maya session as they have to be run in an isolated fashion. In case you decide to do so, the final result of the regression test will be failure though. Single tests are identified by a filename matching ``test_single_*``.
         
         $ # Run all tests, but skip the single tests
         $ test/bin/tmrvr --skip-single

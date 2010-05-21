@@ -41,6 +41,7 @@ to indicate their long and short names. If the flag takes arguments, it is indic
  
 The type of the *VALUE* is usually documented specifically, and is accepted by the short command flag as well.
 
+.. _setup-intimacies-label:
 
 ******************************************
 Intimacies of sdist, build_py, and install
@@ -123,6 +124,8 @@ Specials
 
 * Git was integrated into the distribution process, see `Git Handling`_.
 
+.. _setup-git-label:
+
 ============
 Git Handling
 ============
@@ -202,6 +205,8 @@ Specials
 --------
 * Supports the `Git`_ Command Base
 * Supports the `Testing`_ Command Base
+
+.. _setup-manifestin-label:
 
 MANIFEST.in
 -----------

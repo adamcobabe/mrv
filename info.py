@@ -48,18 +48,18 @@ nosetest_exec = 'test/bin/tmrv'
 # directory. The path given here is relative to it
 makedoc_exec = 'makedoc'
 
-__scripts_bin = ['bin/mrv', 'bin/imrv']
-__scripts_test_bin = ['test/bin/tmrv', 'test/bin/tmrvr']
-__scripts_test_bin_s = [ p.replace('test/', '') for p in __scripts_test_bin ]
-__ld = """MRV is a multi-platform python development environment to ease rapid development 
-of maintainable, reliable and high-performance code to be used in and around Autodesk Maya."""
-
 
 # SETUP SCRIPT KWARGS
 #####################
 # MRV's distribution system is based on distutils. The following dictionary will 
 # be passed to the setup routine of the distutils and applies additional configuration.
 # Read more about the distutils: http://docs.python.org/distutils/
+__scripts_bin = ['bin/mrv', 'bin/imrv']
+__scripts_test_bin = ['test/bin/tmrv', 'test/bin/tmrvr']
+__scripts_test_bin_s = [ p.replace('test/', '') for p in __scripts_test_bin ]
+__ld = """MRV is a multi-platform python development environment to ease rapid development 
+of maintainable, reliable and high-performance code to be used in and around Autodesk Maya."""
+
 setup_kwargs = dict(
 					# scripts in the context of the distribution are executable python 
 					# scripts that should wind up executable when installed.
@@ -83,7 +83,7 @@ setup_kwargs = dict(
                     # MRV introduces the ability to specify directories and exclude patterns 
                     # which are prefixed with an exclamation mark (!)
                     # package_data = dict( package_name : list('pattern', ...) )
-                    package_data = {   'mrv.test' : ['fixtures/ma/*', 'fixtures/maya_user_prefs/'] + __scripts_test_bin_s, 
+                    package_data = {   'mrv.test' : ['fixtures/ma/*', 'fixtures/maya_user_prefs/', 'maya/performance' ] + __scripts_test_bin_s, 
                     					'mrv' : __scripts_bin + ['!*.gitignore'],
                     					'mrv.maya' : ['cache'],
                     					'mrv.doc' : ['source', 'makedoc', '!*source/generated/*']
@@ -113,7 +113,7 @@ setup_kwargs = dict(
                     # options = dict( subcommand = dict( option_name : option_value ) )
 					options = dict(build_py={	'exclude_from_compile' : ('*/maya/undo.py', '*/maya/nt/persistence.py'), 
 												'exclude_items' : ('mrv.conf', 'mrv.dg', 'mrv.batch', 'mrv.mdp', 
-																	'.automation',
+																	'.automation', '.qa',
 																	'mrv.test.test_conf', 'mrv.test.test_dg', 
 																	'mrv.test.test_batch', 'mrv.test.test_mdp', 
 																	'mrv.test.test_conf') }, 
