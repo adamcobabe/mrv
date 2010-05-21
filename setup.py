@@ -20,8 +20,10 @@ from distutils.util import convert_path
 from itertools import chain
 import subprocess
 import fnmatch
+import shutil
 import new
 import re
+
 
 try:
 	from setuptools import find_packages
@@ -65,6 +67,10 @@ class _GitMixin(object):
 	# name of symbolic reference which keeps the previous reference name to which 
 	# HEAD pointed before we changed HEAD
 	prev_head_name = 'DIST_ORIG_HEAD'
+	
+	# Variable holding the commit sha of the source repository at the time of the 
+	# distribution creation
+	commit_sha_var_name = 'src_commit_sha'
 	
 	branch_suffix = None
 	#} END configuration 
@@ -300,6 +306,68 @@ class _GitMixin(object):
 			print "Done"
 		# END for each remote to push to
 
+	def _adjust_commit_sha(self, root_commit, root_dir):
+		"""Write the src_commit_sha in the info.py file to the value in root_commit
+		or skip it if the file is not available"""
+		info_module_path = os.path.join(root_dir, 'info.py')
+		if not os.path.isfile(info_module_path):
+			log.warn("Couldn't write the %s value as the info module at did not exist" % (self.commit_sha_var_name, info_module_path))
+			return
+		# END handle file existence
+		
+		# BREAK HARD LINKS
+		##################
+		# if the file is hard-linked, which is the default for source distributions, 
+		# copy the file into place
+		stat = os.stat(info_module_path)
+		if stat.st_nlink > 1:
+			info_module_source_path = os.path.splitext(self.distribution.pinfo.__file__)[0] + ".py"
+			if not os.path.isfile(info_module_source_path):
+				log.error("Couldn't remove hardlink of info file as the file's source did not exist at %r" % info_module_source_path)
+				return
+			# END handle source doesn't exist
+			os.remove(info_module_path)
+			shutil.copyfile(info_module_source_path, info_module_path)
+		# END remove hard link
+		
+		# MAKE REPLACEMENT
+		# parse the file, find our line, expect it unaltered
+		adjusted = False
+		lines = open(info_module_path, 'r').readlines()
+		fexc = ValueError("Line could not be parsed, expecting: %s = '0'*40|SHA" % self.commit_sha_var_name)
+		
+		for ln, line in enumerate(lines):
+			if not line.strip().startswith(self.commit_sha_var_name):
+				continue
+			# END skip if not our line
+			
+			try:
+				var_name, value = [ t.strip() for t in line.split('=') ]
+			except ValueError:
+				log.error(line)
+				raise fexc
+			# END handle parsing errors
+			
+			if len(value) > 40:
+				log.info("Skipping adjustment of line %r as commit value was already set" % line)
+				return
+			# END handle commit already set
+			
+			# rewrite the line with the sha
+			lines[ln] = "%s = %r\n" % (self.commit_sha_var_name, root_commit.sha)
+			adjusted = True
+			break
+		# END for each line
+		
+		# WRITE CHANGES
+		if adjusted:
+			open(info_module_path, 'w').writelines(lines)
+			log.info("Adjusted line with %s of info module at %r" % (self.commit_sha_var_name, info_module_path))
+		else:
+			log.info("Didn't find line with %s in info module at %r" % ( self.commit_sha_var_name, info_module_path))
+		# END write changes
+		
+		
 	def add_files_and_commit(self, root_repo, repo, root_dir, root_tag):
 		"""
 		Add all files recursively to the index as found below root_dir and commit the
@@ -309,6 +377,9 @@ class _GitMixin(object):
 		to the root directory, even though the git repository might be on another level.
 		It also sports a simple way to determine whether the commit already exists, 
 		so it will not recommit data that has just been committed.
+		
+		Additionally we will try to find the info.py file and adjust its commit_sha
+		to the actual sha of our root_repo's original branch.
 		
 		:param root_repo: Repository containing the data of the main project
 		:param repo: dedicated repository containing the distribution data
@@ -357,6 +428,11 @@ class _GitMixin(object):
 			prev_root_head = root_repo.head
 		# END get actual commit reference
 		root_commit = prev_root_head.commit
+		
+		# important to associate the build with the source
+		###############################################
+		self._adjust_commit_sha(root_commit, root_dir)
+		###############################################
 		
 		if root_repo.is_dirty(index=False, working_tree=True, untracked_files=False):
 			suffix = "-dirty"
@@ -520,7 +596,6 @@ class _RegressionMixin(object):
 				raise EnvironmentError("Post-Operation test failed")
 			# END call test program
 		# END for each maya version
-		
 	#} END interface
 	
 	
@@ -1423,7 +1498,7 @@ class Distribution(object, BaseDistribution):
 		If the version was already tagged before, help the user to adjust his 
 		version string in the root module, make a commit, and finally create 
 		the tag we were so desperate for. The main idea is to enforce a unique 
-		version each time we make a release, and to make that easy
+		version each time we make a release, and to make that easy.
 		
 		:return: TagReference object created
 		:raise EnvironmentError: if we could not get a valid tag"""

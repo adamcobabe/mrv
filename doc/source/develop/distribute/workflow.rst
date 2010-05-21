@@ -190,6 +190,8 @@ On Windows, one might want to resort to writing batch files which serve as an al
     $ make-final-release.bat
     $ make-binary-release.bat
     
+.. note:: It is very recommended to maintain targets which are for release-testing only, hence the do not interact with git. This is especially important in the case of the ``--post-testing`` flag as it will always do the testing *after* the changes were pushed to the git repositories, and if the test fails, the changes possibly already reached the public repository. A good insurance against post-testing failures are pre-distribution regression tests, but as these apply to a possibly different file set, post-testing might still fail.
+    
 ************************
 The Python Package Index
 ************************

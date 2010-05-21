@@ -129,7 +129,15 @@ Specials
 ============
 Git Handling
 ============
-The MRV distribution integrates git and its repositories into the workflow. Instead of just creating archives to upload on `pypi`_ for example, it allows you to record the archive contents in dedicated repositories, or your project repository, and keep automatically generated tags and commit information, meshing together your distribution history. The git integration helps tremendously to avoid confusion and to track your distributions correctly.
+The MRV distribution integrates git and its repositories into the workflow. Instead of just creating archives to upload on `pypi`_ for example, it allows you to record the archive contents in dedicated repositories, or your project repository, and keep automatically generated tags and commit information, meshing together your distribution history. The git integration helps tremendously to avoid confusion and to track your distributions correctly. In order to associate the actual build with the source commit it was created from, it will be written into the ``info module`` of the distribution. The default line::
+    
+    src_commit_sha = '0'*40
+    
+becomes ...::
+    
+    src_commit_sha = '<40 character sha>'
+    
+... in the info module of your distribution. This makes sure that even for preview or beta releases which do not increment the version, you will not loose the information about the source commit.
 
 Subcommands supporting the `Git`_ Command Base will store their files into the *closest* git repository they can find, in a branch composed of the project name and the type of the distribution, such as ``mrv-src``, ``mrv-py2.6`` or ``mrv-doc``. The *closest* git repository is the one found when walking the distribution output path upwards. This is at least the project root repository into which you commit your own code, but may be a repository that you have put into the path yourself. If you want a separate repository for all builds you create, you could setup a git repository  in the *build* directory for instance.
 No matter into which repository the data is being added, it will be totally separated from your own source code history and commits, contained in their own branches, which looks more like having a sub-repository.

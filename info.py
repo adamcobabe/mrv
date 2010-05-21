@@ -35,6 +35,10 @@ description ='Development Framework for Autodesk Maya'
 # The name of the project's license
 license = "BSD License"
 
+# The sha belonging to the commit which created this release.
+# Will only be set in actual release versions, and must never be set manually
+src_commit_sha = '0'*40
+
 
 # PATH INFORMATION
 ###################
@@ -111,7 +115,9 @@ setup_kwargs = dict(
                     # to pass information directly to the specified subcommand, each 
                     # of them supporting a unique set of options
                     # options = dict( subcommand = dict( option_name : option_value ) )
-					options = dict(build_py={	'exclude_from_compile' : ('*/maya/undo.py', '*/maya/nt/persistence.py'), 
+					options = dict(build_py={	'exclude_from_compile' : (	'*/maya/undo.py', 
+																			'*/maya/nt/persistence.py', 
+																			'info.py'), 
 												'exclude_items' : ('mrv.conf', 'mrv.dg', 'mrv.batch', 'mrv.mdp', 
 																	'.automation', '.qa',
 																	'mrv.test.test_conf', 'mrv.test.test_dg', 
