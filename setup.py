@@ -25,15 +25,6 @@ import new
 import re
 
 
-try:
-	from setuptools import find_packages
-except ImportError:
-	from ez_setup import use_setuptools
-	use_setuptools()
-	from setuptools import find_packages
-# END get find_packages
-
-
 #{ Distutils Fixes 
 
 def __init__(self, dist):
@@ -52,6 +43,35 @@ def __init__(self, dist):
 	self.finalized = 0
 
 distutils.cmd.Command.__init__ = __init__
+
+def find_packages(where='.', exclude=()):
+    """
+	NOTE: This method is not easily available which is a problem for us. Hence
+	we just put it here, duplicating code from the setup tools.
+	
+	Return a list all Python packages found within directory 'where'
+
+    'where' should be supplied as a "cross-platform" (i.e. URL-style) path; it
+    will be converted to the appropriate local path syntax.  'exclude' is a
+    sequence of package names to exclude; '*' can be used as a wildcard in the
+    names, such that 'foo.*' will exclude all subpackages of 'foo' (but not
+    'foo' itself).
+    """
+    out = []
+    stack=[(convert_path(where), '')]
+    while stack:
+        where,prefix = stack.pop(0)
+        for name in os.listdir(where):
+            fn = os.path.join(where,name)
+            if ('.' not in name and os.path.isdir(fn) and
+                os.path.isfile(os.path.join(fn,'__init__.py'))
+            ):
+                out.append(prefix+name); stack.append((fn,prefix+name+'.'))
+    for pat in list(exclude)+['ez_setup']:
+        from fnmatch import fnmatchcase
+        out = [item for item in out if not fnmatchcase(item,pat)]
+    return out
+
 
 #} END Distutils fixes
 
@@ -741,9 +761,11 @@ class BuildPython(_GitMixin, _RegressionMixin, build_py):
 		
 		# assure we byte-compile in a standalone interpreter, manipulating the 
 		# sys.executable as it will be used later
+		# During installation, we can use this interpreter as it is the one for which 
+		# we install
 		prev_debug = __debug__
 		prev_executable = sys.executable
-		if self.needs_compilation:
+		if self.needs_compilation and 'install' not in self.distribution.commands:
 			# this forces to use a standalone process
 			__builtin__.__debug__ = False
 			
@@ -934,6 +956,12 @@ class BuildScripts(build_scripts):
 		self.exclude_scripts = self.distribution.fixed_list_arg(self.exclude_scripts)
 	
 	#{ Interface 
+	
+	@classmethod
+	def uses_mayapy(cls):
+		""":return: True if the executable is mayapy"""
+		return ('%smaya' % os.path.sep) in sys.executable.lower()  
+	
 	@classmethod
 	def handle_scripts(cls, scripts, adjust_first_line, suffix=''):
 		"""Handle the given scripts to work for later installation
@@ -946,7 +974,14 @@ class BuildScripts(build_scripts):
 			the string ourselves.
 			The suffix is assumed to be appended to all input script files, revealing the 
 			original script basename if the suffix is removed. The latter one is searched for 
-			in the script."""
+			in the script.
+			
+			Note: The suffix cannot be used if we are running in mayapy. In that case the first 
+			line will point to our current executable directly as mayapy can only be used for maya anyway."""
+		if cls.uses_mayapy() and suffix:
+			raise Exception("Suffixes may not be specified in mayapy mode: %s" % suffix)
+		# END handle suffix in mayapy mode 
+		
 		re_includefile_path = None
 		if suffix:
 			basenames = [ os.path.basename(s)[:-len(suffix)] for s in scripts ]
@@ -963,7 +998,11 @@ class BuildScripts(build_scripts):
 				changed = False
 				m = cls.re_script_first_line.match(lines[0])
 				if m:
-					lines[0] = "%s%s%s\n" % (m.group(1), sys.version[:3], m.group(2) or '')
+					if not cls.uses_mayapy():
+						lines[0] = "%s%s%s\n" % (m.group(1), sys.version[:3], m.group(2) or '')
+					else:
+						lines[0] = "#!%s\n" % sys.executable
+					# END handle mayapy specifically
 					changed=True
 				# END handle shebang line
 				
@@ -1006,6 +1045,9 @@ class BuildScripts(build_scripts):
 		self.mkpath(self.build_dir)
 		outfiles = list()
 		suffix = sys.version[:3]
+		if self.uses_mayapy():
+			suffix = ''
+		# END no suffix for mayapy
 		
 		# on windows, we don't process scripts as they end up in distinctive
 		# python installation directories
@@ -1928,6 +1970,13 @@ Would you like to adjust your version info or abort ?
 		if self.regression_tests:
 			self.perform_regression_tests()
 		# END regression tests
+		
+		# safety check: do make sure we don't get confused with the interpreter 
+		# version, verify that building and installation are separate steps
+		if 'install' in self.commands and \
+			('sdist' in self.commands or len([c for c in self.commands if c.startswith('build')])):
+			raise ValueError("Cannot create build or sdist distribution in the same run as installing them. Please separate the calls")
+		# END handle special case
 		
 		BaseDistribution.run_commands(self)
 		
