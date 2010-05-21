@@ -47,32 +47,32 @@ def __init__(self, dist):
 distutils.cmd.Command.__init__ = __init__
 
 def find_packages(where='.', exclude=()):
-    """
+	"""
 	NOTE: This method is not easily available which is a problem for us. Hence
 	we just put it here, duplicating code from the setup tools.
 	
 	Return a list all Python packages found within directory 'where'
 
-    'where' should be supplied as a "cross-platform" (i.e. URL-style) path; it
-    will be converted to the appropriate local path syntax.  'exclude' is a
-    sequence of package names to exclude; '*' can be used as a wildcard in the
-    names, such that 'foo.*' will exclude all subpackages of 'foo' (but not
-    'foo' itself).
-    """
-    out = []
-    stack=[(convert_path(where), '')]
-    while stack:
-        where,prefix = stack.pop(0)
-        for name in os.listdir(where):
-            fn = os.path.join(where,name)
-            if ('.' not in name and os.path.isdir(fn) and
-                os.path.isfile(os.path.join(fn,'__init__.py'))
-            ):
-                out.append(prefix+name); stack.append((fn,prefix+name+'.'))
-    for pat in list(exclude)+['ez_setup']:
-        from fnmatch import fnmatchcase
-        out = [item for item in out if not fnmatchcase(item,pat)]
-    return out
+	'where' should be supplied as a "cross-platform" (i.e. URL-style) path; it
+	will be converted to the appropriate local path syntax.	 'exclude' is a
+	sequence of package names to exclude; '*' can be used as a wildcard in the
+	names, such that 'foo.*' will exclude all subpackages of 'foo' (but not
+	'foo' itself).
+	"""
+	out = []
+	stack=[(convert_path(where), '')]
+	while stack:
+		where,prefix = stack.pop(0)
+		for name in os.listdir(where):
+			fn = os.path.join(where,name)
+			if ('.' not in name and os.path.isdir(fn) and
+				os.path.isfile(os.path.join(fn,'__init__.py'))
+			):
+				out.append(prefix+name); stack.append((fn,prefix+name+'.'))
+	for pat in list(exclude)+['ez_setup']:
+		from fnmatch import fnmatchcase
+		out = [item for item in out if not fnmatchcase(item,pat)]
+	return out
 
 
 def zipcompatible_get_makefile_filename():
@@ -846,6 +846,36 @@ class BuildPython(_GitMixin, _RegressionMixin, build_py):
 		
 		
 		return rval
+		
+	def get_data_files(self):
+		"""Can you feel the pain ? So, in python2.5 and python2.4 coming with maya, 
+		the line dealing with the ``plen`` has a bug which causes it to truncate too much.
+		It is fixed in the system interpreters as they receive patches, and shows how
+		bad it is if something doesn't have proper unittests.
+		The code here is a plain copy of the python2.6 version which works for all.
+		
+		Generate list of '(package,src_dir,build_dir,filenames)' tuples"""
+		data = []
+		if not self.packages:
+			return data
+		for package in self.packages:
+			# Locate package source directory
+			src_dir = self.get_package_dir(package)
+
+			# Compute package build directory
+			build_dir = os.path.join(*([self.build_lib] + package.split('.')))
+
+			# Length of path to strip from found files
+			plen = 0
+			if src_dir:
+				plen = len(src_dir)+1
+
+			# Strip directory from globbed filenames
+			filenames = [
+				file[plen:] for file in self.find_data_files(package, src_dir)
+				]
+			data.append((package, src_dir, build_dir, filenames))
+		return data
 	
 	def find_data_files(self, package, src_dir):
 		"""Fixes the underlying method by allowing to specify whole directories
@@ -900,7 +930,6 @@ class BuildPython(_GitMixin, _RegressionMixin, build_py):
 				files.remove(f)
 			# END remove directories
 		# END for each file
-		
 		return files + add_files
 		
 	def _filtered_module_list(self, modules):
