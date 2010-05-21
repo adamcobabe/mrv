@@ -10,6 +10,8 @@ from distutils import log, dir_util
 
 
 import distutils.command
+import distutils.sysconfig
+from distutils.sysconfig import get_makefile_filename, get_python_lib
 from distutils.cmd import Command
 from distutils.command.install_lib import install_lib
 from distutils.command.install import install
@@ -72,6 +74,41 @@ def find_packages(where='.', exclude=()):
         out = [item for item in out if not fnmatchcase(item,pat)]
     return out
 
+
+def zipcompatible_get_makefile_filename():
+	"""The maya installation of python 2.5 on linux is incomplete, that is the Makefile
+	is not physically present on disk, but is instead to be found in a zip archive.
+	We will detect that, and extract a temporary file instead that we will pass
+	on to the parser.
+	
+	note: the temp file is not currently being deleted"""
+	makefilepath = get_makefile_filename()
+	if os.path.isfile(makefilepath):
+		return makefilepath
+	# END all fine
+	
+	# try to extract it from zip file
+	zipfilepath = os.path.join(ospd(ospd(sys.executable)), 'lib', 'python%s%s.zip' % sys.version_info[:2])
+	if not os.path.exists(zipfilepath):
+		raise OSError("Could not find zipfile containing makefile at %r" % zipfilepath)
+	# END handle zip file doesn't exist
+	
+	import tempfile
+	import zipfile
+	zf = zipfile.ZipFile(zipfilepath)
+	
+	libdir = get_python_lib(plat_specific=1, standard_lib=1)
+	zipmakefilepath = makefilepath.replace(libdir + os.path.sep, '')
+	data = zf.read(zipmakefilepath)
+	tfp, tfn = tempfile.mkstemp('makefile')
+	os.write(tfp, data)
+	os.close(tfp)
+	
+	return tfn
+	
+	
+distutils.sysconfig.get_makefile_filename = zipcompatible_get_makefile_filename 
+	
 
 #} END Distutils fixes
 
@@ -960,7 +997,7 @@ class BuildScripts(build_scripts):
 	@classmethod
 	def uses_mayapy(cls):
 		""":return: True if the executable is mayapy"""
-		return ('%smaya' % os.path.sep) in sys.executable.lower()  
+		return ('%smaya' % os.path.sep) in sys.executable.lower()
 	
 	@classmethod
 	def handle_scripts(cls, scripts, adjust_first_line, suffix=''):
