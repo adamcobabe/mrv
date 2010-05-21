@@ -1067,7 +1067,14 @@ class BuildScripts(build_scripts):
 					if not cls.uses_mayapy():
 						lines[0] = "%s%s%s\n" % (m.group(1), sys.version[:3], m.group(2) or '')
 					else:
-						lines[0] = "#!%s\n" % sys.executable
+						# important: On posix, which is the only platform where this matters anyway, 
+						# mayapy just prepares the environment and startsup python.
+						# Hence we just force mayapy into the path, OSX compatible !
+						exec_path = sys.executable
+						if os.name == "posix":
+							exec_path = os.path.join(sys.executable[:sys.executable.find('/bin/')], 'bin/mayapy')
+						# END adjust exec path
+						lines[0] = "#!%s\n" % exec_path
 					# END handle mayapy specifically
 					changed=True
 				# END handle shebang line

@@ -90,8 +90,9 @@ def mrv(args, info, args_modifier=None):
 	if no_maya and ( start_maya or mayapy_only ):
 		raise EnvironmentError("If %s is specified, %s or %s may not be given as well" % (mrv.cmd.mrv_nomaya_flag, mrv.cmd.mrv_ui_flag, mrv.cmd.mrv_mayapy_flag))
 	
+	force_reuse_this_interpreter = False 
 	if not no_maya:
-		maya_version, rargs = cmdbase.init_environment(rargs)
+		force_reuse_this_interpreter, maya_version, rargs = cmdbase.init_environment(rargs)
 	else:
 		maya_version = 0.0
 	# EMD initialize maya if required
@@ -102,7 +103,7 @@ def mrv(args, info, args_modifier=None):
 		rargs = list(rargs)
 	# END handle arg list
 	
-	if no_maya:
+	if no_maya or (force_reuse_this_interpreter and not start_maya):
 		# parse the option ourselves, the optparse would throw on unknown opts
 		remaining_args = list()
 		eval_script = None
