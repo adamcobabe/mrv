@@ -128,8 +128,12 @@ def mrv(args, info, args_modifier=None):
 			exec(eval_script)
 		elif module:
 			__import__(module)
+		elif remaining_args and os.path.isfile(remaining_args[0]):
+			# if the first remaining arg is a file, execute it - all other args will
+			# be accessible too
+			execfile(remaining_args[0])
 		else:
-			raise EnvironmentError("Please specify '-c CMD' or '-m MODULE' to indicate which code to execute")
+			raise EnvironmentError("Please specify '-c CMD' or '-m MODULE', or provide a file to indicate which code to execute")
 		# END handle flags
 		
 	else:

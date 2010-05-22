@@ -1073,6 +1073,11 @@ class BuildScripts(build_scripts):
 						exec_path = sys.executable
 						if os.name == "posix":
 							exec_path = os.path.join(sys.executable[:sys.executable.find('/bin/')], 'bin/mayapy')
+							# on OSX though, mayapy is just a shell script that wants to be started with the
+							# shell to actually work :)
+							if sys.platform == 'darwin':
+								exec_path = "/bin/sh %s" % exec_path
+							# END OSX special handling
 						# END adjust exec path
 						lines[0] = "#!%s\n" % exec_path
 					# END handle mayapy specifically
