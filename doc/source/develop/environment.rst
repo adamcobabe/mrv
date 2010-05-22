@@ -45,7 +45,7 @@ Please note that the version of easy_install is important as you need to install
 
 * Maya 8.5 -> Python 2.4
 * Maya 2008|2009 -> Pyhthon 2.5
-* Maya 2010 -> Python 2.6
+* Maya 2010|2011 -> Python 2.6
 
 Mayapy
 ^^^^^^
