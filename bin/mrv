@@ -52,6 +52,7 @@ def prepare_project_syspath():
 	root = None
 	try:
 		root = __import__(root_package)
+		info = __import__("%s.info" % root_package, globals(), locals(), [''])
 	except ImportError:
 		if root_package != default_package:
 			raise AssertionError("Managed to import info package of %s, but could not import it" % root_package)
@@ -67,7 +68,7 @@ def prepare_project_syspath():
 		 
 		try:
 			root = __import__(root_package)
-			info = __import__("%s.info" % root_package)
+			info = __import__("%s.info" % root_package, globals(), locals(), [''])
 		except ImportError, e:
 			last_path = sys.path.pop()
 			raise ImportError("Failed to import %s as it could not be found in your syspath, tried it at %r, error was : %s" % (root_package, last_path, str(e)))
