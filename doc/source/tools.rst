@@ -11,6 +11,8 @@ All examples are given using linux shell semantics, windows users usually only h
 Production Tools
 ****************
 
+.. _mrv-label:
+
 mrv
 ===
 This tool will setup the environment to allow running MRV and derived projects together with Maya Standalone within your *system's python interpreter*, *mayapy*, or *maya.bin*. The system interpreter will be used by default and is expected to be in your path. On Linux and OSX, it must be named ``python2.x``. On Windows, the python interpreter's executable is expected to be ``python2x``.**x** can be 4,5 and 6 and depends on the maya version you would like to run.
@@ -39,7 +41,7 @@ Flags
 	
 * .. cmdoption:: --mrv-maya
 	
-    Prepares the environment of a default maya session using ``maya.bin`` to enable mrv support::
+    Prepares the environment of a default maya session using ``maya.bin`` to enable mrv support. All additional arguments will be interpreted by ``maya.bin``::
         
         $ # start a default maya 2011 session
         $ bin/mrv 2011 --mrv-maya
@@ -49,7 +51,7 @@ Flags
 
 * .. cmdoption:: --mrv-mayapy
 
-    By default, mrv will try to use the system's python interpreter first, and mayapy if it could not be found. This can be problematic if the system' python interpreter is not suitable to run the given maya version. In that case, you may force mrv to use maya's builtin python interpreter using the ``--mrv-mayapy`` flag.
+    By default, mrv will try to use the system's python interpreter first, and mayapy if it could not be found. This can be problematic if the system' python interpreter is not suitable to run the given maya version. In that case, you may force mrv to use maya's builtin python interpreter using the ``--mrv-mayapy`` flag. All remaining arguments will be passed to ``mayapy``.
     
     **Enforce Mayapy Sample Usage**::
         
@@ -60,11 +62,12 @@ Flags
 	
 * .. cmdoption:: --mrv-no-maya
 
-    There may be occasions when you want to use mrv facilities which are not specific to maya at all, and the ``mrv.maya`` module is not used. In this case you may specifiy which code to run using the default python ``-c`` and ``-m`` arguments. All remaining arguments will be set to ``sys.argv`` which can be read by your code subsequently.
+    There may be occasions when you want to use mrv facilities which are not specific to maya at all, hence the ``mrv.maya`` module is not used. In this case you may specifiy which code to run using the default python ``-c`` and ``-m`` arguments, or by providing a python module to execute. All remaining arguments will be set to ``sys.argv`` which can be read by your code subsequently.
     
     **Use the current python interpreter without maya support**::
         
         $ bin/mrv --mrv-no-maya -c "import mrv; print mrv" -given -via=sys.argv
+        $ bin/mrv --mrv-no-maya my-script.py -arg-for-script=1
     
     .. note::
         The mrv command will use execv on non-windows system, but use spawn on windows to workaround some issues. This implies that scripts on linux/osx can natively use the mrv program, standardchannels are handled automatically. On windows the spawned process will be attached with all standardchannels of the parent python process, but its questionable whether this has the intended effect.
