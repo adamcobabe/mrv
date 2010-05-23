@@ -10,8 +10,6 @@ First of all, if you want to develop using MRV, its recommended to jump right to
 
 Basically, installing the Package [1]_ is as simple as putting it into your python interpreter's ``PYTHONPATH``, this guide only makes the effort trying to show you the most common ways to do it.
 
-To allow you to skip reading and jump right to the installation method which will work for all, you will want to read the `Manual Installation using PYTHONPATH <manual-pythonpath-label>`_ section.
-
 **************************
 Preliminary Considerations
 **************************
@@ -22,7 +20,7 @@ CPython vs. Mayapy
 ==================
 MRV's recommended development interpreter is the **system's python interpreter**, ``cpython``, because:
 
-* it starts up ~0.6 seconds faster (as tested on linux) than mayapy
+* it starts slightly faster (as tested on linux) than mayapy
 * its easier to install auxiliary packages using `easy_install`_ or your platforms package manager (linux and OSX). This implies that :ref:`imrv <imrv-label>` will work much more easily.
 * you can flexibly choose the maya version to run if you have multiple installed
 
@@ -44,13 +42,13 @@ Besides the fact that ``cpython`` must be compiled for the same architecture as 
 
 Python Executable Names
 -----------------------
-The :ref:`mrv script <mrv-label>` can be seen as something like a launchpad as it will configure mrv and derived projects, as well as the process' environment, to allow maya to be started properly. In that purpose, it is much like a more general ``mayapy`` which serves the same purpose.
+The :ref:`mrv script <mrv-label>` can be seen as something like a launchpad as it will configure mrv and derived projects, as well as the process' environment, to allow maya standalone to be started properly. In that sense, it is much like a more general ``mayapy`` which serves the same purpose.
 
-Coming with its duties of adjusting the python process' environment, it needs the python to be restarted, possibly in a different version. To accomplish this, it will use the python executables in your path. 
+Coming with its duties of adjusting the python process' environment, it needs python to be restarted, possibly in a different version. To accomplish this, it will use the python executables in your PATH. 
 
-On linux, this is automatically being handled for you, and mrv will find the expected executables named ``python<version>``, ``<version>`` being 2.4, 2.5 or 2.6. 
+On linux, this is automatically being handled for you, and mrv will find the expected executables named ``python<version>``, ``<version>`` being 2.4, 2.5 or 2.6, if these are installed.
 
-On windows, only the last installed python executable is in the PATH. To help mrv, you need to copy ``python.exe`` of the python installation of your choice and rename the copy to ``python<version>.exe`` where ``<version>`` is ``24`` , ``25`` , or ``26``. If ``mrv`` cannot find the executable, it will try to use ``mayapy`` instead. 
+On windows, usually only the last installed python executable is in the PATH. To help mrv, you need to copy ``python.exe`` of the python installation of your choice and rename the copy to ``python<version>.exe`` where ``<version>`` is ``24`` , ``25`` , or ``26``. If ``mrv`` cannot find the executable, it will try to use ``mayapy`` instead. 
 
 ================================
 Finding your Installation Method
@@ -100,9 +98,9 @@ On a *windows system*, its the command prompt you would use::
     > cd c:\Python<py-version>\Scripts
     > easy_install.exe mrv
     
-To verify mrv is installed correctly, you can execute the mrv script now::
+To verify mrv is installed correctly, you can execute the mrv script::
     
-    > python mrv
+    > ..\python.exe mrv -c "import mrv.maya.all"
     
 Getting **imrv** to work with this setup on windows, please read the dedicated `IMRV`_ section.
 
@@ -113,7 +111,7 @@ Getting **imrv** to work with this setup on windows, please read the dedicated `
 **************
 Retrieving MRV
 **************
-All the following installation methods require you to retrieve a copy of the MRV distribution. There are two ways to do that, the most common one is to download a zip archive. The less common, but more sophisticated is to clone a git distribution repository. The latter one has the advantage to make updates to MRV very easy.
+All the following installation methods require you to retrieve a copy of the MRV distribution. There are two ways to do that, the most common one is to download a zip archive. The less common, but more sophisticated one is to clone a git distribution repository, including the advantage to make updates to MRV very easy.
 
 The installation topics assume you have MRV downloaded and extracted already.
 
@@ -181,22 +179,24 @@ Now you execute the ``setup.py`` script with the ``install`` command given. The 
     
 Replace ``<py-version>`` with ``2.4``, ``2.5`` or ``2.6``, and ``<version>`` with your maya version respectively.
 
-On windows, you would instead type something like this::
+On **windows**, you would instead enter something like this for the **system interpreter installation**::
     
     > # Installation using the system interpreter
     > C:\Python<py-version>\python.exe setup.py install
     > # Verify mrv works
     > c:\Python<py-version>\python.exe c:\Python<py-version\Scripts\mrv -c "import mrv.maya.all"
+
+whereas the following is used for the **windows-mayapy** installation::
     
     > # Installation using mayapy 
     > "C:\Program Files[ (x86)]\Autodesk\Maya<version>\bin\mayapy.exe" setup.py install
-    > # Verify it works - the mrv and imrv scripts are not available on in mayapy-windows
+    > # Verify it works - the mrv and imrv scripts are not available in mayapy for windows unless you install them manually
     > "C:\Program Files[ (x86)]\Autodesk\Maya<version>\bin\mayapy.exe" -c "mrv.maya.all"
     
 
 Replace ``<py-version>`` with the version of your installed interpreter, usually  ``24`` , ``25`` or ``26``. Alternatively, replace``<version>`` with the maya version you want to use.
 
-To use ``imrv``, some additional work will be needed, please read about it in the :ref:`IMRV installation label <imrv-install-label>`.
+To use ``imrv``, some additional work will be needed, please read about it in the :ref:`IMRV installation section <imrv-install-label>`.
 
 ===================
 Manual Installation
@@ -207,11 +207,11 @@ Doing a manual installation would be done for one of the following reasons:
 * You want to setup mrv in a central location on the network to make it usable by multiple clients
 * You keep all additional python modules in a central directory to keep them independent of the actual maya or python version used, which works fine for pure python modules.
 
-Before continuing, make sure that your toplevel mrv folder, the one which contains the ``setup.py`` script, is named ``mrv``. This is not the case if your extracted it from an archive.
+**Before continuing**, make sure that your toplevel mrv folder, the one which contains the ``setup.py`` script, is named ``mrv``. This is not the case if your extracted it from an archive.
 
 At this point, the :ref:`mrv script <mrv-label>` is already operational, which means that you can use the mrv framework if you start your own scripts through ``mrv``. 
 
-To use MRV as a framework within your python installation, you need to make sure it is in your python path. The previous installation methods essentially put MRV into an existing PYTHONPATH location, but it is also possible to alter the PYTHONPATH by changing an environment variable.  
+To use MRV as a framework within your python installation, you need to make sure it is in your python path. The previous installation methods essentially put MRV into an existing PYTHONPATH location, but it is also possible to alter the PYTHONPATH by changing the environment variable.  
 
 .. _manual-pythonpath-label:
 
@@ -224,15 +224,15 @@ To make it available to a python installation, you can change it in three spots 
 1. **Maya.env**
 
  * Does not require root or administrator permissions
- * Affects only the respective Maya installation *excluding* ``mayapy``
+ * Affects only the respective Maya installation *excluding* ``mayapy``, hence you can only use MRV if maya is started in gui or batch mode.
  
  * To make the changes
  
-  1. Locate the ``Maya.env`` file at, ``<version>`` is the desired maya version:
+  1. Locate the ``Maya.env`` file, ``<version>`` is the desired maya version:
  
    - ``~/maya/<version>`` (*linux*) 
    - ``~/Library/Preferences/Autodesk/maya/<version>``
-   - ``X:\Documents and Settings\<your_account>\My Documents\maya\<version>`` 
+   - ``C:\Documents and Settings\<your_account>\My Documents\maya\<version>`` 
   
   2. In your favorite text-editor, add or edit the line as follows:
    
@@ -240,12 +240,14 @@ To make it available to a python installation, you can change it in three spots 
        
        SEP = :
        PYTHONPATH = /path/to/directory/with/mrvroot$SEP/what/was/here/previously
-       # i.e. PYTHONPATH = ~/maya_python_modules$SEP/mnt/other/maya_python_modules  
+       # i.e. PYTHONPATH = /home/yourname/maya_python_modules$SEP/mnt/other/maya_python_modules
+       # where 'maya_python_modules' contains the folder 'mrv'
        
    - On Windows::
        
        PYTHONPATH = X:/path/to/directory/with/mrvroot;Z:/what/was/here/before
        # i.e. PYTHONPATH = C:/maya_python_modules;Z:/maya_python_modules
+       # where 'maya_python_modules' contains the folder 'mrv'
    
 2. **Shell Profile**
 
@@ -254,10 +256,11 @@ To make it available to a python installation, you can change it in three spots 
  
  * To make the changes
  
-  - As the shells are different on linux and OSX, it really depends on your actual platform which file you have to alter to obtain a session-independent change. This is why we focus on the **bash** as a very common shell, and change the PYTHONPATH only temporarily. The code presented here would move into your respective shell configuration file::
+  - As the shells are different on linux and OSX, it really depends on your actual platform which file you have to alter to obtain a session-independent change. This is why we focus on the **bash** as a very common shell, and change the PYTHONPATH only temporarily. The code presented here would move into your respective shell configuration file, commonly named ``~/.bashrc`` or ``~/.bash_profile``::
       
-      $ export PYTHONPATH =/path/to/directory/with/mrvroot:$PYTHONPATH
+      $ export PYTHONPATH=/path/to/directory/with/mrvroot:$PYTHONPATH
       $ i.e. export PYTHONPATH=~/maya_python_modules:$PYTHONPATH
+      # where 'maya_python_modules' contains the folder 'mrv'
 
 3. **System Wide**
 
@@ -273,7 +276,7 @@ The ``site-packages`` folder is part of your python installation and is in the P
 ****
 IMRV
 ****
-IMRV is a tool starting an `interactive python interpreter <http://ipython.scipy.org/moin/>` session based on **IPython**, providing full maya python and mrv framework support. It is a great companion to quickly test objects for functionality, read docstrings, and helps to build up some confidence for your new development framework as it becomes more approachable.
+IMRV is a tool starting an `interactive python interpreter <http://ipython.scipy.org/moin/>`_ session based on **IPython**, providing full maya python and mrv framework support. It is a great companion to quickly test objects for functionality, read docstrings, and to help building up some confidence for your new development framework as it becomes more approachable.
 
 Please note that the following guide will do its best to explain the installation for the *system's python interpreter* only, as it allows using easy_install. As a bonus, the installation on windows will be discussed in detail as well. Describing the installation for the non-default ``mayapy`` interpreter on all platforms lies beyond the scope of this text though. 
 
@@ -283,23 +286,28 @@ Please note that the following guide will do its best to explain the installatio
  * `Installing IPython on Windows`_
 
 * **Coming from easy_install linux and osx**
+
  - Actually you shouldn't be here as easy_install will have retrieved everything required to use ``ipython`` and ``imrv`` on your system.
  
-* **Coming from distutils (all platforms)**
+* **Coming from distutils (linux and osx)**
 
- * Now it is time to use `easy_install`_ as it makes installing ipython as easy 
+ * Now it is time to use `easy_install`_ as it makes installing ipython as easy. 
  * `Installing IPython on Linux and OSX`_
+ 
+* **Coming from distutils (windows)**
+
+ * `Installing IPython on Windows`_
      
 * **Coming from the manual installation (all platforms)**
 
- * If you have root or administrator permissions for your platform, it would be time to use it now
+ * If you have root or administrator permissions for your platform, you will have to use them now.
  * `Installing IPython on Windows`_ 
  * `Installing IPython on Linux and OSX`_
  
 =============================
 Installing IPython on Windows
 =============================
-To install ipython on windows, you need to download two installers in the respective 32bit or 64bit architecture, matching your python respectively.
+To install ipython on windows, you need to download two installers matching your python version.
 
  * ipython: http://ipython.scipy.org/moin/Download ( works for 32 and 64 bit )
  * pyreadline: https://launchpad.net/pyreadline/+download ( works for 32 and 64 bit )
@@ -315,7 +323,7 @@ When retrying to start ipython, it should be colored now. Now you can start ipyt
     
     > ..\python.exe imrv [maya-version]
     
-Your maya version must cause MRV to start the python version that you just installed ipython for, i.e. ``imrv 2010`` will cause ``python26.exe`` to be executed.
+The given ``maya-version`` must cause MRV to start the python version that you just installed ipython for, i.e. ``imrv 2010`` will cause ``python26.exe`` to be executed.
 
 ===================================
 Installing IPython on Linux and OSX
@@ -327,7 +335,7 @@ Using `easy_install`_, the ipython installation couldn't be easier. You need roo
     $ # verify it worked
     $ ipython
     
-    $ # imrv works as well, the location of the executable depends on your installation type, but usually it would be in your path
+    $ # imrv should work as well
     $ imrv<py-version>
 
 *********
@@ -346,14 +354,14 @@ The best way to do it depends on the way you previously installed MRV:
  
 * **(Using) Git**
 
- * Enter the git repository you cloned previously and execute in a shell or windows git bash::
+ * Enter the git repository you cloned previously and execute the following in a shell or windows git bash::
      
      $ git fetch origin
      $ git merge origin/mrv-src
      
 * **Archive**
 
- * Obtain the latest version as archive from one of the sources :ref:`listed here <install-archive-label>` and extract it into the same place. 
+ * Obtain the latest version in a compressed archive from one of the sources :ref:`listed here <install-archive-label>` and extract it into the same place. 
  
 .. note:: It is potentially unsafe to do so without prior deletion of the original folder as files may be deleted or renamed in the new archive, causing trouble if 'merged' into an older release's folder.
 

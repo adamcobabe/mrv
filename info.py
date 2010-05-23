@@ -4,6 +4,7 @@ Provide project related global information.
 
 :note: Importing this module must not have any side effects !
 """
+import os
 
 # GENERAL INFORMATION
 #####################
@@ -63,6 +64,10 @@ __scripts_test_bin = ['test/bin/tmrv', 'test/bin/tmrvr']
 __scripts_test_bin_s = [ p.replace('test/', '') for p in __scripts_test_bin ]
 __ld = """MRV is a multi-platform python development environment to ease rapid development 
 of maintainable, reliable and high-performance code to be used in and around Autodesk Maya."""
+__requires = [ 'nose', 'epydoc', 'sphinx', 'gitpython' ]
+if os.name == 'posix':
+	__requires.append('ipython')
+# END easy_install ipython on linux + osx
 
 setup_kwargs = dict(
 					# scripts in the context of the distribution are executable python 
@@ -80,7 +85,7 @@ setup_kwargs = dict(
                     # Winds up as egg-info which informs easy-install which other packages
                     # ought to be downloaded to make this project operational
                     # requires = list(id, ...) 
-                    requires=[ 'nose', 'epydoc', 'sphinx', 'gitpython' ],
+                    requires=__requires,
                     
                     # Each package to be build by build_py can be enriched with data files
                     # which are copied into the build version of the respective package.
