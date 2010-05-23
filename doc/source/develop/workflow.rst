@@ -24,8 +24,8 @@ This makes it possible to write code in a test-driven manner, running tests is e
 
 Please note that the following examples use a linux shell, but the same development style will work on windows as well provided that you exchange the command-line shown here with a cmd prompt compatible one.
 
-MRV TDD
-=======
+Test-Driven-Development
+=======================
 When implementing a new MRV feature, it is useful to start by getting a clear idea of what the feature should be like, and who will use it, and how it will be used. Then it is wise to conduct a quick manual test to see whether it is generally possible to do - usually the answer is yes, but its good to get an impression on how difficult it is going to be.
 
 The next step is to find a good place for the code, either it is placed into an existing module, or a new one is created. Before writing a line of code though, a first test case is added into an existing test module, or into a new one.

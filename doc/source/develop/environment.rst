@@ -39,17 +39,17 @@ The instructions assume you are going to run MRV within a standalone interpreter
 
 Using easy_install, which comes with the `python setuptools <http://pypi.python.org/pypi/setuptools>`_ the installation is as easy as the name suggests::
 	
-	$ easy_install<python_version> nose coverage sphinx epydoc
+	$ easy_install<python_version> nose epydoc sphinx gitpython ipython
 
 Please note that the version of easy_install is important as you need to install the prerequisites for each python version that is used by the maya version you are going to run:
 
 * Maya 8.5 -> Python 2.4
 * Maya 2008|2009 -> Pyhthon 2.5
-* Maya 2010 -> Python 2.6
+* Maya 2010|2011 -> Python 2.6
 
 Mayapy
 ^^^^^^
-The only package that you need to install to run the tests is ``nose``. Its recommended to retrieve the package using easy_install for your standalone interpreter and to alter your ``PYTHONPATH`` to include the ``site-packages`` directory of your local python installation. 
+The only package that you need to install to run the tests is **nose**. It is recommended to retrieve the package using easy_install for your standalone interpreter and to alter your ``PYTHONPATH`` to include the ``site-packages`` directory of your local python installation. 
 
 Alternatively, copy the ``nose`` package into *"C:\\Program Files\\Autodesk\\Maya<version>\\Python\\Lib\\site-packages"* ( windows ), into *"/usr/autodesk/maya<version>/lib/python<pyversion>/site-packages"* ( Linux ) or into *"/Applications/Autodesk/maya<version>/Maya.app/Contents/Frameworks/Python.framework/Versions/<pyversion>/lib/python<pyversion>/site-packages"* ( OSX ).
 
@@ -57,7 +57,7 @@ Alternatively, copy the ``nose`` package into *"C:\\Program Files\\Autodesk\\May
 
 2. Get A or Your Repository Clone
 ---------------------------------
-Clone the MRV mainline repository from gitorious or github. Either fork your own on www.gitorious.org/mrv or www.github.com/Byron/mrv and clone from your fork, or clone from the mainline repository as shown here.
+Clone the MRV mainline repository from gitorious or github. Either fork your own on http://www.gitorious.org/mrv or http://www.github.com/Byron/mrv and clone from your fork, or clone from the mainline repository as shown here.
 
 Execute the following::
 
@@ -83,19 +83,21 @@ On Windows, make sure that the MRV repository has at least one folder between it
 ----------------
 By running the tests, you verify that the installation actually succeeded as you are able to run MRV in a standalone interpreter.
 
-In your shell, you should now be able to execute the ``tmrv`` command as follows::
+In your shell, you should now be able to execute the :ref:`tmrv <tmrv-label>` command as follows::
 	
 	$ cd mrv
 	$ # start the tests for the given maya version, 2011 in this case
-	$ test/bin/tmrv 2011
+	$ test/bin/tmrv <maya-version>
 
-All tests are expected to succeed. Please note that ``tmrv`` just executes ``mrv/bin/mrv`` and launches nosetest afterwards, hence all parameters supported ``nosetests`` in your particular installation will work here as well.
+All tests are expected to succeed. The given ``<maya-version>``, i.e. ``2011`` must cause ``mrv`` to launch the python version you installed the prerequisites for - ``2011`` would trigger python ``2.6`` to be launched for instance.
 
-On OSX, the default python installation will not work if you intend to run Maya2010 or later. Please see the ``Troubleshooting`` guide for a solution which is essentially using mayapy. This can be achieved using the following command::
+Please note that ``tmrv`` just executes ``mrv/bin/mrv`` and launches nosetest afterwards, hence all parameters supported by ``nosetests`` in your particular installation will work here as well.
+
+On **OSX Snow Leopard**, the default python installation will not work if you intend to run Maya2010 or earlier. Please see the ``Troubleshooting`` guide for a solution which is essentially using mayapy. This can be achieved using the following command::
 	
-	$ test/bin/tmrv 2011  --mrv-mayapy
+	$ test/bin/tmrv 2011 --mrv-mayapy
 
-On *windows*, in a command prompt, execute::
+On **windows**, in a command prompt, execute::
 	
 	$ cd mrv
 	$ python test\bin\tmrv 2011 <full/path/to/test/directory>
@@ -106,11 +108,11 @@ Troubleshooting
 ---------------
 This paragraph informs about possible issues which have a solution already.
 
-OSX and 32bit/64bit Mismatch
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+OSX Snow Leopard and 32bit/64bit Mismatch
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 Starting with Maya2011, maya is delivered as 64 bit binary. The default interpreter in your path should be 64 bits as well, but if it is not, you have to make some adjustments. Conversely, Maya2010 uses Pyhthon2.6 which is 64 bit on Snow Leopard, whereas Maya was just compiled in 32 bits.
 
-To solve the issue, either install a python interpreter which matches the architecture of your respective maya version, or use mayapy.
+To solve the issue, either install a python interpreter which matches the architecture of your respective maya version, or enforce using mayapy by specifying the ``--mrv-mayapy`` flag to the :doc:`mrv tools <../tools>`.
 
 Still troubled ? Use mayapy
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^
