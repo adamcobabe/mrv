@@ -296,4 +296,4 @@ class TestDAGTree( unittest.TestCase ):
 	def test_info(self):
 		assert len(info.version) == 5
 		major, minor, micro, level, serial = info.version
-		assert major == 1 and minor == 0 and micro == 0 and level == 'Preview' and serial == 0
+		assert major == 1 and minor == 0 and micro == 0 and isinstance(level, basestring) and serial == 0

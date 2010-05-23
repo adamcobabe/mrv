@@ -368,7 +368,7 @@ class _GitMixin(object):
 		or skip it if the file is not available"""
 		info_module_path = os.path.join(root_dir, 'info.py')
 		if not os.path.isfile(info_module_path):
-			log.warn("Couldn't write the %s value as the info module at did not exist" % (self.commit_sha_var_name, info_module_path))
+			log.warn("Couldn't write the %s value as the info module at %r did not exist" % (self.commit_sha_var_name, info_module_path))
 			return
 		# END handle file existence
 		
@@ -469,10 +469,7 @@ class _GitMixin(object):
 			pass
 		# END remove index
 		
-		# add all files, rewriting their paths accordingly
-		repo.index.add(path_generator(), path_rewriter=path_rewriter)
-		
-		# finalize the commit, advancing the head
+		# Get root_head information
 		# Provide a good comment that helps associating the distribution commit
 		# with the current repository commit. We handle the case that the distribution
 		# repository is the root repository, hence the last actual head reference is 
@@ -486,14 +483,20 @@ class _GitMixin(object):
 		# END get actual commit reference
 		root_commit = prev_root_head.commit
 		
+		if root_repo.is_dirty(index=False, working_tree=True, untracked_files=False):
+			suffix = "-dirty"
+		# END handle suffix
+		
 		# important to associate the build with the source
 		###############################################
 		self._adjust_commit_sha(root_commit, root_dir)
 		###############################################
 		
-		if root_repo.is_dirty(index=False, working_tree=True, untracked_files=False):
-			suffix = "-dirty"
-		# END handle suffix
+		# add all files, rewriting their paths accordingly, must be done now as 
+		# we have to wait for the last in-place adjustment
+		#############################################################
+		repo.index.add(path_generator(), path_rewriter=path_rewriter)
+		#############################################################
 		
 		commit = repo.index.commit("%s@%s%s" % (self.distribution.get_fullname(), root_commit, suffix), head=True)
 		
