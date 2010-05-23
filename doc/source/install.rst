@@ -40,6 +40,18 @@ Besides the fact that ``cpython`` must be compiled for the same architecture as 
 * Python **2.5** will work with **Maya 2008 and 2009**
 * Python **2.6** will work with **Maya 2010 and 2011**
 
+.. note:: On windows, the system interpreter appears to only work if python 2.6 is used, but it might crash on 2.5 or earlier. MRV can always use ``mayapy`` as a fallback though.
+
+Python Executable Names
+-----------------------
+The :ref:`mrv script <mrv-label>` can be seen as something like a launchpad as it will configure mrv and derived projects, as well as the process' environment, to allow maya to be started properly. In that purpose, it is much like a more general ``mayapy`` which serves the same purpose.
+
+Coming with its duties of adjusting the python process' environment, it needs the python to be restarted, possibly in a different version. To accomplish this, it will use the python executables in your path. 
+
+On linux, this is automatically being handled for you, and mrv will find the expected executables named ``python<version>``, ``<version>`` being 2.4, 2.5 or 2.6. 
+
+On windows, only the last installed python executable is in the PATH. To help mrv, you need to copy ``python.exe`` of the python installation of your choice and rename the copy to ``python<version>.exe`` where ``<version>`` is ``24`` , ``25`` , or ``26``. If ``mrv`` cannot find the executable, it will try to use ``mayapy`` instead. 
+
 ================================
 Finding your Installation Method
 ================================
@@ -96,7 +108,7 @@ Getting **imrv** to work with this setup on windows, please read the dedicated `
 
 .. have to use full url here, can't just refer to the _easy_install target for some reason 
 
-If you don't have an easy_install binary yet, you can install it `via the setuptools <http://pypi.python.org/pypi/setuptools>`_. 
+.. note:: If you don't have an easy_install binary yet, you can install it `via the setuptools <http://pypi.python.org/pypi/setuptools>`_. The windows installation claims being for 32 bit installations only, but it works fine in 64 bit python installations as well.
 
 **************
 Retrieving MRV
@@ -212,7 +224,7 @@ To make it available to a python installation, you can change it in three spots 
 1. **Maya.env**
 
  * Does not require root or administrator permissions
- * Affects only the respective Maya installation including Maya.py
+ * Affects only the respective Maya installation *excluding* ``mayapy``
  
  * To make the changes
  
@@ -261,8 +273,62 @@ The ``site-packages`` folder is part of your python installation and is in the P
 ****
 IMRV
 ****
-from distutils (all platforms)
-only system interpreter
+IMRV is a tool starting an `interactive python interpreter <http://ipython.scipy.org/moin/>` session based on **IPython**, providing full maya python and mrv framework support. It is a great companion to quickly test objects for functionality, read docstrings, and helps to build up some confidence for your new development framework as it becomes more approachable.
+
+Please note that the following guide will do its best to explain the installation for the *system's python interpreter* only, as it allows using easy_install. As a bonus, the installation on windows will be discussed in detail as well. Describing the installation for the non-default ``mayapy`` interpreter on all platforms lies beyond the scope of this text though. 
+
+* **Coming from easy_install on windows**
+
+ * Easy install cannot install ipython on windows, instead you have to do it manually using installers which basically copy files into place.
+ * `Installing IPython on Windows`_
+
+* **Coming from easy_install linux and osx**
+ - Actually you shouldn't be here as easy_install will have retrieved everything required to use ``ipython`` and ``imrv`` on your system.
+ 
+* **Coming from distutils (all platforms)**
+
+ * Now it is time to use `easy_install`_ as it makes installing ipython as easy 
+ * `Installing IPython on Linux and OSX`_
+     
+* **Coming from the manual installation (all platforms)**
+
+ * If you have root or administrator permissions for your platform, it would be time to use it now
+ * `Installing IPython on Windows`_ 
+ * `Installing IPython on Linux and OSX`_
+ 
+=============================
+Installing IPython on Windows
+=============================
+To install ipython on windows, you need to download two installers in the respective 32bit or 64bit architecture, matching your python respectively.
+
+ * ipython: http://ipython.scipy.org/moin/Download ( works for 32 and 64 bit )
+ * pyreadline: https://launchpad.net/pyreadline/+download ( works for 32 and 64 bit )
+
+Install both packages into your respective python installation. To verify the installation, open a command prompt and execute::
+    
+    > cd x:\Python<py-version>\Scripts
+    > ipython.exe
+    
+If you see colors, it worked, if not, you are most likely to need ``ctypes``, which can be downloaded here: http://sourceforge.net/projects/ctypes/files .
+
+When retrying to start ipython, it should be colored now. Now you can start ipython as follows::
+    
+    > ..\python.exe imrv [maya-version]
+    
+Your maya version must cause MRV to start the python version that you just installed ipython for, i.e. ``imrv 2010`` will cause ``python26.exe`` to be executed.
+
+===================================
+Installing IPython on Linux and OSX
+===================================
+Using `easy_install`_, the ipython installation couldn't be easier. You need root permissions and an internet connection for the following line to execute::
+
+    $ sudo easy_install-<py-version> ipython
+    
+    $ # verify it worked
+    $ ipython
+    
+    $ # imrv works as well, the location of the executable depends on your installation type, but usually it would be in your path
+    $ imrv<py-version>
 
 *********
 Upgrading
