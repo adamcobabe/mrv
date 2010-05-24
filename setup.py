@@ -132,6 +132,23 @@ class _GitMixin(object):
 	branch_suffix = None
 	#} END configuration 
 	
+	class RemotePush(object):
+		"""Functor representing a hashable push call to a remote"""
+		def __init__(self, inst, *args):
+			self.inst = inst
+			self.args = tuple(args)
+			
+		def __hash__(self):
+			return hash(self.args)
+			
+		def __eq__(self, rhs):
+			return hash(self) == hash(rhs)
+		
+		def __call__(self):
+			return self.inst._push_to_remotes(*self.args)
+		
+	# END utility class
+	
 	def __new__(cls, *args, **kwargs):
 		"""Because of our old-style bases, new needs to be overridden to 
 		call the object constructor without arguments"""
@@ -273,6 +290,11 @@ class _GitMixin(object):
 		return items
 	
 	def push_to_remotes(self, repo, heads=list(), remotes=list()):
+		"""For the actual documentation, please see ``_push_to_remotes``
+		This method stores the call for later execution"""
+		self.distribution.push_queue.append(self.RemotePush(self, repo, tuple(heads), tuple(remotes)))
+	
+	def _push_to_remotes(self, repo, heads=list(), remotes=list()):
 		"""Push the given branchs to the given remotes.
 		If one of the lists is empty, it the respective items 
 		will be queried from the user"""
@@ -349,7 +371,7 @@ class _GitMixin(object):
 		# prep refspec
 		specs = list()
 		for item in chain(_heads, actual_tags):
-			specs.append("%s:%s" % (item.path, item.path))
+			specs.append("+%s:%s" % (item.path, item.path))
 		# END for each item to push
 		
 		# do the operation
@@ -358,7 +380,7 @@ class _GitMixin(object):
 			# retrieve the object no matter what
 			remote = all_remotes[str(remote)]
 			
-			print "Pushing to %s: %s ..." % (remote, ", ".join(str(i) for i in chain(_heads, actual_tags)))
+			print "Force-Pushing to %s: %s ..." % (remote, ", ".join(str(i) for i in chain(_heads, actual_tags)))
 			remote.push(specs)
 			print "Done"
 		# END for each remote to push to
@@ -1938,6 +1960,7 @@ Would you like to adjust your version info or abort ?
 		self.force_git_tag = 0
 		self.add_requires = list()
 		self.package_search_dirs = None
+		self.push_queue = list()
 		
 		# Override Commands
 		self.cmdclass[build_py.__name__] = BuildPython
@@ -2060,6 +2083,18 @@ Would you like to adjust your version info or abort ?
 		# END handle special case
 		
 		BaseDistribution.run_commands(self)
+		
+		# once everything worked, push to remotes if something is on the stack
+		optimization_set = set()
+		for pcall in self.push_queue:
+			if pcall in optimization_set:
+				continue
+			# END skip similar ones
+			pcall()
+			optimization_set.add(pcall)
+		# END for each call
+		
+		del(self.push_queue[:])
 		
 	
 	#} END overridden methods

@@ -10,7 +10,7 @@ First of all, if you want to develop using MRV, its recommended to jump right to
 
 Basically, installing the Package [1]_ is as simple as putting it into your python interpreter's ``PYTHONPATH``, this guide only makes the effort trying to show you the most common ways to do it.
 
-.. note:: If you want to skip all the reading at first, you may also watch the `MRV Installation Guide on Youtube <http://www.youtube.com/user/ByronBates99#grid/user/D0F37129CE775529>`_ - you may choose your platform there.
+.. note:: If you want to skip all the reading at first, you may also watch the `MRV Installation Guide on Youtube <http://www.youtube.com/user/ByronBates99#p/c/D0F37129CE775529>`_ - you may choose your platform there.
 
 **************************
 Preliminary Considerations
@@ -309,7 +309,7 @@ Please note that the following guide will do its best to explain the installatio
 =============================
 Installing IPython on Windows
 =============================
-In order to safe you from some trouble, its recommended to watch the `MRV for Windows Installation Guide on Youtube <http://www.youtube.com/user/ByronBates99#grid/user/D0F37129CE775529>`_ first, the written documentation only accompanies the video.
+In order to safe you from some trouble, its recommended to watch the `MRV for Windows Installation Guide on Youtube <http://www.youtube.com/user/ByronBates99#p/c/D0F37129CE775529>`_ first, the written documentation only accompanies the video.
 
 To install ipython on windows, you need to download two installers matching your python version.
 
