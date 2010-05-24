@@ -62,6 +62,7 @@ Clone the MRV mainline repository from gitorious or github. Either fork your own
 Execute the following::
 
  $ git clone git://gitorious.org/mrv/mainline.git mrv
+ $ cd mrv
  $ git submodule update --init
  
 On linux and OSX, you would have done this in a shell of your choice. On windows, you would have retrieved a shell using the "Git Bash Here" menu entry in your RMB explorer menu when clicking on a parent-folder of your choice.

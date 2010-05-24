@@ -13,28 +13,24 @@ AnimIO was initially created as MEL script, which makes it especially interestin
 
 The interested reader may have a look at its code. After cloning the repository at http://gitorious.org/animio ( ``git clone`` ), it is required to recursively initialize the submodules ( ``git submodule update --init --recursive`` ). Now you would be ready to run the tests. To sum it up::
 	
-	$ git clone git://gitorious.org/~byron/animio/byrons-sideline.git animio
+	$ git clone git://gitorious.org/animio/mainline.git animio
 	$ cd animio
 	$ git submodule update --init --recursive
 	
 	$ # Test the library
-	$ test/bin/runtests [maya version]
+	$ ext/mrv/test/bin/tmrv [<maya version>]
 	
 	$ # Test the performance
-	$ test/bin/runtests [maya version] test/performance
+	$ ext/mrv/test/bin/tmrv [<maya version>] test/performance
 	
 	$ # Test the user interface
-	$ test/bin/runtestsUI <path/to/maya/bin/maya> test/ui
+	$ ext/mrv/test/bin/tmrv [<maya version>] --mrv-maya test/ui
 	
-.. note:: The tests of animio will run on all platforms provided that MRV is able to run its tests as well. Effectively, ``animio`` uses the same test setup as MRV does.
-
 
 *********
 TODO
 *********
 
 * About info module, link to distribute documentation
-* Explain how mrv manipulates syspath to work as good as possible
-* Use makedoc from mrv ext project
 * Explain which release type to use, distributed source or developer version
 * Provide examples for different setup file configurations, including proper binary distribution with mrv post-testing support, and mrv source distribution with post-testing support.

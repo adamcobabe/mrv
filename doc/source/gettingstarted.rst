@@ -3,6 +3,8 @@ Getting Started
 ###############
 Besides the fact that you need to be familiar with Python, you should be able to get started with MRV quickly by working though the usage guide: :ref:`usage-label`.
 
+If you prefer to watch the introduction first, feel invited to the `MRV Introduction on Youtube <http://www.youtube.com/user/ByronBates99#grid/user/80799DFB8E6D2AA9>`_.
+
 *****************
 About this Manual
 *****************

@@ -276,5 +276,21 @@ class TestUndoQueue( unittest.TestCase ):
 		assert not handle.isValid() and handle.isAlive() 
 
 		cmds.redo()
-		assert handle.isValid() and handle.isAlive() 
+		assert handle.isValid() and handle.isAlive()
+	
+	@with_undo
+	def test_decorators(self):
+		# assure we get docstrings
+		for dec in (undoable, forceundoable, notundoable):
+			def fun():
+				"""docs"""
+				pass
+			assert fun.__doc__ == 'docs'
+			assert fun.__name__ == 'fun'
+			
+			dfun = dec(fun)
+			assert dfun.__doc__ == 'docs'
+			assert dfun.__name__ == 'fun'
+		# END for each decorator
+		
 
