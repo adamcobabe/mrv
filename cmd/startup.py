@@ -131,7 +131,23 @@ def mrv(args, info, args_modifier=None):
 		elif remaining_args and os.path.isfile(remaining_args[0]):
 			# if the first remaining arg is a file, execute it - all other args will
 			# be accessible too
-			execfile(remaining_args[0])
+			fpath = remaining_args[0]
+			ext = os.path.splitext(fpath)[1]
+			if ext == ".py":
+				execfile(fpath)
+			elif ext in ('.pyc', '.pyo'):
+				import marshal
+				# If we have a pyc/pyo file, we mimic the python interpreter implementation
+				# to get a code object out of it.
+				bytes = open(fpath, 'rb').read()
+				# skip two longs: magic number and .py last modified date stamp
+				# unmashal the code object
+				code = marshal.loads(bytes[8:])
+				exec code in globals()
+			else:
+				raise ValueError("Unsupported file format in %r" % fpath)
+			# END 
+			
 		elif not sys.stdin.closed:
 			# read everything until stdin is closed, and execute it
 			eval_script = sys.stdin.read()
