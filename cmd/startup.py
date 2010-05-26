@@ -133,6 +133,18 @@ def mrv(args, info, args_modifier=None):
 			# be accessible too
 			fpath = remaining_args[0]
 			ext = os.path.splitext(fpath)[1]
+			
+			# remove the filename, it wouldn't be availble if this was a real 
+			# interpreter either
+			del(sys.argv[1:])
+			remaining_args.pop(0)
+			sys.argv.extend(remaining_args)
+			
+			# adjust important variables to fake a standalone start
+			global __name__, __file__
+			__file__ = fpath
+			__name__ = '__main__'
+			
 			if ext == ".py":
 				execfile(fpath)
 			elif ext in ('.pyc', '.pyo'):
