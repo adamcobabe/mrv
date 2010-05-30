@@ -19,7 +19,7 @@ This tool will setup the environment to allow running MRV and derived projects t
 
 If no python interpreter can be found in your path, ``mrv`` will fallback to using ``mayapy``.
 
-The first optional argument passed in to the tool names the Maya version you would like to run, these can be *8.5* to X, where X denotes the latest release.
+The first optional argument passed in to the tool names the Maya version you would like to run, these can be *8.5* to X, where X denotes the latest release. If no maya version is specified, the latest installed one will be launched.
 
 All additional arguments are passed to the python interpreter or maya.bin directly.
 
@@ -62,7 +62,7 @@ Flags
 	
 * .. cmdoption:: --mrv-no-maya
 
-    There may be occasions when you want to use mrv facilities which are not specific to maya at all, hence the ``mrv.maya`` module is not used. In this case you may specifiy which code to run using the default python ``-c`` and ``-m`` arguments, or by providing a python module to execute. All remaining arguments will be set to ``sys.argv`` which can be read by your code subsequently.
+    There may be occasions when you want to use mrv facilities which are not specific to maya at all, hence the ``mrv.maya`` module is not used. In this case you may specifiy which code to run using the default python ``-c`` and ``-m`` arguments which are expected to come before any other non-mrv arguments, or by providing a python module to execute. All remaining arguments will be set to ``sys.argv`` which can be read by your code subsequently.
     
     **Use the current python interpreter without maya support**::
         

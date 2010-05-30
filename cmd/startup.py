@@ -105,18 +105,22 @@ def mrv(args, info, args_modifier=None):
 	
 	if no_maya or (force_reuse_this_interpreter and not start_maya):
 		# parse the option ourselves, the optparse would throw on unknown opts
-		remaining_args = list()
+		# Abort parsing of our options on the first options we didn't understand
+		# and interpret them as options belonging to the starting program
+		remaining_args = rargs[:]
 		eval_script = None
 		module = None
-		while rargs:
-			arg = rargs.pop(0)
+		if len(rargs) > 1:
+			arg = rargs[0]
 			if arg == '-c':
-				eval_script = rargs.pop(0)
+				eval_script = rargs[1]
 			elif arg == '-m':
-				module = rargs.pop(0)
-			else:
-				remaining_args.append(arg)
-			# END handle flags
+				module = rargs[1]
+			# END check options
+			
+			if eval_script or module:
+				remaining_args = rargs[2:]
+			# END cut off our options
 		# END for each arg
 		
 		# overwrite our own sys.args with our parsed arguments
