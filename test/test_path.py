@@ -5,6 +5,7 @@ that the module can at least be imported
 """
 import os
 import unittest
+import mrv.path
 from mrv.path import Path
 from mrv.interface import iDagItem
 import tempfile
@@ -76,6 +77,9 @@ class TestPath( unittest.TestCase ):
 		
 		# this test assumes we are in a writable directory ( usually tempdir ), which 
 		# is at least one directory away from the root ('/') on linux, or X:\ on windows.
+		
+		assert issubclass(mrv.path.Path, mrv.path._BasePath)
+		
 		osp = os.path
 		relapath = Path('.')
 		relafile = relapath / 'relafile.ext'
@@ -267,7 +271,7 @@ class TestPath( unittest.TestCase ):
 		afile.touch(); bfile.touch()
 		adir.makedirs(); bdir.makedirs(); 
 		assert acdir.mkdir() == acdir		# returns self
-		aafile.touch(); 
+		aafile.touch() 
 		assert bafile.touch() == bafile
 		
 		# listdir
@@ -468,4 +472,48 @@ class TestPath( unittest.TestCase ):
 		
 		assert addir.rmtree() == addir and not addir.isdir()
 		
+	def test_separator(self):
+		assert Path._sep == os.path.sep
+		
+		
+		bsl = "\\"
+		sl = "/"
+		
+		# manipulate the module to use our actual separators for conversion purposes
+		sep = os.path.sep
+		osep = (sep == '/' and '\\') or '/'
+		
+		# enforce conversion path
+		mrv.path.Path.set_separator(osep)
+		
+		assert issubclass(mrv.path.Path, mrv.path.ConversionPath)
+		
+		# test joining
+		dpath = mrv.path.Path("c:%stest" % osep)
+		fname = "file.a"
+		fpath = dpath / fname
+		assert sep not in fpath
+		assert fpath == dpath.joinpath('file.a')
+		
+		# splitting
+		assert fpath.dirname() == dpath
+		assert fpath.basename() == fname
+		assert fpath.namebase() == 'file'
+		assert fpath.ext() == '.a'
+		if os.name == 'nt':	# only works on nt
+			assert fpath.drive() == 'c:'
+		assert len(fpath.splitpath()) == 2 and fpath.splitpath()[1] == fname
+		assert len(fpath.splitdrive()) == 2
+		if os.name == 'nt':
+			assert fpath.splitdrive()[0] == 'c:'
+		name, ext = fpath.splitext()
+		assert name == dpath / 'file' and ext == '.a'
+		assert fpath.stripext() == dpath / 'file'
+		assert len(fpath.splitall()) == 3
+		
+		
+		# test relapath - in case we are on linux, we can't use the previous path
+		fpath = mrv.path.Path("%shello%sthere" % (osep, osep))
+		assert fpath.relpathto(fpath.dirname()) == 'there'
+		assert fpath.relpathfrom(fpath.dirname()) == '..'
 		

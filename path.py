@@ -97,8 +97,9 @@ class Path( _base, iDagItem ):
 	counterparts in os.path.
 	"""
 	# Configuration
-	_sep = os.path.sep
-
+	_sep = None
+	_osep = None
+	
 	#{ Special Python methods
 
 	def __repr__(self):
@@ -175,6 +176,21 @@ class Path( _base, iDagItem ):
 		# END loop forever
 		return self
 
+	@classmethod
+	def set_separator(cls, sep):
+		"""Set this type to support the given separator as general path separator"""
+		if sep not in "/\\":
+			raise ValueError("Invalid path separator", sep)
+		cls._sep = sep
+		cls._osep = (sep == '/' and '\\') or "/"
+		
+		# setup path conversion as necessary
+		global Path
+		if os.path.sep != cls._sep:
+			Path = ConversionPath
+		else:
+			Path = _BasePath
+		# END handle Path type
 
 	@classmethod
 	def getcwd(cls):
@@ -310,7 +326,7 @@ class Path( _base, iDagItem ):
 	def joinpath(self, *args):
 		""" Join two or more path components, adding a separator
 		character (os.sep) if needed.  Returns a new path
-		object. """
+		object."""
 		return self.__class__(os.path.join(self, *args))
 
 	def splitall(self):
@@ -323,7 +339,7 @@ class Path( _base, iDagItem ):
 
 		path.path.joinpath(\*result) will yield the original path.
 		"""
-		parts = []
+		parts = list()
 		loc = self
 		while loc != os.curdir and loc != os.pardir:
 			prev = loc
@@ -331,7 +347,9 @@ class Path( _base, iDagItem ):
 			if loc == prev:
 				break
 			parts.append(child)
-		parts.append(loc)
+		# usually one gets empty bases when dealing with drive letters
+		if loc:
+			parts.append(loc)
 		parts.reverse()
 		return parts
 
@@ -358,8 +376,8 @@ class Path( _base, iDagItem ):
 			return s1
 		# END common prefix 
 		
-		start_list = os.path.abspath(dest).split(os.sep)
-		path_list = os.path.abspath(self._expandvars()).split(os.sep)
+		start_list = os.path.abspath(dest).split(self._sep)
+		path_list = os.path.abspath(self._expandvars()).split(self._sep)
 		
 		# Work out how much of the filepath is shared by start and path.
 		i = len(commonprefix([start_list, path_list]))
@@ -1103,3 +1121,62 @@ class Path( _base, iDagItem ):
 			os.startfile(self._expandvars())
 			return self
 	#} END Special stuff from os
+	
+#{ utilities
+_ossep = os.path.sep
+_oossep = (_ossep == "/" and "\\") or "/"
+
+def _to_os_path(path):
+	""":return: string being an os compatible path"""
+	return path.replace(_oossep, _ossep)
+	
+#} END utilities
+
+# backup original class
+_BasePath = Path
+
+class ConversionPath(_BasePath):
+	"""On windows, python represents paths with backslashes, within maya though, 
+	these are slashes We want to keep the original representation, but allow
+	the methods to work nonetheless."""
+	def __div__(self, rel):
+		return self.joinpath(rel)
+		
+	def _from_os_path(self, path):
+		""":return: path with separators matching to our configuration"""
+		return path.replace(self._osep, self._sep)
+		
+	def joinpath(self, *args):
+		return self.__class__(self._from_os_path(os.path.join(self, *args)))
+		
+	def relpathto(self, dest):
+		rval = super(ConversionPath, self).relpathto(dest)
+		return type(self)(self._from_os_path(rval))
+	
+	def dirname(self):
+		return self.__class__(self._from_os_path(os.path.dirname(_to_os_path(self))))
+		
+	def basename(self):
+		return type(self)(self._from_os_path(os.path.basename(_to_os_path(self))))
+		
+	def splitpath(self):
+		parent, child = os.path.split(_to_os_path(self))
+		return type(self)(self._from_os_path(parent)), child
+	
+	# { Special Methods
+	
+	def splitunc(self):
+		raise NotImplementedError("Didnt implement rarely used method")
+		
+	def isunshared(self):
+		raise NotImplementedError("Didnt implement rarely used method")
+	
+	# } END special methods
+	
+# END handle backslashes
+
+
+# assure separator is set
+################################
+Path.set_separator(os.path.sep)
+################################

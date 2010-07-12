@@ -683,7 +683,7 @@ class Singleton(object) :
 	""" Singleton classes can be derived from this class,
 		you can derive from other classes as long as Singleton comes first (and class doesn't override __new__ ) """
 	def __new__(cls, *p, **k):
-		if not '_the_instance' in cls.__dict__:
+		if not hasattr(cls, '_the_instance'):
 			cls._the_instance = super(Singleton, cls).__new__(cls)
 		return cls._the_instance
 
