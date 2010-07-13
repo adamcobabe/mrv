@@ -514,6 +514,8 @@ class TestPath( unittest.TestCase ):
 		# on linux, this is okay as it doesn't know the drive
 		assert len(fpath.splitall()) == 3 + (os.name != 'nt')
 		
+		# abspath will return os path separators on windows, make sure we handle that
+		assert sep not in make_path("hi%sthere" % sep).abspath()
 		
 		# test relapath - in case we are on linux, we can't use the previous path
 		fpath = mrv.path.Path("%shello%sthere" % (osep, osep))

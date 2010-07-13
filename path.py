@@ -1144,6 +1144,9 @@ class ConversionPath(BasePath):
 		""":return: path with separators matching to our configuration"""
 		return path.replace(self.osep, self.sep)
 		
+	def abspath(self):
+		return self._from_os_path(_to_os_path(os.path.abspath(self)))
+		
 	def joinpath(self, *args):
 		return self.__class__(self._from_os_path(os.path.join(self, *args)))
 		
