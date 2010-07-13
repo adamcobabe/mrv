@@ -97,8 +97,8 @@ class Path( _base, iDagItem ):
 	counterparts in os.path.
 	"""
 	# Configuration
-	_sep = None
-	_osep = None
+	sep = None
+	osep = None
 	
 	#{ Special Python methods
 
@@ -181,15 +181,15 @@ class Path( _base, iDagItem ):
 		"""Set this type to support the given separator as general path separator"""
 		if sep not in "/\\":
 			raise ValueError("Invalid path separator", sep)
-		cls._sep = sep
-		cls._osep = (sep == '/' and '\\') or "/"
+		cls.sep = sep
+		cls.osep = (sep == '/' and '\\') or "/"
 		
 		# setup path conversion as necessary
 		global Path
-		if os.path.sep != cls._sep:
+		if os.path.sep != cls.sep:
 			Path = ConversionPath
 		else:
-			Path = _BasePath
+			Path = BasePath
 		# END handle Path type
 
 	@classmethod
@@ -337,8 +337,8 @@ class Path( _base, iDagItem ):
 		this path (for example, '/' or 'C:\\').	 The other items in
 		the list will be strings.
 
-		path.path.joinpath(\*result) will yield the original path.
-		"""
+		path.path.joinpath(\*result) can possibly yield the original path, depending 
+		on the input."""
 		parts = list()
 		loc = self
 		while loc != os.curdir and loc != os.pardir:
@@ -347,9 +347,7 @@ class Path( _base, iDagItem ):
 			if loc == prev:
 				break
 			parts.append(child)
-		# usually one gets empty bases when dealing with drive letters
-		if loc:
-			parts.append(loc)
+		parts.append(loc)
 		parts.reverse()
 		return parts
 
@@ -376,8 +374,8 @@ class Path( _base, iDagItem ):
 			return s1
 		# END common prefix 
 		
-		start_list = os.path.abspath(dest).split(self._sep)
-		path_list = os.path.abspath(self._expandvars()).split(self._sep)
+		start_list = os.path.abspath(dest).split(self.sep)
+		path_list = os.path.abspath(self._expandvars()).split(self.sep)
 		
 		# Work out how much of the filepath is shared by start and path.
 		i = len(commonprefix([start_list, path_list]))
@@ -1133,9 +1131,9 @@ def _to_os_path(path):
 #} END utilities
 
 # backup original class
-_BasePath = Path
+BasePath = Path
 
-class ConversionPath(_BasePath):
+class ConversionPath(BasePath):
 	"""On windows, python represents paths with backslashes, within maya though, 
 	these are slashes We want to keep the original representation, but allow
 	the methods to work nonetheless."""
@@ -1144,7 +1142,7 @@ class ConversionPath(_BasePath):
 		
 	def _from_os_path(self, path):
 		""":return: path with separators matching to our configuration"""
-		return path.replace(self._osep, self._sep)
+		return path.replace(self.osep, self.sep)
 		
 	def joinpath(self, *args):
 		return self.__class__(self._from_os_path(os.path.join(self, *args)))
@@ -1175,6 +1173,16 @@ class ConversionPath(_BasePath):
 	
 # END handle backslashes
 
+
+#{ Utilities 
+def make_path(path):
+	""":return: A path instance of the correct type
+	:note: use this constructor if you use the Path.set_separator method at runtime
+		to assure you will always create instances of the actual type, and not only
+		of the type you imported last"""
+	return Path(path)
+
+#} END utilities
 
 # assure separator is set
 ################################

@@ -78,7 +78,7 @@ class TestPath( unittest.TestCase ):
 		# this test assumes we are in a writable directory ( usually tempdir ), which 
 		# is at least one directory away from the root ('/') on linux, or X:\ on windows.
 		
-		assert issubclass(mrv.path.Path, mrv.path._BasePath)
+		assert issubclass(mrv.path.Path, mrv.path.BasePath)
 		
 		osp = os.path
 		relapath = Path('.')
@@ -237,6 +237,7 @@ class TestPath( unittest.TestCase ):
 		
 		# splitall
 		assert len(relapath.splitall()) == 1
+		assert Path.sep.join(relapath.splitall()) == relapath
 		assert len(abspath.splitall()) > 1
 		assert len(absfile.splitall()) > len(abspath.splitall())
 		
@@ -473,7 +474,7 @@ class TestPath( unittest.TestCase ):
 		assert addir.rmtree() == addir and not addir.isdir()
 		
 	def test_separator(self):
-		assert Path._sep == os.path.sep
+		assert Path.sep == os.path.sep
 		
 		
 		bsl = "\\"
@@ -509,11 +510,18 @@ class TestPath( unittest.TestCase ):
 		name, ext = fpath.splitext()
 		assert name == dpath / 'file' and ext == '.a'
 		assert fpath.stripext() == dpath / 'file'
-		assert len(fpath.splitall()) == 3
+		# on linux, this is okay as it doesn't know the drive
+		assert len(fpath.splitall()) == 3 + (os.name != 'nt')
 		
 		
 		# test relapath - in case we are on linux, we can't use the previous path
 		fpath = mrv.path.Path("%shello%sthere" % (osep, osep))
 		assert fpath.relpathto(fpath.dirname()) == 'there'
 		assert fpath.relpathfrom(fpath.dirname()) == '..'
+		
+		# test makepath
+		assert isinstance(mrv.path.make_path("hi"), mrv.path.ConversionPath)
+		
+		mrv.path.Path.set_separator(sep)
+		assert isinstance(mrv.path.make_path("hi"), mrv.path.BasePath)
 		
