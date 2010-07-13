@@ -4,8 +4,8 @@ from mrv.test.maya import *
 from mrv.maya.util import MEnumeration
 import mrv.maya as mrvmaya
 import mrv.maya.mdb as mdb
-from mrv.path import *
 from mrv.util import DAGTree
+from mrv.path import BasePath
 
 import maya.OpenMayaUI as apiui 
 
@@ -24,7 +24,7 @@ class TestMDB( unittest.TestCase ):
 		assert mfnDBPath('MFnBase').isfile()
 		
 		for with_version in range(2):
-			assert isinstance(cacheFilePath('file', 'ext', with_version), Path)
+			assert isinstance(cacheFilePath('file', 'ext', with_version), BasePath)
 		# END for each version
 		
 		hnodes = createDagNodeHierarchy()

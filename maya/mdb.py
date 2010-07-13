@@ -9,7 +9,7 @@ Provides classes and functions operating on the MayaAPI class database
 """
 __docformat__ = "restructuredtext"
 
-from mrv.path import Path
+from mrv.path import make_path
 from mrv.util import PipeSeparatedFile
 import mrv.maya.env as env
 import mrv.maya as mrvmaya
@@ -94,7 +94,7 @@ def apiModules():
 
 def mfnDBPath( mfnclsname ):
 	"""Generate a path to a database file containing mfn wrapping information"""
-	return Path(cacheFilePath("mfndb/"+ mfnclsname, '', use_version=False)[:-1])	# cut the '.'
+	return make_path(cacheFilePath("mfndb/"+ mfnclsname, '', use_version=False)[:-1])	# cut the '.'
 	
 def headerPath( apiname ):
 	"""
@@ -102,7 +102,7 @@ def headerPath( apiname ):
 		The file will not be verified, hence it may be inaccessible
 	:param apiname: string name, like 'MFnBase'
 	:raise ValueError: if MAYA_LOCATION is not set"""
-	p = Path("$MAYA_LOCATION").expand_or_raise().realpath()
+	p = make_path("$MAYA_LOCATION").expand_or_raise().realpath()
 	if sys.platform == 'darwin':
 		p = p.parent().parent() / "devkit"
 	# END handle platform dependency
@@ -112,7 +112,7 @@ def cacheFilePath( filename, ext, use_version = False ):
 	"""Return path to cache file from which you would initialize data structures
 	
 	:param use_version: if true, the maya version will be appended to the filename  """
-	mfile = Path( __file__ ).parent()
+	mfile = make_path( __file__ ).parent()
 	version = ""
 	if use_version:
 		version = cmds.about( version=1 ).split( " " )[0]

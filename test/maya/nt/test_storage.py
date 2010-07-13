@@ -3,7 +3,7 @@
 from mrv.test.maya import *
 import mrv.maya.nt as nt
 import mrv.maya as mrvmaya
-from mrv.path import Path
+from mrv.path import make_path
 
 import maya.cmds as cmds
 
@@ -13,7 +13,7 @@ class TestStorage( unittest.TestCase ):
 	@with_undo
 	@with_persistence
 	def test_storagePickleData( self ):
-		tmpdir = Path( tempfile.gettempdir() )
+		tmpdir = make_path( tempfile.gettempdir() )
 
 		def setTestValue( mydict ):
 			mydict['string'] = "hello world"
@@ -39,7 +39,7 @@ class TestStorage( unittest.TestCase ):
 			if filepath.ext() != '.ma':
 				return
 			
-			tmpfile = Path(tempfile.mktemp())
+			tmpfile = make_path(tempfile.mktemp())
 			ofh = open(tmpfile, 'wb')
 			for line in open(filepath):
 				ofh.write(line.replace(',', '.'))

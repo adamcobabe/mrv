@@ -10,7 +10,6 @@ from mrv.maya.util import MEnumeration
 from mrv.maya.nt.persistence import PyPickleData
 from mrv.test.maya import get_maya_file
 from mrv.util import capitalize, uncapitalize
-from mrv.path import Path
 
 import maya.cmds as cmds
 import maya.OpenMaya as api

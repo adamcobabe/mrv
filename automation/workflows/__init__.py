@@ -7,7 +7,7 @@
 """
 __docformat__ = "restructuredtext"
 
-from mrv.path import Path
+from mrv.path import make_path
 _this_module = __import__( "mrv.automation.workflows", globals(), locals(), ['workflows'] )
 import pydot
 import mrv.automation.processes
@@ -17,7 +17,7 @@ import mrv.automation.processes
 import mrv.automation.base as common
 
 # load all workflows at once
-common.addWorkflowsFromDotFiles( _this_module, Path( __file__ ).parent().glob( "*.dot" ) )
+common.addWorkflowsFromDotFiles( _this_module, make_path( __file__ ).parent().glob( "*.dot" ) )
 
 #} END initialization
 

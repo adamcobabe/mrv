@@ -42,7 +42,7 @@ from interface import iDagItem
 log = logging.getLogger("mrv.path")
 
 __version__ = '3.0'
-__all__ = ['Path']
+__all__ = ['Path', 'BasePath', 'make_path']
 
 # Platform-specific support for path.owner
 if os.name == 'nt':

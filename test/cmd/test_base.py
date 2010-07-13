@@ -3,6 +3,7 @@
 to run the tests"""
 from mrv.test.lib import *
 from mrv.cmd.base import *
+from mrv.path import BasePath
 
 import os
 import optparse
@@ -56,5 +57,5 @@ class TestBase( unittest.TestCase ):
 		assert isinstance(python_executable(), basestring)
 		assert isinstance(python_executable(2.6), basestring)
 		
-		assert isinstance(find_mrv_script('mrv'), Path)
+		assert isinstance(find_mrv_script('mrv'), BasePath)
 		self.failUnlessRaises(EnvironmentError, find_mrv_script, 'something')

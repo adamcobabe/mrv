@@ -4,7 +4,7 @@ Allows convenient access and handling of references in an object oriented manner
 """
 __docformat__ = "restructuredtext"
 
-from mrv.path import Path
+from mrv.path import make_path
 from mrv.util import And
 from mrv.exc import MRVError
 from mrv.maya.ns import Namespace, _isRootOf
@@ -103,7 +103,7 @@ class FileReference( iDagItem ):
 		:param kwargs: passed to file command
 		:raise ValueError: if the namespace does already exist
 		:raise RuntimeError: if the reference could not be created"""
-		filepath = Path( cls._splitCopyNumber( filepath )[0] )
+		filepath = make_path( cls._splitCopyNumber( filepath )[0] )
 
 		def nsfunc( base, i ):
 			if not i: return base
@@ -227,7 +227,7 @@ class FileReference( iDagItem ):
 		# build dict for fast lookup
 		# It will keep each reference
 		lut = dict()
-		pathscp = [ (isinstance(p, cls) and p.path()) or Path(p) for p in paths ]
+		pathscp = [ (isinstance(p, cls) and p.path()) or make_path(p) for p in paths ]
 		
 		conv = lambda f: f
 		if ignore_ext:
@@ -550,7 +550,7 @@ class FileReference( iDagItem ):
 		if not copynumber:
 			path_str = self._splitCopyNumber( path_str )[0]
 		# END handle copy number
-		return Path(path_str)
+		return make_path(path_str)
 
 	def referenceNode( self ):
 		""":return: wrapped reference node managing this reference"""

@@ -3,7 +3,7 @@ import os
 import sys
 import mrv.test.maya.util as tutil
 from mrv.test.lib import *
-from mrv.path import Path
+from mrv.path import make_path
 import tempfile
 
 class TestStartup( tutil.StandaloneTestBase ):
@@ -11,7 +11,7 @@ class TestStartup( tutil.StandaloneTestBase ):
 	although in fact each of these are independent. The test will not be able to 
 	detect if the configuration we test for always applies. Here we rely on the
 	implementors capabilities"""
-	temp_app_dir = Path(tempfile.gettempdir()) / "testmaya" 
+	temp_app_dir = make_path(tempfile.gettempdir()) / "testmaya" 
 	
 	def _rm_test_dir(self):
 		if self.temp_app_dir.isdir():

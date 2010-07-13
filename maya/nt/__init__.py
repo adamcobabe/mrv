@@ -22,7 +22,6 @@ __docformat__ = "restructuredtext"
 import mrv.maya as mrvmaya
 import typ
 _thismodule = __import__( "mrv.maya.nt", globals(), locals(), ['nt'] )
-from mrv.path import Path
 from mrv.util import capitalize
 import mrv.maya.env as env
 import mrv.maya.util as mrvmayautil

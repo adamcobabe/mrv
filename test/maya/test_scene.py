@@ -3,7 +3,7 @@
 from mrv.test.maya import *
 from mrv.maya.scene import *
 import mrv.maya.env as env
-from mrv.path import Path
+from mrv.path import BasePath, make_path
 import mrv.maya.ref as ref
 
 import maya.cmds as cmds
@@ -68,7 +68,7 @@ class TestScene( unittest.TestCase ):
 	def test_open( self ):
 		scene_path = get_maya_file("empty.ma")
 		opened_scene = Scene.open(scene_path, force=True)
-		assert opened_scene == scene_path and isinstance(opened_scene, Path)
+		assert opened_scene == scene_path and isinstance(opened_scene, BasePath)
 		
 		# None reloads the current scene
 		trans = cmds.group(empty=1)
@@ -76,7 +76,7 @@ class TestScene( unittest.TestCase ):
 		assert not cmds.objExists(trans)
 
 	def test_new( self ):
-		assert isinstance( Scene.new( force=1 ), Path )
+		assert isinstance( Scene.new( force=1 ), BasePath )
 		
 	@with_scene('empty.ma')
 	def test_rename(self):
@@ -86,7 +86,7 @@ class TestScene( unittest.TestCase ):
 
 	@with_scene('empty.ma')
 	def test_saveAs_export( self ):
-		tmpdir = Path( tempfile.gettempdir() ) / "maya_save_test"
+		tmpdir = make_path( tempfile.gettempdir() ) / "maya_save_test"
 		try:
 			shutil.rmtree( tmpdir )	# cleanup
 		except OSError:

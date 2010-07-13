@@ -3,7 +3,7 @@
 import mrv.automation.process as process
 import mrv.automation.processes as processes
 from mrv.dge import plug, Attribute as A
-from mrv.path import Path
+from mrv.path import make_path
 from mrv.automation.qa import QAProcessBase, QACheck, QACheckResult
 
 #{ Processes
@@ -91,7 +91,7 @@ class OtherTestProcess( process.ProcessBase ):
 
 
 class WorkflowWrapTestProcess( process.WorkflowProcessBase ):
-	workflow_directory = Path( __file__ ).parent().parent() / "workflows"
+	workflow_directory = make_path( __file__ ).parent().parent() / "workflows"
 
 	def __init__( self, id, wflname, **kwargs ):
 		"""Wrap the workflow with the given name"""

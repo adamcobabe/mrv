@@ -10,7 +10,7 @@ import util as mutil
 import mrv.util as util
 import maya.OpenMaya as api
 import maya.cmds as cmds
-from mrv.path import Path
+from mrv.path import make_path
 
 import inspect
 
@@ -93,11 +93,11 @@ class Scene( util.Singleton, util.EventSender ):
 			scenepath = cls.name()
 
 		# NOTE: it will return the last loaded reference instead of the loaded file - lets fix this !
-		sourcePath = Path( scenepath )
+		sourcePath = make_path( scenepath )
 		kwargs.pop('open', kwargs.pop('o', None))
 		kwargs.pop('force', kwargs.pop('f', None))
 		lastReference = cmds.file( sourcePath.abspath(), open=1, force=force, **kwargs )
-		return Path( sourcePath )
+		return make_path( sourcePath )
 
 	@classmethod
 	def new( cls, force = False, **kwargs ):
@@ -109,7 +109,7 @@ class Scene( util.Singleton, util.EventSender ):
 		:return: Path with name of the new file"""
 		kwargs.pop('new', kwargs.pop('n', None))
 		kwargs.pop('force', kwargs.pop('f', None))
-		return Path( cmds.file( new = True, force = force, **kwargs ) )
+		return make_path( cmds.file( new = True, force = force, **kwargs ) )
 
 	@classmethod
 	def rename( cls, scenepath ):
@@ -119,7 +119,7 @@ class Scene( util.Singleton, util.EventSender ):
 		:return: Path to scenepath
 		:note: as opposed to the normal file -rename it will also adjust the extension
 		:raise RuntimeError: if the scene's extension is not supported."""
-		scenepath = Path(scenepath)
+		scenepath = make_path(scenepath)
 		try:
 			cmds.file( rename = scenepath.expandvars() )
 			cmds.file( type = cls.kFileTypeMap[ scenepath.ext() ] )
@@ -142,7 +142,7 @@ class Scene( util.Singleton, util.EventSender ):
 		if scenepath is None or scenepath == "":
 			scenepath = cls.name( )
 
-		scenepath = Path( scenepath )
+		scenepath = make_path( scenepath )
 		curscene = cls.name()
 		try :
 			filetype = cls.kFileTypeMap[ scenepath.ext() ]
@@ -168,7 +168,7 @@ class Scene( util.Singleton, util.EventSender ):
 		# safe the file
 		kwargs.pop('save', kwargs.pop('s', None))
 		kwargs.pop('type', kwargs.pop('typ', None))
-		return Path( cmds.file( save=True, type=filetype, **kwargs ) )
+		return make_path( cmds.file( save=True, type=filetype, **kwargs ) )
 
 	@classmethod
 	def export(cls, outputFile, nodeListOrIterable=None, **kwargs):
@@ -181,7 +181,7 @@ class Scene( util.Singleton, util.EventSender ):
 			Nodes, MObjects or MDagPaths
 		:param kwargs: passed to cmds.file, see the mel docs for modifying flags
 		:return: Path to which the data was exported"""
-		outputFile = Path(outputFile) 
+		outputFile = make_path(outputFile) 
 		if not outputFile.dirname().isdir():
 			outputFile.dirname().makedirs()
 		# END create parent dirs
@@ -232,7 +232,7 @@ class Scene( util.Singleton, util.EventSender ):
 	#{ Query Methods
 	@classmethod
 	def name( cls ):
-		return Path( cmds.file( q=1, exn=1 ) )
+		return make_path( cmds.file( q=1, exn=1 ) )
 
 	@classmethod
 	def isModified( cls ):

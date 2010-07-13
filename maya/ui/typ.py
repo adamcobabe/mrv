@@ -7,7 +7,7 @@ __docformat__ = "restructuredtext"
 import mrv.maya as mrvmaya
 from mrv.util import uncapitalize
 import mrv.maya.util as mutil
-from mrv.path import Path
+from mrv.path import make_path
 _uipackage = __import__( "mrv.maya.ui", globals(), locals(), ['ui'] )
 import maya.cmds as mcmds
 from util import propertyQE, EventSenderUI
@@ -21,7 +21,7 @@ _typemap = { "floatingWindow" : "window", "field" : "textField" }
 #{ Initialization
 def init_classhierarchy( ):
 	""" Read a simple hiearchy file and create an Indexed tree from it"""
-	mfile = Path( __file__ ).parent().parent() / "cache/UICommandsHierachy.hf"
+	mfile = make_path( __file__ ).parent().parent() / "cache/UICommandsHierachy.hf"
 
 	# STORE THE TYPE TREE
 	global _typetree

@@ -5,7 +5,7 @@ import mrv
 from mrv import init_modules
 from mrv.util import capitalize, DAGTree, PipeSeparatedFile
 from mrv.exc import MRVError
-from mrv.path import Path
+from mrv.path import make_path
 
 from itertools import chain
 import logging
@@ -144,7 +144,7 @@ def dag_tree_from_tuple_list( tuplelist ):
 def tuple_list_from_file( filepath ):
 	"""Create a tuple hierarchy list from the file at the given path
 	:return: tuple list suitable for dag_tree_from_tuple_list"""
-	lines = Path( filepath ).lines( retain = False )
+	lines = make_path( filepath ).lines( retain = False )
 
 	hierarchytuples = list()
 	# PARSE THE FILE INTO A TUPLE LIST
@@ -340,6 +340,12 @@ def init_system( ):
 
 # END INIT SYSTEM
 
+def init_path( ):
+	"""Setup the path type to use slashes internally, no matter which operating 
+	system we are on"""
+	import mrv.path
+	mrv.path.BasePath.set_separator('/')
+
 def init_user_prefs( ):
 	"""intiialize the user preferences according to the set configuration variables"""
 	try:
@@ -362,7 +368,7 @@ def init_user_prefs( ):
 		return
 	
 	import maya.cmds as cmds
-	prefsdir = Path(cmds.internalVar(userPrefDir=1))
+	prefsdir = make_path(cmds.internalVar(userPrefDir=1))
 	
 	if not prefsdir.isdir():
 		log.warn("User Preferences directory did not exist: %s" % prefsdir)
@@ -463,6 +469,7 @@ if 'init_done' not in locals():
 if not init_done:
 	# assure we do not run several times
 	init_system()
+	init_path()
 	init_standard_output()
 	init_modules(__file__, "mrv.maya")
 	init_singletons()

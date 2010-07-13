@@ -6,7 +6,7 @@ that the module can at least be imported
 import os
 import unittest
 import mrv.path
-from mrv.path import Path
+from mrv.path import *
 from mrv.interface import iDagItem
 import tempfile
 import shutil
@@ -37,7 +37,8 @@ class TestPath( unittest.TestCase ):
 		self.workdir = None
 	
 	def test_instantiate( self ):
-		p = Path( os.path.expanduser( "~" ) )
+		p = make_path( os.path.expanduser( "~" ) )
+		assert p == Path(p)
 
 	def test_set( self ):
 		# paths pointing to the same object after all should

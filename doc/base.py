@@ -12,7 +12,7 @@ import mrv.doc
 
 import mrv.test.cmd as cmd
 
-from mrv.path import Path
+from mrv.path import make_path
 
 ospd = os.path.dirname
 
@@ -26,10 +26,10 @@ class DocGenerator(object):
 	forbidden_dirs = ['test', 'ext', 'doc', '.']
 	
 	# PATHS
-	source_dir = Path('source')
+	source_dir = make_path('source')
 	source_dl_dir = source_dir / 'download'
 	
-	build_dir = Path('build')
+	build_dir = make_path('build')
 	
 	html_dir = build_dir / 'html'
 	downloads_dir = html_dir / '_downloads'
@@ -76,7 +76,7 @@ output: html"""
 		self._coverage = coverage
 		self._epydoc = epydoc
 		
-		self._base_dir = Path(base_dir)
+		self._base_dir = make_path(base_dir)
 		
 		# We assume to be in the project's doc directory, otherwise we cannot
 		# automatically handle the project information
@@ -84,7 +84,7 @@ output: html"""
 			raise EnvironmentError("Basedirectory needs to be the 'doc' directory, not %s" % self._base_dir)
 			
 		
-		self._project_dir = Path(self._base_dir / "..")
+		self._project_dir = make_path(self._base_dir / "..")
 	
 	#{ Public Interface
 	
@@ -100,7 +100,7 @@ output: html"""
 	@classmethod
 	def version_file_name(cls, idstring, basedir='.'):
 		""":return: filename at which to write the version file with the given id"""
-		return Path(os.path.join(basedir, "%s.version_info" % idstring)) 
+		return make_path(os.path.join(basedir, "%s.version_info" % idstring)) 
 
 	@classmethod
 	def write_version(cls, idstring, basedir='.'):
@@ -217,7 +217,7 @@ output: html"""
 			self.remove_version_info('coverage')
 			bdd = self.build_downloads_dir()
 			csdd = self.source_downloads_coverage_dir()
-			coverage_dir = Path(self._project_dir / cmd.tmrv_coverage_dir)
+			coverage_dir = make_path(self._project_dir / cmd.tmrv_coverage_dir)
 			
 			# delete all files we copied from the coverage dir
 			if coverage_dir.isdir():
@@ -453,7 +453,7 @@ output: html"""
 		# coverage was generated into the current working dir
 		# index goes to downloads in the source directory as it is referenced
 		# by the docs
-		coverage_dir = Path(self._project_dir / cmd.tmrv_coverage_dir)
+		coverage_dir = make_path(self._project_dir / cmd.tmrv_coverage_dir)
 		cindex = coverage_dir / 'index.html'
 		shutil.copy(cindex, csdd)
 		

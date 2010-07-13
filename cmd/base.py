@@ -3,7 +3,7 @@
 import os
 import sys
 import subprocess
-from mrv.path import Path
+from mrv.path import make_path
 import logging
 log = logging.getLogger("mrv.cmd.base")
 
@@ -52,7 +52,7 @@ def mayapy_maya_version():
 		raise EnvironmentError("Not running mayapy")
 	# END quick first check 
 	
-	exec_path = Path(os.path.realpath(sys.executable))	# Maya is capitalized on windows
+	exec_path = make_path(os.path.realpath(sys.executable))	# Maya is capitalized on windows
 	try:
 		version_token = [ t[4:] for t in exec_path.splitall() if t.lower().startswith('maya') ][0]
 	except IndexError:
@@ -145,7 +145,7 @@ def maya_location(maya_version):
 		for envvar in ('PROGRAMW6432', 'PROGRAMFILES','PROGRAMFILES(X86)'):
 			if envvar not in os.environ: 
 				continue
-			basepath = Path(os.environ[envvar]) / "Autodesk"
+			basepath = make_path(os.environ[envvar]) / "Autodesk"
 			if basepath.isdir():
 				mayaroot = basepath / 'Maya'
 				break
@@ -403,7 +403,7 @@ def find_mrv_script(name):
 				path = os.path.join(subdir, name)
 			# END handle base
 			if os.path.isfile(path):
-				return Path(path)
+				return make_path(path)
 			tried_paths.append(path)
 		# END for each subdir
 	# END for each base

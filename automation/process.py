@@ -8,7 +8,7 @@ from mrv.dgfe import GraphNodeBase
 from mrv.dge import Attribute
 import mrv.automation.base as wflbase
 
-from mrv.path import Path
+from mrv.path import make_path
 from mrv.util import Or
 
 
@@ -275,7 +275,7 @@ class WorkflowProcessBase( GraphNodeBase, ProcessBase ):
 		"""
 		:return: our wrapped workflow instance as created by a method loading a workflow
 			from a file"""
-		wfl = wflbase.loadWorkflowFromDotFile( Path( wfldir ) / wflname )
+		wfl = wflbase.loadWorkflowFromDotFile( make_path( wfldir ) / wflname )
 		return wfl
 
 	def prepareProcess( self ):
