@@ -136,19 +136,20 @@ class Path( _base, iDagItem ):
 	def __eq__( self, other ):
 		"""Comparison method with expanded variables, just to assure
 		the comparison yields the results we would expect"""
-		return unicode( os.path.expandvars( self ) ) == unicode( os.path.expandvars( unicode(other) ) )
+		return unicode(os.path.expandvars(self)) == unicode(os.path.expandvars(unicode(other)))
 
 	def __ne__( self, other ):
 		return not self.__eq__( other )
 
 	def __hash__( self ):
 		"""Expanded hash method"""
-		return hash( unicode( self._expandvars() ) )
+		return hash(unicode(self._expandvars()))
 
 	#} END Special Python methods
 
 	def _expandvars( self ):
-		"""Internal version returning a string only
+		"""Internal version returning a string only representing the non-recursively
+		expanded variable
 		
 		:note: It is a slightly changed copy of the version in posixfile
 			as the windows version was implemented differently ( it expands
@@ -174,7 +175,7 @@ class Path( _base, iDagItem ):
 				i = j
 			# END handle variable exists in environ
 		# END loop forever
-		return self
+		return self	
 
 	@classmethod
 	def set_separator(cls, sep):
@@ -250,11 +251,12 @@ class Path( _base, iDagItem ):
 		
 	def expand_or_raise(self):
 		""":return: Copy of self with all variables expanded ( using `expand` )
+		non-recursively !
 		
 		:raise ValueError: If we could not expand all environment variables as
 			their values where missing in the environment"""
 		rval = self.expand()
-		if rval.containsvars():
+		if str(rval) == str(self) and rval.containsvars():
 			raise ValueError("Failed to expand all environment variables in %r, got %r" % (self, rval))
 		return rval
 
