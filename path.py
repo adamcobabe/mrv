@@ -90,6 +90,49 @@ _varprog = re.compile(r'\$(\w+|\{[^}]*\})')
 class TreeWalkWarning(Warning):
 	pass
 
+#{ END utiltiies
+
+def _expandvars(path):
+	"""Internal version returning a string only representing the non-recursively
+	expanded variable
+	
+	:note: It is a slightly changed copy of the version in posixfile
+		as the windows version was implemented differently ( it expands
+		variables to an empty space which is undesireable )"""
+	if '$' not in path:
+		return path
+	
+	i = 0
+	while True:
+		m = _varprog.search(path, i)
+		if not m:
+			break
+		i, j = m.span(0)
+		name = m.group(1)
+		if name.startswith('{') and name.endswith('}'):
+			name = name[1:-1]
+		if name in os.environ:
+			tail = path[j:]
+			path = path[:i] + os.environ[name]
+			i = len(path)
+			path += tail
+		else:
+			i = j
+		# END handle variable exists in environ
+	# END loop forever
+	return path	
+
+def _expandvars_deep(path):
+	"""As above, but recursively expands as many variables as possible"""
+	rval = _expandvars(path)
+	while str(rval) != str(path):
+		path = rval
+		rval = _expandvars(path)
+	# END expansion loop
+	return rval
+		
+#} END utilities
+
 class Path( _base, iDagItem ):
 	""" Represents a filesystem path.
 
@@ -143,39 +186,9 @@ class Path( _base, iDagItem ):
 
 	def __hash__( self ):
 		"""Expanded hash method"""
-		return hash(unicode(self._expandvars()))
+		return hash(unicode(_expandvars(self)))
 
 	#} END Special Python methods
-
-	def _expandvars( self ):
-		"""Internal version returning a string only representing the non-recursively
-		expanded variable
-		
-		:note: It is a slightly changed copy of the version in posixfile
-			as the windows version was implemented differently ( it expands
-			variables to an empty space which is undesireable )"""
-		if '$' not in self:
-			return self
-		
-		i = 0
-		while True:
-			m = _varprog.search(self, i)
-			if not m:
-				break
-			i, j = m.span(0)
-			name = m.group(1)
-			if name.startswith('{') and name.endswith('}'):
-				name = name[1:-1]
-			if name in os.environ:
-				tail = self[j:]
-				self = self[:i] + os.environ[name]
-				i = len(self)
-				self += tail
-			else:
-				i = j
-			# END handle variable exists in environ
-		# END loop forever
-		return self	
 
 	@classmethod
 	def set_separator(cls, sep):
@@ -225,14 +238,26 @@ class Path( _base, iDagItem ):
 	#{ Operations on path strings.
 
 	isabs = os.path.isabs
-	def abspath(self):		 return self.__class__(os.path.abspath(self._expandvars()))
+	def abspath(self):		 return self.__class__(os.path.abspath(_expandvars(self)))
 	def normcase(self):		 return self.__class__(os.path.normcase(self))
 	def normpath(self):		 return self.__class__(os.path.normpath(self))
-	def realpath(self):		 return self.__class__(os.path.realpath(self._expandvars()))
+	def realpath(self):		 return self.__class__(os.path.realpath(_expandvars(self)))
 	def expanduser(self):	 return self.__class__(os.path.expanduser(self))
-	def expandvars(self):	 return self.__class__(self._expandvars())
+	def expandvars(self):	 return self.__class__(_expandvars(self))
 	def dirname(self):		 return self.__class__(os.path.dirname(self))
 	basename = os.path.basename
+
+	def expandvars_deep(self):
+		"""Expands all environment variables recursively"""
+		return type(self)(_expandvars_deep(self))
+		
+	def expandvars_deep_or_raise(self):
+		"""Expands all environment variables recursively, and raises ValueError
+		if the path still contains variables afterwards"""
+		rval = self.expandvars_deep()
+		if rval.containsvars():
+			raise ValueError("Failed to expand all environment variables in %r, got %r" % (self, rval))
+		return rval
 
 	def expand(self):
 		""" Clean up a filename by calling expandvars() and expanduser()
@@ -366,6 +391,9 @@ class Path( _base, iDagItem ):
 		they reside on different drives in Windows, then this returns
 		dest.abspath().
 		"""
+		# on windows, abspath returns \\ paths even if / paths are given.
+		# On linux this is not the case ... thanks
+		splitter = (os.name == 'nt' and _ossep) or self.sep
 		def commonprefix(m):
 			if not m: return ''
 			s1 = min(m)
@@ -376,8 +404,8 @@ class Path( _base, iDagItem ):
 			return s1
 		# END common prefix 
 		
-		start_list = os.path.abspath(dest).split(self.sep)
-		path_list = os.path.abspath(self._expandvars()).split(self.sep)
+		start_list = os.path.abspath(dest).split(splitter)
+		path_list = os.path.abspath(_expandvars(self)).split(splitter)
 		
 		# Work out how much of the filepath is shared by start and path.
 		i = len(commonprefix([start_list, path_list]))
@@ -418,7 +446,7 @@ class Path( _base, iDagItem ):
 		With the optional 'pattern' argument, this only lists
 		items whose names match the given pattern.
 		"""
-		names = os.listdir(self._expandvars())
+		names = os.listdir(_expandvars(self))
 		if pattern is not None:
 			names = fnmatch.filter(names, pattern)
 		return [self / child for child in names]
@@ -550,7 +578,7 @@ class Path( _base, iDagItem ):
 
 	def open(self, *args, **kwargs):
 		""" Open this file.	 Return a file object. """
-		return open(self._expandvars(), *args, **kwargs)
+		return open(_expandvars(self), *args, **kwargs)
 
 	def bytes(self):
 		""" Open this file, read all bytes, return them as a string. """
@@ -817,22 +845,22 @@ class Path( _base, iDagItem ):
 
 	#{ Methods for querying the filesystem
 
-	exists = lambda self: os.path.exists( self._expandvars() )
+	exists = lambda self: os.path.exists( _expandvars(self) )
 	if hasattr(os.path, 'lexists'):
-		lexists = lambda self: os.path.lexists( self._expandvars() )
-	isdir = lambda self: os.path.isdir( self._expandvars() )
-	isfile = lambda self: os.path.isfile( self._expandvars() )
-	islink = lambda self: os.path.islink( self._expandvars() )
-	ismount = lambda self: os.path.ismount( self._expandvars() )
+		lexists = lambda self: os.path.lexists( _expandvars(self) )
+	isdir = lambda self: os.path.isdir( _expandvars(self) )
+	isfile = lambda self: os.path.isfile( _expandvars(self) )
+	islink = lambda self: os.path.islink( _expandvars(self) )
+	ismount = lambda self: os.path.ismount( _expandvars(self) )
 
 	if hasattr(os.path, 'samefile'):
-		samefile = lambda self, other: os.path.samefile( self._expandvars(), other )
+		samefile = lambda self, other: os.path.samefile( _expandvars(self), other )
 
-	atime = lambda self: os.path.getatime( self._expandvars() )
-	mtime = lambda self: os.path.getmtime( self._expandvars() )
+	atime = lambda self: os.path.getatime( _expandvars(self) )
+	mtime = lambda self: os.path.getmtime( _expandvars(self) )
 	if hasattr(os.path, 'getctime'):
-		ctime = lambda self: os.path.getctime( self._expandvars() )
-	size = lambda self: os.path.getsize( self._expandvars() )
+		ctime = lambda self: os.path.getctime( _expandvars(self) )
+	size = lambda self: os.path.getsize( _expandvars(self) )
 
 	if hasattr(os, 'access'):
 		def access(self, mode):
@@ -840,15 +868,15 @@ class Path( _base, iDagItem ):
 
 			mode - One of the constants os.F_OK, os.R_OK, os.W_OK, os.X_OK
 			"""
-			return os.access(self._expandvars(), mode)
+			return os.access(_expandvars(self), mode)
 
 	def stat(self):
 		""" Perform a stat() system call on this path. """
-		return os.stat(self._expandvars())
+		return os.stat(_expandvars(self))
 
 	def lstat(self):
 		""" Like path.stat(), but do not follow symbolic links. """
-		return os.lstat(self._expandvars())
+		return os.lstat(_expandvars(self))
 
 	def owner(self):
 		""" Return the name of the owner of this file or directory.
@@ -875,12 +903,12 @@ class Path( _base, iDagItem ):
 	if hasattr(os, 'statvfs'):
 		def statvfs(self):
 			""" Perform a statvfs() system call on this path. """
-			return os.statvfs(self._expandvars())
+			return os.statvfs(_expandvars(self))
 
 	if hasattr(os, 'pathconf'):
 		def pathconf(self, name):
 			"""see os.pathconf"""
-			return os.pathconf(self._expandvars(), name)
+			return os.pathconf(_expandvars(self), name)
 
 	def isWritable( self ):
 		""":return: true if the file can be written to"""
@@ -905,14 +933,14 @@ class Path( _base, iDagItem ):
 		""" Set the access and modified times of this file.
 		
 		:return: self"""
-		os.utime(self._expandvars(), times)
+		os.utime(_expandvars(self), times)
 		return self
 
 	def chmod(self, mode):
 		"""Change file mode
 		
 		:return: self"""
-		os.chmod(self._expandvars(), mode)
+		os.chmod(_expandvars(self), mode)
 		return self
 
 	if hasattr(os, 'chown'):
@@ -920,21 +948,21 @@ class Path( _base, iDagItem ):
 			"""Change file ownership
 			
 			:return: self"""
-			os.chown(self._expandvars(), uid, gid)
+			os.chown(_expandvars(self), uid, gid)
 			return self
 
 	def rename(self, new):
 		"""os.rename
 		
 		:return: Path to new file"""
-		os.rename(self._expandvars(), new)
+		os.rename(_expandvars(self), new)
 		return type(self)(new)
 
 	def renames(self, new):
 		"""os.renames, super rename
 		
 		:return: Path to new file"""
-		os.renames(self._expandvars(), new)
+		os.renames(_expandvars(self), new)
 		return type(self)(new)
 
 	#} END Modifying operations on files and directories
@@ -945,28 +973,28 @@ class Path( _base, iDagItem ):
 		"""Make this directory, fail if it already exists
 		
 		:return: self"""
-		os.mkdir(self._expandvars(), mode)
+		os.mkdir(_expandvars(self), mode)
 		return self
 
 	def makedirs(self, mode=0777):
 		"""Smarter makedir, see os.makedirs
 		
 		:return: self"""
-		os.makedirs(self._expandvars(), mode)
+		os.makedirs(_expandvars(self), mode)
 		return self
 
 	def rmdir(self):
 		"""Remove this empty directory
 		
 		:return: self"""
-		os.rmdir(self._expandvars())
+		os.rmdir(_expandvars(self))
 		return self
 
 	def removedirs(self):
 		"""see os.removedirs
 		
 		:return: self"""
-		os.removedirs(self._expandvars())
+		os.removedirs(_expandvars(self))
 		return self
 
 	#} END Create/delete operations on directories
@@ -979,23 +1007,23 @@ class Path( _base, iDagItem ):
 		
 		:return: self
 		"""
-		fd = os.open(self._expandvars(), flags, mode)
+		fd = os.open(_expandvars(self), flags, mode)
 		os.close(fd)
-		os.utime(self._expandvars(), None)
+		os.utime(_expandvars(self), None)
 		return self
 
 	def remove(self):
 		"""Remove this file
 		
 		:return: self"""
-		os.remove(self._expandvars())
+		os.remove(_expandvars(self))
 		return self
 
 	def unlink(self):
 		"""unlink this file
 		
 		:return: self"""
-		os.unlink(self._expandvars())
+		os.unlink(_expandvars(self))
 		return self
 
 	#} END Modifying operations on files
@@ -1007,7 +1035,7 @@ class Path( _base, iDagItem ):
 			""" Create a hard link at 'newpath', pointing to this file. 
 			
 			:return: Path to newpath"""
-			os.link(self._expandvars(), newpath)
+			os.link(_expandvars(self), newpath)
 			return type(self)(newpath)
 			
 
@@ -1016,7 +1044,7 @@ class Path( _base, iDagItem ):
 			""" Create a symbolic link at 'newlink', pointing here. 
 			
 			:return: Path to newlink"""
-			os.symlink(self._expandvars(), newlink)
+			os.symlink(_expandvars(self), newlink)
 			return type(self)(newlink)
 
 	if hasattr(os, 'readlink'):
@@ -1025,7 +1053,7 @@ class Path( _base, iDagItem ):
 
 			The result may be an absolute or a relative path.
 			"""
-			return self.__class__(os.readlink(self._expandvars()))
+			return self.__class__(os.readlink(_expandvars(self)))
 
 		def readlinkabs(self):
 			""" Return the path to which this symbolic link points.
@@ -1046,35 +1074,35 @@ class Path( _base, iDagItem ):
 		"""Copy self to dest
 		
 		:return: Path to dest"""
-		shutil.copyfile( self._expandvars(), dest )
+		shutil.copyfile( _expandvars(self), dest )
 		return type(self)(dest)
 	
 	def copymode(self, dest):
 		"""Copy our mode to dest
 		
 		:return: Path to dest"""
-		shutil.copymode( self._expandvars(), dest )
+		shutil.copymode( _expandvars(self), dest )
 		return type(self)(dest)
 		
 	def copystat(self, dest):
 		"""Copy our stats to dest
 		
 		:return: Path to dest"""
-		shutil.copystat( self._expandvars(), dest )
+		shutil.copystat( _expandvars(self), dest )
 		return type(self)(dest)
 		
 	def copy(self, dest):
 		"""Copy data and source bits to dest
 		
 		:return: Path to dest"""
-		shutil.copy( self._expandvars(), dest )
+		shutil.copy( _expandvars(self), dest )
 		return type(self)(dest)
 	
 	def copy2(self, dest):
 		"""Shutil.copy2 self to dest
 		
 		:return: Path to dest"""
-		shutil.copy2( self._expandvars(), dest )
+		shutil.copy2( _expandvars(self), dest )
 		return type(self)(dest)
 		
 	def copytree(self, dest, **kwargs):
@@ -1082,7 +1110,7 @@ class Path( _base, iDagItem ):
 		
 		:param kwargs: passed to shutil.copytree
 		:return: Path to dest"""
-		shutil.copytree( self._expandvars(), dest, **kwargs )
+		shutil.copytree( _expandvars(self), dest, **kwargs )
 		return type(self)(dest)
 		
 	if hasattr(shutil, 'move'):
@@ -1090,7 +1118,7 @@ class Path( _base, iDagItem ):
 			"""Move self to dest
 			
 			:return: Path to dest"""
-			shutil.move( self._expandvars(), dest )
+			shutil.move( _expandvars(self), dest )
 			return type(self)(dest)
 			
 	def rmtree(self, **kwargs):
@@ -1098,7 +1126,7 @@ class Path( _base, iDagItem ):
 		
 		:param kwargs: passed to shutil.rmtree
 		:return: self"""
-		shutil.rmtree( self._expandvars(),  **kwargs )
+		shutil.rmtree( _expandvars(self),  **kwargs )
 		return self
 			
 	#} END High-Level
@@ -1110,7 +1138,7 @@ class Path( _base, iDagItem ):
 			"""Change the root directory path
 			
 			:return: self"""
-			os.chroot(self._expandvars())
+			os.chroot(_expandvars(self))
 			return self
 
 	if hasattr(os, 'startfile'):
@@ -1118,7 +1146,7 @@ class Path( _base, iDagItem ):
 			"""see os.startfile
 			
 			:return: self"""
-			os.startfile(self._expandvars())
+			os.startfile(_expandvars(self))
 			return self
 	#} END Special stuff from os
 	
@@ -1147,7 +1175,7 @@ class ConversionPath(BasePath):
 		return path.replace(self.osep, self.sep)
 		
 	def abspath(self):
-		return self._from_os_path(_to_os_path(os.path.abspath(self)))
+		return self.__class__(self._from_os_path(_to_os_path(os.path.abspath(self))))
 		
 	def joinpath(self, *args):
 		return self.__class__(self._from_os_path(os.path.join(self, *args)))

@@ -186,6 +186,24 @@ class TestPath( unittest.TestCase ):
 		relapath.expand_or_raise()	# no var
 		userpath.expand_or_raise()	# no var
 		
+		# expand recursive
+		tvar = "PATH_TEST_ENV_VAR"
+		os.environ[tvar] = "$" + os.environ.keys()[0]
+		nestedpath = make_path("$" + tvar) / "folder" / "$" + os.environ.keys()[1]
+		
+		# expand_or_raise works - it realizes that we could at least expand the 
+		# non-recursive variables
+		assert nestedpath.expand_or_raise().count("$") == 1
+		
+		# recursively we expand all
+		expandedpath = nestedpath.expandvars_deep()
+		assert isinstance(expandedpath, type(nestedpath))
+		assert not expandedpath.containsvars()
+		assert nestedpath.expandvars_deep() == nestedpath.expandvars_deep_or_raise()
+		
+		nestedpath /= "$UNEXpandable"
+		self.failUnlessRaises(ValueError, nestedpath.expandvars_deep_or_raise)
+		
 		# namebase
 		assert '.' not in relafile.namebase()		# ext stripeed
 		assert '.' not in absfile.namebase()
@@ -518,7 +536,11 @@ class TestPath( unittest.TestCase ):
 		assert sep not in make_path("hi%sthere" % sep).abspath()
 		
 		# test relapath - in case we are on linux, we can't use the previous path
-		fpath = mrv.path.Path("%shello%sthere" % (osep, osep))
+		prefix = osep
+		# on windows, we need an absolute path for this to work correctly
+		if os.name == "nt":
+			prefix = "c:%s" % osep
+		fpath = mrv.path.Path("%shello%sthere" % (prefix, osep))
 		assert fpath.relpathto(fpath.dirname()) == 'there'
 		assert fpath.relpathfrom(fpath.dirname()) == '..'
 		
