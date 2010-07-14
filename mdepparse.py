@@ -6,6 +6,7 @@ __docformat__ = "restructuredtext"
 
 from networkx import DiGraph, NetworkXError
 from util import iterNetworkxGraph
+from path import make_path
 
 import sys
 import os
@@ -97,7 +98,7 @@ class MayaFileGraph( DiGraph ):
 
 
 	def addFromFiles( self, mafiles, parse_all_paths = False,
-					to_os_path = lambda f: os.path.expandvars( f ),
+					to_os_path = lambda f: make_path(f).expandvars(),
 					os_path_to_db_key = lambda f: f):
 		"""Parse the dependencies from the given maya ascii files and add them to
 		this graph
@@ -140,9 +141,10 @@ class MayaFileGraph( DiGraph ):
 				curfilestr = str( curfile )
 				valid_depends = list()
 				for depfile in curfiledepends:
+					print depfile
 					# only valid files may be adjusted - we keep them as is otherwise
 					dbdepfile = to_os_path( depfile )
-
+					print dbdepfile
 					if os.path.exists( dbdepfile ):
 						valid_depends.append( depfile )				# store the orig path - it will be converted later
 						dbdepfile = os_path_to_db_key( dbdepfile )		# make it db key path

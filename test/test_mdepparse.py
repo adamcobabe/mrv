@@ -14,6 +14,7 @@ class TestMayaDependencyParsing( unittest.TestCase ):
 		for parse_all_paths in range(2):
 			mfg = MayaFileGraph.createFromFiles([reffile], parse_all_paths=parse_all_paths)
 			affectedBy = mfg.depends(reffile, mfg.kAffectedBy)
+			assert affectedBy
 			assert len(mfg.invalidFiles()) == 0
 			
 			assert len(mfg.depends(affectedBy[-1], mfg.kAffects)) == 2
