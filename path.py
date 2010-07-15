@@ -418,6 +418,11 @@ class Path( _base, iDagItem ):
 		""" Return a relative path from dest to self"""
 		return self.__class__(dest).relpathto(self)
 
+	def convert_separators(self):
+		""":return: Version of self with all separators set to be 'sep'. The difference
+		to normpath is that it does not cut trailing separators"""
+		return self.__class__(self.replace(self.osep, self.sep))
+
 	def tonative( self ):
 		r"""Convert the path separator to the type required by the current operating
 		system - on windows / becomes \ and on linux \ becomes /
@@ -1181,6 +1186,9 @@ class ConversionPath(BasePath):
 		
 	def abspath(self):
 		return self.__class__(self._from_os_path(_to_os_path(os.path.abspath(self))))
+		
+	def normpath(self):
+		return self.__class__(self._from_os_path(os.path.normpath(self)))
 		
 	def joinpath(self, *args):
 		return self.__class__(self._from_os_path(os.path.join(self, *args)))
