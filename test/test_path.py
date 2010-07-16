@@ -539,6 +539,7 @@ class TestPath( unittest.TestCase ):
 		assert isinstance(fopath.convert_separators(), type(fopath))
 		assert fopath.convert_separators().count(osep) == 2
 		assert fopath.normpath().count(osep) == 1	# cuts trailing slashes, currently does not conversion
+		assert fopath.tolinuxpath().count("/") == 2
 		
 		# test relapath - in case we are on linux, we can't use the previous path
 		prefix = osep

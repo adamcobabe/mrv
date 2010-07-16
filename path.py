@@ -423,6 +423,10 @@ class Path( _base, iDagItem ):
 		to normpath is that it does not cut trailing separators"""
 		return self.__class__(self.replace(self.osep, self.sep))
 
+	def tolinuxpath(self):
+		""":return: A path using only slashes as path separator"""
+		return self.__class__(self.replace("\\", "/"))
+
 	def tonative( self ):
 		r"""Convert the path separator to the type required by the current operating
 		system - on windows / becomes \ and on linux \ becomes /
