@@ -103,8 +103,7 @@ class BaseUI( object ):
 		if self.__class__ == BaseUI:
 			raise MRVError( "Cannot instantiate" + self.__class__.__name__ + " directly - it can only be a base class" )
 
-		# return object.__init__( self , *args, **kwargs )
-		super( BaseUI, self ).__init__( *args, **kwargs )
+		super(BaseUI, self).__init__(*args, **kwargs)
 
 
 class NamedUI( unicode, BaseUI , iDagItem, EventSenderUI ):
@@ -182,14 +181,22 @@ class NamedUI( unicode, BaseUI , iDagItem, EventSenderUI ):
 		:note: if name is set but does not name a valid user interface, a new one
 			will be created, and passed to the constructor"""
 		name = kwargs.pop( "name", None )
-		exists = ( ( name is not None ) and NamedUI._exists( str( name ) ) ) or False
+		exists = (( name is not None) and NamedUI._exists(str(name))) or False
 		force_creation = kwargs.pop( "force_creation", False )
+		# never try to create names with '|' in them, wrap only in that case
+		# This also works around a maya 2011 bug that causes objectTypeUI fail on
+		# menuItems
+		has_valid_name = True
+		if name and ('|' in name):
+			has_valid_name = False
+			
 
 		# pretend named element does not exist if existance is ambigous
 		if not kwargs.pop( "wrap_only", False ) and exists == 2:
 			exists = 0
 
-		if name is None or not exists or force_creation:
+		# END verify name
+		if has_valid_name and (name is None or not exists or force_creation):
 			try:
 				if name:	# use name to create named object
 					name = cls.__melcmd__( name, **kwargs )
@@ -542,7 +549,7 @@ class MenuItem( MenuBase ):
 		if not self.p_sm:
 			raise TypeError( "%s is not a submenu and cannot be used as menu" )
 
-		return Menu( name = self )
+		return Menu(name=self, wrap_only=True)
 
 
 class SubMenuItem(MenuItem):

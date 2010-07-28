@@ -8,10 +8,11 @@ if not cmds.about(batch=1):
 	
 		def test_doc_demo_basics( self ):
 			# creation
-			win = Window(title="demo")
-			MenuBarLayout()
+			win = Window(title="demo", menuBar=True)
+			
 			Menu(label="TestMenu")
-			SubMenuItem(label="TestSubMenu")
+			smi = SubMenuItem(label="TestSubMenu")
+			smi.toMenu()	# tests for maya2011 bug
 			MenuItem(label="Item")
 			
 			assert isinstance(win, basestring)
