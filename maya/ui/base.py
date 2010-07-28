@@ -509,6 +509,12 @@ class Menu( MenuBase, ContainerMenuBase ):
 						"dai", "deleteAllItems",
 						"fi", "familyImage"
 					)
+	
+	def itemArray(self):
+		""":return: An array of our menuItems
+		:note: This method worksaround a maya 2011 problem that makes it impossible
+			to properly wrap menuItems with short names as returned by p_itemArray"""
+		return [MenuItem(name="%s|%s" % (self, i)) for i in self.p_itemArray]
 
 
 class MenuItem( MenuBase ):
@@ -543,21 +549,30 @@ class MenuItem( MenuBase ):
 						"c", "command"
 				)
 
-	def toMenu( self ):
+	def toMenu(self):
 		""":return: Menu representing self if it is a submenu
 		:raise TypeError: if self i no submenu"""
 		if not self.p_sm:
 			raise TypeError( "%s is not a submenu and cannot be used as menu" )
 
-		return Menu(name=self, wrap_only=True)
+		return Menu(name=self)
 
 
 class SubMenuItem(MenuItem):
 	"""A menu which is always a submenu. This type greatly facilitates subclasses to 
 	enforce being a MenuItem which is a submenu as no additional code is required"""
+	
+	#{ Configuration
+	# Override these creation-time options to be able to alter them
+	tearOff = False
+	allowOptionBoxes = False
+	#} END configuration
+	
 	def __new__(cls, *args, **kwargs):
 		kwargs.pop("sm", kwargs.pop("subMenu", None))
 		kwargs['sm'] = True
+		kwargs['tearOff'] = cls.tearOff
+		kwargs['allowOptionBoxes'] = cls.allowOptionBoxes
 		return super(SubMenuItem, cls).__new__(cls, *args, **kwargs)
 
 

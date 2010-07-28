@@ -12,8 +12,12 @@ if not cmds.about(batch=1):
 			
 			Menu(label="TestMenu")
 			smi = SubMenuItem(label="TestSubMenu")
-			smi.toMenu()	# tests for maya2011 bug
-			MenuItem(label="Item")
+			item = MenuItem(label="Item")
+			
+			items = smi.toMenu().itemArray()	# tests for maya2011 bug
+			assert len(items) == 1 and items[0] == item
+			
+			
 			
 			assert isinstance(win, basestring)
 			
