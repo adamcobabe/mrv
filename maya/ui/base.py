@@ -544,5 +544,15 @@ class MenuItem( MenuBase ):
 
 		return Menu( name = self )
 
+
+class SubMenuItem(MenuItem):
+	"""A menu which is always a submenu. This type greatly facilitates subclasses to 
+	enforce being a MenuItem which is a submenu as no additional code is required"""
+	def __new__(cls, *args, **kwargs):
+		kwargs.pop("sm", kwargs.pop("subMenu", None))
+		kwargs['sm'] = True
+		return super(SubMenuItem, cls).__new__(cls, *args, **kwargs)
+
+
 # type is returned in some cases by objectTypeUI
 CommandMenuItem = MenuItem

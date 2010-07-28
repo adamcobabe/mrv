@@ -9,6 +9,11 @@ if not cmds.about(batch=1):
 		def test_doc_demo_basics( self ):
 			# creation
 			win = Window(title="demo")
+			MenuBarLayout()
+			Menu(label="TestMenu")
+			SubMenuItem(label="TestSubMenu")
+			MenuItem(label="Item")
+			
 			assert isinstance(win, basestring)
 			
 			# properties
