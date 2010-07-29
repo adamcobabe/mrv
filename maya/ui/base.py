@@ -5,6 +5,7 @@ Contains some basic  classes that are required to run the UI system
 __docformat__ = "restructuredtext"
 import maya.cmds as cmds
 from mrv.util import capitalize
+from mrv.maya.util import noneToList
 from mrv.interface import iDagItem
 from util import EventSenderUI
 import util as uiutil
@@ -196,6 +197,7 @@ class NamedUI( unicode, BaseUI , iDagItem, EventSenderUI ):
 			exists = 0
 
 		# END verify name
+		created = False
 		if has_valid_name and (name is None or not exists or force_creation):
 			try:
 				if name:	# use name to create named object
@@ -207,6 +209,8 @@ class NamedUI( unicode, BaseUI , iDagItem, EventSenderUI ):
 						raise AssertionError( "%s instance named '%s' does not have a long name after creation" % ( cls, name ) )
 				else:
 					name = cls.__melcmd__( **kwargs )
+				# END create item
+				created = True
 			except (RuntimeError,TypeError), e:
 				raise RuntimeError( "Creation of %s using melcmd %s failed: %s" % ( cls, cls.__melcmd__, str( e ) ) )
 			# END name handling
@@ -218,7 +222,7 @@ class NamedUI( unicode, BaseUI , iDagItem, EventSenderUI ):
 		# check for ui deleted override on subclass. If so, we initialize a run-once event
 		# to get notification. We use cmds for this as we can spare the callbackID handling 
 		# in that case ( run-once is not available in the API )
-		if cls.uiDeleted != NamedUI.uiDeleted:
+		if created and cls.uiDeleted != NamedUI.uiDeleted:
 			cmds.scriptJob(uiDeleted=(name, inst.uiDeleted), runOnce=1) 
 		# END register ui deleted event
 		
@@ -514,7 +518,7 @@ class Menu( MenuBase, ContainerMenuBase ):
 		""":return: An array of our menuItems
 		:note: This method worksaround a maya 2011 problem that makes it impossible
 			to properly wrap menuItems with short names as returned by p_itemArray"""
-		return [MenuItem(name="%s|%s" % (self, i)) for i in self.p_itemArray]
+		return [MenuItem(name="%s|%s" % (self, i)) for i in noneToList(self.p_itemArray)]
 
 
 class MenuItem( MenuBase ):

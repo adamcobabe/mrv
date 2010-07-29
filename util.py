@@ -419,14 +419,13 @@ class Event( object ):
 				
 				if inst.reraise_on_error:
 					raise 
-				
 				log.error(str( e ))
 				success = False
 		# END for each registered event
 
 		# remove failed listeners
 		for function in failed_callbacks:
-			callbackset.remove( function )
+			callbackset.remove(function)
 
 		Event._curSender = None
 		return success
