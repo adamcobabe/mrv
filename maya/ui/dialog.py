@@ -90,7 +90,7 @@ class ChoiceDialog( iChoiceDialog ):
 
 
 class ProgressWindow( iProgressIndicator ):
-	"""Simple progress window wrpping the default maya progress window"""
+	"""Simple progress window wrapping the default maya progress window"""
 	def __init__( self, **kwargs ):
 		"""Everything that iProgress indicator and Maya Progress Window support"""
 		min = kwargs.pop( "min", kwargs.pop( "minValue" , 0 ) )
