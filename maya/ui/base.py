@@ -426,7 +426,7 @@ class Window( SizedControl, uiutil.UIContainerBase ):
 						"te", "topEdge",
 						"tl", "leftEdge",
 						"mw", "mainWindow",
-						"rt", "resizeToFitChildren",
+						"rtf", "resizeToFitChildren",
 						"dt", "docTag" )
 
 	_events_ = ( "rc", "restoreCommand", "mnc", "minimizeCommand" )

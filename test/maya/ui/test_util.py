@@ -30,11 +30,11 @@ if not cmds.about(batch=1):
 			self.failUnlessRaises(AssertionError, instructor.stop_test_recording)
 			
 			
-			def default_1():
-				pass
+			def default_1(data):
+				assert isinstance(data, dict)
 			# END first 1
 			
-			def fail_1():
+			def fail_1(data):
 				raise AssertionError("I am failing for a good reason")
 			# END fail 1
 			

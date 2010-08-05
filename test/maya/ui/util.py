@@ -17,12 +17,16 @@ class TestSection(object):
 
 class TestRecord(object):
 	"""Simple structure to keep multiple TestSections"""
-	__slots__ = ('name', 'sections', 'cur_section_index', 'fail_info')
+	__slots__ = ('name', 'sections', 'cur_section_index', 'fail_info', 
+					'initialize', 'shutdown', 'data')
 	
-	def __init__(self, name):
+	def __init__(self, name, initialize, shutdown):
 		self.name = name
 		self.cur_section_index = 0
 		self.sections = list()
+		self.initialize = initialize
+		self.shutdown = shutdown
+		self.data = dict()
 		
 		self.fail_info = None
 		
@@ -37,6 +41,7 @@ class NotificatorWindow(ui.Window):
 		self.p_title = "Instructor"
 		h = 100
 		self.p_wh = (150, h)
+		self.p_rtf = True
 		
 		ui.ColumnLayout(adj=True)
 		self.text = ui.ScrollField(editable=False)
@@ -58,7 +63,7 @@ class NotificatorWindow(ui.Window):
 		"""Set the given textual instruction to te window"""
 		self.text.p_text = text
 		
-	def start_test_recording(self, test_name):
+	def start_test_recording(self, test_name, initialize=None, shutdown=None):
 		"""Start a test with the given name. If there is no test currently running, 
 		your test will be enabled in the UI once stop_test_recording was called.
 		If a test is already running, your test will be scheduled and may run
@@ -66,21 +71,27 @@ class NotificatorWindow(ui.Window):
 		As you can record multiple tests, which will be shown in order, it is recommended
 		to keep a global instance of the NotificationWindow as a shared resource for 
 		all participating Unittests.
-		:param test_name: string id for the test to run"""
+		:param test_name: string id for the test to run
+		:param initialize: if not None, a function to call before running any test in this
+			test case,  signature is fun(data), where data is a dictionary for your own data
+			that could be initialized here. It wil be passed to all subsequent test sections
+		:param shutdown: if not None, functino to call after all tests were run"""
 		if self._is_recording:
 			raise AssertionError("Call stop_test_recording before starting a new one")
 		# END assertion
 		self._is_recording = True
 		
-		self._records.append(TestRecord(test_name))
+		self._records.append(TestRecord(test_name, initialize, shutdown))
 		
 	def add_test_section(self, prepare_fun=None, check_fun=None, prepare_text=None, check_text=None):
 		"""Add a new test section
 		:param prepare_fun: function to prepare the section, fun()
 			It may give instructions through the window's ``notify`` method.
 			May be None in case no preparation is required
+			signature is fun(data)
 		:param check_fun: Check function to check the result, fun()
 			It is a failure if it raises, success otherwise.
+			Signature is fun(data)
 			May be None in case no check is required
 		:param prepare_text: if not None, text with instructions for the preparation, telling 
 			the user what to do next.
@@ -166,6 +177,11 @@ class NotificatorWindow(ui.Window):
 		
 		go_to_next_section=True
 		try:
+			if record.initialize:
+				record.initialize(record.data)
+				record.initialize = None
+			# END execute initializer
+			
 			if button is self.b_prepare:
 				if section.check_cb:
 					go_to_next_section=False
@@ -181,10 +197,10 @@ class NotificatorWindow(ui.Window):
 				# END section text
 				
 				# execute function
-				section.prepare_cb()
+				section.prepare_cb(record.data)
 			else:
 				# check pressed - just execute function, check result
-				section.check_cb()
+				section.check_cb(record.data)
 			# END handle button identity
 		except Exception, e:
 			print "Error when executing test %r, section %i" % (record.name, record.cur_section_index) 
@@ -194,6 +210,7 @@ class NotificatorWindow(ui.Window):
 		
 		# If the section failed, skip to the next section right away
 		if record.fail_info is not None:
+			go_to_next_section = True
 			record.cur_section_index = len(record.sections) - 1
 		# END handle errors
 		
@@ -202,6 +219,18 @@ class NotificatorWindow(ui.Window):
 			if new_section_index == len(record.sections):
 				# go to next test, if possible
 				new_record_index = self._cur_record_index + 1
+				
+				# before changing records, try to call shutdown
+				try:
+					if record.shutdown:
+						record.shutdown()
+						record.shutdown = None
+					# END handle shutdown
+				except Exception, e:
+					print "Failed during shutdown function"
+					traceback.print_exc()
+				# END handle shutdown exceptions
+				
 				if new_record_index == len(self._records):
 					# prepare final report
 					report_lines = list()
