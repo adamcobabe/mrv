@@ -56,7 +56,7 @@ class Scene( util.Singleton, util.EventSender ):
 	You can register all events available in MSceneMessage easily usnig the following 
 	syntax:
 	
-		>>> scene.kBeforeSoftwareRender = myFunctionObject
+		>>> scene.beforeSoftwareRender = myFunctionObject
 	
 	"""
 
