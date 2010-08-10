@@ -44,7 +44,7 @@ class NotificatorWindow(ui.Window):
 		self.p_rtf = True
 		
 		ui.ColumnLayout(adj=True)
-		self.text = ui.ScrollField(editable=False)
+		self.text = ui.ScrollField(editable=False, wordWrap=True)
 		self.text.p_h = h
 		
 		self.b_prepare = ui.Button(manage=False)

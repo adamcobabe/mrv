@@ -521,6 +521,25 @@ class Menu( MenuBase, ContainerMenuBase ):
 		return [MenuItem(name="%s|%s" % (self, i)) for i in noneToList(self.p_itemArray)]
 
 
+class PopupMenu(NamedUI, ContainerMenuBase):
+	_properties_ = (
+						"alt", "altModifier", 
+						"ctl", "ctrlModifier",
+						"sh", "shiftModifier", 
+						"b", "button", 
+						"aob", "allowOptionBoxes", 
+						"mm", "markingMenu",
+						"ni", "numberOfItems", 
+						"ia", "itemArray",
+						"dai", "deleteAllItems"
+					)
+	
+	_events_ = (
+						"pmc", "postMenuCommand", 
+						"pmo", "postMenuCommandOnce", 
+				)
+
+
 class MenuItem( MenuBase ):
 
 	_properties_ = (

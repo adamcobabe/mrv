@@ -56,7 +56,8 @@ if not cmds.about(batch=1):
 	
 			col = ui.ColumnLayout( adj=1 )
 			assert col.exists() 
-			assert isinstance( col, ui.Layout ) 
+			assert isinstance( col, ui.Layout )
+			
 			if col:
 				ui.Button( l="first" )
 				ui.Button( l="second" )
@@ -121,6 +122,17 @@ if not cmds.about(batch=1):
 			col = win.add( ui.ColumnLayout( adj=1 ) )
 	
 			if col:
+				def pmc(menu, *args):
+					print args
+					menu.p_dai = True
+					menu.setActive()
+					ui.MenuItem(label="Dynamically Added")
+				# END pmc
+		
+				# test popup - quick and dirty
+				pop = ui.PopupMenu()
+				pop.e_postMenuCommand = pmc
+				
 				bname = "mybutton"
 				b1 = col.add( ui.Button( l="one" ) )
 				b2 = col.add( ui.Button( name=bname, l="two" ) )
@@ -153,7 +165,7 @@ if not cmds.about(batch=1):
 				b1.e_released = func2
 	
 				assert len( col.children( ) ) == 4 
-				assert len( col.childrenDeep( ) ) == 6 
+				assert len( col.childrenDeep( ) ) == 6+1		# +1 == popup menu 
 				assert grid.parent( ) == col 
 				assert grid.parent() is not col 
 			col.setParentActive()
