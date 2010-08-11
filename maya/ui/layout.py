@@ -14,7 +14,7 @@ class Layout( uibase.SizedControl, uiutil.UIContainerBase ):
 	""" Structural base  for all Layouts allowing general queries and name handling
 	Layouts may track their children
 	"""
-	_properties_ = ( "nch", "numberOfChildren" )
+	_properties_ = ( "nch", "numberOfChildren")
 
 	def __init__( self, *args, **kwargs ):
 		"""Initialize the layout"""
@@ -155,3 +155,21 @@ class TabLayout( Layout ):
 					"psc", "preSelectCommand",
 					"dcc", "doubleClickCommand" )
 
+class PaneLayout(Layout):
+	"""Simple wrapper for a pane layout"""
+	_properties_ = (
+						"cn", "configuration", 
+						"sp", "setPane", 
+						"ap", "activePane", 
+						"api", "activePaneIndex", 
+						"aft", "activeFrameThickness", 
+						"st", "separatorThickness", 
+						"ps", "paneSize", 
+						"p1", "p2", "p3", "p4", "pane1", "pane2", "pane3", "pane4", 
+						"pup", "paneUnderPointer",
+						"nvp", "numberOfVisiblePanes", 
+						# maya >= 2011
+						"swp", "staticWidthPane", 
+						"shp", "staticHeightPane"
+					)
+	_events_ = ("smc", "separatorMovedCommand")

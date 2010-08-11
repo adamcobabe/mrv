@@ -355,10 +355,16 @@ class SizedControl( NamedUI ):
 						"npm", "numberOfPopupMenus",
 						"po", "preventOverride",
 						"bgc", "backgroundColor",
-						"dtg", "doctTag" )
+						"dtg", "doctTag",
+						# maya >=2011)
+						"fpn", "fullPathName",
+						"ebg", "enableBackground"
+					)
 
 	_events_ = ( 	"dgc", "dragCallback" ,
-					"dpc", "dropCallback" )
+					"dpc", "dropCallback" ,
+					# maya >= 2011
+					"vcc", "visibleChangeCommand")
 
 	#{ Query Methods
 
