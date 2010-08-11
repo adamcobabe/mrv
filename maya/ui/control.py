@@ -7,6 +7,8 @@ __docformat__ = "restructuredtext"
 import base as uibase
 import util as uiutil
 
+from mrv.maya.util import noneToList
+
 import logging
 log = logging.getLogger("mrv.maya.ui.control")
 
@@ -300,6 +302,27 @@ class TextScrollList( uibase.SizedControl ):
 	_events_ = ( 	"doubleClickCommand", "dcc",
 					"deleteKeyCommand", "dkc",
 					"selectCommand", "sc" )
+	
+	#{ Interface
+	def selectedIndex(self):
+		""":return: First selected index - the index is 1-based, or -1 if there 
+		is nothing selected
+		:note: even if multiple selections are possible"""
+		sel = self.selectedIndices()
+		if not sel:
+			return -1
+		return sel[0]
+		
+	def selectedIndices(self):
+		""":return: tuple of all selected 1-based indices, or an empty tuple if there
+			is nothing selected"""
+		try:
+			return tuple(noneToList(self.p_selectIndexedItem))
+		except RuntimeError:
+			return tuple()
+		# END handle exceptions
+	
+	#} END interface
 
 
 
