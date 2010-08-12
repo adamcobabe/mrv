@@ -104,7 +104,8 @@ class NotificatorWindow(ui.Window):
 		
 	def stop_test_recording(self):
 		"""Indicate that you are done recording. This also starts the first test
-		case in the UI in case no one else is in progress"""
+		case in the UI in case no one else is in progress.
+		Additionally we assure the Notificator is shown."""
 		if not self._is_recording:
 			raise AssertionError("Call start_test_recording before stopping it")
 		# END asesrtion
@@ -121,6 +122,7 @@ class NotificatorWindow(ui.Window):
 		
 		# update title according to changed settings
 		self._set_active_record_title()
+		self.show()
 	
 	#} END interface
 	
@@ -191,9 +193,12 @@ class NotificatorWindow(ui.Window):
 				
 				# if we have a check, update the notification now.
 				# Just keep showing the prepare instruction if there is no 
-				# check instruction available
+				# check instruction available, refresh the prepare instruction
+				# in case a prior notify() call removed it
 				if section.check_cb is not None and section.check_text:
 					self.notify(section.check_text)
+				elif section.prepare_text:
+					self.notify(section.prepare_text)
 				# END section text
 				
 				# execute function
