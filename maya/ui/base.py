@@ -62,7 +62,14 @@ def wrapUI( uinameOrList, ignore_errors = False ):
 # alias, allowing new items to be easily wrapped
 UI = wrapUI
 
-
+def uiExists(uiname):
+	""":return: True if the user interface element with the given name exists"""
+	try:
+		wrapUI(uiname)
+		return True
+	except RuntimeError:
+		return False
+	# END exception handling
 
 def lsUI( **kwargs ):
 	""" List UI elements as python wrapped types

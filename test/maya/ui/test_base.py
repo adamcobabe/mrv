@@ -10,6 +10,9 @@ if not cmds.about(batch=1):
 			# creation
 			win = Window(title="demo", menuBar=True)
 			
+			assert uiExists(win)
+			assert not uiExists("hithere")
+			
 			Menu(label="TestMenu")
 			smi = SubMenuItem(label="TestSubMenu")
 			item = MenuItem(label="Item")
