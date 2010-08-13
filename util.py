@@ -392,7 +392,9 @@ class Event( object ):
 		# keep the sender
 		Event._curSender = inst
 		
-		for function in callbackset:
+		# copy the set, allowing callbacks to remove themselves during the callback.
+		# Otherwise we have a size change during the iteration
+		for function in callbackset.copy():
 			try:
 				func = self._key_to_func( function )
 				if func is None:
